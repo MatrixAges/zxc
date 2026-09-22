@@ -15,7 +15,7 @@ Call Input + optional { store setter } → computation → Output
 核心约束：
 
 1. 一个可执行 `.zx` 文件只有一个函数；
-2. 函数只有一个业务输入值和一个输出值；声明 Store setter 时可以接收固定的第二参数 `{ store }`；
+2. 函数只有一个业务输入值和一个输出值；Store 句柄由 Call 单独注入；
 3. 局部变量只能使用 `const`；
 4. 函数不保存任何私有或隐式的跨调用状态；
 5. 函数结束后，局部变量和调用帧全部销毁；
@@ -32,13 +32,13 @@ Call Input + optional { store setter } → computation → Output
 
 ## 2. 与其他文件的职责边界
 
-| 文件 | 职责 |
-|---|---|
-| 普通 `*.rx` | Pipeline、Task、分支、并发和调用拓扑 |
-| `*.gateway.rx` | API、RPC、Socket 等对外接口 |
-| `*.store.rx` | 可恢复的常驻内存对象定义 |
-| `*.zx` | 不可变计算、Module 授权的 Store 更新和显式 effect 描述 |
-| `app.rx` | 程序总体配置，内部 schema 尚未确定 |
+| 文件           | 职责                                                   |
+| -------------- | ------------------------------------------------------ |
+| 普通 `*.rx`    | Pipeline、Task、分支、并发和调用拓扑                   |
+| `*.gateway.rx` | API、RPC、Socket 等对外接口                            |
+| `*.store.rx`   | 可恢复的常驻内存对象定义                               |
+| `*.zx`         | 不可变计算、Module 授权的 Store 更新和显式 effect 描述 |
+| `app.rx`       | 程序总体配置，内部 schema 尚未确定                     |
 
 具体边界如下：
 
@@ -94,7 +94,7 @@ export default function (in: Input): Output {
 - 参数名固定为 `in`；
 - `<Call>` 未声明 setter 时，函数签名固定为 `(in: Input): Output`；
 - `<Call>` 声明 setter 时，函数签名固定为 `(in: Input, { store }): Output`；
-- 第二参数只包含受限 Store setter，由 Runtime 注入；不声明类型、不使用 import，也不允许改名、别名、默认值或剩余参数；
+- Store 能力通过 Call 注入的 `$name` 句柄提供；旧 `{ store }` 参数仅保留兼容；
 - 文件中不能出现第二个顶层或可复用函数；受限集合 lambda 是唯一例外；
 - 不允许具名函数导出；
 - 不允许在 `.rx` 中内联 `.zx` 代码。
@@ -110,39 +110,30 @@ export default function (in: Input): Output {
 }
 ```
 
-### 3.2 Call 输入与 Store setter 注入
+### 3.2 Call 输入与 Store 句柄注入
 
-`ctx.*`、Store getter 和普通业务数据都由 RX 的 `in` 映射精确选择，并组成 `.zx` 的第一个参数：
-
-```xml
-<Call
-  fn="advance_dispatch_cursor"
-  in="{batch_size:$in.batch_size,state:store.scheduler.dispatcher,trace_id:ctx.trace_id}"
-  out="ctx.range"
-  setter="[store.scheduler.dispatcher]"
-/>
-```
-
-`setter` 中的路径引用 Module 初始化时已经建立的 setter。它不会在每次 Call 中重新创建 getter、setter 或权限表。
-
-声明 setter 的 `.zx` 使用固定第二参数：
+普通业务数据通过 Call 的 `in` 映射传入。Store 使用由 Call 直接注入的命名句柄，例如 `$store_v`，不在 ZX 中声明句柄绑定，也不通过 import 获得能力。
 
 ```ts
-export default function (in: Input, { store }): Output {
-  // store 只能用于 setter 左值
+export default function (in: Input): Output {
+  const current = $store_v.value;
+
+  $store_v.value = { ...current, count: current.count + in.increment };
+
+  return $store_v.value.count;
 }
 ```
 
-规则如下：
+Call 的编译上下文必须提供句柄名、完整 Store Object 路径、对象类型，以及独立的读写权限。编译器把句柄解析为静态 slot；未注入句柄、越权读写和类型不匹配均在编译期拒绝。
 
-- 未声明 setter 的函数省略整个第二参数；
-- 声明 setter 的函数固定使用 `{ store }`，不注入 `ctx`；
-- `store` 只包含 `setter` 列出的、且已在当前 Module 注册的写入路径；
-- `store` 是只写能力，读取旧状态必须通过 `in` 传入；
-- `store` 的类型由 `zxc` 根据 Module Store 定义和 Call 的 `setter` 推导；
-- 不允许给第二参数增加类型标注、改名、别名、默认值或剩余绑定；
-- `store` 不能被读取、返回、保存或传递给普通项目函数；
-- Runtime 能力不能通过任何 import 获得。
+- `$store_v.value` 是只读 getter；不深拷贝列表和字符串。
+- `$store_v.value = next_value` 是整体 Object setter；禁止 `$store_v.value.field = ...`。
+- getter 先读取本次调用已暂存的新值，否则读取调用快照。
+- 句柄不能被保存、返回、传入普通函数或被集合回调捕获。
+- 普通 const 仍不可变；setter 是受授权能力，不是普通对象字段写入。
+- 旧 `{ store }` 参数及 `store.namespace.object = ...` 形式仅保留兼容；新代码使用 Call 注入的命名句柄。
+
+这是 ZX 编译器的调用上下文契约。RX 的完整文本加载与 Runtime 调度不是通过本节示例自动实现的；宿主负责把已授权 Call 配置转换为该上下文。
 
 ### 3.3 纯类型文件
 
@@ -150,14 +141,14 @@ export default function (in: Input, { store }): Output {
 
 ```ts
 export type Money = {
-  amount: u64;
-  currency: string;
-};
+	amount: u64
+	currency: string
+}
 
 export enum Currency {
-  CNY,
-  USD,
-  EUR,
+	CNY,
+	USD,
+	EUR
 }
 ```
 
@@ -183,14 +174,14 @@ export enum Currency {
 
 ### 4.1 标量
 
-| `.zx` 类型 | Zig 映射 | 说明 |
-|---|---|---|
-| `bool` | `bool` | `true` / `false` |
-| `u8`、`u16`、`u32`、`u64` | 同名 Zig 类型 | 无符号整数 |
-| `i32`、`i64` | 同名 Zig 类型 | 有符号整数 |
-| `f32`、`f64` | 同名 Zig 类型 | 浮点数 |
-| `string` | `[]const u8` | UTF-8 不可变字节切片 |
-| `void` | `void` | 没有业务输出 |
+| `.zx` 类型                | Zig 映射      | 说明                 |
+| ------------------------- | ------------- | -------------------- |
+| `bool`                    | `bool`        | `true` / `false`     |
+| `u8`、`u16`、`u32`、`u64` | 同名 Zig 类型 | 无符号整数           |
+| `i32`、`i64`              | 同名 Zig 类型 | 有符号整数           |
+| `f32`、`f64`              | 同名 Zig 类型 | 浮点数               |
+| `string`                  | `[]const u8`  | UTF-8 不可变字节切片 |
+| `void`                    | `void`        | 没有业务输出         |
 
 不提供模糊的 `number` 类型。数值宽度和有无符号必须显式确定。
 
@@ -199,16 +190,16 @@ export enum Currency {
 独立可选类型使用 `T?`：
 
 ```ts
-export type Output = string?;
+export type Output = string?
 ```
 
 对象中的可选字段使用 TypeScript 风格的 `?`：
 
 ```ts
 export type User = {
-  id: u64;
-  nickname?: string;
-};
+	id: u64
+	nickname?: string
+}
 ```
 
 两者都映射到 Zig 的 `?T`。空值字面量为 `null`。
@@ -219,14 +210,14 @@ export type User = {
 
 ```ts
 export type Address = {
-  city: string;
-  zip_code: string;
-};
+	city: string
+	zip_code: string
+}
 
 export type User = {
-  id: u64;
-  address: Address;
-};
+	id: u64
+	address: Address
+}
 ```
 
 允许有限、明确的结构嵌套，但不允许继承、交叉合并或运行时追加字段。
@@ -237,27 +228,47 @@ export type User = {
 
 ```ts
 export enum PaymentStatus {
-  Success,
-  Pending,
-  Failed,
+	Success,
+	Pending,
+	Failed
 }
 ```
 
 枚举成员在编译期固定，不允许动态枚举或字符串联合类型模拟枚举。
 
-### 4.5 只读列表
+### 4.5 不可变列表与消费式更新
 
 列表使用 `T[]`，映射为 Zig 只读切片 `[]const T`：
 
 ```ts
 export type Input = {
-  item_ids: u64[];
-};
+	item_ids: u64[]
+}
 ```
 
-列表本身不可变，不支持 `push`、`pop`、`splice`、原地 `sort` 或索引赋值。
+列表在 ZX 中不可直接修改，索引赋值始终非法。独占所有者可以执行消费式操作；旧绑定失效，结果统一为 `[新所有者, 业务值]`，必须显式解构：
+
+```ts
+const items = [1, 2]
+const [next_items, _] = items.push(3)
+```
+
+| 操作                                | 业务值 | 约定                                                |
+| ----------------------------------- | ------ | --------------------------------------------------- |
+| `push(value)`                       | void   | 追加一个元素                                        |
+| `pop()`                             | T?     | 空列表返回 null                                     |
+| `reverse()`                         | void   | 反转顺序                                            |
+| `sort()`                            | void   | 数值或字符串升序；NaN 排在非 NaN 后；不保证稳定排序 |
+| `concat(other)`                     | void   | 连接同类型列表                                      |
+| `splice(start, count, replacement)` | T[]    | 返回被删除元素；范围越界失败                        |
+
+`clone()` 显式获得独立所有权。输入、Store getter 及借用的嵌套列表均保持只读；读取它们不需要 clone。只有要对共享容器执行消费操作时，才需要取得独占所有权。
+
+赋值和容器构造会转移本地独占所有者；包含列表的字段被提取时，当前实现保守地移动整个根所有者。分支中任一继续执行的路径消费了值，后续不得继续使用旧绑定。详见[不可变值与 Store 句柄契约](2026-09-22/不可变值与存储句柄契约.md)。
 
 ### 4.6 内置 effect 类型
+
+本节与第 11 节为保留设计。用户已明确当前不实现数据库能力；Db、DbEffect、数据库调用及 Runtime 不计入本次实现范围，使用时应明确诊断为尚未开放。
 
 Runtime 可以提供编译器内置的 effect 类型，例如：
 
@@ -274,12 +285,12 @@ DbEffect<Order?>
 
 ### 5.1 导入协议
 
-| 路径形式 | 含义 | 示例 |
-|---|---|---|
-| `./`、`../` | 相对路径项目 `.zx` | `import normalize from "./normalize"` |
-| `@/` | 项目 `.zx` 绝对别名，实际根目录解析方式待工程配置确定 | `import type { Money } from "@/types/money"` |
-| `lib:` | 已声明的第三方 Zig 库 | `import crypto from "lib:crypto"` |
-| `zig:` | Zig 内置库的受限纯计算接口 | `import std from "zig:std"` |
+| 路径形式    | 含义                                                           | 示例                                         |
+| ----------- | -------------------------------------------------------------- | -------------------------------------------- |
+| `./`、`../` | 相对路径项目 `.zx`                                             | `import normalize from "./normalize"`        |
+| `@/`        | 项目 `.zx` 根目录别名；API 使用 root_dir，CLI 使用当前工作目录 | `import type { Money } from "@/types/money"` |
+| `lib:`      | 已声明的第三方 Zig 库                                          | `import crypto from "lib:crypto"`            |
+| `zig:`      | Zig 内置库的受限纯计算接口                                     | `import std from "zig:std"`                  |
 
 项目 `.zx` 导入可以省略 `.zx` 后缀。`.zx` 不能导入任何 `.rx` 文件，包括普通 `*.rx`、`*.store.rx`、`*.gateway.rx` 和 `app.rx`。`zx:` 不是合法的导入协议。
 
@@ -288,7 +299,7 @@ DbEffect<Order?>
 类型导入：
 
 ```ts
-import type { Money, User } from "@/types/models";
+import type { Money, User } from '@/types/models'
 ```
 
 `import type` 只能读取纯类型 `.zx` 文件。Store layout 不会变成可导入的 `.zx` 类型；`.zx` 仍需显式声明自己的 `Input` 契约，`zxc` 再根据调用者 Module、Call `in` 和 `setter` 对两侧结构进行静态兼容性检查。
@@ -296,19 +307,19 @@ import type { Money, User } from "@/types/models";
 默认函数导入：
 
 ```ts
-import normalizePrice from "./normalize_price";
+import normalizePrice from './normalize_price'
 ```
 
 枚举导入：
 
 ```ts
-import { PaymentStatus } from "@/types/payment";
+import { PaymentStatus } from '@/types/payment'
 ```
 
 第三方纯计算模块导入：
 
 ```ts
-import crypto from "lib:crypto";
+import crypto from 'lib:crypto'
 ```
 
 ### 5.3 复用边界
@@ -318,7 +329,7 @@ import crypto from "lib:crypto";
 - 命名导出只用于类型和枚举，不用于定义多个 helper 函数；
 - 普通函数只能调用纯函数；
 - `lib:` 中会访问文件、网络、时钟、随机源或全局状态的 API 不能作为普通纯函数调用；
-- Runtime 变量、Store getter 和外部能力通过 `<Call in="...">` 精确传入；只有 Store setter 使用第二参数 `{ store }`；
+- 普通 Runtime 数据通过 Call 的 in 映射传入；Store getter/setter 通过 Call 注入的命名句柄提供；
 - 导入任何 `.rx` 配置文件都属于编译错误；
 - 动态导入、运行时模块解析和循环依赖不进入最小语法。
 
@@ -357,13 +368,13 @@ in.items.length
 
 ### 6.3 操作符
 
-| 类别 | 操作符 |
-|---|---|
-| 算术 | `+`、`-`、`*`、`/`、`%` |
-| 比较 | `==`、`!=`、`<`、`<=`、`>`、`>=` |
-| 逻辑 | `!`、`&&`、`||` |
-| 条件 | `condition ? a : b` |
-| 空值回退 | `value ?? fallback` |
+| 类别     | 操作符                           |
+| -------- | -------------------------------- |
+| 算术     | `+`、`-`、`*`、`/`、`%`          |
+| 比较     | `==`、`!=`、`<`、`<=`、`>`、`>=` |
+| 逻辑     | `!`、`&&`、`                     |     | `   |
+| 条件     | `condition ? a : b`              |
+| 空值回退 | `value ?? fallback`              |
 
 字符串支持 `==` 和 `!=`，由 `zxc` 转译为 Zig 字节切片比较。
 
@@ -384,11 +395,11 @@ const next_state = {
 in.state.cursor = 10; // 非法
 ```
 
-唯一允许的赋值语句是完整 Store Object 的 setter，见第 7.5 节和第 10 节。
+唯一允许的赋值语句是注入句柄的完整 Store Object setter，见第 7.5 节和第 10 节。
 
 ### 6.5 函数调用
 
-项目内默认函数始终接收一个对象参数：
+项目内默认函数接收一个与 Input 类型匹配的参数，Input 可以是标量、对象或列表；Input 为 void 时允许无实参调用：
 
 ```ts
 import normalizePrice from "./normalize_price";
@@ -399,7 +410,7 @@ const normalized_price = normalizePrice({
 });
 ```
 
-项目函数不能自行定义多个位置参数、默认参数、剩余参数或重载。受限 Store setter 第二参数是语言规定的唯一额外参数；`zig:`、`lib:` 提供的编译器已知 API 可以拥有各自固定签名。
+项目函数不能自行定义多个位置参数、默认参数、剩余参数或重载。Store 句柄仅由调用上下文注入；`zig:`、`lib:` 提供的编译器已知 API 可以拥有各自固定签名。
 
 ---
 
@@ -458,24 +469,18 @@ switch (in.status) {
 - 非 `void` Output 的每条可达路径都必须返回值；
 - 返回值必须与 `Output` 完全匹配；
 - `void` 函数可以使用 `return;`，也可以在函数末尾隐式结束；
-- 不支持多个返回值；需要多个结果时返回一个对象。
+- 每次 return 返回一个值；多个业务结果可以组成对象或显式元组。
 
 ### 7.5 Store setter
 
-完整 Store Object 可以通过赋值语句更新：
-
 ```ts
-store.scheduler.dispatcher = next_dispatcher;
+$store_v.value = {
+	...$store_v.value,
+	count: $store_v.value.count + 1
+}
 ```
 
-这是语言内置的受控 setter，不是普通变量赋值。只有当调用者 `<Call>` 的 `setter` 列表包含该路径时，Runtime 才会注入对应写入能力。setter 左侧必须是静态可解析的完整路径 `store.<namespace>.<object>`；不能读取该路径，也不能写入某个嵌套字段、动态索引或计算出的路径：
-
-```ts
-store.scheduler.dispatcher.cursor = 10; // 非法
-store[in.store_name].dispatcher = value; // 非法
-```
-
-右侧值必须与 `*.store.rx` 中该 Object 生成的类型完全一致。
+右侧必须与该句柄对应的完整 Object 类型一致。赋值只暂存新值，成功返回时才调用宿主的统一提交接口。发布本地所有者之后，该绑定仍可只读访问，但不能再执行消费操作，以免改动已发布的状态。
 
 ---
 
@@ -483,11 +488,11 @@ store[in.store_name].dispatcher = value; // 非法
 
 最小集合操作只有：
 
-| 操作 | 语义 |
-|---|---|
-| `map` | 把每个元素映射为新元素，返回等长新列表 |
-| `filter` | 保留满足条件的元素，返回新列表 |
-| `reduce` | 把列表归约为一个值 |
+| 操作     | 语义                                   |
+| -------- | -------------------------------------- |
+| `map`    | 把每个元素映射为新元素，返回等长新列表 |
+| `filter` | 保留满足条件的元素，返回新列表         |
+| `reduce` | 把列表归约为一个值                     |
 
 ```ts
 export type Input = {
@@ -506,7 +511,8 @@ export default function (in: Input): Output {
 集合 lambda 是唯一允许的内联函数形式，并受到严格限制：
 
 - 只能出现在 `map`、`filter`、`reduce` 参数位置；
-- 只能读取参数、`in` 和外部不可变 `const`；
+- ZX 不支持闭包。集合 lambda 只能读取自身显式参数和自身局部绑定，不能捕获外层局部变量、外层 lambda 参数、`in` 或注入的 Store 句柄；
+- 类型、枚举和已导入纯函数的静态名称解析不属于变量捕获，不创建运行时环境；
 - 不能赋值、逃逸、保存或作为返回值；
 - 不能执行 effect；
 - 不能递归。
@@ -564,102 +570,27 @@ export default function (in: Input): Output {
 
 ## 10. Store getter 与 setter
 
-Store 权限分为读取和写入两条路径：
+Store Object 由 Module 和 Runtime 管理，ZX 不持有模块私有状态。Call 直接注入命名句柄，独立授权读和写；ZX 只通过 `.value` 访问，不解析路径字符串。
 
-- getter 由 `<Call in="...">` 读取，并作为普通 `Input` 字段传给 `.zx`；
-- setter 由 `<Call setter="[...]">` 显式选择，并通过第二参数 `{ store }` 注入 `.zx`。
+生成的执行函数接收有类型快照指针和宿主提交接口。每次调用持有独立的暂存结构：
 
-Module 声明决定两者共同的权限上界：
+1. getter 未写入前借用快照，写入后读取本次暂存值；
+2. setter 整体替换一个 Object，不原地修改原快照；
+3. 对象展开复制字段描述，未修改的列表继续共享只读切片，不做深拷贝；
+4. 成功返回之前，生成代码只调用一次 `context.commit(pending)`；
+5. 生成代码在计算失败时不调用 commit，暂存值随调用丢弃；
+6. 宿主 commit 必须先完成所有版本与权限检查，再原子发布所有写入；冲突通过错误返回传播，不能部分提交；
+7. 配置文件同步、锁、持久化和快照回收由宿主 Runtime 实现，编译器不伪造这些 I/O。
 
-```xml
-<Module name="scheduler">
-  <Store from="scheduler" />
+输入快照必须活到 getter 借用结束，调用 Arena 必须覆盖输出和暂存值的使用周期。宿主在长期保存新状态前，需要把其存储所有权提升到 Store 生命周期，不能保存已经释放的调用 Arena 指针。
 
-  <Pipeline name="next_batch" in="NextBatchInput" out="DispatchRange">
-    <Call
-      fn="advance_dispatch_cursor"
-      in="{batch_size:$in.batch_size,state:store.scheduler.dispatcher}"
-      out="ctx.range"
-      setter="[store.scheduler.dispatcher]"
-    />
-  </Pipeline>
-</Module>
-```
-
-Store namespace 的名称来自 Module 声明：
-
-```xml
-<Module name="worker">
-  <Store from="scheduler" />
-  <Store from="billing" as="payments" />
-</Module>
-```
-
-对应的访问路径分别是 `store.scheduler.*` 和 `store.payments.*`。`as` 是可选的；不写别名时，`from` 的值就是 namespace。
-
-Runtime 在 Module 初始化时一次性为已声明 Store 建立有类型的 getter/setter 表。这个开销是 Module 级固定成本。`in` 和 `setter` 在编译期解析为静态 slot；执行 Call 时不解析 Store 路径、不创建权限表，也不复制未引用的 `ctx` 或 Store 数据。
-
-性能实现必须满足：
-
-- 标量 getter 可以按值传递；字符串、列表和较大的 Store Object 使用带版本的只读 view，不做深拷贝；
-- 每个 Call 的 setter view 在 Module 初始化时预绑定，执行时只传一个已有 view 的引用；
-- 没有 `setter` 的 `.zx` 不接收第二参数；
-- setter 暂存区按首次实际写入惰性创建，不因声明 `setter` 就复制整个 Object；
-- Store 路径、类型和权限检查都在编译期或 Module 初始化期完成，不进入热路径。
-
-对应 `.zx` 从 `in.state` 读取快照，通过第二参数中的只写 `store` 提交新状态。`.zx` 不导入 `*.store.rx`：
-
-```ts
-export type DispatcherSnapshot = {
-  cursor: u64;
-  in_flight: u32;
-};
-
-export type Input = {
-  batch_size: u64;
-  state: DispatcherSnapshot;
-};
-
-export type Output = {
-  start: u64;
-  end: u64;
-};
-
-export default function (in: Input, { store }): Output {
-  const start = in.state.cursor;
-  const end = start + in.batch_size;
-
-  store.scheduler.dispatcher = {
-    ...in.state,
-    cursor: end,
-  };
-
-  return {
-    start: start,
-    end: end,
-  };
-}
-```
-
-`store.*` 的语义规则：
-
-1. Store getter 只通过 `in` 映射提供不可变快照；
-2. `store` 来自函数第二参数，是只写 setter namespace，不允许读取；
-3. `.zx` 只能写入当前 Call 的 `setter` 列表明确声明的路径；
-4. setter 只能整体替换一个 Object，不能原地修改其字段；
-5. setter 写入先在当前调用中暂存；函数需要继续使用新状态时，应读取自己的局部 `const`，而不是回读 `store`；
-6. `.zx` 正常返回后，Runtime 执行版本检查、原子替换和配置文件同步；
-7. 函数失败或 Store 版本冲突时，本次暂存写入全部丢弃，并通过 Runtime 错误通道报告。
-
-Store 权限按 RX Call 的调用位置检查。同一个 `.zx` 文件被多个 Module 复用时，每个调用者都必须在 Module 中注册对应 Store，并在 Call 的 `setter` 中列出函数实际写入的路径。输入快照和 setter Object 的结构必须兼容。
-
-因此 `.zx` 仍然不能持有私有状态；它只是显式操作由 Module 授权、由 Runtime 持久化的 Store。Store Object 用于需要常驻内存并可停机恢复的运行时对象，不用于定义业务数据模型。
+该边界允许宿主采用引用计数、版本化快照或其他实现；ZX 不要求每次读取复制整个 Store。当前生成测试验证了：标量字段更新可在零分配预算下成功，未修改列表保持原指针，失败不提交，宿主冲突不返回成功。
 
 ---
 
 ## 11. 数据库 effect
 
-数据库操作属于 `.zx` 的受控能力，但函数不能持有连接或直接执行 I/O。RX 通过 `in` 只传入当前 Call 需要的 `ctx.db` capability；`.zx` 返回数据库 effect 描述，由 Runtime 解释执行。
+本节为未开放的保留设计，当前不实现数据库操作。未来数据库操作属于 `.zx` 的受控能力，但函数不能持有连接或直接执行 I/O。RX 通过 `in` 只传入当前 Call 需要的 `ctx.db` capability；`.zx` 返回数据库 effect 描述，由 Runtime 解释执行。
 
 ### 11.1 查询示例
 
@@ -693,13 +624,13 @@ export default function (in: Input): Output {
 
 ### 11.2 最小数据库能力
 
-| 能力 | 作用 |
-|---|---|
-| `Db.queryOne<T>` | 查询零或一条记录 |
-| `Db.queryMany<T>` | 查询多条记录 |
-| `Db.insert<T>` | 插入并返回结果 |
-| `Db.update<T>` | 更新并返回结果 |
-| `Db.delete<T>` | 删除并返回结果 |
+| 能力                | 作用                                |
+| ------------------- | ----------------------------------- |
+| `Db.queryOne<T>`    | 查询零或一条记录                    |
+| `Db.queryMany<T>`   | 查询多条记录                        |
+| `Db.insert<T>`      | 插入并返回结果                      |
+| `Db.update<T>`      | 更新并返回结果                      |
+| `Db.delete<T>`      | 删除并返回结果                      |
 | `Db.transaction<T>` | 把多个数据库命令组成一个事务 effect |
 
 Runtime 负责：
@@ -797,7 +728,7 @@ Runtime 负责：
 - `throw`、`try`、`catch`、`finally`；
 - `for`、`while`、`do while`；
 - 递归；
-- 一般闭包和可逃逸 lambda；
+- 闭包捕获和可逃逸 lambda；
 - 多个函数、嵌套函数和具名函数导出；
 - `yield` 和 generator；
 - `async`、`await`、`Promise`。
@@ -806,7 +737,7 @@ Runtime 负责：
 
 - 访问当前 Module 未声明的 Store；
 - 写入当前 Call 的 `setter` 未列出的 Store；
-- 从第二参数读取 `store.*`；Store getter 必须通过 `in` 传入；
+- 读取未由 Call 注入或未授予读权限的 Store 句柄；
 - 动态计算 Store 路径或修改 Store Object 的嵌套字段；
 - 直接读写数据库、文件或网络；
 - 直接读取环境变量、系统时钟或随机源；
@@ -822,7 +753,7 @@ Runtime 负责：
 
 1. 文件角色只能是可执行文件或纯类型文件；
 2. 可执行文件必须且只能导出一个 `Input`、一个 `Output` 和一个默认函数；
-3. 默认函数签名必须为 `(in: Input): Output` 或 `(in: Input, { store }): Output`；
+3. 默认函数使用 `(in: Input): Output`，Store 句柄由 Call 单独注入；旧 `{ store }` 参数保留兼容；
 4. `Input` 和 `Output` 都是受支持的有效类型，不要求对象结构；
 5. 所有非 `void` 路径都返回与 `Output` 匹配的值；
 6. 只出现允许的类型、语句、表达式和操作符；
@@ -830,12 +761,12 @@ Runtime 负责：
 8. 项目函数导入不存在循环依赖；
 9. 所有项目文件导入都指向 `.zx`，不存在任何指向 `.rx` 的依赖；
 10. 枚举 `switch` 的覆盖情况可静态确定；
-11. 集合 lambda 不逃逸且不产生 effect；
-12. Runtime 数据和 capability 只来自 Call 的 `in` 映射，不存在 Runtime capability import；
-13. `{ store }` 只在 Call 声明 `setter` 时出现，并且是只写能力；
-14. 每个 `store.*` namespace 都来自当前调用者 Module 的 `<Store>` 声明；
-15. 每条 Store 写入都出现在当前 Call 的 `setter` 列表中；
-16. Store setter 指向完整 Object，且右侧值与编译器注入的 Object 类型完全匹配；
+11. 集合 lambda 无捕获、不逃逸且不产生 effect；
+12. Runtime 数据与 capability 只来自 Call 的 in 映射或已授权命名句柄，不存在 Runtime capability import；
+13. Store 句柄由 Call 注入，每个句柄的读写权限独立检查；
+14. 每个句柄都映射到当前调用者授权的完整 Store Object；
+15. 每条 Store 写入都必须获得当前 Call 的写权限；
+16. Store setter 只允许 `.value` 整体替换，右侧类型必须完全匹配；
 17. 同一个 `.zx` 调用不同时包含 Store setter 和数据库 effect；
 18. effect 文件只使用 Call `in` 显式传入的 Runtime capability；
 19. 数据库 effect 与声明的解析类型一致；
@@ -866,6 +797,7 @@ Type           := Scalar
                 | Type "[]"
                 | ObjectType
                 | EnumType
+                | "[" Type ("," Type)* "]"
                 | BuiltinCapabilityType
                 | BuiltinEffectType
 
@@ -875,7 +807,8 @@ Statement      := ConstDecl
                 | ReturnStatement
                 | StoreSetStatement
 
-StoreSetStatement := StoreObjectPath "=" Expression ";"
+StoreSetStatement := InjectedHandle ".value =" Expression ";"
+                   | StoreObjectPath "=" Expression ";"
 StoreObjectPath   := "store." Namespace "." ObjectName
 
 Expression     := Literal
@@ -898,19 +831,19 @@ Expression     := Literal
 
 ```text
 Input / Output / export default function
-optional Store setter parameter: { store }
-const / if / switch / return / store.* setter
-scalar / string / optional / object / enum / readonly list
-operators / template string / map / filter / reduce
+Call-injected Store handles: $name.value
+const / tuple destructuring / if / switch / return / Store setter
+scalar / string / optional / object / enum / immutable list / tuple
+operators / template string / map / filter / reduce / clone / consuming list operations
 import / import type
 ```
 
 按需能力只有：
 
 ```text
-Store getter     = 通过 Call in 精确传入
-Store setter     = Call setter + 第二参数 { store }
-Database         = 通过 Call in 传入 Db，由 Runtime 执行 effect
+Store getter     = Call 注入句柄的 .value 只读视图
+Store setter     = 对同一句柄的 .value 整体赋值，成功后统一提交
+Database         = 保留设计，当前不实现
 ```
 
 这套最小集合的扩展方式不是增加语言特性，而是增加更多具体类型、更多单文件函数、更多 RX 组合，以及少量经过审查的 Runtime capability。

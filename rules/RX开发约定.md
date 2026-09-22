@@ -6,7 +6,7 @@
 
 - [RX 包文档](../packages/rx/README.md)：当前语法、公开接口和边界。
 - [公共标签](../packages/rx/src/labels)：普通 RX Schema。
-- [Gateway 标签](../packages/rx/src/features/gateway/label)与 [Store 标签](../packages/rx/src/features/store/label)：专用 Schema。
+- [Gateway 标签](../packages/rx/src/features/gateway/labels)与 [Store 标签](../packages/rx/src/features/store/labels)：专用 Schema。
 - [模块注册](../packages/rx/src/modules.zig)与 [依赖图校验](../packages/rx/src/module_graph.zig)：路径身份和无环约束。
 
 旧设计文档可能保留历史语法，以用户最新要求及当前实现为准。legacy 中的 MVP 不代表正式版本已经实现的全部能力。
@@ -14,7 +14,7 @@
 ## 文件职责
 
 - 公共标签在 `packages/rx/src/labels/`，一个标签一个同名 PascalCase.zig 文件。
-- 专用标签在 `src/features/gateway/label/`、`src/features/store/label/`。
+- 专用标签在 `src/features/gateway/labels/`、`src/features/store/labels/`。
 - 标签专属 refine 与 Schema 放在同一个文件；跨标签适配器保留独立职责。
 - `flow.zig` 和 feature 的 `root.zig` 聚合导出，重构时保留现有公共契约。
 - 按任务授权新增的测试全部在对应子包 `tests/`，与 `src/` 同级；生产实现不写内嵌 test。

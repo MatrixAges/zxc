@@ -1,0 +1,10 @@
+pub const source = @import("source.zig");
+pub const syntax = @import("syntax.zig");
+pub const ast = @import("ast.zig");
+pub const ir = @import("ir.zig");
+pub const Diagnostic = @import("diagnostic.zig").Diagnostic;
+pub const Reporter = @import("diagnostic.zig").Reporter;
+pub const Error = @import("diagnostic.zig").Error;
+pub const Span = source.Span;
+pub const language_version = "0.1.0";
+pub const ir_version: u32 = 2;

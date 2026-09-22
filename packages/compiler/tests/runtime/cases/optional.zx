@@ -1,0 +1,8 @@
+export type Input = { value: u64?; name: string; };
+export type Output = { amount: u64; label: string; matched: bool; };
+
+export default function (in: Input): Output {
+  const amount = in.value ?? 12;
+
+  return { amount: amount, label: `hello ${in.name}: ${amount}`, matched: in.name == "zx" };
+}

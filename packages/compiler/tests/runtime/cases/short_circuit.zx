@@ -1,0 +1,6 @@
+export type Input = { flag: bool; value: u64; divisor: u64; optional: u64?; items: u64[]; };
+export type Output = { and_value: bool; or_value: bool; selected: u64; fallback: u64; };
+
+export default function (in: Input): Output {
+  return { and_value: in.flag && in.value / in.divisor > 0, or_value: !in.flag || in.value / in.divisor > 0, selected: in.flag ? in.value / in.divisor : 0, fallback: in.optional ?? in.items[0] };
+}

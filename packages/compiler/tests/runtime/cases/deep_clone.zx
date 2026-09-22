@@ -1,0 +1,11 @@
+export type Input = u64[][];
+export type Output = { row: u64[]; rest: u64[][]; };
+
+export default function (in: Input): Output {
+const rows = in.clone();
+const [rest, last] = rows.pop();
+const row = last ?? [];
+const [reversed, _] = row.reverse();
+
+return { row: reversed, rest };
+}

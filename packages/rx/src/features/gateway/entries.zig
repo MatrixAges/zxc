@@ -1,7 +1,7 @@
 const std = @import("std");
 const dsl = @import("dsl");
-const Route = @import("label/Route.zig").Route;
-const Group = @import("label/Group.zig").Group;
+const Route = @import("labels/Route.zig").Route;
+const Group = @import("labels/Group.zig").Group;
 
 pub const Entry = struct {
     pub const Data = union(enum) {

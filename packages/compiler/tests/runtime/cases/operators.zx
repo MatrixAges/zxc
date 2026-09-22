@@ -1,0 +1,6 @@
+export type Input = { left: i64; right: i64; };
+export type Output = { sum: i64; difference: i64; product: i64; quotient: i64; remainder: i64; negative: i64; equal: bool; not_equal: bool; less: bool; less_equal: bool; greater: bool; greater_equal: bool; and_value: bool; or_value: bool; not_value: bool; precedence: i64; grouped: i64; associative: i64; };
+
+export default function (in: Input): Output {
+return { sum: in.left + in.right, difference: in.left - in.right, product: in.left * in.right, quotient: in.left / in.right, remainder: in.left % in.right, negative: -in.left, equal: in.left == in.right, not_equal: in.left != in.right, less: in.left < in.right, less_equal: in.left <= in.right, greater: in.left > in.right, greater_equal: in.left >= in.right, and_value: in.left < 0 && in.right > 0, or_value: in.left < 0 || in.right < 0, not_value: !(in.left < 0), precedence: in.left + in.right * 2, grouped: (in.left + in.right) * 2, associative: in.left - in.right - 1 };
+}

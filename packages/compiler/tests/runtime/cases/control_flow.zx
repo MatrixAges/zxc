@@ -1,0 +1,21 @@
+export type Input = i64;
+export type Output = u64;
+
+export default function (in: Input): Output {
+const value = 9;
+
+if (in < 0) {
+const value = 1;
+
+return value;
+} else if (in == 0) {
+return 2;
+} else {
+switch (in) {
+case 1: return 3;
+case 2: return 4;
+
+default: return value;
+}
+}
+}

@@ -8,7 +8,7 @@ const Parallel = @import("Parallel.zig").Parallel;
 const Switch = @import("Switch.zig").Switch;
 const Emit = @import("Emit.zig").Emit;
 const Return = @import("Return.zig").Return;
-const StoreReference = @import("Store.zig").StoreReference;
+const StoreReference = @import("../features/store/root.zig").StoreReference;
 
 const ModuleBase = dsl.element("Module", struct {
     in: ?[]const u8 = null,

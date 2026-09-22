@@ -1,5 +1,5 @@
 const dsl = @import("dsl");
-const checks = @import("../checks.zig");
+const checks = @import("../../../checks.zig");
 
 pub const StoreReference = checks.nonEmptySchema(dsl.element("Store", struct {
     from: []const u8,

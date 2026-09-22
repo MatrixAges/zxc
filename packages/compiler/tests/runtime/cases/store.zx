@@ -1,0 +1,10 @@
+export type Input = { increment: u64; index: u64; };
+export type Pending = { value: u64; };
+export type State = { count: u64; items: u64[]; };
+export type Output = u64;
+
+export default function (in: Input): Output {
+  $store_v.value = { ...$store_v.value, count: $store_v.value.count + in.increment };
+
+  return $store_v.value.items[in.index] + $store_v.value.count;
+}

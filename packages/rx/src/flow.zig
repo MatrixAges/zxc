@@ -8,4 +8,4 @@ pub const Switch = @import("labels/Switch.zig").Switch;
 pub const Case = @import("labels/Case.zig").Case;
 pub const Default = @import("labels/Default.zig").Default;
 pub const Emit = @import("labels/Emit.zig").Emit;
-pub const StoreReference = @import("labels/Store.zig").StoreReference;
+pub const StoreReference = @import("features/store/root.zig").StoreReference;

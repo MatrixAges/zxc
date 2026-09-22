@@ -1,0 +1,6 @@
+export type Input = { left: f32; right: f32; };
+export type Output = { sum: f32; difference: f32; product: f32; quotient: f32; remainder: f32; };
+
+export default function (in: Input): Output {
+return { sum: in.left + in.right, difference: in.left - in.right, product: in.left * in.right, quotient: in.left / in.right, remainder: in.left % in.right };
+}

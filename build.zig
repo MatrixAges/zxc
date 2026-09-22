@@ -38,4 +38,14 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run package unit tests");
 
     test_step.dependOn(&run_rx_tests.step);
+
+    const compiler_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize });
+
+    test_step.dependOn(&compiler_dependency.builder.top_level_steps.get("test").?.step);
+    b.installArtifact(compiler_dependency.artifact("zxc"));
+
+    const run_zx_example = b.addRunArtifact(compiler_dependency.artifact("zx-example"));
+    const zx_step = b.step("zx-example", "Compile and run the ZX package example");
+
+    zx_step.dependOn(&run_zx_example.step);
 }

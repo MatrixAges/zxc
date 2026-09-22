@@ -1,0 +1,6 @@
+export type Input = u64[];
+export type Output = { mapped: u64[]; filtered: u64[]; total: u64; };
+
+export default function (in: Input): Output {
+return { mapped: in.map(item => item * 2), filtered: in.filter(item => item > 2), total: in.reduce((sum, item) => sum + item, 10) };
+}

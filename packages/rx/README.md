@@ -14,9 +14,9 @@ zig build test
 
 所有测试位于与 `src` 同级的 `tests/`，实现文件不包含内嵌 test。
 
-公共标签实现位于 `src/labels/`，每个标签一个同名 `.zig` 文件，例如 `Call.zig`、`Module.zig`。Gateway 专用标签位于 `src/features/gateway/label/`，Store 专用标签位于 `src/features/store/label/`；每个文件同时承载该标签的 Schema 和专属校验。
+公共标签实现位于 `src/labels/`，每个标签一个同名 `.zig` 文件，例如 `Call.zig`、`Module.zig`。Gateway 专用标签位于 `src/features/gateway/labels/`，Store 专用标签位于 `src/features/store/labels/`；每个文件同时承载该标签的 Schema 和专属校验。
 
-`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。`labels/Store.zig` 定义 Store 引用，`features/store/label/Store.zig` 定义 Store 文件根标签，两者通过目录区分。
+`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。当前仅实现语法校验，尚未实现对象的运行时生命周期。
 
 ## 文件类型与模块身份
 

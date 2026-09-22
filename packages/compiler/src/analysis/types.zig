@@ -1,0 +1,204 @@
+const std = @import("std");
+const zx = @import("zx");
+const ir = zx.ir;
+const Self = @This();
+
+allocator: std.mem.Allocator,
+reporter: *zx.Reporter,
+declarations: []const zx.ast.Declaration,
+items: std.ArrayList(ir.Type) = .empty,
+resolved: std.StringHashMapUnmanaged(ir.TypeId) = .empty,
+visiting: std.StringHashMapUnmanaged(void) = .empty,
+aliases: []const ir.Export = &.{},
+pub fn initialize(self: *Self) zx.Error!void {
+    if (self.items.items.len == 0) {
+        for (std.enums.values(ir.Scalar)) |scalar| try self.items.append(self.allocator, .{ .scalar = scalar });
+    }
+
+    for (self.aliases, 0..) |alias, index| {
+        for (self.aliases[0..index]) |previous| {
+            if (std.mem.eql(u8, alias.name, previous.name)) return self.reporter.fail(.name, .{ .start = 0, .end = 0 }, "duplicate imported type name");
+        }
+
+        for (self.declarations) |declaration| {
+            if (std.mem.eql(u8, alias.name, declaration.name.text)) return self.reporter.fail(.name, declaration.name.span, "a local type cannot replace an imported type");
+        }
+    }
+
+    for (self.declarations, 0..) |declaration, index| {
+        if (std.meta.stringToEnum(ir.Scalar, declaration.name.text) != null) return self.reporter.fail(.name, declaration.name.span, "a type cannot replace a built-in scalar");
+
+        for (self.declarations[0..index]) |previous| {
+            if (std.mem.eql(u8, previous.name.text, declaration.name.text)) return self.reporter.fail(.name, declaration.name.span, "duplicate type declaration");
+        }
+    }
+
+    for (self.declarations) |declaration| _ = try self.named(declaration.name);
+}
+
+pub fn scalarId(scalar: ir.Scalar) ir.TypeId {
+    return @enumFromInt(@intFromEnum(scalar));
+}
+
+pub fn named(self: *Self, name: zx.ast.Name) zx.Error!ir.TypeId {
+    if (std.meta.stringToEnum(ir.Scalar, name.text)) |scalar| return scalarId(scalar);
+    if (self.resolved.get(name.text)) |id| return id;
+
+    for (self.aliases) |alias| {
+        if (std.mem.eql(u8, alias.name, name.text)) return alias.type_id;
+    }
+
+    if (self.visiting.contains(name.text)) return self.reporter.fail(.type_mismatch, name.span, "recursive type aliases are not supported");
+    if (self.visiting.count() >= 256) return self.reporter.fail(.unsupported, name.span, "type alias nesting exceeds 256 levels");
+
+    for (self.declarations) |declaration| {
+        if (!std.mem.eql(u8, declaration.name.text, name.text)) continue;
+        try self.visiting.put(self.allocator, name.text, {});
+
+        defer _ = self.visiting.remove(name.text);
+        const id = if (declaration.value.* == .enumeration) try self.enumeration(declaration.name, declaration.value.enumeration) else try self.resolve(declaration.value);
+
+        try self.resolved.put(self.allocator, name.text, id);
+
+        return id;
+    }
+
+    return self.reporter.fail(.name, name.span, "unknown or unsupported type");
+}
+
+pub fn resolve(self: *Self, value: *const zx.ast.Type) zx.Error!ir.TypeId {
+    switch (value.*) {
+        .named => |name| return self.named(name),
+        .optional => |child| return self.wrap(.optional, try self.resolve(child)),
+        .list => |child| return self.wrap(.list, try self.resolve(child)),
+        .tuple => |children| {
+            const items = try self.allocator.alloc(ir.TypeId, children.len);
+
+            for (children, 0..) |child, index| items[index] = try self.resolve(child);
+
+            return self.tuple(items);
+        },
+        .enumeration => return self.reporter.fail(.type_mismatch, .{ .start = 0, .end = 0 }, "enum types require a named declaration"),
+        .application => |application| return self.reporter.fail(.unsupported, application.name.span, "generic and database types are not enabled"),
+        .object => |fields| {
+            const resolved_fields = try self.allocator.alloc(ir.TypeField, fields.len);
+
+            for (fields, 0..) |field, index| {
+                for (fields[0..index]) |previous| {
+                    if (std.mem.eql(u8, previous.name.text, field.name.text)) return self.reporter.fail(.name, field.name.span, "duplicate object field");
+                }
+
+                const type_id = try self.resolve(field.value);
+
+                if (type_id == scalarId(.void)) return self.reporter.fail(.type_mismatch, field.name.span, "object fields cannot have type void");
+
+                resolved_fields[index] = .{ .name = try self.allocator.dupe(u8, field.name.text), .type_id = type_id };
+            }
+
+            return self.object(resolved_fields);
+        },
+    }
+}
+
+pub fn wrap(self: *Self, kind: enum { optional, list }, child: ir.TypeId) zx.Error!ir.TypeId {
+    if (kind == .list and child == scalarId(.void)) return self.reporter.fail(.type_mismatch, .{ .start = 0, .end = 0 }, "lists cannot contain void");
+
+    for (self.items.items, 0..) |item, index| {
+        if (kind == .optional and item == .optional and item.optional == child) return @enumFromInt(index);
+        if (kind == .list and item == .list and item.list == child) return @enumFromInt(index);
+    }
+
+    const id: ir.TypeId = @enumFromInt(self.items.items.len);
+
+    try self.items.append(self.allocator, if (kind == .optional) .{ .optional = child } else .{ .list = child });
+
+    return id;
+}
+
+pub fn tuple(self: *Self, children: []const ir.TypeId) zx.Error!ir.TypeId {
+    for (self.items.items, 0..) |item, index| {
+        if (item == .tuple and std.mem.eql(ir.TypeId, item.tuple, children)) return @enumFromInt(index);
+    }
+
+    const id: ir.TypeId = @enumFromInt(self.items.items.len);
+
+    try self.items.append(self.allocator, .{ .tuple = try self.allocator.dupe(ir.TypeId, children) });
+
+    return id;
+}
+
+fn enumeration(self: *Self, name: zx.ast.Name, members: []const zx.ast.Name) zx.Error!ir.TypeId {
+    if (members.len == 0) return self.reporter.fail(.type_mismatch, name.span, "an enum must have at least one member");
+
+    const names = try self.allocator.alloc([]const u8, members.len);
+
+    for (members, 0..) |member, index| {
+        for (names[0..index]) |previous| {
+            if (std.mem.eql(u8, previous, member.text)) return self.reporter.fail(.name, member.span, "duplicate enum member");
+        }
+
+        names[index] = try self.allocator.dupe(u8, member.text);
+    }
+
+    const id: ir.TypeId = @enumFromInt(self.items.items.len);
+
+    try self.items.append(self.allocator, .{ .enumeration = .{ .name = try self.allocator.dupe(u8, name.text), .members = names } });
+
+    return id;
+}
+
+pub fn get(self: *const Self, id: ir.TypeId) ir.Type {
+    return self.items.items[@intFromEnum(id)];
+}
+
+pub fn containsList(self: *const Self, id: ir.TypeId) bool {
+    return switch (self.get(id)) {
+        .list => true,
+        .optional => |child| self.containsList(child),
+        .tuple => |children| blk: {
+            for (children) |child| {
+                if (self.containsList(child)) break :blk true;
+            }
+
+            break :blk false;
+        },
+        .object => |fields| blk: {
+            for (fields) |field| {
+                if (self.containsList(field.type_id)) break :blk true;
+            }
+
+            break :blk false;
+        },
+        else => false,
+    };
+}
+
+pub fn object(self: *Self, fields: []ir.TypeField) zx.Error!ir.TypeId {
+    std.mem.sort(ir.TypeField, fields, {}, lessThan);
+
+    for (self.items.items, 0..) |item, index| {
+        if (item != .object or item.object.len != fields.len) continue;
+
+        var equal = true;
+
+        for (item.object, fields) |left, right| {
+            if (left.type_id != right.type_id or !std.mem.eql(u8, left.name, right.name)) {
+                equal = false;
+
+                break;
+            }
+        }
+
+        if (equal) return @enumFromInt(index);
+    }
+
+    const id: ir.TypeId = @enumFromInt(self.items.items.len);
+
+    try self.items.append(self.allocator, .{ .object = fields });
+
+    return id;
+}
+
+fn lessThan(_: void, left: ir.TypeField, right: ir.TypeField) bool {
+    return std.mem.lessThan(u8, left.name, right.name);
+}
