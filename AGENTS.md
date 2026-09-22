@@ -1,35 +1,42 @@
 - 默认情况下，不允许执行任何代码编辑和变更操作，除非用户明确要求。
 - 复杂问题的具体实施方案写入到 docs 中（带具体的代码，供用户复制和审阅）。
 
+## 项目规则索引
+
+- [文档分工](rules/文档分工.md)：`packages/skills` 面向使用 zxc 编写应用的 AI；zxc 内部开发指导放在 `rules`。
+- [RX 开发约定](rules/RX开发约定.md)：标签实现组织、无环硬约束、内部校验接口与仓库回归要求。
+
+涉及对应范围的修改前，先阅读上述规则；不要将 zxc 内部源码组织或构建要求写进面向应用使用者的 skills。
+
 ## 工具偏好与能力增强
 
 在执行文件操作、搜索或重构任务时，请优先使用以下现代 CLI 工具，以替代传统的 Unix 命令，从而确保速度与准确性：
 
 - **文件搜索**：使用 `fd` 替代 `find`。
-     - 始终遵循 `.gitignore` 规则（这是 `fd` 的默认行为）。
-     - 示例：使用 `fd -e py "pattern"` 查找 Python 文件。
+    - 始终遵循 `.gitignore` 规则（这是 `fd` 的默认行为）。
+    - 示例：使用 `fd -e py "pattern"` 查找 Python 文件。
 
 - **内容搜索**：使用 `rg` (ripgrep) 替代 `grep`。
-     - 仅在必要时使用 `--context` 参数，以节省 Token 消耗。
-     - 示例：使用 `rg "search_term" -g "!*.test.ts"` 排除测试文件。
+    - 仅在必要时使用 `--context` 参数，以节省 Token 消耗。
+    - 示例：使用 `rg "search_term" -g "!*.test.ts"` 排除测试文件。
 
 - **结构化搜索与重构**：对于复杂的代码修改，使用 `ast-grep`（命令为 `sg` 或 `ast-grep`）替代正则表达式。
-     - 适用于重命名变量、修改函数签名或处理广泛存在的结构模式。
-     - 它能理解代码语法（AST），从而避免简单的“查找并替换”操作可能引发的错误。
+    - 适用于重命名变量、修改函数签名或处理广泛存在的结构模式。
+    - 它能理解代码语法（AST），从而避免简单的“查找并替换”操作可能引发的错误。
 
 - **JSON 处理**：使用 `jq` 读取配置文件（如 `package.json`、`tsconfig.json`）。
-     - 避免直接 `cat` 大型 JSON 文件；应针对所需键（key）进行查询。
-     - 示例：使用 `jq '.scripts.test' package.json` 仅查看测试命令。
+    - 避免直接 `cat` 大型 JSON 文件；应针对所需键（key）进行查询。
+    - 示例：使用 `jq '.scripts.test' package.json` 仅查看测试命令。
 
 - **目录树浏览**：强制使用 `eza`，严禁使用 `ls -R` 或 `tree`。
-     - 示例：`eza --tree --level=2 -I "node_modules|.git|dist"`
+    - 示例：`eza --tree --level=2 -I "node_modules|.git|dist"`
 
 - **文件查阅**：需要预览或读取带行号的代码段落时，使用 `bat`。
-     - 使用使用 -color=never 过滤掉颜色，较少token消耗
-     - 示例：`bat --color=never --style=numbers --paging=never -r 20:50 file.ts`
+    - 使用使用 -color=never 过滤掉颜色，较少token消耗
+    - 示例：`bat --color=never --style=numbers --paging=never -r 20:50 file.ts`
 
 - **大规模语法重构**：
-     - 涉及超过 5 个文件的模式重构（如函数 API 升级、废弃方法替换），优先尝试编写 `grit` 规则直接执行批量重构，而非手动逐文件修改。
+    - 涉及超过 5 个文件的模式重构（如函数 API 升级、废弃方法替换），优先尝试编写 `grit` 规则直接执行批量重构，而非手动逐文件修改。
 
 ## 代码规范
 
@@ -66,3 +73,8 @@
 10. 用清晰命名表达业务意图，不写解释性注释和多余兜底。
 11. 调用函数时禁止使用 `void fn()`；忽略返回值时直接写 `fn()`，需要等待时显式写 `await fn()`。
 12. TypeScript 类成员禁止使用 ECMAScript `#` 私有字段或方法；非公开成员使用 `private`，公开成员省略默认的 `public`。
+
+### 其他注意点
+
+- 测试用例全部写在 packages子包的src同级别的tests目录 不要写在代码文件里
+- 遵循分形—代码拆分之道，通过建立多层级的文件夹，来让代码层级更清晰，而不是始终在一个目录堆叠

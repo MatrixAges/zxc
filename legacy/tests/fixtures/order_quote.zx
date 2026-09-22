@@ -1,0 +1,137 @@
+export enum CustomerTier {
+  Standard,
+  Silver,
+  Gold,
+}
+
+export enum Region {
+  Domestic,
+  International,
+}
+
+export enum SalesChannel {
+  Online,
+  Partner,
+  Internal,
+}
+
+export enum DecisionCode {
+  Approved,
+  InvalidItemCount,
+  InventoryUnavailable,
+  FraudRisk,
+  InternalApprovalRequired,
+}
+
+export type Input = {
+  subtotal_cents: u64;
+  base_shipping_cents: u64;
+  item_count: u64;
+  fraud_score: u64;
+  inventory_available: bool;
+  internal_approved: bool;
+  customer_tier: CustomerTier;
+  region: Region;
+  channel: SalesChannel;
+};
+
+export type Output = {
+  ok: bool;
+  code: DecisionCode;
+  subtotal_cents: u64;
+  discount_cents: u64;
+  shipping_cents: u64;
+  payable_cents: u64;
+  reason?: string;
+};
+
+export default function (in: Input): Output {
+  if (in.item_count == 0) {
+    return {
+      ok: false,
+      code: DecisionCode.InvalidItemCount,
+      subtotal_cents: in.subtotal_cents,
+      discount_cents: 0,
+      shipping_cents: 0,
+      payable_cents: 0,
+      reason: "item_count_must_be_positive",
+    };
+  }
+
+  if (!in.inventory_available) {
+    return {
+      ok: false,
+      code: DecisionCode.InventoryUnavailable,
+      subtotal_cents: in.subtotal_cents,
+      discount_cents: 0,
+      shipping_cents: 0,
+      payable_cents: 0,
+      reason: "inventory_unavailable",
+    };
+  }
+
+  if (in.fraud_score >= 85) {
+    return {
+      ok: false,
+      code: DecisionCode.FraudRisk,
+      subtotal_cents: in.subtotal_cents,
+      discount_cents: 0,
+      shipping_cents: 0,
+      payable_cents: 0,
+      reason: "fraud_risk_rejected",
+    };
+  }
+
+  switch (in.channel) {
+    case SalesChannel.Internal:
+      if (!in.internal_approved) {
+        return {
+          ok: false,
+          code: DecisionCode.InternalApprovalRequired,
+          subtotal_cents: in.subtotal_cents,
+          discount_cents: 0,
+          shipping_cents: 0,
+          payable_cents: 0,
+          reason: "internal_approval_required",
+        };
+      }
+
+    default:
+  }
+
+  const tier_discount_bps = in.customer_tier == CustomerTier.Gold
+    ? 1500
+    : in.customer_tier == CustomerTier.Silver
+      ? 750
+      : 0;
+
+  const volume_discount_bps = in.item_count >= 10 ? 500 : 0;
+  const combined_discount_bps = tier_discount_bps + volume_discount_bps;
+
+  const applied_discount_bps = combined_discount_bps > 3000
+    ? 3000
+    : combined_discount_bps;
+
+  const discount_cents = (in.subtotal_cents * applied_discount_bps) / 10_000;
+  const discounted_subtotal = in.subtotal_cents - discount_cents;
+
+  const regional_shipping_cents = in.region == Region.International
+    ? in.base_shipping_cents + 2500
+    : in.base_shipping_cents;
+
+  const has_free_shipping = discounted_subtotal >= 10_000 ||
+    in.customer_tier == CustomerTier.Gold;
+
+  const shipping_cents = has_free_shipping ? 0 : regional_shipping_cents;
+  const payable_cents = discounted_subtotal + shipping_cents;
+
+  return {
+    ok: true,
+    code: DecisionCode.Approved,
+    subtotal_cents: in.subtotal_cents,
+    discount_cents: discount_cents,
+    shipping_cents: shipping_cents,
+    payable_cents: payable_cents,
+    reason: null,
+  };
+}

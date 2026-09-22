@@ -1,0 +1,31 @@
+{
+	"name": "zxc-dev-tools",
+	"private": true,
+	"packageManager": "pnpm@12.5.1",
+	"scripts": {
+		"prepare": "simple-git-hooks",
+		"format": "node scripts/format.mjs",
+		"format:check": "node scripts/format.mjs --check",
+		"format:prettier": "prettier --write .",
+		"format:prettier:check": "prettier --check .",
+		"format:staged": "lint-staged"
+	},
+	"engines": {
+		"node": ">=22.22.1"
+	},
+	"simple-git-hooks": {
+		"pre-commit": "pnpm run format:staged",
+		"preserveUnused": true
+	},
+	"lint-staged": {
+		"*.{zig,zon,zx,rx}": "node scripts/format.mjs",
+		"*.{js,cjs,mjs,jsx,ts,cts,mts,tsx,json,jsonc,json5,yaml,yml,md,mdx,css,scss,less,html,vue,graphql,gql}": "prettier --write",
+		".prettierrc": "prettier --write"
+	},
+	"devDependencies": {
+		"gpu-code-spacer": "0.1.6",
+		"lint-staged": "17.5.1",
+		"prettier": "3.9.8",
+		"simple-git-hooks": "2.14.0"
+	}
+}

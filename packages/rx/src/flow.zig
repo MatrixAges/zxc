@@ -1,0 +1,11 @@
+pub const Module = @import("labels/Module.zig").Module;
+pub const Import = @import("labels/Import.zig").Import;
+pub const Call = @import("labels/Call.zig").Call;
+pub const Return = @import("labels/Return.zig").Return;
+pub const Task = @import("labels/Task.zig").Task;
+pub const Parallel = @import("labels/Parallel.zig").Parallel;
+pub const Switch = @import("labels/Switch.zig").Switch;
+pub const Case = @import("labels/Case.zig").Case;
+pub const Default = @import("labels/Default.zig").Default;
+pub const Emit = @import("labels/Emit.zig").Emit;
+pub const StoreReference = @import("labels/Store.zig").StoreReference;
