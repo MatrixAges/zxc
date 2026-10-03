@@ -40,8 +40,8 @@ export default function writeOwnedStrings(args: { name: string; rows: Array<Row>
 		const other = first.other ? values('other', first.other.length) : null
 		const fields = other ? 'items: u64[]; other: u64[];' : 'items: u64[];'
 		const body = other
-			? `  const other: string[] = ${other};\n  const [joined, _] = owned.concat(other);\n  const [result, _] = joined.reverse();`
-			: '  const [result, _] = owned.sort();'
+			? `  const other: string[] = ${other};\n\n  const [joined, _] = owned.concat(other);\n  const [result, _] = joined.reverse();`
+			: '\n  const [result, _] = owned.sort();'
 		const source = `import fromLiteral from "../../../fixtures/${name}_literal.zx";\n\nexport type Input = { ${fields} };\n\nexport type Output = string[];\n\nexport default function (in: Input): Output {\n  const owned: string[] = ${constructed};\n${body}\n\n  return result;\n}\n`
 		const encoded = group.map(row => {
 			const input = Object.fromEntries(

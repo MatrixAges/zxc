@@ -4,6 +4,7 @@ export type Output = i64[];
 
 export default function (in: Input): Output {
   const owned: i64[] = [in.items[0]];
+
   const [next, _] = owned.concat(in.other);
 
   return next;

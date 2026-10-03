@@ -15,6 +15,7 @@ export default function (in: Input): Output {
 
   if (in.action == 2) {
     const tail: u64[] = [in.increment];
+
     const [items, _] = tail.splice(0, 0, $store_a.value.items);
 
     $store_a.value = { ...$store_a.value, items };

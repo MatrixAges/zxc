@@ -4,6 +4,7 @@ export type Output = { items: i64[]; removed: i64[]; };
 
 export default function (in: Input): Output {
   const owned: i64[] = [in.items[0], in.items[1], in.items[2]];
+
   const [items, removed] = owned.splice(in.start, in.count, in.other);
 
   return { items, removed };

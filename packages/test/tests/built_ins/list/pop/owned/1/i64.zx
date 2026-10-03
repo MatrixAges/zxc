@@ -4,6 +4,7 @@ export type Output = { items: i64[]; value: i64?; };
 
 export default function (in: Input): Output {
   const owned: i64[] = [in.items[0]];
+
   const [items, value] = owned.pop();
 
   return { items, value };

@@ -78,7 +78,7 @@ export function source(name: string, length?: number): string {
 		if (length === undefined) throw new Error(`owned collection fixture needs its input length: ${name}`)
 
 		const values = Array.from({ length }, (_, index) => `in.items[${index}]`).join(', ')
-		body = `  const owned: i64[] = [${values}];\n${body}`
+		body = `  const owned: i64[] = [${values}];\n\n${body}`
 	}
 
 	return `export type Input = { ${fields} };\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n${body}\n}\n`

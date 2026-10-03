@@ -1,5 +1,6 @@
 const std = @import("std");
 const zx = @import("zx");
+const shape = @import("shape.zig");
 
 pub const Edit = struct {
     span: zx.Span,
@@ -13,8 +14,9 @@ pub fn edits(allocator: std.mem.Allocator, source: []const u8, comments: []const
 
     for (program.imports, 0..) |item, index| {
         const next = if (index + 1 < program.imports.len) program.imports[index + 1].span.start else if (program.declarations.len > 0) program.declarations[0].span.start else program.function_start;
+        const separate = index + 1 == program.imports.len or shape.multiline(source, item.span) or shape.multiline(source, program.imports[index + 1].span);
 
-        try planner.boundary(item.span.end, next, index + 1 == program.imports.len);
+        try planner.boundary(item.span.end, next, separate);
     }
 
     for (program.declarations, 0..) |declaration, index| {
@@ -62,9 +64,10 @@ const Planner = struct {
         for (value.statements, 0..) |statement, index| {
             if (index > 0) {
                 const previous = value.statements[index - 1];
-                const separate = !isDeclaration(previous) or !isDeclaration(statement);
 
-                try self.boundary(previous.span.end, statement.span.start, separate);
+                if (shape.separation(self.source, previous, statement)) |separate| {
+                    try self.boundary(previous.span.end, statement.span.start, separate);
+                }
             }
 
             if (statement.value == .switch_stmt) {
@@ -114,7 +117,3 @@ const Planner = struct {
         });
     }
 };
-
-fn isDeclaration(statement: zx.ast.Statement) bool {
-    return statement.value == .constant or statement.value == .destructure;
-}
