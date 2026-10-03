@@ -72,6 +72,8 @@ parse 返回拥有源码副本的 ParseResult，analyze/project.analyze 返回�
 
 `zxc pkg inspect [pkg.yaml]` 校验清单，`zxc pkg workspace [pkg.yaml]` 发现成员，`zxc pkg graph [pkg.yaml]` 校验并输出依赖图。当前解析 workspace: 来源，支持 `workspace:*`、`workspace:^`、`workspace:~`、显式语义版本范围、`workspace:包名@范围` 别名和 `workspace:../成员` 路径引用；缺失成员、版本不匹配和循环依赖均失败。范围支持精确版本、部分版本、x/*、^、~、比较符交集、|| 及连字符区间，预发布版本按比较集合约束。目录与源码别名不能绕过物理包边界。真实 app 示例见 [包管理示例](../../docs/2026-10-03/包管理示例/)。外部来源、锁文件、共享存储和安装命令尚未实现，graph 成功不代表已安装外部依赖。
 
+`zxc pkg init <name> [--version <version>] [--entry <path>] [--private]` 在当前目录创建 pkg.yaml，默认版本 0.1.0，不覆盖已有文件。入口可选，必须是包内 .zx 路径；命令只创建清单，不生成源码。例如 `zxc pkg init @sample/quote --entry main.zx --private`。未知、重复、缺值参数或无效清单字段均失败；字段校验与 inspect 使用同一 Schema。
+
 `zxc pkg index [index.json]` 校验并显示多版本索引；`zxc pkg resolve <name> <range> [index.json]` 选择最高匹配版本，输出来源及 SHA-256。默认使用安装目录的 share/zxc/pkgs/index.json，由 [pkgs 包](../pkgs/README.md)维护；当前没有已发布条目。resolve 只查询索引，不下载或安装。
 
 Store 使用 compileWithContext 或 project.Options.context.stores，每项声明 handle、path、type_name、readable、writable。生成入口为 execute(arena, input, context)，context 提供对应 slot 的快照指针和 commit(pending)。参考 tests/runtime/store_test.zig。
