@@ -76,6 +76,8 @@ IR 实验版本 5 将原生模块保存为 `Program.native_modules`，函数通�
 
 接口提供 export_name 时，同一 specifier 可声明多个成员，通过默认导入的命名空间调用。CLI 的 zxc.json 可声明 externals 和 native_modules；后者以 path 指定 Zig 文件，或以 header 指定 C 头文件并通过 c 命名空间导出。build 模式会完成对应链接，支持 libraries/include_paths/library_paths。生成的可执行文件接收一个 JSON Input 参数并输出 JSON Output；void Input 不接收参数。
 
+应用 CLI 当前采用 Zig 的默认 JSON 输出约定：`u8[]` 字节构成合法 UTF-8 时输出 JSON 字符串，否则输出整数数组；空字节列表输出 `""`。例如 `[65, 66]` 输出 `"AB"`，`[255]` 输出 `[255]`，嵌套对象中的字节列表也遵循这一规则。消费端应按已知 ZX 输出类型恢复字节：字符串做 UTF-8 编码，数组逐项校验为 0–255 的整数后转换。字符串不是 Base64，不应按 UTF-16 字符码恢复。这只影响 CLI 的 JSON 表示，std:zlib 等接口的 ZX 返回类型和内容仍为字节列表。
+
 `std:path` 按编译目标 OS 选择路径风格，`std:path/posix` 与 `std:path/win32` 固定风格。提供 isAbsolute、basename、dirname、extname、parse、format、normalize、join、resolve、relative；join 接收 string[]，resolve 接收 `{ cwd: string; paths: string[]; }`，relative 接收 `{ cwd: string; from: string; to: string; }`。不读取进程 cwd 或盘符环境。Windows 比较目前仅提供 ASCII 大小写折叠；其他差异和实际调用见 [路径标准库实施](../../docs/2026-10-03/路径标准库实施.md)。
 
 `std:crypto` 提供 sha256/sha512；hmacSha256/hmacSha512 与 verifyHmacSha256/verifyHmacSha512；hkdfSha256/hkdfSha512；pbkdf2Sha256/pbkdf2Sha512；encrypt/decryptAes128Gcm、encrypt/decryptAes256Gcm、encrypt/decryptChaCha20Poly1305，以及 timingSafeEqual。所有密码材料和数据使用 u8[]，具体字段与错误见 [密码学标准库实施](../../docs/2026-10-03/密码学标准库实施.md)。密钥和 nonce 由调用方显式提供，同一密钥下 nonce 必须唯一。解密认证失败返回错误，不输出明文；时序安全比较只约束比较原语，不代表整个应用具有恒定执行时间。

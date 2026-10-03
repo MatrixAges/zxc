@@ -51,15 +51,18 @@ test "zlib deflateRawWith rejects invalid levels before allocations" {
 }
 
 fn execute(allocator: std.mem.Allocator, operation: Operation, level: i32) ![]const u8 {
-    const input = "abc" ** 2000;
+    var input: [6000]u8 = undefined;
+    var random = std.Random.DefaultPrng.init(0x4a1973);
+
+    random.random().bytes(&input);
 
     return switch (operation) {
-        .gzip => zlib.gzip(allocator, input),
-        .deflate => zlib.deflate(allocator, input),
-        .raw => zlib.deflateRaw(allocator, input),
-        .gzip_with => zlib.gzipWith(allocator, &.{ .data = input, .level = level }),
-        .deflate_with => zlib.deflateWith(allocator, &.{ .data = input, .level = level }),
-        .raw_with => zlib.deflateRawWith(allocator, &.{ .data = input, .level = level }),
+        .gzip => zlib.gzip(allocator, &input),
+        .deflate => zlib.deflate(allocator, &input),
+        .raw => zlib.deflateRaw(allocator, &input),
+        .gzip_with => zlib.gzipWith(allocator, &.{ .data = &input, .level = level }),
+        .deflate_with => zlib.deflateWith(allocator, &.{ .data = &input, .level = level }),
+        .raw_with => zlib.deflateRawWith(allocator, &.{ .data = &input, .level = level }),
     };
 }
 

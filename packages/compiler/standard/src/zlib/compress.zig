@@ -10,7 +10,7 @@ pub fn compress(allocator: std.mem.Allocator, input: abi.CompressOptions, contai
     defer output.deinit();
 
     if (input.level == 0) {
-        try @import("stored.zig").write(&output.writer, input.data, container);
+        @import("stored.zig").write(&output.writer, input.data, container) catch return error.OutOfMemory;
 
         return output.toOwnedSlice();
     }
@@ -32,10 +32,10 @@ pub fn compress(allocator: std.mem.Allocator, input: abi.CompressOptions, contai
         else => unreachable,
     };
 
-    var compressor = try flate.Compress.init(&output.writer, buffer, container, options);
+    var compressor = flate.Compress.init(&output.writer, buffer, container, options) catch return error.OutOfMemory;
 
-    try compressor.writer.writeAll(input.data);
-    try compressor.finish();
+    compressor.writer.writeAll(input.data) catch return error.OutOfMemory;
+    compressor.finish() catch return error.OutOfMemory;
 
     return output.toOwnedSlice();
 }
