@@ -2,6 +2,9 @@ const std = @import("std");
 
 pub fn link(b: *std.Build, executable: *std.Build.Step.Compile, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
     const source = b.dependency("libyaml", .{});
+
+    b.addNamedLazyPath("yaml_license", source.path("License"));
+
     const module = b.createModule(.{ .target = target, .optimize = optimize, .link_libc = true });
     const library = b.addLibrary(.{ .name = "yaml", .linkage = .static, .root_module = module });
 

@@ -47,7 +47,15 @@ pub fn build(b: *std.Build) void {
 
     test_step.dependOn(&conformance.builder.top_level_steps.get("test").?.step);
     b.installArtifact(compiler_dependency.artifact("zxc"));
+    b.getInstallStep().dependOn(&b.addInstallFile(compiler_dependency.namedLazyPath("yaml_license"), "share/zxc/licenses/libyaml.txt").step);
     b.installDirectory(.{ .source_dir = compiler_dependency.path("standard"), .install_dir = .prefix, .install_subdir = "share/zxc/standard", .include_extensions = &.{".zig"} });
+
+    const dist_step = b.step("dist", "Install the distributable compiler, standard library and licenses");
+
+    dist_step.dependOn(&b.addInstallArtifact(compiler_dependency.artifact("zxc"), .{}).step);
+    dist_step.dependOn(&b.addInstallDirectory(.{ .source_dir = compiler_dependency.path("standard"), .install_dir = .prefix, .install_subdir = "share/zxc/standard", .include_extensions = &.{".zig"} }).step);
+    dist_step.dependOn(&b.addInstallFile(compiler_dependency.namedLazyPath("yaml_license"), "share/zxc/licenses/libyaml.txt").step);
+    dist_step.dependOn(&b.addInstallFile(b.path("LICENSE"), "LICENSE").step);
 
     const run_zx_example = b.addRunArtifact(compiler_dependency.artifact("zx-example"));
     const zx_step = b.step("zx-example", "Compile and run the ZX package example");
