@@ -8,7 +8,12 @@
 		"format:check": "node scripts/format.mjs --check",
 		"format:prettier": "prettier --write .",
 		"format:prettier:check": "prettier --check .",
-		"format:staged": "lint-staged"
+		"format:staged": "lint-staged",
+		"dev:zray": "pnpm --parallel --filter @zxc/zray-app --filter @zxc/zray-server dev",
+		"dev:zray:app": "pnpm --filter @zxc/zray-app dev",
+		"dev:zray:server": "pnpm --filter @zxc/zray-server dev",
+		"build:zray": "pnpm --filter @zxc/zray-server typecheck && pnpm --filter @zxc/zray-app build",
+		"start:zray": "pnpm --filter @zxc/zray-server start"
 	},
 	"engines": {
 		"node": ">=22.22.1"
