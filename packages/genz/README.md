@@ -1,6 +1,6 @@
 # genz
 
-独立的 Zig 代码生成原语。依赖仅为 Zig 标准库，不认识 ZX、RX 或其 Runtime。
+Zig 代码生成包，包含独立的结构化生成原语与 ZX IR lowering。依赖 Zig 标准库和 zx 数据契约，不依赖 compiler、frontend 或 RX。
 
 ## Intent：最终目标
 
@@ -13,6 +13,8 @@
 - `node.Declaration`：常量和函数声明。
 - `Builder`：在调用者提供的 allocator 中构造表达式，提供 identifier/integer/string 便捷函数；其他原语直接通过 `expression` 接收结构化联合值。
 - `render(allocator, declarations)`：生成调用方拥有的 Zig 源码，使用同一 allocator.free 释放。
+- `zx.emit(allocator, program)`：将已校验的 ZX IR 生成 Zig 源码。
+- `zx.bundle(allocator, program)`：生成应用源码与共享类型源码，返回 `Bundle`，使用 `deinit(allocator)` 释放两者。
 
 ```zig
 const builder = genz.Builder{ .allocator = arena.allocator() };
@@ -32,6 +34,8 @@ Builder 借用传入名称、字段与参数切片；它们需要存活到 rende
 
 本包只覆盖当前实际需要的 Zig 子集，不是完整 Zig AST，也不验证语言类型。标识符转义保证语法打印，不负责目标作用域的命名冲突；调用方后端必须完成名称分配。
 
+`zx` 入口要求调用方事先完成 IR 结构、类型、所有权和形式化契约校验；它只负责 lowering，不替代编译器语义检查。一般应用通过 `compiler.zig.emit`、`compiler.zig.emitBundle` 或编译 CLI 使用，保留完整校验门禁。native 模块应使用 bundle 入口，单源码入口不构造共享 ABI 文件。
+
 ## Answer：交付与成功标准
 
-genz 可脱离 ZX 单独构造并打印 Zig 代码。目标代码最终由 Zig 编译器检查；ZX 类型映射、运行时调用与临时变量策略属于 compiler 后端。
+通用 Builder/render 仍可独立构造并打印 Zig 代码。ZX 类型映射、运行时调用、临时变量和共享类型生成统一位于本包的 `src/zx`，目标代码最终由 Zig 编译器检查。compiler 负责校验和调用协调。

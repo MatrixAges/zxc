@@ -1,14 +1,14 @@
 const std = @import("std");
 const zx = @import("zx");
-const genz = @import("genz");
-const node = genz.node;
+const node = @import("../node.zig");
+const Builder = @import("../builder.zig");
 const ir = zx.ir;
 const Self = @This();
 pub const Error = std.mem.Allocator.Error;
 
 allocator: std.mem.Allocator,
 program: ir.Program,
-builder: genz.Builder,
+builder: Builder,
 types: []*const node.Expression,
 layouts: []*const node.Expression,
 names: [][]const u8,

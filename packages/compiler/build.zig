@@ -55,6 +55,7 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "rx", .module = b.dependency("rx", .{ .target = target, .optimize = optimize }).module("rx") },
+                .{ .name = "lint", .module = b.dependency("lint", .{ .target = target, .optimize = optimize }).module("lint") },
                 .{ .name = "compiler", .module = module },
                 .{ .name = "zx", .module = b.dependency("zx", .{ .target = target, .optimize = optimize }).module("zx") },
             },

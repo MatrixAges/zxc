@@ -1,5 +1,5 @@
 const std = @import("std");
-const node = @import("genz").node;
+const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: bool) Lower.Error!void {

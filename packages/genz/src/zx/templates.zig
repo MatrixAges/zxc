@@ -1,5 +1,5 @@
 const ir = @import("zx").ir;
-const node = @import("genz").node;
+const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const intrinsic = @import("intrinsics.zig");
 

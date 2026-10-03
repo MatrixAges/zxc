@@ -38,7 +38,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) !compiler.Result 
 
     if (program.native_modules.len != 0) {
         const writer = options.type_output orelse return .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "native modules require shared type output; use --out or build" } };
-        const bundle = try @import("backends/zig/render.zig").bundle(allocator, program);
+        const bundle = try @import("genz").zx.bundle(allocator, program);
 
         defer allocator.free(bundle.types);
         errdefer allocator.free(bundle.source);
@@ -48,7 +48,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) !compiler.Result 
         return .{ .source = bundle.source };
     }
 
-    if (requires_verification) return .{ .source = try @import("backends/zig/render.zig").emit(allocator, program) };
+    if (requires_verification) return .{ .source = try @import("genz").zx.emit(allocator, program) };
 
     return .{ .source = compiler.zig.emit(allocator, program) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,

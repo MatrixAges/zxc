@@ -1,6 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 pub const spacing = @import("spacing.zig");
+pub const source = @import("source.zig");
 pub const NameKind = enum { value, callable, type_decl };
 
 pub fn checkName(name: []const u8, kind: NameKind) bool {

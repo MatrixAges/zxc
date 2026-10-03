@@ -2,6 +2,14 @@
 
 用于定义和校验 RX 风格 XML DSL 的 Zig 0.16.0 库。模块名为 `dsl`，不包含固定业务标签，使用 Zig 编译期类型函数生成领域数据类型。
 
+同时提供 `grammar(Parser, Token, Error)` token 语法组合工厂，供 ZX 等文本前端复用；不依赖具体语言或 compiler。
+
+## Token 语法组合
+
+工厂返回 Match、token、peek、separated、reference、required、sequence、choice、optional、many、map 和 run。Parser 由调用方提供，需要 allocator、index、reporter 字段以及 current、take、at 方法；Token 需要 kind（含 eof）与 span。reporter.fail 接收 syntax/contract 错误种类、span 与消息并返回 Error。
+
+sequence、choice、optional 与 peek 按既有规则管理 token 索引回溯；many 和 separated 拒绝成功但未消费 token 的规则。回溯只恢复索引，不回滚 allocator 或回调副作用；调用方应使用解析生命周期 allocator，回调只构造解析结果。返回列表由传入 allocator 分配，所有权交给调用方。XML 的 element/sequence/choice 接口保持独立，不要求实现这一 Parser 协议。
+
 ## 包与根构建
 
 ```text

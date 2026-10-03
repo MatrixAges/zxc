@@ -100,7 +100,7 @@ pub fn main(init: std.process.Init) !void {
                 } else if (!try @import("cli/build.zig").run(init.io, allocator, text, type_output.written(), options, native_project)) std.process.exit(1);
             } else if (options.check) {
                 if (!std.mem.eql(u8, source, text)) {
-                    try stderr.print("{s}: blank lines require formatting\n", .{input_path});
+                    try stderr.print("{s}: {s}\n", .{ input_path, @import("lint").source.formatting_required });
                     try stderr.flush();
 
                     std.process.exit(1);

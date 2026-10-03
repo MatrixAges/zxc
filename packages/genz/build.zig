@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
-        .imports = &.{},
+        .imports = &.{.{ .name = "zx", .module = b.dependency("zx", .{ .target = target, .optimize = optimize }).module("zx") }},
     });
 
     const library = b.addLibrary(.{ .name = "zxc_genz", .root_module = module });

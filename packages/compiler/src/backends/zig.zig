@@ -5,15 +5,15 @@ pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Alloc
     try validate(allocator, program);
     if (program.native_modules.len != 0) return error.NativeRequiresBundle;
 
-    return @import("render.zig").emit(allocator, program);
+    return @import("genz").zx.emit(allocator, program);
 }
 
-pub const Bundle = @import("render.zig").Bundle;
+pub const Bundle = @import("genz").zx.Bundle;
 
 pub fn emitBundle(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts })!Bundle {
     try validate(allocator, program);
 
-    return @import("render.zig").bundle(allocator, program);
+    return @import("genz").zx.bundle(allocator, program);
 }
 
 fn validate(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts })!void {

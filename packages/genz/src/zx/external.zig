@@ -1,6 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const node = @import("genz").node;
+const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node.Declaration {

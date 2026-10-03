@@ -9,7 +9,7 @@ pub const analyze = frontend.analyze;
 pub const Context = frontend.Context;
 pub const analyzeWithContext = frontend.analyzeWithContext;
 pub const AnalysisResult = frontend.AnalysisResult;
-pub const zig = @import("backends/zig/root.zig");
+pub const zig = @import("backends/zig.zig");
 pub const Diagnostic = zx.Diagnostic;
 pub const validateIr = frontend.validateIr;
 pub const verification = @import("verification/root.zig");
@@ -38,13 +38,7 @@ pub fn compileWithContext(allocator: std.mem.Allocator, source: []const u8, file
 
     const input = parsed.value.parsed;
 
-    if (lint.checkNames(input.ast)) |issue| return .{ .diagnostic = issue };
-
-    const changes = try lint.spacing.edits(allocator, input.source, input.lexed.comments, input.ast);
-
-    defer allocator.free(changes);
-
-    if (changes.len != 0) return .{ .diagnostic = .{ .code = .spacing, .span = changes[0].span, .message = "blank lines do not match AST grouping; run zxc fmt" } };
+    if (try lint.source.check(allocator, .{ .source = input.source, .comments = input.lexed.comments, .program = input.ast })) |issue| return .{ .diagnostic = issue };
 
     var analyzed = try analyzeWithContext(allocator, input, context);
 
@@ -69,11 +63,8 @@ pub fn format(allocator: std.mem.Allocator, source: []const u8, file_name: []con
     if (parsed.value == .diagnostic) return .{ .diagnostic = parsed.value.diagnostic };
 
     const input = parsed.value.parsed;
-    const changes = try lint.spacing.edits(allocator, input.source, input.lexed.comments, input.ast);
 
-    defer allocator.free(changes);
-
-    return .{ .source = try lint.spacing.format(allocator, source, changes) };
+    return .{ .source = try lint.source.format(allocator, .{ .source = input.source, .comments = input.lexed.comments, .program = input.ast }) };
 }
 
 pub const project = frontend.project;
@@ -89,15 +80,7 @@ pub fn analyzeProject(allocator: std.mem.Allocator, sources: []const project.Sou
         if (parsed.value == .diagnostic) issue = parsed.value.diagnostic else {
             const input = parsed.value.parsed;
 
-            issue = lint.checkNames(input.ast);
-
-            if (issue == null) {
-                const changes = try lint.spacing.edits(allocator, input.source, input.lexed.comments, input.ast);
-
-                defer allocator.free(changes);
-
-                if (changes.len != 0) issue = .{ .code = .spacing, .span = changes[0].span, .message = "blank lines do not match AST grouping; run zxc fmt" };
-            }
+            issue = try lint.source.check(allocator, .{ .source = input.source, .comments = input.lexed.comments, .program = input.ast });
         }
 
         if (issue) |*diagnostic| {

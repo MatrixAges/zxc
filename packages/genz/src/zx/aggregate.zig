@@ -1,6 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const node = @import("genz").node;
+const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn object(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expression, "value"), "object")) Lower.Error!*const node.Expression {

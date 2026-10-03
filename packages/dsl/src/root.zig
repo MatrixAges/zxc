@@ -2,6 +2,7 @@ const std = @import("std");
 const diagnostic = @import("diagnostic.zig");
 const children = @import("children.zig");
 pub const ast = @import("ast.zig");
+pub const grammar = @import("grammar.zig").grammar;
 pub const parseXml = @import("xml/root.zig").parse;
 pub const XmlResult = @import("xml/root.zig").Result;
 pub const Diagnostic = diagnostic.Diagnostic;

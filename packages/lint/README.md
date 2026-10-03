@@ -28,6 +28,9 @@ ZX 的名称检查和 AST 空行格式化包，仅依赖 zx。
 
 - `checkNames(program)` 返回首条名称诊断或 null。
 - `checkName(name, kind)` 检查单个名称。
+- `source.check(allocator, input)` 依次检查名称和空行，返回首条诊断；input 包含 source、comments、program。
+- `source.format(allocator, input)` 规划并应用空白编辑，内部释放 edits，返回调用方拥有的源码；不要求名称或语义先通过。
+- `source.formatting_required` 是 CLI 格式检查失败的提示，和格式诊断内容统一由本包维护。
 - `spacing.edits(allocator, source, comments, program)` 返回按源码位置排序、不重叠的空白编辑；输入必须是同一源码的 AST 和注释范围。
 - `spacing.format(allocator, source, edits)` 应用编辑，返回调用方拥有的字符串。
 

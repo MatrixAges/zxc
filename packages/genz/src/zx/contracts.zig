@@ -1,5 +1,5 @@
 const std = @import("std");
-const node = @import("genz").node;
+const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn preconditions(self: *Lower) Lower.Error![]const node.Statement {
