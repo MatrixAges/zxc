@@ -20,4 +20,6 @@ zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
 
 [skills](packages/skills/README.md) 面向使用 zxc 编写应用的 AI，提供业务模块设计、消除循环依赖与应用验证指导。维护 zxc 本身的内部开发规则见 [AGENTS.md 的索引](AGENTS.md#项目规则索引)。
 
+[translib](packages/translib/SKILL.md) 提供“lib转换”技能，用于将其他语言库迁移为 ZX 库；TypeScript/Bun 辅助命令组织依赖、记录独立审查、集中构建，并对照原实现的既有输入验证行为。
+
 分发的 zxc 可执行文件内嵌 Zig 工具链与 ZX 标准实现，使用者无需安装 Zig。首次构建会释放内置资源到用户缓存，之后直接复用。构建方式与缓存配置见 [compiler](packages/compiler/README.md)，跨平台产物与独立运行验证见 [workflows](.github/README.md)。
