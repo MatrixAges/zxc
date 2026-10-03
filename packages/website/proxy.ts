@@ -3,10 +3,14 @@ import { NextResponse } from 'next/server'
 import { resolveLocale } from './i18n/locale'
 
 export function proxy(request: NextRequest) {
-	const locale = resolveLocale({
-		chinese: process.env.ZXC_WEBSITE_LOCALE === 'zh' || request.nextUrl.searchParams.get('__lang') === 'zh',
-		accept_language: request.headers.get('accept-language') ?? ''
-	})
+	const locale =
+		process.env.ZXC_WEBSITE_LOCALE === 'en'
+			? 'en'
+			: resolveLocale({
+					chinese:
+						process.env.ZXC_WEBSITE_LOCALE === 'zh' || request.nextUrl.searchParams.get('__lang') === 'zh',
+					accept_language: request.headers.get('accept-language') ?? ''
+				})
 	const request_headers = new Headers(request.headers)
 	request_headers.set('x-zxc-locale', locale)
 

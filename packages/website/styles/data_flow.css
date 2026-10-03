@@ -1,0 +1,83 @@
+.home {
+	display: grid;
+	grid-template-columns: minmax(0, 500px) minmax(300px, 500px);
+	gap: 48px;
+	max-width: 1128px;
+}
+
+.home-copy {
+	min-width: 0;
+}
+
+.data-flow {
+	position: relative;
+	min-width: 0;
+	width: min(100%, 440px);
+	justify-self: start;
+}
+
+.flow-viewport {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.flow-canvas {
+	position: sticky;
+	top: 0;
+	height: 100svh;
+}
+
+.flow-stages {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.flow-stage {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	margin: 0;
+}
+
+.flow-caption {
+	width: fit-content;
+	max-width: 100%;
+	white-space: nowrap;
+	padding: 5px 8px;
+	background: #25221c;
+	color: #cfbea0;
+	font-size: 9px;
+	line-height: 14px;
+	text-align: left;
+}
+
+.flow-stage-right .flow-caption {
+	margin-left: auto;
+	margin-right: 12px;
+}
+
+.flow-stage-left .flow-caption {
+	margin-left: 4px;
+}
+
+.flow-fallback {
+	display: block;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 100px;
+	transform: translate(-50%, -50%);
+	opacity: 0.3;
+}
+
+@media (max-width: 960px) {
+	.home {
+		grid-template-columns: minmax(0, 500px);
+	}
+
+	.data-flow {
+		display: none;
+	}
+}

@@ -24,6 +24,30 @@
 
 Gateway and Store names describe their business boundary. They do not replace the file-path identity of ordinary modules. A Store alias identifies a data namespace, not a module alias.
 
+### Attribute contracts
+
+| Tag                  | Required attributes                   | Optional attributes / restrictions      |
+| -------------------- | ------------------------------------- | --------------------------------------- |
+| `Module`             | None                                  | No name; ordinary `.rx` root            |
+| `Call`               | `in`, exactly one of `fn` / `service` | `out`; `setter` only with `fn`          |
+| `Import`             | `from`                                | No alias; dependency only               |
+| `Task`               | `name`                                | Nonempty; no direct nested `Task`       |
+| `Parallel`           | None                                  | Nonempty; only `Task` / `Call` children |
+| `Switch`             | `on`                                  | `Case` / `Default` children             |
+| `Case`               | `value`                               | Unique within its switch; nonempty body |
+| `Default`            | None                                  | At most one per switch; nonempty body   |
+| `Return`             | `value`                               | Leaf                                    |
+| `Emit`               | `event`, `value`                      | Leaf                                    |
+| Module-level `Store` | `from`                                | Optional `as` namespace                 |
+
+Attributes are validated as part of the current structural model. Expression strings such as `$in` and `ctx.result` require host interpretation; the RX package does not currently parse or type-check them against ZX.
+
+### Validation scope
+
+The package validates an already constructed AST, registers ordinary module paths, and checks graph edges for cycles. It does not supply XML loading, automatic return inference, ZX linkage, event subscriptions, or runtime execution.
+
+For examples see [branches and tasks](/docs/control-flow). Gateway and Store roots have their own [declaration reference](/docs/gateway-and-store).
+
 ### Compiler commands
 
 ```sh

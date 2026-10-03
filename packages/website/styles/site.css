@@ -243,22 +243,66 @@ section[id] {
 .language-pair pre {
 	font-size: 12px;
 }
-.contract-list {
-	max-width: 500px;
-	border-top: 1px solid var(--line);
+.capability-table {
+	margin: 24px 0;
+	overflow-x: auto;
 }
-.contract-list > div {
-	display: grid;
-	grid-template-columns: 150px 1fr;
-	gap: 20px;
-	padding: 12px 0;
-	border-bottom: 1px solid var(--line);
+.capability-table table {
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px dashed var(--muted);
+	text-align: left;
 }
-.contract-list dt {
+.capability-table caption {
+	margin-bottom: 8px;
+	color: var(--muted);
+	text-align: left;
+}
+.home-principle {
+	margin: 24px 0;
+	padding: 8px 0 8px 16px;
+	border-left: 1px solid #a89570;
+	color: #cfbea0;
+	font-size: 14px;
+	line-height: 24px;
+}
+.home-change {
+	margin: 24px 0;
+}
+.home-change figcaption {
 	color: var(--muted);
 }
-.contract-list dd {
-	margin: 0;
+.capability-table th,
+.capability-table td {
+	padding: 8px 12px;
+	border: 1px dashed var(--line);
+	vertical-align: top;
+}
+.capability-table tbody th {
+	font-weight: 400;
+	color: var(--muted);
+	width: 40%;
+}
+.compile-path {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 8px;
+}
+.compile-path code {
+	background: none;
+	padding: 0;
+}
+.compile-path > span[aria-hidden] {
+	color: var(--muted);
+}
+.feature-list,
+.reading-list {
+	list-style-type: '* ';
+}
+.feature-list li::marker,
+.reading-list li::marker {
+	color: var(--muted);
 }
 .reading-list {
 	max-width: 500px;
@@ -267,8 +311,10 @@ section[id] {
 	padding: 4px 0;
 }
 .reading-list a {
-	display: flex;
-	justify-content: space-between;
+	display: inline;
+}
+.reading-list a span {
+	margin-left: 1ch;
 }
 .site-footer {
 	display: flex;
@@ -436,10 +482,6 @@ section[id] {
 	.site-footer {
 		padding: 24px;
 	}
-	.contract-list > div {
-		grid-template-columns: 110px 1fr;
-		gap: 12px;
-	}
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -470,4 +512,20 @@ pre::after {
 }
 pre > code {
 	display: block;
+}
+
+.chapter-navigation {
+	display: flex;
+	justify-content: space-between;
+	gap: 24px;
+	padding: 24px 0;
+	border-top: 1px dashed var(--line);
+}
+
+.chapter-navigation a:last-child {
+	text-align: right;
+}
+
+.chapter-navigation a:hover {
+	text-decoration: underline;
 }

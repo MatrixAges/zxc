@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import AgentPrompt from '../../../components/agent_prompt'
 import DocsNavigation from '../../../components/docs_navigation'
 import Markdown from '../../../components/markdown'
+import ChapterNavigation from '../../../components/chapter_navigation'
 import { getDocument } from '../../../content/docs'
 import { localeHref } from '../../../i18n/locale'
 
@@ -52,6 +53,7 @@ export default async function DocPage({ params }: PageProps) {
 				<div className='doc-section'>
 					<Markdown>{doc.body}</Markdown>
 				</div>
+				<ChapterNavigation current={doc.id} locale={locale} />
 			</article>
 		</main>
 	)

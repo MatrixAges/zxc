@@ -1,0 +1,47 @@
+Paths identify modules. Keep file placement aligned with business responsibilities so imports remain understandable without a registry of aliases.
+
+### RX service paths
+
+`Call.service` and `Import.from` resolve against the importing module. The normalizer adds the `.rx` suffix when omitted: `./load` and `load.rx` identify the same sibling module.
+
+| Form                                                   | RX behavior                                        |
+| ------------------------------------------------------ | -------------------------------------------------- |
+| `users/load`                                           | A module below the caller's directory              |
+| `../shared/load`                                       | A module in a parent directory, within the project |
+| `/users/load`                                          | Rejected: absolute path                            |
+| A path escaping the project root                       | Rejected                                           |
+| Backslashes, colons, or a trailing slash               | Rejected                                           |
+| `app.rx`, a Gateway file, or a Store file as a service | Rejected                                           |
+
+`app.rx` is a reserved basename. Do not use it for an ordinary module, including inside a nested directory. Path normalization is lexical; it does not resolve filesystem symlinks.
+
+### Declaring a dependency
+
+```xml
+<Module>
+  <Import from="shared/validate" />
+
+  <Call service="orders/create" in="$in" out="ctx.order" />
+
+  <Return value="ctx.order" />
+</Module>
+```
+
+An `Import` declares a graph edge; it does not execute the imported module and has no `as` alias. A service call already declares its own edge, so do not add a duplicate import just to enable it.
+
+### ZX imports
+
+ZX imports use explicit `.zx` extensions and one of `./`, `../`, or `@/`. Relative paths start at the importing file. The CLI resolves `@/` from its current working directory.
+
+```typescript
+import calculateQuote from './calculate_quote.zx'
+import type { Money } from './types.zx'
+```
+
+Default function imports come from executable ZX files. Shared type and enum imports come from type-only files. A type-only file exports at least one type or enum and has no default function. Do not use an executable module's `Input` export as a substitute for a shared type module.
+
+### Keep both graphs acyclic
+
+The compiler checks dependencies, including unused imports. A branch that never executes cannot make a cyclic dependency acceptable. Move shared work into a lower-level module and pass parent-owned values as input.
+
+Continue with [dependency design](/docs/keep-dependencies-acyclic).

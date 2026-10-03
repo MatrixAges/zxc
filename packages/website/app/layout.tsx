@@ -4,6 +4,7 @@ import SiteHeader from '../components/site_header'
 import { localeHref } from '../i18n/locale'
 import '../styles/site.css'
 import '../styles/highlight.css'
+import '../styles/data_flow.css'
 
 export const dynamic = 'force-dynamic'
 

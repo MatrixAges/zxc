@@ -17,3 +17,26 @@ If the runtime or checker is unavailable, state that limitation. Do not invent a
 ### Hand off a small report
 
 List changed behavior and file responsibilities, commands actually run and their results, and unresolved requirements. Keep failures visible; do not remove required cases merely to obtain a passing result.
+
+### Match evidence to the claim
+
+| Check                    | Supports                                  | Does not establish                        |
+| ------------------------ | ----------------------------------------- | ----------------------------------------- |
+| `zxc fmt ... --check`    | Source matches formatter output           | Type safety or execution                  |
+| ZX compilation           | Parsing, semantic checks, generated Zig   | Host integration or business correctness  |
+| Host build               | Generated code integrates with that build | All runtime paths behave correctly        |
+| Host execution           | Observed behavior for supplied inputs     | Behavior of unexecuted paths              |
+| RX structural validation | Tag and module graph constraints          | XML loading, scheduling, or state commits |
+
+### Suggested handoff
+
+```text
+Behavior: <what changed>
+Files: <each responsibility>
+Toolchain: <revision and Zig version>
+Verified: <actual commands and observed results>
+Host boundary: <memory, I/O, and state assumptions>
+Remaining: <unimplemented or unverified behavior>
+```
+
+If a diagnostic blocks compilation, use [resolve diagnostics](/docs/troubleshooting). If code compiles but cannot run, check [host integration](/docs/host-integration).
