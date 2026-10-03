@@ -67,10 +67,9 @@ pub fn build(b: *std.Build) void {
 
     const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");
 
+    executable.root_module.addImport("bundle", @import("build/toolchain.zig").create(b, target, pkgs_index));
     b.addNamedLazyPath("pkgs_index", pkgs_index);
-    b.getInstallStep().dependOn(&b.addInstallFile(pkgs_index, "share/zxc/pkgs/index.json").step);
     b.installArtifact(executable);
-    b.installDirectory(.{ .source_dir = b.path("standard"), .install_dir = .prefix, .install_subdir = "share/zxc/standard", .include_extensions = &.{".zig"} });
 
     const runtime_tests_module = b.createModule(.{ .root_source_file = b.path("tests/runtime/generated_test.zig"), .target = target, .optimize = optimize });
 

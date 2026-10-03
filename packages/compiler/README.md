@@ -56,6 +56,10 @@ zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
 zig-out/bin/zxc build packages/compiler/examples/quote.zx --out .zxc/quote --asm .zxc/quote.s
 ```
 
+分发的 zxc 内嵌官方 Zig 0.16.0 和 ZX 标准实现，用户只需复制可执行文件，无需安装 Zig 或保持旁置 share 目录。首次 `zxc build` 将资源释放到按内容摘要区分的用户缓存，后续复用；不会运行时下载工具链。macOS 默认 `$HOME/Library/Caches/zxc`，Linux 默认 `$XDG_CACHE_HOME/zxc` 或 `$HOME/.cache/zxc`，Windows 默认 `%LOCALAPPDATA%/zxc/cache`；可用绝对路径环境变量 `ZXC_CACHE_DIR` 覆盖缓存根。纯解析、格式化和读取内嵌包索引不展开工具链。
+
+构建 zxc 本身仍需要 Zig。构建工具根据 zxc 的运行宿主获取锁定的官方 Zig 0.16.0 归档，核对 SHA256 后原样内嵌；不重新构建 Zig、不裁剪或重压缩发行内容。可用 `zig build dist -Dzig-archive=/absolute/path/to/official.tar.xz`（Windows 为 `.zip`）指定本地归档，离线完成构建。每个 zxc 仅内嵌对应宿主的一份发行包；Windows ARM64 使用 x64 Zig 的系统仿真方案，默认仍生成 ARM64 程序。运行期内置 XZ/ZIP 解压，不依赖外部解压命令。官方 Zig 二进制内部的 LLVM/Clang 保留。项目显式声明的系统原生库、外部求解器和 FPGA 工具仍按各自契约提供。
+
 包内 `zig build test` 包含前端、第三方 IR、完整编译分配失败、实际生成 Zig 执行及 Store 宿主契约测试。`zig build test-frontend` 只运行前端测试。
 
 公开模块：
@@ -74,7 +78,7 @@ parse 返回拥有源码副本的 ParseResult，analyze/project.analyze 返回�
 
 `zxc pkg init <name> [--version <version>] [--entry <path>] [--private]` 在当前目录创建 pkg.yaml，默认版本 0.1.0，不覆盖已有文件。入口可选，必须是包内 .zx 路径；命令只创建清单，不生成源码。例如 `zxc pkg init @sample/quote --entry main.zx --private`。未知、重复、缺值参数或无效清单字段均失败；字段校验与 inspect 使用同一 Schema。
 
-`zxc pkg index [index.json]` 校验并显示多版本索引；`zxc pkg resolve <name> <range> [index.json]` 选择最高匹配版本，输出来源及 SHA-256。默认使用安装目录的 share/zxc/pkgs/index.json，由 [pkgs 包](../pkgs/README.md)维护；当前没有已发布条目。resolve 只查询索引，不下载或安装。
+`zxc pkg index [index.json]` 校验并显示多版本索引；`zxc pkg resolve <name> <range> [index.json]` 选择最高匹配版本，输出来源及 SHA-256。默认使用内嵌索引，由 [pkgs 包](../pkgs/README.md)维护；当前没有已发布条目。resolve 只查询索引，不下载或安装。
 
 Store 使用 compileWithContext 或 project.Options.context.stores，每项声明 handle、path、type_name、readable、writable。生成入口为 execute(arena, input, context)，context 提供对应 slot 的快照指针和 commit(pending)。参考 tests/runtime/store_test.zig。
 
@@ -94,7 +98,7 @@ IR 实验版本 5 将原生模块保存为 `Program.native_modules`，函数通�
 
 native_modules 仅接受 path 或 header，动态 library 入口已取消。旧动态插件实施文档只保留历史证据，不代表当前功能。
 
-`zxc build <source.zx> --out program` 支持 `--asm program.s`、`--target triple`、`--cpu features`、`--optimize Debug|ReleaseSafe|ReleaseFast|ReleaseSmall`。默认 ReleaseSafe。PATH 中需提供兼容 Zig；使用 std: 模块时从 share/zxc/standard 定位普通静态源码。汇编生成不代表超级优化或形式化正确性证明已经完成。
+`zxc build <source.zx> --out program` 支持 `--asm program.s`、`--target triple`、`--cpu features`、`--optimize Debug|ReleaseSafe|ReleaseFast|ReleaseSmall`。默认 ReleaseSafe。编译使用内嵌 Zig 与标准实现；完整官方资源保留，`--target` 遵循 Zig 的目标支持范围，涉及系统库或 SDK 时仍需提供对应外部依赖。汇编生成不代表超级优化或形式化正确性证明已经完成。
 
 `--mode app` 是 build 的默认模式。`zxc build <source.zx> --mode lib --out directory` 交付源码模块包：root.zig 导出 Input/Output/execute，build.zig 注册名为 library 的 Zig 模块，native/ 保存引用的静态源码依赖，interfaces/ 保存项目原生声明，source/ 保存重写为内部相对导入的 ZX 源码，pkg.yaml 保存包身份、源码入口及原生配置。无输入清单时使用 library@0.0.0，有清单则保留包名和版本。依赖源码已打包为闭包，不保留原工作区依赖边。包内 ZX 消费方可使用包名自引用；Zig 消费方从本地 build 依赖获取 module("library")。生成的 build.zig 含清单导出的原生构建参数，调整原始配置后应重新导出库。目标和优化由消费方构建选择，lib 模式不接受 app 的汇编、target、cpu、optimize 参数。
 

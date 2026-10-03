@@ -3,12 +3,12 @@ const Options = @import("options.zig").Options;
 const Loaded = @import("project.zig").Loaded;
 const artifacts = @import("artifacts.zig");
 
-pub fn run(io: std.Io, allocator: std.mem.Allocator, source: []const u8, types: []const u8, options: Options, loaded: Loaded) !bool {
+pub fn run(io: std.Io, allocator: std.mem.Allocator, source: []const u8, types: []const u8, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, environment: *const std.process.Environ.Map) !bool {
     const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = options, .project = loaded }, .{});
     const directory = try artifacts.prepare(io, allocator, source, types, configuration);
     var arguments: std.ArrayList([]const u8) = .empty;
 
-    try arguments.appendSlice(allocator, &.{ "zig", "build-exe", try std.fmt.allocPrint(allocator, "-femit-bin={s}", .{options.output.?}) });
+    try arguments.appendSlice(allocator, &.{ toolchain.executable, "build-exe", "--zig-lib-dir", toolchain.library, try std.fmt.allocPrint(allocator, "-femit-bin={s}", .{options.output.?}) });
     if (std.fs.path.dirname(options.output.?)) |parent| try std.Io.Dir.cwd().createDirPath(io, parent);
 
     if (options.assembly) |assembly| {
@@ -59,7 +59,14 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, source: []const u8, types: 
 
     try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "command.json" }), manifest);
 
-    var child = try std.process.spawn(io, .{ .argv = arguments.items });
+    var backend_environment = std.process.Environ.Map.init(allocator);
+
+    defer backend_environment.deinit();
+
+    for (environment.keys(), environment.values()) |key, value| try backend_environment.put(key, value);
+    try backend_environment.put("ZIG_LIB_DIR", toolchain.library);
+
+    var child = try std.process.spawn(io, .{ .argv = arguments.items, .environ_map = &backend_environment });
     const termination = try child.wait(io);
 
     return termination == .exited and termination.exited == 0;
@@ -67,6 +74,11 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, source: []const u8, types: 
 
 fn settings(allocator: std.mem.Allocator, arguments: *std.ArrayList([]const u8), options: Options) !void {
     try arguments.appendSlice(allocator, &.{ "-O", @tagName(options.optimize) });
-    if (options.target) |target| try arguments.appendSlice(allocator, &.{ "-target", target });
+
+    const builtin = @import("builtin");
+    const host = @tagName(builtin.cpu.arch) ++ "-" ++ @tagName(builtin.os.tag);
+    const target = options.target orelse if (!std.mem.eql(u8, host, @import("bundle").zig_host)) try builtin.target.zigTriple(allocator) else null;
+
+    if (target) |triple| try arguments.appendSlice(allocator, &.{ "-target", triple });
     if (options.cpu) |cpu| try arguments.appendSlice(allocator, &.{ "-mcpu", cpu });
 }

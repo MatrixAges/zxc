@@ -2,7 +2,7 @@ const std = @import("std");
 const compiler = @import("compiler");
 const project = @import("project.zig");
 
-pub fn resolve(io: std.Io, allocator: std.mem.Allocator, loaded: project.Loaded, dependencies: []const []const u8) !project.Loaded {
+pub fn resolve(allocator: std.mem.Allocator, loaded: project.Loaded, dependencies: []const []const u8, standard_root: []const u8) !project.Loaded {
     var modules: std.ArrayList(project.NativeModule) = .empty;
 
     try modules.appendSlice(allocator, loaded.config.native_modules);
@@ -20,8 +20,7 @@ pub fn resolve(io: std.Io, allocator: std.mem.Allocator, loaded: project.Loaded,
 
         if (!required) continue;
 
-        const executable_dir = try std.process.executableDirPathAlloc(io, allocator);
-        const path = try std.fs.path.resolve(allocator, &.{ executable_dir, "../share/zxc/standard", standard.implementation_path });
+        const path = try std.fs.path.resolve(allocator, &.{ standard_root, standard.implementation_path });
 
         try modules.append(allocator, .{ .name = standard.module, .path = path });
     }

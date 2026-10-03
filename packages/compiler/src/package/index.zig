@@ -11,22 +11,22 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, args: []const []const u8, o
         return false;
     }
 
-    const path = if (args.len > required) args[required] else try std.fs.path.resolve(allocator, &.{ try std.process.executableDirPathAlloc(io, allocator), "../share/zxc/pkgs/index.json" });
+    const path = if (args.len > required) args[required] else null;
 
-    const source = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(16 * 1024 * 1024)) catch |err| {
+    const source = if (path) |file| std.Io.Dir.cwd().readFileAlloc(io, file, allocator, .limited(16 * 1024 * 1024)) catch |err| {
         if (err == error.OutOfMemory) return err;
 
-        try errors.print("{s}: index: {s}\n", .{ path, @errorName(err) });
+        try errors.print("{s}: index: {s}\n", .{ file, @errorName(err) });
 
         return false;
-    };
+    } else @import("bundle").index;
 
-    defer allocator.free(source);
+    defer if (path != null) allocator.free(source);
 
     const parsed = pkgs.Index.parse(allocator, source) catch |err| {
         if (err == error.OutOfMemory) return err;
 
-        try errors.print("{s}: index: {s}\n", .{ path, @errorName(err) });
+        try errors.print("{s}: index: {s}\n", .{ path orelse "embedded index", @errorName(err) });
 
         return false;
     };

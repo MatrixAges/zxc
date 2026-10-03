@@ -20,6 +20,6 @@ Zig 模块 `pkgs` 导出 `Index.parse`、`Index.select`、`version.matches` 和 
 
 在本目录执行 `zig build` 构建独立库，其他 Zig 包通过依赖的 `module("pkgs")` 使用。索引与清单采用不同职责：pkg.yaml 描述一个包，index.json 描述可获取的多个包及多个版本。
 
-安装后的 CLI 使用 `zxc pkg index [index.json]` 查看和校验索引，使用 `zxc pkg resolve <name> <range> [index.json]` 查询最高匹配版本。省略路径时读取 share/zxc/pkgs/index.json。查询命令不下载归档；安装闭环仍在实现。
+安装后的 CLI 使用 `zxc pkg index [index.json]` 查看和校验索引，使用 `zxc pkg resolve <name> <range> [index.json]` 查询最高匹配版本。省略路径时读取编译进 zxc 的索引，不依赖旁置文件。查询命令不下载归档；安装闭环仍在实现。
 
 版本范围参考 [node-semver 的范围定义](https://github.com/npm/node-semver#ranges)，本地协议参考 [pnpm workspace](https://pnpm.io/workspaces)。本包只处理版本与索引事实，不把 JavaScript 包运行模型带入 ZX。

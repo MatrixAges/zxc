@@ -1,6 +1,7 @@
 import { mkdirSync, rmSync, statSync } from 'node:fs'
 import { basename, dirname, resolve } from 'node:path'
 import targets from '../tsflows/targets'
+import verifyStandalone from './verify_standalone'
 
 const target = process.env.ZXC_TARGET
 
@@ -11,8 +12,10 @@ if (!target || !targets.some(item => item.target === target)) {
 const root = resolve(import.meta.dir, '../..')
 const prefix = resolve(root, '.zxc/distribution', `zxc-${target}`)
 const artifact_dir = resolve(root, '.zxc/artifacts')
-const example_dir = resolve(root, '.zxc/distribution_examples', target)
 const executable_suffix = target.includes('windows') ? '.exe' : ''
+const zig_path = Bun.which('zig')
+
+if (!zig_path) throw new Error('Building zxc requires an official Zig distribution')
 
 function run(command: Array<string>) {
 	const result = Bun.spawnSync(command, { cwd: root, stdio: ['ignore', 'inherit', 'inherit'] })
@@ -22,25 +25,16 @@ function run(command: Array<string>) {
 
 rmSync(prefix, { recursive: true, force: true })
 mkdirSync(artifact_dir, { recursive: true })
-mkdirSync(example_dir, { recursive: true })
 
-run(['zig', 'build', 'dist', `-Dtarget=${target}`, '-Doptimize=ReleaseSafe', '--prefix', prefix])
+run([zig_path, 'build', 'dist', `-Dtarget=${target}`, '-Doptimize=ReleaseSafe', '--prefix', prefix])
 
-for (const file of [
-	'LICENSE',
-	'share/zxc/licenses/libyaml.txt',
-	'share/zxc/standard/src/root.zig',
-	'share/zxc/pkgs/index.json'
-]) {
+for (const file of ['LICENSE', 'share/zxc/licenses/libyaml.txt', 'share/zxc/licenses/zig.txt']) {
 	if (!statSync(resolve(prefix, file)).isFile()) throw new Error(`Missing distribution file: ${file}`)
 }
 
 const compiler_path = resolve(prefix, 'bin', `zxc${executable_suffix}`)
-const example_path = resolve(example_dir, `quote${executable_suffix}`)
 
-run([compiler_path, 'pkg', 'index'])
-run([compiler_path, 'build', 'packages/compiler/examples/quote.zx', '--out', example_path, '--target', target])
-run([example_path, JSON.stringify({ amount: 100, discount: 20, enabled: true, factor: 1.5 })])
+verifyStandalone({ root, compiler_path, target })
 
 const archive_path = resolve(artifact_dir, `${basename(prefix)}.tar.gz`)
 
