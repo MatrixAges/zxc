@@ -56,6 +56,7 @@ pub fn build(b: *std.Build) void {
             .imports = &.{
                 .{ .name = "rx", .module = b.dependency("rx", .{ .target = target, .optimize = optimize }).module("rx") },
                 .{ .name = "lint", .module = b.dependency("lint", .{ .target = target, .optimize = optimize }).module("lint") },
+                .{ .name = "pkgs", .module = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).module("pkgs") },
                 .{ .name = "compiler", .module = module },
                 .{ .name = "zx", .module = b.dependency("zx", .{ .target = target, .optimize = optimize }).module("zx") },
             },
@@ -64,6 +65,10 @@ pub fn build(b: *std.Build) void {
 
     @import("build/yaml.zig").link(b, executable, target, optimize);
 
+    const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");
+
+    b.addNamedLazyPath("pkgs_index", pkgs_index);
+    b.getInstallStep().dependOn(&b.addInstallFile(pkgs_index, "share/zxc/pkgs/index.json").step);
     b.installArtifact(executable);
     b.installDirectory(.{ .source_dir = b.path("standard"), .install_dir = .prefix, .install_subdir = "share/zxc/standard", .include_extensions = &.{".zig"} });
 

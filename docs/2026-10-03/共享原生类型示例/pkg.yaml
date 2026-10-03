@@ -1,0 +1,10 @@
+name: library
+version: 0.1.0
+entry: main.zx
+native_interfaces:
+    - specifier: zig:transport
+      path: transport.d.zx
+      module: transport
+native_modules:
+    - name: transport
+      path: native.zig

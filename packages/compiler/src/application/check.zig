@@ -4,7 +4,7 @@ const rx = @import("rx");
 pub fn run(io: std.Io, allocator: std.mem.Allocator, paths: []const []const u8, writer: *std.Io.Writer) !bool {
     if (paths.len > 0 and std.mem.eql(u8, paths[0], "--entry")) {
         if (paths.len != 2 and (paths.len != 4 or !std.mem.eql(u8, paths[2], "--project"))) {
-            try writer.writeAll("check-rx --entry requires one RX file and optional --project zxc.json\n");
+            try writer.writeAll("check-rx --entry requires one RX file and optional --project pkg.yaml\n");
 
             return false;
         }

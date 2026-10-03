@@ -21,7 +21,14 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, source: []const u8, types: 
     }
 
     config.native_interfaces = interfaces;
-    config.packages = &.{.{ .specifier = "library", .entry = "source/module_0.zx" }};
+
+    if (config.name.len == 0) config.name = "library";
+    if (config.version.len == 0) config.version = "0.0.0";
+
+    config.entry = "source/module_0.zx";
+    config.dependencies = &.{};
+    config.dev_dependencies = &.{};
+    config.workspace = null;
     config.include_paths = try absolutePaths(allocator, loaded.project.root_dir, config.include_paths);
     config.library_paths = try absolutePaths(allocator, loaded.project.root_dir, config.library_paths);
     var bundled_files: std.ArrayList(native_sources.File) = .empty;
@@ -52,8 +59,17 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, source: []const u8, types: 
     try @import("library_sources.zig").write(io, allocator, directory, sources, loaded.project);
     try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "abi.zig" }), types);
     try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "root.zig" }), source);
-    try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "build.zig" }), @embedFile("library_build.zig"));
-    try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "zxc.json" }), try std.json.Stringify.valueAlloc(allocator, config, .{ .whitespace = .indent_2 }));
+
+    var manifest: std.Io.Writer.Allocating = .init(allocator);
+
+    try @import("../package/manifest/write.zig").write(&manifest.writer, config);
+    try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "pkg.yaml" }), manifest.written());
+
+    var build_source: std.Io.Writer.Allocating = .init(allocator);
+
+    try build_source.writer.writeAll(@embedFile("library_build.zig"));
+    try @import("library_config.zig").write(&build_source.writer, config);
+    try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "build.zig" }), build_source.written());
 
     try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "library.json" }), try std.json.Stringify.valueAlloc(allocator, .{
         .format_version = 1,

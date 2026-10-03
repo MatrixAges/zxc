@@ -15,6 +15,16 @@ pub fn main(init: std.process.Init) !void {
     defer stdout.flush() catch {};
     defer stderr.flush() catch {};
 
+    if (args.len > 1 and std.mem.eql(u8, args[1], "pkg")) {
+        if (!try @import("package/command.zig").run(init.io, allocator, args[2..], stdout, stderr)) {
+            try stderr.flush();
+
+            std.process.exit(1);
+        }
+
+        return;
+    }
+
     if (args.len > 1 and std.mem.eql(u8, args[1], "check-rx")) {
         if (!try @import("application/check.zig").run(init.io, allocator, args[2..], stderr)) {
             try stderr.flush();
@@ -41,15 +51,29 @@ pub fn main(init: std.process.Init) !void {
     const input_path = options.input;
 
     const loaded = if (options.formatting) @import("cli/project.zig").Loaded{ .project = .{ .entry = input_path } } else @import("cli/project.zig").load(init.io, allocator, input_path, options.project) catch |err| {
-        try stderr.print("{s}: {s}\n", .{ options.project orelse "zxc.json", @errorName(err) });
+        try stderr.print("{s}: {s}\n", .{ options.project orelse "pkg.yaml", @errorName(err) });
         try stderr.flush();
 
         std.process.exit(1);
     };
 
+    if (loaded.diagnostic) |message| {
+        try stderr.print("{s}\n", .{message});
+        try stderr.flush();
+
+        std.process.exit(1);
+    }
+
     const project = loaded.project;
     const source = try std.Io.Dir.cwd().readFileAlloc(init.io, input_path, allocator, .limited(16 * 1024 * 1024));
-    const sources = if (options.formatting) &.{} else try @import("cli/sources.zig").read(init.io, allocator, source, project);
+
+    const sources = if (options.formatting) &.{} else @import("cli/sources.zig").read(init.io, allocator, source, project) catch |err| {
+        if (err == error.OutOfMemory) return err;
+        try stderr.print("{s}: source loading: {s}\n", .{ input_path, @errorName(err) });
+        try stderr.flush();
+
+        std.process.exit(1);
+    };
 
     if (options.verifying) {
         if (!try @import("cli/verify.zig").run(init.io, allocator, sources, project, options, stderr)) {
@@ -121,5 +145,7 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn usage(writer: *std.Io.Writer) std.Io.Writer.Error!void {
-    try writer.writeAll("zxc <source.zx> [--project zxc.json] [--out output.zig] [--solver z3]\nzxc build <source.zx> --out program [--mode app|lib] [--project zxc.json] [--asm program.s] [--target triple] [--cpu features] [--optimize mode] [--solver z3]\nzxc fpga <source.zx> --out kernel.sv [--project zxc.json] [--solver z3] [--clocked]\nzxc verify <source.zx> [--project zxc.json] [--solver z3] [--out query.smt2]\nzxc fmt <source.zx> [--check | --write]\nzxc check-rx <module.rx> [module.rx ...]\nzxc check-rx --entry <module.rx|gateway.gateway.rx|state.store.rx> [--project zxc.json]\n");
+    try writer.writeAll("zxc pkg inspect|workspace|graph [pkg.yaml]\n");
+    try writer.writeAll("zxc pkg index [index.json]\nzxc pkg resolve <name> <range> [index.json]\n");
+    try writer.writeAll("zxc <source.zx> [--project pkg.yaml] [--out output.zig] [--solver z3]\nzxc build <source.zx> --out program [--mode app|lib] [--project pkg.yaml] [--asm program.s] [--target triple] [--cpu features] [--optimize mode] [--solver z3]\nzxc fpga <source.zx> --out kernel.sv [--project pkg.yaml] [--solver z3] [--clocked]\nzxc verify <source.zx> [--project pkg.yaml] [--solver z3] [--out query.smt2]\nzxc fmt <source.zx> [--check | --write]\nzxc check-rx <module.rx> [module.rx ...]\nzxc check-rx --entry <module.rx|gateway.gateway.rx|state.store.rx> [--project pkg.yaml]\n");
 }

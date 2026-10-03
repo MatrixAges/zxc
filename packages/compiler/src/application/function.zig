@@ -7,12 +7,25 @@ const sources = @import("../cli/sources.zig");
 pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, source: []const u8, config_path: ?[]const u8, writer: *std.Io.Writer) !bool {
     const loaded = project.load(io, allocator, path, config_path) catch |err| {
         if (err == error.OutOfMemory) return err;
-        try writer.print("{s}: {s}\n", .{ config_path orelse "zxc.json", @errorName(err) });
+
+        try writer.print("{s}: {s}\n", .{ config_path orelse "pkg.yaml", @errorName(err) });
 
         return false;
     };
 
-    const inputs = try sources.read(io, allocator, source, loaded.project);
+    if (loaded.diagnostic) |message| {
+        try writer.print("{s}\n", .{message});
+
+        return false;
+    }
+
+    const inputs = sources.read(io, allocator, source, loaded.project) catch |err| {
+        if (err == error.OutOfMemory) return err;
+        try writer.print("{s}: source loading: {s}\n", .{ path, @errorName(err) });
+
+        return false;
+    };
+
     var analyzed = try compiler.analyzeProject(allocator, inputs, loaded.project);
 
     defer analyzed.deinit();

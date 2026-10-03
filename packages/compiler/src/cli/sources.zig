@@ -5,6 +5,7 @@ const zx = @import("zx");
 pub fn read(io: std.Io, allocator: std.mem.Allocator, source: []const u8, project: compiler.project.Options) ![]const compiler.project.Source {
     var sources: std.ArrayList(compiler.project.Source) = .empty;
 
+    try @import("../package/source.zig").validate(io, allocator, project.entry, project.package_scopes);
     try sources.append(allocator, .{ .path = project.entry, .source = source });
 
     var index: usize = 0;
@@ -35,6 +36,11 @@ pub fn read(io: std.Io, allocator: std.mem.Allocator, source: []const u8, projec
             };
 
             if (found) continue;
+
+            @import("../package/source.zig").validate(io, allocator, path, project.package_scopes) catch |err| switch (err) {
+                error.FileNotFound => continue,
+                else => return err,
+            };
 
             const text = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(16 * 1024 * 1024)) catch |err| switch (err) {
                 error.FileNotFound => continue,

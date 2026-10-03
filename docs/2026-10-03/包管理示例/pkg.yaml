@@ -1,0 +1,11 @@
+name: '@example/workspace'
+version: 0.1.0
+private: true
+
+workspace:
+    packages:
+        - packages/*
+        - '!packages/ignored'
+
+dependencies:
+    '@example/math': 'workspace:*'

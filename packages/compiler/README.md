@@ -66,7 +66,13 @@ zig-out/bin/zxc build packages/compiler/examples/quote.zx --out .zxc/quote --asm
 
 parse 返回拥有源码副本的 ParseResult，analyze/project.analyze 返回拥有 IR 的 AnalysisResult，分别 deinit。源码可先于 IR 释放。compile/format 返回 source 或 diagnostic，调用 result.deinit(allocator)。
 
-单文件有 import 时必须使用 project 入口；CLI 会加载实际依赖文件。`@/` 相对 project.Options.root_dir；CLI 无配置时使用工作目录，存在 zxc.json 或指定 --project 时使用配置目录。配置的 packages 声明无前缀包的 specifier 与 .zx entry。项目集合的每个 Source 提供 path 与 source，entry 指定入口。函数导入和未使用的类型导入都参与环检测。
+单文件有 import 时必须使用 project 入口；CLI 会加载实际依赖文件。项目配置统一为 pkg.yaml，可用 `--project path/to/pkg.yaml` 显式指定；不读取 zxc.json。没有清单的独立源码仍可编译，此时 `@/` 相对工作目录。项目集合的每个 Source 提供 path 与 source，entry 指定入口。函数导入和未使用的类型导入都参与环检测。
+
+有 pkg.yaml 时，CLI 从入口文件定位最近的包及包含它的工作区，工作区成员来自根清单内的 `workspace.packages`。每个包分别声明 dependencies/dev_dependencies；裸导入查当前包的直接依赖，或以自身 name 引用自身 entry。`@/` 指向当前包根，文件路径不能越过包边界绕过声明。`project.Options.package_scopes` 以绝对包根和直接依赖映射提供相同的库接口。原生模块、接口及链接配置也位于当前包的 pkg.yaml。
+
+`zxc pkg inspect [pkg.yaml]` 校验清单，`zxc pkg workspace [pkg.yaml]` 发现成员，`zxc pkg graph [pkg.yaml]` 校验并输出依赖图。当前解析 workspace: 来源，支持 `workspace:*`、`workspace:^`、`workspace:~`、显式语义版本范围、`workspace:包名@范围` 别名和 `workspace:../成员` 路径引用；缺失成员、版本不匹配和循环依赖均失败。范围支持精确版本、部分版本、x/*、^、~、比较符交集、|| 及连字符区间，预发布版本按比较集合约束。目录与源码别名不能绕过物理包边界。真实 app 示例见 [包管理示例](../../docs/2026-10-03/包管理示例/)。外部来源、锁文件、共享存储和安装命令尚未实现，graph 成功不代表已安装外部依赖。
+
+`zxc pkg index [index.json]` 校验并显示多版本索引；`zxc pkg resolve <name> <range> [index.json]` 选择最高匹配版本，输出来源及 SHA-256。默认使用安装目录的 share/zxc/pkgs/index.json，由 [pkgs 包](../pkgs/README.md)维护；当前没有已发布条目。resolve 只查询索引，不下载或安装。
 
 Store 使用 compileWithContext 或 project.Options.context.stores，每项声明 handle、path、type_name、readable、writable。生成入口为 execute(arena, input, context)，context 提供对应 slot 的快照指针和 commit(pending)。参考 tests/runtime/store_test.zig。
 
@@ -76,7 +82,7 @@ IR 实验版本 5 将原生模块保存为 `Program.native_modules`，函数通�
 
 `compiler.zig.emitBundle(allocator, program)` 提供共享类型生成入口，返回 `source` 与 `types` 两份源码，使用后调用 `bundle.deinit(allocator)`。将 types 注册为同一个 `zxc_abi` Zig 模块，供生成程序与原生模块共同导入。原生模块通过 `@import("zxc_abi").native.@"zig:模块名".类型名` 或 `.函数名.Input/Output` 使用声明类型。原生实现需要显式创建声明中的记录时，通过 `@import("zxc_abi").layouts.@"zig:模块名".类型名` 获取存储布局；函数匿名参数和结果的布局也可从 `InputValue/OutputValue` 获取。此模式直接传递对象/元组引用和数组切片，不执行原生字段转换；CLI app/lib 已接入该入口，生成并链接同一个 ABI 模块；标准库复合参数与结果已使用共享声明类型。原生字段转换路径已删除。CLI 的 --out 在导出原生程序时同时写出 <输出文件>.abi.zig；Zig 消费方须将其注册为共享的 zxc_abi 模块。纯 ZX 导出仍是单文件。只返回单份源码的 emit/compile 接口拒绝原生模块，使用 analyzeProject 与 emitBundle，或向 compileProjectVerified 提供 type_output。可运行示例见 [共享原生类型示例](../../docs/2026-10-03/共享原生类型示例/)。
 
-接口提供 export_name 时，同一 specifier 可声明多个成员，通过默认导入的命名空间调用。CLI 的 zxc.json 可声明 externals 和 native_modules；后者以 path 指定 Zig 文件，或以 header 指定 C 头文件并通过 c 命名空间导出。build 模式会完成对应链接，支持 libraries/include_paths/library_paths。生成的可执行文件接收一个 JSON Input 参数并输出 JSON Output；void Input 不接收参数。
+接口提供 export_name 时，同一 specifier 可声明多个成员，通过默认导入的命名空间调用。pkg.yaml 可声明 externals 和 native_modules；后者以 path 指定 Zig 文件，或以 header 指定 C 头文件并通过 c 命名空间导出。build 模式会完成对应链接，支持 libraries/include_paths/library_paths。生成的可执行文件接收一个 JSON Input 参数并输出 JSON Output；void Input 不接收参数。
 
 应用 CLI 当前采用 Zig 的默认 JSON 输出约定：`u8[]` 字节构成合法 UTF-8 时输出 JSON 字符串，否则输出整数数组；空字节列表输出 `""`。例如 `[65, 66]` 输出 `"AB"`，`[255]` 输出 `[255]`，嵌套对象中的字节列表也遵循这一规则。消费端应按已知 ZX 输出类型恢复字节：字符串做 UTF-8 编码，数组逐项校验为 0–255 的整数后转换。字符串不是 Base64，不应按 UTF-16 字符码恢复。这只影响 CLI 的 JSON 表示，std:zlib 等接口的 ZX 返回类型和内容仍为字节列表。
 
@@ -88,7 +94,7 @@ native_modules 仅接受 path 或 header，动态 library 入口已取消。旧�
 
 `zxc build <source.zx> --out program` 支持 `--asm program.s`、`--target triple`、`--cpu features`、`--optimize Debug|ReleaseSafe|ReleaseFast|ReleaseSmall`。默认 ReleaseSafe。PATH 中需提供兼容 Zig；使用 std: 模块时从 share/zxc/standard 定位普通静态源码。汇编生成不代表超级优化或形式化正确性证明已经完成。
 
-`--mode app` 是 build 的默认模式。`zxc build <source.zx> --mode lib --out directory` 交付源码模块包：root.zig 导出 Input/Output/execute，build.zig 注册名为 library 的 Zig 模块，native/ 保存引用的静态源码依赖，interfaces/ 保存项目原生声明，source/ 保存重写为内部相对导入的 ZX 源码，zxc.json 提供默认 library 包映射。ZX 消费方可使用该配置导入 library；合并多个库时将对应入口与原生声明合并到消费方配置。Zig 消费方可从本地 build 依赖获取 module("library")。目标和优化由消费方构建选择，lib 模式不接受 app 的汇编、target、cpu、optimize 参数。
+`--mode app` 是 build 的默认模式。`zxc build <source.zx> --mode lib --out directory` 交付源码模块包：root.zig 导出 Input/Output/execute，build.zig 注册名为 library 的 Zig 模块，native/ 保存引用的静态源码依赖，interfaces/ 保存项目原生声明，source/ 保存重写为内部相对导入的 ZX 源码，pkg.yaml 保存包身份、源码入口及原生配置。无输入清单时使用 library@0.0.0，有清单则保留包名和版本。依赖源码已打包为闭包，不保留原工作区依赖边。包内 ZX 消费方可使用包名自引用；Zig 消费方从本地 build 依赖获取 module("library")。生成的 build.zig 含清单导出的原生构建参数，调整原始配置后应重新导出库。目标和优化由消费方构建选择，lib 模式不接受 app 的汇编、target、cpu、optimize 参数。
 
 lib 会按真实 Zig AST 复制 native.path 的文件导入与字面量嵌入资源，保留模块内目录布局并使用包内路径；计算资源路径需在 native_modules.bundle_files 声明模块根目录相对文件，清单会标记其未获静态闭包证明。C 搜索目录与系统链接库仍属于外部依赖，不因 Zig 源码已打包而获得完整可迁移保证。没有独立 C ABI 或动态库导出入口。详情见 [原生库依赖打包实施](../../docs/2026-10-03/原生库依赖打包实施.md) 与 [库构建实施](../../docs/2026-10-03/应用与库构建实施.md)。
 

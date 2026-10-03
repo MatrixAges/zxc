@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { cpSync, existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { stringify } from 'yaml'
 
 type Run = (args: { command: string; argv: Array<string>; cwd: string; failure?: string }) => string
 
@@ -9,10 +10,14 @@ export default function checkNativeDeclaration(args: { directory: string; execut
 	const project = join(directory, 'native_declarations')
 	cpSync(new URL('./native_declarations', import.meta.url), project, { recursive: true })
 	writeFileSync(
-		join(project, 'zxc.json'),
-		JSON.stringify({
-			native_interfaces: [{ specifier: 'zig:bridge', path: 'bridge.d.zx', module: 'bridge' }],
-			native_modules: [{ name: 'bridge', path: 'bridge.zig' }]
+		join(project, 'pkg.yaml'),
+		stringify({
+			name: 'library',
+			version: '0.0.0',
+			...{
+				native_interfaces: [{ specifier: 'zig:bridge', path: 'bridge.d.zx', module: 'bridge' }],
+				native_modules: [{ name: 'bridge', path: 'bridge.zig' }]
+			}
 		})
 	)
 

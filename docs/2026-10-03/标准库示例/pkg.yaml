@@ -1,0 +1,10 @@
+name: '@sample/digest'
+version: 0.1.0
+entry: digest.zx
+externals:
+    - specifier: zig:math
+      export_name: sqrt
+      signature: export type Input = f64; export type Output = f64;
+      implementation:
+          module: std
+          member: math.sqrt

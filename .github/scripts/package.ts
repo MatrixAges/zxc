@@ -26,13 +26,19 @@ mkdirSync(example_dir, { recursive: true })
 
 run(['zig', 'build', 'dist', `-Dtarget=${target}`, '-Doptimize=ReleaseSafe', '--prefix', prefix])
 
-for (const file of ['LICENSE', 'share/zxc/licenses/libyaml.txt', 'share/zxc/standard/src/root.zig']) {
+for (const file of [
+	'LICENSE',
+	'share/zxc/licenses/libyaml.txt',
+	'share/zxc/standard/src/root.zig',
+	'share/zxc/pkgs/index.json'
+]) {
 	if (!statSync(resolve(prefix, file)).isFile()) throw new Error(`Missing distribution file: ${file}`)
 }
 
 const compiler_path = resolve(prefix, 'bin', `zxc${executable_suffix}`)
 const example_path = resolve(example_dir, `quote${executable_suffix}`)
 
+run([compiler_path, 'pkg', 'index'])
 run([compiler_path, 'build', 'packages/compiler/examples/quote.zx', '--out', example_path, '--target', target])
 run([example_path, JSON.stringify({ amount: 100, discount: 20, enabled: true, factor: 1.5 })])
 

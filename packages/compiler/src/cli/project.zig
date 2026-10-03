@@ -1,49 +1,34 @@
 const std = @import("std");
 const compiler = @import("compiler");
-
-pub const NativeModule = struct {
-    name: []const u8,
-    path: ?[]const u8 = null,
-    header: ?[]const u8 = null,
-    dependencies: []const []const u8 = &.{},
-    bundle_files: []const []const u8 = &.{},
-};
-
-pub const NativeInterface = struct { specifier: []const u8, path: []const u8, module: []const u8, namespace: []const []const u8 = &.{} };
-
-pub const Config = struct {
-    native_interfaces: []const NativeInterface = &.{},
-    packages: []const compiler.project.Package = &.{},
-    externals: []const compiler.project.External = &.{},
-    native_modules: []const NativeModule = &.{},
-    libraries: []const []const u8 = &.{},
-    include_paths: []const []const u8 = &.{},
-    library_paths: []const []const u8 = &.{},
-};
-
-pub const Loaded = struct { project: compiler.project.Options, config: Config = .{} };
+const model = @import("../package/manifest/model.zig");
+const manifest = @import("../package/manifest.zig");
+pub const NativeModule = model.NativeModule;
+pub const NativeInterface = model.NativeInterface;
+pub const Config = model.Manifest;
+pub const Loaded = struct { project: compiler.project.Options, config: Config = .{ .name = "", .version = "" }, diagnostic: ?[]const u8 = null };
 
 pub fn load(io: std.Io, allocator: std.mem.Allocator, entry: []const u8, config_path: ?[]const u8) !Loaded {
     const cwd = try std.Io.Dir.cwd().realPathFileAlloc(io, ".", allocator);
-    const path = try std.fs.path.resolve(allocator, &.{ cwd, config_path orelse "zxc.json" });
+    const source_path = try std.fs.path.resolve(allocator, &.{ cwd, entry });
+    const packages = try @import("../package/project.zig").load(io, allocator, source_path, config_path);
+    var loaded = Loaded{ .project = .{ .entry = packages.entry orelse source_path, .root_dir = cwd, .package_scopes = packages.scopes }, .diagnostic = packages.diagnostic };
 
-    const source = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(4 * 1024 * 1024)) catch |err| {
-        if (config_path == null and err == error.FileNotFound) return .{ .project = .{ .entry = try std.fs.path.resolve(allocator, &.{ cwd, entry }), .root_dir = cwd } };
+    if (loaded.diagnostic != null) return loaded;
 
-        return err;
+    const path = packages.manifest_path orelse return loaded;
+    const source = try std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(4 * 1024 * 1024));
+    const parsed = try manifest.parse(allocator, source);
+
+    const config = switch (parsed.value) {
+        .data => |data| data,
+        .diagnostic => |issue| {
+            loaded.diagnostic = try std.fmt.allocPrint(allocator, "{s}:{d}:{d}: manifest: {s}", .{ path, issue.line, issue.column, issue.message });
+
+            return loaded;
+        },
     };
 
-    const config = try std.json.parseFromSliceLeaky(Config, allocator, source, .{ .allocate = .alloc_always });
     const root_dir = std.fs.path.dirname(path).?;
-
-    for (config.packages, 0..) |package, index| {
-        if (try compiler.project.specifier.classify(package.specifier) != .package) return error.InvalidPackageSpecifier;
-        if (!std.mem.endsWith(u8, package.entry, ".zx")) return error.InvalidPackageEntry;
-
-        for (config.packages[0..index]) |previous| {
-            if (std.mem.eql(u8, previous.specifier, package.specifier)) return error.DuplicatePackage;
-        }
-    }
 
     for (config.externals) |external| {
         const kind = try compiler.project.specifier.classify(external.specifier);
@@ -91,9 +76,9 @@ pub fn load(io: std.Io, allocator: std.mem.Allocator, entry: []const u8, config_
 
     return .{
         .project = .{
-            .entry = try std.fs.path.resolve(allocator, &.{ cwd, entry }),
+            .entry = loaded.project.entry,
             .root_dir = root_dir,
-            .packages = config.packages,
+            .package_scopes = packages.scopes,
             .externals = config.externals,
             .native_interfaces = interfaces,
         },

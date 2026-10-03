@@ -8,9 +8,11 @@ pub const Source = struct { path: []const u8, source: []const u8 };
 pub const External = @import("interface.zig").External;
 pub const standard = @import("standard_interfaces").modules;
 pub const NativeInterface = @import("interface.zig").Native;
-pub const Package = struct { specifier: []const u8, entry: []const u8 };
+pub const package_scope = @import("package_scope.zig");
+pub const Package = package_scope.Package;
+pub const PackageScope = package_scope.Scope;
 pub const specifier = @import("specifier.zig");
-pub const Options = struct { native_interfaces: []const NativeInterface = &.{}, externals: []const External = &.{}, packages: []const Package = &.{}, entry: []const u8, root_dir: []const u8 = ".", context: Analysis.Context = .{} };
+pub const Options = struct { native_interfaces: []const NativeInterface = &.{}, externals: []const External = &.{}, packages: []const Package = &.{}, package_scopes: []const PackageScope = &.{}, entry: []const u8, root_dir: []const u8 = ".", context: Analysis.Context = .{} };
 const Unit = struct { path: []const u8, state: enum { fresh, visiting, done } = .fresh, program: ?ir.Program = null, function: ?ir.FunctionId = null };
 const NativeUnit = struct { exports: []const ir.Export, members: []const Analyzer.FunctionImport };
 
@@ -308,13 +310,25 @@ pub fn resolvePath(allocator: std.mem.Allocator, from: []const u8, path: []const
 
 pub fn resolveImport(allocator: std.mem.Allocator, from: []const u8, path: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error![]const u8 {
     const kind = specifier.classify(path) catch return reporter.fail(.module, span, "invalid or unknown import specifier");
+    const owner = package_scope.owner(options.package_scopes, from);
+    const root = if (owner) |index| options.package_scopes[index].root else options.root_dir;
 
-    if (kind == .file) return resolvePath(allocator, from, path, options.root_dir, reporter, span);
+    if (options.package_scopes.len != 0 and owner == null) return reporter.fail(.module, span, "source file does not belong to a declared package");
+
+    if (kind == .file) {
+        const resolved = try resolvePath(allocator, from, path, root, reporter, span);
+
+        if (owner != null and package_scope.owner(options.package_scopes, resolved) != owner) return reporter.fail(.module, span, "file import crosses a package boundary; declare and import the package dependency");
+
+        return resolved;
+    }
+
     if (kind != .package) return reporter.fail(.module, span, "native and standard imports must use the interface registry");
 
     var target: ?[]const u8 = null;
+    const dependencies = if (owner) |index| options.package_scopes[index].packages else options.packages;
 
-    for (options.packages) |package| {
+    for (dependencies) |package| {
         if (!std.mem.eql(u8, package.specifier, path)) continue;
         if (target != null) return reporter.fail(.module, span, "duplicate ZX package specifier");
         if (!std.mem.endsWith(u8, package.entry, ".zx")) return reporter.fail(.module, span, "ZX package entry must be a .zx source file");

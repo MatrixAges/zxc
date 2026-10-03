@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { cpSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { stringify } from 'yaml'
 
 type Run = (args: { command: string; argv: Array<string>; cwd: string; failure?: string }) => string
 
@@ -9,17 +10,21 @@ export default function checkNativeInvocation(args: { directory: string; executa
 	const project = join(directory, 'native_invocation')
 	cpSync(new URL('./native_declarations', import.meta.url), project, { recursive: true })
 	writeFileSync(
-		join(project, 'zxc.json'),
-		JSON.stringify({
-			native_interfaces: [
-				{
-					specifier: 'zig:invocation',
-					path: 'invocation.d.zx',
-					module: 'invocation',
-					namespace: ['nested', 'api']
-				}
-			],
-			native_modules: [{ name: 'invocation', path: 'invocation.zig' }]
+		join(project, 'pkg.yaml'),
+		stringify({
+			name: 'library',
+			version: '0.0.0',
+			...{
+				native_interfaces: [
+					{
+						specifier: 'zig:invocation',
+						path: 'invocation.d.zx',
+						module: 'invocation',
+						namespace: ['nested', 'api']
+					}
+				],
+				native_modules: [{ name: 'invocation', path: 'invocation.zig' }]
+			}
 		})
 	)
 	const application = join(project, process.platform === 'win32' ? 'application.exe' : 'application')

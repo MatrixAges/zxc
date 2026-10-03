@@ -18,7 +18,6 @@ const NativeModule = struct {
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    const config = std.json.parseFromSliceLeaky(Config, b.allocator, @embedFile("zxc.json"), .{ .ignore_unknown_fields = true }) catch @panic("invalid library configuration");
     const library = b.addModule("library", .{ .root_source_file = b.path("root.zig"), .target = target, .optimize = optimize });
     const abi = b.createModule(.{ .root_source_file = b.path("abi.zig"), .target = target, .optimize = optimize });
 

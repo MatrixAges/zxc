@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { stringify } from 'yaml'
 
 type Run = (args: { command: string; argv: Array<string>; cwd: string; failure?: string }) => string
 const source =
@@ -39,7 +40,10 @@ export default function checkNativeBundle(args: { directory: string; executable:
 	for (const [name, content] of Object.entries(files)) writeFileSync(join(project, 'native', name), content)
 
 	writeFileSync(join(project, 'main.zx'), source)
-	writeFileSync(join(project, 'zxc.json'), JSON.stringify(config(['nested/step.zig', 'delta.txt'])))
+	writeFileSync(
+		join(project, 'pkg.yaml'),
+		stringify({ name: 'library', version: '0.0.0', ...config(['nested/step.zig', 'delta.txt']) })
+	)
 	run({ command: executable, argv: ['build', 'main.zx', '--mode', 'lib', '--out', library], cwd: project })
 	renameSync(library, moved)
 	rmSync(project, { recursive: true })
@@ -150,7 +154,7 @@ pub fn build(b: *std.Build) void {
 			`const data = @embedFile(${resource});\n\npub fn apply(input: u64) u64 {\n    return input + data.len;\n}\n`
 		)
 		writeFileSync(join(negative, 'main.zx'), source)
-		writeFileSync(join(negative, 'zxc.json'), JSON.stringify(config([])))
+		writeFileSync(join(negative, 'pkg.yaml'), stringify({ name: 'library', version: '0.0.0', ...config([]) }))
 		const failure =
 			kind === 'absolute'
 				? 'InvalidNativeResourcePath'
@@ -166,7 +170,10 @@ pub fn build(b: *std.Build) void {
 		})
 
 		if (kind === 'dynamic') {
-			writeFileSync(join(negative, 'zxc.json'), JSON.stringify(config(['delta.txt'])))
+			writeFileSync(
+				join(negative, 'pkg.yaml'),
+				stringify({ name: 'library', version: '0.0.0', ...config(['delta.txt']) })
+			)
 			const exported = join(negative, 'declared_output')
 			const dynamic_moved = join(directory, 'native_dynamic_relocated')
 
