@@ -1,0 +1,21 @@
+{
+	"externals": [
+		{
+			"specifier": "c:calibration",
+			"export_name": "scale",
+			"signature": "export type Input = { factor: f64; value: f64; }; export type Output = f64;",
+			"implementation": {
+				"module": "calibration_plugin",
+				"member": "scale",
+				"allocator_argument": true,
+				"fallible": true
+			}
+		}
+	],
+	"native_modules": [
+		{
+			"name": "calibration_plugin",
+			"library": "../../../.zxc/examples/plugins/calibration.dylib"
+		}
+	]
+}

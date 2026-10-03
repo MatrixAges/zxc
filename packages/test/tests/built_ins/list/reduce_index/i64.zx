@@ -1,0 +1,7 @@
+export type Input = { items: i64[][]; value: i64; };
+
+export type Output = i64;
+
+export default function (in: Input): Output {
+  return in.items.reduce((sum, row) => sum + row[0], in.value);
+}

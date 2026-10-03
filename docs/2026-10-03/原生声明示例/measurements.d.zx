@@ -1,0 +1,8 @@
+export enum Mode { Scale, Keep }
+
+export type Item = { value: f64; };
+export type Snapshot = { value: f64; };
+export type Request = { items: Item[]; baseline: Snapshot[]; factor: f64; mode: Mode?; };
+export type Response = { items: Snapshot[]; baseline: Snapshot[]; mode: Mode?; };
+
+export declare function process(allocator, input: Request): Response throws;

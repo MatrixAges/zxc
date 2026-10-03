@@ -1,0 +1,52 @@
+const std = @import("std");
+const zx = @import("zx");
+const genz = @import("genz");
+const Lower = @import("lower.zig");
+
+pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error![]u8 {
+    var arena = std.heap.ArenaAllocator.init(allocator);
+
+    defer arena.deinit();
+
+    const temporary = arena.allocator();
+    var lower = try initialize(temporary, program);
+
+    return genz.render(allocator, try lower.declarations());
+}
+
+pub fn bundle(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Bundle {
+    var arena = std.heap.ArenaAllocator.init(allocator);
+
+    defer arena.deinit();
+
+    var lower = try initialize(arena.allocator(), program);
+    const types = try genz.render(allocator, try @import("type_bundle.zig").declarations(&lower));
+
+    errdefer allocator.free(types);
+
+    lower.shared_types = true;
+
+    return .{ .source = try genz.render(allocator, try lower.declarations()), .types = types };
+}
+
+pub const Bundle = struct {
+    source: []u8,
+    types: []u8,
+    pub fn deinit(self: Bundle, allocator: std.mem.Allocator) void {
+        allocator.free(self.source);
+        allocator.free(self.types);
+    }
+};
+
+fn initialize(temporary: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
+    return .{
+        .allocator = temporary,
+        .program = program,
+        .builder = .{ .allocator = temporary },
+        .types = try temporary.alloc(*const genz.node.Expression, program.types.len),
+        .layouts = try temporary.alloc(*const genz.node.Expression, program.types.len),
+        .names = try temporary.alloc([]const u8, program.symbols.len),
+        .cache_reads = try temporary.alloc(usize, program.expressions.len),
+        .used = try temporary.alloc(bool, program.symbols.len),
+    };
+}

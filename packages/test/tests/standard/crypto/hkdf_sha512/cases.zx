@@ -1,0 +1,9 @@
+import crypto from "std:crypto";
+
+export type Input = { key: u8[]; salt: u8[]; info: u8[]; length: u32; };
+
+export type Output = u8[];
+
+export default function (in: Input): Output {
+  return crypto.hkdfSha512(in);
+}

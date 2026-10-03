@@ -1,0 +1,36 @@
+import posix from "std:path/posix";
+import win32 from "std:path/win32";
+
+export type Input = { posix_path: string; windows_path: string; posix_cwd: string; windows_cwd: string; };
+export type PathInfo = { absolute: bool; base: string; dir: string; ext: string; formatted: string; normalized: string; joined: string; resolved: string; relative: string; };
+export type Output = { posix: PathInfo; windows: PathInfo; };
+
+export default function (in: Input): Output {
+  const posix_parts = posix.parse(in.posix_path);
+  const windows_parts = win32.parse(in.windows_path);
+
+  return {
+    posix: {
+      absolute: posix.isAbsolute(in.posix_path),
+      base: posix.basename(in.posix_path),
+      dir: posix.dirname(in.posix_path),
+      ext: posix.extname(in.posix_path),
+      formatted: posix.format(posix_parts),
+      normalized: posix.normalize(in.posix_path),
+      joined: posix.join([in.posix_cwd, in.posix_path]),
+      resolved: posix.resolve({ cwd: in.posix_cwd, paths: [in.posix_path] }),
+      relative: posix.relative({ cwd: in.posix_cwd, from: in.posix_cwd, to: in.posix_path })
+    },
+    windows: {
+      absolute: win32.isAbsolute(in.windows_path),
+      base: win32.basename(in.windows_path),
+      dir: win32.dirname(in.windows_path),
+      ext: win32.extname(in.windows_path),
+      formatted: win32.format(windows_parts),
+      normalized: win32.normalize(in.windows_path),
+      joined: win32.join([in.windows_cwd, in.windows_path]),
+      resolved: win32.resolve({ cwd: in.windows_cwd, paths: [in.windows_path] }),
+      relative: win32.relative({ cwd: in.windows_cwd, from: in.windows_cwd, to: in.windows_path })
+    }
+  };
+}

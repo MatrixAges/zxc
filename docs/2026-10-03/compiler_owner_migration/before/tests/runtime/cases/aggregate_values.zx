@@ -1,0 +1,11 @@
+export type Input = u64;
+export type Output = { value: u64; tuple: [u64, bool]; nested: u64[][]; missing?: u64; length: u64; };
+
+export default function (in: Input): Output {
+const tuple: [u64, bool] = [in, true];
+const [value, _] = tuple;
+const nested: u64[][] = [[], [value, 2]];
+const length = nested[1].length;
+
+return { value, tuple, nested, length };
+}

@@ -1,0 +1,16 @@
+import encoding from "std:encoding";
+import crypto from "std:crypto";
+
+export type Input = string;
+export type Output = { base64: string; hex: string; sha256: string; sha512: string; decoded: string; };
+
+export default function (in: Input): Output {
+  const bytes = encoding.encodeUtf8(in);
+  const base64 = encoding.encodeBase64(bytes);
+  const hex = encoding.encodeHex(bytes);
+  const sha256 = encoding.encodeHex(crypto.sha256(bytes));
+  const sha512 = encoding.encodeHex(crypto.sha512(bytes));
+  const decoded = encoding.decodeUtf8(encoding.decodeBase64(base64));
+
+  return { base64, hex, sha256, sha512, decoded };
+}

@@ -1,0 +1,8 @@
+import library from "library";
+
+export type Input = { text: string; number: f64; };
+export type Output = { encoded: string; root: f64; };
+
+export default function (in: Input): Output {
+  return library(in);
+}

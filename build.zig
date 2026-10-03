@@ -42,7 +42,12 @@ pub fn build(b: *std.Build) void {
     const compiler_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize });
 
     test_step.dependOn(&compiler_dependency.builder.top_level_steps.get("test").?.step);
+
+    const conformance = b.dependency("conformance", .{ .target = target, .optimize = optimize });
+
+    test_step.dependOn(&conformance.builder.top_level_steps.get("test").?.step);
     b.installArtifact(compiler_dependency.artifact("zxc"));
+    b.installDirectory(.{ .source_dir = compiler_dependency.path("standard"), .install_dir = .prefix, .install_subdir = "share/zxc/standard", .include_extensions = &.{".zig"} });
 
     const run_zx_example = b.addRunArtifact(compiler_dependency.artifact("zx-example"));
     const zx_step = b.step("zx-example", "Compile and run the ZX package example");

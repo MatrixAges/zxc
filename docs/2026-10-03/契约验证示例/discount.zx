@@ -1,0 +1,9 @@
+export type Input = { raw_price: u32; discount: u32; };
+export type Output = { final_price: u32; };
+
+export default function (in: Input): Output
+  requires (in.discount <= in.raw_price)
+  ensures (out.final_price == in.raw_price - in.discount)
+{
+  return { final_price: in.raw_price - in.discount };
+}

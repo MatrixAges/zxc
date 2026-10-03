@@ -5,6 +5,14 @@ const paths = @import("paths.zig");
 const modules = @import("modules.zig");
 const State = enum { unseen, visiting, done };
 
+const Frame = struct {
+    owner: usize,
+    node: *const dsl.ast.Node,
+    child_index: usize = 0,
+    entered: bool = false,
+    root: bool = false,
+};
+
 const Graph = struct {
     allocator: std.mem.Allocator,
     sources: []const modules.Source,
@@ -15,14 +23,48 @@ const Graph = struct {
     fn visit(self: *Graph, index: usize) dsl.Error!void {
         if (self.states[index] == .done) return;
 
-        self.states[index] = .visiting;
+        var frames: std.ArrayList(Frame) = .empty;
 
-        try self.walk(index, self.sources[index].node);
+        defer frames.deinit(self.allocator);
 
-        self.states[index] = .done;
+        try self.enterModule(index, &frames);
+
+        while (frames.items.len > 0) {
+            const frame = &frames.items[frames.items.len - 1];
+
+            if (!frame.entered) {
+                frame.entered = true;
+
+                if (try self.target(frame.owner, frame.node.*)) |next| {
+                    try self.enterModule(next, &frames);
+
+                    continue;
+                }
+            }
+
+            if (frame.child_index < frame.node.children.len) {
+                const child = &frame.node.children[frame.child_index];
+                const owner = frame.owner;
+                frame.child_index += 1;
+
+                try frames.append(self.allocator, .{ .owner = owner, .node = child });
+
+                continue;
+            }
+
+            if (frame.root) self.states[frame.owner] = .done;
+
+            _ = frames.pop();
+        }
     }
 
-    fn walk(self: *Graph, owner: usize, node: dsl.ast.Node) dsl.Error!void {
+    fn enterModule(self: *Graph, index: usize, frames: *std.ArrayList(Frame)) dsl.Error!void {
+        self.states[index] = .visiting;
+
+        try frames.append(self.allocator, .{ .owner = index, .node = &self.sources[index].node, .root = true });
+    }
+
+    fn target(self: *Graph, owner: usize, node: dsl.ast.Node) dsl.Error!?usize {
         const key: ?[]const u8 = if (std.mem.eql(u8, node.name, "Import")) "from" else if (std.mem.eql(u8, node.name, "Call") and checks.attribute(node, "service") != null) "service" else null;
 
         if (key) |attribute| {
@@ -34,13 +76,14 @@ const Graph = struct {
 
             defer self.allocator.free(path);
 
-            const target = self.findModule(path) orelse return self.fail(owner, node, attribute, "Referenced module file is not registered");
+            const index = self.findModule(path) orelse return self.fail(owner, node, attribute, "Referenced module file is not registered");
 
-            if (self.states[target] == .visiting) return self.fail(owner, node, attribute, "Reference creates a circular module dependency");
-            try self.visit(target);
+            if (self.states[index] == .visiting) return self.fail(owner, node, attribute, "Reference creates a circular module dependency");
+
+            return if (self.states[index] == .done) null else index;
         }
 
-        for (node.children) |child| try self.walk(owner, child);
+        return null;
     }
     fn findModule(self: Graph, path: []const u8) ?usize {
         for (self.entries, 0..) |entry, index| {

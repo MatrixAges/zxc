@@ -112,6 +112,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
 
             return self.append(.{ .span = span, .type_id = type_id, .value = .{ .conditional = .{ .condition = condition, .yes = yes, .no = no } } });
         },
+        .match_expr => return @import("match.zig").analyze(self, expression, expected),
         .object => |fields| return aggregates.object(self, fields, span, expected),
         .list => |items| return aggregates.list(self, items, span, expected),
         .null_value => {
@@ -137,7 +138,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
     }
 }
 
-fn knownType(self: *const Analyzer, value: *const zx.ast.Expression) ?ir.TypeId {
+pub fn knownType(self: *const Analyzer, value: *const zx.ast.Expression) ?ir.TypeId {
     return switch (value.value) {
         .identifier => |name| if (self.lookup(name.text)) |id| self.symbols.items[@intFromEnum(id)].type_id else null,
         .field => |field| blk: {
@@ -168,8 +169,21 @@ fn knownType(self: *const Analyzer, value: *const zx.ast.Expression) ?ir.TypeId 
         },
         .call => |call| blk: {
             if (call.callee.value == .identifier) {
+                if (self.lookup(call.callee.value.identifier.text) != null) break :blk null;
+
                 for (self.function_imports) |function| {
-                    if (std.mem.eql(u8, function.name, call.callee.value.identifier.text)) break :blk function.output_type;
+                    if (function.namespace == null and std.mem.eql(u8, function.name, call.callee.value.identifier.text)) break :blk function.output_type;
+                }
+            } else if (call.callee.value == .field and call.callee.value.field.target.value == .identifier) {
+                const field = call.callee.value.field;
+                const owner = field.target.value.identifier.text;
+
+                if (self.lookup(owner) != null) break :blk null;
+
+                for (self.function_imports) |function| {
+                    const namespace = function.namespace orelse continue;
+
+                    if (std.mem.eql(u8, namespace, owner) and std.mem.eql(u8, function.name, field.name.text)) break :blk function.output_type;
                 }
             }
 
@@ -187,13 +201,14 @@ fn knownType(self: *const Analyzer, value: *const zx.ast.Expression) ?ir.TypeId 
             else => knownType(self, binary.left) orelse knownType(self, binary.right),
         },
         .conditional => |conditional| knownType(self, conditional.yes) orelse knownType(self, conditional.no),
+        .match_expr => |selection| @import("match.zig").hint(self, selection),
         .boolean => Types.scalarId(.bool),
         .string => Types.scalarId(.string),
         else => null,
     };
 }
 
-fn literalHint(left: *const zx.ast.Expression, right: *const zx.ast.Expression) ?ir.TypeId {
+pub fn literalHint(left: *const zx.ast.Expression, right: *const zx.ast.Expression) ?ir.TypeId {
     var signed = false;
 
     for ([_]*const zx.ast.Expression{ left, right }) |expression| {

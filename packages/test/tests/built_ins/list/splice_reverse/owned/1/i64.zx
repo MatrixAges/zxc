@@ -1,0 +1,12 @@
+export type Input = { items: i64[]; other: i64[]; start: u64; count: u64; };
+
+export type Output = { items: i64[]; removed: i64[]; };
+
+export default function (in: Input): Output {
+  const owned: i64[] = [in.items[0]];
+  const [next, deleted] = owned.splice(in.start, in.count, in.other);
+  const [items, _] = next.reverse();
+  const [removed, _] = deleted.reverse();
+
+  return { items, removed };
+}

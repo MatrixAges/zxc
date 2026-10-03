@@ -20,7 +20,7 @@ pub fn lex(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Repor
         }
 
         if (std.mem.startsWith(u8, source[offset..], "//")) {
-            while (offset < source.len and source[offset] != '\n') : (offset += 1) {}
+            while (offset < source.len and source[offset] != '\n' and source[offset] != '\r') : (offset += 1) {}
             try comments.append(allocator, .{ .start = start, .end = offset });
 
             continue;
@@ -62,6 +62,19 @@ pub fn lex(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Repor
                 if (offset < source.len and (source[offset] == '+' or source[offset] == '-')) offset += 1;
 
                 while (offset < source.len and (std.ascii.isDigit(source[offset]) or source[offset] == '_')) : (offset += 1) {}
+            }
+
+            const text = source[start..offset];
+            const span = zx.Span{ .start = start, .end = offset };
+
+            for (text, 0..) |digit, index| {
+                if (digit == '_' and (index == 0 or index + 1 == text.len or !std.ascii.isDigit(text[index - 1]) or !std.ascii.isDigit(text[index + 1]))) {
+                    return reporter.fail(.lexical, span, "digit separators must occur between digits");
+                }
+            }
+
+            if (!std.ascii.isDigit(text[text.len - 1])) {
+                return reporter.fail(.lexical, span, "an exponent requires at least one digit");
             }
 
             kind = .number;

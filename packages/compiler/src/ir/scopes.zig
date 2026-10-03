@@ -117,10 +117,21 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
         .reference => |symbol| self.active[@intFromEnum(symbol)],
         .field, .tuple_field => |field| self.expression(field.target, depth + 1),
         .index => |item| try self.expression(item.target, depth + 1) and try self.expression(item.index, depth + 1),
-        .length, .clone, .some => |child| self.expression(child, depth + 1),
+        .length, .some => |child| self.expression(child, depth + 1),
         .unary => |unary| self.expression(unary.operand, depth + 1),
         .binary => |binary| try self.expression(binary.left, depth + 1) and try self.expression(binary.right, depth + 1),
         .conditional => |value| try self.expression(value.condition, depth + 1) and try self.expression(value.yes, depth + 1) and try self.expression(value.no, depth + 1),
+        .match_expr => |selection| blk: {
+            if (selection.subject) |subject| if (!try self.expression(subject, depth + 1)) {
+                break :blk false;
+            };
+
+            for (selection.arms) |arm| {
+                if (!try self.expression(arm.condition, depth + 1) or !try self.expression(arm.result, depth + 1)) break :blk false;
+            }
+
+            break :blk try self.expression(selection.fallback, depth + 1);
+        },
         .list, .tuple, .template => |items| self.sequence(items, depth + 1),
         .object => |object| blk: {
             if (!try self.sequence(object.evaluation, depth + 1)) break :blk false;

@@ -120,6 +120,24 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.expression(item.index);
             try self.write("]");
         },
+        .slice => |item| {
+            try self.write("(");
+            try self.expression(item.target);
+            try self.write(")[");
+            if (item.start) |start| try self.expression(start) else try self.write("0");
+            try self.write("..");
+            if (item.end) |end| try self.expression(end);
+            try self.write("]");
+        },
+        .address_of => |operand| {
+            try self.write("(&");
+            try self.expression(operand);
+            try self.write(")");
+        },
+        .error_value => |name| {
+            try self.write("error.");
+            try self.identifier(name);
+        },
         .block => |item| {
             try self.identifier(item.label);
             try self.write(": ");
@@ -147,6 +165,21 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
         .const_slice => |element| {
             try self.write("[]const ");
             try self.expression(element);
+        },
+        .namespace_type => |declarations| {
+            try self.write("struct {\n");
+
+            self.depth += 1;
+
+            for (declarations) |item| {
+                try self.indent();
+                try self.declaration(item);
+            }
+
+            self.depth -= 1;
+
+            try self.indent();
+            try self.write("}");
         },
         .struct_type => |fields| {
             try self.write("struct {\n");
@@ -204,8 +237,26 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.expression(conditional.no);
             try self.write(")");
         },
+        .optional_unwrap => |operand| {
+            try self.expression(operand);
+            try self.write(".?");
+        },
+        .selection => |selection| {
+            try self.write("switch (");
+            try self.expression(selection.subject);
+            try self.write(") { ");
+
+            for (selection.arms) |arm| {
+                try self.expression(arm.value);
+                try self.write(" => ");
+                try self.expression(arm.result);
+                try self.write(", ");
+            }
+
+            try self.write("}");
+        },
         .object => |object| {
-            try self.expression(object.type_expr);
+            if (object.type_expr) |type_expr| try self.expression(type_expr) else try self.write(".");
             try self.write("{");
 
             for (object.fields) |field| {

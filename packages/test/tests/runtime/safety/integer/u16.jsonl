@@ -1,0 +1,11 @@
+{"id":"runtime/safety/integer/u16/add/65535/0","arguments":["0","65535","0"],"expected":{"value":65535}}
+{"id":"runtime/safety/integer/u16/add/0/0","arguments":["0","0","0"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/u16/add/65535/1","arguments":["0","65535","1"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/u16/subtract/0/1","arguments":["1","0","1"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/u16/subtract/65535/65535","arguments":["1","65535","65535"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/u16/multiply/65535/1","arguments":["2","65535","1"],"expected":{"value":65535}}
+{"id":"runtime/safety/integer/u16/multiply/65535/2","arguments":["2","65535","2"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/u16/divide/7/3","arguments":["3","7","3"],"expected":{"value":2}}
+{"id":"runtime/safety/integer/u16/divide/1/0","arguments":["3","1","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/u16/remainder/7/3","arguments":["4","7","3"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/u16/remainder/1/0","arguments":["4","1","0"],"expected":{"panic":"division by zero"}}

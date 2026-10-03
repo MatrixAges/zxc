@@ -1,0 +1,9 @@
+export type Input = { items: i64[]; };
+export type Output = i64[];
+
+export default function (in: Input): Output {
+  const owned = in.items.clone();
+  const [next, _] = owned.sort();
+
+  return next;
+}

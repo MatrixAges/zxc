@@ -1,0 +1,20 @@
+export type Input = {
+  subtotal: u64;
+  discount: u64;
+  shipping_fee: u64;
+  free_shipping_minimum: u64;
+};
+
+export type Output = { shipping: u64; payable: u64; };
+
+export default function (in: Input): Output {
+  const discount = in.discount > in.subtotal ? in.subtotal : in.discount;
+  const discounted = in.subtotal - discount;
+
+  const shipping = match {
+    discounted >= in.free_shipping_minimum => 0,
+    _ => in.shipping_fee
+  };
+
+  return { shipping: shipping, payable: discounted + shipping };
+}

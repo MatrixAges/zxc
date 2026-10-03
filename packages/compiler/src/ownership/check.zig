@@ -11,8 +11,13 @@ program: ir.Program,
 reporter: *zx.Reporter,
 states: []State,
 memo: []?State,
+returned: ?State = null,
 pub fn check(allocator: std.mem.Allocator, program: ir.Program, reporter: *zx.Reporter) zx.Error!void {
-    if (program.type_only) return;
+    _ = try analyze(allocator, program, reporter);
+}
+
+pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, reporter: *zx.Reporter) zx.Error!ir.Ownership {
+    if (program.type_only) return .copy;
 
     const states = try allocator.alloc(State, program.symbols.len);
 
@@ -26,29 +31,23 @@ pub fn check(allocator: std.mem.Allocator, program: ir.Program, reporter: *zx.Re
 
     var self = Self{ .allocator = allocator, .program = program, .reporter = reporter, .states = states, .memo = memo };
 
-    states[0] = if (self.containsList(program.input_type)) .borrowed else .copy;
+    states[0] = if (self.isReference(program.input_type)) .borrowed else .copy;
 
     try self.block(program.body);
+
+    return switch (self.returned orelse .copy) {
+        .copy => .copy,
+        .owned => .owned,
+        .borrowed => .borrowed,
+        .moved => unreachable,
+    };
 }
 
-fn containsList(self: *Self, id: ir.TypeId) bool {
+fn isReference(self: *Self, id: ir.TypeId) bool {
     return switch (self.program.typeOf(id)) {
-        .list => true,
-        .optional => |child| self.containsList(child),
-        .tuple => |children| blk: {
-            for (children) |child| if (self.containsList(child)) {
-                break :blk true;
-            };
-
-            break :blk false;
-        },
-        .object => |fields| blk: {
-            for (fields) |field| if (self.containsList(field.type_id)) {
-                break :blk true;
-            };
-
-            break :blk false;
-        },
+        .list, .object, .tuple => true,
+        .optional => |child| self.isReference(child),
+        .scalar => |scalar| scalar == .string,
         else => false,
     };
 }
@@ -61,11 +60,12 @@ fn block(self: *Self, statements: []const ir.Statement) zx.Error!void {
                 const state = try self.value(binding.value, .move);
 
                 for (binding.symbols) |symbol| if (symbol) |id| {
-                    self.states[@intFromEnum(id)] = if (self.containsList(self.program.symbols[@intFromEnum(id)].type_id)) state else .copy;
+                    self.states[@intFromEnum(id)] = if (self.isReference(self.program.symbols[@intFromEnum(id)].type_id)) state else .copy;
                 };
             },
             .result => |result| if (result) |id| {
-                _ = try self.value(id, .move);
+                const state = try self.value(id, .move);
+                self.returned = if (self.returned == .borrowed or state == .borrowed) .borrowed else if (self.returned == .owned or state == .owned) .owned else state;
             },
             .store_set => |setter| {
                 _ = try self.value(setter.value, .read);
@@ -133,7 +133,7 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
     if (self.memo[@intFromEnum(id)]) |state| return state;
 
     const expression = self.program.expression(id);
-    const container = self.containsList(expression.type_id);
+    const container = self.isReference(expression.type_id);
 
     const state: State = switch (expression.value) {
         .store_get => .borrowed,
@@ -155,11 +155,6 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
             break :blk source;
         },
         .some => |child| try self.value(child, mode),
-        .clone => |child| blk: {
-            _ = try self.value(child, .read);
-
-            break :blk .owned;
-        },
         .length => |child| blk: {
             _ = try self.value(child, .read);
 
@@ -193,37 +188,39 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
         .list_operation => |operation| blk: {
             const source = try self.value(operation.target, .move);
 
-            if (source != .owned) return self.reporter.fail(.ownership, expression.span, "consuming list operations require an owned value; clone borrowed input explicitly");
+            if (source != .owned) return self.reporter.fail(.ownership, expression.span, "consuming list operations require an owned value; borrowed values cannot be consumed");
 
+            const item_type = self.program.typeOf(self.program.expression(operation.target).type_id).list;
             var result: State = .owned;
 
-            for (operation.arguments) |argument| if (try self.value(argument, .move) == .borrowed) {
-                result = .borrowed;
-            };
+            for (operation.arguments) |argument| {
+                const argument_state = try self.value(argument, .move);
+
+                if (self.isReference(item_type) and argument_state == .borrowed) result = .borrowed;
+            }
 
             break :blk result;
         },
         .transform => |transform| blk: {
             _ = try self.value(transform.target, .read);
-
-            if (transform.initial) |initial| {
-                _ = try self.value(initial, .move);
-            }
-
+            const initial_state = if (transform.initial) |initial| try self.value(initial, .move) else .copy;
             const saved = try self.allocator.dupe(State, self.states);
 
             defer self.allocator.free(saved);
             defer @memcpy(self.states, saved);
 
-            for (transform.parameters) |parameter| self.states[@intFromEnum(parameter)] = if (self.containsList(self.program.symbols[@intFromEnum(parameter)].type_id)) .borrowed else .copy;
+            for (transform.parameters) |parameter| self.states[@intFromEnum(parameter)] = if (self.isReference(self.program.symbols[@intFromEnum(parameter)].type_id)) .borrowed else .copy;
 
             const result = try self.value(transform.body, .move);
             const item_type = self.program.typeOf(self.program.expression(transform.target).type_id).list;
-            const borrowed = (transform.kind == .filter and self.containsList(item_type)) or result == .borrowed;
+            const borrowed = (transform.kind == .filter and self.isReference(item_type)) or result == .borrowed or initial_state == .borrowed;
 
             if (borrowed) {
                 @memcpy(self.states, saved);
                 self.freeze(transform.target);
+
+                if (transform.initial) |initial| self.freeze(initial);
+
                 @memcpy(saved, self.states);
             }
 
@@ -232,10 +229,17 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
         .call => |call| blk: {
             _ = try self.value(call.argument, .read);
 
-            if (container) self.freeze(call.argument);
+            const ownership = self.program.functions[@intFromEnum(call.function)].output_ownership;
 
-            break :blk .borrowed;
+            if (container and ownership == .borrowed) self.freeze(call.argument);
+
+            break :blk switch (ownership) {
+                .copy => .copy,
+                .owned => .owned,
+                .borrowed => .borrowed,
+            };
         },
+        .match_expr => |selection| try self.matchValue(selection, mode),
         .conditional => |conditional| blk: {
             _ = try self.value(conditional.condition, .read);
 
@@ -293,6 +297,11 @@ fn freeze(self: *Self, id: ir.ExprId) void {
         .field, .tuple_field => |field| self.freeze(field.target),
         .index => |item| self.freeze(item.target),
         .some => |child| self.freeze(child),
+        .match_expr => |selection| {
+            for (selection.arms) |arm| self.freeze(arm.result);
+
+            self.freeze(selection.fallback);
+        },
         .conditional => |item| {
             self.freeze(item.yes);
             self.freeze(item.no);
@@ -307,4 +316,37 @@ fn freeze(self: *Self, id: ir.ExprId) void {
         .object => |object| for (object.evaluation) |item| self.freeze(item),
         else => {},
     }
+}
+
+fn matchValue(self: *Self, selection: ir.Match, mode: Mode) zx.Error!State {
+    if (selection.subject) |subject| _ = try self.value(subject, .read);
+
+    const before = try self.allocator.alloc(State, self.states.len);
+
+    defer self.allocator.free(before);
+
+    const combined = try self.allocator.alloc(State, self.states.len);
+
+    defer self.allocator.free(combined);
+
+    var borrowed = false;
+
+    for (selection.arms, 0..) |arm, index| {
+        _ = try self.value(arm.condition, .read);
+
+        @memcpy(before, self.states);
+
+        const result = try self.value(arm.result, mode);
+        borrowed = borrowed or result == .borrowed;
+
+        if (index == 0) @memcpy(combined, self.states) else merge(combined, self.states);
+
+        @memcpy(self.states, before);
+    }
+
+    const fallback = try self.value(selection.fallback, mode);
+
+    if (selection.arms.len != 0) merge(self.states, combined);
+
+    return if (borrowed or fallback == .borrowed) .borrowed else .owned;
 }

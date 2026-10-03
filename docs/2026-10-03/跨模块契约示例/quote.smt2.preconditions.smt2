@@ -1,0 +1,7 @@
+(set-logic QF_BV)
+(set-option :produce-models true)
+(set-option :timeout 10000)
+(declare-fun input_0 () (_ BitVec 32))
+(declare-fun input_1 () (_ BitVec 32))
+(assert true)
+(check-sat)

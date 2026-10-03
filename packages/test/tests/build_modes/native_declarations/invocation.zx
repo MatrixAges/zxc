@@ -1,0 +1,9 @@
+import native from "zig:invocation";
+
+export type Input = { left: u64; right: u64; };
+
+export type Output = { seed: u64; allocated_seed: u64; combined: u64; items: u64[]; };
+
+export default function (in: Input): Output {
+  return { seed: native.seed(), allocated_seed: native.seedAllocated(), combined: native.combine(in.left, in.right), items: native.combineAllocated(in.left, in.right) };
+}

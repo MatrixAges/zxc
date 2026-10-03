@@ -46,7 +46,7 @@ fn interpolationEnd(source: []const u8, start: usize, reporter: *zx.Reporter, de
                 if (source[offset] == '\\' and offset + 1 < source.len) offset += 1;
             }
         } else if (std.mem.startsWith(u8, source[offset..], "//")) {
-            while (offset < source.len and source[offset] != '\n') : (offset += 1) {}
+            while (offset < source.len and source[offset] != '\n' and source[offset] != '\r') : (offset += 1) {}
         } else if (std.mem.startsWith(u8, source[offset..], "/*")) {
             const relative = std.mem.indexOf(u8, source[offset + 2 ..], "*/") orelse return reporter.fail(.lexical, .{ .start = offset, .end = source.len }, "unterminated comment in template");
 

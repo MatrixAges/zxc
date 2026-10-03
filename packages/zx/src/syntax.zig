@@ -1,5 +1,6 @@
 const std = @import("std");
 const Span = @import("source.zig").Span;
+pub const ContractKind = enum { requires, ensures };
 
 pub const Token = struct {
     kind: enum { identifier, keyword, number, string, template, punctuation, eof },
@@ -19,7 +20,7 @@ pub fn isKeyword(name: []const u8) bool {
         "export", "type", "default", "function", "const", "if",     "else",
         "return", "true", "false",   "import",   "enum",  "switch", "null",
         "let",    "var",  "for",     "while",    "new",   "throw",  "async",
-        "await",  "case", "break",
+        "await",  "case", "break",   "match",
     };
 
     for (keywords) |keyword| {

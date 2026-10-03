@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import AgentPrompt from '../../../components/agent_prompt'
 import DocsNavigation from '../../../components/docs_navigation'
+import DocsDrawer from '../../../components/docs_drawer'
 import Markdown from '../../../components/markdown'
 import ChapterNavigation from '../../../components/chapter_navigation'
 import { getDocument } from '../../../content/docs'
@@ -29,17 +30,18 @@ export default async function DocPage({ params }: PageProps) {
 
 	return (
 		<main id='content' className='docs-layout'>
-			<aside>
+			<DocsDrawer label={t('catalog')} close_label={t('closeNavigation')}>
 				<DocsNavigation current={doc.id} />
-			</aside>
+			</DocsDrawer>
 			<article className='docs-content'>
 				<header className='docs-intro'>
-					<p className='eyebrow'>zxc / {doc.group}</p>
+					<p className='eyebrow'>{doc.group}</p>
 					<div className='section-heading'>
 						<h1>{doc.title}</h1>
 						<a
 							className='raw-link'
 							href={localeHref(`/docs/raw/${doc.id}`, locale)}
+							target='_self'
 							aria-label={t('rawLabel', { title: doc.title })}
 						>
 							[ .md ]

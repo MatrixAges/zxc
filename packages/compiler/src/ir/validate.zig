@@ -4,6 +4,7 @@ const ir = zx.ir;
 
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!?zx.Diagnostic {
     if (program.version != zx.ir_version or !@import("type_rules.zig").validate(program.types)) return invalid();
+    if (!@import("native_modules.zig").validate(program)) return invalid();
     if (!try function(allocator, program)) return invalid();
 
     for (program.functions, 0..) |item, function_index| {
@@ -12,8 +13,19 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
         }
 
         if (item.external) |external| {
-            if (external.module.len == 0 or external.member.len == 0 or item.symbols.len != 0 or item.expressions.len != 0 or item.body.len != 0 or @intFromEnum(item.input_type) >= program.types.len or @intFromEnum(item.output_type) >= program.types.len) return invalid();
+            if (item.contracts.len != 0 or item.output_ownership != .borrowed) return invalid();
+            if (@intFromEnum(external.module) >= program.native_modules.len or external.member.len == 0 or item.symbols.len != 0 or item.expressions.len != 0 or item.body.len != 0 or @intFromEnum(item.input_type) >= program.types.len or @intFromEnum(item.output_type) >= program.types.len) return invalid();
+
+            for (external.member) |part| {
+                if (part.len == 0 or std.mem.indexOfScalar(u8, part, 0) != null or !std.unicode.utf8ValidateSlice(part)) return invalid();
+            }
+
+            if (!@import("native_modules.zig").validateExport(program, function_index)) return invalid();
             if (external.expand_tuple and program.typeOf(item.input_type) != .tuple) return invalid();
+
+            if (external.input) |shape| {
+                if (!@import("native_modules.zig").validateType(program, external.module, item.input_type, shape, 0)) return invalid();
+            }
 
             continue;
         }
@@ -22,11 +34,13 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
         child.file_name = item.file_name;
         child.input_type = item.input_type;
         child.output_type = item.output_type;
+        child.output_ownership = item.output_ownership;
         child.symbols = item.symbols;
         child.expressions = item.expressions;
         child.body = item.body;
         child.type_only = false;
         child.stores = &.{};
+        child.contracts = item.contracts;
 
         if (!try function(allocator, child)) return invalid();
     }
@@ -48,7 +62,8 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 
 fn function(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
     if (@intFromEnum(program.input_type) >= program.types.len or @intFromEnum(program.output_type) >= program.types.len) return false;
-    if (program.type_only) return @intFromEnum(program.input_type) == 0 and @intFromEnum(program.output_type) == 0 and program.symbols.len == 0 and program.expressions.len == 0 and program.body.len == 0;
+    if (program.type_only) return @intFromEnum(program.input_type) == 0 and @intFromEnum(program.output_type) == 0 and program.symbols.len == 0 and program.expressions.len == 0 and program.body.len == 0 and program.contracts.len == 0;
+    if (!@import("contracts.zig").validate(program)) return false;
     if (program.symbols.len == 0 or program.symbols[0].type_id != program.input_type) return false;
 
     for (program.symbols) |symbol| {
@@ -63,11 +78,13 @@ fn function(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
 
     var reporter: zx.Reporter = .{};
 
-    @import("../ownership/check.zig").check(allocator, program, &reporter) catch |err| {
+    const ownership = @import("../ownership/check.zig").analyze(allocator, program, &reporter) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return false;
     };
+
+    if (program.output_ownership != .borrowed and program.output_ownership != ownership) return false;
 
     return true;
 }

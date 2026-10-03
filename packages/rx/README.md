@@ -1,6 +1,6 @@
 # RX
 
-`.rx` 文件的 Zig 语法定义库，基于 `dsl`。输入为带源码位置的 XML AST，输出为强类型数据或诊断；XML 解析和 Runtime 执行由上游、下游分别负责。
+`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；Runtime 执行尚未接入。
 
 ## 构建与测试
 
@@ -17,6 +17,8 @@ zig build test
 公共标签实现位于 `src/labels/`，每个标签一个同名 `.zig` 文件，例如 `Call.zig`、`Module.zig`。Gateway 专用标签位于 `src/features/gateway/labels/`，Store 专用标签位于 `src/features/store/labels/`；每个文件同时承载该标签的 Schema 和专属校验。
 
 `flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。当前仅实现语法校验，尚未实现对象的运行时生命周期。
+
+入口装载模式会读取 Store 引用文件：`from="state"` 相对当前模块目录解析到 `state.store.rx`，`from="state.store.rx"` 使用显式文件名。它验证定义存在且 Schema 合法，不按 Store.name 搜索全局对象；`as` 和缺省别名保持既有约定。读取定义不代表初始值已解码或持久对象已创建。
 
 ## 文件类型与模块身份
 
@@ -57,6 +59,10 @@ zig build test
 ```
 
 父模块再用 `<Call service="checkout" in="$in" out="ctx.result" />` 调用整个组合模块。Call 的 fn 用于 ZX 函数，service 用于 RX 模块，必须且只能提供一个目标。
+
+Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标是该文件的默认导出。例如 `fn="load_user"` 指向 `load_user.zx`，也可写相对目录和显式 `.zx` 后缀。入口检查会读取函数及其 ZX 导入闭包，执行现有命名、类型和依赖检查，并拒绝纯类型文件作为函数目标。可使用 `check-rx --entry <file.rx> --project <zxc.json>` 指定包与原生接口配置。
+
+这尚未验证 RX `in/out` 表达式与函数参数的兼容性，也未从 RX 生成 Store 句柄上下文；需要这些上下文的函数仍待完整联结，不能把文件分析成功当作 RX 调用已经可执行。
 
 `<Import from="users" />` 是可选的模块组合依赖声明，不接受 as；直接 Call 不必再重复写 Import。Import 本身不表示执行顺序或调用，执行关系由 Call 描述。依赖图同时包含 Import 和 Call service，要求整个注册集合无环；即使 Import 暂未被调用，也不能形成循环依赖。
 
@@ -103,6 +109,16 @@ protocol 的语法集合为 `http`、`grpc`、`websocket`、`tcp`、`mqtt`；met
 Store.version 为 u32。同一个 Object 的 Field 名不可重复；同名 Object 可声明不同字段，但同一文件的完整 Object.Field 路径不可重复。Field.value 允许空字符串，type/value 尚未接入完整 Store 值类型系统。
 
 ## API 与校验层级
+
+真实 XML 模块集合可使用 `parseModules(allocator, sources)`，其中每个 `TextSource` 包含 `path` 和 `source`。它先解析文本，再调用完整模块集合校验；返回值的 `value` 与 `validateModules` 相同，并通过 `deinit` 统一释放解析和校验结果。解析器复制源码，返回值不借用调用者的文本缓冲区。
+
+`parseXml` 单独返回 `{ node | diagnostic }`；单文件 Gateway/Store 可先解析，再使用 `validate`。调用者应先释放校验结果，再释放 XML 解析结果。
+
+XML 输入支持 UTF-8、XML 1.0 声明、注释、CDATA、单双引号属性、预定义实体和数值字符引用。标签与属性名称限制为 ASCII，不支持命名空间、DTD、自定义实体和通用处理指令；这些输入明确返回语法诊断。位置使用原始字节偏移及一基行、字节列，CRLF 计作一次换行。
+
+官方 CLI 的 `zxc check-rx <module.rx> [module.rx ...]` 读取明确传入的完整普通模块集合，检查 XML、Schema 与模块依赖。`zxc check-rx --entry <module.rx>` 则从入口自动装载 Import、所有嵌套 Call.service 和 Store.from 的文件，以当前工作目录为项目根。入口也可以是 `.gateway.rx`：先验证 Gateway Schema，再读取所有嵌套 Route.service 指向的普通模块和依赖；或 `.store.rx`：校验单个 Store 定义。入口模式不扫描无关文件，也不执行流程。显式集合模式仍只接受普通模块，不装载其 Store 定义。
+
+入口装载会检查真实文件路径：拒绝符号链接越出项目根，以及同一物理文件通过多个逻辑路径重复注册。语法库本身仍不访问文件系统；显式集合模式的调用者仍需保证物理身份一致性。
 
 单文件语法检查：
 
@@ -151,6 +167,6 @@ validateModules 输出按输入顺序排列的 `{ path, data }`，path 是规范
 
 未知/重复属性、必填项、非空白文本和非法嵌套均报错。除 Field.value 外，显式属性不能是空白字符串。
 
-未实现 XML 解析、Gateway/Store 跨文件合并、Route 目标注册联结、Group 展开冲突、ZX 输入输出兼容、表达式解析、Store 初值解码、自动返回分析或实际执行。本文的语法检查成功不代表业务执行已经验证。
+Gateway 入口已验证 Route 目标文件及其普通模块依赖图，模块 Store 引用已读取并校验定义文件；尚未实现多个 Gateway 的合并、Store 值与 setter 的类型联结、Group 展开冲突、ZX 输入输出兼容、表达式解析、Store 初值解码、自动返回分析或实际执行。路由 service 相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。本文的检查成功不代表业务执行已经验证。
 
-测试使用合成 AST，覆盖全部标签、路径身份、模块组合、递归结构、错误定位、循环依赖及内存分配失败；不覆盖 XML 文本到 AST 的解析链。
+既有测试使用合成 AST，覆盖全部标签、路径身份、模块组合、递归结构、错误定位、循环依赖及内存分配失败；不覆盖新增 XML 文本到 AST 的解析链。

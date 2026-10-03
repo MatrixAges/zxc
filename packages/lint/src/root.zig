@@ -41,6 +41,10 @@ pub fn checkNames(program: zx.ast.Program) ?zx.Diagnostic {
         if (checkBinding(declaration.name, .type_decl)) |issue| return issue;
     }
 
+    for (program.contracts) |contract| {
+        if (checkExpression(contract.predicate)) |issue| return issue;
+    }
+
     return if (program.body) |body| checkBlock(body) else null;
 }
 
@@ -115,6 +119,17 @@ fn checkExpression(expression: *const zx.ast.Expression) ?zx.Diagnostic {
         .unary => |unary| return checkExpression(unary.operand),
         .binary => |binary| return checkExpression(binary.left) orelse checkExpression(binary.right),
         .conditional => |value| return checkExpression(value.condition) orelse checkExpression(value.yes) orelse checkExpression(value.no),
+        .match_expr => |selection| {
+            if (selection.subject) |subject| {
+                if (checkExpression(subject)) |issue| return issue;
+            }
+
+            for (selection.arms) |arm| {
+                if (checkExpression(arm.condition) orelse checkExpression(arm.result)) |issue| return issue;
+            }
+
+            return checkExpression(selection.fallback);
+        },
         .object => |fields| for (fields) |field| {
             if (checkExpression(field.value)) |issue| return issue;
         },

@@ -15,39 +15,68 @@ pub fn main(init: std.process.Init) !void {
     defer stdout.flush() catch {};
     defer stderr.flush() catch {};
 
+    if (args.len > 1 and std.mem.eql(u8, args[1], "check-rx")) {
+        if (!try @import("application/check.zig").run(init.io, allocator, args[2..], stderr)) {
+            try stderr.flush();
+
+            std.process.exit(1);
+        }
+
+        return;
+    }
+
     if (args.len == 2 and std.mem.eql(u8, args[1], "--help")) {
         try usage(stdout);
 
         return;
     }
 
-    const formatting = args.len > 1 and std.mem.eql(u8, args[1], "fmt");
-    const source_index: usize = if (formatting) 2 else 1;
-
-    if (args.len <= source_index) {
+    const options = @import("cli/options.zig").parse(args[1..]) catch {
         try usage(stderr);
         try stderr.flush();
 
         std.process.exit(1);
-    }
+    };
 
-    const input_path = args[source_index];
-    const extra = args[source_index + 1 ..];
-    const check = formatting and extra.len == 1 and std.mem.eql(u8, extra[0], "--check");
-    const write = formatting and extra.len == 1 and std.mem.eql(u8, extra[0], "--write");
-    const output = !formatting and extra.len == 2 and std.mem.eql(u8, extra[0], "--out");
+    const input_path = options.input;
 
-    if (extra.len != 0 and !check and !write and !output) {
-        try usage(stderr);
+    const loaded = if (options.formatting) @import("cli/project.zig").Loaded{ .project = .{ .entry = input_path } } else @import("cli/project.zig").load(init.io, allocator, input_path, options.project) catch |err| {
+        try stderr.print("{s}: {s}\n", .{ options.project orelse "zxc.json", @errorName(err) });
         try stderr.flush();
 
         std.process.exit(1);
-    }
+    };
 
+    const project = loaded.project;
     const source = try std.Io.Dir.cwd().readFileAlloc(init.io, input_path, allocator, .limited(16 * 1024 * 1024));
-    const root_dir = try std.Io.Dir.cwd().realPathFileAlloc(init.io, ".", allocator);
-    const sources = if (formatting) &.{} else try readSources(init.io, allocator, input_path, source, root_dir);
-    const result = if (formatting) try compiler.format(allocator, source, input_path) else try compiler.compileProject(allocator, sources, .{ .entry = input_path, .root_dir = root_dir });
+    const sources = if (options.formatting) &.{} else try @import("cli/sources.zig").read(init.io, allocator, source, project);
+
+    if (options.verifying) {
+        if (!try @import("cli/verify.zig").run(init.io, allocator, sources, project, options, stderr)) {
+            try stderr.flush();
+
+            std.process.exit(1);
+        }
+
+        return;
+    }
+
+    if (options.fpga) {
+        if (!try @import("cli/fpga.zig").run(init.io, allocator, sources, project, options, stderr)) {
+            try stderr.flush();
+
+            std.process.exit(1);
+        }
+
+        return;
+    }
+
+    var type_output: std.Io.Writer.Allocating = .init(allocator);
+
+    defer type_output.deinit();
+
+    var dependencies: std.ArrayList([]const u8) = .empty;
+    const result = if (options.formatting) try compiler.format(allocator, source, input_path) else try compiler.compileProjectVerified(allocator, .{ .io = init.io, .sources = sources, .project = project, .solver = options.solver, .writer = stderr, .dependencies = &dependencies, .type_output = if (options.native or options.output != null) &type_output.writer else null });
 
     defer result.deinit(allocator);
 
@@ -63,15 +92,27 @@ pub fn main(init: std.process.Init) !void {
             std.process.exit(1);
         },
         .source => |text| {
-            if (check) {
+            if (options.native) {
+                const native_project = try @import("cli/standard.zig").resolve(init.io, allocator, loaded, dependencies.items);
+
+                if (options.mode == .lib) {
+                    try @import("cli/library.zig").run(init.io, allocator, text, type_output.written(), sources, options, native_project);
+                } else if (!try @import("cli/build.zig").run(init.io, allocator, text, type_output.written(), options, native_project)) std.process.exit(1);
+            } else if (options.check) {
                 if (!std.mem.eql(u8, source, text)) {
                     try stderr.print("{s}: blank lines require formatting\n", .{input_path});
                     try stderr.flush();
 
                     std.process.exit(1);
                 }
-            } else if (write or output) {
-                try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = if (write) input_path else extra[1], .data = text });
+            } else if (options.write or options.output != null) {
+                if (type_output.written().len != 0) {
+                    const types_path = try std.fmt.allocPrint(allocator, "{s}.abi.zig", .{options.output.?});
+
+                    try @import("cli/artifacts.zig").write(init.io, types_path, type_output.written());
+                }
+
+                try @import("cli/artifacts.zig").write(init.io, if (options.write) input_path else options.output.?, text);
             } else {
                 try stdout.writeAll(text);
             }
@@ -80,51 +121,5 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn usage(writer: *std.Io.Writer) std.Io.Writer.Error!void {
-    try writer.writeAll("zxc <source.zx> [--out output.zig]\nzxc fmt <source.zx> [--check | --write]\n");
-}
-
-fn readSources(io: std.Io, allocator: std.mem.Allocator, entry: []const u8, source: []const u8, root_dir: []const u8) ![]const compiler.project.Source {
-    var sources: std.ArrayList(compiler.project.Source) = .empty;
-
-    try sources.append(allocator, .{ .path = try std.fs.path.resolve(allocator, &.{ root_dir, entry }), .source = source });
-
-    var index: usize = 0;
-
-    while (index < sources.items.len) : (index += 1) {
-        const item = sources.items[index];
-        var parsed = try compiler.parse(allocator, item.source, item.path);
-
-        defer parsed.deinit();
-
-        if (parsed.value == .diagnostic) continue;
-
-        for (parsed.value.parsed.ast.imports) |imported| {
-            var reporter: zx.Reporter = .{};
-
-            const path = compiler.project.resolvePath(allocator, item.path, imported.path, root_dir, &reporter, imported.span) catch |err| {
-                if (err == error.OutOfMemory) return error.OutOfMemory;
-
-                continue;
-            };
-
-            var found = false;
-
-            for (sources.items) |existing| if (std.mem.eql(u8, existing.path, path)) {
-                found = true;
-
-                break;
-            };
-
-            if (found) continue;
-
-            const text = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(16 * 1024 * 1024)) catch |err| switch (err) {
-                error.FileNotFound => continue,
-                else => return err,
-            };
-
-            try sources.append(allocator, .{ .path = path, .source = text });
-        }
-    }
-
-    return sources.toOwnedSlice(allocator);
+    try writer.writeAll("zxc <source.zx> [--project zxc.json] [--out output.zig] [--solver z3]\nzxc build <source.zx> --out program [--mode app|lib] [--project zxc.json] [--asm program.s] [--target triple] [--cpu features] [--optimize mode] [--solver z3]\nzxc fpga <source.zx> --out kernel.sv [--project zxc.json] [--solver z3] [--clocked]\nzxc verify <source.zx> [--project zxc.json] [--solver z3] [--out query.smt2]\nzxc fmt <source.zx> [--check | --write]\nzxc check-rx <module.rx> [module.rx ...]\nzxc check-rx --entry <module.rx|gateway.gateway.rx|state.store.rx> [--project zxc.json]\n");
 }

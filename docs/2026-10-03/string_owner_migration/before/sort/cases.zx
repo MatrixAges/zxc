@@ -1,0 +1,9 @@
+export type Input = { items: string[]; };
+export type Output = string[];
+
+export default function (in: Input): Output {
+  const owned = in.items.clone();
+  const [ordered, _] = owned.sort();
+
+  return ordered;
+}

@@ -1,0 +1,13 @@
+export type Input = u64[];
+export type Output = { values: u64[]; removed: u64[]; empty: u64?; };
+
+export default function (in: Input): Output {
+  const initial: u64[] = [];
+  const [items, _] = initial.concat(in);
+  const [updated, removed] = items.splice(1, 2, [7, 8]);
+  const [joined, _] = updated.concat([9]);
+  const empty_items: u64[] = [];
+  const [remaining, empty] = empty_items.pop();
+
+  return { values: joined, removed: removed, empty: empty };
+}

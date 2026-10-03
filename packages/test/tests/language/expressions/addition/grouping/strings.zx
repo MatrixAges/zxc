@@ -1,0 +1,9 @@
+export type Input = { prefix: string; left: u64; right: u64; };
+
+export type Output = { left: string; right: string; };
+
+export default function (in: Input): Output {
+  const text = `${in.prefix}${in.left}`;
+
+  return { left: `${text}${in.right}`, right: `${in.prefix}${in.left + in.right}` };
+}

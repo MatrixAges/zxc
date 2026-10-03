@@ -1,0 +1,14 @@
+import discount from "library";
+
+export type Input = { raw_price: u32; discount: u32; };
+export type Output = { final_price: u32; };
+
+export default function (in: Input): Output
+  ensures (out.final_price <= in.raw_price)
+{
+  if (in.discount > in.raw_price) {
+    return { final_price: 0 };
+  }
+
+  return discount(in);
+}

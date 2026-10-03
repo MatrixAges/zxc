@@ -144,7 +144,7 @@ export default function FlowScene({ rail_ref, placements, reduced_motion }: Flow
 			<group ref={root_ref}>
 				{stages.map((stage, index) => (
 					<group
-						key={stage.title}
+						key={stage.id}
 						ref={node => {
 							objects_ref.current[index] = node
 						}}

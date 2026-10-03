@@ -1,0 +1,13 @@
+import zlib from "std:zlib";
+import type { CompressOptions } from "std:zlib";
+
+export type Input = CompressOptions;
+export type Output = { gzip_data: u8[]; zlib_data: u8[]; raw_data: u8[]; };
+
+export default function (in: Input): Output {
+  return {
+    gzip_data: zlib.gzipWith(in),
+    zlib_data: zlib.deflateWith(in),
+    raw_data: zlib.deflateRawWith(in)
+  };
+}

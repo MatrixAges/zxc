@@ -1,6 +1,16 @@
 const std = @import("std");
 const dsl = @import("dsl");
 pub const ast = dsl.ast;
+pub const parseXml = dsl.parseXml;
+pub const XmlResult = dsl.XmlResult;
+pub const TextSource = @import("text.zig").Source;
+pub const TextResult = @import("text.zig").Result;
+pub const parseModules = @import("text.zig").parseModules;
+pub const resolveModulePath = @import("paths.zig").resolve;
+pub const normalizeGatewayPath = @import("paths.zig").normalizeGateway;
+pub const normalizeStorePath = @import("paths.zig").normalizeStore;
+pub const resolveStorePath = @import("paths.zig").resolveStore;
+pub const resolveFunctionPath = @import("paths.zig").resolveFunction;
 pub const Diagnostic = dsl.Diagnostic;
 pub const flow = @import("flow.zig");
 pub const gateway = @import("features/gateway/root.zig");

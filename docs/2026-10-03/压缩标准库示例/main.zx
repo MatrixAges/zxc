@@ -1,0 +1,15 @@
+import zlib from "std:zlib";
+
+export type Input = { data: u8[]; gzip_data: u8[]; zlib_data: u8[]; raw_data: u8[]; max_output_length: u32; };
+export type Output = { gzip_data: u8[]; zlib_data: u8[]; raw_data: u8[]; gunzip_data: u8[]; inflate_data: u8[]; inflate_raw_data: u8[]; };
+
+export default function (in: Input): Output {
+  return {
+    gzip_data: zlib.gzip(in.data),
+    zlib_data: zlib.deflate(in.data),
+    raw_data: zlib.deflateRaw(in.data),
+    gunzip_data: zlib.gunzip({ data: in.gzip_data, max_output_length: in.max_output_length }),
+    inflate_data: zlib.inflate({ data: in.zlib_data, max_output_length: in.max_output_length }),
+    inflate_raw_data: zlib.inflateRaw({ data: in.raw_data, max_output_length: in.max_output_length })
+  };
+}

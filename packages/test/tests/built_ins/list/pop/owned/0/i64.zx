@@ -1,0 +1,10 @@
+export type Input = { items: i64[]; };
+
+export type Output = { items: i64[]; value: i64?; };
+
+export default function (in: Input): Output {
+  const owned: i64[] = [];
+  const [items, value] = owned.pop();
+
+  return { items, value };
+}

@@ -1,6 +1,7 @@
 const ast = @import("ast.zig");
 
 pub const Code = enum {
+    syntax,
     unexpected_element,
     unknown_attribute,
     duplicate_attribute,

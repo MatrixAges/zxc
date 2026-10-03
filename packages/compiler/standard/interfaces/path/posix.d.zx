@@ -1,0 +1,12 @@
+export type Parts = { root: string; dir: string; base: string; ext: string; name: string; };
+
+export declare function isAbsolute(in: string): bool;
+export declare function basename(in: string): string;
+export declare function dirname(in: string): string;
+export declare function extname(in: string): string;
+export declare function parse(allocator, in: string): Parts throws;
+export declare function format(allocator, in: Parts): string throws;
+export declare function normalize(allocator, in: string): string throws;
+export declare function join(allocator, in: string[]): string throws;
+export declare function resolve(allocator, in: { cwd: string; paths: string[]; }): string throws;
+export declare function relative(allocator, in: { cwd: string; from: string; to: string; }): string throws;

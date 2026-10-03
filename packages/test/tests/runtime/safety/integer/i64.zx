@@ -1,0 +1,16 @@
+export type Input = { operation: u8; left: i64; right: i64; };
+
+export type Output = i64;
+
+export default function (in: Input): Output {
+  switch (in.operation) {
+    case 0: return in.left + in.right;
+    case 1: return in.left - in.right;
+    case 2: return in.left * in.right;
+    case 3: return in.left / in.right;
+    case 4: return in.left % in.right;
+    case 5: return -in.left;
+    case 6: return -(-in.left);
+    default: return in.left;
+  }
+}

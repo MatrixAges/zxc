@@ -1,0 +1,5 @@
+export type Item = { value: i32; };
+export type Pair = [Item, Item];
+export type Packet = { items: Item[]; pair: Pair; };
+
+export declare function echo(input: Packet): Packet;

@@ -1,0 +1,12 @@
+<Module>
+  <Import from="shared" />
+
+  <Switch on="$in.kind">
+    <Case value="left">
+      <Call service="left" in="$in" />
+    </Case>
+    <Default>
+      <Call service="right" in="$in" />
+    </Default>
+  </Switch>
+</Module>

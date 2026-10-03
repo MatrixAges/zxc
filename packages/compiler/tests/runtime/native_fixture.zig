@@ -1,8 +1,9 @@
-pub const Input = struct { value: f64 };
-pub const Output = struct { value: f64 };
+const abi = @import("zxc_abi").native.@"lib:record";
+pub const Input = abi.borrow.Input;
+pub const Output = abi.borrow.Output;
 
-pub fn copy(value: Input) Output {
-    return .{ .value = value.value };
+pub fn borrow(value: Input) Output {
+    return value;
 }
 
 pub fn zero() f64 {

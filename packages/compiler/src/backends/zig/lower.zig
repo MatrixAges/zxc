@@ -10,55 +10,27 @@ allocator: std.mem.Allocator,
 program: ir.Program,
 builder: genz.Builder,
 types: []*const node.Expression,
+layouts: []*const node.Expression,
 names: [][]const u8,
+native_names: []const []const u8 = &.{},
 used: []bool,
 cache_reads: []usize,
 cache: std.AutoHashMapUnmanaged(ir.ExprId, *const node.Expression) = .empty,
 serial: usize = 0,
 uses_allocator: bool = false,
+shared_types: bool = false,
+comparisons: *std.ArrayList(ir.TypeId) = undefined,
 pub fn declarations(self: *Self) Error![]const node.Declaration {
     var output: std.ArrayList(node.Declaration) = .empty;
+    var comparisons: std.ArrayList(ir.TypeId) = .empty;
+
+    self.comparisons = &comparisons;
 
     try output.append(self.allocator, .{ .constant = .{ .name = "std", .value = try self.builtin(.import, &.{try self.builder.string("std")}) } });
-    try output.append(self.allocator, .{ .constant = .{ .name = "runtime", .value = try self.builtin(.import, &.{try self.builder.string("zx_runtime")}) } });
 
-    for (self.program.types, 0..) |value, index| {
-        self.types[index] = switch (value) {
-            .scalar => |scalar| switch (scalar) {
-                .string => try self.builder.expression(.{ .const_slice = try self.builder.expression(.{ .primitive = .u8 }) }),
-                else => try self.builder.expression(.{ .primitive = std.meta.stringToEnum(@FieldType(node.Expression, "primitive"), @tagName(scalar)).? }),
-            },
-            .optional => |child| try self.builder.expression(.{ .optional_type = self.types[@intFromEnum(child)] }),
-            .list => |child| try self.builder.expression(.{ .const_slice = self.types[@intFromEnum(child)] }),
-            .object, .tuple, .enumeration => blk: {
-                const name = try std.fmt.allocPrint(self.allocator, "zx_type_{d}", .{index});
+    self.native_names = try @import("imports.zig").lower(self, &output);
 
-                const definition = switch (value) {
-                    .enumeration => |enumeration| try self.builder.expression(.{ .enum_type = enumeration.members }),
-                    .tuple => |children| tuple: {
-                        const items = try self.allocator.alloc(*const node.Expression, children.len);
-
-                        for (children, 0..) |child, child_index| items[child_index] = self.types[@intFromEnum(child)];
-
-                        break :tuple try self.builder.expression(.{ .tuple_type = items });
-                    },
-                    .object => |fields| object: {
-                        const items = try self.allocator.alloc(node.Field, fields.len);
-
-                        for (fields, 0..) |item, field_index| items[field_index] = .{ .name = item.name, .value = self.types[@intFromEnum(item.type_id)] };
-
-                        break :object try self.builder.expression(.{ .struct_type = items });
-                    },
-                    else => unreachable,
-                };
-
-                try output.append(self.allocator, .{ .constant = .{ .name = name, .value = definition } });
-
-                break :blk try self.builder.identifier(name);
-            },
-        };
-    }
-
+    try @import("types.zig").lower(self, &output, false);
     for (self.program.exports) |item| try output.append(self.allocator, .{ .constant = .{ .name = item.name, .value = self.types[@intFromEnum(item.type_id)], .exported = true } });
     if (self.program.type_only) return output.toOwnedSlice(self.allocator);
 
@@ -86,6 +58,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
         helper.program.input_type = module_function.input_type;
         helper.program.output_type = module_function.output_type;
         helper.program.stores = &.{};
+        helper.program.contracts = module_function.contracts;
         helper.names = try self.allocator.alloc([]const u8, module_function.symbols.len);
         helper.used = try self.allocator.alloc(bool, module_function.symbols.len);
         helper.cache = .empty;
@@ -102,6 +75,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     }
 
     try output.append(self.allocator, try self.function("execute", true));
+    for (comparisons.items) |type_id| try output.append(self.allocator, try @import("comparison.zig").ordering(self, type_id));
 
     return output.toOwnedSlice(self.allocator);
 }
@@ -115,6 +89,7 @@ fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declaratio
     @memset(self.cache_reads, 0);
 
     const body_statements = try self.statements(self.program.body);
+    const preconditions = try @import("contracts.zig").preconditions(self);
     var body: std.ArrayList(node.Statement) = .empty;
 
     try body.append(self.allocator, .{ .expression = try self.builtin(.setRuntimeSafety, &.{try self.builder.expression(.{ .boolean = true })}) });
@@ -135,12 +110,13 @@ fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declaratio
         try body.append(self.allocator, if (@import("statements.zig").writes(self.program.body)) .{ .variable = pending } else .{ .constant = pending });
     }
 
+    try body.appendSlice(self.allocator, preconditions);
     try body.appendSlice(self.allocator, body_statements);
     if (self.program.stores.len > 0 and !ir.terminates(self.program.body)) try body.append(self.allocator, .{ .expression = try self.commit() });
 
     const parameters = try self.allocator.alloc(node.Field, if (self.program.stores.len > 0) 3 else 2);
 
-    parameters[0] = if (exported) .{ .name = "arena", .value = try self.builder.expression(.{ .pointer = try self.field(try self.builder.identifier("runtime"), "Arena") }) } else .{ .name = "allocator", .value = try self.field(try self.builder.identifier("runtime"), "Allocator") };
+    parameters[0] = if (exported) .{ .name = "arena", .value = try self.builder.expression(.{ .pointer = try @import("intrinsics.zig").standardField(self, &.{ "heap", "ArenaAllocator" }) }) } else .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
     parameters[1] = .{ .name = "in", .value = self.types[@intFromEnum(self.program.input_type)] };
 
     if (self.program.stores.len > 0) parameters[2] = .{ .name = "context", .value = try self.builder.expression(.{ .primitive = .@"anytype" }) };
@@ -180,15 +156,15 @@ pub fn expr(self: *Self, id: ir.ExprId) Error!*const node.Expression {
         },
         .field => |item| self.field(try self.expr(item.target), self.program.typeOf(self.program.expression(item.target).type_id).object[item.index].name),
         .tuple_field => |item| self.field(try self.expr(item.target), try std.fmt.allocPrint(self.allocator, "{d}", .{item.index})),
-        .index => |item| self.runtimeCall("at", &.{ value_type, try self.expr(item.target), try self.expr(item.index) }, true),
+        .index => |item| @import("intrinsics.zig").index(self, try self.expr(item.target), try self.expr(item.index)),
         .length => |child| self.cast(value_type, try self.field(try self.expr(child), "len")),
-        .clone => |child| self.runtimeCall("clone", &.{ value_type, try self.builder.identifier("allocator"), try self.expr(child) }, true),
         .unary => |unary| self.builder.expression(.{ .unary = .{ .operator = if (unary.operator == .not) .not else .negate, .operand = try self.expr(unary.operand) } }),
         .binary => |operation| self.binary(operation),
+        .match_expr => |selection| @import("match.zig").lower(self, selection),
         .conditional => |conditional| self.builder.expression(.{ .conditional = .{ .condition = try self.expr(conditional.condition), .yes = try self.expr(conditional.yes), .no = try self.expr(conditional.no) } }),
         .object => |object| @import("aggregate.zig").object(self, id, object),
         .list, .tuple, .template => |items| @import("aggregate.zig").sequence(self, value, items),
-        .list_operation => |operation| @import("aggregate.zig").operation(self, value.type_id, operation),
+        .list_operation => |operation| @import("collections.zig").lower(self, value.type_id, operation),
         .transform => |transform| @import("transform.zig").lower(self, id, transform),
         .call => |invocation| self.call(try self.builder.identifier(try std.fmt.allocPrint(self.allocator, "function_{d}", .{@intFromEnum(invocation.function)})), &.{ try self.builder.identifier("allocator"), try self.expr(invocation.argument) }, true),
     };
@@ -205,12 +181,19 @@ pub fn binary(self: *Self, value: @FieldType(@FieldType(ir.Expression, "value"),
     }
 
     if ((value.operator == .equal or value.operator == .not_equal) and (target == .optional or (target == .scalar and target.scalar == .string))) {
-        const equal = try self.runtimeCall("equal", &.{ self.types[@intFromEnum(type_id)], left, right }, false);
+        const equal = try @import("comparison.zig").equal(self, type_id, left, right);
 
         return if (value.operator == .equal) equal else self.builder.expression(.{ .unary = .{ .operator = .not, .operand = equal } });
     }
 
     const floating = target == .scalar and (target.scalar == .f32 or target.scalar == .f64);
+
+    if (value.operator == .remainder and target == .scalar and (target.scalar == .i32 or target.scalar == .i64)) {
+        const wide = try self.builder.expression(.{ .primitive = if (target.scalar == .i32) .i33 else .i65 });
+        const remainder = try self.builtin(.rem, &.{ try self.cast(wide, left), try self.cast(wide, right) });
+
+        return self.cast(self.types[@intFromEnum(type_id)], try self.builtin(.intCast, &.{remainder}));
+    }
 
     if (value.operator == .remainder or (value.operator == .divide and !floating)) return self.builtin(if (value.operator == .divide) .divTrunc else .rem, &.{ left, right });
 
@@ -222,6 +205,8 @@ pub fn field(self: *Self, target: *const node.Expression, name: []const u8) Erro
 }
 
 pub fn call(self: *Self, callee: *const node.Expression, arguments: []const *const node.Expression, fallible: bool) Error!*const node.Expression {
+    if (callee.* == .field and callee.field.target.* == .identifier and std.mem.eql(u8, callee.field.target.identifier, "allocator")) self.uses_allocator = true;
+
     for (arguments) |argument| {
         if (argument.* == .identifier and std.mem.eql(u8, argument.identifier, "allocator")) self.uses_allocator = true;
     }
@@ -231,16 +216,22 @@ pub fn call(self: *Self, callee: *const node.Expression, arguments: []const *con
     return if (fallible) self.builder.expression(.{ .try_value = result }) else result;
 }
 
-pub fn runtimeCall(self: *Self, name: []const u8, arguments: []const *const node.Expression, fallible: bool) Error!*const node.Expression {
-    return self.call(try self.field(try self.builder.identifier("runtime"), name), arguments, fallible);
-}
-
 pub fn builtin(self: *Self, name: @FieldType(@FieldType(node.Expression, "builtin"), "name"), arguments: []const *const node.Expression) Error!*const node.Expression {
     return self.builder.expression(.{ .builtin = .{ .name = name, .arguments = try self.allocator.dupe(*const node.Expression, arguments) } });
 }
 
 pub fn cast(self: *Self, type_expr: *const node.Expression, value: *const node.Expression) Error!*const node.Expression {
     return self.builtin(.as, &.{ type_expr, value });
+}
+
+pub fn construct(self: *Self, type_id: ir.TypeId, value: *const node.Expression) Error!*const node.Expression {
+    var body: std.ArrayList(node.Statement) = .empty;
+    const layout = self.layouts[@intFromEnum(type_id)];
+    const pointer = try @import("aggregate.zig").bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "create"), &.{layout}, true));
+
+    try body.append(self.allocator, .{ .assignment = .{ .target = try self.builder.expression(.{ .dereference = pointer }), .value = try self.cast(layout, value) } });
+
+    return @import("aggregate.zig").finish(self, &body, try self.cast(self.types[@intFromEnum(type_id)], pointer));
 }
 
 pub fn fresh(self: *Self, prefix: []const u8) Error![]const u8 {

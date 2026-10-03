@@ -10,6 +10,9 @@ pub const Expression = union(enum) {
     array: struct { element_type: *const Expression, values: []const *const Expression },
     tuple: []const *const Expression,
     index: struct { target: *const Expression, index: *const Expression },
+    slice: struct { target: *const Expression, start: ?*const Expression = null, end: ?*const Expression = null },
+    address_of: *const Expression,
+    error_value: []const u8,
     block: struct { label: []const u8, statements: []const Statement },
     try_value: *const Expression,
     error_union: *const Expression,
@@ -17,19 +20,22 @@ pub const Expression = union(enum) {
     float: f64,
     string: []const u8,
     boolean: bool,
-    primitive: enum { @"anytype", void, bool, u8, u16, u32, u64, i32, i64, f32, f64 },
+    primitive: enum { @"anytype", void, bool, u8, u16, u32, u64, usize, i32, i33, i64, i65, f32, f64 },
     dereference: *const Expression,
+    optional_unwrap: *const Expression,
+    selection: struct { subject: *const Expression, arms: []const SelectionArm },
     pointer: *const Expression,
     const_pointer: *const Expression,
     const_slice: *const Expression,
     struct_type: []const Field,
+    namespace_type: []const Declaration,
     field: struct { target: *const Expression, name: []const u8 },
     unary: struct { operator: enum { negate, not }, operand: *const Expression },
     binary: struct { operator: BinaryOperator, left: *const Expression, right: *const Expression },
-    builtin: struct { name: enum { divTrunc, rem, as, setRuntimeSafety, import, intCast, floatCast, enumFromInt, intFromEnum, TypeOf }, arguments: []const *const Expression },
+    builtin: struct { name: enum { divTrunc, rem, as, setRuntimeSafety, import, intCast, floatCast, enumFromInt, intFromEnum, TypeOf, constCast, memcpy }, arguments: []const *const Expression },
     call: struct { callee: *const Expression, arguments: []const *const Expression },
     conditional: struct { condition: *const Expression, yes: *const Expression, no: *const Expression },
-    object: struct { type_expr: *const Expression, fields: []const Field },
+    object: struct { type_expr: ?*const Expression = null, fields: []const Field },
 };
 
 pub const BinaryOperator = enum {
@@ -65,6 +71,7 @@ pub const BinaryOperator = enum {
     }
 };
 
+pub const SelectionArm = struct { value: *const Expression, result: *const Expression };
 pub const Field = struct { name: []const u8, value: *const Expression };
 pub const Constant = struct { name: []const u8, type_expr: ?*const Expression = null, value: *const Expression, exported: bool = false };
 

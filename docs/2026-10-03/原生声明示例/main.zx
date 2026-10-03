@@ -1,0 +1,9 @@
+import measurements from "zig:measurements";
+import type { Request, Response } from "zig:measurements";
+
+export type Input = Request;
+export type Output = Response;
+
+export default function (in: Input): Output {
+  return measurements.process(in);
+}

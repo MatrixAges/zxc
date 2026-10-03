@@ -176,14 +176,18 @@ export enum Currency {
 
 | `.zx` 类型                | Zig 映射      | 说明                 |
 | ------------------------- | ------------- | -------------------- |
-| `bool`                    | `bool`        | `true` / `false`     |
+| `boolean`、`bool`         | `bool`        | `true` / `false`     |
 | `u8`、`u16`、`u32`、`u64` | 同名 Zig 类型 | 无符号整数           |
 | `i32`、`i64`              | 同名 Zig 类型 | 有符号整数           |
 | `f32`、`f64`              | 同名 Zig 类型 | 浮点数               |
 | `string`                  | `[]const u8`  | UTF-8 不可变字节切片 |
 | `void`                    | `void`        | 没有业务输出         |
 
-不提供模糊的 `number` 类型。数值宽度和有无符号必须显式确定。
+`number` 是 `f64` 的内建别名，`boolean` 是 `bool` 的内建别名。两种拼写分别获得相同的规范类型，不生成新的运行时包装。`number` 使用 IEEE 754 双精度浮点，可表达普通整数和小数；精确整数范围为 ±(2^53 − 1)。需要更大精确整数或固定宽度时显式使用 `u64`、`i64` 等类型。金额仍推荐最小货币单位的整数表示。
+
+`string` 保持 UTF-8 不可变字节序列，`void` 表示无业务输出。`Array<T>` 等价于 `T[]`，对象与元组保持静态布局。类型映射不意味着自动初始化为 0、false 或空字符串，也不改变已有字面量推断规则。
+
+不提供 `bigint`、`symbol`、`any`、`unknown`、动态 `object`、独立 `undefined` / `null` 类型或 `never`。`null` 继续作为 `T?` 的空值；不能将任意精度 `bigint` 偷换为定宽 `i64`。
 
 ### 4.2 可选值
 
@@ -464,6 +468,25 @@ switch (in.status) {
 }
 ```
 
+### 7.3.1 match 表达式
+
+ZX 采用双模式 `match` 表达式：无操作数时按完整布尔条件选择结果，有操作数时按目标值选择结果，`_` 表示默认分支。它用于局部赋值或返回，不要求新增可变变量，也不替代 RX 的业务编排。
+
+```ts
+const shipping = match {
+  discounted >= in.free_shipping_minimum => 0,
+  _ => in.shipping_fee
+};
+
+const label = match status {
+  "paid" => "ready",
+  "pending" => "waiting",
+  _ => "blocked"
+};
+```
+
+编译器支持这两种形式。必须有唯一的末尾 `_`，匹配项按顺序检查，结果类型统一，值模式的目标只求值一次。逻辑连接符使用 `&&`。完整实现契约见 [ZX match 设计](zx_match设计.md)。
+
 ### 7.4 return
 
 - 非 `void` Output 的每条可达路径都必须返回值；
@@ -704,7 +727,7 @@ Runtime 负责：
 
 ### 14.2 TypeScript 复杂类型
 
-- `any`、`unknown`、`number`；
+- `any`、`unknown`；
 - 用户自定义泛型；
 - 复杂联合类型；
 - 交叉类型；

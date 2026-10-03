@@ -1,0 +1,10 @@
+export type Input = { items: i64[]; };
+
+export type Output = i64[];
+
+export default function (in: Input): Output {
+  const owned: i64[] = [in.items[0], in.items[1], in.items[2], in.items[3]];
+  const [next, _] = owned.reverse();
+
+  return next;
+}

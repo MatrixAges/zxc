@@ -1,7 +1,10 @@
 import { globSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
+import { matchesGlob, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createSpacer } from 'gpu-code-spacer'
 
+const project_root = fileURLToPath(new URL('../', import.meta.url))
 const args = process.argv.slice(2)
 const check_only = args.includes('--check')
 const requested_files = args.filter(arg => arg !== '--check')
@@ -27,6 +30,10 @@ const spacer = await createSpacer()
 
 try {
 	for (const file of files) {
+		const project_path = relative(project_root, file)
+
+		if (matchesGlob(project_path, 'packages/*/tests/**/*.{zx,rx}')) continue
+
 		const source = await readFile(file, 'utf8')
 		const { text } = await spacer.format(source)
 

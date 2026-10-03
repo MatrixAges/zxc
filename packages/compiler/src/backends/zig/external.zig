@@ -5,10 +5,11 @@ const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node.Declaration {
     const implementation = function.external.?;
-    var callee = try self.builtin(.import, &.{try self.builder.string(implementation.module)});
-    var parts = std.mem.splitScalar(u8, implementation.member, '.');
+    self.uses_allocator = false;
 
-    while (parts.next()) |part| callee = try self.field(callee, part);
+    var callee = try self.builder.identifier(self.native_names[@intFromEnum(implementation.module)]);
+
+    for (implementation.member) |part| callee = try self.field(callee, part);
 
     const allocator = try self.builder.identifier("allocator");
     var arguments: std.ArrayList(*const node.Expression) = .empty;
@@ -22,10 +23,12 @@ pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node
         for (input_type.tuple, 0..) |_, position| {
             const argument = try self.field(try self.builder.identifier("in"), try std.fmt.allocPrint(self.allocator, "{d}", .{position}));
 
-            try arguments.append(self.allocator, try self.runtimeCall("nativeArgument", &.{ callee, try self.builder.integer(position + @intFromBool(implementation.allocator_argument)), allocator, argument }, true));
+            try arguments.append(self.allocator, argument);
         }
     } else if (!no_input) {
-        try arguments.append(self.allocator, try self.runtimeCall("nativeArgument", &.{ callee, try self.builder.integer(@intFromBool(implementation.allocator_argument)), allocator, try self.builder.identifier("in") }, true));
+        const argument = try self.builder.identifier("in");
+
+        try arguments.append(self.allocator, argument);
     }
 
     var body: std.ArrayList(node.Statement) = .empty;
@@ -33,13 +36,17 @@ pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node
     if (no_input) try body.append(self.allocator, .{ .discard = try self.builder.identifier("in") });
 
     const returned = try self.call(callee, arguments.items, implementation.fallible);
-    const converted = try self.runtimeCall("nativeResult", &.{ self.types[@intFromEnum(function.output_type)], allocator, returned }, true);
 
-    try body.append(self.allocator, .{ .result = converted });
+    try body.append(self.allocator, .{ .constant = .{ .name = "native_result", .value = returned } });
+
+    const result = try self.builder.identifier("native_result");
+
+    if (!self.uses_allocator) try body.append(self.allocator, .{ .discard = allocator });
+    try body.append(self.allocator, .{ .result = result });
 
     const parameters = try self.allocator.alloc(node.Field, 2);
 
-    parameters[0] = .{ .name = "allocator", .value = try self.field(try self.builder.identifier("runtime"), "Allocator") };
+    parameters[0] = .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
     parameters[1] = .{ .name = "in", .value = self.types[@intFromEnum(function.input_type)] };
 
     return .{ .function = .{ .name = try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = self.types[@intFromEnum(function.output_type)] }), .body = try body.toOwnedSlice(self.allocator) } };

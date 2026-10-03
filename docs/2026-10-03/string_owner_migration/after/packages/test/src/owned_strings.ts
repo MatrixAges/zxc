@@ -1,0 +1,67 @@
+import type { Json } from './shared/json.ts'
+import assert from 'node:assert/strict'
+import { writeCatalog, writeOutput } from './shared/catalog.ts'
+
+type Row = { id: string; input: Record<string, Array<string>>; expected: { value: Json } }
+
+function values(field: string, length: number): string {
+	return '[' + Array.from({ length }, (_, index) => `fromLiteral(in.${field}[${index}])`).join(', ') + ']'
+}
+
+function literal(value: string): string {
+	if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/u.test(value))
+		return '`' + value.replaceAll('\\', '\\\\').replaceAll('`', '\\`').replaceAll('${', '\\${') + '`'
+
+	return JSON.stringify(value)
+}
+
+export default function writeOwnedStrings(args: { name: string; rows: Array<Row> }): void {
+	const { name, rows } = args
+	const alphabet = [...new Set(rows.flatMap(row => Object.values(row.input).flat()))]
+	const codes = new Map(alphabet.map((value, index) => [value, index]))
+	const groups = new Map<string, Array<Row>>()
+
+	for (const row of rows) {
+		const key = `${row.input.items.length}_${row.input.other?.length ?? 0}`
+		const group = groups.get(key) ?? []
+
+		group.push(row)
+		groups.set(key, group)
+	}
+
+	const literal_path = `built_ins/string/fixtures/${name}_literal.zx`
+	const literal_source = `export type Input = u64;\n\nexport type Output = string;\n\nexport default function (in: Input): Output {\n  const values: string[] = [${alphabet.map(literal).join(', ')}];\n\n  return values[in];\n}\n`
+
+	writeOutput('tests/' + literal_path, literal_source)
+
+	for (const [key, group] of groups) {
+		const first = group[0].input
+		const constructed = values('items', first.items.length)
+		const other = first.other ? values('other', first.other.length) : null
+		const fields = other ? 'items: u64[]; other: u64[];' : 'items: u64[];'
+		const body = other
+			? `  const other: string[] = ${other};\n  const [joined, _] = owned.concat(other);\n  const [result, _] = joined.reverse();`
+			: '  const [result, _] = owned.sort();'
+		const source = `import fromLiteral from "../../../fixtures/${name}_literal.zx";\n\nexport type Input = { ${fields} };\n\nexport type Output = string[];\n\nexport default function (in: Input): Output {\n  const owned: string[] = ${constructed};\n${body}\n\n  return result;\n}\n`
+		const encoded = group.map(row => {
+			const input = Object.fromEntries(
+				Object.entries(row.input).map(([field, strings]) => {
+					const indices = strings.map(value => codes.get(value)!)
+
+					assert.deepEqual(
+						indices.map(index => alphabet[index]),
+						strings
+					)
+
+					return [field, indices]
+				})
+			)
+
+			return { id: row.id, input, value_input: row.input, expected: row.expected }
+		})
+		const base = `tests/built_ins/string/${name}/owned/${key}/cases`
+
+		writeCatalog(base + '.jsonl', encoded)
+		writeOutput(base + '.zx', source)
+	}
+}

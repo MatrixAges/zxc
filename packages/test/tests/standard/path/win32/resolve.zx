@@ -1,0 +1,9 @@
+import path from "std:path/win32";
+
+export type Input = { cwd: string; paths: string[]; };
+
+export type Output = string;
+
+export default function (in: Input): Output {
+  return path.resolve(in);
+}

@@ -1,0 +1,28 @@
+export type Input = {
+  score: number;
+  enabled: boolean;
+  status: string;
+  weights: Array<number>;
+};
+
+export type Output = { grade: string; ready: boolean; score: number; };
+
+export default function (in: Input): Output {
+  const grade = match {
+    in.enabled && in.score >= 90 => "A",
+    in.score >= 60 && in.score < 90 => "B",
+    _ => "C"
+  };
+
+  const ready = match in.status {
+    "paid" => true,
+    _ => false
+  };
+
+  const score = match in.weights.length {
+    0 => in.score,
+    _ => in.weights.reduce((sum, weight) => sum + weight, 0)
+  };
+
+  return { grade: grade, ready: ready, score: score };
+}

@@ -1,0 +1,971 @@
+{
+	"frontend": [
+		"language/lexical/numeric/invalid",
+		"language/lexical/numeric/valid",
+		"language/types/operators/add",
+		"language/types/operators/subtract",
+		"language/types/operators/multiply",
+		"language/types/operators/divide",
+		"language/types/operators/remainder",
+		"language/types/operators/less",
+		"language/types/operators/less_equal",
+		"language/types/operators/greater",
+		"language/types/operators/greater_equal",
+		"language/types/operators/equal",
+		"language/types/operators/not_equal",
+		"language/types/operators/and",
+		"language/types/operators/or",
+		"ownership/propagation/cases",
+		"ownership/consumption/cases",
+		"language/expressions/static_names/cases",
+		"language/lexical/string/cases",
+		"language/lexical/utf8/cases",
+		"language/lexical/numeric/boundaries",
+		"language/types/unary_minus/cases",
+		"language/lexical/comments/cases",
+		"language/lexical/comments/block/structure",
+		"language/lexical/comments/block/unicode",
+		"language/types/logical_not/cases",
+		"language/expressions/multiplication/names/cases",
+		"language/expressions/mixed_equality/cases",
+		"ownership/deep_copy/rejected"
+	],
+	"runtime": [
+		{
+			"name": "division-f32",
+			"path": "language/expressions/division/f32",
+			"kind": "floating"
+		},
+		{
+			"name": "division-f64",
+			"path": "language/expressions/division/f64",
+			"kind": "floating"
+		},
+		{
+			"name": "logical-and",
+			"path": "language/expressions/logical_and/basic",
+			"kind": "control"
+		},
+		{
+			"name": "logical-or",
+			"path": "language/expressions/logical_or/basic",
+			"kind": "control"
+		},
+		{
+			"name": "logical-and-nested",
+			"path": "language/expressions/logical_and/nested_or",
+			"kind": "control"
+		},
+		{
+			"name": "logical-or-nested",
+			"path": "language/expressions/logical_or/nested_and",
+			"kind": "control"
+		},
+		{
+			"name": "conditional-yes",
+			"path": "language/expressions/conditional/yes",
+			"kind": "control"
+		},
+		{
+			"name": "conditional-no",
+			"path": "language/expressions/conditional/no",
+			"kind": "control"
+		},
+		{
+			"name": "coalesce",
+			"path": "language/expressions/coalesce/optional",
+			"kind": "control"
+		},
+		{
+			"name": "numeric-literals-u64",
+			"path": "language/lexical/numeric/literals_u64",
+			"kind": "control"
+		},
+		{
+			"name": "numeric-literals-f64",
+			"path": "language/lexical/numeric/literals_f64",
+			"kind": "control"
+		},
+		{
+			"name": "list-push-owned-0",
+			"path": "built_ins/list/push/owned/0/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-push-owned-1",
+			"path": "built_ins/list/push/owned/1/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-push-owned-2",
+			"path": "built_ins/list/push/owned/2/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-push-owned-3",
+			"path": "built_ins/list/push/owned/3/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-push-owned-4",
+			"path": "built_ins/list/push/owned/4/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-push-owned-5",
+			"path": "built_ins/list/push/owned/5/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-pop-owned-0",
+			"path": "built_ins/list/pop/owned/0/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-pop-owned-1",
+			"path": "built_ins/list/pop/owned/1/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-pop-owned-2",
+			"path": "built_ins/list/pop/owned/2/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-pop-owned-3",
+			"path": "built_ins/list/pop/owned/3/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-pop-owned-4",
+			"path": "built_ins/list/pop/owned/4/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-pop-owned-5",
+			"path": "built_ins/list/pop/owned/5/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-reverse-owned-0",
+			"path": "built_ins/list/reverse/owned/0/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-reverse-owned-1",
+			"path": "built_ins/list/reverse/owned/1/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-reverse-owned-2",
+			"path": "built_ins/list/reverse/owned/2/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-reverse-owned-3",
+			"path": "built_ins/list/reverse/owned/3/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-reverse-owned-4",
+			"path": "built_ins/list/reverse/owned/4/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-reverse-owned-5",
+			"path": "built_ins/list/reverse/owned/5/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-sort-owned-0",
+			"path": "built_ins/list/sort/owned/0/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-sort-owned-1",
+			"path": "built_ins/list/sort/owned/1/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-sort-owned-2",
+			"path": "built_ins/list/sort/owned/2/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-sort-owned-3",
+			"path": "built_ins/list/sort/owned/3/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-sort-owned-4",
+			"path": "built_ins/list/sort/owned/4/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-sort-owned-5",
+			"path": "built_ins/list/sort/owned/5/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-owned-0",
+			"path": "built_ins/list/concat/owned/0/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-owned-1",
+			"path": "built_ins/list/concat/owned/1/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-owned-2",
+			"path": "built_ins/list/concat/owned/2/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-owned-3",
+			"path": "built_ins/list/concat/owned/3/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-owned-4",
+			"path": "built_ins/list/concat/owned/4/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-owned-5",
+			"path": "built_ins/list/concat/owned/5/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat_reverse-owned-0",
+			"path": "built_ins/list/concat_reverse/owned/0/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat_reverse-owned-1",
+			"path": "built_ins/list/concat_reverse/owned/1/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat_reverse-owned-2",
+			"path": "built_ins/list/concat_reverse/owned/2/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat_reverse-owned-3",
+			"path": "built_ins/list/concat_reverse/owned/3/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat_reverse-owned-4",
+			"path": "built_ins/list/concat_reverse/owned/4/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat_reverse-owned-5",
+			"path": "built_ins/list/concat_reverse/owned/5/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice-owned-0",
+			"path": "built_ins/list/splice/owned/0/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice-owned-1",
+			"path": "built_ins/list/splice/owned/1/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice-owned-2",
+			"path": "built_ins/list/splice/owned/2/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice-owned-3",
+			"path": "built_ins/list/splice/owned/3/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice-owned-4",
+			"path": "built_ins/list/splice/owned/4/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice-owned-5",
+			"path": "built_ins/list/splice/owned/5/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice_reverse-owned-0",
+			"path": "built_ins/list/splice_reverse/owned/0/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice_reverse-owned-1",
+			"path": "built_ins/list/splice_reverse/owned/1/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice_reverse-owned-3",
+			"path": "built_ins/list/splice_reverse/owned/3/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-splice_reverse-owned-4",
+			"path": "built_ins/list/splice_reverse/owned/4/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-map_double",
+			"path": "built_ins/list/map_double/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-map_plus_ten",
+			"path": "built_ins/list/map_plus_ten/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-map_greater_ten",
+			"path": "built_ins/list/map_greater_ten/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-map_true",
+			"path": "built_ins/list/map_true/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-filter_odd",
+			"path": "built_ins/list/filter_odd/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-filter_true",
+			"path": "built_ins/list/filter_true/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-reduce_sum",
+			"path": "built_ins/list/reduce_sum/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-reduce_digits",
+			"path": "built_ins/list/reduce_digits/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-index",
+			"path": "built_ins/list/index/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-map_index",
+			"path": "built_ins/list/map_index/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-filter_index",
+			"path": "built_ins/list/filter_index/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-reduce_index",
+			"path": "built_ins/list/reduce_index/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "string-values",
+			"path": "built_ins/string/values/cases",
+			"kind": "collections"
+		},
+		{
+			"name": "string-optional",
+			"path": "built_ins/string/optional/cases",
+			"kind": "collections"
+		},
+		{
+			"name": "string-sort-owned-0_0",
+			"path": "built_ins/string/sort/owned/0_0/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/sort_literal.zx"]
+		},
+		{
+			"name": "string-sort-owned-1_0",
+			"path": "built_ins/string/sort/owned/1_0/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/sort_literal.zx"]
+		},
+		{
+			"name": "string-sort-owned-26_0",
+			"path": "built_ins/string/sort/owned/26_0/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/sort_literal.zx"]
+		},
+		{
+			"name": "string-sort-owned-2_0",
+			"path": "built_ins/string/sort/owned/2_0/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/sort_literal.zx"]
+		},
+		{
+			"name": "string-sort-owned-3_0",
+			"path": "built_ins/string/sort/owned/3_0/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/sort_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-0_0",
+			"path": "built_ins/string/concat_reverse/owned/0_0/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-0_1",
+			"path": "built_ins/string/concat_reverse/owned/0_1/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-0_2",
+			"path": "built_ins/string/concat_reverse/owned/0_2/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-1_0",
+			"path": "built_ins/string/concat_reverse/owned/1_0/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-1_1",
+			"path": "built_ins/string/concat_reverse/owned/1_1/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-1_2",
+			"path": "built_ins/string/concat_reverse/owned/1_2/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-2_0",
+			"path": "built_ins/string/concat_reverse/owned/2_0/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-2_1",
+			"path": "built_ins/string/concat_reverse/owned/2_1/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-2_2",
+			"path": "built_ins/string/concat_reverse/owned/2_2/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-3_0",
+			"path": "built_ins/string/concat_reverse/owned/3_0/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-3_1",
+			"path": "built_ins/string/concat_reverse/owned/3_1/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-concat_reverse-owned-3_2",
+			"path": "built_ins/string/concat_reverse/owned/3_2/cases",
+			"kind": "collections",
+			"sources": ["built_ins/string/fixtures/concat_reverse_literal.zx"]
+		},
+		{
+			"name": "string-reduce",
+			"path": "built_ins/string/reduce/cases",
+			"kind": "collections"
+		},
+		{
+			"name": "string-literals",
+			"path": "built_ins/string/literals/cases",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-three-owned-0",
+			"path": "built_ins/list/concat_three/owned/0/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-three-owned-1",
+			"path": "built_ins/list/concat_three/owned/1/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-three-owned-2",
+			"path": "built_ins/list/concat_three/owned/2/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "list-concat-three-owned-3",
+			"path": "built_ins/list/concat_three/owned/3/i64",
+			"kind": "collections"
+		},
+		{
+			"name": "division-grouping-f32-left",
+			"path": "language/expressions/division/grouping/f32/left",
+			"kind": "floating"
+		},
+		{
+			"name": "division-grouping-f32-right",
+			"path": "language/expressions/division/grouping/f32/right",
+			"kind": "floating"
+		},
+		{
+			"name": "division-grouping-f64-left",
+			"path": "language/expressions/division/grouping/f64/left",
+			"kind": "floating"
+		},
+		{
+			"name": "division-grouping-f64-right",
+			"path": "language/expressions/division/grouping/f64/right",
+			"kind": "floating"
+		},
+		{
+			"name": "comparison-f32",
+			"path": "language/expressions/comparison/f32",
+			"kind": "floating_comparison"
+		},
+		{
+			"name": "comparison-f64",
+			"path": "language/expressions/comparison/f64",
+			"kind": "floating_comparison"
+		},
+		{
+			"name": "comparison-f64-negated",
+			"path": "language/expressions/comparison/f64_negated",
+			"kind": "floating_comparison"
+		},
+		{
+			"name": "leading-zero-decimal",
+			"path": "language/lexical/numeric/leading_zero",
+			"kind": "control"
+		},
+		{
+			"name": "unary-minus-f32-direct",
+			"path": "language/expressions/unary_minus/f32/direct",
+			"kind": "floating_unary"
+		},
+		{
+			"name": "unary-minus-f32-binding",
+			"path": "language/expressions/unary_minus/f32/binding",
+			"kind": "floating_unary"
+		},
+		{
+			"name": "unary-minus-f32-double",
+			"path": "language/expressions/unary_minus/f32/double",
+			"kind": "floating_unary"
+		},
+		{
+			"name": "unary-minus-f32-field",
+			"path": "language/expressions/unary_minus/f32/field",
+			"kind": "floating_unary"
+		},
+		{
+			"name": "unary-minus-f64-direct",
+			"path": "language/expressions/unary_minus/f64/direct",
+			"kind": "floating_unary"
+		},
+		{
+			"name": "unary-minus-f64-binding",
+			"path": "language/expressions/unary_minus/f64/binding",
+			"kind": "floating_unary"
+		},
+		{
+			"name": "unary-minus-f64-double",
+			"path": "language/expressions/unary_minus/f64/double",
+			"kind": "floating_unary"
+		},
+		{
+			"name": "unary-minus-f64-field",
+			"path": "language/expressions/unary_minus/f64/field",
+			"kind": "floating_unary"
+		},
+		{
+			"name": "unary-minus-source-values",
+			"path": "language/expressions/unary_minus/f64/source_values",
+			"kind": "control"
+		},
+		{
+			"name": "comments-and-whitespace",
+			"path": "language/lexical/comments/runtime",
+			"kind": "collections"
+		},
+		{
+			"name": "comment-markers-in-strings",
+			"path": "language/lexical/comments/block/strings",
+			"kind": "collections"
+		},
+		{
+			"name": "logical-not-source",
+			"path": "language/expressions/logical_not/source",
+			"kind": "control"
+		},
+		{
+			"name": "logical-not-values",
+			"path": "language/expressions/logical_not/values",
+			"kind": "collections"
+		},
+		{
+			"name": "logical-not-precedence-not_left_and",
+			"path": "language/expressions/logical_not/precedence/not_left_and",
+			"kind": "control"
+		},
+		{
+			"name": "logical-not-precedence-not_group_and",
+			"path": "language/expressions/logical_not/precedence/not_group_and",
+			"kind": "control"
+		},
+		{
+			"name": "logical-not-precedence-not_left_or",
+			"path": "language/expressions/logical_not/precedence/not_left_or",
+			"kind": "control"
+		},
+		{
+			"name": "logical-not-precedence-not_group_or",
+			"path": "language/expressions/logical_not/precedence/not_group_or",
+			"kind": "control"
+		},
+		{
+			"name": "standard-encoding-crypto",
+			"path": "standard/encoding_crypto/values",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "standard-decoding-errors",
+			"path": "standard/decoding/errors",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "multiplication-f32",
+			"path": "language/expressions/multiplication/f32",
+			"kind": "floating"
+		},
+		{
+			"name": "multiplication-f64",
+			"path": "language/expressions/multiplication/f64",
+			"kind": "floating"
+		},
+		{
+			"name": "multiplication-grouping-f32-default",
+			"path": "language/expressions/multiplication/grouping/f32/default",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "multiplication-grouping-f32-left",
+			"path": "language/expressions/multiplication/grouping/f32/left",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "multiplication-grouping-f32-right",
+			"path": "language/expressions/multiplication/grouping/f32/right",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "multiplication-grouping-f64-default",
+			"path": "language/expressions/multiplication/grouping/f64/default",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "multiplication-grouping-f64-left",
+			"path": "language/expressions/multiplication/grouping/f64/left",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "multiplication-grouping-f64-right",
+			"path": "language/expressions/multiplication/grouping/f64/right",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "multiplication-source-values",
+			"path": "language/expressions/multiplication/source/values",
+			"kind": "collections"
+		},
+		{
+			"name": "multiplication-source-lines",
+			"path": "language/expressions/multiplication/source/lines",
+			"kind": "collections"
+		},
+		{
+			"name": "operand-errors-hex_base64",
+			"path": "language/expressions/multiplication/errors/hex_base64",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "operand-errors-base64_hex",
+			"path": "language/expressions/multiplication/errors/base64_hex",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "addition-f32",
+			"path": "language/expressions/addition/f32",
+			"kind": "floating"
+		},
+		{
+			"name": "addition-f64",
+			"path": "language/expressions/addition/f64",
+			"kind": "floating"
+		},
+		{
+			"name": "subtraction-f32",
+			"path": "language/expressions/subtraction/f32",
+			"kind": "floating"
+		},
+		{
+			"name": "subtraction-f64",
+			"path": "language/expressions/subtraction/f64",
+			"kind": "floating"
+		},
+		{
+			"name": "addition-overflow-literals",
+			"path": "language/expressions/addition/overflow_literals",
+			"kind": "floating_unary"
+		},
+		{
+			"name": "addition-grouping-f32-default",
+			"path": "language/expressions/addition/grouping/f32/default",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "addition-grouping-f32-left",
+			"path": "language/expressions/addition/grouping/f32/left",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "addition-grouping-f32-right",
+			"path": "language/expressions/addition/grouping/f32/right",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "addition-grouping-f64-default",
+			"path": "language/expressions/addition/grouping/f64/default",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "addition-grouping-f64-left",
+			"path": "language/expressions/addition/grouping/f64/left",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "addition-grouping-f64-right",
+			"path": "language/expressions/addition/grouping/f64/right",
+			"kind": "floating_ternary"
+		},
+		{
+			"name": "addition-grouping-strings",
+			"path": "language/expressions/addition/grouping/strings",
+			"kind": "collections"
+		},
+		{
+			"name": "standard-path-posix",
+			"path": "standard/path/posix/values",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "standard-path-win32",
+			"path": "standard/path/win32/values",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "standard-path-posix-resolve",
+			"path": "standard/path/posix/resolve",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "standard-path-posix-relative",
+			"path": "standard/path/posix/relative",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "standard-path-win32-resolve",
+			"path": "standard/path/win32/resolve",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "standard-path-win32-relative",
+			"path": "standard/path/win32/relative",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "modulus-f32",
+			"path": "language/expressions/modulus/f32",
+			"kind": "floating"
+		},
+		{
+			"name": "modulus-f64",
+			"path": "language/expressions/modulus/f64",
+			"kind": "floating"
+		},
+		{
+			"name": "comparison-bool",
+			"path": "language/expressions/comparison/bool",
+			"kind": "collections"
+		},
+		{
+			"name": "comparison-string_upstream",
+			"path": "language/expressions/comparison/string_upstream",
+			"kind": "collections"
+		},
+		{
+			"name": "crypto-hmac_sha256-cases",
+			"path": "standard/crypto/hmac_sha256/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-hkdf_sha256-cases",
+			"path": "standard/crypto/hkdf_sha256/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-pbkdf2_sha256-cases",
+			"path": "standard/crypto/pbkdf2_sha256/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-hmac_sha512-cases",
+			"path": "standard/crypto/hmac_sha512/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-hkdf_sha512-cases",
+			"path": "standard/crypto/hkdf_sha512/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-pbkdf2_sha512-cases",
+			"path": "standard/crypto/pbkdf2_sha512/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-aes-128-gcm-encrypt",
+			"path": "standard/crypto/aes-128-gcm/encrypt",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-aes-128-gcm-decrypt",
+			"path": "standard/crypto/aes-128-gcm/decrypt",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-aes-256-gcm-encrypt",
+			"path": "standard/crypto/aes-256-gcm/encrypt",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-aes-256-gcm-decrypt",
+			"path": "standard/crypto/aes-256-gcm/decrypt",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-chacha20-poly1305-encrypt",
+			"path": "standard/crypto/chacha20-poly1305/encrypt",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-chacha20-poly1305-decrypt",
+			"path": "standard/crypto/chacha20-poly1305/decrypt",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "crypto-timing_safe_equal",
+			"path": "standard/crypto/timing_safe_equal/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "querystring-escape",
+			"path": "standard/querystring/escape/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "querystring-unescape",
+			"path": "standard/querystring/unescape/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "querystring-parse",
+			"path": "standard/querystring/parse/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "querystring-parseWith",
+			"path": "standard/querystring/parse_with/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "querystring-stringify",
+			"path": "standard/querystring/stringify/cases",
+			"kind": "collections",
+			"shared_abi": true
+		},
+		{
+			"name": "querystring-stringifyWith",
+			"path": "standard/querystring/stringify_with/cases",
+			"kind": "collections",
+			"shared_abi": true
+		}
+	],
+	"safety": [
+		"runtime/safety/integer/u8",
+		"runtime/safety/integer/u16",
+		"runtime/safety/integer/u32",
+		"runtime/safety/integer/u64",
+		"runtime/safety/integer/i32",
+		"runtime/safety/integer/i64"
+	],
+	"module_graphs": [
+		"rx/modules/graphs/3/call",
+		"rx/modules/graphs/3/import",
+		"rx/modules/graphs/3/case",
+		"rx/modules/graphs/3/parallel_task",
+		"rx/modules/graphs/4/call",
+		"rx/modules/graphs/4/import",
+		"rx/modules/resources/allocation",
+		"rx/modules/resources/stack",
+		"rx/modules/paths/cases"
+	],
+	"stores": ["stores/transactions/staging"]
+}

@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 import { localeHref } from '../i18n/locale'
+import { version } from '../package.json'
 
 export default async function SiteHeader() {
 	const locale = await getLocale()
@@ -8,19 +9,23 @@ export default async function SiteHeader() {
 	return (
 		<header className='site-header'>
 			<div className='header-brand'>
-				<span>
+				<a href='https://matrixages.com'>
 					MATRIXAGES{' '}
 					<span className='brand-cursor' aria-hidden='true'>
 						█
 					</span>
-				</span>
-				<a className='wordmark' href={localeHref('/', locale)} aria-label='zxc'>
+				</a>
+				<a className='wordmark' href={localeHref('/', locale)} target='_self' aria-label='zxc'>
 					ZXC
 				</a>
-				<span>2026</span>
+				<a href={localeHref('/', locale)} target='_self'>
+					{version}
+				</a>
 			</div>
 			<nav aria-label={t('mainNavigation')}>
-				<a href={localeHref('/docs', locale)}>[ {t('docs')} ]</a>
+				<a href={localeHref('/docs', locale)} target='_self'>
+					[ {t('docs')} ]
+				</a>
 				<a href={localeHref('/llms-full.txt', locale)}>[ {t('forAgents')} ]</a>
 				<a href='https://github.com/MatrixAges/zxc'>[ GITHUB ↗ ]</a>
 			</nav>

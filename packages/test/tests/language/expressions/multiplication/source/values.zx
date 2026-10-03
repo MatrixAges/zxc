@@ -1,0 +1,12 @@
+export type Input = f64;
+
+export type Output = { literal: f64; left: f64; right: f64; both: f64; fields: f64; };
+
+export default function (in: Input): Output {
+  const left = in;
+  const right = in;
+  const object_left = { prop: in };
+  const object_right = { prop: in };
+
+  return { literal: 1 * 1, left: left * 1, right: 1 * right, both: left * right, fields: object_left.prop * object_right.prop };
+}

@@ -1,0 +1,7 @@
+(set-logic QF_BV)
+(set-option :produce-models true)
+(set-option :timeout 10000)
+(declare-fun input_0 () (_ BitVec 32))
+(declare-fun input_1 () (_ BitVec 32))
+(assert (or (not true) (and (bvule input_0 input_1) (not (and (= (bvsub ((_ zero_extend 1) input_1) ((_ zero_extend 1) input_0)) ((_ zero_extend 1) (bvsub input_1 input_0))) (= (bvsub ((_ zero_extend 1) input_1) ((_ zero_extend 1) input_0)) ((_ zero_extend 1) (bvsub input_1 input_0)))))) (and (and (bvule input_0 input_1) (and (= (bvsub ((_ zero_extend 1) input_1) ((_ zero_extend 1) input_0)) ((_ zero_extend 1) (bvsub input_1 input_0))) (= (bvsub ((_ zero_extend 1) input_1) ((_ zero_extend 1) input_0)) ((_ zero_extend 1) (bvsub input_1 input_0))))) (not (and (= (bvsub ((_ zero_extend 1) input_1) ((_ zero_extend 1) input_0)) ((_ zero_extend 1) (bvsub input_1 input_0))) (= (bvsub input_1 input_0) (bvsub input_1 input_0)))))))
+(check-sat)

@@ -1,0 +1,25 @@
+import crypto from "std:crypto";
+import encoding from "std:encoding";
+
+export type Input = { password: string; salt: string; info: string; iterations: u32; length: u32; };
+export type Output = { pbkdf2_sha256: string; pbkdf2_sha512: string; hkdf_sha256: string; hkdf_sha512: string; hmac_sha256: string; hmac_sha512: string; verified_sha256: bool; verified_sha512: bool; equal: bool; };
+
+export default function (in: Input): Output {
+  const password = encoding.encodeUtf8(in.password);
+  const salt = encoding.encodeUtf8(in.salt);
+  const info = encoding.encodeUtf8(in.info);
+  const hmac_sha256 = crypto.hmacSha256({ key: password, data: info });
+  const hmac_sha512 = crypto.hmacSha512({ key: password, data: info });
+
+  return {
+    pbkdf2_sha256: encoding.encodeHex(crypto.pbkdf2Sha256({ password: password, salt: salt, iterations: in.iterations, length: in.length })),
+    pbkdf2_sha512: encoding.encodeHex(crypto.pbkdf2Sha512({ password: password, salt: salt, iterations: in.iterations, length: in.length })),
+    hkdf_sha256: encoding.encodeHex(crypto.hkdfSha256({ key: password, salt: salt, info: info, length: in.length })),
+    hkdf_sha512: encoding.encodeHex(crypto.hkdfSha512({ key: password, salt: salt, info: info, length: in.length })),
+    hmac_sha256: encoding.encodeHex(hmac_sha256),
+    hmac_sha512: encoding.encodeHex(hmac_sha512),
+    verified_sha256: crypto.verifyHmacSha256({ key: password, data: info, tag: hmac_sha256 }),
+    verified_sha512: crypto.verifyHmacSha512({ key: password, data: info, tag: hmac_sha512 }),
+    equal: crypto.timingSafeEqual({ left: hmac_sha256, right: hmac_sha256 })
+  };
+}

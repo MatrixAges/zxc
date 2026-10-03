@@ -1,0 +1,568 @@
+{
+	"format_version": 1,
+	"source_ir_version": 3,
+	"top": "zxc_kernel",
+	"clocked": true,
+	"latency_cycles": 1,
+	"initiation_interval": 1,
+	"handshake": "accept on input_valid && input_ready; output becomes valid after the accepting edge and remains stable until output_ready; reset requires a clock edge",
+	"reset": "synchronous_active_high",
+	"fault": "output data is invalid when fault is high",
+	"sources": [
+		{
+			"path": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+			"source": "export type Input = { raw_price: u32; discount: u32; };\n\nexport type Output = { final_price: u32; };\n\nexport default function (in: Input): Output\n  requires (in.discount <= in.raw_price)\n  ensures (out.final_price == in.raw_price - in.discount)\n{\n  return { final_price: in.raw_price - in.discount };\n}\n"
+		}
+	],
+	"hardware": {
+		"nodes": [
+			{
+				"sort": {
+					"width": 32,
+					"boolean": false
+				},
+				"origin": null,
+				"value": {
+					"input": 0
+				}
+			},
+			{
+				"sort": {
+					"width": 32,
+					"boolean": false
+				},
+				"origin": null,
+				"value": {
+					"input": 1
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 158,
+						"end": 185
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "unsigned_less_equal",
+						"left": 0,
+						"right": 1
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"invert": 2
+				}
+			},
+			{
+				"sort": {
+					"width": 32,
+					"boolean": false
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 271,
+						"end": 297
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "subtract",
+						"left": 1,
+						"right": 0
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 33,
+					"boolean": false
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 271,
+						"end": 297
+					}
+				},
+				"value": {
+					"extend": {
+						"operand": 1,
+						"signed": false,
+						"extra": 1
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 33,
+					"boolean": false
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 271,
+						"end": 297
+					}
+				},
+				"value": {
+					"extend": {
+						"operand": 0,
+						"signed": false,
+						"extra": 1
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 33,
+					"boolean": false
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 271,
+						"end": 297
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "subtract",
+						"left": 5,
+						"right": 6
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 33,
+					"boolean": false
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 271,
+						"end": 297
+					}
+				},
+				"value": {
+					"extend": {
+						"operand": 4,
+						"signed": false,
+						"extra": 1
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 271,
+						"end": 297
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "equal",
+						"left": 7,
+						"right": 8
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 256,
+						"end": 299
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_and",
+						"left": 9,
+						"right": 9
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"invert": 10
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_and",
+						"left": 2,
+						"right": 11
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_and",
+						"left": 2,
+						"right": 10
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 198,
+						"end": 243
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "equal",
+						"left": 4,
+						"right": 4
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_and",
+						"left": 9,
+						"right": 14
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"invert": 15
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_and",
+						"left": 13,
+						"right": 16
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_and",
+						"left": 13,
+						"right": 15
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 32,
+					"boolean": false
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"select": {
+						"condition": 13,
+						"yes": 4,
+						"no": 4
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"constant": 0
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_or",
+						"left": 20,
+						"right": 13
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"invert": 3
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"invert": 12
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_and",
+						"left": 22,
+						"right": 23
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"invert": 17
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_and",
+						"left": 24,
+						"right": 25
+					}
+				}
+			},
+			{
+				"sort": {
+					"width": 1,
+					"boolean": true
+				},
+				"origin": {
+					"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-03/契约验证示例/discount.zx",
+					"span": {
+						"start": 0,
+						"end": 0
+					}
+				},
+				"value": {
+					"binary": {
+						"operator": "logical_and",
+						"left": 26,
+						"right": 21
+					}
+				}
+			}
+		],
+		"inputs": [
+			{
+				"name": "input_0",
+				"path": "in.discount",
+				"sort": {
+					"width": 32,
+					"boolean": false
+				},
+				"signed": false,
+				"node": 0
+			},
+			{
+				"name": "input_1",
+				"path": "in.raw_price",
+				"sort": {
+					"width": 32,
+					"boolean": false
+				},
+				"signed": false,
+				"node": 1
+			}
+		],
+		"outputs": [
+			{
+				"name": "output_0",
+				"path": "out.final_price",
+				"sort": {
+					"width": 32,
+					"boolean": false
+				},
+				"signed": false,
+				"node": 19
+			}
+		],
+		"safe": 27
+	}
+}

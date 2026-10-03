@@ -1,0 +1,12 @@
+import calibration from "c:calibration";
+
+export type Input = { enabled: bool; factor: f64; value: f64; };
+export type Output = f64;
+
+export default function (in: Input): Output {
+  if (!in.enabled) {
+    return in.value;
+  }
+
+  return calibration.scale({ factor: in.factor, value: in.value });
+}

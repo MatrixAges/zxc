@@ -1,0 +1,9 @@
+import crypto from "std:crypto";
+
+export type Input = { password: u8[]; salt: u8[]; iterations: u32; length: u32; };
+
+export type Output = u8[];
+
+export default function (in: Input): Output {
+  return crypto.pbkdf2Sha256(in);
+}

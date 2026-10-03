@@ -36,7 +36,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 				<footer className='site-footer'>
 					<span aria-hidden='true'>–––</span>
 					<nav aria-label={t('footerNavigation')}>
-						<a href={localeHref('/docs', locale)}>{t('docs')}</a>
+						<a href={localeHref('/docs', locale)} target='_self'>
+							{t('docs')}
+						</a>
 						<span aria-hidden='true'> | </span>
 						<a href={localeHref('/llms.txt', locale)}>llms.txt</a>
 						<span aria-hidden='true'> | </span>

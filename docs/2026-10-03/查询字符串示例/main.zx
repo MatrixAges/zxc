@@ -1,0 +1,19 @@
+import query from "std:querystring";
+import type { Entry } from "std:querystring";
+
+export type Input = { query: string; text: string; separator: string; assignment: string; max_keys: u32; };
+export type Output = { entries: Entry[]; formatted: string; default_entries: Entry[]; default_formatted: string; escaped: string; unescaped: string; };
+
+export default function (in: Input): Output {
+  const entries = query.parseWith({ query: in.query, separator: in.separator, assignment: in.assignment, max_keys: in.max_keys });
+  const default_entries = query.parse(in.query);
+
+  return {
+    entries: entries,
+    formatted: query.stringifyWith({ entries: entries, separator: in.separator, assignment: in.assignment }),
+    default_entries: default_entries,
+    default_formatted: query.stringify(default_entries),
+    escaped: query.escape(in.text),
+    unescaped: query.unescape(in.text)
+  };
+}

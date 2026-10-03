@@ -1,0 +1,11 @@
+import createValues from "./values.zx";
+
+export type Input = void;
+export type Output = u64[];
+
+export default function (in: Input): Output {
+  const values = createValues();
+  const [sorted_values, _] = values.sort();
+
+  return sorted_values;
+}

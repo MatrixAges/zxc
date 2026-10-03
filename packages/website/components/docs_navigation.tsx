@@ -10,7 +10,7 @@ export default async function DocsNavigation({ current }: { current: string }) {
 
 	return (
 		<nav className='docs-navigation' aria-label={t('documentation')}>
-			<a className='docs-index' href={localeHref('/docs', locale)}>
+			<a className='docs-index' href={localeHref('/docs', locale)} target='_self'>
 				{t('documentation')}
 			</a>
 			{groups.map(group => (
@@ -23,6 +23,7 @@ export default async function DocsNavigation({ current }: { current: string }) {
 								<li key={doc.id}>
 									<a
 										href={localeHref(`/docs/${doc.id}`, locale)}
+										target='_self'
 										aria-current={current === doc.id ? 'page' : undefined}
 									>
 										{doc.title}

@@ -1,0 +1,12 @@
+export type Input = u64;
+
+export type Output = f64;
+
+export default function (in: Input): Output {
+  switch (in) {
+    case 0: return 1.0e+1_0;
+    case 1: return 1.0e-1_0;
+    case 2: return 10.00_01e2;
+    default: return 0;
+  }
+}

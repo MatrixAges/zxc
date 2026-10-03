@@ -1,0 +1,208 @@
+{"id":"runtime/safety/integer/i32/add/2147483647/0","arguments":["0","2147483647","0"],"expected":{"value":2147483647}}
+{"id":"runtime/safety/integer/i32/add/-2147483648/0","arguments":["0","-2147483648","0"],"expected":{"value":-2147483648}}
+{"id":"runtime/safety/integer/i32/add/2147483647/1","arguments":["0","2147483647","1"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/i32/subtract/-2147483648/1","arguments":["1","-2147483648","1"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/i32/subtract/2147483647/2147483647","arguments":["1","2147483647","2147483647"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/multiply/2147483647/1","arguments":["2","2147483647","1"],"expected":{"value":2147483647}}
+{"id":"runtime/safety/integer/i32/multiply/2147483647/2","arguments":["2","2147483647","2"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/i32/divide/7/3","arguments":["3","7","3"],"expected":{"value":2}}
+{"id":"runtime/safety/integer/i32/divide/1/0","arguments":["3","1","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/7/3","arguments":["4","7","3"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/0","arguments":["4","1","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/multiply/-2147483648/-1","arguments":["2","-2147483648","-1"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/i32/divide/-2147483648/-1","arguments":["3","-2147483648","-1"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/i32/divide/-7/3","arguments":["3","-7","3"],"expected":{"value":-2}}
+{"id":"runtime/safety/integer/i32/divide/7/-3","arguments":["3","7","-3"],"expected":{"value":-2}}
+{"id":"runtime/safety/integer/i32/remainder/-7/3","arguments":["4","-7","3"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/7/-3","arguments":["4","7","-3"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/-1","arguments":["4","-2147483648","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/negate/-2147483648/0","arguments":["5","-2147483648","0"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/i32/double_negate/-2147483648/0","arguments":["6","-2147483648","0"],"expected":{"panic":"integer overflow"}}
+{"id":"runtime/safety/integer/i32/negate/-2147483647/0","arguments":["5","-2147483647","0"],"expected":{"value":2147483647}}
+{"id":"runtime/safety/integer/i32/double_negate/-2147483647/0","arguments":["6","-2147483647","0"],"expected":{"value":-2147483647}}
+{"id":"runtime/safety/integer/i32/negate/-1073741824/0","arguments":["5","-1073741824","0"],"expected":{"value":1073741824}}
+{"id":"runtime/safety/integer/i32/double_negate/-1073741824/0","arguments":["6","-1073741824","0"],"expected":{"value":-1073741824}}
+{"id":"runtime/safety/integer/i32/negate/-7/0","arguments":["5","-7","0"],"expected":{"value":7}}
+{"id":"runtime/safety/integer/i32/double_negate/-7/0","arguments":["6","-7","0"],"expected":{"value":-7}}
+{"id":"runtime/safety/integer/i32/negate/-3/0","arguments":["5","-3","0"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/double_negate/-3/0","arguments":["6","-3","0"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/negate/-1/0","arguments":["5","-1","0"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/double_negate/-1/0","arguments":["6","-1","0"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/negate/0/0","arguments":["5","0","0"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/double_negate/0/0","arguments":["6","0","0"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/negate/1/0","arguments":["5","1","0"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/double_negate/1/0","arguments":["6","1","0"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/negate/3/0","arguments":["5","3","0"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/double_negate/3/0","arguments":["6","3","0"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/negate/7/0","arguments":["5","7","0"],"expected":{"value":-7}}
+{"id":"runtime/safety/integer/i32/double_negate/7/0","arguments":["6","7","0"],"expected":{"value":7}}
+{"id":"runtime/safety/integer/i32/negate/1073741823/0","arguments":["5","1073741823","0"],"expected":{"value":-1073741823}}
+{"id":"runtime/safety/integer/i32/double_negate/1073741823/0","arguments":["6","1073741823","0"],"expected":{"value":1073741823}}
+{"id":"runtime/safety/integer/i32/negate/2147483646/0","arguments":["5","2147483646","0"],"expected":{"value":-2147483646}}
+{"id":"runtime/safety/integer/i32/double_negate/2147483646/0","arguments":["6","2147483646","0"],"expected":{"value":2147483646}}
+{"id":"runtime/safety/integer/i32/negate/2147483647/0","arguments":["5","2147483647","0"],"expected":{"value":-2147483647}}
+{"id":"runtime/safety/integer/i32/double_negate/2147483647/0","arguments":["6","2147483647","0"],"expected":{"value":2147483647}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/-2147483648","arguments":["4","-2147483648","-2147483648"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/-2147483647","arguments":["4","-2147483648","-2147483647"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/-1073741824","arguments":["4","-2147483648","-1073741824"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/-7","arguments":["4","-2147483648","-7"],"expected":{"value":-2}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/-3","arguments":["4","-2147483648","-3"],"expected":{"value":-2}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/0","arguments":["4","-2147483648","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/1","arguments":["4","-2147483648","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/3","arguments":["4","-2147483648","3"],"expected":{"value":-2}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/7","arguments":["4","-2147483648","7"],"expected":{"value":-2}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/1073741823","arguments":["4","-2147483648","1073741823"],"expected":{"value":-2}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/2147483646","arguments":["4","-2147483648","2147483646"],"expected":{"value":-2}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483648/2147483647","arguments":["4","-2147483648","2147483647"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/-2147483648","arguments":["4","-2147483647","-2147483648"],"expected":{"value":-2147483647}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/-2147483647","arguments":["4","-2147483647","-2147483647"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/-1073741824","arguments":["4","-2147483647","-1073741824"],"expected":{"value":-1073741823}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/-7","arguments":["4","-2147483647","-7"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/-3","arguments":["4","-2147483647","-3"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/-1","arguments":["4","-2147483647","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/0","arguments":["4","-2147483647","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/1","arguments":["4","-2147483647","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/3","arguments":["4","-2147483647","3"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/7","arguments":["4","-2147483647","7"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/1073741823","arguments":["4","-2147483647","1073741823"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/2147483646","arguments":["4","-2147483647","2147483646"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-2147483647/2147483647","arguments":["4","-2147483647","2147483647"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/-2147483648","arguments":["4","-1073741824","-2147483648"],"expected":{"value":-1073741824}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/-2147483647","arguments":["4","-1073741824","-2147483647"],"expected":{"value":-1073741824}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/-1073741824","arguments":["4","-1073741824","-1073741824"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/-7","arguments":["4","-1073741824","-7"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/-3","arguments":["4","-1073741824","-3"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/-1","arguments":["4","-1073741824","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/0","arguments":["4","-1073741824","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/1","arguments":["4","-1073741824","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/3","arguments":["4","-1073741824","3"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/7","arguments":["4","-1073741824","7"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/1073741823","arguments":["4","-1073741824","1073741823"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/2147483646","arguments":["4","-1073741824","2147483646"],"expected":{"value":-1073741824}}
+{"id":"runtime/safety/integer/i32/remainder/-1073741824/2147483647","arguments":["4","-1073741824","2147483647"],"expected":{"value":-1073741824}}
+{"id":"runtime/safety/integer/i32/remainder/-7/-2147483648","arguments":["4","-7","-2147483648"],"expected":{"value":-7}}
+{"id":"runtime/safety/integer/i32/remainder/-7/-2147483647","arguments":["4","-7","-2147483647"],"expected":{"value":-7}}
+{"id":"runtime/safety/integer/i32/remainder/-7/-1073741824","arguments":["4","-7","-1073741824"],"expected":{"value":-7}}
+{"id":"runtime/safety/integer/i32/remainder/-7/-7","arguments":["4","-7","-7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-7/-3","arguments":["4","-7","-3"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-7/-1","arguments":["4","-7","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-7/0","arguments":["4","-7","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/-7/1","arguments":["4","-7","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-7/7","arguments":["4","-7","7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-7/1073741823","arguments":["4","-7","1073741823"],"expected":{"value":-7}}
+{"id":"runtime/safety/integer/i32/remainder/-7/2147483646","arguments":["4","-7","2147483646"],"expected":{"value":-7}}
+{"id":"runtime/safety/integer/i32/remainder/-7/2147483647","arguments":["4","-7","2147483647"],"expected":{"value":-7}}
+{"id":"runtime/safety/integer/i32/remainder/-3/-2147483648","arguments":["4","-3","-2147483648"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/remainder/-3/-2147483647","arguments":["4","-3","-2147483647"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/remainder/-3/-1073741824","arguments":["4","-3","-1073741824"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/remainder/-3/-7","arguments":["4","-3","-7"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/remainder/-3/-3","arguments":["4","-3","-3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-3/-1","arguments":["4","-3","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-3/0","arguments":["4","-3","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/-3/1","arguments":["4","-3","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-3/3","arguments":["4","-3","3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-3/7","arguments":["4","-3","7"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/remainder/-3/1073741823","arguments":["4","-3","1073741823"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/remainder/-3/2147483646","arguments":["4","-3","2147483646"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/remainder/-3/2147483647","arguments":["4","-3","2147483647"],"expected":{"value":-3}}
+{"id":"runtime/safety/integer/i32/remainder/-1/-2147483648","arguments":["4","-1","-2147483648"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1/-2147483647","arguments":["4","-1","-2147483647"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1/-1073741824","arguments":["4","-1","-1073741824"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1/-7","arguments":["4","-1","-7"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1/-3","arguments":["4","-1","-3"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1/-1","arguments":["4","-1","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-1/0","arguments":["4","-1","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/-1/1","arguments":["4","-1","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/-1/3","arguments":["4","-1","3"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1/7","arguments":["4","-1","7"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1/1073741823","arguments":["4","-1","1073741823"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1/2147483646","arguments":["4","-1","2147483646"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/-1/2147483647","arguments":["4","-1","2147483647"],"expected":{"value":-1}}
+{"id":"runtime/safety/integer/i32/remainder/0/-2147483648","arguments":["4","0","-2147483648"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/-2147483647","arguments":["4","0","-2147483647"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/-1073741824","arguments":["4","0","-1073741824"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/-7","arguments":["4","0","-7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/-3","arguments":["4","0","-3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/-1","arguments":["4","0","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/0","arguments":["4","0","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/0/1","arguments":["4","0","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/3","arguments":["4","0","3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/7","arguments":["4","0","7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/1073741823","arguments":["4","0","1073741823"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/2147483646","arguments":["4","0","2147483646"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/0/2147483647","arguments":["4","0","2147483647"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1/-2147483648","arguments":["4","1","-2147483648"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/-2147483647","arguments":["4","1","-2147483647"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/-1073741824","arguments":["4","1","-1073741824"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/-7","arguments":["4","1","-7"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/-3","arguments":["4","1","-3"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/-1","arguments":["4","1","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1/1","arguments":["4","1","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1/3","arguments":["4","1","3"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/7","arguments":["4","1","7"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/1073741823","arguments":["4","1","1073741823"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/2147483646","arguments":["4","1","2147483646"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/1/2147483647","arguments":["4","1","2147483647"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/3/-2147483648","arguments":["4","3","-2147483648"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/remainder/3/-2147483647","arguments":["4","3","-2147483647"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/remainder/3/-1073741824","arguments":["4","3","-1073741824"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/remainder/3/-7","arguments":["4","3","-7"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/remainder/3/-3","arguments":["4","3","-3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/3/-1","arguments":["4","3","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/3/0","arguments":["4","3","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/3/1","arguments":["4","3","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/3/3","arguments":["4","3","3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/3/7","arguments":["4","3","7"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/remainder/3/1073741823","arguments":["4","3","1073741823"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/remainder/3/2147483646","arguments":["4","3","2147483646"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/remainder/3/2147483647","arguments":["4","3","2147483647"],"expected":{"value":3}}
+{"id":"runtime/safety/integer/i32/remainder/7/-2147483648","arguments":["4","7","-2147483648"],"expected":{"value":7}}
+{"id":"runtime/safety/integer/i32/remainder/7/-2147483647","arguments":["4","7","-2147483647"],"expected":{"value":7}}
+{"id":"runtime/safety/integer/i32/remainder/7/-1073741824","arguments":["4","7","-1073741824"],"expected":{"value":7}}
+{"id":"runtime/safety/integer/i32/remainder/7/-7","arguments":["4","7","-7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/7/-1","arguments":["4","7","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/7/0","arguments":["4","7","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/7/1","arguments":["4","7","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/7/7","arguments":["4","7","7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/7/1073741823","arguments":["4","7","1073741823"],"expected":{"value":7}}
+{"id":"runtime/safety/integer/i32/remainder/7/2147483646","arguments":["4","7","2147483646"],"expected":{"value":7}}
+{"id":"runtime/safety/integer/i32/remainder/7/2147483647","arguments":["4","7","2147483647"],"expected":{"value":7}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/-2147483648","arguments":["4","1073741823","-2147483648"],"expected":{"value":1073741823}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/-2147483647","arguments":["4","1073741823","-2147483647"],"expected":{"value":1073741823}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/-1073741824","arguments":["4","1073741823","-1073741824"],"expected":{"value":1073741823}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/-7","arguments":["4","1073741823","-7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/-3","arguments":["4","1073741823","-3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/-1","arguments":["4","1073741823","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/0","arguments":["4","1073741823","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/1","arguments":["4","1073741823","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/3","arguments":["4","1073741823","3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/7","arguments":["4","1073741823","7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/1073741823","arguments":["4","1073741823","1073741823"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/2147483646","arguments":["4","1073741823","2147483646"],"expected":{"value":1073741823}}
+{"id":"runtime/safety/integer/i32/remainder/1073741823/2147483647","arguments":["4","1073741823","2147483647"],"expected":{"value":1073741823}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/-2147483648","arguments":["4","2147483646","-2147483648"],"expected":{"value":2147483646}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/-2147483647","arguments":["4","2147483646","-2147483647"],"expected":{"value":2147483646}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/-1073741824","arguments":["4","2147483646","-1073741824"],"expected":{"value":1073741822}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/-7","arguments":["4","2147483646","-7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/-3","arguments":["4","2147483646","-3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/-1","arguments":["4","2147483646","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/0","arguments":["4","2147483646","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/1","arguments":["4","2147483646","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/3","arguments":["4","2147483646","3"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/7","arguments":["4","2147483646","7"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/1073741823","arguments":["4","2147483646","1073741823"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/2147483646","arguments":["4","2147483646","2147483646"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483646/2147483647","arguments":["4","2147483646","2147483647"],"expected":{"value":2147483646}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/-2147483648","arguments":["4","2147483647","-2147483648"],"expected":{"value":2147483647}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/-2147483647","arguments":["4","2147483647","-2147483647"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/-1073741824","arguments":["4","2147483647","-1073741824"],"expected":{"value":1073741823}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/-7","arguments":["4","2147483647","-7"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/-3","arguments":["4","2147483647","-3"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/-1","arguments":["4","2147483647","-1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/0","arguments":["4","2147483647","0"],"expected":{"panic":"division by zero"}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/1","arguments":["4","2147483647","1"],"expected":{"value":0}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/3","arguments":["4","2147483647","3"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/7","arguments":["4","2147483647","7"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/1073741823","arguments":["4","2147483647","1073741823"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/2147483646","arguments":["4","2147483647","2147483646"],"expected":{"value":1}}
+{"id":"runtime/safety/integer/i32/remainder/2147483647/2147483647","arguments":["4","2147483647","2147483647"],"expected":{"value":0}}

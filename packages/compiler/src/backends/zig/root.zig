@@ -1,26 +1,26 @@
 const std = @import("std");
 const zx = @import("zx");
-const genz = @import("genz");
-const Lower = @import("lower.zig");
 
-pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{InvalidIr})![]u8 {
+pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts, NativeRequiresBundle })![]u8 {
+    try validate(allocator, program);
+    if (program.native_modules.len != 0) return error.NativeRequiresBundle;
+
+    return @import("render.zig").emit(allocator, program);
+}
+
+pub const Bundle = @import("render.zig").Bundle;
+
+pub fn emitBundle(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts })!Bundle {
+    try validate(allocator, program);
+
+    return @import("render.zig").bundle(allocator, program);
+}
+
+fn validate(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts })!void {
     if (try @import("frontend").validateIr(allocator, program) != null) return error.InvalidIr;
+    if (program.contracts.len != 0) return error.UnverifiedContracts;
 
-    var arena = std.heap.ArenaAllocator.init(allocator);
-
-    defer arena.deinit();
-
-    const temporary = arena.allocator();
-
-    var lower = Lower{
-        .allocator = temporary,
-        .program = program,
-        .builder = .{ .allocator = temporary },
-        .types = try temporary.alloc(*const genz.node.Expression, program.types.len),
-        .names = try temporary.alloc([]const u8, program.symbols.len),
-        .cache_reads = try temporary.alloc(usize, program.expressions.len),
-        .used = try temporary.alloc(bool, program.symbols.len),
-    };
-
-    return genz.render(allocator, try lower.declarations());
+    for (program.functions) |function| {
+        if (function.contracts.len != 0) return error.UnverifiedContracts;
+    }
 }

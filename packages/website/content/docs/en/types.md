@@ -1,5 +1,17 @@
 ZX assigns concrete types before generating Zig. It does not use JavaScript's single numeric type or implicit coercion rules.
 
+### Familiar type names
+
+| Source type | Default ZX type        |
+| ----------- | ---------------------- |
+| `number`    | `f64`                  |
+| `boolean`   | `bool`                 |
+| `string`    | Immutable UTF-8 string |
+| `void`      | No output value        |
+| `Array<T>`  | `T[]`                  |
+
+`number` uses IEEE 754 double precision, with a safe integer range of ±(2^53 − 1). Use explicit integer types for larger exact integers; represent money in integer minor units where appropriate. These names reuse existing types and do not initialize values automatically. `bigint`, `symbol`, `any`, `unknown`, dynamic `object`, and standalone `undefined`, `null`, or `never` types are unsupported. Use `null` with `T?` for absence. This does not change literal inference or add JavaScript coercion.
+
 ### Choose a scalar
 
 | Type                      | Intended value                        |

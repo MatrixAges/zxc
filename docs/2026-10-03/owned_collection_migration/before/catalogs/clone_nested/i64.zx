@@ -1,0 +1,11 @@
+export type Input = { items: i64[][]; };
+export type Output = { items: i64[][]; row: i64[]; };
+
+export default function (in: Input): Output {
+  const owned = in.items.clone();
+  const [items, last] = owned.pop();
+  const row = last ?? [];
+  const [reversed, _] = row.reverse();
+
+  return { items, row: reversed };
+}

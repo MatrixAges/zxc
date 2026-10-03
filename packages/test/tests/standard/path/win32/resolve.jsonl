@@ -1,0 +1,13 @@
+{"id":"standard/path/win32/resolve/0","input":{"cwd":"C:\\work\\base","paths":[]},"expected":{"value":"C:\\work\\base"}}
+{"id":"standard/path/win32/resolve/1","input":{"cwd":"C:\\work\\base","paths":[".."]},"expected":{"value":"C:\\work"}}
+{"id":"standard/path/win32/resolve/2","input":{"cwd":"C:\\work\\base","paths":["C:child"]},"expected":{"value":"C:\\work\\base\\child"}}
+{"id":"standard/path/win32/resolve/3","input":{"cwd":"C:\\work\\base","paths":["\\rooted"]},"expected":{"value":"C:\\rooted"}}
+{"id":"standard/path/win32/resolve/4","input":{"cwd":"C:\\work\\base","paths":["D:\\target"]},"expected":{"value":"D:\\target"}}
+{"id":"standard/path/win32/resolve/5","input":{"cwd":"C:\\work\\base","paths":["C:\\a","D:\\b",".."]},"expected":{"value":"D:\\"}}
+{"id":"standard/path/win32/resolve/6","input":{"cwd":"C:\\work\\base","paths":["\\\\server\\share\\a",".."]},"expected":{"value":"\\\\server\\share\\"}}
+{"id":"standard/path/win32/resolve/7","input":{"cwd":"C:\\work\\base","paths":["//server/share/a"]},"expected":{"value":"\\\\server\\share\\a"}}
+{"id":"standard/path/win32/resolve/8","input":{"cwd":"C:\\work\\base","paths":["C:..\\leaf"]},"expected":{"value":"C:\\work\\leaf"}}
+{"id":"standard/path/win32/resolve/9","input":{"cwd":"C:\\work\\base","paths":["C:\\a","\\b"]},"expected":{"value":"C:\\b"}}
+{"id":"standard/path/win32/resolve/invalid_cwd/empty","input":{"cwd":"","paths":["a"]},"expected":{"error":"InvalidWorkingDirectory"}}
+{"id":"standard/path/win32/resolve/invalid_cwd/relative","input":{"cwd":"relative","paths":["a"]},"expected":{"error":"InvalidWorkingDirectory"}}
+{"id":"standard/path/win32/resolve/missing_drive","input":{"cwd":"C:\\work\\base","paths":["D:child"]},"expected":{"error":"MissingDriveDirectory"}}

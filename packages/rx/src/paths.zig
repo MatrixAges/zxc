@@ -16,6 +16,28 @@ pub fn isModuleFile(path: []const u8) bool {
 pub fn normalize(allocator: std.mem.Allocator, path: []const u8) Error![]const u8 {
     if (!isModuleFile(path)) return error.InvalidPath;
 
+    return normalizeSegments(allocator, path);
+}
+
+pub fn normalizeGateway(allocator: std.mem.Allocator, path: []const u8) Error![]const u8 {
+    return normalizeSpecial(allocator, path, ".gateway.rx");
+}
+
+pub fn normalizeStore(allocator: std.mem.Allocator, path: []const u8) Error![]const u8 {
+    return normalizeSpecial(allocator, path, ".store.rx");
+}
+
+fn normalizeSpecial(allocator: std.mem.Allocator, path: []const u8, suffix: []const u8) Error![]const u8 {
+    const name = std.fs.path.basename(path);
+
+    if (path.len == 0 or path[0] == '/' or path[path.len - 1] == '/' or
+        std.mem.indexOfAny(u8, path, "\\:\x00") != null or
+        !std.mem.endsWith(u8, name, suffix) or name.len <= suffix.len) return error.InvalidPath;
+
+    return normalizeSegments(allocator, path);
+}
+
+fn normalizeSegments(allocator: std.mem.Allocator, path: []const u8) Error![]const u8 {
     var segments: std.ArrayList([]const u8) = .empty;
 
     defer segments.deinit(allocator);
@@ -61,4 +83,45 @@ pub fn resolve(allocator: std.mem.Allocator, owner: []const u8, reference: []con
     defer allocator.free(joined);
 
     return normalize(allocator, joined);
+}
+
+pub fn resolveStore(allocator: std.mem.Allocator, owner: []const u8, reference: []const u8) Error![]const u8 {
+    const name = std.fs.path.basename(reference);
+
+    if (reference.len == 0 or reference[0] == '/' or reference[reference.len - 1] == '/' or
+        std.mem.indexOfAny(u8, reference, "\\:\x00") != null or
+        std.mem.eql(u8, name, ".") or std.mem.eql(u8, name, "..")) return error.InvalidPath;
+
+    const has_suffix = std.mem.endsWith(u8, reference, ".store.rx");
+
+    if (std.mem.endsWith(u8, reference, ".rx") and !has_suffix) return error.InvalidPath;
+
+    const joined = try std.fmt.allocPrint(allocator, "{s}/{s}{s}", .{
+        std.fs.path.dirname(owner) orelse ".",
+        reference,
+        if (has_suffix) "" else ".store.rx",
+    });
+
+    defer allocator.free(joined);
+
+    return normalizeStore(allocator, joined);
+}
+
+pub fn resolveFunction(allocator: std.mem.Allocator, owner: []const u8, reference: []const u8) Error![]const u8 {
+    const name = std.fs.path.basename(reference);
+
+    if (reference.len == 0 or reference[0] == '/' or reference[reference.len - 1] == '/' or
+        std.mem.indexOfAny(u8, reference, "\\:\x00") != null or
+        std.mem.eql(u8, name, ".") or std.mem.eql(u8, name, "..") or
+        std.mem.endsWith(u8, reference, ".rx")) return error.InvalidPath;
+
+    const joined = try std.fmt.allocPrint(allocator, "{s}/{s}{s}", .{
+        std.fs.path.dirname(owner) orelse ".",
+        reference,
+        if (std.mem.endsWith(u8, reference, ".zx")) "" else ".zx",
+    });
+
+    defer allocator.free(joined);
+
+    return normalizeSpecial(allocator, joined, ".zx");
 }

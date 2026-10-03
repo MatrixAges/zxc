@@ -1,0 +1,12 @@
+{"id":"standard/path/posix/resolve/0","input":{"cwd":"/work/base","paths":[]},"expected":{"value":"/work/base"}}
+{"id":"standard/path/posix/resolve/1","input":{"cwd":"/work/base","paths":[".."]},"expected":{"value":"/work"}}
+{"id":"standard/path/posix/resolve/2","input":{"cwd":"/work/base","paths":["a","..","b"]},"expected":{"value":"/work/base/b"}}
+{"id":"standard/path/posix/resolve/3","input":{"cwd":"/work/base","paths":["/a","b"]},"expected":{"value":"/a/b"}}
+{"id":"standard/path/posix/resolve/4","input":{"cwd":"/work/base","paths":["/",".."]},"expected":{"value":"/"}}
+{"id":"standard/path/posix/resolve/5","input":{"cwd":"/work/base","paths":["/a//b/","../c"]},"expected":{"value":"/a/c"}}
+{"id":"standard/path/posix/resolve/6","input":{"cwd":"/work/base","paths":["a","/override"]},"expected":{"value":"/override"}}
+{"id":"standard/path/posix/resolve/7","input":{"cwd":"/work/base","paths":["",""]},"expected":{"value":"/work/base"}}
+{"id":"standard/path/posix/resolve/8","input":{"cwd":"/work/base","paths":["../.."]},"expected":{"value":"/"}}
+{"id":"standard/path/posix/resolve/9","input":{"cwd":"/work/base","paths":["\u6587\u4ef6","\ud83c\udf31"]},"expected":{"value":"/work/base/\u6587\u4ef6/\ud83c\udf31"}}
+{"id":"standard/path/posix/resolve/invalid_cwd/empty","input":{"cwd":"","paths":["a"]},"expected":{"error":"InvalidWorkingDirectory"}}
+{"id":"standard/path/posix/resolve/invalid_cwd/relative","input":{"cwd":"relative","paths":["a"]},"expected":{"error":"InvalidWorkingDirectory"}}

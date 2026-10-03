@@ -1,0 +1,9 @@
+import crypto from "std:crypto";
+
+export type Input = { key: u8[]; nonce: u8[]; data: u8[]; aad: u8[]; };
+
+export type Output = { ciphertext: u8[]; tag: u8[]; };
+
+export default function (in: Input): Output {
+  return crypto.encryptAes256Gcm(in);
+}

@@ -1,0 +1,7 @@
+export type Input = { left: bool; right: bool; };
+
+export type Output = { same: bool; different: bool; };
+
+export default function (in: Input): Output {
+  return { same: in.left == in.right, different: in.left != in.right };
+}

@@ -4,6 +4,7 @@ pub const TypeId = enum(u32) { _ };
 pub const SymbolId = enum(u32) { _ };
 pub const ExprId = enum(u32) { _ };
 pub const FunctionId = enum(u32) { _ };
+pub const NativeModuleId = enum(u32) { _ };
 pub const Ownership = enum { copy, borrowed, owned };
 pub const Scalar = enum { void, bool, u8, u16, u32, u64, i32, i64, f32, f64, string };
 
@@ -22,6 +23,8 @@ pub const Export = struct { name: []const u8, type_id: TypeId };
 pub const ListOperation = enum { push, pop, sort, reverse, splice, concat };
 pub const Transform = struct { kind: enum { map, filter, reduce }, target: ExprId, parameters: []const SymbolId, body: ExprId, initial: ?ExprId = null };
 pub const Projection = struct { target: ExprId, index: u32 };
+pub const Match = struct { subject: ?ExprId, arms: []const MatchArm, fallback: ExprId };
+pub const MatchArm = struct { condition: ExprId, result: ExprId };
 
 pub const Expression = struct {
     type_id: TypeId,
@@ -45,13 +48,13 @@ pub const Expression = struct {
         tuple: []const ExprId,
         tuple_field: Projection,
         template: []const ExprId,
-        clone: ExprId,
         list_operation: struct { kind: ListOperation, target: ExprId, arguments: []const ExprId },
         transform: Transform,
         call: struct { function: FunctionId, argument: ExprId },
         unary: struct { operator: enum { negate, not }, operand: ExprId },
         binary: struct { operator: Operator, left: ExprId, right: ExprId },
         conditional: struct { condition: ExprId, yes: ExprId, no: ExprId },
+        match_expr: Match,
         object: struct { fields: []const ObjectField, evaluation: []const ExprId },
     },
 };
@@ -69,9 +72,33 @@ pub const Statement = union(enum) {
 
 pub const SwitchCase = struct { value: ?ExprId, body: []const Statement };
 pub const StoreSlot = struct { path: []const u8, type_id: TypeId, handle: []const u8 = "", readable: bool = true, writable: bool = true };
-pub const External = struct { module: []const u8, member: []const u8, allocator_argument: bool = false, expand_tuple: bool = false, fallible: bool = false };
+pub const NativeModule = struct { specifier: []const u8, import_name: []const u8, type_namespace: []const []const u8 = &.{}, types: []const Export = &.{} };
+pub const NativeType = struct { name: ?[]const u8 = null, children: []const NativeType = &.{} };
+
+pub const External = struct {
+    input: ?NativeType = null,
+    module: NativeModuleId,
+    member: []const []const u8,
+    export_name: ?[]const u8 = null,
+    allocator_argument: bool = false,
+    expand_tuple: bool = false,
+    fallible: bool = false,
+    pub fn exportName(self: External) []const u8 {
+        return self.export_name orelse self.member[self.member.len - 1];
+    }
+};
+
+pub const Contract = struct {
+    kind: @import("syntax.zig").ContractKind,
+    symbols: []const Symbol,
+    expressions: []const Expression,
+    predicate: ExprId,
+    span: Span,
+};
 
 pub const Function = struct {
+    output_ownership: Ownership = .borrowed,
+    contracts: []const Contract = &.{},
     external: ?External = null,
     file_name: []const u8,
     input_type: TypeId,
@@ -82,7 +109,9 @@ pub const Function = struct {
 };
 
 pub const Program = struct {
-    version: u32 = 2,
+    output_ownership: Ownership = .borrowed,
+    version: u32 = 5,
+    contracts: []const Contract = &.{},
     file_name: []const u8,
     types: []const Type,
     symbols: []const Symbol,
@@ -92,6 +121,7 @@ pub const Program = struct {
     body: []const Statement,
     exports: []const Export = &.{},
     functions: []const Function = &.{},
+    native_modules: []const NativeModule = &.{},
     stores: []const StoreSlot = &.{},
     type_only: bool = false,
     pub fn typeOf(self: Program, id: TypeId) Type {

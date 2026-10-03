@@ -36,13 +36,13 @@ pub fn analyzeWithContext(allocator: std.mem.Allocator, parsed: Parsed, context:
         .types = .{ .allocator = arena.allocator(), .reporter = &reporter, .declarations = parsed.ast.declarations },
     };
 
-    const program = analyzer.run(parsed.ast, parsed.file_name) catch |err| {
+    var program = analyzer.run(parsed.ast, parsed.file_name) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .arena = arena, .value = .{ .diagnostic = reporter.diagnostic.? } };
     };
 
-    @import("../ownership/check.zig").check(arena.allocator(), program, &reporter) catch |err| {
+    program.output_ownership = @import("../ownership/check.zig").analyze(arena.allocator(), program, &reporter) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .arena = arena, .value = .{ .diagnostic = reporter.diagnostic.? } };

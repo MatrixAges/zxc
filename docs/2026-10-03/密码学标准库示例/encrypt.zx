@@ -1,0 +1,13 @@
+import crypto from "std:crypto";
+export enum Algorithm { Aes128Gcm, Aes256Gcm, ChaCha20Poly1305 }
+
+export type Input = { algorithm: Algorithm; key: u8[]; nonce: u8[]; aad: u8[]; data: u8[]; };
+export type Output = { ciphertext: u8[]; tag: u8[]; };
+
+export default function (in: Input): Output {
+  switch (in.algorithm) {
+    case Algorithm.Aes128Gcm: return crypto.encryptAes128Gcm({ key: in.key, nonce: in.nonce, aad: in.aad, data: in.data });
+    case Algorithm.Aes256Gcm: return crypto.encryptAes256Gcm({ key: in.key, nonce: in.nonce, aad: in.aad, data: in.data });
+    case Algorithm.ChaCha20Poly1305: return crypto.encryptChaCha20Poly1305({ key: in.key, nonce: in.nonce, aad: in.aad, data: in.data });
+  }
+}

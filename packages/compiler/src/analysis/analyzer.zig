@@ -20,7 +20,7 @@ allow_store: bool = false,
 
 lambda_depth: usize = 0,
 scope_floor: usize = 0,
-pub const FunctionImport = struct { positional_types: ?[]const ir.TypeId = null, name: []const u8, id: ir.FunctionId, input_type: ir.TypeId, output_type: ir.TypeId };
+pub const FunctionImport = struct { namespace: ?[]const u8 = null, positional_types: ?[]const ir.TypeId = null, name: []const u8, id: ir.FunctionId, input_type: ir.TypeId, output_type: ir.TypeId };
 
 pub fn run(self: *Self, program: zx.ast.Program, file_name: []const u8) zx.Error!ir.Program {
     try self.types.initialize();
@@ -51,7 +51,10 @@ pub fn run(self: *Self, program: zx.ast.Program, file_name: []const u8) zx.Error
         .type_id = try self.types.named(declaration.name),
     };
 
+    const contracts = try @import("contracts.zig").analyze(self, program.contracts, input_type, exports);
+
     return .{
+        .contracts = contracts,
         .file_name = try self.allocator.dupe(u8, file_name),
         .types = try self.types.items.toOwnedSlice(self.allocator),
         .symbols = try self.symbols.toOwnedSlice(self.allocator),

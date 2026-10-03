@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 
 export default async function AgentValue() {
-	const t = await getTranslations({ locale: 'en', namespace: 'home' })
+	const t = await getTranslations('home')
 
 	return (
 		<section className='home-section' aria-labelledby='for-agents'>

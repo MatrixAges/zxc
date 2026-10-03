@@ -1,28 +1,31 @@
-import Markdown from '../components/markdown'
 import AgentPrompt from '../components/agent_prompt'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { localeHref } from '../i18n/locale'
 import Purpose from '../features/home/purpose'
+import BusinessExample from '../features/home/business_example'
 import AgentValue from '../features/home/agent_value'
 import WorkingWithZxc from '../features/home/working_with_zxc'
+import Performance from '../features/home/performance'
 import Boundaries from '../features/home/boundaries'
 import DataFlow from '../features/home/data_flow'
 
 export default async function Home() {
 	const locale = await getLocale()
-	const t = await getTranslations({ locale: 'en', namespace: 'home' })
+	const t = await getTranslations('home')
 
 	return (
 		<main id='content' className='home'>
 			<div className='home-copy'>
 				<div className='home-intro'>
-					<p className='eyebrow'>zxc / {t('experimental')} / 0.0.1</p>
+					<p>~*~ ZXC by MatrixAges, created by XWD ~*~</p>
 					<h1>{t('title')}</h1>
 					<p>{t('tagline')}</p>
 					<p>{t('description')}</p>
 					<div className='action-links'>
 						<AgentPrompt />
-						<a href={localeHref('/docs', locale)}>[ {t('readDocs')} → ]</a>
+						<a href={localeHref('/docs', locale)} target='_self'>
+							[ {t('readDocs')} → ]
+						</a>
 					</div>
 					<p className='muted'>
 						{t('plainText')}: <a href={localeHref('/llms.txt', locale)}>{t('index')}</a> /{' '}
@@ -30,29 +33,7 @@ export default async function Home() {
 					</p>
 				</div>
 				<Purpose />
-				<section className='home-section' aria-labelledby='two-files'>
-					<h2 id='two-files'>{t('twoFiles')}</h2>
-					<div className='language-pair'>
-						<div>
-							<h3>{t('rx')}</h3>
-							<p>{t('rxDescription')}</p>
-							<Markdown>
-								{
-									'```xml\n<Module>\n  <Call fn="quote" in="$in" out="ctx.quote" />\n\n  <Return value="ctx.quote" />\n</Module>\n```'
-								}
-							</Markdown>
-						</div>
-						<div>
-							<h3>{t('zx')}</h3>
-							<p>{t('zxDescription')}</p>
-							<Markdown>
-								{
-									'```typescript\nexport type Input = { amount: u64; };\nexport type Output = { amount: u64; };\n\nexport default function (in: Input): Output {\n  return { amount: in.amount };\n}\n```'
-								}
-							</Markdown>
-						</div>
-					</div>
-				</section>
+				<BusinessExample />
 				<section className='home-section' aria-labelledby='how-it-works'>
 					<h2 id='how-it-works'>{t('howItWorks')}</h2>
 					<p>{t('howDescription')}</p>
@@ -70,12 +51,14 @@ export default async function Home() {
 				</section>
 				<AgentValue />
 				<WorkingWithZxc />
+				<Performance />
 				<section className='home-section' aria-labelledby='about'>
 					<h2 id='about'>{t('aboutTitle')}</h2>
 					<p>{t('aboutDescription')}</p>
-					<p>{t('aboutInvitation')}</p>
 					<p>
-						<a href={localeHref('/docs', locale)}>{t('readDocs')} →</a>
+						<a href={localeHref('/docs', locale)} target='_self'>
+							{t('readDocs')} →
+						</a>
 						{' / '}
 						<a href='https://github.com/MatrixAges/zxc'>{t('repository')} ↗</a>
 						{' / '}
@@ -83,7 +66,16 @@ export default async function Home() {
 					</p>
 				</section>
 			</div>
-			<DataFlow />
+			<DataFlow
+				label={t('flowLabel')}
+				labels={[
+					t('flowInput'),
+					t('flowComposition'),
+					t('flowDependencies'),
+					t('flowData'),
+					t('flowStructure')
+				]}
+			/>
 		</main>
 	)
 }

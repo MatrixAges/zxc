@@ -5,9 +5,14 @@ const parse = @import("../frontend/parse.zig").parse;
 const Analyzer = @import("../analysis/analyzer.zig");
 const Analysis = @import("../analysis/analyze.zig");
 pub const Source = struct { path: []const u8, source: []const u8 };
-pub const External = struct { specifier: []const u8, signature: []const u8, implementation: ir.External };
-pub const Options = struct { externals: []const External = &.{}, entry: []const u8, root_dir: []const u8 = ".", context: Analysis.Context = .{} };
+pub const External = @import("interface.zig").External;
+pub const standard = @import("standard_interfaces").modules;
+pub const NativeInterface = @import("interface.zig").Native;
+pub const Package = struct { specifier: []const u8, entry: []const u8 };
+pub const specifier = @import("specifier.zig");
+pub const Options = struct { native_interfaces: []const NativeInterface = &.{}, externals: []const External = &.{}, packages: []const Package = &.{}, entry: []const u8, root_dir: []const u8 = ".", context: Analysis.Context = .{} };
 const Unit = struct { path: []const u8, state: enum { fresh, visiting, done } = .fresh, program: ?ir.Program = null, function: ?ir.FunctionId = null };
+const NativeUnit = struct { exports: []const ir.Export, members: []const Analyzer.FunctionImport };
 
 const Project = struct {
     allocator: std.mem.Allocator,
@@ -17,6 +22,8 @@ const Project = struct {
     reporter: *zx.Reporter,
     types: []const ir.Type = &.{},
     functions: std.ArrayList(ir.Function) = .empty,
+    native_modules: std.ArrayList(ir.NativeModule) = .empty,
+    native_units: std.StringHashMapUnmanaged(NativeUnit) = .empty,
     current_source: usize = 0,
     depth: usize = 0,
     fn load(self: *Project, index: usize) zx.Error!ir.Program {
@@ -53,21 +60,17 @@ const Project = struct {
                 if (entry.found_existing) return self.reporter.fail(.name, name.span, "duplicate import binding");
             }
 
-            if (std.mem.startsWith(u8, item.path, "zig:") or std.mem.startsWith(u8, item.path, "lib:")) {
+            const kind = specifier.classify(item.path) catch return self.reporter.fail(.module, item.span, "invalid or unknown import specifier");
+
+            if (kind != .file and kind != .package) {
+                if (try self.importNative(item, &imports, &aliases)) continue;
                 if (item.kind != .function or item.names.len != 1) return self.reporter.fail(.module, item.span, "external interfaces require a default function import");
-
-                const imported = try @import("external.zig").load(self.allocator, self.options.externals, item, self.types, self.reporter);
-                self.types = imported.types;
-
-                const function_id: ir.FunctionId = @enumFromInt(self.functions.items.len);
-
-                try self.functions.append(self.allocator, imported.function);
-                try imports.append(self.allocator, .{ .positional_types = if (imported.function.external.?.expand_tuple) self.types[@intFromEnum(imported.function.input_type)].tuple else null, .name = try self.allocator.dupe(u8, item.names[0].text), .id = function_id, .input_type = imported.function.input_type, .output_type = imported.function.output_type });
+                try self.importExternal(item, &imports);
 
                 continue;
             }
 
-            const path = try resolvePath(self.allocator, unit.path, item.path, self.options.root_dir, self.reporter, item.span);
+            const path = try resolveImport(self.allocator, unit.path, item.path, self.options, self.reporter, item.span);
             const dependency = self.find(path) orelse return self.reporter.fail(.module, item.span, "import target is missing from the source set");
             const module = try self.load(dependency);
 
@@ -107,16 +110,16 @@ const Project = struct {
 
         try analyzer.types.items.appendSlice(self.allocator, self.types);
 
-        const program = try analyzer.run(input.ast, unit.path);
+        var program = try analyzer.run(input.ast, unit.path);
 
+        program.functions = try self.allocator.dupe(ir.Function, self.functions.items);
         self.types = program.types;
-
-        try @import("../ownership/check.zig").check(self.allocator, program, self.reporter);
+        program.output_ownership = try @import("../ownership/check.zig").analyze(self.allocator, program, self.reporter);
 
         if (!program.type_only) {
             unit.function = @enumFromInt(self.functions.items.len);
 
-            try self.functions.append(self.allocator, .{ .file_name = program.file_name, .input_type = program.input_type, .output_type = program.output_type, .symbols = program.symbols, .expressions = program.expressions, .body = program.body });
+            try self.functions.append(self.allocator, .{ .output_ownership = program.output_ownership, .file_name = program.file_name, .input_type = program.input_type, .output_type = program.output_type, .symbols = program.symbols, .expressions = program.expressions, .body = program.body, .contracts = program.contracts });
         }
 
         unit.program = program;
@@ -130,6 +133,128 @@ const Project = struct {
         };
 
         return null;
+    }
+    fn nativeModule(self: *Project, source: []const u8, name: []const u8, span: zx.Span) zx.Error!ir.NativeModuleId {
+        if (name.len == 0 or std.mem.indexOfScalar(u8, name, 0) != null or !std.unicode.utf8ValidateSlice(name)) return self.reporter.fail(.module, span, "native import names must be nonempty UTF-8 strings");
+
+        for (self.native_modules.items, 0..) |module, index| {
+            if (std.mem.eql(u8, module.specifier, source) and std.mem.eql(u8, module.import_name, name)) return @enumFromInt(index);
+        }
+
+        const id: ir.NativeModuleId = @enumFromInt(self.native_modules.items.len);
+
+        try self.native_modules.append(self.allocator, .{ .specifier = try self.allocator.dupe(u8, source), .import_name = try self.allocator.dupe(u8, name) });
+
+        return id;
+    }
+    fn importNative(self: *Project, item: zx.ast.Import, imports: *std.ArrayList(Analyzer.FunctionImport), aliases: *std.ArrayList(ir.Export)) zx.Error!bool {
+        var found: ?NativeInterface = null;
+
+        for ([_][]const NativeInterface{ &@import("interface.zig").standard, self.options.native_interfaces }) |interfaces| {
+            for (interfaces) |entry| {
+                if (!std.mem.eql(u8, entry.specifier, item.path)) continue;
+                if (found != null) return self.reporter.fail(.module, item.span, "duplicate native interface module");
+
+                found = entry;
+            }
+        }
+
+        const entry = found orelse return false;
+
+        for (self.options.externals) |legacy| {
+            if (std.mem.eql(u8, legacy.specifier, item.path)) return self.reporter.fail(.module, item.span, "native declarations conflict with legacy external signatures");
+        }
+
+        const unit = self.native_units.get(item.path) orelse blk: {
+            const module_id = try self.nativeModule(entry.specifier, entry.module, item.span);
+            const loaded = try @import("native.zig").load(self.allocator, entry, module_id, self.types, self.reporter, item.span);
+            const namespace = try self.allocator.alloc([]const u8, entry.namespace.len);
+
+            for (entry.namespace, namespace) |part, *owned| owned.* = try self.allocator.dupe(u8, part);
+
+            self.native_modules.items[@intFromEnum(module_id)].type_namespace = namespace;
+            self.native_modules.items[@intFromEnum(module_id)].types = loaded.exports;
+
+            const members = try self.allocator.alloc(Analyzer.FunctionImport, loaded.members.len);
+
+            self.types = loaded.types;
+
+            for (loaded.members, members) |member, *binding| {
+                const id: ir.FunctionId = @enumFromInt(self.functions.items.len);
+
+                try self.functions.append(self.allocator, member.function);
+
+                binding.* = .{ .name = member.name, .id = id, .input_type = member.function.input_type, .output_type = member.function.output_type, .positional_types = if (member.function.external.?.expand_tuple) self.types[@intFromEnum(member.function.input_type)].tuple else null };
+            }
+
+            const result = NativeUnit{ .exports = loaded.exports, .members = members };
+
+            try self.native_units.put(self.allocator, try self.allocator.dupe(u8, item.path), result);
+
+            break :blk result;
+        };
+
+        if (item.kind == .function) {
+            if (item.names.len != 1 or unit.members.len == 0) return self.reporter.fail(.module, item.span, "native namespaces require one binding and callable exports");
+
+            for (unit.members) |member| {
+                var binding = member;
+                binding.namespace = try self.allocator.dupe(u8, item.names[0].text);
+
+                try imports.append(self.allocator, binding);
+            }
+        } else for (item.names) |name| {
+            var matched = false;
+
+            for (unit.exports) |exported| {
+                if (!std.mem.eql(u8, name.text, exported.name)) continue;
+                if (item.kind == .enumeration and self.types[@intFromEnum(exported.type_id)] != .enumeration) return self.reporter.fail(.module, name.span, "native value imports must name an enum");
+                try aliases.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name.text), .type_id = exported.type_id });
+
+                matched = true;
+
+                break;
+            }
+
+            if (!matched) return self.reporter.fail(.module, name.span, "native interface does not export this type");
+        }
+
+        return true;
+    }
+    fn importExternal(self: *Project, item: zx.ast.Import, imports: *std.ArrayList(Analyzer.FunctionImport)) zx.Error!void {
+        const registry = self.options.externals;
+        var exports: std.StringHashMapUnmanaged(void) = .empty;
+        var count: usize = 0;
+        var default_export = false;
+
+        for (registry) |entry| {
+            if (!std.mem.eql(u8, entry.specifier, item.path)) continue;
+
+            const member = entry.export_name orelse "";
+            const found = try exports.getOrPut(self.allocator, member);
+
+            if (found.found_existing or (count != 0 and (default_export or entry.export_name == null))) return self.reporter.fail(.module, item.span, "external modules require unique members or one default function");
+
+            default_export = entry.export_name == null;
+            count += 1;
+            const imported = try @import("external.zig").load(self.allocator, entry, try self.nativeModule(entry.specifier, entry.implementation.module, item.span), item.span, self.types, self.reporter);
+            self.types = imported.types;
+
+            const function_id: ir.FunctionId = @enumFromInt(self.functions.items.len);
+
+            try self.functions.append(self.allocator, imported.function);
+
+            try imports.append(self.allocator, .{
+                .namespace = if (entry.export_name != null) try self.allocator.dupe(u8, item.names[0].text) else null,
+                .positional_types = if (imported.function.external.?.expand_tuple) self.types[@intFromEnum(imported.function.input_type)].tuple else null,
+                .name = try self.allocator.dupe(u8, entry.export_name orelse item.names[0].text),
+                .id = function_id,
+                .input_type = imported.function.input_type,
+                .output_type = imported.function.output_type,
+            });
+        }
+
+        if (count == 0) return self.reporter.fail(.capability, item.span, "this module has no registered pure interfaces");
     }
 };
 
@@ -167,6 +292,7 @@ pub fn analyze(allocator: std.mem.Allocator, sources: []const Source, options: O
     };
 
     program.types = project.types;
+    program.native_modules = project.native_modules.items;
     program.functions = try temporary.dupe(ir.Function, project.functions.items[0 .. project.functions.items.len - @intFromBool(!program.type_only)]);
 
     return .{ .arena = arena, .value = .{ .ir = program } };
@@ -178,4 +304,25 @@ pub fn resolvePath(allocator: std.mem.Allocator, from: []const u8, path: []const
     if (!std.mem.startsWith(u8, path, "./") and !std.mem.startsWith(u8, path, "../")) return reporter.fail(.module, span, "imports require ./, ../ or @/ paths; external interfaces require explicit registration");
 
     return std.fs.path.resolve(allocator, &.{ std.fs.path.dirname(from) orelse ".", path });
+}
+
+pub fn resolveImport(allocator: std.mem.Allocator, from: []const u8, path: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error![]const u8 {
+    const kind = specifier.classify(path) catch return reporter.fail(.module, span, "invalid or unknown import specifier");
+
+    if (kind == .file) return resolvePath(allocator, from, path, options.root_dir, reporter, span);
+    if (kind != .package) return reporter.fail(.module, span, "native and standard imports must use the interface registry");
+
+    var target: ?[]const u8 = null;
+
+    for (options.packages) |package| {
+        if (!std.mem.eql(u8, package.specifier, path)) continue;
+        if (target != null) return reporter.fail(.module, span, "duplicate ZX package specifier");
+        if (!std.mem.endsWith(u8, package.entry, ".zx")) return reporter.fail(.module, span, "ZX package entry must be a .zx source file");
+
+        target = package.entry;
+    }
+
+    const entry = target orelse return reporter.fail(.module, span, "ZX package is not declared in the project dependencies");
+
+    return std.fs.path.resolve(allocator, &.{ options.root_dir, entry });
 }

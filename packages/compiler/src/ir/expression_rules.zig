@@ -68,7 +68,6 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
 
             break :blk program.typeOf(child_type) == .list or child_type == string_type;
         },
-        .clone => |child| check.typed(child, type_id),
         .list, .tuple => |items| blk: {
             if (expression.value == .list and target != .list) break :blk false;
             if (expression.value == .tuple and (target != .tuple or target.tuple.len != items.len)) break :blk false;
@@ -112,6 +111,24 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
         .unary => |unary| check.typed(unary.operand, type_id) and (if (unary.operator == .not) type_id == bool_type else numbers.isSigned(type_id) or numbers.isFloat(type_id)),
         .binary => |binary| check.binary(binary, type_id),
         .conditional => |value| check.typed(value.condition, bool_type) and check.typed(value.yes, type_id) and check.typed(value.no, type_id),
+        .match_expr => |selection| blk: {
+            var condition_type = bool_type;
+
+            if (selection.subject) |subject| {
+                if (!check.earlier(subject)) break :blk false;
+
+                condition_type = program.expression(subject).type_id;
+                const subject_type = program.typeOf(condition_type);
+
+                if ((subject_type != .scalar and subject_type != .enumeration) or condition_type == void_type) break :blk false;
+            }
+
+            for (selection.arms) |arm| {
+                if (!check.typed(arm.condition, condition_type) or !check.typed(arm.result, type_id)) break :blk false;
+            }
+
+            break :blk check.typed(selection.fallback, type_id);
+        },
         .call => |call| @intFromEnum(call.function) < program.functions.len and type_id == program.functions[@intFromEnum(call.function)].output_type and check.typed(call.argument, program.functions[@intFromEnum(call.function)].input_type),
         .transform => |transform| check.transform(transform, type_id),
         .list_operation => |operation| check.operation(operation, target),

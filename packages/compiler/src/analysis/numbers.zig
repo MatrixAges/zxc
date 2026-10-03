@@ -22,12 +22,6 @@ pub fn literal(analyzer: *Analyzer, text: []const u8, span: zx.Span, expected: ?
 
     if (!isFloat(type_id) and !isInteger(type_id)) return analyzer.reporter.fail(.type_mismatch, span, "a numeric literal requires a numeric type");
 
-    for (text, 0..) |byte, index| {
-        if (byte == '_' and (index == 0 or index + 1 == text.len or !std.ascii.isDigit(text[index - 1]) or !std.ascii.isDigit(text[index + 1]))) {
-            return analyzer.reporter.fail(.lexical, span, "digit separators must occur between digits");
-        }
-    }
-
     var clean: std.ArrayList(u8) = .empty;
 
     for (text) |byte| {

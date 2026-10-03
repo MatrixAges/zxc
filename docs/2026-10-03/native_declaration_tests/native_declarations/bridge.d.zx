@@ -1,0 +1,8 @@
+export enum Mode { Add, Keep }
+
+export type Item = { value: i32; };
+export type Snapshot = { value: i32; };
+export type Request = { items: Item[]; baseline: Snapshot[]; offset: i32; mode: Mode?; };
+export type Response = { items: Snapshot[]; baseline: Snapshot[]; mode: Mode?; };
+
+export declare function process(allocator, input: Request): Response throws;

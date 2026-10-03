@@ -14,6 +14,8 @@ pub const Type = union(enum) {
 
 pub const TypeField = struct { name: Name, value: *const Type };
 pub const Declaration = struct { name: Name, value: *const Type, span: Span };
+pub const Match = struct { subject: ?*const Expression, arms: []const MatchArm, fallback: *const Expression };
+pub const MatchArm = struct { condition: *const Expression, result: *const Expression };
 
 pub const Expression = struct {
     span: Span,
@@ -33,6 +35,7 @@ pub const Expression = struct {
         unary: struct { operator: enum { negate, not }, operand: *const Expression },
         binary: struct { operator: Operator, left: *const Expression, right: *const Expression },
         conditional: struct { condition: *const Expression, yes: *const Expression, no: *const Expression },
+        match_expr: Match,
         object: []const Field,
     },
 };
@@ -62,10 +65,17 @@ pub const Import = struct {
     span: Span,
 };
 
+pub const Contract = struct {
+    kind: @import("syntax.zig").ContractKind,
+    predicate: *const Expression,
+    span: Span,
+};
+
 pub const Program = struct {
     declarations: []const Declaration,
     imports: []const Import = &.{},
     has_store: bool = false,
+    contracts: []const Contract = &.{},
     function_start: usize,
     body: ?Block,
 };

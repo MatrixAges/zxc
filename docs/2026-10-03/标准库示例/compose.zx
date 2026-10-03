@@ -1,0 +1,11 @@
+import digest from "@sample/digest";
+import math from "zig:math";
+
+export type Input = { text: string; number: f64; };
+export type Output = { encoded: string; root: f64; };
+
+export default function (in: Input): Output {
+  const result = digest(in.text);
+
+  return { encoded: result.sha256, root: math.sqrt(in.number) };
+}
