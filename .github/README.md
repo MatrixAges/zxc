@@ -12,6 +12,8 @@ bun run --cwd .github check
 
 构建覆盖 Linux musl、macOS、Windows GNU 的 x86_64/aarch64，各自在对应 runner 上构建、运行现有 quote 示例并上传 artifact。产物为 tar.gz 和 SHA256；解压后保持 bin/share 目录相对位置。下载后的 Unix 程序权限由 tar 保留。工作流不自动创建 release 或版本标签。
 
+Windows ARM64 runner 使用经过 SHA256 校验的 x64 Zig 0.16.0 工具链，通过系统兼容层运行，规避[上游 ARM64 工具链 TLS 崩溃](https://codeberg.org/ziglang/zig/issues/31865)。zxc 和示例均显式指定 `aarch64-windows-gnu`，实际执行及归档仍为 ARM64。其他目标使用对应宿主的 Zig。
+
 本地分发构建：
 
 ```sh

@@ -33,7 +33,7 @@ for (const file of ['LICENSE', 'share/zxc/licenses/libyaml.txt', 'share/zxc/stan
 const compiler_path = resolve(prefix, 'bin', `zxc${executable_suffix}`)
 const example_path = resolve(example_dir, `quote${executable_suffix}`)
 
-run([compiler_path, 'build', 'packages/compiler/examples/quote.zx', '--out', example_path])
+run([compiler_path, 'build', 'packages/compiler/examples/quote.zx', '--out', example_path, '--target', target])
 run([example_path, JSON.stringify({ amount: 100, discount: 20, enabled: true, factor: 1.5 })])
 
 const archive_path = resolve(artifact_dir, `${basename(prefix)}.tar.gz`)

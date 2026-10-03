@@ -34,7 +34,20 @@ const definition = workflow({
 				{ uses: setup_bun, with: { 'bun-version': '1.3.10' } },
 				{
 					uses: 'mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29',
+					if: "matrix.target != 'aarch64-windows-gnu'",
 					with: { version: '0.16.0', 'cache-key': '${{ matrix.target }}' }
+				},
+				{
+					name: 'Setup x64 Zig on Windows ARM64',
+					if: "matrix.target == 'aarch64-windows-gnu'",
+					shell: 'pwsh',
+					run: [
+						'$archive_path = Join-Path $env:RUNNER_TEMP "zig-x86_64-windows-0.16.0.zip"',
+						'Invoke-WebRequest -Uri "https://ziglang.org/download/0.16.0/zig-x86_64-windows-0.16.0.zip" -OutFile $archive_path',
+						'if ((Get-FileHash $archive_path -Algorithm SHA256).Hash.ToLowerInvariant() -ne "68659eb5f1e4eb1437a722f1dd889c5a322c9954607f5edcf337bc3684a75a7e") { throw "Zig archive checksum mismatch" }',
+						'Expand-Archive -Path $archive_path -DestinationPath $env:RUNNER_TEMP',
+						'Join-Path $env:RUNNER_TEMP "zig-x86_64-windows-0.16.0" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append'
+					].join('\n')
 				},
 				{ name: 'Build, execute and package', run: 'bun .github/scripts/package.ts' },
 				{
