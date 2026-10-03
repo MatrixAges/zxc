@@ -44,3 +44,5 @@ zig-out/bin/zxc fmt application.zx --write
 ```
 
 默认 fmt 输出到标准输出；`--write` 才写回文件。compile 与 fmt 使用相同的 edits 规划逻辑，避免检查和修复规则不一致。
+
+仓库通用 GCS 格式化钩子跳过 ZX 文件；ZX 使用 `zxc fmt`，避免模型格式化结果覆盖编译器的格式契约。

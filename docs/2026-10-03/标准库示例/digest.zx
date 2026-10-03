@@ -2,6 +2,7 @@ import encoding from "std:encoding";
 import crypto from "std:crypto";
 
 export type Input = string;
+
 export type Output = { base64: string; hex: string; sha256: string; sha512: string; decoded: string; };
 
 export default function (in: Input): Output {

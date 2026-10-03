@@ -32,7 +32,7 @@ try {
 	for (const file of files) {
 		const project_path = relative(project_root, file)
 
-		if (matchesGlob(project_path, 'packages/*/tests/**/*.{zx,rx}')) continue
+		if (file.endsWith('.zx') || matchesGlob(project_path, 'packages/*/tests/**/*.rx')) continue
 
 		const source = await readFile(file, 'utf8')
 		const { text } = await spacer.format(source)
