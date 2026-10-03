@@ -1,8 +1,21 @@
 packages:
+    - packages/website
     - packages/zray/app
     - packages/zray/server
 
 allowBuilds:
+    workerd: true
     esbuild: true
     simple-git-hooks: false
     webgpu: true
+    '@parcel/watcher': true
+    '@swc/core': true
+
+minimumReleaseAgeExclude:
+    - '@cloudflare/build-output-utils@0.8.5'
+    - '@cloudflare/config@0.23.0'
+    - cf@1.0.0-beta.12
+    - icu-minify@4.14.9
+    - next-intl-swc-plugin-extractor@4.14.9
+    - next-intl@4.14.9
+    - use-intl@4.14.9
