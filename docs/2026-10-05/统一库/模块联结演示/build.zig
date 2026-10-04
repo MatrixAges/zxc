@@ -8,6 +8,7 @@ pub fn build(b: *std.Build) void {
     for ([_]struct { name: []const u8, source: []const u8 }{
         .{ .name = "library-modules", .source = "generate.zig" },
         .{ .name = "library-emit", .source = "emit.zig" },
+        .{ .name = "library-import", .source = "import.zig" },
     }) |entry| {
         const generator = b.addExecutable(.{
             .name = entry.name,

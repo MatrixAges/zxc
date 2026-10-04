@@ -1,0 +1,58 @@
+{
+	"command": [
+		"zig",
+		"build-exe",
+		"--dep",
+		"library",
+		"-Mroot=docs/2026-10-05/URL标准库/库消费者/main.zig",
+		"--dep",
+		"zxc_abi",
+		"--dep",
+		"zxc_module_7e011b0a6525d536552951d85193598426f9cf891aadc63eb59e0ef4b0b68224",
+		"--dep",
+		"zxc_module_85d43cc1a2631b01c906fc1f34d643d7d592b7429f984c368ec43b1efd6fb967",
+		"-Mlibrary=docs/2026-10-05/统一库/编译产物导入/生成/root.zig",
+		"--dep",
+		"zxc_abi",
+		"-Mzxc_module_85d43cc1a2631b01c906fc1f34d643d7d592b7429f984c368ec43b1efd6fb967=docs/2026-10-05/统一库/编译产物导入/生成/zxc_module_85d43cc1a2631b01c906fc1f34d643d7d592b7429f984c368ec43b1efd6fb967.zig",
+		"--dep",
+		"zxc_abi",
+		"--dep",
+		"zxc_module_85d43cc1a2631b01c906fc1f34d643d7d592b7429f984c368ec43b1efd6fb967",
+		"-Mzxc_module_7e011b0a6525d536552951d85193598426f9cf891aadc63eb59e0ef4b0b68224=docs/2026-10-05/统一库/编译产物导入/生成/zxc_module_7e011b0a6525d536552951d85193598426f9cf891aadc63eb59e0ef4b0b68224.zig",
+		"-Mzxc_abi=docs/2026-10-05/统一库/编译产物导入/生成/abi.zig",
+		"-femit-bin=docs/2026-10-05/统一库/编译产物导入/生成/consume"
+	],
+	"runs": [
+		{
+			"input": {
+				"enabled": true,
+				"value": 42
+			},
+			"exit_code": 0,
+			"stdout": "{\"original\":42,\"selected\":42}\n",
+			"stderr": ""
+		},
+		{
+			"input": {
+				"enabled": false,
+				"value": 42
+			},
+			"exit_code": 0,
+			"stdout": "{\"original\":42,\"selected\":0}\n",
+			"stderr": ""
+		}
+	],
+	"generation": {
+		"command": [
+			"docs/2026-10-05/统一库/模块联结演示/zig-out/bin/library-import",
+			"docs/2026-10-05/统一库/模块装载生成/library.zxcir",
+			"docs/2026-10-05/统一库/编译产物导入/main.zx",
+			"docs/2026-10-05/统一库/编译产物导入/types.zx",
+			"docs/2026-10-05/统一库/编译产物导入/生成"
+		],
+		"exit_code": 0,
+		"stdout": "",
+		"stderr": "linked functions=3 generated modules=2\n"
+	}
+}

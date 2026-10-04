@@ -1,0 +1,11 @@
+import choose from "workflow/choose"
+import read from "workflow/read"
+import type { Shared } from "./types.zx"
+
+export type Input = Shared
+
+export type Output = { selected: u8, original: u8 }
+
+export default function (in: Input): Output {
+  return { selected: choose(in), original: read(in) }
+}
