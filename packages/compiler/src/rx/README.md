@@ -1,6 +1,6 @@
 # RX
 
-`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；Runtime 执行尚未接入。
+`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；普通顺序 Call.fn/Return 已支持生成独立应用；其余流程执行能力见本文边界。
 
 ## 构建与测试
 
@@ -214,12 +214,12 @@ try output.writeAll(generated);
 
 包含原生模块时使用 `compiler.zig.emitBundle` 的共享 ABI 输出。包含形式化契约时仍须先完成既有证明流程，生成门禁不会因来自 RX 而放宽。生成的 Zig 模块提供 `Input`、`Output` 与 `execute(arena, input)`，arena 必须覆盖返回聚合值的使用生命周期。
 
-该接口不负责文件系统装载、跨 RX service 图联结或自动启动进程。Call.service、Store、分支、事件及其他流程节点尚未纳入此顺序入口，会明确报错；完整依赖集合仍须使用 `validateModules` 校验无环约束。
+库接口不负责文件系统装载或自动启动进程。CLI 的 `zxc build workflow.rx --out build/workflow` 已连接顺序模块装载、生成与应用构建，详见 [CLI 使用方式](../../../cli/README.md)。跨 RX service 图联结仍未接入。Call.service、Store、分支、事件及其他流程节点尚未纳入此顺序入口，会明确报错；完整依赖集合仍须使用 `validateModules` 校验无环约束。
 
 ## 当前边界
 
 未知/重复属性、必填项、非空白文本和非法嵌套均报错。除 Field.value 外，显式属性不能是空白字符串。
 
-Gateway 入口已验证 Route 目标文件及其普通模块依赖图，模块 Store 引用已读取并校验定义文件；尚未实现多个 Gateway 的合并、Store 值与 setter 的类型联结、Group 展开冲突、ZX 输入输出兼容、表达式解析、Store 初值解码、自动返回分析或实际执行。路由 service 相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。本文的检查成功不代表业务执行已经验证。
+Gateway 入口已验证 Route 目标文件及其普通模块依赖图，模块 Store 引用已读取并校验定义文件；这些专用流程尚未实现多个 Gateway 的合并、Store 值与 setter 的类型联结、Group 展开冲突、路由输入输出兼容、Store 初值解码或实际执行。普通顺序模块的表达式、函数类型联结与 Return 推导见上节。路由 service 相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。结构检查成功不代表业务执行已经验证。
 
-既有测试使用合成 AST，覆盖全部标签、路径身份、模块组合、递归结构、错误定位、循环依赖及内存分配失败；不覆盖新增 XML 文本到 AST 的解析链。
+结构级测试使用 AST 覆盖标签、路径身份、模块组合、递归结构、循环依赖与分配失败。独立文本及运行验证从真实 XML 开始，覆盖顺序模块的类型推导、原始诊断位置和部分生成代码执行；各组证据不替代尚未接入功能的验证。
