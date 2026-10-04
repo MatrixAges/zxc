@@ -1,0 +1,32 @@
+{
+	"publish_command": [
+		"zig-out/bin/zxc",
+		"build",
+		"docs/2026-10-05/URL标准库/示例/main.zx",
+		"--mode",
+		"lib",
+		"--out",
+		"docs/2026-10-05/URL标准库/ZX消费者/library"
+	],
+	"publish_exit_code": 0,
+	"bundled_file_count": 34,
+	"native_dependencies": [
+		{
+			"name": "zxc_standard",
+			"header": null,
+			"c_imports": false,
+			"dynamic_resources": false,
+			"include_relocations": []
+		}
+	],
+	"build_command": ["zig", "build", "--summary", "all"],
+	"build_directory": "docs/2026-10-05/URL标准库/库消费者",
+	"build_steps": "3/3 cached",
+	"command": [
+		"docs/2026-10-05/URL标准库/库消费者/zig-out/bin/search-params-consumer",
+		"{\"query\": \"a=1&a=2&b=two+words\", \"key\": \"a\", \"value\": \"3\", \"match_value\": \"2\"}"
+	],
+	"exit_code": 0,
+	"stdout": "{\"all\":[\"1\",\"2\",\"3\"],\"appended\":\"a=1&a=2&b=two+words&a=3\",\"assigned\":\"a=3&b=two+words\",\"count\":4,\"first\":\"1\",\"found\":true,\"keys\":[\"a\",\"a\",\"a\",\"b\"],\"ordered\":\"a=1&a=2&a=3&b=two+words\",\"original\":\"a=1&a=2&b=two+words\",\"removed\":\"a=1&b=two+words&a=3\",\"values\":[\"1\",\"2\",\"3\",\"two words\"]}\n",
+	"stderr": ""
+}
