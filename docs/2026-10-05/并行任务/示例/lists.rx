@@ -1,0 +1,14 @@
+<Module>
+  <Call fn="map_values" in="$in" out="saved" />
+  <Parallel>
+    <Task name="total" out="ctx.total">
+      <Call fn="sum_values" in="$in" out="local.total" />
+      <Return value="local.total" />
+    </Task>
+    <Task name="mapped" out="ctx.mapped">
+      <Call fn="map_values" in="$in" out="local.values" />
+      <Return value="local.values" />
+    </Task>
+  </Parallel>
+  <Return value="{total: ctx.total, mapped: ctx.mapped, saved: saved.pop()}" />
+</Module>

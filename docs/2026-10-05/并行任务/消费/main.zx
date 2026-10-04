@@ -1,0 +1,9 @@
+import evaluate from "parallel-tasks"
+
+export type Input = { enabled: bool, value: u8 }
+
+export type Output = Input
+
+export default function (in: Input): Output ensures(out.value == in.value) {
+  return evaluate(in)
+}

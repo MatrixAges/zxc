@@ -95,7 +95,7 @@ module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶
 | Import     | `from`                                             | 无                                                             |
 | Call       | `fn?` / `service?` 二选一、`in`、`out?`、`setter?` | 无                                                             |
 | Return     | `value`                                            | 无                                                             |
-| Task       | `name`                                             | Call、Parallel、Switch、Emit、Return                           |
+| Task       | `name`、`out?`（仅直属 Parallel）                  | Call、Parallel、Switch、Emit、Return                           |
 | Parallel   | 无                                                 | Task、Call                                                     |
 | Switch     | `on`                                               | Case、Default                                                  |
 | Case       | `value`                                            | Task、Call、Parallel、Switch、Emit、Return                     |
@@ -232,7 +232,7 @@ try output.writeAll(generated);
 
 ## Task 与 Switch 执行
 
-Task.name 作为分组名称，不创建额外服务或并行调度。Task 内顺序执行；Task 和每个 Case/Default 内的 Call.out 只在当前作用域及其子层可见。它们可读取外部绑定，不能覆盖外部路径；兄弟分支可声明相同结果名。没有隐式分支结果合并，需要返回时在各分支显式 Return。
+普通顺序 Task 的 name 作为分组名称，不创建额外服务或并行调度。Task 内顺序执行；Task 和每个 Case/Default 内的 Call.out 只在当前作用域及其子层可见。它们可读取外部绑定，不能覆盖外部路径；兄弟分支可声明相同结果名。没有隐式分支结果合并，需要返回时在各分支显式 Return。Return 结束所在执行边界：模块，或下文定义的直属 Parallel Task。
 
 ```xml
 <Module>
@@ -256,7 +256,7 @@ Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。De
 
 ## Parallel 调用执行
 
-Parallel 的直接 Call.fn、Call.service 和编译模块 Call 可以并行执行。全部输入在父线程按声明顺序计算，分支不能引用兄弟分支的输出；全部线程结束后，直接 Call.out 一起进入外层作用域，输出路径不得互相重叠。无 out 的 Call 仍执行，其错误仍传播。Task 分支尚未接入，遇到时明确拒绝。
+Parallel 的直接 Call.fn、Call.service 和编译模块 Call 可以并行执行。直属 Call 的输入和 Task 捕获参数在父线程按声明顺序计算；Task 内部调用参数随其步骤在工作线程求值。分支不能引用兄弟分支的输出；全部线程结束后，直接 Call.out 一起进入外层作用域，输出路径不得互相重叠。无 out 的 Call 仍执行，其错误仍传播。直属 Task 分支已支持独立多步骤纯计算，可用 Task.out 在汇合后公开返回值。Task.name 不产生隐式绑定；Task 内 Return 仅结束该并行分支，普通顺序 Task 仍作为所在执行边界内的分组。未写 Return 的分支输出为 void，不能绑定 out；非 void 分支必须覆盖全部返回路径。见 [并行任务参考](../../../../docs/2026-10-05/RX并行任务参考.md)。
 
 分支函数及其可达调用必须不含 Store 能力或原生 external 调用。Call.in 可以在父线程读取显式授权的 Store 快照，再将不可变值传给纯计算分支；这不允许工作线程更新 Store。所有分支共享父请求分配区，通过生成的互斥 allocator 保护分配操作，输出在父 arena 结束前保持有效。并行输入被借用，不能通过消费操作修改其外层所有者。
 
@@ -274,7 +274,7 @@ Parallel 的直接 Call.fn、Call.service 和编译模块 Call 可以并行执�
 | `stores`  | 可选的独立 Store 定义集合，每项为路径与真实 XML AST  |
 | `project` | 可选的既有 ZX 项目、包和原生接口配置                 |
 
-入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 service 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.service、Return、Task、Switch 与 Parallel Call 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store 引用独立分析并进入显式调用授权；Parallel Task 和事件仍明确拒绝。
+入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 service 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.service、Return、Task、Switch 与 Parallel Call/Task 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store 引用独立分析并进入显式调用授权；事件仍明确拒绝。
 
 子模块可以只有 `<Return value="$in" />`，由调用者或下游函数确定其类型。同一个文件在所有调用点共享一个契约，不按调用点生成不同类型的实例；不相容的调用会报错。未读取输入的子模块仍可接收调用者传来的有类型值；无使用、无调用约束的输入才默认为 void。完整集合仍无法确定的类型会报告推导失败。
 
