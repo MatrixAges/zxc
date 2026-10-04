@@ -158,6 +158,8 @@ switch (result.value) {
 
 validateModules 输出按输入顺序排列的 `{ path, data }`，path 是规范化后的注册标识，data 为 Module.Data。该接口只接受普通 Module AST；Gateway 和 Store 文件通过单文件入口校验。
 
+成功结果另提供 `dependency_order`，内容是原输入数组的索引，依赖模块排在引用它的模块之前，每个模块仅出现一次。`value.data` 仍保持输入顺序。`validateModules` 与真实文本入口 `parseModules` 使用同一顺序；失败结果的顺序为空，不暴露部分完成的计划。该顺序只证明已检查的依赖图可排序，不代表 service 已完成类型联结或执行。
+
 跨模块校验包括：重复文件注册、引用越界、目标不存在、自调用、直接/间接循环，以及嵌套控制结构中的 service 调用。共享子模块、菱形依赖和重复调用都允许。诊断包含源文件索引、原始行列位置和具体属性。
 
 单文件 validate 仅负责语法，不能代替完整模块集合的存在性和循环校验。两种入口均采用首错返回。
