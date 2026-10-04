@@ -1,0 +1,23 @@
+name: 'native-library-consumer'
+version: '1.0.0'
+library: 'library.zxcir'
+exports:
+    ./twice:
+        module: './twice'
+    ./once:
+        module: './once'
+native_modules:
+    - {
+          'name': 'library_native_6c9c0b66a907af74268a736d2868e8d92ff63965567327ece1d8f5b06c47aed2',
+          'path': 'native/library_native_6c9c0b66a907af74268a736d2868e8d92ff63965567327ece1d8f5b06c47aed2/source/choice.zig',
+          'dependencies': [],
+          'bundle_files': [],
+          'include_paths': [],
+          'abi_aliases':
+              [
+                  {
+                      'name': 'zig:choice',
+                      'specifier': 'library:93:/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/统一库/原生发布消费/native:library:96:/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/统一库/原生命令行消费/choice:zig:choice'
+                  }
+              ]
+      }

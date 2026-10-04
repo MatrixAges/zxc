@@ -1,0 +1,6 @@
+<Module>
+    <Call module="rx-store-consumer" in="$in" out="ctx.first" />
+    <Call module="rx-store-consumer" in="$in" out="ctx.second" />
+    <Return value="{first: ctx.first, second: ctx.second}" />
+
+</Module>

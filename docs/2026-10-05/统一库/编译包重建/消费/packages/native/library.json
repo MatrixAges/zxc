@@ -1,0 +1,61 @@
+{
+	"format_version": 2,
+	"library": "library.zxcir",
+	"ir_version": 9,
+	"public_modules": [
+		{
+			"name": "./twice",
+			"path": "public/public_6917705b18b7644c71d2d9c11fc5ccf1f86c8faa78fe02f7c5a5219a87d25f54.zig",
+			"dependencies": ["zxc_module_1e9bac08635623f876f02ef30a39aa9d1f864efc4eece416c940c01435e7fecd"]
+		},
+		{
+			"name": "./once",
+			"path": "public/public_c0127e46fb5f24e596381156a205121215baa0896217b970255e308068422874.zig",
+			"dependencies": ["zxc_module_6b81d04a55f35d483458b3d3c7bf128e9cded3c673df9959e0f046e11f1e673d"]
+		}
+	],
+	"store_initializers": [],
+	"native_sources_bundled": true,
+	"bundled_files": [
+		{
+			"path": "native/library_native_6c9c0b66a907af74268a736d2868e8d92ff63965567327ece1d8f5b06c47aed2/source/choice.zig",
+			"kind": "zig",
+			"sha256": "509d42e9dbed3327b46c2c16dab83cb2d75cd98f5c50bbc0838e76a57718cc06",
+			"referenced_from": null
+		}
+	],
+	"native_dependencies": [
+		{
+			"name": "library_native_6c9c0b66a907af74268a736d2868e8d92ff63965567327ece1d8f5b06c47aed2",
+			"header": null,
+			"c_imports": false,
+			"dynamic_resources": false,
+			"include_relocations": []
+		}
+	],
+	"generated_modules": [
+		{
+			"name": "zxc_module_85b3264a7b18e9bd91aeeee158fd4fcf6483a9058c4146f4eec12780983b57ee",
+			"path": "modules/zxc_module_85b3264a7b18e9bd91aeeee158fd4fcf6483a9058c4146f4eec12780983b57ee.zig",
+			"dependencies": ["library_native_6c9c0b66a907af74268a736d2868e8d92ff63965567327ece1d8f5b06c47aed2"]
+		},
+		{
+			"name": "zxc_module_6b81d04a55f35d483458b3d3c7bf128e9cded3c673df9959e0f046e11f1e673d",
+			"path": "modules/zxc_module_6b81d04a55f35d483458b3d3c7bf128e9cded3c673df9959e0f046e11f1e673d.zig",
+			"dependencies": ["zxc_module_85b3264a7b18e9bd91aeeee158fd4fcf6483a9058c4146f4eec12780983b57ee"]
+		},
+		{
+			"name": "zxc_module_1e9bac08635623f876f02ef30a39aa9d1f864efc4eece416c940c01435e7fecd",
+			"path": "modules/zxc_module_1e9bac08635623f876f02ef30a39aa9d1f864efc4eece416c940c01435e7fecd.zig",
+			"dependencies": [
+				"zxc_module_6b81d04a55f35d483458b3d3c7bf128e9cded3c673df9959e0f046e11f1e673d",
+				"zxc_module_85b3264a7b18e9bd91aeeee158fd4fcf6483a9058c4146f4eec12780983b57ee"
+			]
+		}
+	],
+	"external_build_requirements": {
+		"libraries": [],
+		"include_paths": [],
+		"library_paths": []
+	}
+}

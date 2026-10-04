@@ -1,0 +1,93 @@
+[
+	{
+		"command": [
+			"zig-out/bin/zxc",
+			"verify",
+			"docs/2026-10-05/统一库/编译包重建/验证原包/pkg.yaml",
+			"--solver",
+			"/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3",
+			"--out",
+			"docs/2026-10-05/统一库/编译包重建/证明/compiled"
+		],
+		"exit_code": 0,
+		"stdout": "",
+		"stderr": "public module .:\nverified: entry paths satisfy supported safety obligations and reached contracts; query: docs/2026-10-05/统一库/编译包重建/证明/compiled.cdb4ee2aea69cc6a83331bbe96dc2caa9a299d21329efb0336fc02a82e1839a8.smt2\npublic module ./toggle:\nverified: entry paths satisfy supported safety obligations and reached contracts; query: docs/2026-10-05/统一库/编译包重建/证明/compiled.b2579e363ad4cb7293590c8924e1df3b0eb7a8ed8b359ae18f1cff1ca9628dbe.smt2\npublic module ./types: type interface validated; no executable proof obligation\n"
+	},
+	{
+		"command": [
+			"zig-out/bin/zxc",
+			"build",
+			"docs/2026-10-05/统一库/编译包重建/验证原包/pkg.yaml",
+			"--mode",
+			"lib",
+			"--out",
+			"docs/2026-10-05/统一库/编译包重建/验证重建",
+			"--cache-stats",
+			"--solver",
+			"/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3"
+		],
+		"exit_code": 0,
+		"stdout": "",
+		"stderr": "verified: entry paths satisfy supported safety obligations and reached contracts; query: .zxc/proofs/f2c3004000bf91ba47969c2416b1c7fb1439b8876015e5fcca09b93ba7fe21ed/correctness.smt2\nverified: entry paths satisfy supported safety obligations and reached contracts; query: .zxc/proofs/ab88e8742becb9d00c9958033ac0b7d4f850e9695031671663e25640f287e6f9/correctness.smt2\nzxc generation: generated=4 reused=0 loaded=0 written=4 discarded=0 io_errors=0\n"
+	},
+	{
+		"command": [
+			"zig-out/bin/zxc",
+			"build",
+			"docs/2026-10-05/统一库/RX公开Store发布/pkg.yaml",
+			"--mode",
+			"lib",
+			"--out",
+			"docs/2026-10-05/统一库/编译包重建/Store重建",
+			"--cache-stats"
+		],
+		"exit_code": 0,
+		"stdout": "",
+		"stderr": "zxc generation: generated=9 reused=6 loaded=0 written=9 discarded=0 io_errors=0\n"
+	},
+	{
+		"command": [
+			"zig-out/bin/zxc",
+			"build",
+			"docs/2026-10-05/统一库/原生发布消费/native/pkg.yaml",
+			"--mode",
+			"lib",
+			"--out",
+			"docs/2026-10-05/统一库/编译包重建/原生重建",
+			"--cache-stats"
+		],
+		"exit_code": 0,
+		"stdout": "",
+		"stderr": "zxc generation: generated=6 reused=2 loaded=0 written=6 discarded=0 io_errors=0\n"
+	},
+	{
+		"command": [
+			"zig-out/bin/zxc",
+			"build",
+			"docs/2026-10-05/统一库/单入口归一/消费/library/pkg.yaml",
+			"--mode",
+			"lib",
+			"--out",
+			"docs/2026-10-05/统一库/编译包重建/单入口重建",
+			"--cache-stats"
+		],
+		"exit_code": 0,
+		"stdout": "",
+		"stderr": "zxc generation: generated=2 reused=0 loaded=0 written=2 discarded=0 io_errors=0\n"
+	},
+	{
+		"command": [
+			"zig-out/bin/zxc",
+			"build",
+			"docs/2026-10-05/统一库/RX公开Store发布/pkg.yaml",
+			"--mode",
+			"lib",
+			"--out",
+			"docs/2026-10-05/统一库/编译包重建/Store重建",
+			"--cache-stats"
+		],
+		"exit_code": 0,
+		"stdout": "",
+		"stderr": "zxc generation: generated=0 reused=15 loaded=9 written=0 discarded=0 io_errors=0\n"
+	}
+]

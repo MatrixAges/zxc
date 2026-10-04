@@ -1,0 +1,10 @@
+(set-logic QF_BV)
+(set-option :produce-models true)
+(set-option :timeout 10000)
+(declare-fun input_0 () (_ BitVec 8))
+(define-fun term_0 () Bool (not true))
+(define-fun term_1 () Bool (= input_0 input_0))
+(define-fun term_2 () Bool (not term_1))
+
+(assert (or term_0 term_2))
+(check-sat)
