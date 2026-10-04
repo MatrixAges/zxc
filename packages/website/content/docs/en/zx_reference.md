@@ -26,6 +26,8 @@ ZX uses no semicolons: an explicit `;` in code is a syntax error. Separate state
 | Copy       | `clone(value)`                                                                |
 | Transform  | Non-capturing expression callbacks for `map`, `filter`, `reduce`              |
 
+Template text normalizes literal CR and CRLF line endings to LF. Explicit `\r` escapes remain CR; literal LF, U+2028, and U+2029 are preserved. Ordinary string rules are unchanged.
+
 ### Unsupported assumptions
 
 Do not write `let`, `var`, `for`, `while`, `throw`, general closures, or user-defined generics. ZX's familiar syntax is not a promise of TypeScript compatibility. There is no JavaScript runtime underneath the generated program.
