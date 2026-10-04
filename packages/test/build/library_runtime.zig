@@ -41,6 +41,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
     step.dependOn(mixed_step);
     step.dependOn(@import("library_replay.zig").add(b, compiler, generator, target, optimize));
+    step.dependOn(@import("library_bundle.zig").add(b, compiler, generator, target, optimize));
 
     return step;
 }
