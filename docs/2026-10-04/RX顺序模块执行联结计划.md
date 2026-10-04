@@ -18,7 +18,7 @@ rx_analysis.module.infer 已输出各步骤的 argument/callee Program 与 Retur
 
 ## Answer：交付格式与成功标准
 
-新增 rx_analysis.module 的可执行 Program 交付，并在生成入口复用现有 genz；已有 calculate.rx 依赖示例最终通过真实 Zig 执行得出正确结果。公开参考记录接口、所有权及暂未接入的流程范围。每个完成的大功能提交并推送。
+新增 rx_analysis.module 的可执行 Program 交付，并在生成入口复用现有 genz；已有 function.rx 依赖示例最终通过真实 Zig 执行得出正确结果。公开参考记录接口、所有权及暂未接入的流程范围。每个完成的大功能提交并推送。
 
 ```mermaid
 flowchart LR
@@ -64,3 +64,11 @@ zig build-exe -O Debug --dep application -Mroot=packages/cli/src/cli/runner.zig 
 已证实真实示例可执行，未把此结果扩大为完整 RX CLI、service、分支、事件或 Store 支持。现有 zxc build 的 RX 入口装载尚需连接；带原生模块的发布路径、证明门禁及缓存仍须按正式 CLI 的既有机制接入。编译器生成结果继续经过形式化契约门禁，不直接绕过 compiler 后端去调用 genz。
 
 本会话未新增或运行测试、未调用浏览器。另一测试会话已报告基础、分配失败、原始诊断位置和结果绑定累计 30 项通过，并在继续独立验证生成结果；这些基础结果不能替代本阶段的实际运行值证据。
+
+### 独立执行结果补充
+
+测试会话阶段 251 已完成另外 10 项真实生成代码运行验证：真实 XML/ZX → infer → validateIr → emitBundle → Zig 编译 → execute；和既有 30 项契约检查一起为 15/15 步骤、40/40 通过。已阅读其执行记录确认覆盖范围。
+
+动态输入验证 increment→multiply 的非交换调用顺序、相邻 ctx.a/ctx.ab 与同函数重复导入。被丢弃的调用通过空列表导致 IndexOutOfBounds 的对照证明仍执行并传播错误。ASCII、中文/emoji 和空字符串的借用返回保持输入指针及内容。该借用证据针对原输入拥有数据的场景，不表示所有返回值可在执行 arena 释放后使用。
+
+本会话未执行上述测试，也未执行全量测试。完整 CLI、service、Store、分支、事件和 Gateway 仍待接入。

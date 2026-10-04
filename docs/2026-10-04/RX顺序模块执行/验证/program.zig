@@ -26,4 +26,3 @@ pub fn execute(arena: *((std).heap).ArenaAllocator, in: i32) anyerror!i32 {
 
     return value_1;
 }
-
