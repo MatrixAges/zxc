@@ -1,0 +1,22 @@
+<Module>
+  <Call fn="identity" in="$in.value" out="ctx.value" />
+
+  <Task name="choose">
+    <Switch on="$in.kind">
+      <Default>
+        <Return value="ctx.value" />
+      </Default>
+      <Case value='"double"'>
+        <Call service="double" in="ctx.value" out="ctx.result" />
+        <Return value="ctx.result" />
+      </Case>
+      <Case value='"absolute"'>
+        <Switch on="ctx.value &lt; 0">
+          <Case value="true"><Return value="-ctx.value" /></Case>
+          <Case value="false"><Return value="ctx.value" /></Case>
+
+        </Switch>
+      </Case>
+    </Switch>
+  </Task>
+</Module>

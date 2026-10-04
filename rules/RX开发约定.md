@@ -68,6 +68,6 @@ zig build test
 
 ## 能力边界
 
-`zxc check-rx` 支持显式普通模块文件集合，以及 `--entry` 的普通模块/Gateway 可达依赖装载和 Store 定义检查。Gateway 先沿所有嵌套 Route.service 找到普通模块；普通模块沿 Import、所有嵌套 Call.service 和 Store.from 装载。入口装载检查物理身份和项目根边界，普通模块子集最终仍调用完整集合校验；Gateway/Store 只进入各自 Schema 检查，不混入普通调用图。它不扫描不可达文件。`zxc build` 已支持普通模块顺序 Call.fn/Call.service/Return 的项目推导与应用构建；事件订阅调度及 Store/Gateway 宿主联结尚未实现。Emit 的语法存在不代表事件处理已经可运行。表达式解析、ZX 类型联结、Store 初值解码等能力也不能从结构校验成功推断出来。
+`zxc check-rx` 支持显式普通模块文件集合，以及 `--entry` 的普通模块/Gateway 可达依赖装载和 Store 定义检查。Gateway 先沿所有嵌套 Route.service 找到普通模块；普通模块沿 Import、所有嵌套 Call.service 和 Store.from 装载。入口装载检查物理身份和项目根边界，普通模块子集最终仍调用完整集合校验；Gateway/Store 只进入各自 Schema 检查，不混入普通调用图。它不扫描不可达文件。`zxc build` 已支持普通模块 Call.fn/Call.service/Return、Task 和 Switch 的项目推导与应用构建；事件订阅调度及 Store/Gateway 宿主联结尚未实现。Emit 的语法存在不代表事件处理已经可运行。表达式解析、ZX 类型联结、Store 初值解码等能力也不能从结构校验成功推断出来。
 
 维护公开指导时，用使用者能理解的版本和环境能力描述这些限制，不要求使用者阅读内部 AST、修改编译器或运行 zxc 仓库测试。

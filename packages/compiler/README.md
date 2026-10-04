@@ -100,7 +100,7 @@ Store 使用 compileWithContext 或 project.Options.context.stores，每项声�
 
 这些接口尚未自动建立 RX 前序 Call.out 的可见环境，也不负责 XML 属性位置映射、分支合流或 RX 编排执行。提供者表达式与 ZX 入口组合生成时必须共享同一份类型表和 zxc_abi，不能凭对象字段相同就互传两个独立 Zig 模块中的匿名类型。
 
-`dependency.module("rx_analysis")` 中的 `expression.compile` 编译真实 XML 属性并映射源码范围。`rx_analysis.project.infer` 从真实模块集合共同推导输入输出类型，联结顺序 Call.fn、Call.service 与 Return，并由 CLI 生成独立应用。分支、Store、事件和 Gateway 执行仍未接通；用法及范围见 [RX reference](src/rx/README.md)。API 与所有权约定见[显式表达式编译参考](../../docs/2026-10-04/显式表达式编译参考.md)。
+`dependency.module("rx_analysis")` 中的 `expression.compile` 编译真实 XML 属性并映射源码范围。`rx_analysis.project.infer` 从真实模块集合共同推导输入输出类型，联结 Call.fn、Call.service、Return、Task 与 Switch，并由 CLI 生成独立应用。Store、Parallel、事件和 Gateway 执行仍未接通；用法及范围见 [RX reference](src/rx/README.md)。API 与所有权约定见[显式表达式编译参考](../../docs/2026-10-04/显式表达式编译参考.md)。
 
 IR 实验版本 8 移除 Context 注入槽位与读取节点，保留原生声明组 identity。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
 

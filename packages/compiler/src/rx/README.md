@@ -1,6 +1,6 @@
 # RX
 
-`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；普通顺序 Call.fn/Call.service/Return 已支持生成独立应用；其余流程执行能力见本文边界。
+`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；普通 Call.fn/Call.service/Return、Task 和 Switch 已支持生成独立应用；其余流程执行能力见本文边界。
 
 ## 构建与测试
 
@@ -166,7 +166,7 @@ validateModules 输出按输入顺序排列的 `{ path, data }`，path 是规范
 
 结果列表及规范化路径由 arena 持有，字符串借用 AST；输入 AST 必须活到结果使用结束。成功和失败都要 deinit，OutOfMemory 通过错误联合返回。
 
-## 顺序模块类型推导
+## 模块类型推导
 
 Zig 构建模块 `rx_analysis` 提供两个独立拥有 arena 的接口；结果使用后调用 `deinit()`。
 
@@ -198,7 +198,7 @@ switch (inferred.value) {
 }
 ```
 
-当前 module.infer 接受顺序 `Call.fn` 与最后的 `Return`。`module.infer` 使用项目入口处理单个普通模块；有 service 依赖时应传入完整集合。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；`Call.out` 绑定可供后续步骤与 Return 使用。绑定路径不能重叠，也不能覆盖 `$in`；Return 后的步骤拒绝为不可达。输入既未被使用、也没有调用约束时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
+当前 module.infer 接受 `Call.fn`、`Return`、Task 分组与 Switch 分支。`module.infer` 使用项目入口处理单个普通模块；有 service 依赖时应传入完整集合。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；`Call.out` 绑定可供后续步骤与 Return 使用。绑定路径不能重叠，也不能覆盖 `$in`；Return 或必然返回的分支之后的步骤拒绝为不可达。输入既未被使用、也没有调用约束时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
 
 数组字面量保留各元素的类型约束，等待目标上下文决定 list 或 tuple；目标仍不明确时才采用同质列表。嵌套数组先默认外层，再将得到的元素类型传回内层，避免把可接受 tuple 上下文的字面量提前固定为 list。空列表没有足够元素类型信息时仍拒绝推导。
 
@@ -218,6 +218,30 @@ try output.writeAll(generated);
 
 包含原生模块时使用 `compiler.zig.emitBundle` 的共享 ABI 输出。包含形式化契约时仍须先完成既有证明流程，生成门禁不会因来自 RX 而放宽。生成的 Zig 模块提供 `Input`、`Output` 与 `execute(arena, input)`，arena 必须覆盖返回聚合值的使用生命周期。
 
+## Task 与 Switch 执行
+
+Task.name 作为分组名称，不创建额外服务或并行调度。Task 内顺序执行；Task 和每个 Case/Default 内的 Call.out 只在当前作用域及其子层可见。它们可读取外部绑定，不能覆盖外部路径；兄弟分支可声明相同结果名。没有隐式分支结果合并，需要返回时在各分支显式 Return。
+
+```xml
+<Module>
+  <Task name="choose">
+    <Switch on="$in.enabled">
+      <Case value="true">
+        <Call fn="calculate" in="$in.value" out="ctx.result" />
+        <Return value="ctx.result" />
+      </Case>
+      <Default><Return value="$in.value" /></Default>
+    </Switch>
+  </Task>
+</Module>
+```
+
+Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。Default 可以出现在任意位置；没有 Default 且未匹配时继续 Switch 后的步骤。整数、bool 与字符串使用 ZX 字面量标签；字符串示例为 `value='"ready"'`，不能省略字符串引号。标签必须是字面量，不能用运行中绑定或算术表达式替代常量；解码后相同的标签也拒绝重复。枚举成员名称尚受 RX 表达式类型命名环境限制，不能因底层 IR 支持枚举 switch 就认为已经提供 RX 枚举导入。
+
+所有分支约束同一个模块 Output。非 void 模块必须在全部路径返回；含 true/false 两个标签的 bool Switch 无需额外 Default。Return 结束当前模块，即使位于 Task 或嵌套 Switch 内也不会仅退出分组。Call.service 的 Return 不结束其调用者。
+
+完整流程仍执行路径敏感所有权及 IR 校验。未选分支不会执行，但其调用目标、类型和依赖仍在编译期检查。可运行材料见 [RX 控制流示例](../../../../docs/2026-10-04/RX控制流/示例/main.rx)。
+
 ## 项目服务联结
 
 `rx_analysis.project.infer(allocator, options)` 返回与单模块相同的 `Result`，成功时提供入口模块的完整 `contract.program`。options 包含：
@@ -229,7 +253,7 @@ try output.writeAll(generated);
 | `sources` | 所有 Call.fn 所需的 ZX 源集合及其导入闭包            |
 | `project` | 可选的既有 ZX 项目、包和原生接口配置                 |
 
-入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 service 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集顺序 Call.fn、Call.service 和 Return 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store、分支、事件及其他流程节点仍明确拒绝。
+入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 service 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.service、Return、Task 与 Switch 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store、Parallel 和事件仍明确拒绝。
 
 子模块可以只有 `<Return value="$in" />`，由调用者或下游函数确定其类型。同一个文件在所有调用点共享一个契约，不按调用点生成不同类型的实例；不相容的调用会报错。未读取输入的子模块仍可接收调用者传来的有类型值；无使用、无调用约束的输入才默认为 void。完整集合仍无法确定的类型会报告推导失败。
 
