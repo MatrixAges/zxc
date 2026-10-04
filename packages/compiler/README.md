@@ -25,6 +25,8 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 
 `compiler.library.codec.encode(allocator, &result)` 返回需由调用方释放的模块产物字节；`decode(allocator, bytes)` 返回独立持有 arena 的 Result，输入 bytes 可先释放。编码和解码均检查统一 IR 与公共接口；解码另检查内容摘要和版本。不兼容 IR 版本返回 IncompatibleLibraryVersion，其他无效产物返回 InvalidLibrary。此接口只承载编译图，包配置、原生资源和初始化闭包仍由后续发行流程接入。
 
+`compiler.zig.emitLibrary(allocator, &result)` 将统一模块图生成一份共享 ABI、多个公开模块和公开依赖并集中的内部函数文件；`emitLibraryCached(allocator, &result, &cache)` 复用既有生成缓存。结果使用 `deinit()` 释放，全部生成文本及依赖名称由结果持有，原始 Result 可提前释放。`public_modules` 保留公开名称与生成文件的映射，文件名由公开名称摘要决定，不直接使用公开路径。未证明契约仍被拒绝；该接口不负责复制原生文件或装配 Store 初始化。
+
 同一外部模块的同一公开导出被多次导入时，共享其签名中的枚举身份；导入文件与局部别名不会产生新类型。不同模块或不同导出的独立签名不按形状合并。多个导出需要共享声明时，使用共同的原生声明接口。
 
 ZX 代码不允许显式分号。简单语句与声明通过换行、块结束或文件结束分隔；对象类型字段使用逗号或换行。字符串、注释和模板原文中的分号保留为内容。表达式可跨行，`return` 后换行不会自动截断返回值。
