@@ -20,11 +20,22 @@ for (const [scalar, values] of Object.entries(examples)) {
 		input: index,
 		expected: { value: scalar === 'f64' && Number.isInteger(value) ? rawJson(String(value) + '.0') : value }
 	}))
-	const branches = values.map(([token], index) => `    case ${index}: return ${token};\n`).join('')
+	const branches = values
+		.map(
+			([token], index) => `    case ${index}: return ${token}
+`
+		)
+		.join('')
 	const source =
-		`export type Input = u64;\n\nexport type Output = ${scalar};\n\nexport default function (in: Input): Output {\n  switch (in) {\n` +
+		`export type Input = u64
+
+export type Output = ${scalar}
+
+export default function (in: Input): Output {
+  switch (in) {
+` +
 		branches +
-		'    default: return 0;\n  }\n}\n'
+		'    default: return 0\n  }\n}\n'
 	const base = `tests/language/lexical/numeric/literals_${scalar}`
 
 	writeCatalog(base + '.jsonl', rows)

@@ -1,15 +1,16 @@
-export type Input = u64[];
+export type Input = u64[]
 
-export type Output = { values: u64[]; removed: u64?; };
+export type Output = { values: u64[]
+ removed: u64? }
 
 export default function (in: Input): Output {
-  const empty: u64[] = [];
+  const empty: u64[] = []
 
-  const [items, _] = empty.concat(in);
-  const [with_item, _] = items.push(7);
-  const [rest, removed] = with_item.pop();
-  const [ordered, _] = rest.sort();
-  const [reversed, _] = ordered.reverse();
+  const [items, _] = empty.concat(in)
+  const [with_item, _] = items.push(7)
+  const [rest, removed] = with_item.pop()
+  const [ordered, _] = rest.sort()
+  const [reversed, _] = ordered.reverse()
 
-  return { values: reversed, removed: removed };
+  return { values: reversed, removed: removed }
 }

@@ -73,12 +73,20 @@ for (const width of [32, 64]) {
 	}
 
 	const fields = Object.keys(operators)
-		.map(name => `${name}: bool;`)
+		.map(name => `${name}: bool,`)
 		.join(' ')
 	const results = Object.entries(operators)
 		.map(([name, operator]) => `${name}: in.left ${operator} in.right`)
 		.join(', ')
-	const source = `export type Input = { left: ${scalar}; right: ${scalar}; };\n\nexport type Output = { ${fields} };\n\nexport default function (in: Input): Output {\n  return { ${results} };\n}\n`
+	const source = `export type Input = { left: ${scalar}
+ right: ${scalar} }
+
+export type Output = { ${fields} }
+
+export default function (in: Input): Output {
+  return { ${results} }
+}
+`
 	const root = 'tests/language/expressions/comparison/'
 
 	writeCatalog(root + scalar + '.jsonl', rows)

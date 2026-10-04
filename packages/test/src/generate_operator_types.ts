@@ -6,7 +6,7 @@ const types = {
 	bool: 'bool',
 	string: 'string',
 	list: 'u64[]',
-	object: '{ value: u64; }'
+	object: '{ value: u64 }'
 }
 const operators = {
 	add: '+',
@@ -36,7 +36,15 @@ for (const [name, operator] of Object.entries(operators)) {
 			if (['and', 'or'].includes(name)) allowed = left === 'bool' && right === 'bool'
 
 			const output = arithmetic ? (numeric.includes(left) ? left_type : 'u64') : 'bool'
-			const source = `export type Input = { left: ${left_type}; right: ${right_type}; };\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n  return in.left ${operator} in.right;\n}\n`
+			const source = `export type Input = { left: ${left_type}
+ right: ${right_type} }
+
+export type Output = ${output}
+
+export default function (in: Input): Output {
+  return in.left ${operator} in.right
+}
+`
 			rows.push({
 				id: `language/types/operators/${name}/${left}/${right}`,
 				source,

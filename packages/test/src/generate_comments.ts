@@ -3,7 +3,12 @@ import { writeCatalog, writeOutput } from './shared/catalog.ts'
 type Case = { id: string; source: string; phase: string; diagnostic: string | null; span?: Array<number> }
 
 function program(output: string, body: string): string {
-	return `export type Input = void;\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n${body}\n}\n`
+	return `export type Input = void
+
+export type Output = ${output}
+
+export default function (in: Input): Output {
+${body}\n}\n`
 }
 
 const whitespace: Record<string, string> = {
@@ -29,10 +34,10 @@ for (const [name, characters] of Object.entries(whitespace)) {
 		const expression = '-' + characters + '1'
 		const source =
 			context === 'leading'
-				? characters + program('i64', '  return -1;')
+				? characters + program('i64', '  return -1\n')
 				: program(
 						context === 'interpolation' ? 'string' : 'i64',
-						'  return ' + (context === 'interpolation' ? '`value=${' + expression + '}`' : expression) + ';'
+						'  return ' + (context === 'interpolation' ? '`value=${' + expression + '}`' : expression)
 					)
 		const start = rejected ? Buffer.byteLength(source.slice(0, source.indexOf(rejected))) : 0
 		rows.push({
@@ -46,15 +51,15 @@ for (const [name, characters] of Object.entries(whitespace)) {
 }
 
 const endings = { lf: '\n', cr: '\r', crlf: '\r\n', lfcr: '\n\r' }
-const payloads = ['', '/', 'return missing;', '/* not a block', '*/', '} ` ${ {', '中文🌱']
+const payloads = ['', '/', 'return missing\n', '/* not a block', '*/', '} ` ${ {', '中文🌱']
 
 for (const [ending_name, ending] of Object.entries(endings)) {
 	for (const [index, payload] of payloads.entries()) {
 		for (const context of ['statement', 'interpolation']) {
 			const body =
 				context === 'statement'
-					? `  //${payload}${ending}  return 7;`
-					: '  return `value=${//' + payload + ending + '7}`;'
+					? `  //${payload}${ending}  return 7`
+					: '  return `value=${//' + payload + ending + '7}`'
 			rows.push({
 				id: `language/lexical/comments/line/${ending_name}/${index}/${context}`,
 				source: program(context === 'statement' ? 'u64' : 'string', body),
@@ -75,7 +80,7 @@ for (const [name, text] of Object.entries({
 })) {
 	rows.push({
 		id: `language/lexical/comments/mixed/${name}`,
-		source: text + '\n' + program('u64', '  return 7;'),
+		source: text + '\n' + program('u64', '  return 7\n'),
 		phase: 'analyze',
 		diagnostic: null
 	})
@@ -121,16 +126,19 @@ const runtime_rows = expressions.map(({ name, value }, index) => ({
 }))
 const branches = expressions
 	.map(({ name, expression }, index) => {
-		if (name.endsWith('/statement')) return `    case ${index}: ${expression};\n`
+		if (name.endsWith('/statement'))
+			return `    case ${index}: ${expression}
+`
 
-		return `    case ${index}: return ${name.endsWith('/interpolation') ? expression : '`${' + expression + '}`'};\n`
+		return `    case ${index}: return ${name.endsWith('/interpolation') ? expression : '`${' + expression + '}`'}
+`
 	})
 	.join('')
 
 writeCatalog('tests/language/lexical/comments/runtime.jsonl', runtime_rows)
 writeOutput(
 	'tests/language/lexical/comments/runtime.zx',
-	'export type Input = u64;\n\nexport type Output = string;\n\nexport default function (in: Input): Output {\n  switch (in) {\n' +
+	'export type Input = u64\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n  switch (in) {\n' +
 		branches +
-		'    default: return "";\n  }\n}\n'
+		'    default: return ""\n  }\n}\n'
 )

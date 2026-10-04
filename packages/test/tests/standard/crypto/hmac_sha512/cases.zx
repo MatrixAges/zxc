@@ -1,9 +1,14 @@
-import crypto from "std:crypto";
+import crypto from "std:crypto"
 
-export type Input = { key: u8[]; data: u8[]; tag: u8[]; bad: u8[]; };
+export type Input = { key: u8[]
+ data: u8[]
+ tag: u8[]
+ bad: u8[] }
 
-export type Output = { tag: u8[]; valid: bool; invalid: bool; };
+export type Output = { tag: u8[]
+ valid: bool
+ invalid: bool }
 
 export default function (in: Input): Output {
-  return { tag: crypto.hmacSha512({ key: in.key, data: in.data }), valid: crypto.verifyHmacSha512({ key: in.key, data: in.data, tag: in.tag }), invalid: crypto.verifyHmacSha512({ key: in.key, data: in.data, tag: in.bad }) };
+  return { tag: crypto.hmacSha512({ key: in.key, data: in.data }), valid: crypto.verifyHmacSha512({ key: in.key, data: in.data, tag: in.tag }), invalid: crypto.verifyHmacSha512({ key: in.key, data: in.data, tag: in.bad }) }
 }

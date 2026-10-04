@@ -3,11 +3,11 @@ ZX는 리스트 변환과 소유권을 드러냅니다. 입력 컬렉션은 빌�
 ### 일반 반복문 없이 변환하기
 
 ```typescript
-export type Input = u64[][];
-export type Output = u64[];
+export type Input = u64[][]
+export type Output = u64[]
 
 export default function (in: Input): Output {
-  return in.map((row) => row.filter((item) => item > 2).reduce((sum, item) => sum + item, 0));
+  return in.map((row) => row.filter((item) => item > 2).reduce((sum, item) => sum + item, 0))
 }
 ```
 
@@ -18,17 +18,17 @@ export default function (in: Input): Output {
 값을 소비하는 연산은 튜플을 반환합니다. 결과 리스트를 새 이름에 바인딩하고 불필요한 결과는 `_`로 버리세요.
 
 ```typescript
-export type Input = u64[];
-export type Output = u64[];
+export type Input = u64[]
+export type Output = u64[]
 
 export default function (in: Input): Output {
-  const items = clone(in);
-  const [with_item, _] = items.push(7);
-  const [rest, removed] = with_item.pop();
-  const [ordered, _] = rest.sort();
-  const [reversed, _] = ordered.reverse();
+  const items = clone(in)
+  const [with_item, _] = items.push(7)
+  const [rest, removed] = with_item.pop()
+  const [ordered, _] = rest.sort()
+  const [reversed, _] = ordered.reverse()
 
-  return reversed;
+  return reversed
 }
 ```
 

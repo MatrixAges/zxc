@@ -1,7 +1,8 @@
-export type Input = { left: f64; right: f64; };
+export type Input = { left: f64
+ right: f64 }
 
-export type Output = { less: bool; less_equal: bool; greater: bool; greater_equal: bool; equal: bool; not_equal: bool; };
+export type Output = { less: bool, less_equal: bool, greater: bool, greater_equal: bool, equal: bool, not_equal: bool, }
 
 export default function (in: Input): Output {
-  return { less: in.left < in.right, less_equal: in.left <= in.right, greater: in.left > in.right, greater_equal: in.left >= in.right, equal: in.left == in.right, not_equal: in.left != in.right };
+  return { less: in.left < in.right, less_equal: in.left <= in.right, greater: in.left > in.right, greater_equal: in.left >= in.right, equal: in.left == in.right, not_equal: in.left != in.right }
 }

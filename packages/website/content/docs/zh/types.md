@@ -29,18 +29,18 @@ ZX 在生成 Zig 之前确定具体类型，不采用 JavaScript 的单一数值
 
 ```typescript
 export type Input = {
-  amount: u64;
-  label: string?;
-  adjustments: u64[];
-};
+  amount: u64
+  label: string?
+  adjustments: u64[]
+}
 
 export type Output = {
-  amount: u64;
-  label: string;
-};
+  amount: u64
+  label: string
+}
 
 export default function (in: Input): Output {
-  return { amount: in.amount, label: in.label ?? 'untitled' };
+  return { amount: in.amount, label: in.label ?? 'untitled' }
 }
 ```
 

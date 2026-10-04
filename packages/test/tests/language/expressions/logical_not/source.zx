@@ -1,27 +1,27 @@
-export type Input = u64;
+export type Input = u64
 
-export type Output = bool;
+export type Output = bool
 
 export default function (in: Input): Output {
-  const x = true;
-  const object = { prop: true };
+  const x = true
+  const object = { prop: true }
 
   switch (in) {
-    case 0: return !true;
-    case 1: return !(!true);
-    case 2: return !x;
-    case 3: return !(!x);
-    case 4: return !object.prop;
-    case 5: return !false;
-    case 6: return !(true);
-    case 7: return !(false);
-    case 8: return !	true;
-    case 9: return !true;
-    case 10: return !true;
-    case 11: return ! true;
+    case 0: return !true
+    case 1: return !(!true)
+    case 2: return !x
+    case 3: return !(!x)
+    case 4: return !object.prop
+    case 5: return !false
+    case 6: return !(true)
+    case 7: return !(false)
+    case 8: return !	true
+    case 9: return !true
+    case 10: return !true
+    case 11: return ! true
     case 12: return !
-true;
-    case 13: return !true;
-    default: return false;
+true
+    case 13: return !true
+    default: return false
   }
 }

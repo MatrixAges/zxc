@@ -1,16 +1,18 @@
 import { writeCatalog, writeOutput } from './shared/catalog.ts'
 
-const source = `import encoding from "std:encoding";
+const source = `import encoding from "std:encoding"
 
-export type Input = { kind: u8; text: string; bytes: u8[]; };
+export type Input = { kind: u8
+ text: string
+ bytes: u8[] }
 
-export type Output = u8[];
+export type Output = u8[]
 
 export default function (in: Input): Output {
   switch (in.kind) {
-    case 0: return encoding.decodeBase64(in.text);
-    case 1: return encoding.decodeHex(in.text);
-    default: return encoding.encodeUtf8(encoding.decodeUtf8(in.bytes));
+    case 0: return encoding.decodeBase64(in.text)
+    case 1: return encoding.decodeHex(in.text)
+    default: return encoding.encodeUtf8(encoding.decodeUtf8(in.bytes))
   }
 }
 `

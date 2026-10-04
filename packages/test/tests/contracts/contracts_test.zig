@@ -1,7 +1,7 @@
 const std = @import("std");
 const compiler = @import("compiler");
-const prefix = "export type Input = u64;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output ";
-const suffix = " {\n  return in;\n}\n";
+const prefix = "export type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output ";
+const suffix = " {\n  return in\n}\n";
 const valid = prefix ++ "requires(in > 0) ensures(out >= in)" ++ suffix;
 
 test "contract IR has scoped bool predicates and emission requires proof" {
@@ -82,7 +82,7 @@ fn checkAllocation(allocator: std.mem.Allocator) !void {
 
 test "project compilation cannot bypass an imported unverified contract" {
     const result = try compiler.compileProject(std.testing.allocator, &.{
-        .{ .path = "main.zx", .source = "import dependency from \"./dependency.zx\";\n\nexport type Input = u64;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return dependency(in);\n}\n" },
+        .{ .path = "main.zx", .source = "import dependency from \"./dependency.zx\"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return dependency(in)\n}\n" },
         .{ .path = "dependency.zx", .source = valid },
     }, .{ .entry = "main.zx" });
 

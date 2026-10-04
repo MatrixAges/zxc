@@ -6,7 +6,7 @@ const Name = grammar.reference(ast.Name, Parser.name);
 const Named = grammar.sequence(.{ grammar.token("{"), grammar.separated(Name, ",", "}"), grammar.required(grammar.token("}"), "expected }") });
 const Names = struct { names: []const ast.Name, named: bool };
 const Bindings = grammar.choice(.{ grammar.map(Named, Names, named), grammar.map(Name, Names, single) });
-const Rule = grammar.sequence(.{ grammar.token("import"), grammar.optional(grammar.token("type")), Bindings, grammar.required(grammar.token("from"), "expected from"), grammar.reference([]const u8, path), grammar.required(grammar.token(";"), "expected ;") });
+const Rule = grammar.sequence(.{ grammar.token("import"), grammar.optional(grammar.token("type")), Bindings, grammar.required(grammar.token("from"), "expected from"), grammar.reference([]const u8, path), grammar.reference(void, Parser.endStatement) });
 pub const Import = grammar.map(Rule, ast.Import, declaration);
 
 fn named(_: *Parser, values: Named.Value) zx.Error!Names {

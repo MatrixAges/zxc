@@ -6,7 +6,7 @@ import { stringify } from 'yaml'
 
 type Run = (args: { command: string; argv: Array<string>; cwd: string; failure?: string }) => string
 const source =
-	'import native from "zig:sample";\n\nexport type Input = u64;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return native.apply(in);\n}\n'
+	'import native from "zig:sample"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return native.apply(in)\n}\n'
 
 function config(bundle_files: Array<string>) {
 	return {
@@ -14,7 +14,7 @@ function config(bundle_files: Array<string>) {
 			{
 				specifier: 'zig:sample',
 				export_name: 'apply',
-				signature: 'export type Input = u64; export type Output = u64;',
+				signature: 'export type Input = u64\n export type Output = u64\n',
 				implementation: { module: 'sample_native', member: 'apply' }
 			}
 		],
@@ -69,7 +69,7 @@ export default function checkNativeBundle(args: { directory: string; executable:
 
 	writeFileSync(
 		join(moved, 'consumer.zx'),
-		'import library from "library";\n\nexport type Input = u64;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return library(in);\n}\n'
+		'import library from "library"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return library(in)\n}\n'
 	)
 	const application = join(directory, process.platform === 'win32' ? 'native_consumer.exe' : 'native_consumer')
 

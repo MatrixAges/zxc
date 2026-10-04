@@ -1,7 +1,14 @@
 import { writeCatalog } from './shared/catalog.ts'
 
 function program(output: string, expression: string): string {
-	return `export type Input = void;\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n  return ${expression};\n}\n`
+	return `export type Input = void
+
+export type Output = ${output}
+
+export default function (in: Input): Output {
+  return ${expression}
+}
+`
 }
 
 const suffixes = {

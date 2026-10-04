@@ -4,7 +4,7 @@ const ast = zx.ast;
 const grammar = @import("combinators.zig");
 const Name = grammar.reference(ast.Name, Parser.name);
 const Type = grammar.reference(*const ast.Type, parse);
-const Field = grammar.sequence(.{ Name, grammar.optional(grammar.token("?")), grammar.required(grammar.token(":"), "expected :"), Type, grammar.optional(grammar.choice(.{ grammar.token(";"), grammar.token(",") })) });
+const Field = grammar.sequence(.{ Name, grammar.optional(grammar.token("?")), grammar.required(grammar.token(":"), "expected :"), Type, grammar.optional(grammar.token(",")) });
 const Object = grammar.sequence(.{ grammar.token("{"), grammar.reference([]const ast.TypeField, fields), grammar.required(grammar.token("}"), "expected }") });
 const Tuple = grammar.sequence(.{ grammar.token("["), grammar.separated(Type, ",", "]"), grammar.required(grammar.token("]"), "expected ]") });
 const Argument = grammar.sequence(.{ grammar.token("<"), Type, grammar.required(grammar.token(">"), "expected >") });
@@ -64,7 +64,7 @@ const FieldRule = struct {
 
         const values = try grammar.run(Field, parser, "expected a type field");
 
-        if (values[4] == null and !parser.at("}")) return parser.reporter.fail(.syntax, parser.current().span, "expected ; or , between type fields");
+        if (values[4] == null and !parser.at("}") and !parser.lineBreak()) return parser.reporter.fail(.syntax, parser.current().span, "expected a comma or newline between type fields");
 
         return .{ .hit = .{ .name = values[0], .value = if (values[1] != null) try wrap(parser, .{ .optional = values[3] }) else values[3] } };
     }

@@ -1,7 +1,7 @@
-export type Input = { items: i64[][]; };
+export type Input = { items: i64[][], }
 
-export type Output = i64[];
+export type Output = i64[]
 
 export default function (in: Input): Output {
-  return in.items.map(row => row[0]);
+  return in.items.map(row => row[0])
 }

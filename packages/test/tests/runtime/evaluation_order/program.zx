@@ -1,14 +1,16 @@
-import readLeft from "lib:probe-left";
-import readRight from "lib:probe-right";
+import readLeft from "lib:probe-left"
+import readRight from "lib:probe-right"
 
-export type Input = { reverse: bool; fail_left: bool; fail_right: bool; };
+export type Input = { reverse: bool
+ fail_left: bool
+ fail_right: bool }
 
-export type Output = f64;
+export type Output = f64
 
 export default function (in: Input): Output {
   if (in.reverse) {
-    return readRight(in.fail_right) * readLeft(in.fail_left);
+    return readRight(in.fail_right) * readLeft(in.fail_left)
   }
 
-  return readLeft(in.fail_left) * readRight(in.fail_right);
+  return readLeft(in.fail_left) * readRight(in.fail_right)
 }

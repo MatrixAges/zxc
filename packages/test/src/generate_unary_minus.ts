@@ -3,10 +3,10 @@ import { decode } from './models/ieee.ts'
 import { writeCatalog, writeOutput } from './shared/catalog.ts'
 
 const bodies = {
-	direct: '  return -in;',
-	binding: '  const value = in;\n\n  return -value;',
-	double: '  return -(-in);',
-	field: '  const object = { value: in };\n\n  return -object.value;'
+	direct: '  return -in\n',
+	binding: '  const value = in\n\n  return -value\n',
+	double: '  return -(-in)\n',
+	field: '  const object = { value: in }\n\n  return -object.value\n'
 }
 
 for (const width of [32, 64]) {
@@ -24,7 +24,12 @@ for (const width of [32, 64]) {
 		writeCatalog(base + '.jsonl', rows)
 		writeOutput(
 			base + '.zx',
-			`export type Input = ${scalar};\n\nexport type Output = ${scalar};\n\nexport default function (in: Input): Output {\n${body}\n}\n`
+			`export type Input = ${scalar}
+
+export type Output = ${scalar}
+
+export default function (in: Input): Output {
+${body.trimEnd()}\n}\n`
 		)
 	}
 }
@@ -41,7 +46,7 @@ const types = {
 	bool: 'bool',
 	string: 'string',
 	list: 'u64[]',
-	object: '{ value: u64; }'
+	object: '{ value: u64 }'
 }
 const rows: Array<{ id: string; source: string; phase: string; diagnostic: string | null; span?: Array<number> }> = []
 
@@ -49,7 +54,14 @@ for (const [name, type] of Object.entries(types)) {
 	const allowed = ['i32', 'i64', 'f32', 'f64'].includes(name)
 	rows.push({
 		id: `language/types/unary_minus/${name}`,
-		source: `export type Input = ${type};\n\nexport type Output = ${type};\n\nexport default function (in: Input): Output {\n  return -in;\n}\n`,
+		source: `export type Input = ${type}
+
+export type Output = ${type}
+
+export default function (in: Input): Output {
+  return -in
+}
+`,
 		phase: 'analyze',
 		diagnostic: allowed ? null : 'type_mismatch'
 	})
@@ -58,15 +70,29 @@ for (const [name, type] of Object.entries(types)) {
 for (const literal of ['""', '"1"', '"x"', 'false', 'true']) {
 	rows.push({
 		id: `language/types/unary_minus/literal/${literal}`,
-		source: `export type Input = void;\n\nexport type Output = f64;\n\nexport default function (in: Input): Output {\n  return -${literal};\n}\n`,
+		source: `export type Input = void
+
+export type Output = f64
+
+export default function (in: Input): Output {
+  return -${literal}
+}
+`,
 		phase: 'analyze',
 		diagnostic: 'type_mismatch'
 	})
 }
 
 for (const declared of [false, true]) {
-	const binding = declared ? '  const missing = in;\n\n' : ''
-	const source = `export type Input = f64;\n\nexport type Output = f64;\n\nexport default function (in: Input): Output {\n${binding}  return -missing;\n}\n`
+	const binding = declared ? '  const missing = in\n\n' : ''
+	const source = `export type Input = f64
+
+export type Output = f64
+
+export default function (in: Input): Output {
+${binding}  return -missing
+}
+`
 	const start = source.indexOf('missing')
 	rows.push({
 		id: `language/types/unary_minus/name/${declared ? 'declared' : 'unbound'}`,
@@ -77,21 +103,50 @@ for (const declared of [false, true]) {
 	})
 }
 
+for (const [name, input_type, expression, phase, diagnostic] of [
+	['null', 'void', '-null', 'analyze', 'type_mismatch'],
+	['undefined', 'void', '-undefined', 'analyze', 'name'],
+	['void_input', 'void', '-in', 'analyze', 'type_mismatch'],
+	['optional_number', 'f64?', '-in', 'analyze', 'type_mismatch'],
+	['empty_object', 'void', '-{}', 'analyze', 'type_mismatch'],
+	['function_expression', 'void', '-function(){return 1}', 'parse', 'syntax'],
+	['void_expression', 'void', '-void 0', 'parse', 'syntax'],
+]) {
+	rows.push({
+		id: `language/types/unary_minus/conversion/${name}`,
+		source: `export type Input = ${input_type}
+
+export type Output = f64
+
+export default function (in: Input): Output {
+  return ${expression}
+}
+`,
+		phase,
+		diagnostic,
+	})
+}
+
 writeCatalog('tests/language/types/unary_minus/cases.jsonl', rows)
 
-const expressions = ['-1', '-(-1)', '-x', '-(-x)', '-object.prop']
-const values = [-1, 1, 1, -1, -1]
+const expressions = ['-1', '-(-1)', '-x', '-(-x)', '-object.prop', '-(1)']
+const values = [-1, 1, 1, -1, -1, -1]
 const literal_rows = expressions.map((expression, index) => ({
 	id: `language/expressions/unary_minus/f64/source_values/${index}`,
 	input: index,
 	expected: { value: values[index] }
 }))
-const branches = expressions.map((expression, index) => `    case ${index}: return ${expression};\n`).join('')
+const branches = expressions
+	.map(
+		(expression, index) => `    case ${index}: return ${expression}
+`
+	)
+	.join('')
 
 writeCatalog('tests/language/expressions/unary_minus/f64/source_values.jsonl', literal_rows)
 writeOutput(
 	'tests/language/expressions/unary_minus/f64/source_values.zx',
-	'export type Input = u64;\n\nexport type Output = f64;\n\nexport default function (in: Input): Output {\n  const x = -1.0;\n  const object = { prop: 1.0 };\n\n  switch (in) {\n' +
+	'export type Input = u64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n  const x = -1.0\n  const object = { prop: 1.0 }\n\n  switch (in) {\n' +
 		branches +
-		'    default: return 0;\n  }\n}\n'
+		'    default: return 0\n  }\n}\n'
 )

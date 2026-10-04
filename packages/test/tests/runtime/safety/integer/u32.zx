@@ -1,14 +1,16 @@
-export type Input = { operation: u8; left: u32; right: u32; };
+export type Input = { operation: u8
+ left: u32
+ right: u32 }
 
-export type Output = u32;
+export type Output = u32
 
 export default function (in: Input): Output {
   switch (in.operation) {
-    case 0: return in.left + in.right;
-    case 1: return in.left - in.right;
-    case 2: return in.left * in.right;
-    case 3: return in.left / in.right;
-    case 4: return in.left % in.right;
-    default: return in.left;
+    case 0: return in.left + in.right
+    case 1: return in.left - in.right
+    case 2: return in.left * in.right
+    case 3: return in.left / in.right
+    case 4: return in.left % in.right
+    default: return in.left
   }
 }

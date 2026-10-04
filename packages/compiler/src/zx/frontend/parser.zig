@@ -29,6 +29,21 @@ pub fn expect(self: *Self, text: []const u8) zx.Error!void {
     if (!self.take(text)) return self.reporter.fail(.syntax, self.current().span, text);
 }
 
+pub fn lineBreak(self: *const Self) bool {
+    if (self.index == 0) return false;
+
+    const gap = self.source[self.tokens[self.index - 1].span.end..self.current().span.start];
+
+    return std.mem.indexOfAny(u8, gap, "\r\n") != null;
+}
+
+pub fn endStatement(self: *Self) zx.Error!void {
+    if (self.at(";")) return self.reporter.fail(.syntax, self.current().span, "semicolons are not allowed in ZX");
+    if (self.current().kind == .eof or self.at("}") or self.lineBreak()) return;
+
+    return self.reporter.fail(.syntax, self.current().span, "expected a newline, closing block or end of source");
+}
+
 pub fn name(self: *Self) zx.Error!ast.Name {
     const token = self.current();
 
@@ -58,6 +73,8 @@ pub fn statement(self: *Self) zx.Error!ast.Statement {
 }
 
 pub fn expression(self: *Self, minimum: u8) zx.Error!*const ast.Expression {
+    if (self.at(";")) return self.reporter.fail(.syntax, self.current().span, "semicolons are not allowed in ZX");
+
     return @import("parser_expressions.zig").parse(self, minimum);
 }
 

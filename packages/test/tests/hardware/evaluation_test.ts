@@ -45,7 +45,12 @@ function check(args: { name: string; fields: string; scalar: string; body: strin
 
 	writeFileSync(
 		source,
-		`export type Input = { ${fields} };\n\nexport type Output = ${scalar};\n\nexport default function (in: Input): Output {\n${body}\n}\n`
+		`export type Input = { ${fields} }
+
+export type Output = ${scalar}
+
+export default function (in: Input): Output {
+${body}\n}\n`
 	)
 	run({ command: executable, argv: ['fpga', source, '--out', rtl] })
 
@@ -135,14 +140,14 @@ try {
 		name: 'conditional_add',
 		fields: 'left: u8; right: u8; enabled: bool;',
 		scalar: 'u8',
-		body: '  if (in.enabled) {\n    return in.left + in.right;\n  }\n\n  return in.left;',
+		body: '  if (in.enabled) {\n    return in.left + in.right\n  }\n\n  return in.left\n',
 		vectors: unsigned
 	})
 	check({
 		name: 'signed_division_remainder',
 		fields: 'left: i32; right: i32; division: bool;',
 		scalar: 'i32',
-		body: '  if (in.division) {\n    return in.left / in.right;\n  }\n\n  return in.left % in.right;',
+		body: '  if (in.division) {\n    return in.left / in.right\n  }\n\n  return in.left % in.right\n',
 		vectors: signed
 	})
 	checkClocked({ executable, yosys, directory, run })

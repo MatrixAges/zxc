@@ -1,7 +1,7 @@
-export type Input = { items: string[]; seed: string; };
+export type Input = { items: string[], seed: string, }
 
-export type Output = string;
+export type Output = string
 
 export default function (in: Input): Output {
-  return in.items.reduce((sum, item) => `${sum}${item}`, in.seed);
+  return in.items.reduce((sum, item) => `${sum}${item}`, in.seed)
 }

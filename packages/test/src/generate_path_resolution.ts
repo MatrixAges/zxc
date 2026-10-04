@@ -127,15 +127,24 @@ for (const [platform, path] of Object.entries({ posix, win32 })) {
 	}
 
 	for (const [operation, input_type, rows] of [
-		['resolve', '{ cwd: string; paths: string[]; }', resolve_rows],
-		['relative', '{ cwd: string; from: string; to: string; }', relative_rows]
+		['resolve', '{ cwd: string\n paths: string[] }', resolve_rows],
+		['relative', '{ cwd: string\n from: string\n to: string }', relative_rows]
 	] as const) {
 		const base = `tests/standard/path/${platform}/${operation}`
 
 		writeCatalog(base + '.jsonl', rows)
 		writeOutput(
 			base + '.zx',
-			`import path from "std:path/${platform}";\n\nexport type Input = ${input_type};\n\nexport type Output = string;\n\nexport default function (in: Input): Output {\n  return path.${operation}(in);\n}\n`
+			`import path from "std:path/${platform}"
+
+export type Input = ${input_type}
+
+export type Output = string
+
+export default function (in: Input): Output {
+  return path.${operation}(in)
+}
+`
 		)
 	}
 }

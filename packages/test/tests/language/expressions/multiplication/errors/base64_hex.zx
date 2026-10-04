@@ -1,9 +1,10 @@
-import encoding from "std:encoding";
+import encoding from "std:encoding"
 
-export type Input = { left: string; right: string; };
+export type Input = { left: string
+ right: string }
 
-export type Output = u64;
+export type Output = u64
 
 export default function (in: Input): Output {
-  return encoding.decodeBase64(in.left).length * encoding.decodeHex(in.right).length;
+  return encoding.decodeBase64(in.left).length * encoding.decodeHex(in.right).length
 }

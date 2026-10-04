@@ -1,11 +1,11 @@
-export type Input = { items: i64[]; other: i64[]; };
+export type Input = { items: i64[], other: i64[], }
 
-export type Output = i64[];
+export type Output = i64[]
 
 export default function (in: Input): Output {
-  const owned: i64[] = [in.items[0], in.items[1]];
+  const owned: i64[] = [in.items[0], in.items[1]]
 
-  const [next, _] = owned.concat(in.other);
+  const [next, _] = owned.concat(in.other)
 
-  return next;
+  return next
 }

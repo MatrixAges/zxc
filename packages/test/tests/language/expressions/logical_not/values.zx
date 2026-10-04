@@ -1,10 +1,14 @@
-export type Input = bool;
+export type Input = bool
 
-export type Output = { direct: bool; binding: bool; double: bool; field: bool; triple: bool; };
+export type Output = { direct: bool
+ binding: bool
+ double: bool
+ field: bool
+ triple: bool }
 
 export default function (in: Input): Output {
-  const bound = in;
-  const object = { prop: in };
+  const bound = in
+  const object = { prop: in }
 
-  return { direct: !in, binding: !bound, double: !!in, field: !object.prop, triple: !!!in };
+  return { direct: !in, binding: !bound, double: !!in, field: !object.prop, triple: !!!in }
 }

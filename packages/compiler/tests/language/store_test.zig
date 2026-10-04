@@ -4,7 +4,7 @@ const zx = @import("zx");
 const helpers = @import("../helpers.zig");
 
 fn check(body: []const u8, context: frontend.Context, expected: ?@FieldType(zx.Diagnostic, "code")) !void {
-    const source = try std.fmt.allocPrint(std.testing.allocator, "export type State = {{ count: u64; items: u64[]; }}; export type Input = u64[]; export type Output = u64; export default function (in: Input): Output {{ {s} }}", .{body});
+    const source = try std.fmt.allocPrint(std.testing.allocator, "export type State = {{ count: u64\n items: u64[] }}\n export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output {{ {s} }}", .{body});
 
     defer std.testing.allocator.free(source);
 
@@ -29,40 +29,40 @@ fn check(body: []const u8, context: frontend.Context, expected: ?@FieldType(zx.D
 const writable = frontend.Context{ .stores = &.{.{ .handle = "$state", .path = "store.orders.state", .type_name = "State" }} };
 
 test "store: only Call-injected handles are visible" {
-    try check("return $state.value.count;", .{}, .capability);
-    try check("return $state.value.count;", writable, null);
+    try check("return $state.value.count\n", .{}, .capability);
+    try check("return $state.value.count\n", writable, null);
 }
 
 test "store: read-only and write-only permissions are separate" {
-    try check("$state.value = { count: 1, items: in }; return 0;", .{ .stores = &.{.{ .handle = "$state", .path = "store.orders.state", .type_name = "State", .writable = false }} }, .capability);
-    try check("return $state.value.count;", .{ .stores = &.{.{ .handle = "$state", .path = "store.orders.state", .type_name = "State", .readable = false }} }, .capability);
+    try check("$state.value = { count: 1, items: in }\n return 0\n", .{ .stores = &.{.{ .handle = "$state", .path = "store.orders.state", .type_name = "State", .writable = false }} }, .capability);
+    try check("return $state.value.count\n", .{ .stores = &.{.{ .handle = "$state", .path = "store.orders.state", .type_name = "State", .readable = false }} }, .capability);
 }
 
 test "store: nested field writes cannot bypass the whole Object setter" {
-    try check("$state.value.count = 2; return 0;", writable, .capability);
+    try check("$state.value.count = 2\n return 0\n", writable, .capability);
 }
 
 test "store: callbacks cannot capture injected handles" {
-    try check("const values = in.map((item) => $state.value.count); return values.length;", writable, .capability);
+    try check("const values = in.map((item) => $state.value.count)\n return values.length\n", writable, .capability);
 }
 
 test "store: getter list data cannot be consumed without owning it" {
-    try check("const [next, _] = $state.value.items.reverse(); return next.length;", writable, .ownership);
+    try check("const [next, _] = $state.value.items.reverse()\n return next.length\n", writable, .ownership);
 }
 
 test "store: getter data cannot be deep copied" {
-    try check("const items = $state.value.items.clone(); return items.length;", writable, .unsupported);
+    try check("const items = $state.value.items.clone()\n return items.length\n", writable, .unsupported);
 }
 
 test "store: scalar getter values can initialize a separate owner" {
-    try check("const items: u64[] = [$state.value.count]; const [next, _] = items.reverse(); return next.length + $state.value.items.length;", writable, null);
+    try check("const items: u64[] = [$state.value.count]\n const [next, _] = items.reverse()\n return next.length + $state.value.items.length\n", writable, null);
 }
 
 test "store: publishing a local owner permits reading but freezes consumption" {
-    try check("const state = { count: 1, items: [2] }; $state.value = state; return state.count;", writable, null);
-    try check("const state = { count: 1, items: [2] }; $state.value = state; const [next, _] = state.items.reverse(); return 0;", writable, .ownership);
+    try check("const state = { count: 1, items: [2] }\n $state.value = state\n return state.count\n", writable, null);
+    try check("const state = { count: 1, items: [2] }\n $state.value = state\n const [next, _] = state.items.reverse()\n return 0\n", writable, .ownership);
 }
 
 test "store: injected handles cannot be rebound as ordinary const values" {
-    try check("const $state = 1; return 0;", writable, .name);
+    try check("const $state = 1\n return 0\n", writable, .name);
 }

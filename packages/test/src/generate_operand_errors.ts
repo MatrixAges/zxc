@@ -41,7 +41,17 @@ for (const reversed of [false, true]) {
 	}
 
 	const base = `tests/language/expressions/multiplication/errors/${name}`
-	const source = `import encoding from "std:encoding";\n\nexport type Input = { left: string; right: string; };\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return encoding.${left_method}(in.left).length * encoding.${right_method}(in.right).length;\n}\n`
+	const source = `import encoding from "std:encoding"
+
+export type Input = { left: string
+ right: string }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return encoding.${left_method}(in.left).length * encoding.${right_method}(in.right).length
+}
+`
 
 	writeCatalog(base + '.jsonl', rows)
 	writeOutput(base + '.zx', source)

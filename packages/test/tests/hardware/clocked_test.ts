@@ -11,7 +11,7 @@ export default function checkClocked(args: { executable: string; yosys: string; 
 
 	writeFileSync(
 		source,
-		'export type Input = u8;\n\nexport type Output = u8;\n\nexport default function (in: Input): Output {\n  return in + 3;\n}\n'
+		'export type Input = u8\n\nexport type Output = u8\n\nexport default function (in: Input): Output {\n  return in + 3\n}\n'
 	)
 	run({ command: executable, argv: ['fpga', source, '--clocked', '--out', rtl] })
 

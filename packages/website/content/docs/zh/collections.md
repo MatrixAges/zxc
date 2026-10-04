@@ -3,11 +3,11 @@ ZX 让列表转换和所有权显式可见。输入集合应视为借用数据�
 ### 不用通用循环完成转换
 
 ```typescript
-export type Input = u64[][];
-export type Output = u64[];
+export type Input = u64[][]
+export type Output = u64[]
 
 export default function (in: Input): Output {
-  return in.map((row) => row.filter((item) => item > 2).reduce((sum, item) => sum + item, 0));
+  return in.map((row) => row.filter((item) => item > 2).reduce((sum, item) => sum + item, 0))
 }
 ```
 
@@ -18,17 +18,17 @@ export default function (in: Input): Output {
 消耗式操作返回元组。将结果列表绑定到新名称，不需要的结果用 `_` 丢弃。
 
 ```typescript
-export type Input = u64[];
-export type Output = u64[];
+export type Input = u64[]
+export type Output = u64[]
 
 export default function (in: Input): Output {
-  const items = clone(in);
-  const [with_item, _] = items.push(7);
-  const [rest, removed] = with_item.pop();
-  const [ordered, _] = rest.sort();
-  const [reversed, _] = ordered.reverse();
+  const items = clone(in)
+  const [with_item, _] = items.push(7)
+  const [rest, removed] = with_item.pop()
+  const [ordered, _] = rest.sort()
+  const [reversed, _] = ordered.reverse()
 
-  return reversed;
+  return reversed
 }
 ```
 

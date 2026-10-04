@@ -13,20 +13,22 @@ export default function checkCompression(args: { directory: string; executable: 
 	mkdirSync(project)
 	writeFileSync(
 		join(project, 'main.zx'),
-		`import zlib from "std:zlib";
+		`import zlib from "std:zlib"
 
-export type Input = { operation: u8; data: u8[]; level: i32; };
+export type Input = { operation: u8
+ data: u8[]
+ level: i32 }
 
-export type Output = u8[];
+export type Output = u8[]
 
 export default function (in: Input): Output {
   switch (in.operation) {
-    case 0: return zlib.gzip(in.data);
-    case 1: return zlib.deflate(in.data);
-    case 2: return zlib.deflateRaw(in.data);
-    case 3: return zlib.gzipWith({ data: in.data, level: in.level });
-    case 4: return zlib.deflateWith({ data: in.data, level: in.level });
-    default: return zlib.deflateRawWith({ data: in.data, level: in.level });
+    case 0: return zlib.gzip(in.data)
+    case 1: return zlib.deflate(in.data)
+    case 2: return zlib.deflateRaw(in.data)
+    case 3: return zlib.gzipWith({ data: in.data, level: in.level })
+    case 4: return zlib.deflateWith({ data: in.data, level: in.level })
+    default: return zlib.deflateRawWith({ data: in.data, level: in.level })
   }
 }
 `

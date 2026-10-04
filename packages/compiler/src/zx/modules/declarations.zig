@@ -62,7 +62,7 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Rep
         const output = try parser.typeNode();
         const fallible = parser.take("throws");
 
-        try parser.expect(";");
+        try parser.endStatement();
         try functions.append(allocator, .{ .name = name, .parameters = parameters.items, .output = output, .allocator_argument = allocating, .fallible = fallible });
     }
 

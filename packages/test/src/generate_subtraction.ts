@@ -75,7 +75,15 @@ for (const width of [32, 64]) {
 	writeCatalog(base + '.jsonl', rows)
 	writeOutput(
 		base + '.zx',
-		`export type Input = { left: ${scalar}; right: ${scalar}; };\n\nexport type Output = ${scalar};\n\nexport default function (in: Input): Output {\n  return in.left - in.right;\n}\n`
+		`export type Input = { left: ${scalar}
+ right: ${scalar} }
+
+export type Output = ${scalar}
+
+export default function (in: Input): Output {
+  return in.left - in.right
+}
+`
 	)
 }
 
@@ -83,7 +91,7 @@ const literal_base = 'tests/language/expressions/addition/overflow_literals'
 
 writeOutput(
 	literal_base + '.zx',
-	'export type Input = f64;\n\nexport type Output = f64;\n\nexport default function (in: Input): Output {\n  if (in == 0) {\n    return 1e308 + 1e308;\n  }\n\n  return -8.99e307 - 8.99e307;\n}\n'
+	'export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n  if (in == 0) {\n    return 1e308 + 1e308\n  }\n\n  return -8.99e307 - 8.99e307\n}\n'
 )
 writeCatalog(literal_base + '.jsonl', [
 	{

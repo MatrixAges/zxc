@@ -11,7 +11,7 @@ fn expectInvalid(program: zx.ir.Program) !void {
 }
 
 test "ir: rejects a callback capture supplied by a foreign frontend" {
-    var parsed = try helpers.parseValid("export type Input = u64[]; export type Output = u64[]; export default function (in: Input): Output { const offset = 1; return in.map((item) => item + 1); }");
+    var parsed = try helpers.parseValid("export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output { const offset = 1\n return in.map((item) => item + 1) }");
 
     defer parsed.deinit();
 
@@ -39,7 +39,7 @@ test "ir: rejects a callback capture supplied by a foreign frontend" {
 }
 
 test "ir: rejects forward edges and wrong versions" {
-    var parsed = try helpers.parseValid("export type Input = u64; export type Output = u64; export default function (in: Input): Output { return in + 1; }");
+    var parsed = try helpers.parseValid("export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return in + 1 }");
 
     defer parsed.deinit();
 
@@ -67,7 +67,7 @@ test "ir: rejects forward edges and wrong versions" {
 }
 
 test "ir: accepts pure type modules and rejects phantom executable bodies" {
-    var parsed = try helpers.parseValid("export type Value = u64[];");
+    var parsed = try helpers.parseValid("export type Value = u64[]\n");
 
     defer parsed.deinit();
 
@@ -85,7 +85,7 @@ test "ir: accepts pure type modules and rejects phantom executable bodies" {
 }
 
 test "ir: foreign self-recursion cannot bypass source module cycle checks" {
-    var parsed = try helpers.parseValid("export type Input = u64; export type Output = u64; export default function (in: Input): Output { return in + 1; }");
+    var parsed = try helpers.parseValid("export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return in + 1 }");
 
     defer parsed.deinit();
 
@@ -108,7 +108,7 @@ test "ir: foreign self-recursion cannot bypass source module cycle checks" {
 }
 
 test "ir: a supplied Store slot cannot bypass its read permission" {
-    var parsed = try helpers.parseValid("export type State = { count: u64; }; export type Input = void; export type Output = u64; export default function (in: Input): Output { return $state.value.count; }");
+    var parsed = try helpers.parseValid("export type State = { count: u64 }\n export type Input = void\n export type Output = u64\n export default function (in: Input): Output { return $state.value.count }");
 
     defer parsed.deinit();
 

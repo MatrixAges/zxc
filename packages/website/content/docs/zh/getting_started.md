@@ -32,25 +32,25 @@ zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
 
 ```typescript
 export type Input = {
-  amount: u64;
-  discount: u64;
-  enabled: bool;
-  factor: f32;
-};
+  amount: u64
+  discount: u64
+  enabled: bool
+  factor: f32
+}
 
 export type Output = {
-  amount: u64;
-  factor: f32;
-};
+  amount: u64
+  factor: f32
+}
 
 export default function (in: Input): Output {
-  const adjusted_factor = in.factor * 0.5;
+  const adjusted_factor = in.factor * 0.5
 
   if (!in.enabled || in.discount > in.amount) {
-    return { amount: in.amount, factor: adjusted_factor };
+    return { amount: in.amount, factor: adjusted_factor }
   }
 
-  return { amount: in.amount - in.discount, factor: adjusted_factor };
+  return { amount: in.amount - in.discount, factor: adjusted_factor }
 }
 ```
 

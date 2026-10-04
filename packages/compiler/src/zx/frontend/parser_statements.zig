@@ -12,8 +12,8 @@ const Annotation = grammar.sequence(.{ grammar.token(":"), Type });
 const Binding = grammar.sequence(.{ Name, grammar.optional(Annotation), grammar.required(grammar.token("="), "expected ="), Expression });
 const Pattern = grammar.sequence(.{ grammar.token("["), grammar.separated(Name, ",", "]"), grammar.required(grammar.token("]"), "expected ]"), grammar.required(grammar.token("="), "expected ="), Expression });
 const Declaration = grammar.choice(.{ grammar.map(Pattern, Value, destructure), grammar.map(Binding, Value, constant) });
-const Constant = grammar.sequence(.{ grammar.token("const"), Declaration, grammar.required(grammar.token(";"), "expected ;") });
-const Return = grammar.sequence(.{ grammar.token("return"), grammar.reference(Value, result), grammar.required(grammar.token(";"), "expected ;") });
+const Constant = grammar.sequence(.{ grammar.token("const"), Declaration, grammar.reference(void, Parser.endStatement) });
+const Return = grammar.sequence(.{ grammar.token("return"), grammar.reference(Value, result), grammar.reference(void, Parser.endStatement) });
 const Condition = grammar.sequence(.{ grammar.required(grammar.token("("), "expected ("), Expression, grammar.required(grammar.token(")"), "expected )"), Block });
 const Else = grammar.sequence(.{ grammar.token("else"), grammar.reference(ast.Block, alternative) });
 const Branch = grammar.sequence(.{ grammar.token("if"), Condition, grammar.optional(Else) });
@@ -60,7 +60,9 @@ fn destructure(_: *Parser, values: Pattern.Value) zx.Error!Value {
 }
 
 fn result(parser: *Parser) zx.Error!Value {
-    return .{ .result = if (parser.at(";")) null else try expression(parser) };
+    const next_statement = parser.lineBreak() and (parser.at("const") or parser.at("return") or parser.at("if") or parser.at("switch") or parser.at("store"));
+
+    return .{ .result = if (parser.at("}") or parser.current().kind == .eof or next_statement) null else try expression(parser) };
 }
 
 fn branch(_: *Parser, values: Branch.Value) zx.Error!Value {
@@ -84,7 +86,7 @@ fn store(parser: *Parser) zx.Error!Value {
 
     const value = try expression(parser);
 
-    try parser.expect(";");
+    try parser.endStatement();
 
     return .{ .store_set = .{ .target = target, .value = value } };
 }

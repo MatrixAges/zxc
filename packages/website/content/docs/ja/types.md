@@ -29,18 +29,18 @@ ZX は Zig を生成する前に具体的な型を決定します。JavaScript �
 
 ```typescript
 export type Input = {
-  amount: u64;
-  label: string?;
-  adjustments: u64[];
-};
+  amount: u64
+  label: string?
+  adjustments: u64[]
+}
 
 export type Output = {
-  amount: u64;
-  label: string;
-};
+  amount: u64
+  label: string
+}
 
 export default function (in: Input): Output {
-  return { amount: in.amount, label: in.label ?? 'untitled' };
+  return { amount: in.amount, label: in.label ?? 'untitled' }
 }
 ```
 

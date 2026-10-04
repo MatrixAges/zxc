@@ -1,11 +1,24 @@
-import path from "std:path/win32";
+import path from "std:path/win32"
 
-export type Parts = { root: string; dir: string; base: string; ext: string; name: string; };
+export type Parts = { root: string
+ dir: string
+ base: string
+ ext: string
+ name: string }
 
-export type Input = { path: string; parts: string[]; format: Parts; };
+export type Input = { path: string
+ parts: string[]
+ format: Parts }
 
-export type Output = { absolute: bool; base: string; dir: string; ext: string; parsed: Parts; formatted: string; normalized: string; joined: string; };
+export type Output = { absolute: bool
+ base: string
+ dir: string
+ ext: string
+ parsed: Parts
+ formatted: string
+ normalized: string
+ joined: string }
 
 export default function (in: Input): Output {
-  return { absolute: path.isAbsolute(in.path), base: path.basename(in.path), dir: path.dirname(in.path), ext: path.extname(in.path), parsed: path.parse(in.path), formatted: path.format(in.format), normalized: path.normalize(in.path), joined: path.join(in.parts) };
+  return { absolute: path.isAbsolute(in.path), base: path.basename(in.path), dir: path.dirname(in.path), ext: path.extname(in.path), parsed: path.parse(in.path), formatted: path.format(in.format), normalized: path.normalize(in.path), joined: path.join(in.parts) }
 }

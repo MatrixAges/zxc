@@ -1,10 +1,10 @@
-import bridge from "zig:bridge";
-import type { Request, Response } from "zig:bridge";
+import bridge from "zig:bridge"
+import type { Request, Response } from "zig:bridge"
 
-export type Input = Request;
+export type Input = Request
 
-export type Output = Response;
+export type Output = Response
 
 export default function (in: Input): Output {
-  return bridge.process(in);
+  return bridge.process(in)
 }

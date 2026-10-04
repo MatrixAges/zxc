@@ -79,13 +79,22 @@ for (const width of [32, 64]) {
 		writeCatalog(base + '.jsonl', rows)
 		writeOutput(
 			base + '.zx',
-			`export type Input = { left: ${scalar}; right: ${scalar}; third: ${scalar}; };\n\nexport type Output = ${scalar};\n\nexport default function (in: Input): Output {\n  return ${expression};\n}\n`
+			`export type Input = { left: ${scalar}
+ right: ${scalar}
+ third: ${scalar} }
+
+export type Output = ${scalar}
+
+export default function (in: Input): Output {
+  return ${expression}
+}
+`
 		)
 	}
 }
 
 const source =
-	'export type Input = { prefix: string; left: u64; right: u64; };\n\nexport type Output = { left: string; right: string; };\n\nexport default function (in: Input): Output {\n  const text = `${in.prefix}${in.left}`;\n\n  return { left: `${text}${in.right}`, right: `${in.prefix}${in.left + in.right}` };\n}\n'
+	'export type Input = { prefix: string\n left: u64\n right: u64 }\n\nexport type Output = { left: string\n right: string }\n\nexport default function (in: Input): Output {\n  const text = `${in.prefix}${in.left}`\n\n  return { left: `${text}${in.right}`, right: `${in.prefix}${in.left + in.right}` }\n}\n'
 const inputs = [
 	{ prefix: '1', left: 1, right: 1 },
 	{ prefix: '值', left: 2, right: 3 },

@@ -3,11 +3,11 @@ ZX makes list transformations and ownership visible. Treat an input collection a
 ### Transform without a general loop
 
 ```typescript
-export type Input = u64[][];
-export type Output = u64[];
+export type Input = u64[][]
+export type Output = u64[]
 
 export default function (in: Input): Output {
-  return in.map((row) => row.filter((item) => item > 2).reduce((sum, item) => sum + item, 0));
+  return in.map((row) => row.filter((item) => item > 2).reduce((sum, item) => sum + item, 0))
 }
 ```
 
@@ -18,17 +18,17 @@ export default function (in: Input): Output {
 Consuming operations return a tuple. Bind the resulting list to a new name and discard an unneeded result with `_`.
 
 ```typescript
-export type Input = u64[];
-export type Output = u64[];
+export type Input = u64[]
+export type Output = u64[]
 
 export default function (in: Input): Output {
-  const items = clone(in);
-  const [with_item, _] = items.push(7);
-  const [rest, removed] = with_item.pop();
-  const [ordered, _] = rest.sort();
-  const [reversed, _] = ordered.reverse();
+  const items = clone(in)
+  const [with_item, _] = items.push(7)
+  const [rest, removed] = with_item.pop()
+  const [ordered, _] = rest.sort()
+  const [reversed, _] = ordered.reverse()
 
-  return reversed;
+  return reversed
 }
 ```
 

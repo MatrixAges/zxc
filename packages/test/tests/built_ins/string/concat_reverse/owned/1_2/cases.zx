@@ -1,15 +1,15 @@
-import fromLiteral from "../../../fixtures/concat_reverse_literal.zx";
+import fromLiteral from "../../../fixtures/concat_reverse_literal.zx"
 
-export type Input = { items: u64[]; other: u64[]; };
+export type Input = { items: u64[], other: u64[], }
 
-export type Output = string[];
+export type Output = string[]
 
 export default function (in: Input): Output {
-  const owned: string[] = [fromLiteral(in.items[0])];
-  const other: string[] = [fromLiteral(in.other[0]), fromLiteral(in.other[1])];
+  const owned: string[] = [fromLiteral(in.items[0])]
+  const other: string[] = [fromLiteral(in.other[0]), fromLiteral(in.other[1])]
 
-  const [joined, _] = owned.concat(other);
-  const [result, _] = joined.reverse();
+  const [joined, _] = owned.concat(other)
+  const [result, _] = joined.reverse()
 
-  return result;
+  return result
 }

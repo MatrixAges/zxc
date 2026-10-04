@@ -1,10 +1,10 @@
 import { writeCatalog, writeOutput } from './shared/catalog.ts'
 
 const maximum = 2n ** 64n - 1n
-const indexed = 'items: u64[]; index: u64;'
-const logical = 'left: bool; ' + indexed
-const nested = 'left: bool; middle: bool; ' + indexed
-const conditional = 'choose: bool; fallback: u64; ' + indexed
+const indexed = 'items: u64[], index: u64,'
+const logical = 'left: bool, ' + indexed
+const nested = 'left: bool, middle: bool, ' + indexed
+const conditional = 'choose: bool, fallback: u64, ' + indexed
 const suites = [
 	['logical_and/basic', logical, 'bool', 'in.left && in.items[in.index] > 0'],
 	['logical_or/basic', logical, 'bool', 'in.left || in.items[in.index] > 0'],
@@ -12,7 +12,7 @@ const suites = [
 	['logical_or/nested_and', nested, 'bool', 'in.left || in.middle && in.items[in.index] > 0'],
 	['conditional/yes', conditional, 'u64', 'in.choose ? in.items[in.index] : in.fallback'],
 	['conditional/no', conditional, 'u64', 'in.choose ? in.fallback : in.items[in.index]'],
-	['coalesce/optional', 'value: u64?; ' + indexed, 'u64', 'in.value ?? in.items[in.index]']
+	['coalesce/optional', 'value: u64?, ' + indexed, 'u64', 'in.value ?? in.items[in.index]']
 ]
 
 type Choice = { value?: bigint | null; choose?: boolean; fallback?: bigint; left?: boolean; middle?: boolean }
@@ -112,11 +112,13 @@ function nameCases() {
 
 	for (const [name, expression] of Object.entries(expressions)) {
 		for (const declared of [false, true]) {
-			const binding = declared ? '  const missing = in;\n\n' : ''
+			const binding = declared ? '  const missing = in\n\n' : ''
 			const source =
-				'export type Input = bool;\n\nexport type Output = bool;\n\nexport default function (in: Input): Output {\n' +
+				'export type Input = bool\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n' +
 				binding +
-				`  return ${expression};\n}\n`
+				`  return ${expression}
+}
+`
 			const start = source.indexOf('missing')
 			rows.push({
 				id: `language/expressions/static_names/${name}/${declared ? 'declared' : 'unbound'}`,
@@ -139,6 +141,13 @@ for (const [name, fields, output, expression] of suites) {
 	writeCatalog(base + '.jsonl', cases(name))
 	writeOutput(
 		base + '.zx',
-		`export type Input = { ${fields} };\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n  return ${expression};\n}\n`
+		`export type Input = { ${fields} }
+
+export type Output = ${output}
+
+export default function (in: Input): Output {
+  return ${expression}
+}
+`
 	)
 }

@@ -1,11 +1,12 @@
-export type Input = { items: i64[]; };
+export type Input = { items: i64[], }
 
-export type Output = { items: i64[]; value: i64?; };
+export type Output = { items: i64[]
+ value: i64? }
 
 export default function (in: Input): Output {
-  const owned: i64[] = [in.items[0], in.items[1]];
+  const owned: i64[] = [in.items[0], in.items[1]]
 
-  const [items, value] = owned.pop();
+  const [items, value] = owned.pop()
 
-  return { items, value };
+  return { items, value }
 }

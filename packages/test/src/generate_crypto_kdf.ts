@@ -99,23 +99,26 @@ for (const bits of [256, 512]) {
 	for (const [name, input, output, body, rows] of [
 		[
 			`hmac_sha${bits}`,
-			'{ key: u8[]; data: u8[]; tag: u8[]; bad: u8[]; }',
-			'{ tag: u8[]; valid: bool; invalid: bool; }',
-			`return { tag: crypto.hmacSha${bits}({ key: in.key, data: in.data }), valid: crypto.verifyHmacSha${bits}({ key: in.key, data: in.data, tag: in.tag }), invalid: crypto.verifyHmacSha${bits}({ key: in.key, data: in.data, tag: in.bad }) };`,
+			'{ key: u8[]\n data: u8[]\n tag: u8[]\n bad: u8[] }',
+			'{ tag: u8[]\n valid: bool\n invalid: bool }',
+			`return { tag: crypto.hmacSha${bits}({ key: in.key, data: in.data }), valid: crypto.verifyHmacSha${bits}({ key: in.key, data: in.data, tag: in.tag }), invalid: crypto.verifyHmacSha${bits}({ key: in.key, data: in.data, tag: in.bad }) }
+`,
 			hmac_rows
 		],
 		[
 			`hkdf_sha${bits}`,
-			'{ key: u8[]; salt: u8[]; info: u8[]; length: u32; }',
+			'{ key: u8[]\n salt: u8[]\n info: u8[]\n length: u32 }',
 			'u8[]',
-			`return crypto.hkdfSha${bits}(in);`,
+			`return crypto.hkdfSha${bits}(in)
+`,
 			hkdf_rows
 		],
 		[
 			`pbkdf2_sha${bits}`,
-			'{ password: u8[]; salt: u8[]; iterations: u32; length: u32; }',
+			'{ password: u8[]\n salt: u8[]\n iterations: u32\n length: u32 }',
 			'u8[]',
-			`return crypto.pbkdf2Sha${bits}(in);`,
+			`return crypto.pbkdf2Sha${bits}(in)
+`,
 			password_rows
 		]
 	] as const) {
@@ -124,7 +127,14 @@ for (const bits of [256, 512]) {
 		writeCatalog(base + '.jsonl', rows)
 		writeOutput(
 			base + '.zx',
-			`import crypto from "std:crypto";\n\nexport type Input = ${input};\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n  ${body}\n}\n`
+			`import crypto from "std:crypto"
+
+export type Input = ${input}
+
+export type Output = ${output}
+
+export default function (in: Input): Output {
+  ${body.trimEnd()}\n}\n`
 		)
 	}
 }
@@ -163,5 +173,5 @@ for (const length of [0, 1, 16, 32, 64]) {
 writeCatalog('tests/standard/crypto/timing_safe_equal/cases.jsonl', compare_rows)
 writeOutput(
 	'tests/standard/crypto/timing_safe_equal/cases.zx',
-	'import crypto from "std:crypto";\n\nexport type Input = { left: u8[]; right: u8[]; };\n\nexport type Output = bool;\n\nexport default function (in: Input): Output {\n  return crypto.timingSafeEqual(in);\n}\n'
+	'import crypto from "std:crypto"\n\nexport type Input = { left: u8[]\n right: u8[] }\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return crypto.timingSafeEqual(in)\n}\n'
 )

@@ -2,7 +2,7 @@ const std = @import("std");
 const h = @import("../helpers.zig");
 
 test "zx-file-roles: pure type files do not require a default function" {
-    var result = try h.parseValid("export type User = { id: u64; name?: string; }; export enum State { Ready, Done, }");
+    var result = try h.parseValid("export type User = { id: u64\n name?: string }\n export enum State { Ready, Done, }");
 
     defer result.deinit();
 
@@ -15,7 +15,7 @@ test "zx-file-roles: pure type files do not require a default function" {
 }
 
 test "zx-type-postfix: optional and list operators associate in source order" {
-    var result = try h.parseValid("export type A = u64?[]; export type B = u64[]?; export type C = [u64[], u64?];");
+    var result = try h.parseValid("export type A = u64?[]\n export type B = u64[]?\n export type C = [u64[], u64?]\n");
 
     defer result.deinit();
 
@@ -28,12 +28,12 @@ test "zx-type-postfix: optional and list operators associate in source order" {
 
 test "zx-imports: distinguish type, enum and default function imports" {
     var result = try h.parseValid(
-        \\import type { User, Money } from "./types";
-        \\import { State } from "@/state";
-        \\import normalizePrice from "./normalize_price";
-        \\export type Input = User;
-        \\export type Output = Money;
-        \\export default function (in: Input,): Output { return normalizePrice(in); }
+        \\import type { User, Money } from "./types"
+        \\import { State } from "@/state"
+        \\import normalizePrice from "./normalize_price"
+        \\export type Input = User
+        \\export type Output = Money
+        \\export default function (in: Input,): Output { return normalizePrice(in) }
     );
 
     defer result.deinit();
@@ -48,12 +48,12 @@ test "zx-imports: distinguish type, enum and default function imports" {
 
 test "zx-ownership-binding: explicit tuple destructuring preserves discard names" {
     var result = try h.parseValid(
-        \\export type Input = u64[];
-        \\export type Output = u64[];
+        \\export type Input = u64[]
+        \\export type Output = u64[]
         \\export default function (in: Input): Output {
-        \\  const items: u64[] = [1, 2, 3,];
-        \\  const [next_items, _] = items.push(4);
-        \\  return next_items;
+        \\  const items: u64[] = [1, 2, 3,]
+        \\  const [next_items, _] = items.push(4)
+        \\  return next_items
         \\}
     );
 
@@ -67,10 +67,10 @@ test "zx-ownership-binding: explicit tuple destructuring preserves discard names
 
 test "zx-collections: parse chained filter and map lambdas" {
     var result = try h.parseValid(
-        \\export type Input = u64[];
-        \\export type Output = u64[];
+        \\export type Input = u64[]
+        \\export type Output = u64[]
         \\export default function (in: Input): Output {
-        \\  return in.filter((score) => score >= 60).map(score => score + 10);
+        \\  return in.filter((score) => score >= 60).map(score => score + 10)
         \\}
     );
 
@@ -84,9 +84,9 @@ test "zx-collections: parse chained filter and map lambdas" {
 
 test "zx-template: interpolation uses expression parsing and absolute spans" {
     const source =
-        \\export type Input = u64;
-        \\export type Output = string;
-        \\export default function (in: Input): Output { return `order-${in + 1}-${`nested-${in}`}`; }
+        \\export type Input = u64
+        \\export type Output = string
+        \\export default function (in: Input): Output { return `order-${in + 1}-${`nested-${in}`}` }
     ;
 
     var result = try h.parseValid(source);
@@ -102,10 +102,12 @@ test "zx-template: interpolation uses expression parsing and absolute spans" {
 
 test "zx-switch: preserve case boundaries and default" {
     var result = try h.parseValid(
-        \\export type Input = u64;
-        \\export type Output = u64;
+        \\export type Input = u64
+        \\export type Output = u64
         \\export default function (in: Input): Output {
-        \\  switch (in) { case 1: return 10; case 2: return 20; default: return 0; }
+        \\  switch (in) { case 1: return 10
+        \\ case 2: return 20
+        \\ default: return 0 }
         \\}
     );
 
@@ -120,10 +122,10 @@ test "zx-switch: preserve case boundaries and default" {
 
 test "zx-store-signature: setter and spread retain their syntax" {
     var result = try h.parseValid(
-        \\export type Input = { count: u64; };
-        \\export type Output = void;
+        \\export type Input = { count: u64 }
+        \\export type Output = void
         \\export default function (in: Input, { store },): Output {
-        \\  store.state.counter = { ...in, count: in.count + 1 };
+        \\  store.state.counter = { ...in, count: in.count + 1 }
         \\}
     );
 
@@ -136,23 +138,23 @@ test "zx-store-signature: setter and spread retain their syntax" {
 }
 
 test "zx-negative-parse: const requires an initializer" {
-    try h.parseInvalid("export type Input = u64; export type Output = void; export default function (in: Input): Output { const value; }", .syntax);
+    try h.parseInvalid("export type Input = u64\n export type Output = void\n export default function (in: Input): Output { const value }", .syntax);
 }
 
 test "zx-negative-parse: ordinary variable reassignment is forbidden" {
-    try h.parseInvalid("export type Input = u64; export type Output = void; export default function (in: Input): Output { in = 2; }", .syntax);
+    try h.parseInvalid("export type Input = u64\n export type Output = void\n export default function (in: Input): Output { in = 2 }", .syntax);
 }
 
 test "zx-negative-parse: unterminated interpolation is lexical failure" {
-    try h.parseInvalid("export type Input = u64; export type Output = string; export default function (in: Input): Output { return `x${in; }", .lexical);
+    try h.parseInvalid("export type Input = u64\n export type Output = string\n export default function (in: Input): Output { return `x${in }", .lexical);
 }
 
 test "zx-negative-parse: import type requires named bindings" {
-    try h.parseInvalid("import type User from \"./user\";", .syntax);
+    try h.parseInvalid("import type User from \"./user\"\n", .syntax);
 }
 
 test "zx-template: lexical interpolation errors retain absolute source positions" {
-    const source = "export type Input = void; export type Output = string; export default function (in: Input): Output { return `value ${^}`; }";
+    const source = "export type Input = void\n export type Output = string\n export default function (in: Input): Output { return `value ${^}` }";
     var result = try @import("compiler").parse(std.testing.allocator, source, "template.zx");
 
     defer result.deinit();

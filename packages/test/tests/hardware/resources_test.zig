@@ -1,7 +1,7 @@
 const std = @import("std");
 const compiler = @import("compiler");
-const supported = "export type Input = { value: u8; enabled: bool; }; export type Output = { value: u8; enabled: bool; }; export default function (in: Input): Output { return { value: in.enabled ? in.value + 1 : in.value, enabled: !in.enabled }; }";
-const unsupported = "export type Input = f64; export type Output = f64; export default function (in: Input): Output { return in; }";
+const supported = "export type Input = { value: u8\n enabled: bool }\n export type Output = { value: u8\n enabled: bool }\n export default function (in: Input): Output { return { value: in.enabled ? in.value + 1 : in.value, enabled: !in.enabled } }";
+const unsupported = "export type Input = f64\n export type Output = f64\n export default function (in: Input): Output { return in }";
 
 test "hardware generation and both RTL emitters release failed allocations" {
     try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ supported, false });

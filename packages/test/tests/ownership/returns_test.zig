@@ -2,8 +2,8 @@ const std = @import("std");
 const compiler = @import("compiler");
 
 fn source(allocator: std.mem.Allocator, input: []const u8, output: []const u8, body: []const u8, imported: bool) ![]const u8 {
-    return std.fmt.allocPrint(allocator, "{s}export type Input = {s};\n\nexport type Output = {s};\n\nexport default function (in: Input): Output {{\n{s}\n}}\n", .{
-        if (imported) "import dependency from \"./dependency.zx\";\n\n" else "",
+    return std.fmt.allocPrint(allocator, "{s}export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n{s}\n}}\n", .{
+        if (imported) "import dependency from \"./dependency.zx\"\n\n" else "",
         input,
         output,
         body,
@@ -12,9 +12,9 @@ fn source(allocator: std.mem.Allocator, input: []const u8, output: []const u8, b
 
 test "function return ownership distinguishes new data and borrowed views" {
     const cases = [_]struct { input: []const u8, output: []const u8, dependency: []const u8, body: []const u8, rejected: bool }{
-        .{ .input = "u64", .output = "u64[]", .dependency = "  return [in];", .body = "  const values = dependency(in);\n  const [next, _] = values.reverse();\n\n  return next;", .rejected = false },
-        .{ .input = "u64[]", .output = "u64[]", .dependency = "  return in;", .body = "  const values = dependency(in);\n  const [next, _] = values.reverse();\n\n  return next;", .rejected = true },
-        .{ .input = "{ choose: bool; items: u64[]; }", .output = "u64[]", .dependency = "  if (in.choose) {\n    return [1];\n  }\n\n  return in.items;", .body = "  const values = dependency(in);\n  const [next, _] = values.reverse();\n\n  return next;", .rejected = true },
+        .{ .input = "u64", .output = "u64[]", .dependency = "  return [in]\n", .body = "  const values = dependency(in)\n  const [next, _] = values.reverse()\n\n  return next\n", .rejected = false },
+        .{ .input = "u64[]", .output = "u64[]", .dependency = "  return in\n", .body = "  const values = dependency(in)\n  const [next, _] = values.reverse()\n\n  return next\n", .rejected = true },
+        .{ .input = "{ choose: bool\n items: u64[] }", .output = "u64[]", .dependency = "  if (in.choose) {\n    return [1]\n  }\n\n  return in.items\n", .body = "  const values = dependency(in)\n  const [next, _] = values.reverse()\n\n  return next\n", .rejected = true },
     };
 
     for (cases) |case| {
@@ -43,7 +43,7 @@ test "function return ownership distinguishes new data and borrowed views" {
 }
 
 test "borrowed return cannot be forged into an owned IR contract" {
-    const text = try source(std.testing.allocator, "u64[]", "u64[]", "  return in;", false);
+    const text = try source(std.testing.allocator, "u64[]", "u64[]", "  return in\n", false);
 
     defer std.testing.allocator.free(text);
 
@@ -70,11 +70,11 @@ test "borrowed return cannot be forged into an owned IR contract" {
 }
 
 test "a returned read-only view prevents consuming its source owner" {
-    const main = try source(std.testing.allocator, "void", "u64", "  const values: u64[] = [1, 2];\n  const view = dependency(values);\n  const [next, _] = values.reverse();\n\n  return view.length + next.length;", true);
+    const main = try source(std.testing.allocator, "void", "u64", "  const values: u64[] = [1, 2]\n  const view = dependency(values)\n  const [next, _] = values.reverse()\n\n  return view.length + next.length\n", true);
 
     defer std.testing.allocator.free(main);
 
-    const dependency = try source(std.testing.allocator, "u64[]", "u64[]", "  return in;", false);
+    const dependency = try source(std.testing.allocator, "u64[]", "u64[]", "  return in\n", false);
 
     defer std.testing.allocator.free(dependency);
 

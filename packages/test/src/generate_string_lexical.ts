@@ -1,12 +1,12 @@
 import { range, writeCatalog } from './shared/catalog.ts'
 
 const prefix =
-	'export type Input = void;\n\nexport type Output = string;\n\nexport default function (in: Input): Output {\n  return '
+	'export type Input = void\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n  return '
 
 function source(literal: string, context: string): string {
 	const expression = context === 'return' ? literal : '`prefix${' + literal + '}suffix`'
 
-	return prefix + expression + ';\n}\n'
+	return prefix + expression + '\n}\n'
 }
 
 const escapes = {
@@ -101,7 +101,7 @@ for (const accepted of [false, true]) {
 		for (const context of ['string', 'comment']) {
 			const data =
 				context === 'string'
-					? Buffer.concat([Buffer.from(prefix + '"'), payload, Buffer.from('";\n}\n')])
+					? Buffer.concat([Buffer.from(prefix + '"'), payload, Buffer.from('"\n}\n')])
 					: Buffer.concat([Buffer.from('// '), payload, Buffer.from('\n' + source('"ok"', 'return'))])
 			const row = {
 				id: `language/lexical/utf8/${context}/${sequence}`,

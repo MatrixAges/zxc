@@ -69,7 +69,15 @@ function main(): void {
 		writeCatalog(base + '.jsonl', rows)
 		writeOutput(
 			base + '.zx',
-			`export type Input = { left: ${scalar}; right: ${scalar}; };\n\nexport type Output = ${scalar};\n\nexport default function (in: Input): Output {\n  return in.left / in.right;\n}\n`
+			`export type Input = { left: ${scalar}
+ right: ${scalar} }
+
+export type Output = ${scalar}
+
+export default function (in: Input): Output {
+  return in.left / in.right
+}
+`
 		)
 	}
 }

@@ -30,7 +30,16 @@ export default function writeOwnedStrings(args: { name: string; rows: Array<Row>
 	}
 
 	const literal_path = `built_ins/string/fixtures/${name}_literal.zx`
-	const literal_source = `export type Input = u64;\n\nexport type Output = string;\n\nexport default function (in: Input): Output {\n  const values: string[] = [${alphabet.map(literal).join(', ')}];\n\n  return values[in];\n}\n`
+	const literal_source = `export type Input = u64
+
+export type Output = string
+
+export default function (in: Input): Output {
+  const values: string[] = [${alphabet.map(literal).join(', ')}]
+
+  return values[in]
+}
+`
 
 	writeOutput('tests/' + literal_path, literal_source)
 
@@ -38,11 +47,27 @@ export default function writeOwnedStrings(args: { name: string; rows: Array<Row>
 		const first = group[0].input
 		const constructed = values('items', first.items.length)
 		const other = first.other ? values('other', first.other.length) : null
-		const fields = other ? 'items: u64[]; other: u64[];' : 'items: u64[];'
+		const fields = other ? 'items: u64[], other: u64[],' : 'items: u64[],'
 		const body = other
-			? `  const other: string[] = ${other};\n\n  const [joined, _] = owned.concat(other);\n  const [result, _] = joined.reverse();`
-			: '\n  const [result, _] = owned.sort();'
-		const source = `import fromLiteral from "../../../fixtures/${name}_literal.zx";\n\nexport type Input = { ${fields} };\n\nexport type Output = string[];\n\nexport default function (in: Input): Output {\n  const owned: string[] = ${constructed};\n${body}\n\n  return result;\n}\n`
+			? `  const other: string[] = ${other}
+
+  const [joined, _] = owned.concat(other)
+  const [result, _] = joined.reverse()
+`
+			: '\n  const [result, _] = owned.sort()\n'
+		const source = `import fromLiteral from "../../../fixtures/${name}_literal.zx"
+
+export type Input = { ${fields} }
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+  const owned: string[] = ${constructed}
+${body.trimEnd()}
+
+  return result
+}
+`
 		const encoded = group.map(row => {
 			const input = Object.fromEntries(
 				Object.entries(row.input).map(([field, strings]) => {

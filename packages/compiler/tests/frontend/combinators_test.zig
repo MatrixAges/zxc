@@ -4,7 +4,7 @@ const frontend = @import("compiler");
 const grammar = frontend.grammar;
 const Parser = frontend.Parser;
 const helpers = @import("../helpers.zig");
-const source = "export type Input = u64;";
+const source = "export type Input = u64\n";
 
 fn parserFor(parsed: frontend.ParseResult, reporter: *zx.Reporter) Parser {
     return .{ .allocator = std.testing.allocator, .source = source, .tokens = parsed.value.parsed.lexed.tokens, .reporter = reporter };
@@ -100,7 +100,7 @@ test "grammar: repetitions reject empty matches" {
 }
 
 test "grammar: keyword matching does not accept identifier prefixes" {
-    var parsed = try helpers.parseValid("export type constellation = u64;");
+    var parsed = try helpers.parseValid("export type constellation = u64\n");
 
     defer parsed.deinit();
 
@@ -132,7 +132,7 @@ test "grammar: choice propagates allocation failure without trying another rule"
 }
 
 fn parseWithAllocator(allocator: std.mem.Allocator) !void {
-    var parsed = try frontend.parse(allocator, "export type Input = u64; export type Output = u64; export default function (in: Input): Output { const value: u64 = in + 1; return value; }", "allocation.zx");
+    var parsed = try frontend.parse(allocator, "export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { const value: u64 = in + 1\n return value }", "allocation.zx");
 
     defer parsed.deinit();
 

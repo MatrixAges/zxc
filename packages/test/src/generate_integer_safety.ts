@@ -105,8 +105,24 @@ function cases(scalar: string) {
 }
 
 for (const scalar of ['u8', 'u16', 'u32', 'u64', 'i32', 'i64']) {
-	const unary = scalar.startsWith('i') ? '    case 5: return -in.left;\n    case 6: return -(-in.left);\n' : ''
-	const source = `export type Input = { operation: u8; left: ${scalar}; right: ${scalar}; };\n\nexport type Output = ${scalar};\n\nexport default function (in: Input): Output {\n  switch (in.operation) {\n    case 0: return in.left + in.right;\n    case 1: return in.left - in.right;\n    case 2: return in.left * in.right;\n    case 3: return in.left / in.right;\n    case 4: return in.left % in.right;\n${unary}    default: return in.left;\n  }\n}\n`
+	const unary = scalar.startsWith('i') ? '    case 5: return -in.left\n    case 6: return -(-in.left)\n' : ''
+	const source = `export type Input = { operation: u8
+ left: ${scalar}
+ right: ${scalar} }
+
+export type Output = ${scalar}
+
+export default function (in: Input): Output {
+  switch (in.operation) {
+    case 0: return in.left + in.right
+    case 1: return in.left - in.right
+    case 2: return in.left * in.right
+    case 3: return in.left / in.right
+    case 4: return in.left % in.right
+${unary}    default: return in.left
+  }
+}
+`
 	const base = `tests/runtime/safety/integer/${scalar}`
 
 	writeCatalog(base + '.jsonl', cases(scalar))

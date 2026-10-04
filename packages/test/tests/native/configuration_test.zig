@@ -1,7 +1,7 @@
 const std = @import("std");
 const compiler = @import("compiler");
-const source = "import native from \"zig:sample\";\n\nexport type Input = u64;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return native.apply(in);\n}\n";
-const entry: compiler.project.NativeInterface = .{ .specifier = "zig:sample", .path = "sample.d.zx", .source = "export declare function apply(input: u64): u64;", .module = "sample" };
+const source = "import native from \"zig:sample\"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return native.apply(in)\n}\n";
+const entry: compiler.project.NativeInterface = .{ .specifier = "zig:sample", .path = "sample.d.zx", .source = "export declare function apply(input: u64): u64\n", .module = "sample" };
 
 fn reject(interfaces: []const compiler.project.NativeInterface, externals: []const compiler.project.External, message: []const u8) !void {
     var result = try compiler.project.analyze(std.testing.allocator, &.{.{ .path = "main.zx", .source = source }}, .{
@@ -25,7 +25,7 @@ test "native interface registrations reject ambiguity" {
     try reject(&.{entry}, &.{.{
         .specifier = "zig:sample",
         .export_name = "apply",
-        .signature = "export type Input = u64; export type Output = u64;",
+        .signature = "export type Input = u64\n export type Output = u64\n",
         .implementation = .{ .module = "sample", .member = "apply" },
     }}, "native declarations conflict with legacy external signatures");
 }
@@ -48,7 +48,7 @@ test "native module and namespace names reject invalid strings" {
 
 test "native namespace imports require callable declarations" {
     var types_only = entry;
-    types_only.source = "export type Value = u64;";
+    types_only.source = "export type Value = u64\n";
 
     try reject(&.{types_only}, &.{}, "native namespaces require one binding and callable exports");
 }

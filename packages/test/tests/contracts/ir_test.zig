@@ -4,7 +4,7 @@ const Mutation = enum { order, predicate, symbol_count, input_name, input_type, 
 
 test "invalid contract IR cannot reach code generation" {
     const allocator = std.testing.allocator;
-    const source = "export type Input = u64; export type Output = u64; export default function (in: Input): Output requires(in > 0) ensures(out >= in) { return in; }";
+    const source = "export type Input = u64\n export type Output = u64\n export default function (in: Input): Output requires(in > 0) ensures(out >= in) { return in }";
     var parsed = try compiler.parse(allocator, source, "main.zx");
 
     defer parsed.deinit();

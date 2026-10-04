@@ -21,16 +21,16 @@ const cases: Array<Case> = [
 		input: 'u8',
 		output: 'u8',
 		clauses: 'requires(in < 255) ensures(out > in)',
-		body: 'return in + 1;',
+		body: 'return in + 1\n',
 		result: 'proved'
 	},
-	{ name: 'overflow counterexample', input: 'u8', output: 'u8', body: 'return in + 1;', result: 'counterexample' },
+	{ name: 'overflow counterexample', input: 'u8', output: 'u8', body: 'return in + 1\n', result: 'counterexample' },
 	{
 		name: 'false postcondition',
 		input: 'u8',
 		output: 'u8',
 		clauses: 'requires(in < 255) ensures(out == in)',
-		body: 'return in + 1;',
+		body: 'return in + 1\n',
 		result: 'counterexample'
 	},
 	{
@@ -38,7 +38,7 @@ const cases: Array<Case> = [
 		input: 'u8',
 		output: 'u8',
 		clauses: 'requires(false)',
-		body: 'return in;',
+		body: 'return in\n',
 		result: 'infeasible'
 	},
 	{
@@ -46,43 +46,43 @@ const cases: Array<Case> = [
 		input: 'u8',
 		output: 'u8',
 		clauses: 'ensures(out >= in)',
-		body: 'if (in == 255) {\n    return in;\n  }\n\n  return in + 1;',
+		body: 'if (in == 255) {\n    return in\n  }\n\n  return in + 1\n',
 		result: 'proved'
 	},
 	{
 		name: 'division nonzero',
-		input: '{ a: u8; b: u8; }',
+		input: '{ a: u8\n b: u8 }',
 		output: 'u8',
 		clauses: 'requires(in.b > 0) ensures(out <= in.a)',
-		body: 'return in.a / in.b;',
+		body: 'return in.a / in.b\n',
 		result: 'proved'
 	},
 	{
 		name: 'division zero counterexample',
-		input: '{ a: u8; b: u8; }',
+		input: '{ a: u8\n b: u8 }',
 		output: 'u8',
-		body: 'return in.a / in.b;',
+		body: 'return in.a / in.b\n',
 		result: 'counterexample'
 	},
 	{
 		name: 'short circuit guards division',
 		input: 'u8',
 		output: 'bool',
-		body: 'return in == 0 || 10 / in > 0;',
+		body: 'return in == 0 || 10 / in > 0\n',
 		result: 'proved'
 	},
 	{
 		name: 'conditional guards division',
 		input: 'u8',
 		output: 'u8',
-		body: 'return in == 0 ? 0 : 10 / in;',
+		body: 'return in == 0 ? 0 : 10 / in\n',
 		result: 'proved'
 	},
 	{
 		name: 'signed negation counterexample',
 		input: 'i32',
 		output: 'i32',
-		body: 'return -in;',
+		body: 'return -in\n',
 		result: 'counterexample'
 	},
 	{
@@ -90,7 +90,7 @@ const cases: Array<Case> = [
 		input: 'i32',
 		output: 'i32',
 		clauses: 'requires(in > -2147483648)',
-		body: 'return -in;',
+		body: 'return -in\n',
 		result: 'proved'
 	},
 	{
@@ -98,29 +98,29 @@ const cases: Array<Case> = [
 		input: 'bool',
 		output: 'bool',
 		clauses: 'ensures(out == !in)',
-		body: 'return !in;',
+		body: 'return !in\n',
 		result: 'proved'
 	},
-	{ name: 'floating unsupported', input: 'f64', output: 'f64', body: 'return in;', result: 'unsupported' },
+	{ name: 'floating unsupported', input: 'f64', output: 'f64', body: 'return in\n', result: 'unsupported' },
 	{
 		name: 'match guards division',
 		input: 'u8',
 		output: 'u8',
-		body: 'return match in { 0 => 0, _ => 10 / in };',
+		body: 'return match in { 0 => 0, _ => 10 / in }\n',
 		result: 'proved'
 	},
 	{
 		name: 'match selected unsafe arm',
 		input: 'u8',
 		output: 'u8',
-		body: 'return match in { 0 => 10 / in, _ => 0 };',
+		body: 'return match in { 0 => 10 / in, _ => 0 }\n',
 		result: 'counterexample'
 	},
 	{
 		name: 'guard match skips later condition',
 		input: 'u8',
 		output: 'u8',
-		body: 'return match { in == 0 => 0, 10 / in > 0 => 1, _ => 2 };',
+		body: 'return match { in == 0 => 0, 10 / in > 0 => 1, _ => 2 }\n',
 		result: 'proved'
 	},
 	{
@@ -128,7 +128,7 @@ const cases: Array<Case> = [
 		input: 'u8',
 		output: 'u8',
 		clauses: 'ensures(out == in)',
-		body: 'return match { true => in, 10 / in > 0 => 0, _ => 0 };',
+		body: 'return match { true => in, 10 / in > 0 => 0, _ => 0 }\n',
 		result: 'proved'
 	},
 	{
@@ -136,14 +136,14 @@ const cases: Array<Case> = [
 		input: 'u8',
 		output: 'u8',
 		clauses: 'ensures(out == in)',
-		body: 'return match in { 0 => 1, _ => in };',
+		body: 'return match in { 0 => 1, _ => in }\n',
 		result: 'counterexample'
 	},
 	{
 		name: 'match unsafe subject',
 		input: 'u8',
 		output: 'u8',
-		body: 'return match 10 / in { 0 => 0, _ => 0 };',
+		body: 'return match 10 / in { 0 => 0, _ => 0 }\n',
 		result: 'counterexample'
 	},
 	{
@@ -151,7 +151,7 @@ const cases: Array<Case> = [
 		input: 'u8',
 		output: 'u8',
 		clauses: 'requires(in > 0) ensures(out == 0)',
-		body: 'return match 10 / in { 0 => 0, _ => 0 };',
+		body: 'return match 10 / in { 0 => 0, _ => 0 }\n',
 		result: 'proved'
 	}
 ]
@@ -160,7 +160,11 @@ for (const scenario of cases) {
 	const directory = mkdtempSync(join(tmpdir(), 'zxc-verification-'))
 
 	try {
-		const source = `export type Input = ${scenario.input};\n\nexport type Output = ${scenario.output};\n\nexport default function (in: Input): Output ${scenario.clauses ?? ''} {\n  ${scenario.body}\n}\n`
+		const source = `export type Input = ${scenario.input}
+
+export type Output = ${scenario.output}
+
+export default function (in: Input): Output ${scenario.clauses ?? ''} {\n  ${scenario.body}\n}\n`
 
 		writeFileSync(join(directory, 'main.zx'), source)
 

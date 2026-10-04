@@ -40,7 +40,7 @@ export default function checkBridge(args: { directory: string; compiler_dir: str
 	})
 	writeFileSync(
 		join(project, 'main.zx'),
-		'import plugin from "c:protocol";\n\nexport type Input = { enabled: bool; value: u32; };\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  if (!in.enabled) {\n    return 0;\n  }\n\n  return plugin.raw(in.value);\n}\n'
+		'import plugin from "c:protocol"\n\nexport type Input = { enabled: bool\n value: u32 }\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  if (!in.enabled) {\n    return 0\n  }\n\n  return plugin.raw(in.value)\n}\n'
 	)
 	writeFileSync(
 		join(project, 'zxc.json'),
@@ -49,7 +49,7 @@ export default function checkBridge(args: { directory: string; compiler_dir: str
 				{
 					specifier: 'c:protocol',
 					export_name: 'raw',
-					signature: 'export type Input = u32; export type Output = u64;',
+					signature: 'export type Input = u32\n export type Output = u64\n',
 					implementation: {
 						module: 'protocol_plugin',
 						member: 'raw',

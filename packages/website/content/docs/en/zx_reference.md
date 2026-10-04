@@ -9,6 +9,8 @@ Use this page as a compact syntax and behavior reference. Start with [write logi
 
 The executable entry uses `Input`, `Output`, and the parameter name `in`. Imported executable functions accept one input value. Function imports use `camelCase`; local values use `snake_case`; types use `PascalCase`.
 
+ZX uses no semicolons: an explicit `;` in code is a syntax error. Separate statements with a line break; a closing `}` can end the final statement of a block. Separate object type fields with commas or line breaks. Semicolons inside strings and comments remain ordinary content.
+
 ### Values and expressions
 
 | Construct  | Supported shape                                                               |
@@ -46,13 +48,13 @@ The match expression has two forms: `match { ... }` selects a result using compl
 const shipping = match {
   discounted >= in.free_shipping_minimum => 0,
   _ => in.shipping_fee
-};
+}
 
 const label = match status {
   "paid" => "ready",
   "pending" => "waiting",
   _ => "blocked"
-};
+}
 ```
 
 Conditions are checked in source order and only the selected result is evaluated. In value mode, the target is evaluated once and must be a non-void scalar or enum. A single final `_` branch is required; trailing commas are allowed. Result types must agree. Use `&&` for conjunction. Ranges, destructuring, and chained comparisons are unsupported.

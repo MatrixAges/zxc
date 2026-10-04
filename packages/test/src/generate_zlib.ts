@@ -65,7 +65,17 @@ for (const [format, operation, compress] of [
 	writeCatalog(base + '.jsonl', rows)
 	writeOutput(
 		base + '.zx',
-		`import zlib from "std:zlib";\nimport type { DecompressOptions } from "std:zlib";\n\nexport type Input = DecompressOptions;\n\nexport type Output = u8[];\n\nexport default function (in: Input): Output {\n  return zlib.${operation}(in);\n}\n`
+		`import zlib from "std:zlib"
+import type { DecompressOptions } from "std:zlib"
+
+export type Input = DecompressOptions
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+  return zlib.${operation}(in)
+}
+`
 	)
 }
 
@@ -79,5 +89,5 @@ writeOutput(
 	'tests/standard/resources/zlib/fixtures.zig',
 	fixtures
 		.map(([name, compress]) => `pub const ${name} = [_]u8{ ${[...compress('abc', { level: 0 })].join(', ')} };`)
-		.join('\n\n') + '\n'
+		.join('\n') + '\n'
 )

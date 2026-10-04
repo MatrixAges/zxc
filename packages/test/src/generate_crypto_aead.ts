@@ -107,18 +107,27 @@ for (const [name, algorithm, key_length] of [
 	for (const [operation, input, output, rows] of [
 		[
 			'encrypt',
-			'{ key: u8[]; nonce: u8[]; data: u8[]; aad: u8[]; }',
-			'{ ciphertext: u8[]; tag: u8[]; }',
+			'{ key: u8[]\n nonce: u8[]\n data: u8[]\n aad: u8[] }',
+			'{ ciphertext: u8[]\n tag: u8[] }',
 			encrypt_rows
 		],
-		['decrypt', '{ key: u8[]; nonce: u8[]; ciphertext: u8[]; tag: u8[]; aad: u8[]; }', 'u8[]', decrypt_rows]
+		['decrypt', '{ key: u8[]\n nonce: u8[]\n ciphertext: u8[]\n tag: u8[]\n aad: u8[] }', 'u8[]', decrypt_rows]
 	] as const) {
 		const base = `tests/standard/crypto/${algorithm}/${operation}`
 
 		writeCatalog(base + '.jsonl', rows)
 		writeOutput(
 			base + '.zx',
-			`import crypto from "std:crypto";\n\nexport type Input = ${input};\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n  return crypto.${operation}${name}(in);\n}\n`
+			`import crypto from "std:crypto"
+
+export type Input = ${input}
+
+export type Output = ${output}
+
+export default function (in: Input): Output {
+  return crypto.${operation}${name}(in)
+}
+`
 		)
 	}
 }

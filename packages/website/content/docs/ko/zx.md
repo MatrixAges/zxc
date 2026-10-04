@@ -12,15 +12,15 @@ ZX는 TypeScript와 비슷한 언어이며 JavaScript는 아닙니다. 입력과
 
 ```typescript
 export type Input = {
-  amount: u64;
-};
+  amount: u64
+}
 
 export type Output = {
-  amount: u64;
-};
+  amount: u64
+}
 
 export default function (in: Input): Output {
-  return { amount: in.amount };
+  return { amount: in.amount }
 }
 ```
 
@@ -65,13 +65,13 @@ match 표현식에는 두 형태가 있습니다. `match { ... }`는 완전한 �
 const shipping = match {
   discounted >= in.free_shipping_minimum => 0,
   _ => in.shipping_fee
-};
+}
 
 const label = match status {
   "paid" => "ready",
   "pending" => "waiting",
   _ => "blocked"
-};
+}
 ```
 
 조건은 소스 순서대로 확인하며 선택된 결과만 평가합니다. 값 모드의 대상은 한 번만 평가하고 void가 아닌 스칼라 또는 열거형이어야 합니다. 마지막에 유일한 `_` 분기가 필요하며 후행 쉼표를 허용합니다. 결과 타입은 일치해야 합니다. 논리곱에는 `&&`를 사용합니다. 범위, 구조 분해, 연쇄 비교는 지원하지 않습니다.

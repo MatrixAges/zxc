@@ -1,7 +1,7 @@
-export type Input = { value: u64?; items: u64[]; index: u64; };
+export type Input = { value: u64?, items: u64[], index: u64, }
 
-export type Output = u64;
+export type Output = u64
 
 export default function (in: Input): Output {
-  return in.value ?? in.items[in.index];
+  return in.value ?? in.items[in.index]
 }

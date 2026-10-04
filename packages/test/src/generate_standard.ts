@@ -1,26 +1,27 @@
 import { createHash } from 'node:crypto'
 import { writeCatalog, writeOutput } from './shared/catalog.ts'
 
-const source = `import encoding from "std:encoding";
-import crypto from "std:crypto";
+const source = `import encoding from "std:encoding"
+import crypto from "std:crypto"
 
-export type Input = { bytes: u8[]; text: string; };
+export type Input = { bytes: u8[]
+ text: string }
 
 export type Output = {
-  base64: string;
-  hex: string;
-  base64_bytes: u8[];
-  hex_bytes: u8[];
-  utf8: u8[];
-  text: string;
-  sha256: u8[];
-  sha512: u8[];
-};
+  base64: string
+  hex: string
+  base64_bytes: u8[]
+  hex_bytes: u8[]
+  utf8: u8[]
+  text: string
+  sha256: u8[]
+  sha512: u8[]
+}
 
 export default function (in: Input): Output {
-  const base64 = encoding.encodeBase64(in.bytes);
-  const hex = encoding.encodeHex(in.bytes);
-  const utf8 = encoding.encodeUtf8(in.text);
+  const base64 = encoding.encodeBase64(in.bytes)
+  const hex = encoding.encodeHex(in.bytes)
+  const utf8 = encoding.encodeUtf8(in.text)
 
   return {
     base64: base64,
@@ -31,7 +32,7 @@ export default function (in: Input): Output {
     text: encoding.decodeUtf8(utf8),
     sha256: crypto.sha256(in.bytes),
     sha512: crypto.sha512(in.bytes)
-  };
+  }
 }
 `
 

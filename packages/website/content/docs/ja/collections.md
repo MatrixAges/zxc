@@ -3,11 +3,11 @@ ZX では、リスト変換と所有権が明示されます。入力コレク�
 ### 汎用ループなしで変換する
 
 ```typescript
-export type Input = u64[][];
-export type Output = u64[];
+export type Input = u64[][]
+export type Output = u64[]
 
 export default function (in: Input): Output {
-  return in.map((row) => row.filter((item) => item > 2).reduce((sum, item) => sum + item, 0));
+  return in.map((row) => row.filter((item) => item > 2).reduce((sum, item) => sum + item, 0))
 }
 ```
 
@@ -18,17 +18,17 @@ export default function (in: Input): Output {
 消費する操作はタプルを返します。結果のリストを新しい名前に束縛し、不要な結果は `_` で捨てます。
 
 ```typescript
-export type Input = u64[];
-export type Output = u64[];
+export type Input = u64[]
+export type Output = u64[]
 
 export default function (in: Input): Output {
-  const items = clone(in);
-  const [with_item, _] = items.push(7);
-  const [rest, removed] = with_item.pop();
-  const [ordered, _] = rest.sort();
-  const [reversed, _] = ordered.reverse();
+  const items = clone(in)
+  const [with_item, _] = items.push(7)
+  const [rest, removed] = with_item.pop()
+  const [ordered, _] = rest.sort()
+  const [reversed, _] = ordered.reverse()
 
-  return reversed;
+  return reversed
 }
 ```
 

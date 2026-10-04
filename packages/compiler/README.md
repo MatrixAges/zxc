@@ -21,6 +21,8 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 - requires/ensures 契约、独立契约 IR 与有限整数子集的 SMT 验证。
 - 第三方 IR 的结构、作用域、调用图顺序、所有权与权限检查。
 
+ZX 代码不允许显式分号。简单语句与声明通过换行、块结束或文件结束分隔；对象类型字段使用逗号或换行。字符串、注释和模板原文中的分号保留为内容。表达式可跨行，`return` 后换行不会自动截断返回值。
+
 语法通过 Token 组合子声明；表达式优先级集中在 zx 操作符规则表。类型分析和所有权使用独立算法，不把所有阶段伪装成语法配置。
 
 `??` 与 `&&`/`||` 在同一二元表达式中混用时必须显式加括号。例如 `value ?? left && right` 是语法错误，`value ?? (left && right)` 和 `(value ?? left) && right` 明确指定分组后才进入类型检查。条件表达式的各分支、函数参数和括号内表达式分别判断，不把不同表达式中的运算符视为混用。
@@ -43,7 +45,7 @@ std:crypto 新增 scrypt 密钥派生，显式接收密码与盐字节、N/r/p�
 
 std:querystring 使用有序 Entry 列表保留重复键。parse/stringify 使用默认分隔符，parseWith/stringifyWith 接收显式配置；escape/unescape 提供百分号编解码。该模块不提供 JavaScript 对象隐式转换或完整 URL 解析。
 
-std:zlib 提供 gzip/deflate/deflateRaw，输入 u8[]；gzipWith/deflateWith/deflateRawWith 接收 `{ data: u8[]; level: i32; }`，级别为 -1（默认）、0（不压缩）、1–9。gunzip/inflate/inflateRaw 接收 `{ data: u8[]; max_output_length: u32; }`。结果均为新分配字节数组。解压验证容器校验和、gzip 长度及总输出上限，支持连续 gzip 成员，拒绝尾随垃圾。新增 zstdDecompress 接收 `{ data: u8[]; max_output_length: u32; max_window_length: u32; }`，支持连续 Zstd 帧、可跳过帧和校验和验证；两个上限分别约束总输出与单帧窗口。当前不提供流、预设字典、其他压缩参数、Brotli 或 Zstd 编码。详见 [Zstd 解压参考](../../docs/2026-10-04/Zstd解压参考.md)。
+std:zlib 提供 gzip/deflate/deflateRaw，输入 u8[]；gzipWith/deflateWith/deflateRawWith 接收 `{ data: u8[], level: i32, }`，级别为 -1（默认）、0（不压缩）、1–9。gunzip/inflate/inflateRaw 接收 `{ data: u8[], max_output_length: u32, }`。结果均为新分配字节数组。解压验证容器校验和、gzip 长度及总输出上限，支持连续 gzip 成员，拒绝尾随垃圾。新增 zstdDecompress 接收 `{ data: u8[], max_output_length: u32, max_window_length: u32, }`，支持连续 Zstd 帧、可跳过帧和校验和验证；两个上限分别约束总输出与单帧窗口。当前不提供流、预设字典、其他压缩参数、Brotli 或 Zstd 编码。详见 [Zstd 解压参考](../../docs/2026-10-04/Zstd解压参考.md)。
 
 ## Answer：使用与验证
 
@@ -116,7 +118,7 @@ IR 实验版本 8 移除 Context 注入槽位与读取节点，保留原生声�
 
 应用 CLI 当前采用 Zig 的默认 JSON 输出约定：`u8[]` 字节构成合法 UTF-8 时输出 JSON 字符串，否则输出整数数组；空字节列表输出 `""`。例如 `[65, 66]` 输出 `"AB"`，`[255]` 输出 `[255]`，嵌套对象中的字节列表也遵循这一规则。消费端应按已知 ZX 输出类型恢复字节：字符串做 UTF-8 编码，数组逐项校验为 0–255 的整数后转换。字符串不是 Base64，不应按 UTF-16 字符码恢复。这只影响 CLI 的 JSON 表示，std:zlib 等接口的 ZX 返回类型和内容仍为字节列表。
 
-`std:path` 按编译目标 OS 选择路径风格，`std:path/posix` 与 `std:path/win32` 固定风格。提供 isAbsolute、basename、dirname、extname、parse、format、normalize、join、resolve、relative；join 接收 string[]，resolve 接收 `{ cwd: string; paths: string[]; }`，relative 接收 `{ cwd: string; from: string; to: string; }`。不读取进程 cwd 或盘符环境。Windows 比较目前仅提供 ASCII 大小写折叠；其他差异和实际调用见 [路径标准库实施](../../docs/2026-10-03/路径标准库实施.md)。
+`std:path` 按编译目标 OS 选择路径风格，`std:path/posix` 与 `std:path/win32` 固定风格。提供 isAbsolute、basename、dirname、extname、parse、format、normalize、join、resolve、relative；join 接收 string[]，resolve 接收 `{ cwd: string, paths: string[], }`，relative 接收 `{ cwd: string, from: string, to: string, }`。不读取进程 cwd 或盘符环境。Windows 比较目前仅提供 ASCII 大小写折叠；其他差异和实际调用见 [路径标准库实施](../../docs/2026-10-03/路径标准库实施.md)。
 
 `std:crypto` 提供 sha256/sha512；hmacSha256/hmacSha512 与 verifyHmacSha256/verifyHmacSha512；hkdfSha256/hkdfSha512；pbkdf2Sha256/pbkdf2Sha512；encrypt/decryptAes128Gcm、encrypt/decryptAes256Gcm、encrypt/decryptChaCha20Poly1305，以及 timingSafeEqual。所有密码材料和数据使用 u8[]，具体字段与错误见 [密码学标准库实施](../../docs/2026-10-03/密码学标准库实施.md)。密钥和 nonce 由调用方显式提供，同一密钥下 nonce 必须唯一。解密认证失败返回错误，不输出明文；时序安全比较只约束比较原语，不代表整个应用具有恒定执行时间。
 

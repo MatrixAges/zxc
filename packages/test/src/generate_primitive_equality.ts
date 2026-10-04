@@ -29,6 +29,15 @@ for (const [name, pairs] of Object.entries(inputs)) {
 	writeCatalog(base + '.jsonl', rows)
 	writeOutput(
 		base + '.zx',
-		`export type Input = { left: ${scalar}; right: ${scalar}; };\n\nexport type Output = { same: bool; different: bool; };\n\nexport default function (in: Input): Output {\n  return { same: in.left == in.right, different: in.left != in.right };\n}\n`
+		`export type Input = { left: ${scalar}
+ right: ${scalar} }
+
+export type Output = { same: bool
+ different: bool }
+
+export default function (in: Input): Output {
+  return { same: in.left == in.right, different: in.left != in.right }
+}
+`
 	)
 }

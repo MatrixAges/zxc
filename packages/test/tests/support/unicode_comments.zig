@@ -5,7 +5,7 @@ pub fn check(comptime check_source: anytype, args: struct { mode: Mode, first: u
     const mode = args.mode;
     const prefix = if (mode == .line) "//var " else "/*var ";
     const suffix = if (mode == .line) "xx = 1;\n" else "xx = 1*/\n";
-    const program = "export type Input = void;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return 0;\n}\n";
+    const program = "export type Input = void\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return 0\n}\n";
 
     for (args.first..@as(usize, args.last) + 1) |point| {
         const surrogate = point >= 0xd800 and point <= 0xdfff;

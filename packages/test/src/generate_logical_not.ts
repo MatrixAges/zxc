@@ -13,7 +13,7 @@ const types = {
 	bool: 'bool',
 	string: 'string',
 	list: 'u64[]',
-	object: '{ value: u64; }',
+	object: '{ value: u64 }',
 	optional_bool: 'bool?',
 	void: 'void'
 }
@@ -21,7 +21,14 @@ type Case = { id: string; source: string; phase: string; diagnostic: string | nu
 const frontend: Array<Case> = []
 
 function program(input: string, expression: string): string {
-	return `export type Input = ${input};\n\nexport type Output = bool;\n\nexport default function (in: Input): Output {\n  return ${expression};\n}\n`
+	return `export type Input = ${input}
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  return ${expression}
+}
+`
 }
 
 for (const [name, type] of Object.entries(types))
@@ -56,7 +63,7 @@ for (const literal of [
 for (const declared of [false, true]) {
 	const source = program('bool', '!missing').replace(
 		'  return',
-		(declared ? '  const missing = in;\n\n' : '') + '  return'
+		(declared ? '  const missing = in\n\n' : '') + '  return'
 	)
 	const start = source.indexOf('missing')
 	frontend.push({
@@ -109,14 +116,40 @@ for (const [name, gap] of Object.entries(whitespace)) {
 	}
 }
 
-const branches = source_expressions.map((expression, index) => `    case ${index}: return ${expression};\n`).join('')
+const branches = source_expressions
+	.map(
+		(expression, index) => `    case ${index}: return ${expression}
+`
+	)
+	.join('')
 writeCatalog(root + 'source.jsonl', source_rows)
 writeOutput(
 	root + 'source.zx',
-	'export type Input = u64;\n\nexport type Output = bool;\n\nexport default function (in: Input): Output {\n  const x = true;\n  const object = { prop: true };\n\n  switch (in) {\n' +
+	'export type Input = u64\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  const x = true\n  const object = { prop: true }\n\n  switch (in) {\n' +
 		branches +
-		'    default: return false;\n  }\n}\n'
+		'    default: return false\n  }\n}\n'
 )
+for (const [name, input_type, expression, phase, diagnostic] of [
+	['undefined', 'void', '!(undefined)', 'analyze', 'name'],
+	['void_expression', 'void', '!(void 0)', 'parse', 'syntax'],
+	['empty_object', 'void', '!{}', 'analyze', 'type_mismatch'],
+	['function_expression', 'void', '!(function(){return 1})', 'parse', 'syntax'],
+	['eval', 'void', '!(eval("var x"))', 'analyze', 'name'],
+	['nan_name', 'void', '!NaN', 'analyze', 'name'],
+	['infinity_name', 'void', '!Infinity', 'analyze', 'name'],
+	['nan_value', 'void', '!(0.0 / 0.0)', 'analyze', 'type_mismatch'],
+	['positive_infinity', 'void', '!(1.0 / 0.0)', 'analyze', 'type_mismatch'],
+	['negative_infinity', 'void', '!(-1.0 / 0.0)', 'analyze', 'type_mismatch'],
+	['optional_number', 'f64?', '!in', 'analyze', 'type_mismatch'],
+]) {
+	frontend.push({
+		id: `language/types/logical_not/conversion/${name}`,
+		source: program(input_type, expression),
+		phase,
+		diagnostic,
+	})
+}
+
 writeCatalog('tests/language/types/logical_not/cases.jsonl', frontend)
 
 const values = [false, true].map(input => ({
@@ -127,7 +160,7 @@ const values = [false, true].map(input => ({
 writeCatalog(root + 'values.jsonl', values)
 writeOutput(
 	root + 'values.zx',
-	'export type Input = bool;\n\nexport type Output = { direct: bool; binding: bool; double: bool; field: bool; triple: bool; };\n\nexport default function (in: Input): Output {\n  const bound = in;\n  const object = { prop: in };\n\n  return { direct: !in, binding: !bound, double: !!in, field: !object.prop, triple: !!!in };\n}\n'
+	'export type Input = bool\n\nexport type Output = { direct: bool\n binding: bool\n double: bool\n field: bool\n triple: bool }\n\nexport default function (in: Input): Output {\n  const bound = in\n  const object = { prop: in }\n\n  return { direct: !in, binding: !bound, double: !!in, field: !object.prop, triple: !!!in }\n}\n'
 )
 
 const operations: Array<[string, string, (left: boolean, right: boolean) => boolean]> = [
@@ -146,5 +179,5 @@ for (const [name, expression, evaluate] of operations) {
 		}))
 	)
 	writeCatalog(root + 'precedence/' + name + '.jsonl', rows)
-	writeOutput(root + 'precedence/' + name + '.zx', program('{ left: bool; right: bool; }', expression))
+	writeOutput(root + 'precedence/' + name + '.zx', program('{ left: bool\n right: bool }', expression))
 }

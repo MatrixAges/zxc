@@ -1,7 +1,11 @@
-export type Input = { left: string; right: string; };
+export type Input = { left: string, right: string, }
 
-export type Output = { bytes: u64; same: bool; different: bool; joined: string; wrapped: string; };
+export type Output = { bytes: u64
+ same: bool
+ different: bool
+ joined: string
+ wrapped: string }
 
 export default function (in: Input): Output {
-  return { bytes: in.left.length, same: in.left == in.right, different: in.left != in.right, joined: `${in.left}${in.right}`, wrapped: `[${in.left}][${in.right}]` };
+  return { bytes: in.left.length, same: in.left == in.right, different: in.left != in.right, joined: `${in.left}${in.right}`, wrapped: `[${in.left}][${in.right}]` }
 }

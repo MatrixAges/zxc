@@ -1,7 +1,12 @@
-export type Input = { left: i64; right: i64; };
+export type Input = { left: i64
+ right: i64 }
 
-export type Output = { sum: i64; difference: i64; product: i64; quotient: i64; remainder: i64; };
+export type Output = { sum: i64
+ difference: i64
+ product: i64
+ quotient: i64
+ remainder: i64 }
 
 export default function (in: Input): Output {
-return { sum: in.left + in.right, difference: in.left - in.right, product: in.left * in.right, quotient: in.left / in.right, remainder: in.left % in.right };
+return { sum: in.left + in.right, difference: in.left - in.right, product: in.left * in.right, quotient: in.left / in.right, remainder: in.left % in.right }
 }

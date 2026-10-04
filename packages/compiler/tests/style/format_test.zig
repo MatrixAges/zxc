@@ -12,7 +12,7 @@ fn stripWhitespace(allocator: std.mem.Allocator, text: []const u8) ![]u8 {
 }
 
 test "style: formatting is idempotent and preserves comments and tokens" {
-    const input = "export type Input = u64;\nexport type Output = u64;\nexport default function (in: Input): Output {\n\n const first = in; // keep this comment\n\n const second = first + 1;\n return second;\n\n}\n";
+    const input = "export type Input = u64\nexport type Output = u64\nexport default function (in: Input): Output {\n\n const first = in // keep this comment\n\n const second = first + 1\n return second\n\n}\n";
     const first = try compiler.format(std.testing.allocator, input, "format.zx");
 
     defer first.deinit(std.testing.allocator);
@@ -38,7 +38,7 @@ test "style: formatting is idempotent and preserves comments and tokens" {
 }
 
 test "style: a pure type file does not need an extra blank line at EOF" {
-    const source = "export type Value = u64;\n";
+    const source = "export type Value = u64\n";
     const result = try compiler.format(std.testing.allocator, source, "types.zx");
 
     defer result.deinit(std.testing.allocator);
@@ -48,10 +48,10 @@ test "style: a pure type file does not need an extra blank line at EOF" {
 
 test "style: naming checks reach callback and destructuring bindings" {
     for ([_][]const u8{
-        "return in.map((BadName) => BadName);",
-        "const values = in.clone(); const [BadName, _] = values.pop(); return BadName;",
+        "return in.map((BadName) => BadName)\n",
+        "const values = in.clone()\n const [BadName, _] = values.pop()\n return BadName\n",
     }) |body| {
-        const source = try std.fmt.allocPrint(std.testing.allocator, "export type Input = u64[]; export type Output = u64[]; export default function (in: Input): Output {{ {s} }}", .{body});
+        const source = try std.fmt.allocPrint(std.testing.allocator, "export type Input = u64[]\n export type Output = u64[]\n export default function (in: Input): Output {{ {s} }}", .{body});
 
         defer std.testing.allocator.free(source);
 
@@ -65,7 +65,7 @@ test "style: naming checks reach callback and destructuring bindings" {
 }
 
 fn compileAllocationFailures(allocator: std.mem.Allocator) !void {
-    const result = try compiler.compile(allocator, "export type Input = u64[]; export type Output = u64[]; export default function (in: Input): Output { return in.map((item) => item + 1); }", "memory.zx");
+    const result = try compiler.compile(allocator, "export type Input = u64[]\n\nexport type Output = u64[]\n\nexport default function (in: Input): Output { return in.map((item) => item + 1) }", "memory.zx");
 
     defer result.deinit(allocator);
 

@@ -1,7 +1,11 @@
-export type Input = string;
+export type Input = string
 
-export type Output = { escaped: string; nested: string; length: u64; equal: bool; not_equal: bool; };
+export type Output = { escaped: string
+ nested: string
+ length: u64
+ equal: bool
+ not_equal: bool }
 
 export default function (in: Input): Output {
-return { escaped: "line\n\t\"quoted\"\\end", nested: `outer-${`inner-${in}`}`, length: in.length, equal: in == "zx", not_equal: in != "zx" };
+return { escaped: "line\n\t\"quoted\"\\end", nested: `outer-${`inner-${in}`}`, length: in.length, equal: in == "zx", not_equal: in != "zx" }
 }

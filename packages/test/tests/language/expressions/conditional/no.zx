@@ -1,7 +1,7 @@
-export type Input = { choose: bool; fallback: u64; items: u64[]; index: u64; };
+export type Input = { choose: bool, fallback: u64, items: u64[], index: u64, }
 
-export type Output = u64;
+export type Output = u64
 
 export default function (in: Input): Output {
-  return in.choose ? in.fallback : in.items[in.index];
+  return in.choose ? in.fallback : in.items[in.index]
 }

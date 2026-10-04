@@ -12,15 +12,15 @@ ZX is TypeScript-like, not JavaScript. Declare the input and output types and ex
 
 ```typescript
 export type Input = {
-  amount: u64;
-};
+  amount: u64
+}
 
 export type Output = {
-  amount: u64;
-};
+  amount: u64
+}
 
 export default function (in: Input): Output {
-  return { amount: in.amount };
+  return { amount: in.amount }
 }
 ```
 
@@ -65,13 +65,13 @@ The match expression has two forms: `match { ... }` selects a result using compl
 const shipping = match {
   discounted >= in.free_shipping_minimum => 0,
   _ => in.shipping_fee
-};
+}
 
 const label = match status {
   "paid" => "ready",
   "pending" => "waiting",
   _ => "blocked"
-};
+}
 ```
 
 Conditions are checked in source order and only the selected result is evaluated. In value mode, the target is evaluated once and must be a non-void scalar or enum. A single final `_` branch is required; trailing commas are allowed. Result types must agree. Use `&&` for conjunction. Ranges, destructuring, and chained comparisons are unsupported.

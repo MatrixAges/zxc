@@ -48,30 +48,40 @@ const literals = [
 function wrap(args: { fields: string; output: string; body: string }): string {
 	const { fields, output, body } = args
 
-	return `export type Input = { ${fields} };\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n${body}\n}\n`
+	return `export type Input = { ${fields} }
+
+export type Output = ${output}
+
+export default function (in: Input): Output {
+${body.trimEnd()}\n}\n`
 }
 
 function programs(): Record<string, string> {
 	const values = wrap({
-		fields: 'left: string; right: string;',
-		output: '{ bytes: u64; same: bool; different: bool; joined: string; wrapped: string; }',
-		body: '  return { bytes: in.left.length, same: in.left == in.right, different: in.left != in.right, joined: `${in.left}${in.right}`, wrapped: `[${in.left}][${in.right}]` };'
+		fields: 'left: string, right: string,',
+		output: '{ bytes: u64\n same: bool\n different: bool\n joined: string\n wrapped: string }',
+		body: '  return { bytes: in.left.length, same: in.left == in.right, different: in.left != in.right, joined: `${in.left}${in.right}`, wrapped: `[${in.left}][${in.right}]` }\n'
 	})
 	const optional = wrap({
-		fields: 'left: string?; right: string?;',
-		output: '{ same: bool; different: bool; chosen: string; }',
-		body: '  return { same: in.left == in.right, different: in.left != in.right, chosen: in.left ?? (in.right ?? "") };'
+		fields: 'left: string?, right: string?,',
+		output: '{ same: bool\n different: bool\n chosen: string }',
+		body: '  return { same: in.left == in.right, different: in.left != in.right, chosen: in.left ?? (in.right ?? "") }\n'
 	})
 	const reduce = wrap({
-		fields: 'items: string[]; seed: string;',
+		fields: 'items: string[], seed: string,',
 		output: 'string',
-		body: '  return in.items.reduce((sum, item) => `${sum}${item}`, in.seed);'
+		body: '  return in.items.reduce((sum, item) => `${sum}${item}`, in.seed)\n'
 	})
-	const branches = literals.map((value, index) => `    case ${index}: return ${JSON.stringify(value)};\n`).join('')
+	const branches = literals
+		.map(
+			(value, index) => `    case ${index}: return ${JSON.stringify(value)}
+`
+		)
+		.join('')
 	const literal_source =
-		'export type Input = u64;\n\nexport type Output = string;\n\nexport default function (in: Input): Output {\n  switch (in) {\n' +
+		'export type Input = u64\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n  switch (in) {\n' +
 		branches +
-		'    default: return "";\n  }\n}\n'
+		'    default: return ""\n  }\n}\n'
 
 	return { values, optional, sort: '', concat_reverse: '', reduce, literals: literal_source }
 }

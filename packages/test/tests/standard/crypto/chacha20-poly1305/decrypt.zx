@@ -1,9 +1,13 @@
-import crypto from "std:crypto";
+import crypto from "std:crypto"
 
-export type Input = { key: u8[]; nonce: u8[]; ciphertext: u8[]; tag: u8[]; aad: u8[]; };
+export type Input = { key: u8[]
+ nonce: u8[]
+ ciphertext: u8[]
+ tag: u8[]
+ aad: u8[] }
 
-export type Output = u8[];
+export type Output = u8[]
 
 export default function (in: Input): Output {
-  return crypto.decryptChaCha20Poly1305(in);
+  return crypto.decryptChaCha20Poly1305(in)
 }

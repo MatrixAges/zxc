@@ -3,32 +3,38 @@ import evaluate from './models/store.ts'
 import { range, writeCatalog, writeOutput } from './shared/catalog.ts'
 
 const base = 'tests/stores/transactions/staging'
-const source = `export type Input = { action: u8; increment: u64; index: u64; };
+const source = `export type Input = { action: u8
+ increment: u64
+ index: u64 }
 
-export type State = { count: u64; items: u64[]; };
+export type State = { count: u64
+ items: u64[] }
 
-export type Output = { before: u64; after: u64; other: u64; value: u64; };
+export type Output = { before: u64
+ after: u64
+ other: u64
+ value: u64 }
 
 export default function (in: Input): Output {
-  const before = $store_a.value.count;
+  const before = $store_a.value.count
 
-  $store_a.value = { ...$store_a.value, count: before + in.increment };
+  $store_a.value = { ...$store_a.value, count: before + in.increment }
 
   if (in.action == 1) {
-    $store_a.value = { ...$store_a.value, count: $store_a.value.count + in.increment };
+    $store_a.value = { ...$store_a.value, count: $store_a.value.count + in.increment }
   }
 
   if (in.action == 2) {
-    const tail: u64[] = [in.increment];
+    const tail: u64[] = [in.increment]
 
-    const [items, _] = tail.splice(0, 0, $store_a.value.items);
+    const [items, _] = tail.splice(0, 0, $store_a.value.items)
 
-    $store_a.value = { ...$store_a.value, items };
+    $store_a.value = { ...$store_a.value, items }
   }
 
-  $store_b.value = { ...$store_b.value, count: $store_b.value.count + $store_a.value.count };
+  $store_b.value = { ...$store_b.value, count: $store_b.value.count + $store_a.value.count }
 
-  return { before, after: $store_a.value.count, other: $store_b.value.count, value: $store_a.value.items[in.index] };
+  return { before, after: $store_a.value.count, other: $store_b.value.count, value: $store_a.value.items[in.index] }
 }
 `
 const rows: Array<StoreCase> = []

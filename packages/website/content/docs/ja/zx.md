@@ -12,15 +12,15 @@ ZX は TypeScript に似ていますが、JavaScript ではありません。入
 
 ```typescript
 export type Input = {
-  amount: u64;
-};
+  amount: u64
+}
 
 export type Output = {
-  amount: u64;
-};
+  amount: u64
+}
 
 export default function (in: Input): Output {
-  return { amount: in.amount };
+  return { amount: in.amount }
 }
 ```
 
@@ -65,13 +65,13 @@ match 式には二つの形式があります。`match { ... }` は完全な真�
 const shipping = match {
   discounted >= in.free_shipping_minimum => 0,
   _ => in.shipping_fee
-};
+}
 
 const label = match status {
   "paid" => "ready",
   "pending" => "waiting",
   _ => "blocked"
-};
+}
 ```
 
 条件は記述順に確認し、選ばれた結果だけを評価します。値モードの対象は一度だけ評価し、void 以外のスカラーまたは列挙型に限定します。末尾に唯一の `_` 分岐が必要で、末尾カンマを許可します。結果の型は一致する必要があります。論理積には `&&` を使います。範囲、構造分解、連鎖比較には対応しません。

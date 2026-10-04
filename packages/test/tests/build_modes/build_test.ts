@@ -63,11 +63,11 @@ try {
 	mkdirSync(join(project, 'nested'), { recursive: true })
 	writeFileSync(
 		join(project, 'nested', 'increment.zx'),
-		'export type Input = u64;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return in + 3;\n}\n'
+		'export type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return in + 3\n}\n'
 	)
 	writeFileSync(
 		join(project, 'main.zx'),
-		'import increment from "./nested/increment.zx";\n\nexport type Input = u64;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return increment(in);\n}\n'
+		'import increment from "./nested/increment.zx"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return increment(in)\n}\n'
 	)
 
 	const application = join(directory, 'application' + extension)
@@ -104,7 +104,7 @@ try {
 
 	writeFileSync(
 		join(moved, 'consumer.zx'),
-		'import increment from "library";\n\nexport type Input = u64;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return increment(in);\n}\n'
+		'import increment from "library"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return increment(in)\n}\n'
 	)
 	const consumer = join(directory, 'consumer' + extension)
 

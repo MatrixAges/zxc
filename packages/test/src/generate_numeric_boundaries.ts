@@ -22,11 +22,16 @@ for (const [token, phase, diagnostic, start, end] of rejected) {
 	for (const context of ['return', 'interpolation']) {
 		const output = context === 'return' ? 'f64' : 'string'
 		const expression = context === 'return' ? token : '`value=${' + token + '}`'
-		const prefix = `export type Input = void;\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n  return `
+		const prefix = `export type Input = void
+
+export type Output = ${output}
+
+export default function (in: Input): Output {
+  return `
 		const offset = prefix.length + (context === 'interpolation' ? 9 : 0)
 		negatives.push({
 			id: `language/lexical/numeric/boundaries/${context}/${token}`,
-			source: prefix + expression + ';\n}\n',
+			source: prefix + expression + '\n}\n',
 			phase,
 			diagnostic,
 			span: [offset + start, offset + end]
@@ -39,11 +44,16 @@ const values = leading_zero.map((token, index) => ({
 	input: index,
 	expected: { value: Number(token.replaceAll('_', '')) }
 }))
-const branches = leading_zero.map((token, index) => `    case ${index}: return ${token};\n`).join('')
+const branches = leading_zero
+	.map(
+		(token, index) => `    case ${index}: return ${token}
+`
+	)
+	.join('')
 const source =
-	'export type Input = u64;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  switch (in) {\n' +
+	'export type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  switch (in) {\n' +
 	branches +
-	'    default: return 0;\n  }\n}\n'
+	'    default: return 0\n  }\n}\n'
 const root = 'tests/language/lexical/numeric/'
 
 writeCatalog(root + 'boundaries.jsonl', negatives)

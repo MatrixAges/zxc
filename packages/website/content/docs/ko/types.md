@@ -29,18 +29,18 @@ ZX는 Zig를 생성하기 전에 구체적인 타입을 부여합니다. JavaScr
 
 ```typescript
 export type Input = {
-  amount: u64;
-  label: string?;
-  adjustments: u64[];
-};
+  amount: u64
+  label: string?
+  adjustments: u64[]
+}
 
 export type Output = {
-  amount: u64;
-  label: string;
-};
+  amount: u64
+  label: string
+}
 
 export default function (in: Input): Output {
-  return { amount: in.amount, label: in.label ?? 'untitled' };
+  return { amount: in.amount, label: in.label ?? 'untitled' }
 }
 ```
 

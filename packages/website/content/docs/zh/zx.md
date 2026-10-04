@@ -12,15 +12,15 @@ ZX 的语法类似 TypeScript，但它不是 JavaScript。声明输入输出类�
 
 ```typescript
 export type Input = {
-  amount: u64;
-};
+  amount: u64
+}
 
 export type Output = {
-  amount: u64;
-};
+  amount: u64
+}
 
 export default function (in: Input): Output {
-  return { amount: in.amount };
+  return { amount: in.amount }
 }
 ```
 
@@ -65,13 +65,13 @@ export default function (in: Input): Output {
 const shipping = match {
   discounted >= in.free_shipping_minimum => 0,
   _ => in.shipping_fee
-};
+}
 
 const label = match status {
   "paid" => "ready",
   "pending" => "waiting",
   _ => "blocked"
-};
+}
 ```
 
 条件按源码顺序检查，只计算命中分支的结果。值模式的目标只求值一次，必须为非 void 标量或枚举。必须有唯一的末尾 `_` 分支，允许尾逗号，结果类型必须一致。逻辑与使用 `&&`。不支持区间、结构解构和链式比较。

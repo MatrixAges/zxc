@@ -9,6 +9,8 @@
 
 可执行入口使用 `Input`、`Output` 与参数名 `in`。导入的可执行函数接收一个输入值。函数导入使用 `camelCase`，局部值使用 `snake_case`，类型使用 `PascalCase`。
 
+ZX 不使用分号；代码中的显式 `;` 会报语法错误。使用换行分隔语句，块末尾可直接使用 `}`。对象类型的字段使用逗号或换行分隔。字符串和注释中的分号仍是普通内容。
+
 ### 值与表达式
 
 | 结构       | 支持形式                                             |
@@ -46,13 +48,13 @@
 const shipping = match {
   discounted >= in.free_shipping_minimum => 0,
   _ => in.shipping_fee
-};
+}
 
 const label = match status {
   "paid" => "ready",
   "pending" => "waiting",
   _ => "blocked"
-};
+}
 ```
 
 条件按源码顺序检查，只计算命中分支的结果。值模式的目标只求值一次，必须为非 void 标量或枚举。必须有唯一的末尾 `_` 分支，允许尾逗号，结果类型必须一致。逻辑与使用 `&&`。不支持区间、结构解构和链式比较。

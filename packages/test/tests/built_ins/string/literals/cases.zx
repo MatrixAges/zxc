@@ -1,24 +1,24 @@
-export type Input = u64;
+export type Input = u64
 
-export type Output = string;
+export type Output = string
 
 export default function (in: Input): Output {
   switch (in) {
-    case 0: return "";
-    case 1: return "ascii";
-    case 2: return "\"quoted\"";
-    case 3: return "\\";
-    case 4: return "\n";
-    case 5: return "\r";
-    case 6: return "\t";
-    case 7: return "a\n\r\tb";
-    case 8: return "中文";
-    case 9: return "🌱";
-    case 10: return "é";
-    case 11: return "é";
-    case 12: return "${literal}";
-    case 13: return "`tick`";
-    case 14: return " ";
-    default: return "";
+    case 0: return ""
+    case 1: return "ascii"
+    case 2: return "\"quoted\""
+    case 3: return "\\"
+    case 4: return "\n"
+    case 5: return "\r"
+    case 6: return "\t"
+    case 7: return "a\n\r\tb"
+    case 8: return "中文"
+    case 9: return "🌱"
+    case 10: return "é"
+    case 11: return "é"
+    case 12: return "${literal}"
+    case 13: return "`tick`"
+    case 14: return " "
+    default: return ""
   }
 }

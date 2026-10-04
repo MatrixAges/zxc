@@ -8,12 +8,17 @@ const elements: Record<string, { type: string; value: string; reference: boolean
 )
 elements.bool = { type: 'bool', value: 'true', reference: false }
 elements.string = { type: 'string', value: '"value"', reference: true }
-elements.record = { type: '{ value: u64; }', value: '{ value: 1 }', reference: true }
+elements.record = { type: '{ value: u64 }', value: '{ value: 1 }', reference: true }
 elements.nested_list = { type: 'u64[]', value: '[1]', reference: true }
-elements.nested_record = { type: '{ items: u64[]; }', value: '{ items: [1] }', reference: true }
+elements.nested_record = { type: '{ items: u64[] }', value: '{ items: [1] }', reference: true }
 
 function program(element: string, body: string): string {
-	return `export type Input = ${element}[];\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n${body}\n}\n`
+	return `export type Input = ${element}[]
+
+export type Output = u64
+
+export default function (in: Input): Output {
+${body}\n}\n`
 }
 
 const propagation = []
@@ -33,12 +38,17 @@ for (const [name, { type: element, value, reference }] of Object.entries(element
 		]) {
 			const call = operation === 'concat' ? `owned.concat(${expression})` : `owned.splice(0, 0, ${expression})`
 			const second = operation === 'concat' ? '_' : 'removed'
-			let body = `  const owned: ${element}[] = [${value}];\n  const [next, ${second}] = ${call};\n`
+			let body = `  const owned: ${element}[] = [${value}]
+  const [next, ${second}] = ${call}
+`
 
 			body +=
 				slot === 'both'
-					? '  const [first, _] = next.reverse();\n  const [last, _] = removed.reverse();\n\n  return first.length + last.length;'
-					: `  const [reversed, _] = ${slot}.reverse();\n\n  return reversed.length;`
+					? '  const [first, _] = next.reverse()\n  const [last, _] = removed.reverse()\n\n  return first.length + last.length\n'
+					: `  const [reversed, _] = ${slot}.reverse()
+
+  return reversed.length
+`
 			propagation.push({
 				id: `ownership/propagation/${operation}/${name}/${argument}/${slot}`,
 				source: program(element, body),
@@ -59,9 +69,15 @@ for (const [name, { type: element, value, reference }] of Object.entries(element
 
 	for (const [operation, call] of Object.entries(operations)) {
 		for (const state of ['borrowed', 'old_owner', 'constructed_owner']) {
-			let body = state === 'borrowed' ? '  const values = in;' : `  const values: ${element}[] = [${value}];`
-			body += `\n  const [next, _] = values.${call};\n\n`
-			body += state === 'old_owner' ? '  return values.length;' : '  return next.length;'
+			let body =
+				state === 'borrowed'
+					? '  const values = in\n'
+					: `  const values: ${element}[] = [${value}]
+`
+			body += `\n  const [next, _] = values.${call}
+
+`
+			body += state === 'old_owner' ? '  return values.length\n' : '  return next.length\n'
 
 			consumption.push({
 				id: `ownership/consumption/${operation}/${name}/${state}`,
@@ -73,7 +89,11 @@ for (const [name, { type: element, value, reference }] of Object.entries(element
 
 		if (['concat', 'splice'].includes(operation)) {
 			const self_call = operation === 'concat' ? 'concat(values)' : 'splice(0, 0, values)'
-			const body = `  const values: ${element}[] = [${value}];\n  const [next, _] = values.${self_call};\n\n  return next.length;`
+			const body = `  const values: ${element}[] = [${value}]
+  const [next, _] = values.${self_call}
+
+  return next.length
+`
 			consumption.push({
 				id: `ownership/consumption/${operation}/${name}/self_argument`,
 				source: program(element, body),

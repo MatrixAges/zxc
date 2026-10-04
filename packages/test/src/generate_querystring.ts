@@ -12,7 +12,17 @@ function writeSuite(args: { operation: string; input: string; output: string; ro
 	writeCatalog(base + '.jsonl', rows)
 	writeOutput(
 		base + '.zx',
-		`import query from "std:querystring";\nimport type { Entry, ParseOptions, StringifyOptions } from "std:querystring";\n\nexport type Input = ${input};\n\nexport type Output = ${output};\n\nexport default function (in: Input): Output {\n  return query.${operation}(in);\n}\n`
+		`import query from "std:querystring"
+import type { Entry, ParseOptions, StringifyOptions } from "std:querystring"
+
+export type Input = ${input}
+
+export type Output = ${output}
+
+export default function (in: Input): Output {
+  return query.${operation}(in)
+}
+`
 	)
 }
 

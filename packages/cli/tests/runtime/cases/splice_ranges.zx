@@ -1,12 +1,16 @@
-export type Input = { items: u64[]; start: u64; count: u64; replacement: u64[]; };
+export type Input = { items: u64[]
+ start: u64
+ count: u64
+ replacement: u64[] }
 
-export type Output = { items: u64[]; removed: u64[]; };
+export type Output = { items: u64[]
+ removed: u64[] }
 
 export default function (in: Input): Output {
-const initial: u64[] = [];
+const initial: u64[] = []
 
-const [owned, _] = initial.concat(in.items);
-const [items, removed] = owned.splice(in.start, in.count, in.replacement);
+const [owned, _] = initial.concat(in.items)
+const [items, removed] = owned.splice(in.start, in.count, in.replacement)
 
-return { items, removed };
+return { items, removed }
 }

@@ -1,7 +1,9 @@
-export type Input = { left: string?; right: string?; };
+export type Input = { left: string?, right: string?, }
 
-export type Output = { same: bool; different: bool; chosen: string; };
+export type Output = { same: bool
+ different: bool
+ chosen: string }
 
 export default function (in: Input): Output {
-  return { same: in.left == in.right, different: in.left != in.right, chosen: in.left ?? (in.right ?? "") };
+  return { same: in.left == in.right, different: in.left != in.right, chosen: in.left ?? (in.right ?? "") }
 }

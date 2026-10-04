@@ -43,7 +43,7 @@ const paths = [
 	'a/b\\c',
 	'C:..\\a'
 ]
-const parts_type = '{ root: string; dir: string; base: string; ext: string; name: string; }'
+const parts_type = '{ root: string\n dir: string\n base: string\n ext: string\n name: string }'
 
 for (const [platform, path] of Object.entries({ posix, win32 })) {
 	const inputs = paths.map(value => ({
@@ -76,7 +76,27 @@ for (const [platform, path] of Object.entries({ posix, win32 })) {
 			}
 		}
 	}))
-	const source = `import path from "std:path/${platform}";\n\nexport type Parts = ${parts_type};\n\nexport type Input = { path: string; parts: string[]; format: Parts; };\n\nexport type Output = { absolute: bool; base: string; dir: string; ext: string; parsed: Parts; formatted: string; normalized: string; joined: string; };\n\nexport default function (in: Input): Output {\n  return { absolute: path.isAbsolute(in.path), base: path.basename(in.path), dir: path.dirname(in.path), ext: path.extname(in.path), parsed: path.parse(in.path), formatted: path.format(in.format), normalized: path.normalize(in.path), joined: path.join(in.parts) };\n}\n`
+	const source = `import path from "std:path/${platform}"
+
+export type Parts = ${parts_type}
+
+export type Input = { path: string
+ parts: string[]
+ format: Parts }
+
+export type Output = { absolute: bool
+ base: string
+ dir: string
+ ext: string
+ parsed: Parts
+ formatted: string
+ normalized: string
+ joined: string }
+
+export default function (in: Input): Output {
+  return { absolute: path.isAbsolute(in.path), base: path.basename(in.path), dir: path.dirname(in.path), ext: path.extname(in.path), parsed: path.parse(in.path), formatted: path.format(in.format), normalized: path.normalize(in.path), joined: path.join(in.parts) }
+}
+`
 	const base = `tests/standard/path/${platform}/values`
 
 	writeCatalog(base + '.jsonl', rows)

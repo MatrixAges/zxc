@@ -1,7 +1,7 @@
 const std = @import("std");
 const compiler = @import("compiler");
-const supported = "export type Input = u8; export type Output = u8; export default function (in: Input): Output requires(in < 255) ensures(out > in) { return in + 1; }";
-const unsupported = "export type Input = f64; export type Output = f64; export default function (in: Input): Output { return in; }";
+const supported = "export type Input = u8\n export type Output = u8\n export default function (in: Input): Output requires(in < 255) ensures(out > in) { return in + 1 }";
+const unsupported = "export type Input = f64\n export type Output = f64\n export default function (in: Input): Output { return in }";
 
 test "verification query generation releases every failed allocation" {
     try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ supported, false });
