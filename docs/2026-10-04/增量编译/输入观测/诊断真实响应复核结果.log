@@ -1,0 +1,56 @@
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/cold.bin: success=true cached=false complete=true inputs=826 headers=9 errors=0
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/first-missing-root.bin: success=false cached=false complete=false inputs=550 headers=0 errors=3
+/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/native_math.zig:1:15: error: C import failed
+pub const c = @cImport({ @cInclude("math.h"); });
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+referenced by:
+    function_1: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:22:41
+    execute: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:47:42
+    5 reference(s) hidden; use '-freference-trace=7' to see all references
+error: translation failure
+/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/first-missing-root-cache/tmp/57b38d642c824ee1/cimport.h:1:10: error: 'math.h' not found
+#include <math.h>
+         ^
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/first-missing-transitive.bin: success=false cached=false complete=false inputs=550 headers=0 errors=3
+/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/native_math.zig:1:15: error: C import failed
+pub const c = @cImport({ @cInclude("math.h"); });
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+referenced by:
+    function_1: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:22:41
+    execute: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:47:42
+    5 reference(s) hidden; use '-freference-trace=7' to see all references
+error: translation failure
+/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/mirror-lib/libc/include/any-darwin-any/sys/cdefs.h:808:10: error: 'sys/_symbol_aliasing.h' not found
+#include <sys/_symbol_aliasing.h>
+         ^
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/header-changed.bin: success=true cached=false complete=true inputs=826 headers=9 errors=0
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/header-missing.bin: success=false cached=false complete=false inputs=550 headers=0 errors=3
+/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/native_math.zig:1:15: error: C import failed
+pub const c = @cImport({ @cInclude("math.h"); });
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+referenced by:
+    function_1: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:22:41
+    execute: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:47:42
+    5 reference(s) hidden; use '-freference-trace=7' to see all references
+error: translation failure
+/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/mirror-lib/libc/include/any-darwin-any/sys/cdefs.h:808:10: error: 'sys/_symbol_aliasing.h' not found
+#include <sys/_symbol_aliasing.h>
+         ^
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/header-restored.bin: success=true cached=false complete=true inputs=826 headers=9 errors=0
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/named-output.bin: success=true cached=false complete=true inputs=826 headers=9 errors=0
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/persistent-first-missing.bin: success=false cached=false complete=false inputs=550 headers=0 errors=3
+/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/native_math.zig:1:15: error: C import failed
+pub const c = @cImport({ @cInclude("math.h"); });
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+referenced by:
+    function_1: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:22:41
+    execute: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:47:42
+    5 reference(s) hidden; use '-freference-trace=7' to see all references
+error: translation failure
+/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/mirror-lib/libc/include/any-darwin-any/sys/cdefs.h:808:10: error: 'sys/_symbol_aliasing.h' not found
+#include <sys/_symbol_aliasing.h>
+         ^
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/persistent-newprocess-restored.bin: success=true cached=false complete=true inputs=826 headers=9 errors=0
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/persistent-restored-update.bin: InvalidBackendProtocol
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/persistent-warm-update.bin: InvalidBackendProtocol
+docs/2026-10-04/增量编译/输入观测/后端依赖协议/warm.bin: success=true cached=true complete=true inputs=826 headers=9 errors=0

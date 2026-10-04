@@ -15,6 +15,7 @@ Zig 代码生成包，包含独立的结构化生成原语与 ZX IR lowering。�
 - `render(allocator, declarations)`：生成调用方拥有的 Zig 源码，使用同一 allocator.free 释放。
 - `zx.emit(allocator, program)`：将已校验的 ZX IR 生成 Zig 源码。
 - `zx.bundle(allocator, program)`：生成应用源码与共享类型源码，返回 `Bundle`，使用 `deinit(allocator)` 释放两者。
+- `zx.modules.entry`、`zx.modules.function`、`zx.modules.types`：使用完整已校验 IR 和 `Names{ types, functions }` 生成独立入口、选定 FunctionId 的真实函数或共享 ABI；返回源码由调用方释放。名称数组分别对应完整类型表和函数表，函数名称作为 Zig import key。
 
 ```zig
 const builder = genz.Builder{ .allocator = arena.allocator() };
@@ -33,6 +34,8 @@ Builder 借用传入名称、字段与参数切片；它们需要存活到 rende
 普通标识符直接打印，关键词或特殊名称使用 Zig quoted identifier；字符串按字节转义，二元和条件表达式显式加括号。浮点原语保留 f64 位模式，不因十进制打印损失负零或精度。
 
 本包只覆盖当前实际需要的 Zig 子集，不是完整 Zig AST，也不验证语言类型。标识符转义保证语法打印，不负责目标作用域的命名冲突；调用方后端必须完成名称分配。
+
+独立函数导出 `call(allocator, in)`，入口保持 `execute(arena, in)` 及现有 Context 参数；调用方必须为各文件注册其实际依赖和同一个 `zxc_abi` 实例。本包不推导名义身份或构造磁盘缓存。
 
 `zx` 入口要求调用方事先完成 IR 结构、类型、所有权和形式化契约校验；它只负责 lowering，不替代编译器语义检查。一般应用通过 `compiler.zig.emit`、`compiler.zig.emitBundle` 或编译 CLI 使用，保留完整校验门禁。native 模块应使用 bundle 入口，单源码入口不构造共享 ABI 文件。
 

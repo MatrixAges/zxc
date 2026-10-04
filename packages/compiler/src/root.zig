@@ -16,6 +16,8 @@ pub const verification = @import("verification/root.zig");
 pub const hardware = @import("backends/hardware/root.zig");
 pub const verilog = @import("backends/verilog/root.zig");
 pub const compileProjectVerified = @import("verified_compile.zig").compile;
+pub const compileProjectModulesVerified = @import("verified_compile.zig").compileModules;
+pub const CompileOptions = @import("verified_compile.zig").Options;
 
 pub const Result = union(enum) {
     source: []u8,
@@ -73,11 +75,32 @@ pub fn format(allocator: std.mem.Allocator, source: []const u8, file_name: []con
 pub const project = frontend.project;
 
 pub fn analyzeProject(allocator: std.mem.Allocator, sources: []const project.Source, options: project.Options) std.mem.Allocator.Error!AnalysisResult {
+    var cache = project.ParseCache{ .allocator = allocator };
+
+    defer cache.deinit();
+
+    return analyzeProjectWithCache(allocator, sources, options, &cache);
+}
+
+pub fn analyzeProjectWithCache(allocator: std.mem.Allocator, sources: []const project.Source, options: project.Options, cache: *project.ParseCache) std.mem.Allocator.Error!AnalysisResult {
+    if (try checkProjectSources(allocator, sources, options, cache)) |issue| return .{ .arena = std.heap.ArenaAllocator.init(allocator), .value = .{ .diagnostic = issue } };
+
+    return project.analyzeWithCache(allocator, sources, options, cache);
+}
+
+pub fn analyzeProjectIncremental(allocator: std.mem.Allocator, sources: []const project.Source, options: project.Options, cache: *project.SemanticCache) std.mem.Allocator.Error!AnalysisResult {
+    if (try checkProjectSources(allocator, sources, options, &cache.parse_cache)) |issue| return .{ .arena = std.heap.ArenaAllocator.init(allocator), .value = .{ .diagnostic = issue } };
+
+    return project.analyzeIncremental(allocator, sources, options, cache);
+}
+
+fn checkProjectSources(allocator: std.mem.Allocator, sources: []const project.Source, options: project.Options, cache: *project.ParseCache) std.mem.Allocator.Error!?Diagnostic {
     for (sources, 0..) |source, index| {
-        var parsed = try parse(allocator, source.source, source.path);
+        const path = try std.fs.path.resolve(allocator, &.{ options.root_dir, source.path });
 
-        defer parsed.deinit();
+        defer allocator.free(path);
 
+        const parsed = try cache.get(source.source, path);
         var issue: ?Diagnostic = null;
 
         if (parsed.value == .diagnostic) issue = parsed.value.diagnostic else {
@@ -89,11 +112,11 @@ pub fn analyzeProject(allocator: std.mem.Allocator, sources: []const project.Sou
         if (issue) |*diagnostic| {
             diagnostic.source_index = index;
 
-            return .{ .arena = std.heap.ArenaAllocator.init(allocator), .value = .{ .diagnostic = diagnostic.* } };
+            return diagnostic.*;
         }
     }
 
-    return project.analyze(allocator, sources, options);
+    return null;
 }
 
 pub fn compileProject(allocator: std.mem.Allocator, sources: []const project.Source, options: project.Options) std.mem.Allocator.Error!Result {

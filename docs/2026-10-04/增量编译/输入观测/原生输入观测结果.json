@@ -1,0 +1,51 @@
+{
+	"directory": "/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-native-observe-vzhRDm/native_original",
+	"scenarios": [
+		{
+			"missing_at_load": false,
+			"ready": "ready entries=3",
+			"diagnostic": "files=3 c_imports=false dynamic_resources=false",
+			"observations": [
+				{
+					"phase": "unchanged",
+					"same": true
+				},
+				{
+					"phase": "resource_changed",
+					"same": false
+				},
+				{
+					"phase": "resource_restored",
+					"same": true
+				},
+				{
+					"phase": "transitive_zig_changed",
+					"same": false
+				},
+				{
+					"phase": "transitive_zig_restored",
+					"same": true
+				},
+				{
+					"phase": "resource_deleted",
+					"same": false
+				}
+			]
+		},
+		{
+			"missing_at_load": true,
+			"ready": "ready entries=3",
+			"diagnostic": "collection=FileNotFound",
+			"observations": [
+				{
+					"phase": "failed_missing_baseline",
+					"same": true
+				},
+				{
+					"phase": "missing_resource_created",
+					"same": false
+				}
+			]
+		}
+	]
+}

@@ -61,14 +61,19 @@ export default function (in: Input): Output {
 				)
 
 				assert.ok(
-					Array.isArray(output) &&
-						output.every(
-							(value: unknown) =>
-								typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 255
-						),
+					typeof output === 'string' ||
+						(Array.isArray(output) &&
+							output.every(
+								(value: unknown) =>
+									typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 255
+							)),
 					id
 				)
-				assert.deepEqual(decompress(Buffer.from(output as Array<number>)), payload.data, id)
+
+				const bytes =
+					typeof output === 'string' ? Buffer.from(output, 'utf8') : Buffer.from(output as Array<number>)
+
+				assert.deepEqual(decompress(bytes), payload.data, id)
 				passed++
 			}
 		}

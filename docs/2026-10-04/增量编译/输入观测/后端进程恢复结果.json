@@ -1,0 +1,25 @@
+{
+	"directory": "/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu",
+	"observations": [
+		{
+			"phase": "warm_success",
+			"summary": "success=true cached=true inputs=826 headers=9 errors=0",
+			"diagnostic": ""
+		},
+		{
+			"phase": "missing_header",
+			"summary": "success=false cached=false inputs=550 headers=0 errors=3",
+			"diagnostic": "/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/native_math.zig:1:15: error: C import failed\npub const c = @cImport({ @cInclude(\"math.h\"); });\n              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nreferenced by:\n    function_1: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:22:41\n    execute: /var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/application.zig:47:42\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\nerror: translation failure\n/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-listen-probe-o_mlxmlu/mirror-lib/libc/include/any-darwin-any/sys/cdefs.h:808:10: error: 'sys/_symbol_aliasing.h' not found\n#include <sys/_symbol_aliasing.h>\n         ^"
+		},
+		{
+			"phase": "restored_header",
+			"summary": "success=true cached=true inputs=826 headers=9 errors=0",
+			"diagnostic": ""
+		},
+		{
+			"phase": "warm_restored",
+			"summary": "success=true cached=true inputs=826 headers=9 errors=0",
+			"diagnostic": ""
+		}
+	]
+}

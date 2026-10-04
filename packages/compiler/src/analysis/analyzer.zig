@@ -19,11 +19,10 @@ store_bindings: []const @import("analyze.zig").StoreBinding = &.{},
 contexts: []const ir.ContextSlot = &.{},
 context_bindings: []const @import("analyze.zig").ContextBinding = &.{},
 context_type_count: usize = 0,
-expression_bindings: std.ArrayList(ir.SymbolId) = .empty,
 allow_store: bool = false,
 lambda_depth: usize = 0,
 scope_floor: usize = 0,
-pub const FunctionImport = struct { namespace: ?[]const u8 = null, positional_types: ?[]const ir.TypeId = null, name: []const u8, id: ir.FunctionId, input_type: ir.TypeId, output_type: ir.TypeId };
+pub const FunctionImport = @import("../modules/function_import.zig");
 
 pub fn run(self: *Self, program: zx.ast.Program, file_name: []const u8) zx.Error!ir.Program {
     try self.types.initialize();

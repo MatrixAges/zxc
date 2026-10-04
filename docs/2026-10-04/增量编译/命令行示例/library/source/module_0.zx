@@ -1,0 +1,9 @@
+import quote from "./module_1.zx";
+
+export type Input = { amount: u64; discount: u64; enabled: bool; factor: f32; };
+
+export type Output = { amount: u64; factor: f32; };
+
+export default function (in: Input): Output {
+  return quote(in);
+}

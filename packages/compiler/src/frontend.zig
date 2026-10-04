@@ -5,6 +5,7 @@ pub const parse = @import("frontend/parse.zig").parse;
 pub const ParseResult = @import("frontend/parse.zig").Result;
 pub const analyze = @import("analysis/analyze.zig").analyze;
 pub const AnalysisResult = @import("analysis/analyze.zig").Result;
+pub const NominalType = @import("modules/nominal_origins.zig").Item;
 pub const validateIr = @import("ir/validate.zig").validate;
 pub const analyzeWithContext = @import("analysis/analyze.zig").analyzeWithContext;
 pub const Context = @import("analysis/analyze.zig").Context;

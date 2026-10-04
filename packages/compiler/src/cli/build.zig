@@ -2,18 +2,57 @@ const std = @import("std");
 const Options = @import("options.zig").Options;
 const Loaded = @import("project.zig").Loaded;
 const artifacts = @import("artifacts.zig");
+const Cache = @import("build/observed.zig").Cache;
+pub const Observed = @import("build/observed.zig");
 
-pub fn run(io: std.Io, allocator: std.mem.Allocator, source: []const u8, types: []const u8, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, environment: *const std.process.Environ.Map) !bool {
-    const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = options, .project = loaded }, .{});
-    const directory = try artifacts.prepare(io, allocator, source, types, configuration);
+pub fn run(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, environment: *const std.process.Environ.Map) !bool {
+    const arguments = try prepare(io, allocator, bundle, options, loaded, toolchain, null);
+    var backend_environment = try environmentFor(allocator, environment, toolchain.library);
+
+    defer backend_environment.deinit();
+
+    var child = try std.process.spawn(io, .{ .argv = arguments, .environ_map = &backend_environment });
+    const termination = try child.wait(io);
+
+    return termination == .exited and termination.exited == 0;
+}
+
+pub fn runObserved(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, environment: *const std.process.Environ.Map, inputs: *@import("watch/inputs.zig")) !Observed {
+    const cache = try Cache.init(io, allocator, environment);
+    const arguments = try prepare(io, allocator, bundle, options, loaded, toolchain, cache);
+    var backend_environment = try environmentFor(allocator, environment, toolchain.library);
+
+    defer backend_environment.deinit();
+
+    var response = try @import("backend/process.zig").run(io, allocator, arguments, &backend_environment);
+
+    errdefer response.deinit();
+
+    return Observed.resolve(io, &response, cache, toolchain.library, options, inputs);
+}
+
+fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, cache: ?Cache) ![]const []const u8 {
+    var configuration_options = options;
+    configuration_options.cache = true;
+    configuration_options.cache_stats = false;
+    configuration_options.watch = false;
+    const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = configuration_options, .project = loaded }, .{});
+    const directory = try artifacts.prepare(io, allocator, bundle, configuration);
     var arguments: std.ArrayList([]const u8) = .empty;
 
-    try arguments.appendSlice(allocator, &.{ toolchain.executable, "build-exe", "--zig-lib-dir", toolchain.library, try std.fmt.allocPrint(allocator, "-femit-bin={s}", .{options.output.?}) });
-    if (std.fs.path.dirname(options.output.?)) |parent| try std.Io.Dir.cwd().createDirPath(io, parent);
+    try arguments.appendSlice(allocator, &.{ toolchain.executable, "build-exe", "--zig-lib-dir", toolchain.library });
 
-    if (options.assembly) |assembly| {
-        if (std.fs.path.dirname(assembly)) |parent| try std.Io.Dir.cwd().createDirPath(io, parent);
-        try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-femit-asm={s}", .{assembly}));
+    if (cache) |paths| {
+        try arguments.appendSlice(allocator, &.{ "--listen=-", "--name", Observed.artifact_name, "--cache-dir", paths.local, "--global-cache-dir", paths.global });
+        if (options.assembly != null) try arguments.append(allocator, "-femit-asm");
+    } else {
+        try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-femit-bin={s}", .{options.output.?}));
+        try ensureParent(io, options.output.?);
+
+        if (options.assembly) |assembly| {
+            try ensureParent(io, assembly);
+            try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-femit-asm={s}", .{assembly}));
+        }
     }
 
     for (loaded.config.libraries) |library| try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-l{s}", .{library}));
@@ -31,8 +70,16 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, source: []const u8, types: 
     try arguments.appendSlice(allocator, &.{ "--dep", "application", try std.fmt.allocPrint(allocator, "-Mroot={s}/main.zig", .{directory}) });
     try settings(allocator, &arguments, options);
     try arguments.appendSlice(allocator, &.{ "--dep", "zxc_abi" });
+    for (bundle.entry.imports) |dependency| try arguments.appendSlice(allocator, &.{ "--dep", dependency });
     for (loaded.config.native_modules) |module| try arguments.appendSlice(allocator, &.{ "--dep", module.name });
     try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-Mapplication={s}/program.zig", .{directory}));
+
+    for (bundle.modules) |module| {
+        try settings(allocator, &arguments, options);
+        try arguments.appendSlice(allocator, &.{ "--dep", "zxc_abi" });
+        for (module.imports) |dependency| try arguments.appendSlice(allocator, &.{ "--dep", dependency });
+        try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-M{s}={s}", .{ module.name, try artifacts.modulePath(allocator, module) }));
+    }
 
     for (loaded.config.native_modules) |module| {
         try settings(allocator, &arguments, options);
@@ -59,17 +106,18 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, source: []const u8, types: 
 
     try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "command.json" }), manifest);
 
-    var backend_environment = std.process.Environ.Map.init(allocator);
+    return arguments.items;
+}
 
-    defer backend_environment.deinit();
+fn environmentFor(allocator: std.mem.Allocator, environment: *const std.process.Environ.Map, library: []const u8) !std.process.Environ.Map {
+    var result = std.process.Environ.Map.init(allocator);
 
-    for (environment.keys(), environment.values()) |key, value| try backend_environment.put(key, value);
-    try backend_environment.put("ZIG_LIB_DIR", toolchain.library);
+    errdefer result.deinit();
 
-    var child = try std.process.spawn(io, .{ .argv = arguments.items, .environ_map = &backend_environment });
-    const termination = try child.wait(io);
+    for (environment.keys(), environment.values()) |key, value| try result.put(key, value);
+    try result.put("ZIG_LIB_DIR", library);
 
-    return termination == .exited and termination.exited == 0;
+    return result;
 }
 
 fn settings(allocator: std.mem.Allocator, arguments: *std.ArrayList([]const u8), options: Options) !void {
@@ -81,4 +129,11 @@ fn settings(allocator: std.mem.Allocator, arguments: *std.ArrayList([]const u8),
 
     if (target) |triple| try arguments.appendSlice(allocator, &.{ "-target", triple });
     if (options.cpu) |cpu| try arguments.appendSlice(allocator, &.{ "-mcpu", cpu });
+}
+
+fn ensureParent(io: std.Io, path: []const u8) !void {
+    const parent = std.fs.path.dirname(path) orelse return;
+    var directory = try std.Io.Dir.cwd().createDirPathOpen(io, parent, .{});
+
+    directory.close(io);
 }
