@@ -10,7 +10,7 @@ const checkout = 'actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803'
 const setup_bun = 'oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6'
 const definition = workflow({
 	name: 'Build zxc',
-	on: { push: { branches: ['master'] }, pull_request: {}, workflow_dispatch: {} },
+	on: { pull_request: {}, workflow_dispatch: {} },
 	permissions: { contents: 'read' },
 	concurrency: { group: 'build-${{ github.ref }}', 'cancel-in-progress': true },
 	jobs: {

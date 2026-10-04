@@ -8,6 +8,8 @@ bun run --cwd .github build
 bun run --cwd .github check
 ```
 
+工作流仅由 PR 和手动操作触发，不监听 push 事件。因此推送 master（包括 build 类型提交）不会自动创建构建运行。需要构建 master 时，在 GitHub Actions 中手动运行 Build zxc。
+
 依赖和 `bun.lock` 独立于应用工作区。CI 固定 Bun 1.3.10、Zig 0.16.0，第三方 Actions 固定提交；生成一致性检查失败时需要重新生成并提交 YAML。
 
 构建覆盖 Linux musl、macOS、Windows GNU 的 x86_64/aarch64，各自在对应 runner 上构建并上传 artifact。产物为 tar.gz 和 SHA256，包含单个 zxc 与许可证；执行不依赖旁置 share 目录。下载后的 Unix 程序权限由 tar 保留。工作流不自动创建 release 或版本标签。
