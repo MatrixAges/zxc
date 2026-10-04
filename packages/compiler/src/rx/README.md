@@ -168,10 +168,10 @@ validateModules 输出按输入顺序排列的 `{ path, data }`，path 是规范
 
 Zig 构建模块 `rx_analysis` 提供两个独立拥有 arena 的接口；结果使用后调用 `deinit()`。
 
-| 入口                               | 输入                                                                        | 成功结果                                                                       |
-| ---------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `call.link(allocator, options)`    | `target`（RX 路径、真实 Call 节点、ZX 源集合、项目选项）以及显式 `bindings` | `invocation`：函数与参数 Program，共享类型表和名义类型来源                     |
-| `module.infer(allocator, options)` | `owner`、真实 `module` 节点、ZX `sources`、可选 `project` 选项              | `contract`：类型表、input_type、output_type、顺序 calls、可选 result、原生接口 |
+| 入口                               | 输入                                                                        | 成功结果                                                                                       |
+| ---------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `call.link(allocator, options)`    | `target`（RX 路径、真实 Call 节点、ZX 源集合、项目选项）以及显式 `bindings` | `invocation`：函数与参数 Program，共享类型表和名义类型来源                                     |
+| `module.infer(allocator, options)` | `owner`、真实 `module` 节点、ZX `sources`、可选 `project` 选项              | `contract`：可执行 program、类型表、input_type、output_type、顺序 calls、可选 result、原生接口 |
 
 两个入口失败时返回带原始路径、位置、错误码和消息的 `diagnostic`；分配失败通过错误联合返回。它们使用真实 ZX 项目分析、风格检查及类型检查，不接受类型表之外的绑定。
 
@@ -200,7 +200,19 @@ switch (inferred.value) {
 
 对象字段与展开保留覆盖顺序，等待后续调用约束稳定后收束；多个未知展开源可能提供同一必需字段时报告歧义。缺失必需字段、完整对象多余字段和冲突类型拒绝；源值向可选字段赋值沿用 ZX 的包装规则。仅凭 length 不能区分字符串、列表和同名对象字段时也拒绝推导。
 
-`contract` 中的调用参数、函数和 Return 均经过正式 IR 检查。该接口不负责文件系统装载、跨 RX service 图联结或实际执行。Call.service、Store、分支、事件及其他流程节点尚未纳入此顺序入口，会明确报错；完整依赖集合仍须使用 `validateModules` 校验无环约束。
+`contract.program` 是可交给现有 Zig 后端的完整 ZX IR Program。生成器按顺序计算参数并执行函数调用，即使未绑定输出也保留调用；Return 使用前面可见的结果。属性表达式通过符号映射内联，保留函数契约、原生引用和源码位置，不深拷贝业务聚合值。完成联结后再次检查整个流程的所有权与 IR。
+
+```zig
+const generated = try compiler.zig.emit(allocator, contract.program);
+
+defer allocator.free(generated);
+
+try output.writeAll(generated);
+```
+
+包含原生模块时使用 `compiler.zig.emitBundle` 的共享 ABI 输出。包含形式化契约时仍须先完成既有证明流程，生成门禁不会因来自 RX 而放宽。生成的 Zig 模块提供 `Input`、`Output` 与 `execute(arena, input)`，arena 必须覆盖返回聚合值的使用生命周期。
+
+该接口不负责文件系统装载、跨 RX service 图联结或自动启动进程。Call.service、Store、分支、事件及其他流程节点尚未纳入此顺序入口，会明确报错；完整依赖集合仍须使用 `validateModules` 校验无环约束。
 
 ## 当前边界
 

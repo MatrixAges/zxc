@@ -8,6 +8,7 @@ pub fn build(b: *std.Build) void {
         .target = b.graph.host,
         .imports = &.{
             .{ .name = "frontend", .module = compiler.module("frontend") },
+            .{ .name = "compiler", .module = compiler.module("compiler") },
             .{ .name = "rx", .module = compiler.module("rx") },
             .{ .name = "analysis", .module = compiler.module("rx_analysis") },
         },
