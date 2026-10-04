@@ -1,0 +1,96 @@
+{
+	"小输入": {
+		"exit_code": 0,
+		"input_length": 3,
+		"output_sha256": "725724c4cd83f0bb5ed8916c631fabd4c092b66a1d11ba72fae58b9d56be4aac",
+		"allocation": {
+			"worker_allocation_threads": 1,
+			"remaining_bytes": 0
+		},
+		"stderr": "",
+		"result": {
+			"output": {
+				"alternate": [3, 4, 8],
+				"first": 2,
+				"total": 12,
+				"values": [3, 4, 8]
+			}
+		}
+	},
+	"分配线程": {
+		"exit_code": 0,
+		"input_length": 20000,
+		"output_sha256": "69205bd3a1ea501a415fbbf6c04eba87a74704c0a2d33debaa89532e8c8a7d2b",
+		"allocation": {
+			"worker_allocation_threads": 2,
+			"remaining_bytes": 0
+		},
+		"stderr": "",
+		"result": {
+			"first": 0,
+			"total": 199990000,
+			"list_lengths": [20000, 20000]
+		}
+	},
+	"失败": {
+		"exit_code": 0,
+		"input_length": 0,
+		"output_sha256": "2ecb89f0f9b4bf16e11b088e197056fe843d5f796a500035042cd170d7adcad6",
+		"allocation": {
+			"worker_allocation_threads": 0,
+			"remaining_bytes": 0
+		},
+		"stderr": "",
+		"result": {
+			"failure": "IndexOutOfBounds"
+		}
+	},
+	"原生库消费": {
+		"exit_code": 0,
+		"stdout": "{\"output\":{\"alternate\":[3,4,8],\"first\":2,\"total\":12,\"values\":[3,4,8]}}\n{\"worker_allocation_threads\":1,\"remaining_bytes\":0}\n",
+		"stderr": ""
+	},
+	"RX嵌套库消费": {
+		"exit_code": 0,
+		"stdout": "{\"left\":{\"alternate\":[3,4,8],\"first\":2,\"total\":12,\"values\":[3,4,8]},\"right\":{\"alternate\":[3,4,8],\"first\":2,\"total\":12,\"values\":[3,4,8]}}\n",
+		"stderr": ""
+	},
+	"ZX库消费": {
+		"exit_code": 0,
+		"stdout": "{\"alternate\":[3,4,8],\"first\":2,\"total\":12,\"values\":[3,4,8]}\n",
+		"stderr": ""
+	},
+	"无返回值分支": {
+		"exit_code": 0,
+		"stdout": "42\n",
+		"stderr": ""
+	},
+	"verify": {
+		"exit_code": 1,
+		"stdout": "",
+		"stderr": "verification: symbolic execution does not yet model Parallel thread execution\n"
+	},
+	"fpga": {
+		"exit_code": 1,
+		"stdout": "",
+		"stderr": "verification: symbolic execution does not yet model Parallel thread execution\n"
+	},
+	"格式化后单文件": {
+		"exit_code": 0,
+		"allocation": {
+			"worker_allocation_threads": 2,
+			"remaining_bytes": 0
+		},
+		"input_length": 20000,
+		"output_sha256": "69205bd3a1ea501a415fbbf6c04eba87a74704c0a2d33debaa89532e8c8a7d2b"
+	},
+	"格式化后原生库": {
+		"exit_code": 0,
+		"allocation": {
+			"worker_allocation_threads": 2,
+			"remaining_bytes": 0
+		},
+		"input_length": 20000,
+		"output_sha256": "69205bd3a1ea501a415fbbf6c04eba87a74704c0a2d33debaa89532e8c8a7d2b"
+	}
+}
