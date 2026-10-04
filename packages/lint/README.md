@@ -60,3 +60,9 @@ zxc fmt http.gateway.rx --write
 ```
 
 统一入口 `compiler.format` 根据 .rx 后缀使用 XML 解析与上述格式规则，XML 语法错误返回带位置的诊断。实现与实际执行见 [RX 格式化参考](../../docs/2026-10-05/RX格式化参考.md)。
+
+## 配置格式
+
+`configuration.json.format(allocator, source)` 校验 JSON 语法并返回 tab 缩进文本；保留数字词法值与数组顺序。`configuration.yaml.format(allocator, source, fields)` 接收同一 UTF-8 源码上已验证、按顺序且互不重叠的完整字段字节范围，只编辑字段间空行。Field.preserve_trailing 用于保护块标量的尾部内容。字段范围由使用既有 YAML parser 的调用方提供，不在 lint 中复制 YAML 或包清单 schema。
+
+CLI 的 `zxc lint` 复用 ZX 名称／格式、RX 单文件 Schema／格式与各包配置 validator；`zxc fmt pkg.yaml` 和显式 `--kind index` 复用本包格式器。锁文件只读检查，由安装器维护。完整范围与命令见 [配置检查参考](../../docs/2026-10-05/配置检查参考.md)。

@@ -1,0 +1,10 @@
+import alpha from "alpha"
+import type { PublishedMode } from "./types.zx"
+
+export type Input = PublishedMode
+
+export type Output = PublishedMode
+
+export default function (in: Input): Output {
+  return alpha(in)
+}

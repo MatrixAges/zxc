@@ -1,0 +1,15 @@
+name: bundle
+version: 1.0.0
+
+exports:
+    .: main.zx
+    ./echo: echo.zx
+    ./workflow: flow.rx
+    ./types: types.zx
+
+workspace:
+    packages: [pkgs/*]
+
+dependencies:
+    alpha: workspace:*
+    beta: workspace:*
