@@ -3,7 +3,7 @@ CLI は ZX から Zig へのコンパイルと、ZX ソースの整形を行い�
 ### コンパイル
 
 ```sh
-zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
+zig-out/bin/zxc packages/cli/examples/quote.zx --out /tmp/quote.zig
 ```
 
 | 引数           | 意味                        |
@@ -17,9 +17,9 @@ zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
 ### 整形
 
 ```sh
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --write
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --write
 ```
 
 | モード     | 効果                                                |

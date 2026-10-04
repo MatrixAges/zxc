@@ -12,7 +12,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
     for (suites) |suite| {
         const base = b.fmt("tests/{s}", .{suite.path});
-        const compile_case = b.addRunArtifact(compiler.artifact("zxc"));
+        const compile_case = b.addRunArtifact(b.dependency("cli", .{ .target = target, .optimize = optimize }).artifact("zxc"));
 
         compile_case.addFileArg(b.path(b.fmt("{s}.zx", .{base})));
 

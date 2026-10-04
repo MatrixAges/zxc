@@ -1,18 +1,18 @@
 const std = @import("std");
 const model = @import("toolchain/manifest.zig");
 
-pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.LazyPath) *std.Build.Module {
-    return generate(b, target, index) catch |err| std.debug.panic("unable to prepare bundled Zig: {s}", .{@errorName(err)});
+pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.LazyPath, standard_source: std.Build.LazyPath) *std.Build.Module {
+    return generate(b, target, index, standard_source) catch |err| std.debug.panic("unable to prepare bundled Zig: {s}", .{@errorName(err)});
 }
 
-fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.LazyPath) !*std.Build.Module {
+fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.LazyPath, standard_source: std.Build.LazyPath) !*std.Build.Module {
     const archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host; otherwise downloaded at build time");
     var files: std.ArrayList(model.File) = .empty;
 
     b.addNamedLazyPath("zig_license", b.path("build/toolchain/license.txt"));
 
     try files.append(b.allocator, .{ .source = b.dependency("libyaml", .{}).path("License").getPath(b), .destination = "licenses/libyaml.txt" });
-    try @import("toolchain/files.zig").append(b, &files, b.path("standard/src").getPath(b), "standard/src");
+    try @import("toolchain/files.zig").append(b, &files, standard_source.getPath(b), "standard/src");
 
     std.mem.sort(model.File, files.items, {}, @import("toolchain/files.zig").lessThan);
 

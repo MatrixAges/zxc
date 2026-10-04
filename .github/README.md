@@ -24,7 +24,7 @@ zig build dist -Doptimize=ReleaseSafe --prefix .zxc/local_dist
 
 该步骤构建包含官方 Zig 归档和 ZX 标准实现的 CLI，并安装许可证，不执行目标平台程序。构建工具根据目标宿主获取锁定的 Zig 0.16.0 官方 `.tar.xz`/`.zip`，校验 SHA256 后原样内嵌，不编译 Zig、不裁剪或重压缩。`-Dzig-archive=/absolute/path/to/archive` 可提供本地官方归档，避免构建时下载；归档必须匹配 zxc 宿主（Windows ARM64 使用已锁定的 x64 包）。完整资源保留，原生构建的 `--target` 仍支持 Zig 的交叉编译范围及其外部依赖边界。
 
-版本锁定数据在 `packages/compiler/build/toolchain/releases.json`。维护者可通过 `bun packages/compiler/build/toolchain/update_releases.ts 0.16.0 <output.json>` 从官方索引重新生成 URL 与 SHA256；版本升级需同时审核 CI 版本、锁定文件及归档格式兼容性。当前四个 XZ 归档均为单个 LZMA2 块；首次解压需要数百 MiB 内存，热缓存不重复解压。
+版本锁定数据在 `packages/cli/build/toolchain/releases.json`。维护者可通过 `bun packages/cli/build/toolchain/update_releases.ts 0.16.0 <output.json>` 从官方索引重新生成 URL 与 SHA256；版本升级需同时审核 CI 版本、锁定文件及归档格式兼容性。当前四个 XZ 归档均为单个 LZMA2 块；首次解压需要数百 MiB 内存，热缓存不重复解压。
 
 本机对应目标可执行完整打包入口，例如：
 

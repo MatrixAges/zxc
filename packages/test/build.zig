@@ -4,6 +4,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const compiler = b.dependency("compiler", .{ .target = target, .optimize = optimize });
+    const cli_dependency = b.dependency("cli", .{ .target = target, .optimize = optimize });
     const test_step = b.step("test", "Run ZX conformance catalogs and their integrity checks");
     const suites = @import("build/catalog.zig").load(b);
 
@@ -65,7 +66,7 @@ pub fn build(b: *std.Build) void {
     const verification = b.addSystemCommand(&.{"node"});
 
     verification.addFileArg(b.path("tests/verification/verify_test.ts"));
-    verification.addArtifactArg(compiler.artifact("zxc"));
+    verification.addArtifactArg(cli_dependency.artifact("zxc"));
     verification_step.dependOn(&verification.step);
     test_step.dependOn(verification_step);
 
@@ -87,7 +88,7 @@ pub fn build(b: *std.Build) void {
     const modes = b.addSystemCommand(&.{"node"});
 
     modes.addFileArg(b.path("tests/build_modes/build_test.ts"));
-    modes.addDirectoryArg(compiler.path("."));
+    modes.addDirectoryArg(cli_dependency.path("."));
     modes_step.dependOn(&modes.step);
     test_step.dependOn(modes_step);
 
@@ -95,7 +96,7 @@ pub fn build(b: *std.Build) void {
     const evaluation = b.addSystemCommand(&.{"node"});
 
     evaluation.addFileArg(b.path("tests/hardware/evaluation_test.ts"));
-    evaluation.addArtifactArg(compiler.artifact("zxc"));
+    evaluation.addArtifactArg(cli_dependency.artifact("zxc"));
     evaluation_step.dependOn(&evaluation.step);
 
     const hardware_step = b.step("test-hardware-resources", "Validate hardware graph boundaries and allocation cleanup");
@@ -115,7 +116,7 @@ pub fn build(b: *std.Build) void {
 
     test_step.dependOn(hardware_step);
 
-    const rx = b.dependency("rx", .{ .target = target, .optimize = optimize });
+    const rx = compiler;
     const text_step = b.step("test-rx-text", "Validate real RX text parsing and module diagnostics");
 
     for ([_][]const u8{ "parser", "modules", "resources" }) |name| {
@@ -139,7 +140,7 @@ pub fn build(b: *std.Build) void {
     const cli = b.addSystemCommand(&.{"node"});
 
     cli.addFileArg(b.path("tests/rx/cli/check_test.ts"));
-    cli.addArtifactArg(compiler.artifact("zxc"));
+    cli.addArtifactArg(cli_dependency.artifact("zxc"));
     cli_step.dependOn(&cli.step);
     test_step.dependOn(cli_step);
 

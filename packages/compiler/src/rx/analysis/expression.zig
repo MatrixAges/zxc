@@ -1,5 +1,5 @@
 const std = @import("std");
-const compiler = @import("compiler");
+const frontend = @import("frontend");
 const rx = @import("rx");
 const zx = @import("zx");
 
@@ -15,14 +15,14 @@ pub const Result = struct {
     }
 };
 
-pub fn compile(allocator: std.mem.Allocator, path: []const u8, attribute: rx.ast.Attribute, options: compiler.expressions.Options) std.mem.Allocator.Error!Result {
-    var parsed = try compiler.parseExpression(allocator, attribute.value, path);
+pub fn compile(allocator: std.mem.Allocator, path: []const u8, attribute: rx.ast.Attribute, options: frontend.expressions.Options) std.mem.Allocator.Error!Result {
+    var parsed = try frontend.parseExpression(allocator, attribute.value, path);
 
     if (parsed.value == .diagnostic) return .{ .arena = parsed.arena, .value = .{ .diagnostic = diagnostic(attribute, parsed.value.diagnostic) } };
 
     defer parsed.deinit();
 
-    var analyzed = try compiler.expressions.compile(allocator, parsed.value.parsed, options);
+    var analyzed = try frontend.expressions.compile(allocator, parsed.value.parsed, options);
 
     errdefer analyzed.deinit();
 

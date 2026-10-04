@@ -7,7 +7,7 @@ zig build
 zig build zx-example
 ```
 
-예제는 ZX를 컴파일하고 생성된 Zig를 실행합니다. 적용할 때 [예제 디렉터리](https://github.com/MatrixAges/zxc/tree/master/packages/compiler/examples)와 저장소 빌드 설정을 함께 읽으세요.
+예제는 ZX를 컴파일하고 생성된 Zig를 실행합니다. 적용할 때 [예제 디렉터리](https://github.com/MatrixAges/zxc/tree/master/packages/cli/examples)와 저장소 빌드 설정을 함께 읽으세요.
 
 ### 생성된 모듈 연결
 

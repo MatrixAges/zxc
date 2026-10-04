@@ -1,8 +1,8 @@
 const std = @import("std");
 const compiler = @import("compiler");
 const zx = @import("zx");
-const project = @import("../cli/project.zig");
-const sources = @import("../cli/sources.zig");
+const project = @import("../project.zig");
+const sources = @import("../sources.zig");
 
 pub fn validate(io: std.Io, allocator: std.mem.Allocator, path: []const u8, source: []const u8, config_path: ?[]const u8, writer: *std.Io.Writer) !bool {
     const loaded = project.load(io, allocator, path, config_path) catch |err| {

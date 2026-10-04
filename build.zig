@@ -21,11 +21,11 @@ pub fn build(b: *std.Build) void {
     b.getInstallStep().dependOn(&dsl_example.step);
     dsl_step.dependOn(&run_dsl_example.step);
 
-    const rx_dependency = b.dependency("rx", .{ .target = target, .optimize = optimize });
+    const rx_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize });
 
     const rx_tests = b.addTest(.{
         .root_module = b.createModule(.{
-            .root_source_file = rx_dependency.path("tests/root.zig"),
+            .root_source_file = rx_dependency.path("tests/rx/root.zig"),
             .target = target,
             .optimize = optimize,
             .imports = &.{.{ .name = "rx", .module = rx_dependency.module("rx") }},
@@ -40,25 +40,27 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_rx_tests.step);
 
     const zig_archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host");
-    const compiler_dependency = if (zig_archive) |path| b.dependency("compiler", .{ .target = target, .optimize = optimize, .@"zig-archive" = path }) else b.dependency("compiler", .{ .target = target, .optimize = optimize });
+    const compiler_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize });
+    const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .@"zig-archive" = path }) else b.dependency("cli", .{ .target = target, .optimize = optimize });
 
     test_step.dependOn(&compiler_dependency.builder.top_level_steps.get("test").?.step);
+    test_step.dependOn(&cli_dependency.builder.top_level_steps.get("test").?.step);
 
     const conformance = b.dependency("conformance", .{ .target = target, .optimize = optimize });
 
     test_step.dependOn(&conformance.builder.top_level_steps.get("test").?.step);
-    b.installArtifact(compiler_dependency.artifact("zxc"));
-    b.getInstallStep().dependOn(&b.addInstallFile(compiler_dependency.namedLazyPath("yaml_license"), "share/zxc/licenses/libyaml.txt").step);
-    b.getInstallStep().dependOn(&b.addInstallFile(compiler_dependency.namedLazyPath("zig_license"), "share/zxc/licenses/zig.txt").step);
+    b.installArtifact(cli_dependency.artifact("zxc"));
+    b.getInstallStep().dependOn(&b.addInstallFile(cli_dependency.namedLazyPath("yaml_license"), "share/zxc/licenses/libyaml.txt").step);
+    b.getInstallStep().dependOn(&b.addInstallFile(cli_dependency.namedLazyPath("zig_license"), "share/zxc/licenses/zig.txt").step);
 
     const dist_step = b.step("dist", "Install the standalone compiler and licenses");
 
-    dist_step.dependOn(&b.addInstallArtifact(compiler_dependency.artifact("zxc"), .{}).step);
-    dist_step.dependOn(&b.addInstallFile(compiler_dependency.namedLazyPath("yaml_license"), "share/zxc/licenses/libyaml.txt").step);
-    dist_step.dependOn(&b.addInstallFile(compiler_dependency.namedLazyPath("zig_license"), "share/zxc/licenses/zig.txt").step);
+    dist_step.dependOn(&b.addInstallArtifact(cli_dependency.artifact("zxc"), .{}).step);
+    dist_step.dependOn(&b.addInstallFile(cli_dependency.namedLazyPath("yaml_license"), "share/zxc/licenses/libyaml.txt").step);
+    dist_step.dependOn(&b.addInstallFile(cli_dependency.namedLazyPath("zig_license"), "share/zxc/licenses/zig.txt").step);
     dist_step.dependOn(&b.addInstallFile(b.path("LICENSE"), "LICENSE").step);
 
-    const run_zx_example = b.addRunArtifact(compiler_dependency.artifact("zx-example"));
+    const run_zx_example = b.addRunArtifact(cli_dependency.artifact("zx-example"));
     const zx_step = b.step("zx-example", "Compile and run the ZX package example");
 
     zx_step.dependOn(&run_zx_example.step);

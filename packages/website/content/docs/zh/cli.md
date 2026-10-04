@@ -3,7 +3,7 @@ CLI 将 ZX 编译为 Zig，也用于格式化 ZX 源码。从仓库构建后得�
 ### 编译
 
 ```sh
-zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
+zig-out/bin/zxc packages/cli/examples/quote.zx --out /tmp/quote.zig
 ```
 
 | 参数           | 含义                    |
@@ -17,9 +17,9 @@ zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
 ### 格式化
 
 ```sh
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --write
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --write
 ```
 
 | 模式      | 效果                                        |

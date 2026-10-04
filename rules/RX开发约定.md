@@ -4,16 +4,16 @@
 
 ## 修改前阅读
 
-- [RX 包文档](../packages/rx/README.md)：当前语法、公开接口和边界。
-- [公共标签](../packages/rx/src/labels)：普通 RX Schema。
-- [Gateway 标签](../packages/rx/src/features/gateway/labels)与 [Store 标签](../packages/rx/src/features/store/labels)：专用 Schema。
-- [模块注册](../packages/rx/src/modules.zig)与 [依赖图校验](../packages/rx/src/module_graph.zig)：路径身份和无环约束。
+- [RX 模块文档](../packages/compiler/src/rx/README.md)：当前语法、公开接口和边界。
+- [公共标签](../packages/compiler/src/rx/labels)：普通 RX Schema。
+- [Gateway 标签](../packages/compiler/src/rx/features/gateway/labels)与 [Store 标签](../packages/compiler/src/rx/features/store/labels)：专用 Schema。
+- [模块注册](../packages/compiler/src/rx/modules.zig)与 [依赖图校验](../packages/compiler/src/rx/module_graph.zig)：路径身份和无环约束。
 
 旧设计文档可能保留历史语法，以用户最新要求及当前实现为准。legacy 中的 MVP 不代表正式版本已经实现的全部能力。
 
 ## 文件职责
 
-- 公共标签在 `packages/rx/src/labels/`，一个标签一个同名 PascalCase.zig 文件。
+- 公共标签在 `packages/compiler/src/rx/labels/`，一个标签一个同名 PascalCase.zig 文件。
 - 专用标签在 `src/features/gateway/labels/`、`src/features/store/labels/`。
 - 标签专属 refine 与 Schema 放在同一个文件；跨标签适配器保留独立职责。
 - `flow.zig` 和 feature 的 `root.zig` 聚合导出，重构时保留现有公共契约。
@@ -53,7 +53,7 @@ AST 必须对应实际输入文件，不能用手写的替代结构宣称完成�
 
 ## 构建与回归
 
-在仓库根目录或 `packages/rx` 内运行：
+在仓库根目录或 `packages/compiler` 内运行：
 
 ```sh
 zig build
@@ -62,7 +62,7 @@ zig build test
 
 这些命令执行库回归，不会自动发现和验证业务项目新增的 .rx 文件。
 
-修改相关行为时，关注路径归一化、目标缺失、自环、多层环、嵌套分支、合法共享依赖、错误位置和分配失败。已有依赖图测试在 `packages/rx/tests/dependency_graph_test.zig`，通过枚举三节点有向图的 512 种情况，将生产 DFS 与独立拓扑算法对照。有限穷举不是一般规模的机器证明，也不能证明业务结果正确。
+修改相关行为时，关注路径归一化、目标缺失、自环、多层环、嵌套分支、合法共享依赖、错误位置和分配失败。已有依赖图测试在 `packages/compiler/tests/rx/dependency_graph_test.zig`，通过枚举三节点有向图的 512 种情况，将生产 DFS 与独立拓扑算法对照。有限穷举不是一般规模的机器证明，也不能证明业务结果正确。
 
 无关的文档改动无需重复运行全套业务回归。报告实际检查过的范围，不把计划执行的检查写成已通过。
 

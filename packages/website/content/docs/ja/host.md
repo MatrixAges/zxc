@@ -7,7 +7,7 @@ zig build
 zig build zx-example
 ```
 
-このサンプルは ZX をコンパイルし、生成した Zig を実行します。適用する際は、リポジトリのビルド設定と[サンプルディレクトリ](https://github.com/MatrixAges/zxc/tree/master/packages/compiler/examples)をあわせて確認してください。
+このサンプルは ZX をコンパイルし、生成した Zig を実行します。適用する際は、リポジトリのビルド設定と[サンプルディレクトリ](https://github.com/MatrixAges/zxc/tree/master/packages/cli/examples)をあわせて確認してください。
 
 ### 生成モジュールを接続する
 

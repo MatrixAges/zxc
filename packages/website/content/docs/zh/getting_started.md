@@ -16,8 +16,8 @@ zig build zx-example
 在源码仓库中执行：
 
 ```sh
-zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
+zig-out/bin/zxc packages/cli/examples/quote.zx --out /tmp/quote.zig
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
 ```
 
 编译结果是 Zig 源码。它不会运行完整的 RX 服务，也不会自动配置运行时。将生成模块集成到 Zig 宿主时，需要提供编译器的 `zx_runtime` 支持模块。

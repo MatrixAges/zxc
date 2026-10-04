@@ -24,7 +24,7 @@ pub fn main(init: std.process.Init) !void {
     }
 
     if (args.len > 1 and std.mem.eql(u8, args[1], "check-rx")) {
-        if (!try @import("application/check.zig").run(init.io, allocator, args[2..], stderr)) {
+        if (!try @import("cli/rx/check.zig").run(init.io, allocator, args[2..], stderr)) {
             try stderr.flush();
 
             std.process.exit(1);

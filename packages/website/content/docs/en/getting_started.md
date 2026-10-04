@@ -16,8 +16,8 @@ zig build zx-example
 From the source checkout:
 
 ```sh
-zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
+zig-out/bin/zxc packages/cli/examples/quote.zx --out /tmp/quote.zig
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
 ```
 
 Compilation emits Zig source. It does not run a complete RX service or automatically provision a runtime. Generated modules need the compiler's `zx_runtime` support module when integrated into a Zig host.

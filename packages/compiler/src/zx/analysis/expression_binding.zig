@@ -4,19 +4,10 @@ const Analyzer = @import("analyzer.zig");
 
 pub fn bind(self: *Analyzer, name: zx.ast.Name, type_id: zx.ir.TypeId) zx.Error!void {
     if (type_id == @import("types.zig").scalarId(.void)) return self.reporter.fail(.type_mismatch, name.span, "expression bindings cannot have type void");
-
-    var parts = std.mem.splitScalar(u8, name.text, '.');
-
-    while (parts.next()) |part| {
-        if (part.len == 0 or zx.syntax.isKeyword(part) or (!std.ascii.isAlphabetic(part[0]) and part[0] != '_' and part[0] != '$')) return self.reporter.fail(.name, name.span, "expression bindings require identifier paths");
-
-        for (part[1..]) |byte| {
-            if (!std.ascii.isAlphanumeric(byte) and byte != '_') return self.reporter.fail(.name, name.span, "expression bindings require identifier paths");
-        }
-    }
+    if (!@import("binding_path.zig").valid(name.text)) return self.reporter.fail(.name, name.span, "expression bindings require identifier paths");
 
     for (self.symbols.items) |symbol| {
-        if (contains(symbol.name, name.text) or contains(name.text, symbol.name)) return self.reporter.fail(.name, name.span, "expression binding paths must not overlap");
+        if (@import("binding_path.zig").overlaps(symbol.name, name.text)) return self.reporter.fail(.name, name.span, "expression binding paths must not overlap");
     }
 
     const id: zx.ir.SymbolId = @enumFromInt(self.symbols.items.len);
@@ -53,8 +44,4 @@ fn matches(expression: *const zx.ast.Expression, path: []const u8) bool {
     const separator = std.mem.lastIndexOfScalar(u8, path, '.') orelse return false;
 
     return std.mem.eql(u8, expression.value.field.name.text, path[separator + 1 ..]) and matches(expression.value.field.target, path[0..separator]);
-}
-
-fn contains(parent: []const u8, child: []const u8) bool {
-    return std.mem.eql(u8, parent, child) or (child.len > parent.len and std.mem.startsWith(u8, child, parent) and child[parent.len] == '.');
 }

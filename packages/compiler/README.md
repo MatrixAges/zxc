@@ -4,7 +4,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 
 ## Intent：最终目标
 
-提供可独立调用的声明式前端、开放 IR 和 Zig 后端，同时执行命名与 AST 空行门禁。第三方后端只需依赖 frontend 与 zx。
+提供可独立调用的声明式前端、开放 IR 和 Zig 后端，同时执行命名与 AST 空行门禁。第三方后端依赖 compiler 的 frontend 模块与 core 数据模型。RX/ZX 语言实现在 src/rx、src/zx；命令与系统交互位于独立 cli 包。
 
 ## Data：实现范围
 
@@ -27,7 +27,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 
 ## Edges：边界
 
-数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 7 的内存 API，没有稳定序列化 ABI。
+数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 8 的内存 API，没有稳定序列化 ABI。
 
 Store 的实际版本检查、锁、持久化和跨对象原子发布由宿主 commit 实现。编译器不包含完整 RX XML 加载器或生产 Runtime 调度器，不能把生成端的提交接口视为生产持久化已经实现。
 
@@ -54,21 +54,21 @@ zig build
 zig build test
 zig build zx-example
 
-zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
+zig-out/bin/zxc packages/cli/examples/quote.zx --out /tmp/quote.zig
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
 
-zig-out/bin/zxc build packages/compiler/examples/quote.zx --out .zxc/quote --asm .zxc/quote.s
+zig-out/bin/zxc build packages/cli/examples/quote.zx --out .zxc/quote --asm .zxc/quote.s
 ```
 
 分发的 zxc 内嵌官方 Zig 0.16.0 和 ZX 标准实现，用户只需复制可执行文件，无需安装 Zig 或保持旁置 share 目录。首次 `zxc build` 将资源释放到按内容摘要区分的用户缓存，后续复用；不会运行时下载工具链。macOS 默认 `$HOME/Library/Caches/zxc`，Linux 默认 `$XDG_CACHE_HOME/zxc` 或 `$HOME/.cache/zxc`，Windows 默认 `%LOCALAPPDATA%/zxc/cache`；可用绝对路径环境变量 `ZXC_CACHE_DIR` 覆盖缓存根。纯解析、格式化和读取内嵌包索引不展开工具链。
 
 构建 zxc 本身仍需要 Zig。构建工具根据 zxc 的运行宿主获取锁定的官方 Zig 0.16.0 归档，核对 SHA256 后原样内嵌；不重新构建 Zig、不裁剪或重压缩发行内容。可用 `zig build dist -Dzig-archive=/absolute/path/to/official.tar.xz`（Windows 为 `.zip`）指定本地归档，离线完成构建。每个 zxc 仅内嵌对应宿主的一份发行包；Windows ARM64 使用 x64 Zig 的系统仿真方案，默认仍生成 ARM64 程序。运行期内置 XZ/ZIP 解压，不依赖外部解压命令。官方 Zig 二进制内部的 LLVM/Clang 保留。项目显式声明的系统原生库、外部求解器和 FPGA 工具仍按各自契约提供。
 
-包内 `zig build test` 包含前端、第三方 IR、完整编译分配失败、实际生成 Zig 执行及 Store 宿主契约测试。`zig build test-frontend` 只运行前端测试。
+compiler 包内 `zig build test` 覆盖 RX/ZX 前端、第三方 IR 与编译 API；CLI 包内 `zig build test` 覆盖实际生成 Zig 执行及 Store 宿主契约。`zig build test-frontend` 只运行前端测试。
 
 公开模块：
 
-- `dependency.module("frontend")`：parse、analyze、analyzeWithContext、project.analyze、validateIr；只依赖 zx。
+- `dependency.module("frontend")`：parse、analyze、analyzeWithContext、project.analyze、validateIr；依赖 core 数据、dsl 语法框架与 lint 命名规则。
 - `dependency.module("compiler")`：上述入口加 compile、compileWithContext、compileProject、compileProjectVerified、format、zig.emit。
 - `dependency.module("standard")`：普通 Zig 标准算法模块；实际使用 std: 接口的生成模块将它绑定为 `zxc_standard`。普通语言操作直接生成 Zig，不依赖专用运行库。
 
@@ -96,7 +96,7 @@ Store 使用 compileWithContext 或 project.Options.context.stores，每项声�
 
 这些接口尚未自动建立 RX 前序 Call.out 的可见环境，也不负责 XML 属性位置映射、分支合流或 RX 编排执行。提供者表达式与 ZX 入口组合生成时必须共享同一份类型表和 zxc_abi，不能凭对象字段相同就互传两个独立 Zig 模块中的匿名类型。
 
-`dependency.module("application")` 中的 `expression.compile` 编译真实 XML 属性并映射源码范围。普通 CLI、service 调度、Module 类型来源和完整 RX 应用生成仍未接通。API 与所有权约定见[显式表达式编译参考](../../docs/2026-10-04/显式表达式编译参考.md)。
+`dependency.module("rx_analysis")` 中的 `expression.compile` 编译真实 XML 属性并映射源码范围。普通 CLI、service 调度、Module 类型来源和完整 RX 应用生成仍未接通。API 与所有权约定见[显式表达式编译参考](../../docs/2026-10-04/显式表达式编译参考.md)。
 
 IR 实验版本 8 移除 Context 注入槽位与读取节点，保留原生声明组 identity。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
 

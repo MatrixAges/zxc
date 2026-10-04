@@ -39,7 +39,7 @@ ZX 的名称检查和 AST 空行格式化包，仅依赖 zx。
 调用方分别 free 编辑切片和格式化文本。编辑的 replacement 使用静态字符串，不需要逐条释放。直接执行：
 
 ```sh
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
 zig-out/bin/zxc fmt application.zx --write
 ```
 

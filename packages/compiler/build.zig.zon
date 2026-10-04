@@ -4,16 +4,10 @@
     .version = "0.0.1",
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
-        .rx = .{ .path = "../rx" },
         .dsl = .{ .path = "../dsl" },
-        .zx = .{ .path = "../zx" },
+        .core = .{ .path = "../core" },
         .genz = .{ .path = "../genz" },
         .lint = .{ .path = "../lint" },
-        .pkgs = .{ .path = "../pkgs" },
-        .libyaml = .{
-            .url = "https://github.com/yaml/libyaml/archive/2c891fc7a770e8ba2fec34fc6b545c672beb37e6.tar.gz",
-            .hash = "N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL",
-        },
     },
-    .paths = .{ "build.zig", "build.zig.zon", "src", "build", "standard", "examples", "README.md" },
+    .paths = .{ "build.zig", "build.zig.zon", "src", "build", "standard", "tests", "README.md" },
 }

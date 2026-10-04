@@ -7,7 +7,7 @@ zig build
 zig build zx-example
 ```
 
-该示例会编译 ZX 并执行生成的 Zig。适配时请结合仓库构建配置阅读[示例目录](https://github.com/MatrixAges/zxc/tree/master/packages/compiler/examples)。
+该示例会编译 ZX 并执行生成的 Zig。适配时请结合仓库构建配置阅读[示例目录](https://github.com/MatrixAges/zxc/tree/master/packages/cli/examples)。
 
 ### 接入生成模块
 

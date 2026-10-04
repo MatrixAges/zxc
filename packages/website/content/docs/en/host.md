@@ -7,7 +7,7 @@ zig build
 zig build zx-example
 ```
 
-The example compiles ZX and executes its generated Zig. Read the [example directory](https://github.com/MatrixAges/zxc/tree/master/packages/compiler/examples) alongside the repository's build configuration when adapting it.
+The example compiles ZX and executes its generated Zig. Read the [example directory](https://github.com/MatrixAges/zxc/tree/master/packages/cli/examples) alongside the repository's build configuration when adapting it.
 
 ### Wire the generated module
 

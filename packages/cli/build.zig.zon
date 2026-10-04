@@ -1,0 +1,19 @@
+.{
+    .name = .zxc_cli,
+    .fingerprint = 0xc84e45f0785a1244,
+    .version = "0.0.1",
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{
+        .compiler = .{ .path = "../compiler" },
+        .core = .{ .path = "../core" },
+        .lint = .{ .path = "../lint" },
+        .pkgs = .{ .path = "../pkgs" },
+        .dsl = .{ .path = "../dsl" },
+        .genz = .{ .path = "../genz" },
+        .libyaml = .{
+            .url = "https://github.com/yaml/libyaml/archive/2c891fc7a770e8ba2fec34fc6b545c672beb37e6.tar.gz",
+            .hash = "N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL",
+        },
+    },
+    .paths = .{ "build.zig", "build.zig.zon", "src", "build", "tests", "examples", "README.md" },
+}

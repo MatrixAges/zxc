@@ -29,7 +29,7 @@ export default function verifyStandalone(args: { root: string; compiler_path: st
 
 	try {
 		copyFileSync(compiler_path, executable)
-		copyFileSync(resolve(root, 'packages/compiler/examples/quote.zx'), resolve(directory, 'quote.zx'))
+		copyFileSync(resolve(root, 'packages/cli/examples/quote.zx'), resolve(directory, 'quote.zx'))
 		copyFileSync(resolve(root, 'docs/2026-10-03/标准库示例/digest.zx'), resolve(directory, 'digest.zx'))
 		run([executable, 'pkg', 'index'])
 		run([executable, 'build', 'quote.zx', '--out', `quote${suffix}`])

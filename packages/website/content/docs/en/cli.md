@@ -3,7 +3,7 @@ The CLI compiles ZX to Zig and formats ZX source. Build from the repository to o
 ### Compile
 
 ```sh
-zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
+zig-out/bin/zxc packages/cli/examples/quote.zx --out /tmp/quote.zig
 ```
 
 | Argument       | Meaning                              |
@@ -17,9 +17,9 @@ Compilation includes import analysis and the compiler's semantic checks. Output 
 ### Format
 
 ```sh
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --write
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --write
 ```
 
 | Mode      | Effect                                                            |

@@ -16,8 +16,8 @@ zig build zx-example
 ソースの作業ツリーから実行します。
 
 ```sh
-zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
+zig-out/bin/zxc packages/cli/examples/quote.zx --out /tmp/quote.zig
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
 ```
 
 コンパイルが出力するのは Zig ソースです。完全な RX サービスを実行したり、ランタイムを自動的に用意したりはしません。生成モジュールを Zig ホストに組み込むには、コンパイラのサポートモジュール `zx_runtime` が必要です。

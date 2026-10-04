@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const Parser = @import("../frontend/parser.zig");
-const lint = @import("lint");
+const naming = @import("lint");
 pub const Function = struct { name: zx.ast.Name, parameters: []const *const zx.ast.Type, output: *const zx.ast.Type, allocator_argument: bool, fallible: bool };
 pub const Program = struct { types: []const zx.ast.Declaration, functions: []const Function };
 
@@ -16,7 +16,7 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Rep
 
         if (declaration == .hit) {
             if (functions.items.len != 0) return reporter.fail(.contract, declaration.hit.span, "interface types must precede function declarations");
-            if (!lint.checkName(declaration.hit.name.text, .type_decl)) return reporter.fail(.naming, declaration.hit.name.span, "type names must use PascalCase");
+            if (!naming.checkName(declaration.hit.name.text, .type_decl)) return reporter.fail(.naming, declaration.hit.name.span, "type names must use PascalCase");
             try types.append(allocator, declaration.hit);
 
             continue;
@@ -28,7 +28,7 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Rep
 
         const name = try parser.name();
 
-        if (!lint.checkName(name.text, .callable)) return reporter.fail(.naming, name.span, "function names must use camelCase");
+        if (!naming.checkName(name.text, .callable)) return reporter.fail(.naming, name.span, "function names must use camelCase");
 
         for (functions.items) |previous| {
             if (std.mem.eql(u8, previous.name.text, name.text)) return reporter.fail(.name, name.span, "duplicate native function declaration");
@@ -45,7 +45,7 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Rep
         while (!parser.at(")")) {
             const parameter = try parser.name();
 
-            if (!lint.checkName(parameter.text, .value)) return reporter.fail(.naming, parameter.span, "parameter names must use snake_case");
+            if (!naming.checkName(parameter.text, .value)) return reporter.fail(.naming, parameter.span, "parameter names must use snake_case");
 
             const entry = try names.getOrPut(allocator, parameter.text);
 

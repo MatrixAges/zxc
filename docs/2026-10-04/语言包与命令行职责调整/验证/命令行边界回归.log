@@ -1,0 +1,31 @@
+Native bundle: relocated ZX/Zig execution, file hashes, dependency options, dynamic assets and four path rejection scenarios passed
+Native declarations: 72 aggregate reference calls, native error propagation and two allocation failure traversals passed
+Native invocation: 25 inputs passed zero/multiple arguments, allocator and namespace execution
+Zlib compression: 264 independently decoded or rejected application calls passed
+Build modes: app, relocated Zig library and relocated ZX library passed
+Build Summary: 23/23 steps succeeded; 61/61 tests passed
+test-backend-protocol success
++- run test 7 pass (7 total) 4ms MaxRSS:1M
+|  +- compile test Debug native success 2s MaxRSS:272M
++- run test 14 pass (14 total) 4ms MaxRSS:1M
+|  +- compile test Debug native success 2s MaxRSS:275M
++- run test 2 pass (2 total) 3ms MaxRSS:1M
+|  +- compile test Debug native success 2s MaxRSS:268M
++- run test 2 pass (2 total) 4ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:273M
++- run test 9 pass (9 total) 6ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:275M
++- run test 9 pass (9 total) 5ms MaxRSS:1M
+   +- compile test Debug native success 2s MaxRSS:272M
+test-backend-publish success
++- run test 8 pass (8 total) 10ms MaxRSS:1M
+|  +- compile test Debug native success 2s MaxRSS:297M
+|     +- WriteFile cli/build/observed.zig success
++- run test 4 pass (4 total) 7ms MaxRSS:2M
+|  +- compile test Debug native success 2s MaxRSS:322M
+|     +- WriteFile cli/build/observed.zig (reused)
++- run test 6 pass (6 total) 14ms MaxRSS:1M
+   +- compile test Debug native success 2s MaxRSS:301M
+      +- WriteFile cli/build/observed.zig (reused)
+test-build-modes success
++- run node success 2m

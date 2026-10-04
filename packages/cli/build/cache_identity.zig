@@ -12,14 +12,14 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.built
     field(&hash, try target.result.zigTriple(b.allocator));
     field(&hash, @tagName(optimize));
 
-    try directory(b, &hash, "compiler", b.path("src").getPath(b));
-    try directory(b, &hash, "compiler-build", b.path("build").getPath(b));
-    try file(b, &hash, "compiler/build.zig", b.path("build.zig").getPath(b));
-    try file(b, &hash, "compiler/build.zig.zon", b.path("build.zig.zon").getPath(b));
-    try file(b, &hash, "standard/modules.json", b.path("standard/modules.json").getPath(b));
-    try directory(b, &hash, "standard/interfaces", b.path("standard/interfaces").getPath(b));
+    try directory(b, &hash, "cli", b.path("src").getPath(b));
+    try directory(b, &hash, "cli-build", b.path("build").getPath(b));
+    try file(b, &hash, "cli/build.zig", b.path("build.zig").getPath(b));
+    try file(b, &hash, "cli/build.zig.zon", b.path("build.zig.zon").getPath(b));
+    try file(b, &hash, "standard/modules.json", b.dependency("compiler", .{ .target = target, .optimize = optimize }).path("standard/modules.json").getPath(b));
+    try directory(b, &hash, "standard/interfaces", b.dependency("compiler", .{ .target = target, .optimize = optimize }).path("standard/interfaces").getPath(b));
 
-    for ([_][]const u8{ "zx", "dsl", "lint", "genz" }) |name| {
+    for ([_][]const u8{ "compiler", "core", "dsl", "lint", "genz", "pkgs" }) |name| {
         const dependency = b.dependency(name, .{ .target = target, .optimize = optimize });
 
         try directory(b, &hash, name, dependency.path("src").getPath(b));

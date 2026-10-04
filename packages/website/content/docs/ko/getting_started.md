@@ -16,8 +16,8 @@ zig build zx-example
 소스 체크아웃에서 실행하세요.
 
 ```sh
-zig-out/bin/zxc packages/compiler/examples/quote.zx --out /tmp/quote.zig
-zig-out/bin/zxc fmt packages/compiler/examples/quote.zx --check
+zig-out/bin/zxc packages/cli/examples/quote.zx --out /tmp/quote.zig
+zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
 ```
 
 컴파일은 Zig 소스를 생성합니다. 완전한 RX 서비스를 실행하거나 런타임을 자동으로 준비하지 않습니다. 생성된 모듈을 Zig 호스트에 통합하려면 컴파일러의 `zx_runtime` 지원 모듈이 필요합니다.

@@ -5,16 +5,15 @@
 ## 构建与测试
 
 ```sh
-cd packages/rx
-zig build
-zig build test
+cd packages/compiler
+zig build test-rx
 ```
 
-根目录 `zig build` 编译正式包，`zig build test` 运行 RX 测试。两个包均有自己的 `build.zig` 和 `build.zig.zon`；根通过 `b.dependency` 接入，rx 通过 `../dsl` 依赖 dsl。
+RX 与 ZX 同属 compiler 包；RX 模块通过 dsl 解析和校验，公开构建模块名为 rx。根目录 zig build test 覆盖 RX 回归。
 
-所有测试位于与 `src` 同级的 `tests/`，实现文件不包含内嵌 test。
+RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test。
 
-公共标签实现位于 `src/labels/`，每个标签一个同名 `.zig` 文件，例如 `Call.zig`、`Module.zig`。Gateway 专用标签位于 `src/features/gateway/labels/`，Store 专用标签位于 `src/features/store/labels/`；每个文件同时承载该标签的 Schema 和专属校验。
+公共标签实现位于 `src/rx/labels/`，每个标签一个同名 `.zig` 文件，例如 `Call.zig`、`Module.zig`。Gateway 专用标签位于 `src/rx/features/gateway/labels/`，Store 专用标签位于 `src/rx/features/store/labels/`；每个文件同时承载该标签的 Schema 和专属校验。
 
 `flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。当前仅实现语法校验，尚未实现对象的运行时生命周期。
 
@@ -70,7 +69,7 @@ Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标�
 
 **无环是项目合法性的硬约束，不提供关闭选项。** 完整模块集合必须通过 `validateModules`，任何自引用、间接环、条件分支里的环或未使用 Import 形成的环都返回诊断，不返回部分合法模块作为成功结果。单文件语法通过不能替代这一项目检查。
 
-遇到看似需要双向调用的业务，按 [AI 消除循环依赖指导](../skills/rx/消除循环依赖.md)选择父模块编排、提取共享能力或显式数据传递等方案；完整阅读入口见 [skills](../skills/README.md)。
+遇到看似需要双向调用的业务，按 [AI 消除循环依赖指导](../../../skills/rx/消除循环依赖.md)选择父模块编排、提取共享能力或显式数据传递等方案；完整阅读入口见 [skills](../../../skills/README.md)。
 
 该约束使模块依赖具备拓扑序，适合逐模块分析、测试和推导性质。它保证静态模块调用关系不递归，但不单独证明 ZX 函数终止、事件反馈终止或业务结果正确。测试额外穷举三个模块的全部 512 个有向图，并用独立的拓扑消除算法对照生产 DFS；有限穷举不等同于完整形式化证明。
 
