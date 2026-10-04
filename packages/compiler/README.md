@@ -100,9 +100,9 @@ IR 实验版本 7 在入口 Context slot 与 context_get 的基础上增加原�
 
 每个 import 保留绑定种类、源码中的 specifier、名称和 span；target 区分解析后的 ZX source 路径、native 声明接口与兼容 external 签名。记录包含未使用但已校验的 import；共享依赖只产生一份模块记录。字符串及数组随 AnalysisResult 的 arena 释放，独立 analyze 和诊断结果默认无记录。这些 TypeId/FunctionId 仍属于本次完整分析，不能直接持久化复用。
 
-项目分析成功时，`AnalysisResult.nominal_types` 记录本次新声明枚举的 `type_id`、`name` 和 `origin`。ZX 来源是规范化模块路径；native 来源是接口 specifier；兼容 externals 来源是导入模块、绑定名和导出成员，以保留既有独立实例语义。来源与声明名共同标识声明，成员列表仍从 IR 类型表读取，不按相同结构合并枚举。记录与 IR 共用分析结果的 arena，可在 ParseCache 释放后读取。
+分析成功时，`AnalysisResult.nominal_types` 记录已知来源枚举的 `type_id`、`name` 和 `origin`，包含调用方传入的来源。项目 ZX 来源是规范化模块路径；独立 analyze/analyzeWithContext 使用解析时的 file_name；native 来源是声明组 identity（未指定时使用 specifier）；兼容 externals 来源是导入模块、绑定名和导出成员。来源与声明名共同标识声明，不按相同结构合并枚举。记录与 IR 共用分析结果的 arena，可在 ParseCache 释放后读取。
 
-该记录只覆盖项目分析中新产生的枚举；调用方传入的 `context.types` 没有来源信息时不会被归到当前模块，独立 analyze/analyzeWithContext 也不提供项目来源。缺失记录不能推断枚举是结构类型。库调用者使用相对 root_dir 时，来源路径也可能相对；跨项目使用须提供稳定根或命名空间。IR 的版本与枚举编号规则保持原样，这些元数据尚未构成持久语义缓存。
+多个分析入口共享类型时，将上一结果的 types 和 nominal_types 分别传入 `context.types` 与 `context.nominal_types`。分析器校验并复制两者，保留共享前缀 ID，在函数体分析前按来源和声明名归并新枚举；同身份但成员或顺序不同会被拒绝。结果不借用上一结果的存储。缺失来源的输入枚举保持独立身份，不从结构猜测来源；越界、重复或名称不匹配的来源记录产生 contract 诊断。调用方须保持来源路径一致：独立分析的 file_name 不自动转换为项目规范路径，跨项目使用应提供稳定的绝对路径或命名空间。详见[共享名义类型参考](../../docs/2026-10-04/共享名义类型参考.md)。
 
 原生接口通过 project.Options.native_interfaces 提供声明源码与模块绑定。声明支持类型、枚举及 `export declare function`；allocator 首参数标记和 throws 返回标记显式描述 ABI。CLI 的 native_interfaces 使用 specifier/path/module/namespace，其中 path 指向 .d.zx。旧 externals 仅作为兼容输入保留。CLI 不自动放行任意原生导入。
 

@@ -1,0 +1,9 @@
+import { Mode } from "./types.zx";
+
+export type Input = void;
+
+export type Output = Mode;
+
+export default function (in: Input): Output {
+  return useContext("settings").mode;
+}
