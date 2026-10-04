@@ -61,7 +61,7 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标是该文件的默认导出。例如 `fn="load_user"` 指向 `load_user.zx`，也可写相对目录和显式 `.zx` 后缀。入口检查会读取函数及其 ZX 导入闭包，执行现有命名、类型和依赖检查，并拒绝纯类型文件作为函数目标。可使用 `check-rx --entry <file.rx> --project <pkg.yaml>` 指定包与原生接口配置。
 
-上述 check-rx 入口仅做结构与目标检查；`zxc build` 和下述项目推导入口会进一步验证顺序调用的参数、结果及类型兼容性。RX 尚未生成 Store 句柄上下文，需要这些上下文的函数仍待完整联结。
+上述 check-rx 入口仅做结构与目标检查；`zxc build` 和下述项目推导入口会进一步验证顺序调用的参数、结果及类型兼容性。Store 调用已支持显式宿主的源码生成；原生 app 的状态宿主仍待接入。
 
 `<Import from="users" />` 是可选的模块组合依赖声明，不接受 as；直接 Call 不必再重复写 Import。Import 本身不表示执行顺序或调用，执行关系由 Call 描述。依赖图同时包含 Import 和 Call service，要求整个注册集合无环；即使 Import 暂未被调用，也不能形成循环依赖。
 
@@ -251,9 +251,10 @@ Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。De
 | `entry`   | 集合中入口模块的项目相对路径                         |
 | `modules` | 完整 `[]rx.ModuleSource`，每项包含真实路径和 XML AST |
 | `sources` | 所有 Call.fn 所需的 ZX 源集合及其导入闭包            |
+| `stores`  | 可选的独立 Store 定义集合，每项为路径与真实 XML AST  |
 | `project` | 可选的既有 ZX 项目、包和原生接口配置                 |
 
-入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 service 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.service、Return、Task 与 Switch 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store、Parallel 和事件仍明确拒绝。
+入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 service 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.service、Return、Task 与 Switch 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store 引用独立分析并进入显式调用授权；Parallel 和事件仍明确拒绝。
 
 子模块可以只有 `<Return value="$in" />`，由调用者或下游函数确定其类型。同一个文件在所有调用点共享一个契约，不按调用点生成不同类型的实例；不相容的调用会报错。未读取输入的子模块仍可接收调用者传来的有类型值；无使用、无调用约束的输入才默认为 void。完整集合仍无法确定的类型会报告推导失败。
 
@@ -263,7 +264,7 @@ CLI 的 `zxc build workflow.rx --out build/workflow` 从入口递归装载 Impor
 
 ## Store 定义与初始化接口
 
-`rx_analysis.store.analyze(allocator, options)` 接收 `owner`（项目相对 .store.rx 路径）、真实 XML `node` 和可选共享 `types`。成功返回 `definition`，失败返回带路径、原始 XML 位置、错误码和消息的 `diagnostic`；结果独立拥有 arena，统一调用 `deinit()`。输入文本及 XML 解析结果可以先释放。
+`rx_analysis.store.analyze(allocator, options)` 接收 `owner`（项目相对 .store.rx 路径）、真实 XML `node` 和可选共享 `types`、`nominal_types`。成功返回 `definition`，失败返回带路径、原始 XML 位置、错误码和消息的 `diagnostic`；结果独立拥有 arena，统一调用 `deinit()`。输入文本及 XML 解析结果可以先释放。
 
 Definition 保存规范化 `source_path`、显示 `name`、`version`、共享类型表和 Object 列表。Object 的身份使用定义文件路径与 Object.name 的组合，不能只按显示 Store.name 合并。一个文件内同名 Object 的不同字段片段会合并；重复字段仍拒绝。
 
@@ -271,12 +272,37 @@ Definition 保存规范化 `source_path`、显示 `name`、`version`、共享类
 
 初始化沿字段声明顺序求值，类型表中的字段顺序不改变求值次序。程序通过所有权和 IR 校验；执行中仍可能返回运算或分配错误。生成后用 `execute(arena, {})` 获取初值，返回引用必须在 arena 存活期内使用。
 
-CLI `check-rx --entry state.store.rx` 以及普通入口装载到的 Store 定义使用上述语义检查。纯 `rx.validate` 仍是 Schema 入口。这个阶段不执行初始化、不授予 Call.setter、不提交状态；定义成功不等于 RX Store 调用已经可运行。接口和真实生成示例见 [Store 联结实施](../../../../docs/2026-10-04/RX状态联结实施计划.md)。
+CLI `check-rx --entry state.store.rx` 以及普通入口装载到的 Store 定义使用上述语义检查。纯 `rx.validate` 仍是 Schema 入口。定义分析本身不执行初始化或提交状态；完整项目推导另行处理 getter/setter，不能从单个定义检查成功推断完整调用已通过。接口和真实生成示例见 [Store 联结实施](../../../../docs/2026-10-04/RX状态联结实施计划.md)。
+
+## Store 调用联结
+
+项目推导的 `stores` 与普通 `modules` 分开传入，CLI 源码生成自动沿 Store.from 装载。定义先进入共享类型表，成功结果的 `contract.store_definitions` 保留各 Object 的初值 Program，供宿主初始化；它们不在每个 Call 中重新执行。
+
+`<Store from="state" as="jobs" />` 相对模块路径读取 state.store.rx，别名省略时取定义的 Store.name。命名空间与 Object 名需要是单个标识符；显示名称不适合作为标识符时使用 as。模块源码使用 `store.jobs.counter`，运行身份使用规范化定义路径与 Object 名。同一文件的不同别名共用一个对象，不同文件的同名 Store 不合并。
+
+```xml
+<Module>
+  <Store from="state" as="jobs" />
+  <Call fn="advance"
+    in="{increment: $in, state: store.jobs.counter}"
+    setter="[store.jobs.counter]"
+    out="ctx.result" />
+  <Return value="ctx.result" />
+</Module>
+```
+
+getter 仅在 Call.in 可见，允许读取完整 Object 或字段。每次 Call 前读取新的不可变快照，作为普通输入值传递；Return、Switch 或回调不能直接捕获 Store getter。Call.out 不能覆盖 store 命名空间。
+
+setter 必须列出一个完整 Object；不能列出整个 Store、字段、未声明对象或多个对象。目标 ZX 必须声明 `export default function (in: Input, { store }): Output`，通过 `store.jobs.counter = next` 替换整个对象。该能力只写，不允许读取当前 Store；读取值从 in 获得。普通 ZX import 不继承能力，Call.service 的授权由被调模块自己声明。
+
+成功调用独立提交；后续调用失败不回滚先前提交。编排函数自身不创建覆盖全流程的事务。`zxc module.rx --out flow.zig` 支持生成带显式宿主的源码；宿主提供稳定槽位指针与 commit(pending)，必须保证当前状态及旧快照的内存存活期。原生 app 构建暂对含 Store 定义的项目明确拒绝，尚未自动建立持久化、版本校验或请求级快照生命周期。
+
+真实 XML、ZX、初始化与宿主执行材料见 [Store 声明示例](../../../../docs/2026-10-04/RX状态联结/真实声明/main.rx)。
 
 ## 当前边界
 
 未知/重复属性、必填项、非空白文本和非法嵌套均报错。除 Field.value 外，显式属性不能是空白字符串。
 
-Gateway 入口已验证 Route 目标文件及其普通模块依赖图，模块 Store 引用已读取并校验定义文件；这些专用流程尚未实现多个 Gateway 的合并、Store setter 的调用联结、Group 展开冲突、路由输入输出兼容或状态宿主执行。普通顺序模块的表达式、函数类型联结与 Return 推导见上节。路由 service 相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。结构检查成功不代表业务执行已经验证。
+Gateway 入口已验证 Route 目标文件及其普通模块依赖图，模块 Store 引用已读取并校验定义文件；这些专用流程尚未实现多个 Gateway 的合并、Group 展开冲突、路由输入输出兼容或状态宿主执行。普通顺序模块的表达式、函数类型联结与 Return 推导见上节。路由 service 相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。结构检查成功不代表业务执行已经验证。
 
 结构级测试使用 AST 覆盖标签、路径身份、模块组合、递归结构、循环依赖与分配失败。独立文本及运行验证从真实 XML 开始，覆盖顺序模块的类型推导、原始诊断位置和部分生成代码执行；各组证据不替代尚未接入功能的验证。

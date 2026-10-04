@@ -120,3 +120,44 @@ genz 新增结构化 container_type 表达含字段和方法的适配器，生�
 - 第二次提交冲突：error=Conflict、count=4、commits=1、spare=99；先前成功调用保留，失败调用未替换状态。
 
 [实际运行结果](RX状态联结/调用生成/运行结果.json)保存两条生成路径的退出码和原始输出。演示生成器首次构建修正了示例 Span 的显式类型；不涉及正式编译器逻辑。阶段三仍需真实 StoreRef、Call.in 和 setter 文本联结，阶段四仍需持有状态的宿主。
+
+## 阶段三：真实声明与调用授权
+
+Intent：让真实 RX Module 的 Store 引用、Call.in getter 与单 Object setter 进入第二阶段的调用能力链。
+
+Data：CLI collection 目前释放已分析的定义；ZX StoreBinding 只接受本地 type_name；RX 推导和表达式编译已有按路径绑定的输入环境；普通 ZX import 已只向入口注入权限。
+
+Edges：Store.from 相对模块文件解析，缺省源码别名取 Store.name，显式 as 覆盖；别名及 Object 名必须能构成标识符路径。对象物理身份取规范化定义路径与 Object 名，与源码别名分离。getter 仅在 Call.in 可见；setter 必须是只包含一个完整 Object 路径的列表，权限只写且仅注入本次 ZX 入口，ZX 函数必须声明第二参数 { store }。service 使用自己的声明。初始化 Program 不在每次调用时执行，CLI 应用宿主尚需下一阶段完成。
+
+Answer：CLI 保留 Store XML 输入；项目入口按共享类型前缀分析定义；StoreBinding 增加与 type_name 互斥的 type_id 通道。prepare 按模块解析声明与每次调用的授权；constraints 与 flow_compile 仅在 Call.in 临时加入实际引用的 getter；builder 在调用前读取快照、内联参数，再按物理身份生成 call.stores 映射。运行需要的传递槽位汇总到编排 Program，但不加入源码可见声明表。结果保留定义与初值，供宿主阶段使用。
+
+```mermaid
+flowchart LR
+  Files[Store XML文件] --> Types[统一类型前缀与初值]
+  Ref[Module Store声明] --> Visible[源码别名与Object]
+  Types --> Visible
+  Visible --> In[Call.in快照绑定]
+  Visible --> Setter[单Object只写授权]
+  In --> Expr[普通Input表达式]
+  Setter --> ZX[ZX显式store参数]
+  Expr --> ZX
+  ZX --> Map[物理身份槽位映射]
+```
+
+## 阶段三实施与自我复核
+
+共享类型注入保留 type_name 兼容用法，type_id 只能引用传入类型表；缓存环境摘要包含整个 Context，因此两种来源和权限均进入摘要。Store 初值的共享名义类型来源同步传入。模块注册按文件路径查找，别名缺省取定义 name；声明与运行槽位分开，服务需要的传递槽位不会变成调用方可见声明。
+
+Call.in 从真实 AST 收集实际使用的 getter，跳过 lambda 内部，避免把局部参数 store 的字段误当宿主访问。constraints、表达式编译和 builder 三处在临时 getter 后恢复绑定长度，再添加 out；getter 不污染永久结果索引。每次调用前生成快照，callee 的 setter 权限仅写且要求显式第二参数。
+
+CLI 定义装载保留 XML，源码生成在项目中统一分析定义，避免每个定义各自从空类型表开始。check-rx 仍保留独立初值语义检查。源码生成已可用；含 Store 定义的原生 app 暂明确拒绝，防止落入缺少宿主参数的 Zig 编译错误。
+
+独立静态复核未发现确定问题，覆盖身份、授权、绑定索引、类型前缀、输入释放和回调遮蔽。宿主示例使用统一 arena 保留旧快照，不能把该演示当作请求内存回收、并发版本校验或持久化实现。
+
+## 阶段三实际材料
+
+[真实声明](RX状态联结/真实声明/main.rx)与服务分别使用 outer、inner 别名引用相同 state.store.rx。API 在推导后释放整个输入 arena，再生成程序和初值；输出仅一个物理槽位 store.state.store.rx:counter。初值通过生成的初始化程序实际执行，非宿主手写替代值。
+
+两次 increment=1：first=4、second=5、current=5、state=5、commits=2。第二次提交冲突：error=Conflict、state=4、commits=1。increment=7：first=10、second=17、current=17、state=17、commits=2。CLI 对同一真实项目的源码生成也成功。
+
+[实际结果](RX状态联结/声明生成/运行结果.json)记录输出，最终源码摘要保存在运行结果中，记录生成程序、初始化程序、输入与演示宿主。最终项目构建 14/14 步骤通过；既有 RX CLI 专项 14/14 步骤通过，包含 11 个 CLI 场景、9 个磁盘项目场景和 1 个 watch 恢复场景；既有 Store 专项 9/9 步骤、4/4 测试通过。原生 app 入口实际返回明确的宿主未接入诊断。没有新建测试文件或执行全量测试；这里只验证编译联结与显式宿主执行，应用宿主继续留在阶段四。

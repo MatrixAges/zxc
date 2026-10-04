@@ -92,7 +92,7 @@ parse 返回拥有源码副本的 ParseResult，analyze/project.analyze 返回�
 
 `zxc pkg index [index.json]` 校验并显示多版本索引；`zxc pkg resolve <name> <range> [index.json]` 选择最高匹配版本，输出来源及 SHA-256。默认使用内嵌索引，由 [pkgs 包](../pkgs/README.md)维护；当前没有已发布条目。resolve 只查询索引，不下载或安装。
 
-Store 使用 compileWithContext 或 project.Options.context.stores，每项声明 handle、path、type_name、readable、writable。生成入口为 execute(arena, input, context)，context 提供对应 slot 的快照指针和 commit(pending)。参考 tests/runtime/store_test.zig。
+Store 使用 compileWithContext 或 project.Options.context.stores，每项声明 handle、path、readable、writable，以及恰选其一的 type_name 或 type_id；type_id 必须来自传入的共享类型表并指向完整 Object。生成入口为 execute(arena, input, context)，context 提供对应 slot 的快照指针和 commit(pending)。参考 tests/runtime/store_test.zig。
 
 `rx_analysis.store.analyze` 已将真实 Store 定义编译为逐 Object 的有类型初始化 Program，CLI 的 Store 入口检查同时核对字段类型和初值；每次 Call 的授权、状态提交与长期生命周期仍待 RX 宿主联结。用法见 [Store 定义与初始化接口](src/rx/README.md#store-定义与初始化接口)。
 
