@@ -1,0 +1,104 @@
+[
+  {
+    "样本": "无BOM",
+    "命令": [
+      "fmt",
+      "pkg.yaml"
+    ],
+    "退出码": 0,
+    "stdout": "name: sample\nversion: 1.0.0\n",
+    "stderr": "",
+    "输入字节不变": true
+  },
+  {
+    "样本": "无BOM",
+    "命令": [
+      "fmt",
+      "pkg.yaml",
+      "--check"
+    ],
+    "退出码": 1,
+    "stdout": "",
+    "stderr": "pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection\n",
+    "输入字节不变": true
+  },
+  {
+    "样本": "无BOM",
+    "命令": [
+      "lint",
+      "pkg.yaml"
+    ],
+    "退出码": 1,
+    "stdout": "",
+    "stderr": "pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection\n",
+    "输入字节不变": true
+  },
+  {
+    "样本": "含BOM",
+    "命令": [
+      "fmt",
+      "pkg.yaml"
+    ],
+    "退出码": 0,
+    "stdout": "﻿name: sample\n\nversion: 1.0.0\n",
+    "stderr": "",
+    "输入字节不变": true
+  },
+  {
+    "样本": "含BOM",
+    "命令": [
+      "fmt",
+      "pkg.yaml",
+      "--check"
+    ],
+    "退出码": 0,
+    "stdout": "",
+    "stderr": "",
+    "输入字节不变": true
+  },
+  {
+    "样本": "含BOM",
+    "命令": [
+      "lint",
+      "pkg.yaml"
+    ],
+    "退出码": 0,
+    "stdout": "",
+    "stderr": "",
+    "输入字节不变": true
+  },
+  {
+    "样本": "含BOM_CRLF",
+    "命令": [
+      "fmt",
+      "pkg.yaml"
+    ],
+    "退出码": 0,
+    "stdout": "﻿name: sample\r\n\r\nversion: 1.0.0\r\n",
+    "stderr": "",
+    "输入字节不变": true
+  },
+  {
+    "样本": "含BOM_CRLF",
+    "命令": [
+      "fmt",
+      "pkg.yaml",
+      "--check"
+    ],
+    "退出码": 0,
+    "stdout": "",
+    "stderr": "",
+    "输入字节不变": true
+  },
+  {
+    "样本": "含BOM_CRLF",
+    "命令": [
+      "lint",
+      "pkg.yaml"
+    ],
+    "退出码": 0,
+    "stdout": "",
+    "stderr": "",
+    "输入字节不变": true
+  }
+]
