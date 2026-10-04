@@ -1,0 +1,11 @@
+export type Input = { label: string
+ enabled: bool
+ missing: u64?
+ maybe: u64?
+ matrix: u64[][] }
+
+export type Output = Input
+
+export default function (in: Input): Output {
+  return in
+}
