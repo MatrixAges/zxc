@@ -1,0 +1,92 @@
+type Proof = { name: string; result: 'unsat' | 'sat' | 'types' }
+
+export type Case = {
+	name: string
+	exports: Record<string, string>
+	files: Record<string, string>
+	proofs: Array<Proof>
+	failed?: boolean
+	diagnostic?: string
+	no_solver?: boolean
+}
+
+const identity =
+	'export type Input = u8\n\nexport type Output = u8\n\nexport default function (in: Input): Output ensures(out == in) {\n  return in\n}\n'
+const overflow =
+	'export type Input = u8\n\nexport type Output = u8\n\nexport default function (in: Input): Output {\n  return in + 1\n}\n'
+const cases: Array<Case> = [
+	{
+		name: 'all public modules proved and hidden invalid source ignored',
+		exports: { './left': 'left.zx', './nested/right': 'right.zx' },
+		files: { 'left.zx': identity, 'right.zx': identity, 'hidden.zx': 'invalid source' },
+		proofs: [
+			{ name: './left', result: 'unsat' },
+			{ name: './nested/right', result: 'unsat' }
+		]
+	},
+	{
+		name: 'same source aliases have independent proof files',
+		exports: { '.': 'left.zx', './alias': 'left.zx' },
+		files: { 'left.zx': identity },
+		proofs: [
+			{ name: '.', result: 'unsat' },
+			{ name: './alias', result: 'unsat' }
+		]
+	},
+	{
+		name: 'type only public module does not invoke solver',
+		exports: { './types': 'types.zx' },
+		files: { 'types.zx': 'export type Count = u64\n' },
+		proofs: [{ name: './types', result: 'types' }],
+		no_solver: true
+	},
+	{
+		name: 'unreferenced public syntax failure prevents partial proof',
+		exports: { './first': 'first.zx', './broken': 'broken.zx' },
+		files: { 'first.zx': identity, 'broken.zx': 'invalid source' },
+		proofs: [],
+		failed: true,
+		diagnostic: 'broken.zx:'
+	},
+	{
+		name: 'missing public source prevents partial proof',
+		exports: { './first': 'first.zx', './missing': 'missing.zx' },
+		files: { 'first.zx': identity },
+		proofs: [],
+		failed: true,
+		diagnostic: 'FileNotFound'
+	},
+	{
+		name: 'RX and ZX public proofs share collection',
+		exports: { './workflow': 'main.rx', './logic': 'read.zx' },
+		files: {
+			'main.rx': '<Module><Call fn="read" in="$in" out="ctx.value"/><Return value="ctx.value"/></Module>\n',
+			'read.zx': identity
+		},
+		proofs: [
+			{ name: './workflow', result: 'unsat' },
+			{ name: './logic', result: 'unsat' }
+		]
+	}
+]
+
+for (const reverse of [false, true]) {
+	const entries = reverse
+		? [
+				['./bad', 'bad.zx'],
+				['./good', 'good.zx']
+			]
+		: [
+				['./good', 'good.zx'],
+				['./bad', 'bad.zx']
+			]
+	cases.push({
+		name: `counterexample does not skip other public entry ${reverse}`,
+		exports: Object.fromEntries(entries),
+		files: { 'good.zx': identity, 'bad.zx': overflow },
+		proofs: entries.map(([name]) => ({ name, result: name === './bad' ? 'sat' : 'unsat' })),
+		failed: true
+	})
+}
+
+export default cases

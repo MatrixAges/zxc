@@ -439,6 +439,13 @@ pub fn build(b: *std.Build) void {
     verification.addArtifactArg(cli_dependency.artifact("zxc"));
     verification_step.dependOn(&verification.step);
     test_step.dependOn(verification_step);
+    const public_verification_step = b.step("test-public-verification", "Verify every declared public ZX and RX library entry");
+    const public_verification = b.addSystemCommand(&.{"node"});
+    public_verification.addFileArg(b.path("tests/verification/public_test.ts"));
+    public_verification.addFileInput(b.path("tests/verification/public_cases.ts"));
+    public_verification.addArtifactArg(cli_dependency.artifact("zxc"));
+    public_verification_step.dependOn(&public_verification.step);
+    verification_step.dependOn(public_verification_step);
 
     const resources_step = b.step("test-verification-resources", "Validate verification allocation failures and invalid IR");
 
