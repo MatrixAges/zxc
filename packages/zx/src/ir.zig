@@ -41,6 +41,7 @@ pub const Expression = struct {
         enum_value: u32,
         reference: SymbolId,
         store_get: u32,
+        context_get: u32,
         field: Projection,
         index: struct { target: ExprId, index: ExprId },
         length: ExprId,
@@ -72,6 +73,7 @@ pub const Statement = union(enum) {
 
 pub const SwitchCase = struct { value: ?ExprId, body: []const Statement };
 pub const StoreSlot = struct { path: []const u8, type_id: TypeId, handle: []const u8 = "", readable: bool = true, writable: bool = true };
+pub const ContextSlot = struct { id: []const u8, type_id: TypeId };
 pub const NativeModule = struct { specifier: []const u8, import_name: []const u8, type_namespace: []const []const u8 = &.{}, types: []const Export = &.{} };
 pub const NativeType = struct { name: ?[]const u8 = null, children: []const NativeType = &.{} };
 
@@ -110,7 +112,7 @@ pub const Function = struct {
 
 pub const Program = struct {
     output_ownership: Ownership = .borrowed,
-    version: u32 = 5,
+    version: u32 = 6,
     contracts: []const Contract = &.{},
     file_name: []const u8,
     types: []const Type,
@@ -123,6 +125,7 @@ pub const Program = struct {
     functions: []const Function = &.{},
     native_modules: []const NativeModule = &.{},
     stores: []const StoreSlot = &.{},
+    contexts: []const ContextSlot = &.{},
     type_only: bool = false,
     pub fn typeOf(self: Program, id: TypeId) Type {
         return self.types[@intFromEnum(id)];

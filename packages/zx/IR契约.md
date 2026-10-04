@@ -1,4 +1,4 @@
-# ZX IR 契约（实验版 5）
+# ZX IR 契约（实验版 6）
 
 ## Intent：最终目标
 
@@ -8,7 +8,7 @@
 
 ### 类型、模块与符号
 
-- `Program.version` 必须是 5。`types` 起始项按 Scalar 枚举顺序排列，其后为 object、optional、list、tuple、enumeration。版本 5 删除 clone 节点，并增加函数返回所有权摘要；旧原始 IR 不复用新含义。
+- `Program.version` 必须是 6。`types` 起始项按 Scalar 枚举顺序排列，其后为 object、optional、list、tuple、enumeration。版本 6 增加入口 Context slot 与 context_get；版本 5 删除 clone 节点，并增加函数返回所有权摘要。旧原始 IR 不复用新含义。
 - 复合类型只能引用更早的 TypeId。对象字段按名称排序且唯一，字段不能是 void；元组可包含 void 丢弃槽；枚举非空且成员唯一。
 - 普通函数的 `symbols[0]` 是 Input，Input 允许 void。纯类型文件设置 type_only，symbols/expressions/body 为空。
 - 每个函数有独立 SymbolId 和 ExprId 空间，共享 Program.types。符号身份由编号决定，不依赖文本名称。
@@ -72,6 +72,14 @@ Symbol.ownership 是描述信息，不能用它绕过验证。官方校验器重
 stores 记录静态 handle、Object path、TypeId 和读写权限。store_get 只能读取已授权 slot；store_set 必须写入匹配的完整 Object。集合回调和纯模块 helper 不获得调用者的 Store 能力。
 
 生成代码先暂存写入，getter 优先读取本次暂存值，成功返回前统一调用宿主 commit。版本检查、多 slot 原子发布与长期存储生命周期由宿主负责。失败路径不调用 commit。
+
+### Context
+
+Program.contexts 记录非空且唯一的 id 和对象 TypeId；context_get 以 slot 索引读取匹配类型的只读借用值。普通 Function 没有 contexts，不继承入口绑定；校验子函数时清空入口 contexts。集合回调不能读取 Context slot，纯类型模块不能携带 Context。
+
+Zig 生成入口在存在 Store 或 Context 时接收第三个 context 参数；Context 值通过 context_N 字段提供，N 对应 slot 索引，字段的类型是该对象的只读引用。生成模块导出 zx_context，描述这些字段的确切类型，宿主无需猜测匿名对象布局。它不使用 Store 暂存或 commit。宿主须保证提供者及其字符串、列表等引用数据的生命周期覆盖输出借用的使用期间。普通 ZX helper 仍只接收 allocator 和 Input。
+
+Context 相关的符号执行及形式化验证尚未建模，必须返回明确的不支持诊断，不能把上下文读取当作常量或仅证明普通 Input。
 
 ### 函数契约
 

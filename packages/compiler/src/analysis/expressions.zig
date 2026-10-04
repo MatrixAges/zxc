@@ -174,6 +174,12 @@ pub fn knownType(self: *const Analyzer, value: *const zx.ast.Expression) ?ir.Typ
                 for (self.function_imports) |function| {
                     if (function.namespace == null and std.mem.eql(u8, function.name, call.callee.value.identifier.text)) break :blk function.output_type;
                 }
+
+                if (std.mem.eql(u8, call.callee.value.identifier.text, "useContext")) {
+                    const slot = @import("context.zig").slot(self, value) orelse break :blk null;
+
+                    break :blk self.contexts[slot].type_id;
+                }
             } else if (call.callee.value == .field and call.callee.value.field.target.value == .identifier) {
                 const field = call.callee.value.field;
                 const owner = field.target.value.identifier.text;

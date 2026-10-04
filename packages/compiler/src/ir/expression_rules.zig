@@ -42,6 +42,7 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
         .some => |child| target == .optional and check.typed(child, target.optional),
         .enum_value => |member| target == .enumeration and member < target.enumeration.members.len,
         .store_get => |slot| slot < program.stores.len and program.stores[slot].readable and program.stores[slot].type_id == type_id,
+        .context_get => |slot| slot < program.contexts.len and program.contexts[slot].type_id == type_id,
         .reference => |symbol| @intFromEnum(symbol) < program.symbols.len and program.symbols[@intFromEnum(symbol)].type_id == type_id,
         .field, .tuple_field => |field| blk: {
             if (!check.earlier(field.target)) break :blk false;

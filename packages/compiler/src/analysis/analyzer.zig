@@ -16,8 +16,11 @@ output_type: ir.TypeId = undefined,
 function_imports: []const FunctionImport = &.{},
 stores: []const ir.StoreSlot = &.{},
 store_bindings: []const @import("analyze.zig").StoreBinding = &.{},
+contexts: []const ir.ContextSlot = &.{},
+context_bindings: []const @import("analyze.zig").ContextBinding = &.{},
+context_type_count: usize = 0,
+expression_bindings: std.ArrayList(ir.SymbolId) = .empty,
 allow_store: bool = false,
-
 lambda_depth: usize = 0,
 scope_floor: usize = 0,
 pub const FunctionImport = struct { namespace: ?[]const u8 = null, positional_types: ?[]const ir.TypeId = null, name: []const u8, id: ir.FunctionId, input_type: ir.TypeId, output_type: ir.TypeId };
@@ -26,11 +29,15 @@ pub fn run(self: *Self, program: zx.ast.Program, file_name: []const u8) zx.Error
     try self.types.initialize();
 
     const contract_span = if (program.body) |body| body.span else zx.Span{ .start = 0, .end = 0 };
+
+    if (program.body == null and self.context_bindings.len > 0) return self.reporter.fail(.capability, contract_span, "Context injection requires an executable ZX entry");
+
     const input_type = if (program.body != null) try self.types.named(.{ .text = "Input", .span = contract_span }) else Types.scalarId(.void);
 
     self.output_type = if (program.body != null) try self.types.named(.{ .text = "Output", .span = contract_span }) else Types.scalarId(.void);
 
     if (self.store_bindings.len > 0) self.stores = try @import("store.zig").resolve(self, self.store_bindings, contract_span);
+    if (self.context_bindings.len > 0) self.contexts = try @import("context.zig").resolve(self, self.context_bindings, contract_span);
 
     self.allow_store = program.has_store or self.stores.len > 0;
 
@@ -64,6 +71,7 @@ pub fn run(self: *Self, program: zx.ast.Program, file_name: []const u8) zx.Error
         .body = body,
         .exports = exports,
         .stores = self.stores,
+        .contexts = self.contexts,
         .type_only = program.body == null,
     };
 }

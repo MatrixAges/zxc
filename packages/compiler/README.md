@@ -27,7 +27,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 
 ## Edges：边界
 
-数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 5 的内存 API，没有稳定序列化 ABI。
+数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 6 的内存 API，没有稳定序列化 ABI。
 
 Store 的实际版本检查、锁、持久化和跨对象原子发布由宿主 commit 实现。编译器不包含完整 RX XML 加载器或生产 Runtime 调度器，不能把生成端的提交接口视为生产持久化已经实现。
 
@@ -82,7 +82,13 @@ parse 返回拥有源码副本的 ParseResult，analyze/project.analyze 返回�
 
 Store 使用 compileWithContext 或 project.Options.context.stores，每项声明 handle、path、type_name、readable、writable。生成入口为 execute(arena, input, context)，context 提供对应 slot 的快照指针和 commit(pending)。参考 tests/runtime/store_test.zig。
 
-IR 实验版本 5 将原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。后端按模块表生成并复用导入；旧原始 IR 不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
+Context 使用 compileWithContext 或 project.Options.context.contexts，每项声明 id，并在 type_name 与 type_id 中二选一。type_name 必须解析为入口可见的对象类型；type_id 必须指向同时提供的 context.types 类型表中的对象。类型表需包含完整标量前缀与全部引用类型；分析结果复制该表，不借用调用方的类型存储。入口通过 `useContext("id")` 读取只读借用对象，字符串字面量按 ZX 字符串转义规则匹配 id；动态 id 尚不支持。
+
+生成入口的 context 参数以 context_N 字段提供各 slot 的对象引用，并导出 zx_context 类型，供宿主构造具有正确对象类型的参数，无需 Store commit。普通 ZX 导入函数不继承绑定，集合回调也不能隐式捕获 Context；需要的数据由调用方通过 Input 显式传入。对象及其引用数据必须活到所有借用输出使用结束。形式化验证暂不支持含 Context 的入口。
+
+该能力目前通过编译器 API 由宿主提供值；普通 CLI 不会自动创建绑定，完整 RX 注入执行尚未接通。
+
+IR 实验版本 6 增加入口 Context slot 与 context_get。原生模块仍保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。后端按模块表生成并复用导入；旧原始 IR 不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
 
 原生接口通过 project.Options.native_interfaces 提供声明源码与模块绑定。声明支持类型、枚举及 `export declare function`；allocator 首参数标记和 throws 返回标记显式描述 ABI。CLI 的 native_interfaces 使用 specifier/path/module/namespace，其中 path 指向 .d.zx。旧 externals 仅作为兼容输入保留。CLI 不自动放行任意原生导入。
 

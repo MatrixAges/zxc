@@ -22,11 +22,12 @@ pub fn validate(program: ir.Program) bool {
         view.symbols = contract.symbols;
         view.expressions = contract.expressions;
         view.stores = &.{};
+        view.contexts = &.{};
         view.functions = &.{};
 
         for (contract.expressions, 0..) |expression, index| {
             switch (expression.value) {
-                .call, .store_get, .list_operation, .transform => return false,
+                .call, .store_get, .context_get, .list_operation, .transform => return false,
                 else => {},
             }
 

@@ -108,6 +108,8 @@ const Project = struct {
             .types = .{ .allocator = self.allocator, .reporter = self.reporter, .declarations = input.ast.declarations, .aliases = aliases.items },
             .function_imports = imports.items,
             .store_bindings = if (std.mem.eql(u8, unit.path, self.options.entry)) self.options.context.stores else &.{},
+            .context_bindings = if (std.mem.eql(u8, unit.path, self.options.entry)) self.options.context.contexts else &.{},
+            .context_type_count = self.options.context.types.len,
         };
 
         try analyzer.types.items.appendSlice(self.allocator, self.types);
@@ -267,14 +269,22 @@ pub fn analyze(allocator: std.mem.Allocator, sources: []const Source, options: O
 
     const temporary = arena.allocator();
     var reporter: zx.Reporter = .{};
+
+    if (options.context.types.len != 0 and !@import("../ir/type_rules.zig").validate(options.context.types)) return .{ .arena = arena, .value = .{ .diagnostic = .{
+        .code = .contract,
+        .span = .{ .start = 0, .end = 0 },
+        .message = "invalid shared type table",
+    } } };
+
     const units = try temporary.alloc(Unit, sources.len);
 
     for (sources, 0..) |source, index| units[index] = .{ .path = try std.fs.path.resolve(temporary, &.{ options.root_dir, source.path }) };
 
     var normalized = options;
     normalized.entry = try std.fs.path.resolve(temporary, &.{ options.root_dir, options.entry });
-
     var project = Project{ .allocator = temporary, .sources = sources, .units = units, .options = normalized, .reporter = &reporter };
+
+    project.types = try @import("../analysis/type_table.zig").copy(temporary, options.context.types);
 
     for (units, 0..) |unit, index| {
         for (units[0..index]) |previous| {
