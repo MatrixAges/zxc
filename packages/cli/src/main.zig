@@ -60,6 +60,7 @@ fn usage(writer: *std.Io.Writer) std.Io.Writer.Error!void {
     try writer.writeAll(@import("package/init.zig").usage);
     try writer.writeAll(@import("package/install.zig").usage);
     try writer.writeAll("Options for compile/build/verify/fpga: --no-cache --cache-stats\n");
+    try writer.writeAll("zxc verify <pkg.yaml> [--solver z3] [--out query.smt2]: verify all declared public modules\n");
     try writer.writeAll("RX sequential Call.fn/Return: zxc <module.rx> [--out output.zig] or zxc build <module.rx> --out program; app build options apply, lib publishing is not available\n");
     try writer.writeAll("zxc pkg index [index.json]\nzxc pkg resolve <name> <range> [index.json]\n");
     try writer.writeAll("zxc <source.zx> [--project pkg.yaml] [--out output.zig] [--solver z3]\nzxc build <source.zx> --out program [--mode app|lib] [--watch] [--project pkg.yaml] [--asm program.s] [--target triple] [--cpu features] [--optimize mode] [--solver z3]\nzxc fpga <source.zx> --out kernel.sv [--project pkg.yaml] [--solver z3] [--clocked]\nzxc verify <source.zx> [--project pkg.yaml] [--solver z3] [--out query.smt2]\nzxc fmt <source.zx> [--check | --write]\nzxc check-rx <module.rx> [module.rx ...]\nzxc check-rx --entry <module.rx|gateway.gateway.rx|state.store.rx> [--project pkg.yaml]\n");

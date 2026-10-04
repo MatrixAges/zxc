@@ -46,6 +46,16 @@ pub fn run(context: Context) !Status {
 
     const project = loaded.project;
 
+    if (options.verifying and std.mem.eql(u8, std.fs.path.basename(input_path), "pkg.yaml")) {
+        return @import("library/verify.zig").run(context, loaded, inputs) catch |err| {
+            if (err == error.OutOfMemory or err == error.Canceled) return err;
+            try stderr.print("{s}: public module verification: {s}\n", .{ input_path, @errorName(err) });
+            try stderr.flush();
+
+            return .failed;
+        };
+    }
+
     const source = std.Io.Dir.cwd().readFileAlloc(context.io, input_path, allocator, .limited(16 * 1024 * 1024)) catch |err| {
         if (err == error.OutOfMemory) return err;
         try stderr.print("{s}: {s}\n", .{ input_path, @errorName(err) });
