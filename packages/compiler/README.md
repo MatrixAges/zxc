@@ -14,7 +14,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 - 无捕获 map/filter/reduce，统一元组返回的消费式列表更新；禁止 clone 深拷贝。
 - Call 注入的 `$name.value` Store getter/setter、类型与独立读写权限、暂存与宿主统一提交。
 - 显式注册并审查的 zig:/c: 接口与模块成员，保留旧 lib: 兼容；无前缀 ZX 包入口映射；普通项目函数的 Input/Output 类型连接。
-- 内建 std:encoding、std:crypto、std:path、std:querystring、std:zlib 与 std:os 系列纯计算接口；它们不是完整 Node.js 标准库兼容实现。
+- 内建 std:encoding、std:crypto、std:path、std:querystring、std:url/search_params、std:zlib 与 std:os 系列纯计算接口；它们不是完整 Node.js 标准库兼容实现。
 - 原生 build、C 头文件桥接、目标与 CPU 配置，以及真实汇编输出。
 - 原生模块采用静态编译链接；动态插件与懒加载已按用户决定取消。
 - app/lib 构建模式；lib 交付独立 Zig 模块、实际静态源码依赖、ZX 源码与项目配置，不携带 zxc runtime。
@@ -46,6 +46,8 @@ std:os 提供 arch()、platform()、endianness()，返回最终编译目标的�
 std:crypto 新增 scrypt 密钥派生，显式接收密码与盐字节、N/r/p、输出长度和内存预算；派生前检查参数及完整缓冲请求量。接口与边界见 [scrypt 密钥派生参考](../../docs/2026-10-04/scrypt密钥派生参考.md)。
 
 std:querystring 使用有序 Entry 列表保留重复键。parse/stringify 使用默认分隔符，parseWith/stringifyWith 接收显式配置；escape/unescape 提供百分号编解码。该模块不提供 JavaScript 对象隐式转换或完整 URL 解析。
+
+std:url/search_params 提供查询参数的 form 编解码、重复键查询、不可变编辑及 UTF-16 稳定排序，共 12 个静态接口。编辑结果共享已有只读条目与字符串，不修改输入；完整 URL 地址解析仍未实现。类型、语义及 ZX/Zig 消费示例见 [URL 查询参数参考](../../docs/2026-10-05/URL查询参数参考.md)。
 
 std:zlib 提供 gzip/deflate/deflateRaw，输入 u8[]；gzipWith/deflateWith/deflateRawWith 接收 `{ data: u8[], level: i32, }`，级别为 -1（默认）、0（不压缩）、1–9。gunzip/inflate/inflateRaw 接收 `{ data: u8[], max_output_length: u32, }`。结果均为新分配字节数组。解压验证容器校验和、gzip 长度及总输出上限，支持连续 gzip 成员，拒绝尾随垃圾。新增 zstdDecompress 接收 `{ data: u8[], max_output_length: u32, max_window_length: u32, }`，支持连续 Zstd 帧、可跳过帧和校验和验证；两个上限分别约束总输出与单帧窗口。当前不提供流、预设字典、其他压缩参数、Brotli 或 Zstd 编码。详见 [Zstd 解压参考](../../docs/2026-10-04/Zstd解压参考.md)。
 

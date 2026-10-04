@@ -1,0 +1,23 @@
+export type Entry = { key: string
+ value: string }
+export type Lookup = { entries: Entry[]
+ key: string }
+export type Match = { entries: Entry[]
+ key: string
+ value: string? }
+export type Update = { entries: Entry[]
+ key: string
+ value: string }
+
+export declare function parse(allocator, in: string): Entry[] throws
+export declare function stringify(allocator, in: Entry[]): string throws
+export declare function get(in: Lookup): string?
+export declare function getAll(allocator, in: Lookup): string[] throws
+export declare function has(in: Match): bool
+export declare function append(allocator, in: Update): Entry[] throws
+export declare function set(allocator, in: Update): Entry[] throws
+export declare function remove(allocator, in: Match): Entry[] throws
+export declare function sort(allocator, in: Entry[]): Entry[] throws
+export declare function keys(allocator, in: Entry[]): string[] throws
+export declare function values(allocator, in: Entry[]): string[] throws
+export declare function size(in: Entry[]): u64

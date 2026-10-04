@@ -1,0 +1,13 @@
+import library from "library"
+
+export type Input = { query: string, key: string, value: string, match_value: string? }
+
+export type Output = {
+  original: string, appended: string, assigned: string, removed: string,
+  ordered: string, first: string?, all: string[], found: bool, count: u64,
+  keys: string[], values: string[]
+}
+
+export default function (in: Input): Output {
+  return library(in)
+}

@@ -6,3 +6,4 @@ pub const path_posix = @import("path/root.zig").Module(false, @import("zxc_abi")
 pub const path_win32 = @import("path/root.zig").Module(true, @import("zxc_abi").native.@"std:path/win32");
 pub const path = @import("path/root.zig").Module(@import("builtin").os.tag == .windows, @import("zxc_abi").native.@"std:path");
 pub const os = @import("os.zig");
+pub const url_search_params = @import("url/search_params/root.zig");
