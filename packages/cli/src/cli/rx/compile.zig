@@ -26,12 +26,6 @@ pub fn run(context: Compile.Context) !Compile.Status {
 
     defer prepared.analysis.deinit();
 
-    if (options.native and prepared.store_definitions.len != 0) {
-        try writer.writeAll("RX Store source generation supports an explicit host; app builds still require Store lifecycle integration\n");
-
-        return .failed;
-    }
-
     var cache = try @import("../generation_cache.zig").init(context.io, allocator, loaded.project.root_dir);
 
     defer cache.deinit();
@@ -72,6 +66,7 @@ pub fn run(context: Compile.Context) !Compile.Status {
         return .failed;
     }
 
+    try @import("state.zig").append(&generated.bundle, &prepared, configuration.generation_cache);
     try @import("../generation_cache.zig").report(&cache, options, writer);
 
     const toolchain = @import("../toolchain.zig").resolve(context.io, allocator, context.environment) catch |err| return failure(context, err);

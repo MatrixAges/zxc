@@ -63,6 +63,7 @@ pub fn main(init: std.process.Init) !void {
     };
 
     try compiler.zig.store_initializers.append(&bundle, .{ .analysis = &analyzed, .initializers = initializers.items, .cache = &cache });
+    try compiler.zig.state.append(&bundle, .{ .analysis = &analyzed, .cache = &cache });
     try std.Io.Dir.cwd().createDirPath(init.io, args[2]);
     try write(init.io, allocator, args[2], "application.zig", bundle.entry.source);
     try write(init.io, allocator, args[2], "types.zig", bundle.types);
@@ -85,6 +86,7 @@ pub fn main(init: std.process.Init) !void {
     const generated = cache.generated;
 
     try compiler.zig.store_initializers.append(&repeated, .{ .analysis = &analyzed, .initializers = initializers.items, .cache = &cache });
+    try compiler.zig.state.append(&repeated, .{ .analysis = &analyzed, .cache = &cache });
 
     std.debug.print("initializers={d} generated={d} repeat_generated={d} reused={d} loaded={d}\n", .{ bundle.store_initializers.len, generated, cache.generated - generated, cache.reused, cache.loaded });
 }

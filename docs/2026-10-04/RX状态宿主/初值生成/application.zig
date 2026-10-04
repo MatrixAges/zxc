@@ -19,6 +19,19 @@ pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, context: anytype) a
             pub fn commit(self: @This(), changes: anytype) anyerror!void {
                 return (try ((self).parent).commit(zx_pending{ .store_0 = (changes).store_0, }));
             }
+            pub fn begin(self: @This(), comptime slots: anytype) anyerror!void {
+                if ((comptime ((std).meta).hasMethod(@TypeOf((self).parent), "begin"))) {
+                    (try ((self).parent).begin((comptime mapped_slots: {
+                        var selected = slots;
+
+                        for ((&selected)) |*slot| {
+                            (slot).* = ([_]u32{0, })[(slot).*];
+                        }
+
+                        break :mapped_slots selected;
+                    })));
+                }
+            }
         };
 
         break :store_context_10 StoreContext_9{ .parent = context, .store_0 = (context).store_0, };
@@ -31,10 +44,27 @@ pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, context: anytype) a
             pub fn commit(self: @This(), changes: anytype) anyerror!void {
                 return (try ((self).parent).commit(zx_pending{ .store_0 = (changes).store_0, }));
             }
+            pub fn begin(self: @This(), comptime slots: anytype) anyerror!void {
+                if ((comptime ((std).meta).hasMethod(@TypeOf((self).parent), "begin"))) {
+                    (try ((self).parent).begin((comptime mapped_slots: {
+                        var selected = slots;
+
+                        for ((&selected)) |*slot| {
+                            (slot).* = ([_]u32{0, })[(slot).*];
+                        }
+
+                        break :mapped_slots selected;
+                    })));
+                }
+            }
         };
 
         break :store_context_8 StoreContext_7{ .parent = context, .store_0 = (context).store_0, };
     }));
+
+    if ((comptime ((std).meta).hasMethod(@TypeOf(context), "begin"))) {
+        (try (context).begin([_]u32{0, }));
+    }
 
     const value_3: *const (zx_abi).zx_type_9c0956fc19fc5a12ae17fc217785b3c644f316bf3bd238db16ec80a1afed5c75 = ((context).store_0).*;
     const value_4: u64 = (try (@import("zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec")).call(allocator, (value_3).value));

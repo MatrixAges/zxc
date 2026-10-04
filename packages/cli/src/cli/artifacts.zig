@@ -15,11 +15,12 @@ pub fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compil
 
     state.update("zxc.build.artifacts.v2");
 
-    const graph = try std.json.Stringify.valueAlloc(allocator, .{ .entry = bundle.entry.imports, .modules = bundle.modules, .abi_views = abi.views }, .{});
+    const runner = if (bundle.state_module != null) @embedFile("runner_state.zig") else @embedFile("runner.zig");
+    const graph = try std.json.Stringify.valueAlloc(allocator, .{ .entry = bundle.entry.imports, .modules = bundle.modules, .abi_views = abi.views, .state_module = bundle.state_module }, .{});
 
     defer allocator.free(graph);
 
-    for ([_][]const u8{ bundle.entry.source, abi.source, @embedFile("runner.zig"), configuration, graph }) |field| {
+    for ([_][]const u8{ bundle.entry.source, abi.source, runner, configuration, graph }) |field| {
         var length: [8]u8 = undefined;
 
         std.mem.writeInt(u64, &length, @intCast(field.len), .little);
@@ -34,7 +35,7 @@ pub fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compil
     try retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "program.zig" }), bundle.entry.source);
     try retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "abi.zig" }), abi.source);
     for (abi.views) |view| try retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, view.path }), view.source);
-    try retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "main.zig" }), @embedFile("runner.zig"));
+    try retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "main.zig" }), runner);
     for (bundle.modules) |module| try retain(io, allocator, try modulePath(allocator, module), module.source);
 
     return directory;

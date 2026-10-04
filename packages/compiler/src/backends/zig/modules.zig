@@ -17,6 +17,7 @@ pub const Bundle = struct {
     type_names: []const []const u8 = &.{},
     native_modules: []const @import("zx").ir.NativeModule = &.{},
     store_initializers: []const StoreInitializer = &.{},
+    state_module: ?[]const u8 = null,
     pub fn deinit(self: *Bundle) void {
         self.arena.deinit();
 

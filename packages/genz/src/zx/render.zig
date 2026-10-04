@@ -4,6 +4,7 @@ const node = @import("../node.zig");
 const render = @import("../render.zig").render;
 const Lower = @import("lower.zig");
 pub const modules = @import("modules.zig");
+pub const state = @import("state.zig");
 
 pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error![]u8 {
     var arena = std.heap.ArenaAllocator.init(allocator);

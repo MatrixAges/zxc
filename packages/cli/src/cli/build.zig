@@ -82,6 +82,7 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     }
 
     try settings(allocator, &arguments, options);
+    if (bundle.state_module) |name| try arguments.appendSlice(allocator, &.{ "--dep", name });
     try arguments.appendSlice(allocator, &.{ "--dep", "application", try std.fmt.allocPrint(allocator, "-Mroot={s}/main.zig", .{directory}) });
     try settings(allocator, &arguments, options);
     try arguments.appendSlice(allocator, &.{ "--dep", "zxc_abi" });

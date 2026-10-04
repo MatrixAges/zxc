@@ -1,6 +1,6 @@
 const std = @import("std");
 const application = @import("application");
-const State = @import("state");
+const State = @import("zxc_state");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
@@ -13,8 +13,7 @@ pub fn main(init: std.process.Init) !void {
     defer directory.close(init.io);
 
     const input = try std.json.parseFromSliceLeaky(application.Input, allocator, args[2], .{});
-    var value: State.Value = undefined;
-    var state = State{ .arena = init.arena, .io = init.io, .directory = directory, .store_0 = &value };
+    var state = State{ .arena = init.arena, .io = init.io, .directory = directory };
 
     try state.initialize();
 
