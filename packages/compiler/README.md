@@ -39,7 +39,7 @@ std:encoding 的 encodeUtf8/decodeUtf8 验证后返回输入的只读视图，�
 
 std:querystring 使用有序 Entry 列表保留重复键。parse/stringify 使用默认分隔符，parseWith/stringifyWith 接收显式配置；escape/unescape 提供百分号编解码。该模块不提供 JavaScript 对象隐式转换或完整 URL 解析。
 
-std:zlib 提供 gzip/deflate/deflateRaw，输入 u8[]；gzipWith/deflateWith/deflateRawWith 接收 `{ data: u8[]; level: i32; }`，级别为 -1（默认）、0（不压缩）、1–9。gunzip/inflate/inflateRaw 接收 `{ data: u8[]; max_output_length: u32; }`。结果均为新分配字节数组。解压验证容器校验和、gzip 长度及总输出上限，支持连续 gzip 成员，拒绝尾随垃圾。当前不提供流、预设字典、其他压缩参数、Brotli 或 Zstd。
+std:zlib 提供 gzip/deflate/deflateRaw，输入 u8[]；gzipWith/deflateWith/deflateRawWith 接收 `{ data: u8[]; level: i32; }`，级别为 -1（默认）、0（不压缩）、1–9。gunzip/inflate/inflateRaw 接收 `{ data: u8[]; max_output_length: u32; }`。结果均为新分配字节数组。解压验证容器校验和、gzip 长度及总输出上限，支持连续 gzip 成员，拒绝尾随垃圾。新增 zstdDecompress 接收 `{ data: u8[]; max_output_length: u32; max_window_length: u32; }`，支持连续 Zstd 帧、可跳过帧和校验和验证；两个上限分别约束总输出与单帧窗口。当前不提供流、预设字典、其他压缩参数、Brotli 或 Zstd 编码。详见 [Zstd 解压参考](../../docs/2026-10-04/Zstd解压参考.md)。
 
 ## Answer：使用与验证
 

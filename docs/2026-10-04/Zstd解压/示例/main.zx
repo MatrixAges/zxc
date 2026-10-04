@@ -1,0 +1,10 @@
+import compression from "std:zlib";
+import type { ZstdDecompressOptions } from "std:zlib";
+
+export type Input = ZstdDecompressOptions;
+
+export type Output = u8[];
+
+export default function (in: Input): Output {
+  return compression.zstdDecompress(in);
+}
