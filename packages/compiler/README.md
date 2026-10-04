@@ -27,7 +27,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 
 ## Edges：边界
 
-数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 6 的内存 API，没有稳定序列化 ABI。
+数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 7 的内存 API，没有稳定序列化 ABI。
 
 Store 的实际版本检查、锁、持久化和跨对象原子发布由宿主 commit 实现。编译器不包含完整 RX XML 加载器或生产 Runtime 调度器，不能把生成端的提交接口视为生产持久化已经实现。
 
@@ -36,6 +36,8 @@ ZX 不提供指针类型、取地址或解引用语法。参数、返回值和�
 以下为 Zig 宿主集成细节：生成入口使用调用方 Arena，聚合列表元素保存引用槽。新构造数据在 Arena 中分配，所有权移动不递归复制数据。push/concat/splice 为自身操作分配结果列表，pop/reverse/sort 可复用独占存储。新建聚合返回值的所有权摘要已进入 IR，输入借用不能直接消费。原生共享 ABI 和 Store 生命周期还在迁移；调用方必须使输入和 Arena 覆盖所有输出及被保留的 Store 引用。
 
 std:encoding 的 encodeUtf8/decodeUtf8 验证后返回输入的只读视图，不复制内容。Zig 直接消费方不传 allocator，也不释放这两个借用结果；输入存活期须覆盖视图使用期。
+
+std:crypto 新增 scrypt 密钥派生，显式接收密码与盐字节、N/r/p、输出长度和内存预算；派生前检查参数及完整缓冲请求量。接口与边界见 [scrypt 密钥派生参考](../../docs/2026-10-04/scrypt密钥派生参考.md)。
 
 std:querystring 使用有序 Entry 列表保留重复键。parse/stringify 使用默认分隔符，parseWith/stringifyWith 接收显式配置；escape/unescape 提供百分号编解码。该模块不提供 JavaScript 对象隐式转换或完整 URL 解析。
 
