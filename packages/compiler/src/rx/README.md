@@ -1,6 +1,6 @@
 # RX
 
-`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；普通顺序 Call.fn/Return 已支持生成独立应用；其余流程执行能力见本文边界。
+`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；普通顺序 Call.fn/Call.service/Return 已支持生成独立应用；其余流程执行能力见本文边界。
 
 ## 构建与测试
 
@@ -158,7 +158,7 @@ switch (result.value) {
 
 validateModules 输出按输入顺序排列的 `{ path, data }`，path 是规范化后的注册标识，data 为 Module.Data。该接口只接受普通 Module AST；Gateway 和 Store 文件通过单文件入口校验。
 
-成功结果另提供 `dependency_order`，内容是原输入数组的索引，依赖模块排在引用它的模块之前，每个模块仅出现一次。`value.data` 仍保持输入顺序。`validateModules` 与真实文本入口 `parseModules` 使用同一顺序；失败结果的顺序为空，不暴露部分完成的计划。该顺序只证明已检查的依赖图可排序，不代表 service 已完成类型联结或执行。
+成功结果另提供 `dependency_order`，内容是原输入数组的索引，依赖模块排在引用它的模块之前，每个模块仅出现一次。`value.data` 仍保持输入顺序。`validateModules` 与真实文本入口 `parseModules` 使用同一顺序；失败结果的顺序为空，不暴露部分完成的计划。该结构入口仅检查依赖图；`rx_analysis.project.infer` 进一步共享推导全部模块契约，并按该顺序联结可执行 Program。
 
 跨模块校验包括：重复文件注册、引用越界、目标不存在、自调用、直接/间接循环，以及嵌套控制结构中的 service 调用。共享子模块、菱形依赖和重复调用都允许。诊断包含源文件索引、原始行列位置和具体属性。
 
@@ -198,7 +198,7 @@ switch (inferred.value) {
 }
 ```
 
-当前 module.infer 接受顺序 `Call.fn` 与最后的 `Return`。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；`Call.out` 绑定可供后续步骤与 Return 使用。绑定路径不能重叠，也不能覆盖 `$in`；Return 后的步骤拒绝为不可达。输入未被使用时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
+当前 module.infer 接受顺序 `Call.fn` 与最后的 `Return`。`module.infer` 使用项目入口处理单个普通模块；有 service 依赖时应传入完整集合。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；`Call.out` 绑定可供后续步骤与 Return 使用。绑定路径不能重叠，也不能覆盖 `$in`；Return 后的步骤拒绝为不可达。输入未被使用时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
 
 数组字面量保留各元素的类型约束，等待目标上下文决定 list 或 tuple；目标仍不明确时才采用同质列表。嵌套数组先默认外层，再将得到的元素类型传回内层，避免把可接受 tuple 上下文的字面量提前固定为 list。空列表没有足够元素类型信息时仍拒绝推导。
 
@@ -218,7 +218,24 @@ try output.writeAll(generated);
 
 包含原生模块时使用 `compiler.zig.emitBundle` 的共享 ABI 输出。包含形式化契约时仍须先完成既有证明流程，生成门禁不会因来自 RX 而放宽。生成的 Zig 模块提供 `Input`、`Output` 与 `execute(arena, input)`，arena 必须覆盖返回聚合值的使用生命周期。
 
-库接口不负责文件系统装载或自动启动进程。CLI 的 `zxc build workflow.rx --out build/workflow` 已连接顺序模块装载、生成与应用构建，详见 [CLI 使用方式](../../../cli/README.md)。跨 RX service 图联结仍未接入。Call.service、Store、分支、事件及其他流程节点尚未纳入此顺序入口，会明确报错；完整依赖集合仍须使用 `validateModules` 校验无环约束。
+## 项目服务联结
+
+`rx_analysis.project.infer(allocator, options)` 返回与单模块相同的 `Result`，成功时提供入口模块的完整 `contract.program`。options 包含：
+
+| 字段      | 含义                                                 |
+| --------- | ---------------------------------------------------- |
+| `entry`   | 集合中入口模块的项目相对路径                         |
+| `modules` | 完整 `[]rx.ModuleSource`，每项包含真实路径和 XML AST |
+| `sources` | 所有 Call.fn 所需的 ZX 源集合及其导入闭包            |
+| `project` | 可选的既有 ZX 项目、包和原生接口配置                 |
+
+入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 service 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集顺序 Call.fn、Call.service 和 Return 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store、分支、事件及其他流程节点仍明确拒绝。
+
+子模块可以只有 `<Return value="$in" />`，由调用者或下游函数确定其类型。同一个文件在所有调用点共享一个契约，不按调用点生成不同类型的实例；不相容的调用会报错。未读取输入的子模块仍可接收调用者传来的有类型值；无使用、无调用约束的输入才默认为 void。完整集合仍无法确定的类型会报告推导失败。
+
+生成保留顺序调用及跨步骤所有权检查，共享依赖和重复调用均允许。模块的 Return 只结束当前模块。错误位置保留实际来源文件；库不读取文件系统，也不启动生成的程序。使用结束后调用结果的 `deinit()`。
+
+CLI 的 `zxc build workflow.rx --out build/workflow` 从入口递归装载 Import、service 与 ZX 函数依赖，执行项目推导、生成和应用构建，详见 [CLI 使用方式](../../../cli/README.md)。装载保留项目根及物理文件身份检查；`--watch` 同时登记递归依赖。`check-rx --entry` 仍属于结构及目标文件检查，不等同于上述表达式联结和执行验证。
 
 ## 当前边界
 

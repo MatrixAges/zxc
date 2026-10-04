@@ -131,3 +131,48 @@ flowchart LR
 只读分析复核未发现可证明的 overlay 越界或错误类型反例，并指出最终对象检查仍可新增图事实的阶段风险；正式改动已通过 revision 检查重新求解处理。此复核不构成一般性正确性证明。
 
 自我批判：当前辅助等价类在结构变化后重建，层数传播使用有界固定点；大规模图的性能尚未测量。底层等价的正确性依赖 ZX 目前只允许相同类型或外层 optional 包装的赋值规则，未来若扩展对象宽化或容器协变，必须同步修改求解模型。当前仍是服务联结的基础，不代表 Call.service 或项目级 CLI 已完成。
+
+### 项目统一推导与 CLI 实施
+
+新增 project 入口，先执行完整 validateModules，再按职责拆成签名装载、共享约束收集及后序生成。所有模块在收集表达式之前已拥有 input/output 节点；ZX 签名逐次继承共同类型表和名义类型来源。单模块入口委托此实现，避免两套推导规则。
+
+服务实参只添加有向赋值关系，Return 同样向模块输出提供约束。未使用但被调用者传参的输入保持可推导，仅无使用且无调用关系的输入默认为 void。所有绑定在推导后检查 void 结果；跨文件节点与属性位置都进入 SourceMap。lowering 沿已验证后序重用现有 Program 联结、原生接口复制重映射和所有权门禁。
+
+CLI 将旧 check-rx 的装载逻辑提取为共享 collection 和 references。collection 持有真实 AST 到分析结束，按项目根解析逻辑身份，并保留物理越界和多身份别名拒绝；references 继续遍历所有嵌套节点。编译入口收集完整 RX 与 ZX 闭包后调用项目推导，并为递归文件登记 watch 输入。check-rx 包装器保留原 cwd 根语义和函数文件检查。
+
+```mermaid
+flowchart LR
+  Entry[RX入口] --> Collection[完整文件集合与物理身份门禁]
+  Collection --> Schema[全集合Schema与无环检查]
+  Schema --> Prepare[ZX签名共享类型表]
+  Prepare --> Constraints[全部模块输入输出和有向约束]
+  Constraints --> Solver[统一求解与来源诊断]
+  Solver --> Lower[依赖后序Program联结]
+  Lower --> Ownership[所有权与IR检查]
+  Ownership --> Build[既有证明和Zig构建]
+```
+
+```mermaid
+sequenceDiagram
+  participant CLI as 文件装载器
+  participant Graph as 项目类型图
+  participant Child as bridge及identity
+  participant Main as main
+  CLI->>Graph: 三份真实RX和number.zx
+  Main->>Graph: number函数提供u64约束
+  Child->>Graph: service输入输出与Return关系
+  Graph-->>Child: u64输入与输出
+  Graph-->>Main: u64输入与输出
+  Child-->>Main: 按依赖后序联结Program
+  Main-->>CLI: 通过所有权和IR检查的入口
+```
+
+### 项目阶段验证与自我复核
+
+切换共享入口后，既有 inference/runtime 为 39/39 构建步骤、96/96 检查通过。CLI 本地构建两轮均为 17/17 步骤成功；补齐每个 RX 文件的包来源校验后使用第二轮产物执行实际应用。共享装载改动的既有 `test-rx-cli` 为 10/10 步骤、11 个场景通过。
+
+使用另一验证会话已提供的真实三级链 main→bridge→identity，正式 CLI 成功构建 `生成/三级服务`，运行输入 41 与 18446744073709551615 分别得到相同数值。bridge 和 identity 未声明显式类型，约束来自 main 中的 number.zx。这是实际生成代码执行证据，不只是 XML 或 IR 检查。
+
+另一会话补充的三模块全部六种登记排列也通过，其正式 inference 总数为 55/55；该会话负责新增测试，此次实现未新增测试文件。只读复核未发现共享类型前缀、callee native 重映射污染或返回对象字符串悬空的具体缺陷。
+
+自我批判：本次证据覆盖单模块回归、三级透传实际执行、六种登记排列和既有装载门禁。尚未提供大规模共享服务图的性能数据，也不能外推 Store、分支、事件或 Gateway 已执行。项目入口返回入口 Program；全集合中未调用的 Import 仍需具有可确定的契约，服务不是按调用点自动多态。

@@ -23,7 +23,7 @@ zig build test
 
 ## RX 顺序应用构建
 
-普通 RX 模块中的顺序 Call.fn 与 Return 可以直接构建应用：
+普通 RX 模块中的顺序 Call.fn、Call.service 与 Return 可以直接构建应用：
 
 ```sh
 zxc build workflow.rx --out build/workflow
@@ -43,6 +43,8 @@ zxc build workflow.rx --out build/workflow
 | `--asm` / `--target` / `--cpu` / `--optimize` | 沿用既有应用构建选项                                       |
 | `--solver`                                    | 使用指定证明求解器；包含形式化契约时构建仍必须通过证明     |
 
+service 相对当前模块文件解析；同一个服务文件在所有调用处共享一个输入输出契约。入口递归装载 Import 和 service，先检查完整依赖图无环，再共同推导类型并生成代码。Import 不触发执行。
+
 RX 与直接函数路径受项目根边界约束。已声明依赖包沿既有 package scope 解析；无包配置时导入闭包也检查物理路径。构建不会启动生成的业务程序。
 
-当前 RX 入口不支持 fmt、独立 verify、fpga 或 lib 发布命令，遇到这些模式会明确报错。service、Store、分支流程、事件和 Gateway 执行仍未接入。语法和公开库接口见 [RX reference](../compiler/src/rx/README.md)。
+当前 RX 入口不支持 fmt、独立 verify、fpga 或 lib 发布命令，遇到这些模式会明确报错。Store、分支流程、事件和 Gateway 执行仍未接入。语法和公开库接口见 [RX reference](../compiler/src/rx/README.md)。
