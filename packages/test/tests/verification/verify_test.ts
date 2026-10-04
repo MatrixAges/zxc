@@ -164,7 +164,7 @@ for (const scenario of cases) {
 
 export type Output = ${scenario.output}
 
-export default function (in: Input): Output ${scenario.clauses ?? ''} {\n  ${scenario.body}\n}\n`
+export default function (in: Input): Output ${scenario.clauses ?? ''} {\n  ${scenario.body.trimEnd()}\n}\n`
 
 		writeFileSync(join(directory, 'main.zx'), source)
 

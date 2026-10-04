@@ -53,7 +53,7 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, directory: []const u8, so
             }
 
             if (imported.kind != .function) try writer.writeAll(" }");
-            try writer.print(" from \"{f}\";", .{std.zig.fmtString(replacement)});
+            try writer.print(" from \"{f}\"", .{std.zig.fmtString(replacement)});
 
             offset = imported.span.end;
         }
