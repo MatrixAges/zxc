@@ -25,15 +25,15 @@ RX 是配置驱动的应用描述语言。
 | `app.rx`            | 定义程序总体配置，具体字段待定                    | 否                             |
 | 特殊 `*.gateway.rx` | 定义 API、RPC、Socket 等对外接口及其 Service 映射 | 否                             |
 | 普通 `*.rx`         | Pipeline 编排、分支、并行、事件                   | 否                             |
-| 特殊 `*.store.rx`   | 定义可恢复的运行时持续对象                        | 定义状态，实际状态由运行时持有 |
+| 特殊 `*.store.rx`   | 定义应用运行期间的共享内存状态                    | 定义状态，实际状态由运行时持有 |
 | `*.zx`              | 单次计算、数据转换、数据库 effect 描述            | 否                             |
-| Runtime             | 调度、执行 effect、提交 Store、同步快照、恢复     | 是                             |
+| Runtime             | 调度、执行 effect、发布 Store 内存值              | 是                             |
 
 最重要的边界是：
 
 1. 普通函数无内部状态、无隐藏副作用；每次调用结束后，其局部数据全部销毁。
 2. 唯一允许跨调用常驻内存的应用状态是 Store object。
-3. Store 由 `*.store.rx` 定义并自动合并，由 Runtime 持有、提交并同步到配置快照，以便停机后恢复内存状态。
+3. Store 由 `*.store.rx` 定义，由生成的应用代码在应用生命周期内持有；更新只发布内存值，不自动落盘或重启恢复。
 4. Store 不是业务数据模型、数据库 schema、实体、DTO 或表映射。
 5. 所有 API、RPC、Socket、WebSocket 等对外接口统一由 `*.gateway.rx` 定义并自动合并。
 6. `app.rx` 是程序唯一的总体配置入口。
@@ -123,7 +123,7 @@ AI 可以在这些边界内生成大量业务内容，但不能自行创造新�
 
 这里的 `<Store>` 是 Module 级引用声明，不是执行节点：
 
-- `from` 只填写逻辑 Store 的 `name`，不包含任何前缀或 object 路径；
+- `from` 相对当前 Module 引用 Store 定义文件，省略后缀时补 `.store.rx`，不按显示 name 搜索状态；
 - 引入后的变量名默认就是 Store 名，例如 `scheduler`；
 - `as` 是可选别名；省略时 `from="scheduler"` 通过 `store.scheduler.*` 访问；
 - 显式写 `as="jobs"` 时，通过 `store.jobs.*` 访问；
@@ -132,7 +132,7 @@ AI 可以在这些边界内生成大量业务内容，但不能自行创造新�
 - 未注册的 Store object 不能通过路径绕过 Module 边界访问；
 - 两个被引入 object 的最终变量名相同时产生编译错误，可以通过 `as` 消解冲突。
 
-Runtime 在 Module 初始化时为这些 Store 一次性建立有类型的 getter/setter 表，并为各 Call 预先绑定 `setter` 视图。它们与 Module 同生命周期，属于固定开销；执行 Call 时只传递已有视图的引用，不创建权限表，也不解析字符串路径。
+编译器为这些引用生成有类型的访问位置和 Call 授权。同一应用实例中的相同 Object 共用一份状态，Module 初始化不会新建副本；调用时不创建动态权限表，也不解析字符串路径。
 
 ```xml
 <Module name="scheduler">
@@ -225,15 +225,14 @@ Store 的 getter/setter 具有两种固定入口：
 
 `setter` 不是 Store 注册；它只引用 Module 初始化时已经建立的 setter。`.zx` 不能导入任何 `.rx` 文件；Store namespace 和 Object 类型由 `zxc` 根据 Module 声明、Call `in` 和 `setter` 联合校验。
 
-Runtime 的执行顺序是：
+编译期与调用期的职责是：
 
-1. 根据 Module 注册表解析 `store.scheduler.dispatcher`；
-2. 按 `in` 映射取得 Object 的不可变快照和版本；
-3. 把 Module 初始化时已生成的只写 `store` 视图引用传给 `.zx`；
-4. 执行 `.zx`，把新 Object 暂存到对应 setter；
-5. 接收 `.zx` 的普通返回值并写入 `ctx.range`；
-6. 对 setter 目标执行版本校验、原子替换和快照同步；
-7. 任一步骤失败时丢弃本次调用尚未提交的 Store 写入。
+1. 编译期把 Store 路径和权限解析为具体访问位置；
+2. Call 开始时按 in 映射读取当前内存值，形成不可变输入视图；
+3. 传入静态确定的 setter 能力，执行 ZX 计算并暂存新 Object；
+4. 成功时按权限发布新内存值，不写文件；
+5. 成功完成后把普通返回值交给后续流程；
+6. 失败时丢弃本次尚未发布的更新。
 
 `in` 可以读取整个 Object，也可以读取字段，例如 `store.scheduler.dispatcher.cursor`。`.zx` 中的 setter 只能整体替换 Object，不能读取 Store 或直接修改嵌套字段。
 
@@ -363,7 +362,7 @@ Gateway 的所有请求、连接和消息入口都统一使用 `<Route>`，并�
 
 `path` 是统一寻址字段，由协议 adapter 解释。HTTP 中它是 URL path；WebSocket/TCP 中它是生命周期或消息分发路径；gRPC 中它可以规范化为 `/package.Service/Method`；MQTT 中它是 topic path。
 
-连接、监听器、缓冲区和文件描述符都是 Runtime 拥有的临时资源，不是 Store object，也不会在停机后恢复。只有确实需要跨请求常驻内存并在重启后重建的运行时状态才进入 Store；持久业务数据仍进入数据库。
+连接、监听器、缓冲区和文件描述符都是 Runtime 拥有的临时资源，不是 Store object，也不会在停机后恢复。需要在应用运行期间跨请求共享的普通值可以进入 Store；跨重启保存由独立外部能力负责。
 
 ### 7.5 最小 Gateway 语法
 
@@ -392,76 +391,23 @@ Gateway 的所有请求、连接和消息入口都统一使用 `<Route>`，并�
 
 ---
 
-## 8. `*.store.rx`：运行时持续对象配置
+## 8. `*.store.rx`：显式共享内存状态
 
-### 8.1 语义边界
+### 8.1 设计目的
 
-Store 专门用于定义这样的对象：
+Store 用来解决 zxc 没有普通可变全局变量的共享状态需求。它是应用显式声明、受控访问的全局内存状态，供多个模块、函数调用和请求持续使用。完整约束见 [Store 设计](2026-10-05/Store设计.md)。
 
-1. 对象必须在进程运行期间常驻内存；
-2. 对象需要被多次函数调用连续使用和更新；
-3. 对象在停机或崩溃后还需要从配置快照恢复；
-4. 对象的生命周期由 Runtime 管理，而不是由某个函数或数据库连接管理。
+“持续”表示值跨调用、跨请求保留到应用结束，不表示跨进程或跨重启保存。Store 不自动写文件、同步配置快照、恢复旧值或提供数据库事务。
 
-Store 定义的是“可恢复的内存对象布局和初始值”，不是通用数据模型。不能用 `*.store.rx` 定义：
+### 8.2 身份与共享范围
 
-- 用户、订单、商品等领域实体；
-- 数据库表、列、索引和外键；
-- API 请求或响应 DTO；
-- 只在单次请求中存在的临时数据；
-- 仅用于静态启动配置的常量；
-- 大规模、需要查询和事务处理的持久业务数据。
+- `*.store.rx` 声明类型和初值，Module 通过 from 引用实际定义文件。
+- Object 身份为规范化定义文件路径与 Object 名。同一应用实例中，不同模块和别名引用同一 Object 时共享同一份内存值。
+- Store.name 是显示与命名信息，不按同名 Store 跨文件自动合并状态；不同文件中的同名 Object 独立。
+- 编译器沿实际依赖装载定义，不要求中央可变全局表或运行时字符串查找。
+- 不同应用实例相互隔离，不自动进行跨进程同步。
 
-数据归属使用以下判定：
-
-| 数据类型                                         | 应放置的位置                        |
-| ------------------------------------------------ | ----------------------------------- |
-| 单次 Pipeline 执行中的临时数据                   | `$in` 或 `ctx.*`                    |
-| 程序级不可变配置                                 | `app.rx`                            |
-| 必须常驻内存、跨调用更新、重启后恢复的运行时对象 | `app.store.rx` 或 `*.store.rx`      |
-| 领域实体、历史记录、可查询业务数据               | 数据库，由 `.zx` 数据库 effect 操作 |
-
-适合 Store 的典型对象包括调度游标、运行时计数器、限流桶、可恢复任务进度和进程级协调状态。即使某类数据需要持久化，只要它不需要常驻内存并由 Runtime 连续管理，就不应放入 Store。
-
-### 8.2 文件与自动合并约定
-
-`*.store.rx` 是 RX 家族中的特殊 XML 配置文件，但不使用普通 Pipeline 标签语法。
-
-约定如下：
-
-- 默认基础文件名为 `app.store.rx`，所在目录的发现规则等待 `app.rx` schema 确定；
-- 其他文件名必须匹配 `*.store.rx`，例如 `scheduler.store.rx`、`rate_limit.store.rx`；
-- 一个目录可以包含多个 `*.store.rx`；
-- 每个文件定义一个独立的 Store fragment；
-- `zxc` 直接按 `Store name` 自动合并所有 fragment；
-- 不需要 import、extend 或中央 Store 总表；
-- 自动合并后发生完整字段路径冲突时编译失败。
-
-示例目录：
-
-```text
-src/
-  app.gateway.rx
-  app.store.rx
-  runtime/
-    scheduler.store.rx
-    rate_limit.store.rx
-    advance_dispatch_cursor.zx
-```
-
-### 8.3 XML 定义语法
-
-默认基础定义 `app.store.rx` 可以声明应用级运行时 object，并建立默认 Store 名称与版本：
-
-```xml
-<Store name="app" version="1">
-  <Object name="lifecycle">
-    <Field name="restart_count" type="u64" value="0" />
-  </Object>
-</Store>
-```
-
-调度器状态 `src/runtime/scheduler.store.rx`：
+### 8.3 定义与初始化
 
 ```xml
 <Store name="scheduler" version="1">
@@ -472,92 +418,35 @@ src/
 </Store>
 ```
 
-限流器状态 `src/runtime/rate_limit.store.rx`：
+Field 声明有类型的内存值与初值。实际使用的 Object 在应用启动时初始化一次，不因每个 Module、Call 或请求而重新初始化。现有 version 字段不意味着磁盘格式、恢复或迁移机制。Store 值不以“可以序列化”为准入条件。
 
-```xml
-<Store name="gateway" version="1">
-  <Object name="rate_limit">
-    <Field name="window_started_at" type="i64" value="0" />
-    <Field name="buckets" type="map" value="{}" />
-  </Object>
-</Store>
-```
+### 8.4 生命周期与数据归属
 
-组合后的逻辑 Store tree：
+| 数据                         | 归属               |
+| ---------------------------- | ------------------ |
+| 单次计算中的中间值           | ZX 局部绑定        |
+| 单次流程的输入和结果         | in / ctx           |
+| 应用运行期间共享且可更新的值 | Store              |
+| 程序级不可变参数             | 显式配置或常量     |
+| 必须跨重启保存的数据         | 独立外部持久化能力 |
 
-```text
-app
-└── lifecycle
+Store 在应用结束时释放，重启后使用声明初值。例如计数器从 0 经两个请求更新到 2，重启后重新为 0。连接、文件句柄和线程仍按各自资源协议管理，不因需要跨调用就自动成为普通 Store 值。
 
-scheduler
-└── dispatcher
+长期状态不能借用已经释放的请求内存。编译器必须保证存储归属、所有权和读取视图的有效期；不能默认深拷贝，也不能把 Store 实现为每次请求新建的局部变量。
 
-gateway
-└── rate_limit
-```
+### 8.5 读取与发布
 
-最小 XML 语法只有三个元素：
+Module 显式注册访问范围，Call 精确传入读取值和 setter 权限。普通 ZX import 不继承 Store 权限。
 
-| 概念       | 作用                                                          |
-| ---------- | ------------------------------------------------------------- |
-| `<Store>`  | 通过 `name`、`version` 声明导入名、自动合并目标与内存布局版本 |
-| `<Object>` | 通过 `name` 定义最小读取与原子提交单元                        |
-| `<Field>`  | 通过 `name`、`type`、`value` 定义内存状态字段及初始值         |
+Call 读取当前共享值，形成内存中的不可变视图。setter 暂存完整的新 Object，成功时发布，失败时丢弃本次未提交更新。单 Call 最多更新一个 Object；需要共同原子更新的字段放在同一个 Object。后续调用失败不回滚已经成功发布的值。
 
-初始版本只支持可确定序列化的值类型：标量、枚举、列表、定长结构和字符串键 Map。不允许函数、连接、文件句柄、线程、闭包或任意进程资源进入 Store。
+这里的“快照”是读取视图，“提交”是共享内存值的发布，均不表示磁盘操作。旧视图仍被输入、ctx 或输出引用时必须有效。并发访问的同步按实际执行模型生成，不把自动重试或数据库事务作为 Store 的默认功能。
 
-### 8.4 横向组合规则
+### 8.6 zero runtime 实现边界
 
-横向扩展遵循以下固定规则：
+类型、初值、访问位置和授权由编译器静态确定，生成普通 Zig 状态字段及操作代码。应用入口持有应用生命周期状态，不引入专用 runtime 包、动态注册表或解释器。
 
-1. 同名 `<Store>` 的 fragment 合并到同一逻辑 Store；
-2. object 的完整路径为 `<store>.<object>`；
-3. 每个 object 是独立的版本与提交单元；
-4. 同名 object 可以跨文件合并字段，但完整 field 路径不能重复；
-5. 新运行时组件通过增加 `*.store.rx` 扩展，不修改中央总表；
-6. 删除或修改已有字段属于 Store 内存布局变更，必须提升 `version` 并执行显式迁移；
-7. 需要跨状态原子性的字段必须定义在同一个 object 内。
-
-这些规则让多个团队或 AI 可以并行增加状态片段，同时把冲突限定在可静态检查的完整路径上。
-
-### 8.5 持久化与停机恢复
-
-源码中的 `*.store.rx` 定义内存对象布局和初始值。Runtime 为每个 object 维护一份同为 XML 的运行时配置快照。以下只表示建议的内部目录结构，实际根目录如何配置等待 `app.rx` schema 确定：
-
-```text
-.zxc/runtime/<store>/<object>.store.rx
-```
-
-Runtime 在成功提交 Store object 后：
-
-1. 生成包含最新值、object 版本和 Store 布局版本的新快照；
-2. 写入同目录临时文件；
-3. 刷新文件内容；
-4. 原子替换正式快照；
-5. 成功后再确认本次提交完成。
-
-Runtime 启动时：
-
-1. 发现并自动合并源码中的所有 `*.store.rx`；
-2. 读取对应运行时配置快照；
-3. 校验 store name、Store layout version、object version 和完整性；
-4. 使用最近一次完整快照恢复；
-5. 没有快照时使用源码定义的初始值；
-6. 快照损坏或版本不兼容时拒绝静默启动，并给出明确诊断。
-
-源码配置不在运行时被覆盖。这样既保留配置驱动开发，也避免运行数据污染 Git 工作区；用于恢复的快照仍然是可读、可验证的 `*.store.rx` XML 配置文件。
-
-### 8.6 并发提交
-
-Store object 使用版本化提交：
-
-- `<Call in="...">` 使用 Store getter 取得 Object 的不可变快照及版本；
-- `.zx` 通过 Call 授权的完整 Object setter 暂存新状态；
-- Runtime 只在版本未变化时提交；
-- 版本冲突时，Runtime 可以安全地用新快照重新执行不含其他 effect 的函数；
-- 重试超过运行时上限后返回明确冲突错误。
-
-Store 写入在函数成功返回前只是暂存，因此冲突重试不会重复提交状态。数据库 effect 不得与 Store setter 位于同一个 `.zx` 调用中。
+此前磁盘快照方案已撤回。当前代码仍含文件保存与 --state-dir，属于待修正的实现偏差；本次设计更新不代表代码已经完成纠正。
 
 ---
 
@@ -608,7 +497,7 @@ export default function (in: Input, { store }): Output {
 }
 ```
 
-`.zx` 对 `.rx` 保持零导入依赖。`ctx.*` 和 Store getter 通过 Call `in` 精确传入；只有 `setter` 列出的 Store 写入能力通过第二参数注入。Runtime 负责原子提交和持久化，函数不能直接写入快照文件。
+`.zx` 对 `.rx` 保持零导入依赖。`ctx.*` 和 Store getter 通过 Call `in` 精确传入；只有 `setter` 列出的 Store 写入能力通过第二参数注入。生成代码负责按授权发布共享内存值；Store 不包含快照文件或自动持久化。
 
 ### 9.2 数据库操作
 
@@ -655,7 +544,7 @@ export default function (in: Input): Output {
 
 更复杂的查询通过这些能力的参数和 `.zx` 组合表达，不为每种数据库需求增加 RX 标签。
 
-数据库是真实的外部持久化系统，不属于 Store。领域实体、交易记录、关系、索引和需要查询的业务数据都由数据库保存，并由 `.zx` 数据库 effect 操作。Store 只保存必须常驻内存、跨调用持续更新，并能通过配置快照恢复的 Runtime object。
+数据库是真实的外部持久化系统，不属于 Store。领域实体、交易记录、关系、索引和需要查询的业务数据都由数据库保存，并由 `.zx` 数据库 effect 操作。Store 保存应用运行期间跨调用、跨请求共享的内存值，不承担重启恢复。
 
 ---
 
@@ -724,7 +613,7 @@ Module 内的 `<Store from="..." as="..." />` 是可选引用声明；`*.store.r
 - 在 `<Call>` 上声明 Store object；
 - 未经 Module 注册直接访问 `store.*`；
 - `.zx` 导入普通 `*.rx`、`*.store.rx`、`*.gateway.rx` 或 `app.rx`；
-- 函数自行写入 Store 快照文件；
+- Store 自动落盘或读取恢复文件；
 - 使用 Store 定义领域实体、数据库 schema、DTO 或通用数据模型；
 - Runtime 无法识别的任意文件或网络副作用；
 - 跨多个 Store object 的基础事务；
@@ -736,7 +625,7 @@ Module 内的 `<Store from="..." as="..." />` 是可选引用声明；`*.store.r
 - 可计算内容 → `.zx` 普通函数；
 - 领域实体、持久记录和数据库操作 → 数据库 + `.zx` 数据库 effect；
 - 程序总体配置 → `app.rx`；
-- 可恢复的常驻内存对象 → `app.store.rx` + `*.store.rx` + Runtime；
+- 应用级共享内存状态 → `*.store.rx` + 编译器生成的状态代码；
 - 执行关系 → 普通 RX；
 - API、RPC、Socket 等对外接口 → `app.gateway.rx` + `*.gateway.rx` + Runtime adapter。
 
@@ -770,7 +659,7 @@ Call setter + .zx { store } → Store setter
 app.gateway.rx + *.gateway.rx → Gateway / Route / Group
 ```
 
-需要跨调用并跨重启持续存在的内存对象不增加普通 RX 执行标签，而由特殊 Store 配置文件承载：
+需要在应用运行期间跨调用持续存在的共享值，由特殊 Store 定义文件承载：
 
 ```text
 app.store.rx + *.store.rx → Store / Object / Field
@@ -782,4 +671,4 @@ app.store.rx + *.store.rx → Store / Object / Field
 app.rx → program configuration (schema TBD)
 ```
 
-这套设计把语言表面积限制在稳定范围内，同时为 AI 留出四种开放扩展空间：组合更多 Pipeline、自动合并更多 Gateway 接口、实现更多 `.zx` 内容、自动合并更多互不冲突的 Store fragment。
+这套设计把语言表面积限制在稳定范围内，同时为 AI 留出四种开放扩展空间：组合更多 Pipeline、自动合并更多 Gateway 接口、实现更多 `.zx` 内容、按文件引用组合更多显式 Store 定义。

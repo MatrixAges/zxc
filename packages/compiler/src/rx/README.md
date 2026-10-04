@@ -15,7 +15,7 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 公共标签实现位于 `src/rx/labels/`，每个标签一个同名 `.zig` 文件，例如 `Call.zig`、`Module.zig`。Gateway 专用标签位于 `src/rx/features/gateway/labels/`，Store 专用标签位于 `src/rx/features/store/labels/`；每个文件同时承载该标签的 Schema 和专属校验。
 
-`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。Store 定义支持字段类型、初值表达式与初始化 Program 分析；原生 app 按实际使用的 Object 生成具体状态代码，依赖 Zig 标准库，无专用运行库。
+`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。Store 定义支持字段类型、初值表达式与初始化 Program 分析；目标是按实际使用的 Object 生成应用级共享内存状态，无专用运行库；当前误加的磁盘代码仍待撤除，见 [Store 设计](../../../../docs/2026-10-05/Store设计.md)。
 
 入口装载模式会读取 Store 引用文件：`from="state"` 相对当前模块目录解析到 `state.store.rx`，`from="state.store.rx"` 使用显式文件名。它验证定义存在、Schema 合法以及字段类型与初值兼容，不按 Store.name 搜索全局对象；`as` 和缺省别名保持既有约定。初值会编译为受检查的初始化 Program；读取定义不执行该程序，也不创建持久对象。
 
@@ -61,7 +61,7 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标是该文件的默认导出。例如 `fn="load_user"` 指向 `load_user.zx`，也可写相对目录和显式 `.zx` 后缀。入口检查会读取函数及其 ZX 导入闭包，执行现有命名、类型和依赖检查，并拒绝纯类型文件作为函数目标。可使用 `check-rx --entry <file.rx> --project <pkg.yaml>` 指定包与原生接口配置。
 
-上述 check-rx 入口仅做结构与目标检查；`zxc build` 和下述项目推导入口会进一步验证顺序调用的参数、结果及类型兼容性。Store 支持显式宿主的源码生成和原生 app 持久状态。原生应用以 `--state-dir <已存在目录>` 指定状态目录，随后提供 JSON 输入；无输入的应用省略 JSON。
+上述 check-rx 入口仅做结构与目标检查；`zxc build` 和下述项目推导入口会进一步验证顺序调用的参数、结果及类型兼容性。Store 支持显式授权的源码生成；原生 app 中的磁盘保存与 --state-dir 偏离 Store 共享内存语义，待修正，不作为标准运行契约。
 
 `<Import from="users" />` 是可选的模块组合依赖声明，不接受 as；直接 Call 不必再重复写 Import。Import 本身不表示执行顺序或调用，执行关系由 Call 描述。依赖图同时包含 Import 和 Call service，要求整个注册集合无环；即使 Import 暂未被调用，也不能形成循环依赖。
 
@@ -301,7 +301,7 @@ getter 仅在 Call.in 可见，允许读取完整 Object 或字段。每次 Call
 
 setter 必须列出一个完整 Object；不能列出整个 Store、字段、未声明对象或多个对象。目标 ZX 必须声明 `export default function (in: Input, { store }): Output`，通过 `store.jobs.counter = next` 替换整个对象。该能力只写，不允许读取当前 Store；读取值从 in 获得。普通 ZX import 不继承能力，Call.service 的授权由被调模块自己声明。
 
-成功调用独立提交；后续调用失败不回滚先前提交。编排函数自身不创建覆盖全流程的事务。`zxc module.rx --out flow.zig` 支持生成带显式宿主的源码；宿主提供稳定槽位指针与 commit(pending)，必须保证当前状态及旧快照的内存存活期；如提供 begin(comptime slots)，生成代码会在 Call 输入读取前调用它。原生 app 自动生成具体 State：每个 Call 的 getter 求值前，按物理身份顺序锁定所需 Object，全部读取成功后发布本次快照；事务返回时在文件锁内检查版本并原子替换快照。旧值由本次执行 arena 保留至输出完成。`Conflict` 表示版本已变化且本次未提交；`StoreDurabilityUnconfirmed` 表示文件替换已完成，但目录同步未确认，不得当作未提交错误盲目重试。
+成功调用独立提交；后续调用失败不回滚先前提交。编排函数自身不创建覆盖全流程的事务。`zxc module.rx --out flow.zig` 支持生成带显式宿主的源码；宿主提供稳定槽位指针与 commit(pending)，必须保证当前状态及旧快照的内存存活期；如提供 begin(comptime slots)，生成代码会在 Call 输入读取前调用它。Store 的正确生命周期是应用启动时初始化一次，跨调用和请求共享，应用结束后释放，重启使用初值。当前原生 State 中的 JSON 快照、文件锁、磁盘版本、恢复及目录同步均为待撤回的实现偏差；Store 不要求可序列化，也不依赖状态目录。
 
 真实 XML、ZX、初始化与宿主执行材料见 [Store 声明示例](../../../../docs/2026-10-04/RX状态联结/真实声明/main.rx)。
 
