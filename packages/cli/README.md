@@ -48,3 +48,19 @@ service 相对当前模块文件解析；同一个服务文件在所有调用处
 RX 与直接函数路径受项目根边界约束。已声明依赖包沿既有 package scope 解析；无包配置时导入闭包也检查物理路径。构建不会启动生成的业务程序。
 
 RX 支持独立 verify 与 fpga 命令，使用与 ZX 相同的证明和硬件后端；详见 [RX 证明与硬件 reference](../../docs/2026-10-05/RX证明与硬件参考.md)。RX fmt 尚未接入。当前 lib 仍采用单 ZX 文件闭包发布模型，尚未实现以模块公共接口为边界的统一库机制；不能将其缺口理解为增加一种源码入口，见 [统一库设计](../../docs/2026-10-05/统一库设计.md)。Store 声明、Call.in 读取视图与单 Object setter 支持源码生成及原生 app；应用启动时初始化共享内存，进程结束后释放，不自动落盘。Parallel、事件和 Gateway 执行仍未接入。语法和公开库接口见 [RX reference](../compiler/src/rx/README.md)。
+
+## 包的公开模块
+
+pkg.yaml 可以通过 exports 显式列出公开模块：
+
+```yaml
+name: arithmetic
+version: 1.0.0
+exports:
+    ./increment: increment.zx
+    ./multiply: multiply.zx
+```
+
+已声明该包依赖的消费者可导入 `arithmetic/increment` 与 `arithmetic/multiply`；包内部可以使用相同公开名称自引用。`.` 表示默认公开模块，没有声明时不自动提供。公开路径不能包含空段、上级目录或通配符；实现路径必须位于包内，消费时继续进行物理路径检查。
+
+entry 与 exports 不能同时声明。当前已接通映射解析和项目消费；带 exports 的包尚不能走旧单文件 lib 发布流程，会明确报错。统一模块编译及发布仍按 [统一库设计](../../docs/2026-10-05/统一库设计.md)继续实现。

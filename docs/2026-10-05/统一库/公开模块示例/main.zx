@@ -1,0 +1,12 @@
+import increment from "arithmetic/increment"
+import multiply from "arithmetic/multiply"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const next = increment(in)
+
+  return multiply(next)
+}
