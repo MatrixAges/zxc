@@ -1,0 +1,33 @@
+{
+	"xml_sha256": "fdfe876badf37c86df8519503344974571b87ad4d2d63e0c2a09e0567883c3ca",
+	"source_sha256": {
+		"docs/2026-10-04/RX状态联结/演示/build.zig": "95aacfe4d3660dd4939df1145798e9e659a23d48b91b09d62b0a7f273d1147fb",
+		"docs/2026-10-04/RX状态联结/演示/build.zig.zon": "a018e79a07b7780da470ec902242a828f72f4dbdf4c7f13ba5db45a86f84e905",
+		"docs/2026-10-04/RX状态联结/演示/generate.zig": "0eb3828848c4e90e0110826cb5ac4444bd7bd98e023e40ca801bde7dcbfd781e",
+		"docs/2026-10-04/RX状态联结/演示/consume.zig": "f7953591afe3336260c75fa843428ea26c279448e9c6cafb969cec23bf8bdc0c",
+		"docs/2026-10-04/RX状态联结/生成/object_0.zig": "7d42bd6439127196729284cfe3f30a69bd89b023289e68fd9d6e0ec3f774370c",
+		"docs/2026-10-04/RX状态联结/生成/object_1.zig": "7b6690000099a09071a966910dd334b6c6c6635e1b8f1ffad912a364cd3838db"
+	},
+	"runs": [
+		{
+			"object_index": 0,
+			"output": {
+				"cursor": 0,
+				"history": [1, 2, 3],
+				"label": "ready"
+			},
+			"exit_code": 0
+		},
+		{
+			"object_index": 1,
+			"output": {
+				"limits": {
+					"enabled": true,
+					"limit": 8
+				}
+			},
+			"exit_code": 0
+		}
+	],
+	"input_lifetime": "generate.zig releases the XML text and XmlResult before emitting Object initializer code."
+}

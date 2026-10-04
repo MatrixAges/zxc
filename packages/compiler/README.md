@@ -94,6 +94,8 @@ parse 返回拥有源码副本的 ParseResult，analyze/project.analyze 返回�
 
 Store 使用 compileWithContext 或 project.Options.context.stores，每项声明 handle、path、type_name、readable、writable。生成入口为 execute(arena, input, context)，context 提供对应 slot 的快照指针和 commit(pending)。参考 tests/runtime/store_test.zig。
 
+`rx_analysis.store.analyze` 已将真实 Store 定义编译为逐 Object 的有类型初始化 Program，CLI 的 Store 入口检查同时核对字段类型和初值；每次 Call 的授权、状态提交与长期生命周期仍待 RX 宿主联结。用法见 [Store 定义与初始化接口](src/rx/README.md#store-定义与初始化接口)。
+
 `compiler.parseExpression(allocator, source, file_name)` 解析单个 ZX 表达式并要求消费到 EOF；返回值拥有源码、文件名、tokens 和 AST，使用后 deinit。`compiler.expressions.analyze` 以共享 types、显式 bindings 和可选 expected 类型检查表达式，返回拥有独立 arena 的类型表、符号、表达式节点与结果 ExprId。bindings 的 name 可以是 `$in` 或 `ctx.user` 等标识符路径，路径必须唯一且不互相覆盖，类型不能是 void。这些显式外部绑定不放宽普通 ZX 源码的 `$` 命名规则，也不能绕过回调的非捕获限制。
 
 `compiler.expressions.compile` 使用相同参数生成可执行 Program，并执行所有权检查。Program.Input 是按 bindings 顺序排列的元组；没有 bindings 时为 void。外部值作为输入借用，表达式不能消费借用列表。Zig 宿主应先构造显式的 `std.meta.Child(program.Input)` 元组变量，再传其地址；当前工具链的动态匿名元组指针隐式转换已有独立错误复现。生成仍通过 zig.emit/emitBundle 的完整 IR 校验。仅需类型推导时可用 analyze，但不能把它的成功当作执行许可。

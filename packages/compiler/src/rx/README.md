@@ -15,9 +15,9 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 公共标签实现位于 `src/rx/labels/`，每个标签一个同名 `.zig` 文件，例如 `Call.zig`、`Module.zig`。Gateway 专用标签位于 `src/rx/features/gateway/labels/`，Store 专用标签位于 `src/rx/features/store/labels/`；每个文件同时承载该标签的 Schema 和专属校验。
 
-`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。当前仅实现语法校验，尚未实现对象的运行时生命周期。
+`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。Store 定义已支持字段类型、初值表达式与初始化 Program 分析，尚未实现对象的运行时生命周期。
 
-入口装载模式会读取 Store 引用文件：`from="state"` 相对当前模块目录解析到 `state.store.rx`，`from="state.store.rx"` 使用显式文件名。它验证定义存在且 Schema 合法，不按 Store.name 搜索全局对象；`as` 和缺省别名保持既有约定。读取定义不代表初始值已解码或持久对象已创建。
+入口装载模式会读取 Store 引用文件：`from="state"` 相对当前模块目录解析到 `state.store.rx`，`from="state.store.rx"` 使用显式文件名。它验证定义存在、Schema 合法以及字段类型与初值兼容，不按 Store.name 搜索全局对象；`as` 和缺省别名保持既有约定。初值会编译为受检查的初始化 Program；读取定义不执行该程序，也不创建持久对象。
 
 ## 文件类型与模块身份
 
@@ -105,7 +105,7 @@ setter 仅可用于 fn 调用；service 目标的 Store 写入能力由目标模
 
 protocol 的语法集合为 `http`、`grpc`、`websocket`、`tcp`、`mqtt`；method 为 `GET`、`HEAD`、`POST`、`PUT`、`DELETE`、`CONNECT`、`OPTIONS`、`TRACE`、`PATCH`。这不代表已经实现这些协议的 Runtime adapter。Route.service 也采用文件路径引用语法。
 
-Store.version 为 u32。同一个 Object 的 Field 名不可重复；同名 Object 可声明不同字段，但同一文件的完整 Object.Field 路径不可重复。Field.value 允许空字符串，type/value 尚未接入完整 Store 值类型系统。
+Store.version 为 u32。同一个 Object 的 Field 名不可重复；同名 Object 可声明不同字段，但同一文件的完整 Object.Field 路径不可重复。Schema 允许空 Field.value，但语义入口要求完整 ZX 表达式；空字符串应写为 `value='""'`。Field.type 使用 ZX 类型表达式，字段初值通过相同类型与所有权检查，不自动提供动态 map 或未声明的类型别名。
 
 ## API 与校验层级
 
@@ -261,10 +261,22 @@ Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。De
 
 CLI 的 `zxc build workflow.rx --out build/workflow` 从入口递归装载 Import、service 与 ZX 函数依赖，执行项目推导、生成和应用构建，详见 [CLI 使用方式](../../../cli/README.md)。装载保留项目根及物理文件身份检查；`--watch` 同时登记递归依赖。`check-rx --entry` 仍属于结构及目标文件检查，不等同于上述表达式联结和执行验证。
 
+## Store 定义与初始化接口
+
+`rx_analysis.store.analyze(allocator, options)` 接收 `owner`（项目相对 .store.rx 路径）、真实 XML `node` 和可选共享 `types`。成功返回 `definition`，失败返回带路径、原始 XML 位置、错误码和消息的 `diagnostic`；结果独立拥有 arena，统一调用 `deinit()`。输入文本及 XML 解析结果可以先释放。
+
+Definition 保存规范化 `source_path`、显示 `name`、`version`、共享类型表和 Object 列表。Object 的身份使用定义文件路径与 Object.name 的组合，不能只按显示 Store.name 合并。一个文件内同名 Object 的不同字段片段会合并；重复字段仍拒绝。
+
+每个 Object 的 `initial` 是可交给 Zig 后端的完整 Program：Input 为 void，Output 为完整 Object。Field.type 按 ZX 类型表达式解析，Field.value 按无外部绑定的 ZX 表达式编译。类型属性不能夹带额外声明、导入或函数；value 不能读取 $in、ctx 或其他 Store。类型错误、数值越界和未知名称映射回实际 XML 属性。
+
+初始化沿字段声明顺序求值，类型表中的字段顺序不改变求值次序。程序通过所有权和 IR 校验；执行中仍可能返回运算或分配错误。生成后用 `execute(arena, {})` 获取初值，返回引用必须在 arena 存活期内使用。
+
+CLI `check-rx --entry state.store.rx` 以及普通入口装载到的 Store 定义使用上述语义检查。纯 `rx.validate` 仍是 Schema 入口。这个阶段不执行初始化、不授予 Call.setter、不提交状态；定义成功不等于 RX Store 调用已经可运行。接口和真实生成示例见 [Store 联结实施](../../../../docs/2026-10-04/RX状态联结实施计划.md)。
+
 ## 当前边界
 
 未知/重复属性、必填项、非空白文本和非法嵌套均报错。除 Field.value 外，显式属性不能是空白字符串。
 
-Gateway 入口已验证 Route 目标文件及其普通模块依赖图，模块 Store 引用已读取并校验定义文件；这些专用流程尚未实现多个 Gateway 的合并、Store 值与 setter 的类型联结、Group 展开冲突、路由输入输出兼容、Store 初值解码或实际执行。普通顺序模块的表达式、函数类型联结与 Return 推导见上节。路由 service 相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。结构检查成功不代表业务执行已经验证。
+Gateway 入口已验证 Route 目标文件及其普通模块依赖图，模块 Store 引用已读取并校验定义文件；这些专用流程尚未实现多个 Gateway 的合并、Store setter 的调用联结、Group 展开冲突、路由输入输出兼容或状态宿主执行。普通顺序模块的表达式、函数类型联结与 Return 推导见上节。路由 service 相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。结构检查成功不代表业务执行已经验证。
 
 结构级测试使用 AST 覆盖标签、路径身份、模块组合、递归结构、循环依赖与分配失败。独立文本及运行验证从真实 XML 开始，覆盖顺序模块的类型推导、原始诊断位置和部分生成代码执行；各组证据不替代尚未接入功能的验证。
