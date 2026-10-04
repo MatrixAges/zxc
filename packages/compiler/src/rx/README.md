@@ -57,9 +57,21 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 </Module>
 ```
 
-父模块再用 `<Call service="checkout" in="$in" out="ctx.result" />` 调用整个组合模块。Call 的 fn 用于 ZX 函数，service 用于 RX 模块，必须且只能提供一个目标。
+父模块再用 `<Call service="checkout" in="$in" out="ctx.result" />` 调用整个组合模块。Call 的 fn 用于本地 ZX 函数，service 用于本地 RX 模块，module 用于依赖包的公开编译模块，三者必须且只能提供一个目标。
 
 Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标是该文件的默认导出。例如 `fn="load_user"` 指向 `load_user.zx`，也可写相对目录和显式 `.zx` 后缀。入口检查会读取函数及其 ZX 导入闭包，执行现有命名、类型和依赖检查，并拒绝纯类型文件作为函数目标。可使用 `check-rx --entry <file.rx> --project <pkg.yaml>` 指定包与原生接口配置。
+
+`Call.module="package/public-module"` 按当前 RX 文件所属包的依赖和公开导出解析统一库产物，不读取库原始 ZX/RX 源码。例如：
+
+```xml
+<Module>
+  <Call module="shared-counter/advance" in="$in" out="ctx.updated" />
+  <Call module="shared-counter/read" out="ctx.current" />
+  <Return value="ctx.current" />
+</Module>
+```
+
+module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶段拒绝。原有 fn/service 的 in 契约保持不变。已编译 RX 模块保留模块内部声明的 Store 及逐次 Call 授权，与本地 service 调用相同；module 调用不能附加 setter，也不会给调用者提供库内部 Store 的读写句柄。带 Store 的裸事务函数不能作为 module 调用目标，普通 ZX 仍不能隐式调用 Store 函数。应用从库保存的初值生成共享内存状态，按包实例区分身份；再次发布继续保存初值和权限。
 
 上述 check-rx 入口仅做结构与目标检查；`zxc build` 和下述项目推导入口会进一步验证顺序调用的参数、结果及类型兼容性。Store 支持显式授权的源码生成；原生 app 在应用启动时初始化共享内存，以普通 JSON 参数运行；不同进程重新使用初值。
 

@@ -1,0 +1,43 @@
+{
+	"executions": [
+		{
+			"command": ["zig-out/bin/zxc", "check-rx", "--entry", "docs/2026-10-05/统一库/RX公开Store消费/main.rx"],
+			"exit_code": 0,
+			"stdout": "",
+			"stderr": ""
+		},
+		{
+			"command": ["docs/2026-10-05/统一库/RX公开模块消费/生成", "3"],
+			"exit_code": 0,
+			"stdout": "40\n",
+			"stderr": ""
+		},
+		{
+			"command": ["docs/2026-10-05/统一库/RX公开Store消费/应用", "4"],
+			"exit_code": 0,
+			"stdout": "{\"after\":11,\"before\":3,\"first\":7,\"second\":11}\n",
+			"stderr": ""
+		},
+		{
+			"command": ["docs/2026-10-05/统一库/RX公开Store再消费/应用", "4"],
+			"exit_code": 0,
+			"stdout": "{\"first\":{\"after\":11,\"before\":3,\"first\":7,\"second\":11},\"second\":{\"after\":19,\"before\":11,\"first\":15,\"second\":19}}\n",
+			"stderr": ""
+		},
+		{
+			"command": ["docs/2026-10-05/统一库/RX公开Store消费/应用", "4"],
+			"exit_code": 0,
+			"stdout": "{\"after\":11,\"before\":3,\"first\":7,\"second\":11}\n",
+			"stderr": ""
+		}
+	],
+	"republished_store_initializers": [
+		{
+			"identity": "store.library:95:/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/统一库/RX公开Store消费/counter:state.store.rx:counter",
+			"schema_version": 1,
+			"module_name": "zxc_store_initial_30479d9632a863f781fd0dcd6a0a0728e97ba63908019aa645913762a02d6fd3",
+			"type_name": "zx_type_9c0956fc19fc5a12ae17fc217785b3c644f316bf3bd238db16ec80a1afed5c75"
+		}
+	],
+	"scope": "同一应用顺序调用与再次发布后的同实例共享；未验证独立请求 arena 的长期服务入口。"
+}
