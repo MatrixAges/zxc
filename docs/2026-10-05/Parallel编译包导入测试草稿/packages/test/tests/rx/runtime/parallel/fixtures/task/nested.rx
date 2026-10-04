@@ -1,0 +1,18 @@
+<Module>
+  <Parallel>
+    <Task name="outer" out="ctx.result">
+      <Parallel>
+        <Task name="work" out="local.left">
+          <Call fn="map_values" in="$in" out="nested.value" />
+          <Return value="nested.value" />
+        </Task>
+        <Task name="work" out="local.right">
+          <Call fn="double_values" in="$in" out="nested.value" />
+          <Return value="nested.value" />
+        </Task>
+      </Parallel>
+      <Return value="{left: local.left, right: local.right}" />
+    </Task>
+  </Parallel>
+  <Return value="ctx.result" />
+</Module>

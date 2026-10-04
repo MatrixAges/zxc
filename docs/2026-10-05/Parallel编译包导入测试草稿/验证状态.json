@@ -1,0 +1,147 @@
+{
+	"head_before_commit": "c60ca823d2a47c0d326cac8ecda8d01121001e73",
+	"cwd": "packages/test",
+	"import_command": "zig build test-rx-parallel-import --summary all",
+	"import_exit_code": 0,
+	"import_steps": 689,
+	"import_tests": 450,
+	"aggregate_command": "zig build test-rx-parallel --summary all",
+	"aggregate_exit_code": 0,
+	"aggregate_steps": 944,
+	"aggregate_tests": 675,
+	"source_tests": 75,
+	"archive_tests": 150,
+	"new_consumer_tests": 450,
+	"root_regression": false,
+	"production_fingerprints_captured": "after successful aggregate run",
+	"production_working_tree_changes": [
+		{
+			"path": "packages/compiler/src/backends/zig/names.zig",
+			"sha256": "6eca60f7cfaab00974a4461fad70a306d9cb6fad01b4f55c0cb8618adc62a40f"
+		},
+		{
+			"path": "packages/compiler/src/backends/zig/state.zig",
+			"sha256": "04a4646f2c9914db7ff625cf5a5b449ddbe3703e8feba8e4da08f838813ebe16"
+		},
+		{
+			"path": "packages/compiler/src/rx/analysis/program/statements.zig",
+			"sha256": "4d980a87c86499a37c6449e7001e9a571ce65eabb528592de4689ad2ed224ad1"
+		},
+		{
+			"path": "packages/compiler/src/verification/conditions.zig",
+			"sha256": "8c5ca099e4a5654d03f95c3ddc96356a16e32314c2e2d2a95ae5ec116771cbe8"
+		},
+		{
+			"path": "packages/compiler/src/zx/ir/scopes.zig",
+			"sha256": "058584b731107bcece930c93e43cebee1ac0271a8628d9fee6e254ddf68c1405"
+		},
+		{
+			"path": "packages/compiler/src/zx/modules/artifact/nodes.zig",
+			"sha256": "7dac9c71ba13ddbc9e6ec0d528b9679c2008aa5822dc12200e50f5c852d6d9f8"
+		},
+		{
+			"path": "packages/compiler/src/zx/modules/declarations.zig",
+			"sha256": "0acbd4cf2d7facdb611c4bfb70d9a4ca9314cb5988c9018c8db616a520a71d75"
+		},
+		{
+			"path": "packages/compiler/src/zx/modules/external.zig",
+			"sha256": "9a68f7de134a00be6797090599d2b03b4d4cc0a2f5239dbb8f8a6525c7bd5f9a"
+		},
+		{
+			"path": "packages/compiler/src/zx/modules/interface.zig",
+			"sha256": "a79e21cdd4ae3c39419baccbc1f2ee272447eebe635dbfec80b32a9bb2733ee7"
+		},
+		{
+			"path": "packages/compiler/src/zx/modules/link/native.zig",
+			"sha256": "23ab204726d7081bf4dcc7102947f0a79275fe32f9077107735f0a2ebd47557f"
+		},
+		{
+			"path": "packages/compiler/src/zx/modules/native.zig",
+			"sha256": "0bda99e3da5c8f0bd33b1edf39d8bd771515afa9c99b0f73e28746d58cc16ade"
+		},
+		{
+			"path": "packages/compiler/src/zx/ownership/check.zig",
+			"sha256": "f7d991ad88b7be36a320f8bdf69d558805f7df0e47531bad2565f153ec4f35a1"
+		},
+		{
+			"path": "packages/compiler/standard/interfaces/fs.d.zx",
+			"sha256": "76951c35b809bf35976bc99a24a00fb803e78d93f55c962ed1202c8faa0b44cd"
+		},
+		{
+			"path": "packages/compiler/standard/modules.json",
+			"sha256": "0efc619758c0cff56c67cb20948da74d1fec97b8dc2894bea8f77b992297c534"
+		},
+		{
+			"path": "packages/compiler/standard/src/fs/directories.zig",
+			"sha256": "b09e55a2579e29d1502cdd10587f19c8a76ab06999fd743e4408cf20a1dadb2a"
+		},
+		{
+			"path": "packages/compiler/standard/src/fs/files.zig",
+			"sha256": "be017d322edad972d2f62ac6b6cea206ed2a2a00ff7013be5fd315a6a899f9a9"
+		},
+		{
+			"path": "packages/compiler/standard/src/fs/metadata.zig",
+			"sha256": "2dc9f5a21f5fda73f91340b51de8d4b44407709ec66501738d4005910921ff91"
+		},
+		{
+			"path": "packages/compiler/standard/src/fs/path.zig",
+			"sha256": "1ccd841335f7fbe7b05e1ad1262488bb40a557480b11ddfddcea0116a354977b"
+		},
+		{
+			"path": "packages/compiler/standard/src/fs/paths.zig",
+			"sha256": "bfe973599cfb81678bc70e9bd6b3164a8490d3172fd863a63532309abf67a7f0"
+		},
+		{
+			"path": "packages/compiler/standard/src/fs/root.zig",
+			"sha256": "e2622dc2b94190f2edeb1a0dc01462e0d109aa92856e15079ec8427591b5ef0b"
+		},
+		{
+			"path": "packages/compiler/standard/src/root.zig",
+			"sha256": "06d766fb4808923049acddd48902a93f6c72189465e413a332ff223357549413"
+		},
+		{
+			"path": "packages/core/src/ir.zig",
+			"sha256": "fa1dfadf4df4a993dede6f3b48719fa10da9b6903d4780ecb41d48907fa5b5fe"
+		},
+		{
+			"path": "packages/core/src/root.zig",
+			"sha256": "39c30a135086f8494391a544604a6d74b5f72a6a92de4bf5350e30ff2a8c0224"
+		},
+		{
+			"path": "packages/genz/src/zx/contracts.zig",
+			"sha256": "03358c10235612368ec027e134055e760075ad569e62b464de0ab5563531a005"
+		},
+		{
+			"path": "packages/genz/src/zx/external.zig",
+			"sha256": "26201cc9ae415a114bf7b3d7e9cc8ae7ee631d87b27cb320e1f57d017f383529"
+		},
+		{
+			"path": "packages/genz/src/zx/io.zig",
+			"sha256": "b0c5e43fcec335723f0c72b14ac45eaca3b682f4a187245fff246353b87bd0ae"
+		},
+		{
+			"path": "packages/genz/src/zx/lower.zig",
+			"sha256": "2a7f669fb1ffc270108f892fea7e563ff491b533c9d202abd1e77543863a2a71"
+		},
+		{
+			"path": "packages/genz/src/zx/render.zig",
+			"sha256": "36ce1864381012c9031705f5c5f326cdcf7e057651f1843a7f4cd55c8c52b220"
+		},
+		{
+			"path": "packages/genz/src/zx/state.zig",
+			"sha256": "aea876dacf7001ab96cd329f693bf74dce468169fa956ceaa325668fbcb51a8a"
+		},
+		{
+			"path": "packages/genz/src/zx/state/request.zig",
+			"sha256": "9517811895ca0365e4252e3b8dd5db1c434c5cc60c59e8d933d65228c916c54b"
+		},
+		{
+			"path": "packages/genz/src/zx/statements.zig",
+			"sha256": "d77f658f0aa3895be3e5a21e05e0d4edca6212782b89d12ba372a929c6f6f97d"
+		},
+		{
+			"path": "packages/genz/src/zx/store/begin.zig",
+			"sha256": "1c81b803dc0a627d20600f31481dada73890f3c2f38a2d38adadcfb2ccb52bd0"
+		}
+	]
+}

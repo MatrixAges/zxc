@@ -1,0 +1,7 @@
+<Module>
+  <Parallel>
+    <Call fn="map_values" in="$in.values" out="ctx.values" />
+    <Call fn="first" in="$in.missing" />
+  </Parallel>
+  <Return value="ctx.values" />
+</Module>
