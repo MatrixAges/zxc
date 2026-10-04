@@ -51,7 +51,6 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
             try self.mark(program.output_type);
             try self.nodes(program.symbols, program.expressions, program.contracts);
             for (program.stores) |slot| try self.mark(slot.type_id);
-            for (program.contexts) |slot| try self.mark(slot.type_id);
         },
         .function => |id| {
             if (@intFromEnum(id) >= program.functions.len) return error.InvalidModule;

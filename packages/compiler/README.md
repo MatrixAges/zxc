@@ -90,13 +90,7 @@ parse 返回拥有源码副本的 ParseResult，analyze/project.analyze 返回�
 
 Store 使用 compileWithContext 或 project.Options.context.stores，每项声明 handle、path、type_name、readable、writable。生成入口为 execute(arena, input, context)，context 提供对应 slot 的快照指针和 commit(pending)。参考 tests/runtime/store_test.zig。
 
-Context 使用 compileWithContext 或 project.Options.context.contexts，每项声明 id，并在 type_name 与 type_id 中二选一。type_name 必须解析为入口可见的对象类型；type_id 必须指向同时提供的 context.types 类型表中的对象。类型表需包含完整标量前缀与全部引用类型；分析结果复制该表，不借用调用方的类型存储。入口通过 `useContext("id")` 读取只读借用对象，字符串字面量按 ZX 字符串转义规则匹配 id；动态 id 尚不支持。
-
-生成入口的 context 参数以 context_N 字段提供各 slot 的对象引用，并导出 zx_context 类型，供宿主构造具有正确对象类型的参数，无需 Store commit。普通 ZX 导入函数不继承绑定，集合回调也不能隐式捕获 Context；需要的数据由调用方通过 Input 显式传入。对象及其引用数据必须活到所有借用输出使用结束。形式化验证暂不支持含 Context 的入口。
-
-该能力目前通过编译器 API 由宿主提供值；普通 CLI 不会自动创建绑定，完整 RX 注入执行尚未接通。
-
-IR 实验版本 7 在入口 Context slot 与 context_get 的基础上增加原生声明组 identity。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
+IR 实验版本 8 移除 Context 注入槽位与读取节点，保留原生声明组 identity。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
 
 项目分析成功时，`AnalysisResult.modules` 保留入口可达的 ZX 模块记录，按依赖完成装载的顺序排列。每项包含规范化 `path`、原始解析源码的 SHA-256 `source_digest`、导出表、按源码顺序排列的直接 imports，以及 `body`：`types` 表示纯类型模块，`entry` 使用返回 Program 的入口主体，`function` 指向 Program.functions 中的模块函数。入口不会暴露已从 functions 列表移除的编号。
 
@@ -156,7 +150,7 @@ const output = try generated.execute(&arena, input);
 
 `compiler.project.artifact.extract(allocator, &analysis, module_index)` 提取拥有独立 arena 的单模块产物，使用后调用 `deinit`。输入必须是通过 IR 校验的项目分析结果。产物保留自有函数、直接依赖、实际解析的类型与函数绑定、导入函数签名以及所需原生接口；类型、函数和原生模块编号均转换为产物内部编号。原分析结果和 ParseCache 释放后，产物仍然有效。
 
-模块产物不是完整 `Program`，必须经过完整联结或恢复到当前项目环境后才能生成 Zig。枚举需要项目分析记录的名义来源；外部 Context 注入了未记录来源的枚举时，提取返回 `MissingNominalOrigin`，不会用同名或相同成员推测类型身份。`AnalysisResult.modules` 通过 `type_range` 记录模块在依赖装载后新增的类型区间，并保留 `type_imports` 和 `function_imports`，供产物提取恢复分析时的绑定环境。
+模块产物不是完整 `Program`，必须经过完整联结或恢复到当前项目环境后才能生成 Zig。枚举需要项目分析记录的名义来源；共享类型表包含未记录来源的枚举时，提取返回 `MissingNominalOrigin`，不会用同名或相同成员推测类型身份。`AnalysisResult.modules` 通过 `type_range` 记录模块在依赖装载后新增的类型区间，并保留 `type_imports` 和 `function_imports`，供产物提取恢复分析时的绑定环境。
 
 `compiler.project.artifact.type_link.merge(allocator, modules)` 统一模块产物的类型表，返回 `types`、`nominal_types` 和与输入模块顺序一致的 `mappings`，使用后调用 `deinit`。映射将每个局部 TypeId 转为统一 TypeId；返回数据不依赖输入产物生命周期。结构类型按已映射的子类型比较；枚举按来源及声明名驻留，同一身份出现不同成员或顺序时返回 `ConflictingNominalType`。该接口只联结类型，不联结函数、契约和原生调用，也不返回可执行 Program。
 
@@ -166,11 +160,11 @@ const output = try generated.execute(&arena, input);
 
 `compiler.project.SemanticCache.init(allocator)` 创建进程内解析与语义缓存，使用后调用 `deinit`。`compiler.analyzeProjectIncremental(allocator, sources, options, &cache)` 保留公开编译入口的源码风格检查，并在每轮解析当前依赖后尝试恢复模块产物。底层 `project.analyzeIncremental` 与已有底层项目分析 API 一样不负责 lint。
 
-候选由模块路径、源码摘要和入口注入 Context 区分；恢复还必须通过当前类型别名、函数签名、返回所有权、原生 ABI 及依赖目标比较。接口未变化的依赖实现变化不会迫使调用者重新执行 Analyzer，但返回 Program 会包含本轮最新的依赖函数。源码循环、缺失导入和非法 Context 仍通过正常分析路径处理。
+候选由模块路径、源码摘要和入口编译环境区分；恢复还必须通过当前类型别名、函数签名、返回所有权、原生 ABI 及依赖目标比较。接口未变化的依赖实现变化不会迫使调用者重新执行 Analyzer，但返回 Program 会包含本轮最新的依赖函数。源码循环、缺失导入和非法编译环境仍通过正常分析路径处理。
 
 `analyzed`、`reused`、`uncacheable` 是累计 ZX 模块计数；`parse_cache.parsed` 是累计源码解析次数。`native.analyzed`、`native.reused` 分别统计原生声明的实际分析和复用次数，不计入 ZX 模块命中数。原生候选覆盖 specifier、声明路径、源码、实现模块与 namespace；恢复时仍执行类型映射与 IR 校验。缺失外部注入枚举来源的产物不缓存，正常分析继续完成并递增 `uncacheable`。缓存不保存形式化证明结论；该对象本身不执行磁盘 IO，CLI 负责持久化。分析结果拥有独立 arena，可在释放缓存之后使用。
 
-CLI 的普通编译、`build`、`verify` 和 `fpga` 默认把模块语义产物存入项目根目录的 `.zxc/cache/semantic/<构建指纹>/`。指纹覆盖编译器源码、构建辅助源码及配置、标准声明清单和接口，以及 zx/dsl/lint/genz 源码及构建配置，并包含 Zig 版本、构建目标和优化模式。源码、Context 或当前依赖不匹配时重新分析；证明结论不会被缓存命中替代。
+CLI 的普通编译、`build`、`verify` 和 `fpga` 默认把模块语义产物存入项目根目录的 `.zxc/cache/semantic/<构建指纹>/`。指纹覆盖编译器源码、构建辅助源码及配置、标准声明清单和接口，以及 zx/dsl/lint/genz 源码及构建配置，并包含 Zig 版本、构建目标和优化模式。源码、编译环境或当前依赖不匹配时重新分析；证明结论不会被缓存命中替代。
 
 使用 `--no-cache` 禁用模块语义缓存及其磁盘读写，`--cache-stats` 在 stderr 显示分析、复用、加载、写入、磁盘格式丢弃和不可缓存计数；`native_analyzed`、`native_reused`、`native_loaded`、`native_written` 单独报告原生接口。原生条目存于同一构建指纹目录下的 `native/`，只加载当前源码导入的已注册接口。缓存只原子写入新建或更新的条目，未变化文件保持时间戳。单条目读取上限为 64 MiB，JSON 嵌套上限为 2048；格式、指纹、摘要、类型或恢复后的 IR 校验不通过时重新分析。磁盘读写故障会报告错误并继续正常编译，内存分配失败仍返回错误。`fmt` 不接受缓存选项。
 

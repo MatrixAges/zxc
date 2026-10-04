@@ -26,17 +26,16 @@ pub const Query = struct { feasibility: []const u8, correctness: []const u8, inp
 pub const Model = struct { inputs: []const Input, output: terms.Evaluation, definitions: []const Graph.Definition };
 
 pub fn model(self: *Self) zx.Error!Model {
-    if (self.program.contexts.len != 0) return self.reporter.fail(.unsupported, .{ .start = 0, .end = 0 }, "symbolic execution does not yet model injected Context values");
     if (self.program.type_only or self.program.stores.len != 0) return self.reporter.fail(.unsupported, .{ .start = 0, .end = 0 }, "symbolic execution requires a pure executable function without Store capabilities");
 
     self.input = try self.parameter(self.program.input_type, "in");
+
     const output = try self.call();
 
     return .{ .inputs = self.inputs.items, .output = output, .definitions = self.graph.?.definitions.items };
 }
 
 pub fn generate(self: *Self) zx.Error!Query {
-    if (self.program.contexts.len != 0) return self.reporter.fail(.unsupported, .{ .start = 0, .end = 0 }, "verification does not yet model injected Context values");
     try self.ensureGraph();
     if (self.program.type_only or self.program.stores.len != 0) return self.reporter.fail(.unsupported, .{ .start = 0, .end = 0 }, "verification requires an executable pure function without Store capabilities");
 

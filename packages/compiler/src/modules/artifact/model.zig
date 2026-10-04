@@ -23,7 +23,6 @@ pub const Module = struct {
     native_modules: []const ir.NativeModule,
     function: ?ir.Function,
     stores: []const ir.StoreSlot,
-    contexts: []const ir.ContextSlot,
 };
 
 pub const Result = struct {

@@ -46,7 +46,6 @@ pub fn function(allocator: std.mem.Allocator, program: ir.Program, id: ir.Functi
     lower.program.input_type = selected.input_type;
     lower.program.output_type = selected.output_type;
     lower.program.stores = &.{};
-    lower.program.contexts = &.{};
     lower.program.contracts = selected.contracts;
     lower.names = try temporary.alloc([]const u8, selected.symbols.len);
     lower.used = try temporary.alloc(bool, selected.symbols.len);

@@ -18,7 +18,6 @@ cache_reads: []usize,
 cache: std.AutoHashMapUnmanaged(ir.ExprId, *const node.Expression) = .empty,
 serial: usize = 0,
 uses_allocator: bool = false,
-uses_context: bool = false,
 shared_types: bool = false,
 type_names: ?[]const []const u8 = null,
 function_modules: ?[]const []const u8 = null,
@@ -59,7 +58,6 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
         helper.program.input_type = module_function.input_type;
         helper.program.output_type = module_function.output_type;
         helper.program.stores = &.{};
-        helper.program.contexts = &.{};
         helper.program.contracts = module_function.contracts;
         helper.names = try self.allocator.alloc([]const u8, module_function.symbols.len);
         helper.used = try self.allocator.alloc(bool, module_function.symbols.len);
@@ -68,13 +66,6 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
 
         try output.append(self.allocator, try helper.function(try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), false));
     };
-
-    if (self.program.contexts.len > 0) {
-        const fields = try self.allocator.alloc(node.Field, self.program.contexts.len);
-
-        for (self.program.contexts, fields, 0..) |slot, *item, index| item.* = .{ .name = try std.fmt.allocPrint(self.allocator, "context_{d}", .{index}), .value = self.types[@intFromEnum(slot.type_id)] };
-        try output.append(self.allocator, .{ .constant = .{ .name = "zx_context", .value = try self.builder.expression(.{ .struct_type = fields }), .exported = true } });
-    }
 
     if (self.program.stores.len > 0) {
         const fields = try self.allocator.alloc(node.Field, self.program.stores.len);
@@ -91,7 +82,6 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
 
 pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declaration {
     self.uses_allocator = false;
-    self.uses_context = false;
 
     for (self.names, 0..) |*item, index| item.* = if (index == 0) "in" else try std.fmt.allocPrint(self.allocator, "value_{d}", .{index});
 
@@ -109,7 +99,6 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     } else if (!self.uses_allocator) try body.append(self.allocator, .{ .discard = try self.builder.identifier(if (exported) "arena" else "allocator") });
 
     if (!self.used[0]) try body.append(self.allocator, .{ .discard = try self.builder.identifier("in") });
-    if (self.program.stores.len == 0 and self.program.contexts.len > 0 and !self.uses_context) try body.append(self.allocator, .{ .discard = try self.builder.identifier("context") });
 
     if (self.program.stores.len > 0) {
         const fields = try self.allocator.alloc(node.Field, self.program.stores.len);
@@ -125,7 +114,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     try body.appendSlice(self.allocator, body_statements);
     if (self.program.stores.len > 0 and !ir.terminates(self.program.body)) try body.append(self.allocator, .{ .expression = try self.commit() });
 
-    const injected = self.program.stores.len > 0 or self.program.contexts.len > 0;
+    const injected = self.program.stores.len > 0;
     const parameters = try self.allocator.alloc(node.Field, if (injected) 3 else 2);
 
     parameters[0] = if (exported) .{ .name = "arena", .value = try self.builder.expression(.{ .pointer = try @import("intrinsics.zig").standardField(self, &.{ "heap", "ArenaAllocator" }) }) } else .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
@@ -156,11 +145,6 @@ pub fn expr(self: *Self, id: ir.ExprId) Error!*const node.Expression {
         .none => self.cast(value_type, try self.builder.expression(.null_value)),
         .some => |child| self.cast(value_type, try self.expr(child)),
         .enum_value => |member| self.cast(value_type, try self.builder.expression(.{ .enum_literal = self.program.typeOf(value.type_id).enumeration.members[member] })),
-        .context_get => |slot| blk: {
-            self.uses_context = true;
-
-            break :blk self.cast(value_type, try self.field(try self.builder.identifier("context"), try std.fmt.allocPrint(self.allocator, "context_{d}", .{slot})));
-        },
         .store_get => |slot| blk: {
             const name = try std.fmt.allocPrint(self.allocator, "store_{d}", .{slot});
 

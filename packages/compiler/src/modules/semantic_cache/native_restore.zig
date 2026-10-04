@@ -13,7 +13,7 @@ pub const Current = struct { module: ir.NativeModuleId, types: []const ir.Type, 
 pub const Error = Types.Error || Artifact.Error;
 
 pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: Current) Error!Loaded.Result {
-    if (artifact.function != null or artifact.native_modules.len != 1 or artifact.dependencies.len != 0 or artifact.type_imports.len != 0 or artifact.stores.len != 0 or artifact.contexts.len != 0) return error.InvalidModule;
+    if (artifact.function != null or artifact.native_modules.len != 1 or artifact.dependencies.len != 0 or artifact.type_imports.len != 0 or artifact.stores.len != 0) return error.InvalidModule;
     if (!std.mem.eql(u8, artifact.path, entry.key()) or artifact.functions.len != artifact.function_imports.len) return error.InvalidModule;
 
     const descriptor = artifact.native_modules[0];

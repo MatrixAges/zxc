@@ -27,7 +27,6 @@ pub fn evaluate(self: *Expressions, expression: ir.Expression) zx.Error!terms.Ev
     program.body = function.body;
     program.contracts = function.contracts;
     program.stores = &.{};
-    program.contexts = &.{};
     program.file_name = function.file_name;
 
     var conditions = Conditions{

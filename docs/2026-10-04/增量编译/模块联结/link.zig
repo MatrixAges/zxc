@@ -52,7 +52,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         if (index + 1 == sorted.len) {
             root = function;
         } else {
-            if (module.stores.len != 0 or module.contexts.len != 0) return error.InvalidModule;
+            if (module.stores.len != 0) return error.InvalidModule;
 
             if (function) |value| {
                 function_ids[index] = @enumFromInt(builder.functions.items.len);
@@ -66,7 +66,6 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
     const mapping = TypeMap{ .mapped = mappings[mappings.len - 1] };
     const exports = try owned.dupe(ir.Export, module.exports);
     const stores = try owned.dupe(ir.StoreSlot, module.stores);
-    const contexts = try owned.dupe(ir.ContextSlot, module.contexts);
 
     for (exports) |*item| {
         item.name = try owned.dupe(u8, item.name);
@@ -76,11 +75,6 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
     for (stores) |*item| {
         item.path = try owned.dupe(u8, item.path);
         item.handle = try owned.dupe(u8, item.handle);
-        item.type_id = try mapping.include(item.type_id);
-    }
-
-    for (contexts) |*item| {
-        item.id = try owned.dupe(u8, item.id);
         item.type_id = try mapping.include(item.type_id);
     }
 
@@ -98,7 +92,6 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         .functions = builder.functions.items,
         .native_modules = builder.native_modules.items,
         .stores = stores,
-        .contexts = contexts,
         .type_only = root == null,
     };
 

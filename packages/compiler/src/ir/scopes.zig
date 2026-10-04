@@ -113,7 +113,7 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
     if (@intFromEnum(id) >= self.program.expressions.len or depth > 256) return false;
 
     return switch (self.program.expression(id).value) {
-        .store_get, .context_get => self.callback_depth == 0,
+        .store_get => self.callback_depth == 0,
         .reference => |symbol| self.active[@intFromEnum(symbol)],
         .field, .tuple_field => |field| self.expression(field.target, depth + 1),
         .index => |item| try self.expression(item.target, depth + 1) and try self.expression(item.index, depth + 1),

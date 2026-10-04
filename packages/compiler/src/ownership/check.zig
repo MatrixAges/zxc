@@ -136,7 +136,7 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
     const container = self.isReference(expression.type_id);
 
     const state: State = switch (expression.value) {
-        .store_get, .context_get => .borrowed,
+        .store_get => .borrowed,
         .reference => |symbol| blk: {
             const index = @intFromEnum(symbol);
             const current = self.states[index];

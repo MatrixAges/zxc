@@ -167,14 +167,11 @@ const Project = struct {
                 .types = .{ .allocator = self.allocator, .reporter = self.reporter, .declarations = input.ast.declarations, .aliases = aliases.items },
                 .function_imports = imports.items,
                 .store_bindings = if (std.mem.eql(u8, unit.path, self.options.entry)) self.options.context.stores else &.{},
-                .context_bindings = if (std.mem.eql(u8, unit.path, self.options.entry)) self.options.context.contexts else &.{},
-                .context_type_count = self.options.context.types.len,
             };
 
             try analyzer.types.items.appendSlice(self.allocator, self.types);
 
             var analyzed = try analyzer.run(input.ast, unit.path);
-
             analyzed.functions = try self.allocator.dupe(ir.Function, self.functions.items);
 
             try self.nominal_origins.append(analyzed.types, self.types.len, .{ .source = unit.path });

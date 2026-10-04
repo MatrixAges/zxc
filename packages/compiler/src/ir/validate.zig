@@ -40,7 +40,6 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
         child.body = item.body;
         child.type_only = false;
         child.stores = &.{};
-        child.contexts = &.{};
         child.contracts = item.contracts;
 
         if (!try function(allocator, child)) return invalid();
@@ -56,14 +55,6 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 
     for (program.stores) |item| {
         if (@intFromEnum(item.type_id) >= program.types.len or program.typeOf(item.type_id) != .object or !std.mem.startsWith(u8, item.path, "store.")) return invalid();
-    }
-
-    for (program.contexts, 0..) |item, index| {
-        if (@intFromEnum(item.type_id) >= program.types.len or program.typeOf(item.type_id) != .object or std.mem.trim(u8, item.id, " \t\r\n").len == 0 or program.type_only) return invalid();
-
-        for (program.contexts[0..index]) |previous| {
-            if (std.mem.eql(u8, item.id, previous.id)) return invalid();
-        }
     }
 
     return null;

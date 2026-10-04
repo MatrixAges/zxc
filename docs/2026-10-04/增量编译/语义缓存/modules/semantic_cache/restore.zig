@@ -116,7 +116,6 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     const function = if (module.function) |value| try nodes.function(value) else null;
     const exports = try allocator.dupe(ir.Export, module.exports);
     const stores = try allocator.dupe(ir.StoreSlot, module.stores);
-    const contexts = try allocator.dupe(ir.ContextSlot, module.contexts);
 
     for (exports) |*item| {
         item.name = try allocator.dupe(u8, item.name);
@@ -126,11 +125,6 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     for (stores) |*item| {
         item.path = try allocator.dupe(u8, item.path);
         item.handle = try allocator.dupe(u8, item.handle);
-        item.type_id = try nodes.types.include(item.type_id);
-    }
-
-    for (contexts) |*item| {
-        item.id = try allocator.dupe(u8, item.id);
         item.type_id = try nodes.types.include(item.type_id);
     }
 
@@ -146,7 +140,6 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         .contracts = if (function) |value| value.contracts else &.{},
         .exports = exports,
         .stores = stores,
-        .contexts = contexts,
         .functions = try allocator.dupe(ir.Function, current.functions),
         .type_only = function == null,
     } };

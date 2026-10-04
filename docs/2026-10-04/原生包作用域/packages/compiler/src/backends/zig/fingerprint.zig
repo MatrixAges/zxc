@@ -27,7 +27,6 @@ pub fn create(program: ir.Program, names: Names, unit: Unit) [32]u8 {
             .exports = program.exports,
             .contracts = program.contracts,
             .stores = program.stores,
-            .contexts = program.contexts,
             .type_only = program.type_only,
         }),
         .types => {

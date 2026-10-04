@@ -81,7 +81,7 @@ fn expressions(self: *Self, values: []const ir.Expression) Error![]const ir.Expr
             .match_expr => |selection| .{ .match_expr = .{ .subject = selection.subject, .arms = try self.allocator.dupe(ir.MatchArm, selection.arms), .fallback = selection.fallback } },
             .object => |object| .{ .object = .{ .fields = try self.allocator.dupe(ir.ObjectField, object.fields), .evaluation = try self.allocator.dupe(ir.ExprId, object.evaluation) } },
             .call => |call| .{ .call = .{ .function = try self.functionId(call.function), .argument = call.argument } },
-            .integer, .negative_integer, .float, .boolean, .none, .unit, .some, .enum_value, .reference, .store_get, .context_get, .field, .index, .length, .tuple_field, .unary, .binary, .conditional => item.value,
+            .integer, .negative_integer, .float, .boolean, .none, .unit, .some, .enum_value, .reference, .store_get, .field, .index, .length, .tuple_field, .unary, .binary, .conditional => item.value,
         };
     }
 

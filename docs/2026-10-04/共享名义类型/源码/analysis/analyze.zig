@@ -17,8 +17,7 @@ pub const Result = struct {
 };
 
 pub const StoreBinding = struct { handle: []const u8, path: []const u8, type_name: []const u8, readable: bool = true, writable: bool = true };
-pub const ContextBinding = struct { id: []const u8, type_name: ?[]const u8 = null, type_id: ?zx.ir.TypeId = null };
-pub const Context = struct { types: []const zx.ir.Type = &.{}, nominal_types: []const Origins.Item = &.{}, stores: []const StoreBinding = &.{}, contexts: []const ContextBinding = &.{} };
+pub const Context = struct { types: []const zx.ir.Type = &.{}, nominal_types: []const Origins.Item = &.{}, stores: []const StoreBinding = &.{} };
 
 pub fn analyze(allocator: std.mem.Allocator, parsed: Parsed) std.mem.Allocator.Error!Result {
     return analyzeWithContext(allocator, parsed, .{});
@@ -51,8 +50,6 @@ pub fn analyzeWithContext(allocator: std.mem.Allocator, parsed: Parsed, context:
     var analyzer = Analyzer{
         .allocator = arena.allocator(),
         .store_bindings = context.stores,
-        .context_bindings = context.contexts,
-        .context_type_count = context.types.len,
         .reporter = &reporter,
         .types = .{ .allocator = arena.allocator(), .reporter = &reporter, .declarations = parsed.ast.declarations, .shared = .{ .origins = &origins, .origin = .{ .source = parsed.file_name } } },
     };

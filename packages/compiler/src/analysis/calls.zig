@@ -26,8 +26,6 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
             return importedCall(self, expression, function);
         }
 
-        if (std.mem.eql(u8, name.text, "useContext")) return @import("context.zig").read(self, expression);
-
         return self.reporter.fail(.name, name.span, "unknown imported function");
     }
 

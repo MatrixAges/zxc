@@ -80,16 +80,10 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
     const exported = try self.exports(record.exports);
     const function = try self.copyFunction(record);
     const stores = try self.allocator.dupe(ir.StoreSlot, if (record.body == .entry) self.program.stores else &.{});
-    const contexts = try self.allocator.dupe(ir.ContextSlot, if (record.body == .entry) self.program.contexts else &.{});
 
     for (stores) |*slot| {
         slot.path = try self.allocator.dupe(u8, slot.path);
         slot.handle = try self.allocator.dupe(u8, slot.handle);
-        slot.type_id = try self.types.include(slot.type_id);
-    }
-
-    for (contexts) |*slot| {
-        slot.id = try self.allocator.dupe(u8, slot.id);
         slot.type_id = try self.types.include(slot.type_id);
     }
 
@@ -120,7 +114,6 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
         .native_modules = self.native_modules.items,
         .function = function,
         .stores = stores,
-        .contexts = contexts,
     };
 }
 
