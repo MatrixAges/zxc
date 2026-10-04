@@ -15,6 +15,7 @@ pub const Expression = union(enum) {
     error_value: []const u8,
     block: struct { label: []const u8, statements: []const Statement },
     try_value: *const Expression,
+    comptime_value: *const Expression,
     error_union: *const Expression,
     integer: u64,
     float: f64,
@@ -73,14 +74,14 @@ pub const BinaryOperator = enum {
 };
 
 pub const SelectionArm = struct { value: *const Expression, result: *const Expression };
-pub const Field = struct { name: []const u8, value: *const Expression };
+pub const Field = struct { name: []const u8, value: *const Expression, comptime_parameter: bool = false };
 pub const Constant = struct { name: []const u8, type_expr: ?*const Expression = null, value: *const Expression, exported: bool = false };
 
 pub const Statement = union(enum) {
     constant: Constant,
     variable: Constant,
     assignment: struct { target: *const Expression, value: *const Expression },
-    for_loop: struct { iterable: *const Expression, capture: []const u8, body: []const Statement },
+    for_loop: struct { iterable: *const Expression, capture: []const u8, body: []const Statement, capture_reference: bool = false },
     break_value: struct { label: []const u8, value: *const Expression },
     unreachable_stmt,
     result: ?*const Expression,

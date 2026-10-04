@@ -66,7 +66,7 @@ pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.Expression, "v
         .return_type = try self.builder.expression(.{ .error_union = try self.builder.expression(.{ .primitive = .void }) }),
         .body = try self.allocator.dupe(node.Statement, &.{.{ .result = commit }}),
         .exported = true,
-    } }});
+    } }, try @import("store/begin_adapter.zig").declaration(self, mapping) });
 
     const name = try self.fresh("StoreContext");
     const result = try self.builder.expression(.{ .object = .{ .type_expr = try self.builder.identifier(name), .fields = values } });

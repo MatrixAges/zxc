@@ -12,6 +12,8 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
 
         var output: std.ArrayList(node.Statement) = .empty;
 
+        if (try @import("store/begin.zig").statement(self, values, offset)) |begin| try output.append(self.allocator, begin);
+
         switch (values[offset]) {
             .constant => |binding| {
                 const value = try self.expr(binding.value);

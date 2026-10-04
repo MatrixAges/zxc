@@ -67,6 +67,11 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.expression(child);
             try self.write(")");
         },
+        .comptime_value => |child| {
+            try self.write("(comptime ");
+            try self.expression(child);
+            try self.write(")");
+        },
         .enum_literal => |name| {
             try self.write(".");
             try self.identifier(name);
@@ -355,6 +360,7 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
                 try self.write("for (");
                 try self.expression(loop.iterable);
                 try self.write(") |");
+                if (loop.capture_reference) try self.write("*");
                 if (std.mem.eql(u8, loop.capture, "_")) try self.write("_") else try self.identifier(loop.capture);
                 try self.write("| ");
                 try self.block(loop.body);
@@ -416,6 +422,7 @@ pub fn declaration(self: *Self, value: node.Declaration) Error!void {
 
             for (function.parameters, 0..) |parameter, index| {
                 if (index != 0) try self.write(", ");
+                if (parameter.comptime_parameter) try self.write("comptime ");
                 try self.identifier(parameter.name);
                 try self.write(": ");
                 try self.expression(parameter.value);

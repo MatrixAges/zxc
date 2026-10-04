@@ -1,0 +1,68 @@
+{
+	"explicit_concrete_state_draft": true,
+	"runtime_module_dependency": false,
+	"command": [
+		"zig",
+		"build-exe",
+		"--dep",
+		"application",
+		"--dep",
+		"state",
+		"-Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时演示/consume.zig",
+		"--dep",
+		"application",
+		"--dep",
+		"initial=zxc_store_initial_48e225adb6047085dc9c57a6bbf984093fd90a4db7884bb3477c633a6862f720",
+		"--dep",
+		"metadata",
+		"-Mstate=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时演示/state.zig",
+		"--dep",
+		"zxc_abi",
+		"--dep",
+		"zxc_module_327213d625a1a4f2e5f49e4b08df7d16caf19eecdffdad3d991d91aaf7a3b924",
+		"--dep",
+		"zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec",
+		"-Mapplication=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时生成/application.zig",
+		"--dep",
+		"zxc_abi",
+		"-Mzxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时生成/zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec.zig",
+		"--dep",
+		"zxc_abi",
+		"-Mzxc_module_a90da377ff12e32470eeae28fa6748f7c3fae02be257e158b0d76ef60ac2c41b=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时生成/zxc_module_a90da377ff12e32470eeae28fa6748f7c3fae02be257e158b0d76ef60ac2c41b.zig",
+		"--dep",
+		"zxc_abi",
+		"--dep",
+		"zxc_module_a90da377ff12e32470eeae28fa6748f7c3fae02be257e158b0d76ef60ac2c41b",
+		"-Mzxc_module_327213d625a1a4f2e5f49e4b08df7d16caf19eecdffdad3d991d91aaf7a3b924=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时生成/zxc_module_327213d625a1a4f2e5f49e4b08df7d16caf19eecdffdad3d991d91aaf7a3b924.zig",
+		"--dep",
+		"zxc_abi",
+		"-Mzxc_store_initial_48e225adb6047085dc9c57a6bbf984093fd90a4db7884bb3477c633a6862f720=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时生成/zxc_store_initial_48e225adb6047085dc9c57a6bbf984093fd90a4db7884bb3477c633a6862f720.zig",
+		"-Mzxc_abi=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时生成/types.zig",
+		"-Mmetadata=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时生成/metadata.zig",
+		"-femit-bin=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/RX状态宿主/零运行时生成/consume"
+	],
+	"binary_sha256": "9e7df472fcf21ae95110d4fdddd1e1cab48b3d50598a21994a7e62e3a0e4feeb",
+	"runs": [
+		{
+			"increment": "1",
+			"exit_code": 0,
+			"output": "begin revision=0\nbegin revision=0\nbegin revision=1\nbegin revision=2\nresult={\"current\":{\"history\":[8],\"value\":5},\"first\":4,\"original\":{\"history\":[8],\"value\":3},\"second\":5}\n"
+		},
+		{
+			"increment": "7",
+			"exit_code": 0,
+			"output": "begin revision=2\nbegin revision=2\nbegin revision=3\nbegin revision=4\nresult={\"current\":{\"history\":[8],\"value\":19},\"first\":12,\"original\":{\"history\":[8],\"value\":5},\"second\":19}\n"
+		}
+	],
+	"snapshot": {
+		"format_version": 1,
+		"identity": "store.state.store.rx:counter",
+		"schema_version": 1,
+		"type_identity": "zx_type_9c0956fc19fc5a12ae17fc217785b3c644f316bf3bd238db16ec80a1afed5c75",
+		"revision": 4,
+		"value": {
+			"history": [8],
+			"value": 19
+		}
+	}
+}
