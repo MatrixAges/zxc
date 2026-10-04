@@ -1,0 +1,47 @@
+sat
+(
+  (define-fun input_0 () (_ BitVec 64)
+    #x8000000000000000)
+  (define-fun term_0 () (_ BitVec 64)
+    #x0000000000000002)
+  (define-fun term_7 () Bool
+    (let ((a!1 (= (bvmul ((_ sign_extend 64) input_0)
+                     ((_ sign_extend 64) #x0000000000000002))
+              ((_ sign_extend 64) (bvmul input_0 #x0000000000000002)))))
+  (and (not (not a!1)) (or false a!1))))
+  (define-fun term_6 () Bool
+    (let ((a!1 (not (= (bvmul ((_ sign_extend 64) input_0)
+                          ((_ sign_extend 64) #x0000000000000002))
+                   ((_ sign_extend 64) (bvmul input_0 #x0000000000000002))))))
+  (not a!1)))
+  (define-fun term_9 () Bool
+    (let ((a!1 (= (bvmul ((_ sign_extend 64) input_0)
+                     ((_ sign_extend 64) #x0000000000000002))
+              ((_ sign_extend 64) (bvmul input_0 #x0000000000000002)))))
+  (and (not (not a!1)) (or false a!1) (not true))))
+  (define-fun term_2 () Bool
+    (= (bvmul ((_ sign_extend 64) input_0) ((_ sign_extend 64) #x0000000000000002))
+   ((_ sign_extend 64) (bvmul input_0 #x0000000000000002))))
+  (define-fun term_8 () Bool
+    (let ((a!1 (= (bvmul ((_ sign_extend 64) input_0)
+                     ((_ sign_extend 64) #x0000000000000002))
+              ((_ sign_extend 64) (bvmul input_0 #x0000000000000002)))))
+  (not (and (not (not a!1)) (or false a!1)))))
+  (define-fun term_1 () (_ BitVec 64)
+    (bvmul input_0 #x0000000000000002))
+  (define-fun term_5 () Bool
+    (or false
+    (= (bvmul ((_ sign_extend 64) input_0)
+              ((_ sign_extend 64) #x0000000000000002))
+       ((_ sign_extend 64) (bvmul input_0 #x0000000000000002)))))
+  (define-fun term_3 () Bool
+    (not (= (bvmul ((_ sign_extend 64) input_0)
+               ((_ sign_extend 64) #x0000000000000002))
+        ((_ sign_extend 64) (bvmul input_0 #x0000000000000002)))))
+  (define-fun term_4 () (_ BitVec 64)
+    (ite (= (bvmul ((_ sign_extend 64) input_0)
+               ((_ sign_extend 64) #x0000000000000002))
+        ((_ sign_extend 64) (bvmul input_0 #x0000000000000002)))
+     (bvmul input_0 #x0000000000000002)
+     (bvmul input_0 #x0000000000000002)))
+)

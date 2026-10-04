@@ -47,4 +47,4 @@ service 相对当前模块文件解析；同一个服务文件在所有调用处
 
 RX 与直接函数路径受项目根边界约束。已声明依赖包沿既有 package scope 解析；无包配置时导入闭包也检查物理路径。构建不会启动生成的业务程序。
 
-当前 RX 入口不支持 fmt、独立 verify、fpga 或 lib 发布命令，遇到这些模式会明确报错。Store 声明、Call.in 快照与单 Object setter 支持生成接受显式宿主的 Zig 源码；含 Store 定义的原生 app 尚未接入状态生命周期。Parallel、事件和 Gateway 执行仍未接入。语法和公开库接口见 [RX reference](../compiler/src/rx/README.md)。
+RX 支持独立 verify 与 fpga 命令，使用与 ZX 相同的证明和硬件后端；详见 [RX 证明与硬件 reference](../../docs/2026-10-05/RX证明与硬件参考.md)。fmt 和 lib 发布仍会明确报错。Store 声明、Call.in 读取视图与单 Object setter 支持源码生成及原生 app；应用启动时初始化共享内存，进程结束后释放，不自动落盘。Parallel、事件和 Gateway 执行仍未接入。语法和公开库接口见 [RX reference](../compiler/src/rx/README.md)。

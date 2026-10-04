@@ -1,0 +1,329 @@
+{
+	"sources": [
+		{
+			"path": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/RX证明与硬件入口/示例/read.zx",
+			"source": "export type Input = { enabled: bool, value: u8 }\n\nexport type Output = u8\n\nexport default function (in: Input): Output {\n  return in.value\n}\n"
+		},
+		{
+			"path": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/RX证明与硬件入口/示例/main.rx",
+			"source": "<Module>\n  <Call fn=\"read\" in=\"$in\" out=\"ctx.value\" />\n  <Task name=\"select\">\n    <Switch on=\"$in.enabled\">\n      <Case value=\"true\">\n        <Return value=\"ctx.value\" />\n      </Case>\n      <Default>\n        <Return value=\"0\" />\n      </Default>\n    </Switch>\n  </Task>\n</Module>\n"
+		}
+	],
+	"entry": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/RX证明与硬件入口/示例/main.rx",
+	"ir_version": 9,
+	"types": [
+		{
+			"scalar": "void"
+		},
+		{
+			"scalar": "bool"
+		},
+		{
+			"scalar": "u8"
+		},
+		{
+			"scalar": "u16"
+		},
+		{
+			"scalar": "u32"
+		},
+		{
+			"scalar": "u64"
+		},
+		{
+			"scalar": "i32"
+		},
+		{
+			"scalar": "i64"
+		},
+		{
+			"scalar": "f32"
+		},
+		{
+			"scalar": "f64"
+		},
+		{
+			"scalar": "string"
+		},
+		{
+			"object": [
+				{
+					"name": "enabled",
+					"type_id": 1
+				},
+				{
+					"name": "value",
+					"type_id": 2
+				}
+			]
+		},
+		{
+			"tuple": [11]
+		},
+		{
+			"tuple": [11, 2]
+		}
+	],
+	"inputs": [
+		{
+			"symbol": "input_0",
+			"path": "in.enabled",
+			"type_id": 1
+		},
+		{
+			"symbol": "input_1",
+			"path": "in.value",
+			"type_id": 2
+		}
+	],
+	"ir": {
+		"output_ownership": "copy",
+		"version": 9,
+		"store_mode": "orchestration",
+		"contracts": [],
+		"file_name": "docs/2026-10-05/RX证明与硬件入口/示例/main.rx",
+		"types": [
+			{
+				"scalar": "void"
+			},
+			{
+				"scalar": "bool"
+			},
+			{
+				"scalar": "u8"
+			},
+			{
+				"scalar": "u16"
+			},
+			{
+				"scalar": "u32"
+			},
+			{
+				"scalar": "u64"
+			},
+			{
+				"scalar": "i32"
+			},
+			{
+				"scalar": "i64"
+			},
+			{
+				"scalar": "f32"
+			},
+			{
+				"scalar": "f64"
+			},
+			{
+				"scalar": "string"
+			},
+			{
+				"object": [
+					{
+						"name": "enabled",
+						"type_id": 1
+					},
+					{
+						"name": "value",
+						"type_id": 2
+					}
+				]
+			},
+			{
+				"tuple": [11]
+			},
+			{
+				"tuple": [11, 2]
+			}
+		],
+		"symbols": [
+			{
+				"name": "$in",
+				"type_id": 11,
+				"span": {
+					"start": 0,
+					"end": 0
+				},
+				"ownership": "copy"
+			},
+			{
+				"name": "ctx.value",
+				"type_id": 2,
+				"span": {
+					"start": 31,
+					"end": 34
+				},
+				"ownership": "copy"
+			}
+		],
+		"expressions": [
+			{
+				"type_id": 11,
+				"span": {
+					"start": 31,
+					"end": 34
+				},
+				"value": {
+					"reference": 0
+				}
+			},
+			{
+				"type_id": 2,
+				"span": {
+					"start": 31,
+					"end": 34
+				},
+				"value": {
+					"call": {
+						"function": 0,
+						"argument": 0,
+						"stores": []
+					}
+				}
+			},
+			{
+				"type_id": 11,
+				"span": {
+					"start": 94,
+					"end": 97
+				},
+				"value": {
+					"reference": 0
+				}
+			},
+			{
+				"type_id": 1,
+				"span": {
+					"start": 94,
+					"end": 105
+				},
+				"value": {
+					"field": {
+						"target": 2,
+						"index": 0
+					}
+				}
+			},
+			{
+				"type_id": 1,
+				"span": {
+					"start": 127,
+					"end": 131
+				},
+				"value": {
+					"boolean": true
+				}
+			},
+			{
+				"type_id": 2,
+				"span": {
+					"start": 157,
+					"end": 166
+				},
+				"value": {
+					"reference": 1
+				}
+			},
+			{
+				"type_id": 2,
+				"span": {
+					"start": 224,
+					"end": 225
+				},
+				"value": {
+					"integer": 0
+				}
+			}
+		],
+		"input_type": 11,
+		"output_type": 2,
+		"body": [
+			{
+				"constant": {
+					"symbol": 1,
+					"value": 1
+				}
+			},
+			{
+				"switch_stmt": {
+					"subject": 3,
+					"cases": [
+						{
+							"value": 4,
+							"body": [
+								{
+									"result": 5
+								}
+							]
+						},
+						{
+							"value": null,
+							"body": [
+								{
+									"result": 6
+								}
+							]
+						}
+					],
+					"exhaustive": true
+				}
+			}
+		],
+		"exports": [],
+		"functions": [
+			{
+				"stores": [],
+				"store_mode": "transaction",
+				"output_ownership": "copy",
+				"contracts": [],
+				"external": null,
+				"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/RX证明与硬件入口/示例/read.zx",
+				"input_type": 11,
+				"output_type": 2,
+				"symbols": [
+					{
+						"name": "in",
+						"type_id": 11,
+						"span": {
+							"start": 119,
+							"end": 140
+						},
+						"ownership": "copy"
+					}
+				],
+				"expressions": [
+					{
+						"type_id": 11,
+						"span": {
+							"start": 130,
+							"end": 132
+						},
+						"value": {
+							"reference": 0
+						}
+					},
+					{
+						"type_id": 2,
+						"span": {
+							"start": 130,
+							"end": 138
+						},
+						"value": {
+							"field": {
+								"target": 0,
+								"index": 1
+							}
+						}
+					}
+				],
+				"body": [
+					{
+						"result": 1
+					}
+				]
+			}
+		],
+		"native_modules": [],
+		"stores": [],
+		"type_only": false
+	}
+}

@@ -312,3 +312,7 @@ setter 必须列出一个完整 Object；不能列出整个 Store、字段、未
 Gateway 入口已验证 Route 目标文件及其普通模块依赖图，模块 Store 引用已读取并校验定义文件；这些专用流程尚未实现多个 Gateway 的合并、Group 展开冲突、路由输入输出兼容或 Gateway 执行。普通顺序模块的表达式、函数类型联结与 Return 推导见上节。路由 service 相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。结构检查成功不代表业务执行已经验证。
 
 结构级测试使用 AST 覆盖标签、路径身份、模块组合、递归结构、循环依赖与分配失败。独立文本及运行验证从真实 XML 开始，覆盖顺序模块的类型推导、原始诊断位置和部分生成代码执行；各组证据不替代尚未接入功能的验证。
+
+## 独立证明与硬件生成
+
+`zxc verify workflow.rx --solver /path/to/z3 --out workflow.smt2` 与 `zxc fpga workflow.rx --out workflow.v` 先完成同一 RX 项目推导，再调用统一后端。证明证据包含实际 RX 文本及 ZX 依赖。纯布尔与定宽整数流程可进入符号模型；Store、动态数据与不支持的调用仍由后端拒绝。`--clocked` 和 `--solver` 沿用硬件入口约定，证明失败不继续生成。详见 [使用参考](../../../../docs/2026-10-05/RX证明与硬件参考.md)。
