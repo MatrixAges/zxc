@@ -1,0 +1,36 @@
+export type Input = { kind: u64
+ items: i64[]
+ seed: i64 }
+
+export type Output = i64[]
+
+export default function (in: Input): Output {
+  switch (in.kind) {
+    case 0:
+      return in.items.map(x => x)
+    case 1:
+      return in.items.map(x =>
+x)
+    case 2:
+      return in.items.map((x) => x)
+    case 3:
+      return in.items.map((x) =>
+x)
+    case 4:
+      return in.items.map(x =>x)
+    case 5:
+      return in.items.map((x) =>x)
+    case 6:
+      return in.items.map(x =>
+x)
+    case 7:
+      return in.items.map((x) =>
+x)
+    case 8:
+      return in.items.map(a => a + 1)
+    case 9:
+      return [in.items.reduce((a, b) => a + b, in.seed)]
+    default:
+      return []
+  }
+}
