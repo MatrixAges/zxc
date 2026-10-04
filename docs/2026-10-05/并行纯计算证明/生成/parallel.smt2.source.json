@@ -1,0 +1,791 @@
+{
+	"sources": [
+		{
+			"path": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/identity.zx",
+			"source": "export type Input = u8\n\nexport type Output = u8\n\nexport default function (in: Input): Output ensures(out == in) {\n  return in\n}\n"
+		},
+		{
+			"path": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/checked.zx",
+			"source": "export type Input = u8\n\nexport type Output = u8\n\nexport default function (in: Input): Output ensures(out == in) {\n  return in\n}\n"
+		},
+		{
+			"path": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/invert.zx",
+			"source": "export type Input = bool\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return !in\n}\n"
+		},
+		{
+			"path": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/main.rx",
+			"source": "<Module>\n  <Parallel>\n    <Call fn=\"identity\" in=\"$in.value\" out=\"ctx.value\" />\n    <Call service=\"flag\" in=\"$in.enabled\" out=\"ctx.flag\" />\n    <Call fn=\"checked\" in=\"$in.value\" />\n  </Parallel>\n  <Return value=\"{value: ctx.value, enabled: ctx.flag}\" />\n</Module>\n"
+		},
+		{
+			"path": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/flag.rx",
+			"source": "<Module>\n  <Parallel>\n    <Call fn=\"invert\" in=\"$in\" out=\"ctx.value\" />\n    <Call fn=\"invert\" in=\"$in\" />\n  </Parallel>\n  <Return value=\"ctx.value\" />\n</Module>\n"
+		}
+	],
+	"entry": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/main.rx",
+	"ir_version": 10,
+	"types": [
+		{
+			"scalar": "void"
+		},
+		{
+			"scalar": "bool"
+		},
+		{
+			"scalar": "u8"
+		},
+		{
+			"scalar": "u16"
+		},
+		{
+			"scalar": "u32"
+		},
+		{
+			"scalar": "u64"
+		},
+		{
+			"scalar": "i32"
+		},
+		{
+			"scalar": "i64"
+		},
+		{
+			"scalar": "f32"
+		},
+		{
+			"scalar": "f64"
+		},
+		{
+			"scalar": "string"
+		},
+		{
+			"object": [
+				{
+					"name": "enabled",
+					"type_id": 1
+				},
+				{
+					"name": "value",
+					"type_id": 2
+				}
+			]
+		},
+		{
+			"tuple": [1]
+		},
+		{
+			"tuple": [1, 1]
+		},
+		{
+			"tuple": [11]
+		},
+		{
+			"tuple": [11, 2, 1]
+		}
+	],
+	"inputs": [
+		{
+			"symbol": "input_0",
+			"path": "in.enabled",
+			"type_id": 1
+		},
+		{
+			"symbol": "input_1",
+			"path": "in.value",
+			"type_id": 2
+		}
+	],
+	"ir": {
+		"output_ownership": "owned",
+		"version": 10,
+		"store_mode": "orchestration",
+		"contracts": [],
+		"file_name": "main.rx",
+		"types": [
+			{
+				"scalar": "void"
+			},
+			{
+				"scalar": "bool"
+			},
+			{
+				"scalar": "u8"
+			},
+			{
+				"scalar": "u16"
+			},
+			{
+				"scalar": "u32"
+			},
+			{
+				"scalar": "u64"
+			},
+			{
+				"scalar": "i32"
+			},
+			{
+				"scalar": "i64"
+			},
+			{
+				"scalar": "f32"
+			},
+			{
+				"scalar": "f64"
+			},
+			{
+				"scalar": "string"
+			},
+			{
+				"object": [
+					{
+						"name": "enabled",
+						"type_id": 1
+					},
+					{
+						"name": "value",
+						"type_id": 2
+					}
+				]
+			},
+			{
+				"tuple": [1]
+			},
+			{
+				"tuple": [1, 1]
+			},
+			{
+				"tuple": [11]
+			},
+			{
+				"tuple": [11, 2, 1]
+			}
+		],
+		"symbols": [
+			{
+				"name": "$in",
+				"type_id": 11,
+				"span": {
+					"start": 0,
+					"end": 0
+				},
+				"ownership": "copy"
+			},
+			{
+				"name": "ctx.value",
+				"type_id": 2,
+				"span": {
+					"start": 50,
+					"end": 59
+				},
+				"ownership": "copy"
+			},
+			{
+				"name": "ctx.flag",
+				"type_id": 1,
+				"span": {
+					"start": 109,
+					"end": 120
+				},
+				"ownership": "copy"
+			}
+		],
+		"expressions": [
+			{
+				"type_id": 11,
+				"span": {
+					"start": 50,
+					"end": 53
+				},
+				"value": {
+					"reference": 0
+				}
+			},
+			{
+				"type_id": 2,
+				"span": {
+					"start": 50,
+					"end": 59
+				},
+				"value": {
+					"field": {
+						"target": 0,
+						"index": 1
+					}
+				}
+			},
+			{
+				"type_id": 2,
+				"span": {
+					"start": 50,
+					"end": 59
+				},
+				"value": {
+					"call": {
+						"function": 0,
+						"argument": 1,
+						"stores": []
+					}
+				}
+			},
+			{
+				"type_id": 11,
+				"span": {
+					"start": 109,
+					"end": 112
+				},
+				"value": {
+					"reference": 0
+				}
+			},
+			{
+				"type_id": 1,
+				"span": {
+					"start": 109,
+					"end": 120
+				},
+				"value": {
+					"field": {
+						"target": 3,
+						"index": 0
+					}
+				}
+			},
+			{
+				"type_id": 1,
+				"span": {
+					"start": 109,
+					"end": 120
+				},
+				"value": {
+					"call": {
+						"function": 3,
+						"argument": 4,
+						"stores": []
+					}
+				}
+			},
+			{
+				"type_id": 11,
+				"span": {
+					"start": 167,
+					"end": 170
+				},
+				"value": {
+					"reference": 0
+				}
+			},
+			{
+				"type_id": 2,
+				"span": {
+					"start": 167,
+					"end": 176
+				},
+				"value": {
+					"field": {
+						"target": 6,
+						"index": 1
+					}
+				}
+			},
+			{
+				"type_id": 2,
+				"span": {
+					"start": 167,
+					"end": 176
+				},
+				"value": {
+					"call": {
+						"function": 4,
+						"argument": 7,
+						"stores": []
+					}
+				}
+			},
+			{
+				"type_id": 2,
+				"span": {
+					"start": 220,
+					"end": 229
+				},
+				"value": {
+					"reference": 1
+				}
+			},
+			{
+				"type_id": 1,
+				"span": {
+					"start": 240,
+					"end": 248
+				},
+				"value": {
+					"reference": 2
+				}
+			},
+			{
+				"type_id": 11,
+				"span": {
+					"start": 212,
+					"end": 249
+				},
+				"value": {
+					"object": {
+						"fields": [
+							{
+								"index": 1,
+								"value": 9
+							},
+							{
+								"index": 0,
+								"value": 10
+							}
+						],
+						"evaluation": [9, 10]
+					}
+				}
+			}
+		],
+		"input_type": 11,
+		"output_type": 11,
+		"body": [
+			{
+				"parallel": [
+					{
+						"symbol": 1,
+						"value": 2
+					},
+					{
+						"symbol": 2,
+						"value": 5
+					},
+					{
+						"symbol": null,
+						"value": 8
+					}
+				]
+			},
+			{
+				"result": 11
+			}
+		],
+		"exports": [],
+		"functions": [
+			{
+				"stores": [],
+				"store_mode": "transaction",
+				"output_ownership": "copy",
+				"contracts": [
+					{
+						"kind": "ensures",
+						"symbols": [
+							{
+								"name": "in",
+								"type_id": 2,
+								"span": {
+									"start": 93,
+									"end": 111
+								},
+								"ownership": "copy"
+							},
+							{
+								"name": "out",
+								"type_id": 2,
+								"span": {
+									"start": 93,
+									"end": 111
+								},
+								"ownership": "copy"
+							}
+						],
+						"expressions": [
+							{
+								"type_id": 2,
+								"span": {
+									"start": 101,
+									"end": 104
+								},
+								"value": {
+									"reference": 1
+								}
+							},
+							{
+								"type_id": 2,
+								"span": {
+									"start": 108,
+									"end": 110
+								},
+								"value": {
+									"reference": 0
+								}
+							},
+							{
+								"type_id": 1,
+								"span": {
+									"start": 101,
+									"end": 110
+								},
+								"value": {
+									"binary": {
+										"operator": "equal",
+										"left": 0,
+										"right": 1
+									}
+								}
+							}
+						],
+						"predicate": 2,
+						"span": {
+							"start": 93,
+							"end": 111
+						}
+					}
+				],
+				"external": null,
+				"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/identity.zx",
+				"input_type": 2,
+				"output_type": 2,
+				"symbols": [
+					{
+						"name": "in",
+						"type_id": 2,
+						"span": {
+							"start": 112,
+							"end": 127
+						},
+						"ownership": "copy"
+					}
+				],
+				"expressions": [
+					{
+						"type_id": 2,
+						"span": {
+							"start": 123,
+							"end": 125
+						},
+						"value": {
+							"reference": 0
+						}
+					}
+				],
+				"body": [
+					{
+						"result": 0
+					}
+				]
+			},
+			{
+				"stores": [],
+				"store_mode": "transaction",
+				"output_ownership": "copy",
+				"contracts": [],
+				"external": null,
+				"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/invert.zx",
+				"input_type": 1,
+				"output_type": 1,
+				"symbols": [
+					{
+						"name": "in",
+						"type_id": 1,
+						"span": {
+							"start": 97,
+							"end": 113
+						},
+						"ownership": "copy"
+					}
+				],
+				"expressions": [
+					{
+						"type_id": 1,
+						"span": {
+							"start": 109,
+							"end": 111
+						},
+						"value": {
+							"reference": 0
+						}
+					},
+					{
+						"type_id": 1,
+						"span": {
+							"start": 108,
+							"end": 111
+						},
+						"value": {
+							"unary": {
+								"operator": "not",
+								"operand": 0
+							}
+						}
+					}
+				],
+				"body": [
+					{
+						"result": 1
+					}
+				]
+			},
+			{
+				"stores": [],
+				"store_mode": "transaction",
+				"output_ownership": "copy",
+				"contracts": [],
+				"external": null,
+				"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/invert.zx",
+				"input_type": 1,
+				"output_type": 1,
+				"symbols": [
+					{
+						"name": "in",
+						"type_id": 1,
+						"span": {
+							"start": 97,
+							"end": 113
+						},
+						"ownership": "copy"
+					}
+				],
+				"expressions": [
+					{
+						"type_id": 1,
+						"span": {
+							"start": 109,
+							"end": 111
+						},
+						"value": {
+							"reference": 0
+						}
+					},
+					{
+						"type_id": 1,
+						"span": {
+							"start": 108,
+							"end": 111
+						},
+						"value": {
+							"unary": {
+								"operator": "not",
+								"operand": 0
+							}
+						}
+					}
+				],
+				"body": [
+					{
+						"result": 1
+					}
+				]
+			},
+			{
+				"stores": [],
+				"store_mode": "orchestration",
+				"output_ownership": "copy",
+				"contracts": [],
+				"external": null,
+				"file_name": "flag.rx",
+				"input_type": 1,
+				"output_type": 1,
+				"symbols": [
+					{
+						"name": "$in",
+						"type_id": 1,
+						"span": {
+							"start": 0,
+							"end": 0
+						},
+						"ownership": "copy"
+					},
+					{
+						"name": "ctx.value",
+						"type_id": 1,
+						"span": {
+							"start": 48,
+							"end": 51
+						},
+						"ownership": "copy"
+					}
+				],
+				"expressions": [
+					{
+						"type_id": 1,
+						"span": {
+							"start": 48,
+							"end": 51
+						},
+						"value": {
+							"reference": 0
+						}
+					},
+					{
+						"type_id": 1,
+						"span": {
+							"start": 48,
+							"end": 51
+						},
+						"value": {
+							"call": {
+								"function": 1,
+								"argument": 0,
+								"stores": []
+							}
+						}
+					},
+					{
+						"type_id": 1,
+						"span": {
+							"start": 98,
+							"end": 101
+						},
+						"value": {
+							"reference": 0
+						}
+					},
+					{
+						"type_id": 1,
+						"span": {
+							"start": 98,
+							"end": 101
+						},
+						"value": {
+							"call": {
+								"function": 2,
+								"argument": 2,
+								"stores": []
+							}
+						}
+					},
+					{
+						"type_id": 1,
+						"span": {
+							"start": 137,
+							"end": 146
+						},
+						"value": {
+							"reference": 1
+						}
+					}
+				],
+				"body": [
+					{
+						"parallel": [
+							{
+								"symbol": 1,
+								"value": 1
+							},
+							{
+								"symbol": null,
+								"value": 3
+							}
+						]
+					},
+					{
+						"result": 4
+					}
+				]
+			},
+			{
+				"stores": [],
+				"store_mode": "transaction",
+				"output_ownership": "copy",
+				"contracts": [
+					{
+						"kind": "ensures",
+						"symbols": [
+							{
+								"name": "in",
+								"type_id": 2,
+								"span": {
+									"start": 93,
+									"end": 111
+								},
+								"ownership": "copy"
+							},
+							{
+								"name": "out",
+								"type_id": 2,
+								"span": {
+									"start": 93,
+									"end": 111
+								},
+								"ownership": "copy"
+							}
+						],
+						"expressions": [
+							{
+								"type_id": 2,
+								"span": {
+									"start": 101,
+									"end": 104
+								},
+								"value": {
+									"reference": 1
+								}
+							},
+							{
+								"type_id": 2,
+								"span": {
+									"start": 108,
+									"end": 110
+								},
+								"value": {
+									"reference": 0
+								}
+							},
+							{
+								"type_id": 1,
+								"span": {
+									"start": 101,
+									"end": 110
+								},
+								"value": {
+									"binary": {
+										"operator": "equal",
+										"left": 0,
+										"right": 1
+									}
+								}
+							}
+						],
+						"predicate": 2,
+						"span": {
+							"start": 93,
+							"end": 111
+						}
+					}
+				],
+				"external": null,
+				"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/并行纯计算证明/示例/checked.zx",
+				"input_type": 2,
+				"output_type": 2,
+				"symbols": [
+					{
+						"name": "in",
+						"type_id": 2,
+						"span": {
+							"start": 112,
+							"end": 127
+						},
+						"ownership": "copy"
+					}
+				],
+				"expressions": [
+					{
+						"type_id": 2,
+						"span": {
+							"start": 123,
+							"end": 125
+						},
+						"value": {
+							"reference": 0
+						}
+					}
+				],
+				"body": [
+					{
+						"result": 0
+					}
+				]
+			}
+		],
+		"native_modules": [],
+		"stores": [],
+		"type_only": false
+	}
+}
