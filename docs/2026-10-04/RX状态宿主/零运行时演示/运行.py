@@ -1,7 +1,6 @@
 import hashlib
 import json
 import subprocess
-import tempfile
 from pathlib import Path
 
 base = Path(__file__).resolve().parent.parent
@@ -11,15 +10,6 @@ generator = base / "初值演示/zig-out/bin/store-initializers"
 
 subprocess.run([str(generator), str(base / "请求项目/sources.json"), str(output)], check=True)
 modules = json.loads((output / "modules.json").read_text())
-initializers = json.loads((output / "initializers.json").read_text())
-slots = json.loads((output / "slots.json").read_text())
-
-if len(slots) != 1:
-    raise RuntimeError("This concrete example expects one Store slot")
-
-initial = next(item for item in initializers if item["identity"] == slots[0]["path"])
-key = hashlib.sha256(initial["identity"].encode()).hexdigest()
-file_name = key + ".json"
 subprocess.run(["node", str(root / "scripts/format.mjs"), *[str(p) for p in output.glob("*.zig")]], cwd=root, check=True)
 command = [
     "zig", "build-exe", "--dep", "application", "--dep", "zxc_state",
@@ -53,13 +43,10 @@ command += ["-Mzxc_abi=" + str(output / "types.zig"), "-femit-bin=" + str(output
 subprocess.run(command, check=True)
 runs = []
 
-with tempfile.TemporaryDirectory(prefix="state-", dir=output) as state:
-    for increment in ["1", "7"]:
-        result = subprocess.run([str(output / "consume"), state, increment], text=True, capture_output=True, check=True)
-        print(result.stdout + result.stderr, end="")
-        runs.append({"increment": increment, "exit_code": result.returncode, "output": result.stdout + result.stderr})
-
-    snapshot = json.loads((Path(state) / file_name).read_text())
+for inputs in [["1", "7"], ["7"]]:
+    result = subprocess.run([str(output / "consume"), *inputs], text=True, capture_output=True, check=True)
+    print(result.stdout + result.stderr, end="")
+    runs.append({"inputs_in_one_application": inputs, "exit_code": result.returncode, "output": result.stdout + result.stderr})
 
 record = {
     "compiler_generated_concrete_state": True,
@@ -67,6 +54,6 @@ record = {
     "command": command,
     "binary_sha256": hashlib.sha256((output / "consume").read_bytes()).hexdigest(),
     "runs": runs,
-    "snapshot": snapshot,
+    "storage": "application_memory",
 }
 (output / "运行结果.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n")

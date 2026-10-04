@@ -5,16 +5,18 @@ const State = @import("zxc_state");
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
     const args = try init.minimal.args.toSlice(allocator);
-    const expected: usize = if (application.Input == void) 3 else 4;
 
-    if (args.len != expected or !std.mem.eql(u8, args[1], "--state-dir")) return error.ExpectedStateDirectoryAndJsonInput;
+    const input: application.Input = if (application.Input == void) blk: {
+        if (args.len != 1) return error.ExpectedNoArguments;
 
-    const directory = try std.Io.Dir.cwd().openDir(init.io, args[2], .{});
+        break :blk {};
+    } else blk: {
+        if (args.len != 2) return error.ExpectedJsonInput;
 
-    defer directory.close(init.io);
+        break :blk try std.json.parseFromSliceLeaky(application.Input, allocator, args[1], .{ .allocate = .alloc_always });
+    };
 
-    const input: application.Input = if (application.Input == void) {} else try std.json.parseFromSliceLeaky(application.Input, allocator, args[3], .{ .allocate = .alloc_always });
-    var state = State{ .arena = init.arena, .io = init.io, .directory = directory };
+    var state = State{ .arena = init.arena };
 
     try state.initialize();
 

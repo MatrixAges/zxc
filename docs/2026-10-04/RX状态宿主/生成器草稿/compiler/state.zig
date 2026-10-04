@@ -30,7 +30,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
 
         if (!std.mem.eql(u8, initial.type_name, shared.types[@intFromEnum(slot.type_id)])) return error.InvalidInitializer;
 
-        object.* = .{ .identity = initial.identity, .schema_version = initial.schema_version, .module_name = initial.module_name, .type_name = initial.type_name, .writable = slot.writable };
+        object.* = .{ .module_name = initial.module_name, .writable = slot.writable };
         imports[index + 1] = initial.module_name;
     }
 
@@ -49,7 +49,7 @@ fn emit(allocator: std.mem.Allocator, objects: []const generating.Object, cache:
     const metadata = try std.json.Stringify.valueAlloc(allocator, objects, .{});
     var hash = std.crypto.hash.sha2.Sha256.init(.{});
 
-    hash.update("zxc.zig.state.v1");
+    hash.update("zxc.zig.state.memory.v1");
     hash.update(metadata);
 
     const key = hash.finalResult();
