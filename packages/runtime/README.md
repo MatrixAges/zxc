@@ -34,7 +34,7 @@ snapshot 与 commit 通过 std.Io.Mutex 协调，引用计数为原子计数。�
 
 提交返回的 Snapshot 不应在输出仍被使用时释放。生成宿主还需在提交前准备好快照保留列表的容量，保证发布后不会因保留句柄分配失败而丢失生命周期管理。
 
-目前完成版本与内存基础；原生 runner、磁盘快照和发行资源的接入仍在实施。
+目前完成版本、请求内存管理和独立快照文件组件；原生 runner、自动宿主与发行资源的接入仍在实施。
 
 ## 请求期间的版本保留
 
@@ -43,6 +43,20 @@ snapshot 与 commit 通过 std.Io.Mutex 协调，引用计数为原子计数。�
 保留列表在提交前预留容量，提交成功后只有不再分配的句柄转移与值单元更新。分配、冲突或保存失败不会替换请求当前版本。请求使用独立列表分配器；该分配器与 Store 的分配器都必须覆盖各自持有资源的存活期。
 
 一个 Request 不支持并发访问。创建 getter 指针后不能移动 Request；owner 地址在请求提交期间也必须稳定。请求只跟随自身成功提交更新，其他请求提交不会自动刷新它；使用旧版本写入仍返回 Conflict。它不负责磁盘恢复、跨 Object 事务或自动生成整个应用宿主。
+
+## 磁盘快照
+
+`SnapshotFile.init(allocator, directory, options)` 借用已打开的状态目录及 metadata 字符串。options.metadata 包含 identity、schema_version、type_identity；options.limit 是可选的读取与写入字节上限，默认 unlimited。生成宿主应使用编译器提供的物理身份和 ABI 类型身份。目录的创建、生命周期及创建后的持久性由调用方负责。
+
+- `load(T, io, arena, initialize)` 在独占锁内读取和验证快照，返回 revision 与 value。文件不存在时才执行 `initialize(arena, {})`，保存 revision=0；已有文件不执行初始化函数。返回值借用 arena，交给 Store.init 深复制后才可释放。
+- `save(io, previous, next, value)` 实现 Store 的持久化回调。它持锁核对磁盘 revision，验证 metadata 与旧值类型，再写临时文件、同步文件内容并原子替换快照。成功替换是提交点。
+- `sync(io)` 同步目录 metadata。应在 Request.commit 成功发布内存版本后调用；初始化 load 之后也需要安排目录同步。此时同步失败表示状态已经提交、耐久性未获确认，不表示回滚，不能按未提交操作自动重试。
+
+每个 identity 使用 SHA-256 摘要对应的 `.json` 文件与稳定 `.lock` 文件。所有写入者必须遵守相同锁协议；不要删除或替换锁文件。此组件不覆盖 RX 源文件，不提供跨 Object 事务、schema 迁移或损坏文件的自动重置。
+
+恢复时拒绝格式、identity、schema 或 type_identity 不匹配的快照，并按 T 解析值。JSON 数字保留原始文本，避免动态 JSON 中间值先转成 f64 导致整数精度丢失。过期磁盘版本返回 Conflict；缺失、损坏或不兼容的既有状态不会在 save 中被当作初值重建。
+
+目录 sync 的支持取决于平台和文件系统；当前实际执行验证在 macOS 上完成。调用方必须处理同步错误。进程重启恢复、文件 sync 和目录 sync 成功不等同于已经做过断电实验，也不提供不遵守锁协议的外部修改或任意网络文件系统的一致性保证。
 
 ## Answer：交付与验证
 
