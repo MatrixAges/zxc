@@ -1,0 +1,10 @@
+import library from "bundle"
+import type { Result } from "bundle"
+
+export type Input = i32
+
+export type Output = Result
+
+export default function (in: Input): Output {
+  return library(in)
+}

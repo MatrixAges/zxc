@@ -1,0 +1,11 @@
+name: left
+version: 1.0.0
+entry: main.zx
+native_interfaces:
+    - specifier: zig:bridge
+      path: bridge.d.zx
+      module: bridge
+native_modules:
+    - name: bridge
+      path: native/root.zig
+      bundle_files: [nested/step.zig, delta.txt]

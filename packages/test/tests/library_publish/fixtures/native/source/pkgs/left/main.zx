@@ -1,0 +1,9 @@
+import bridge from "zig:bridge"
+
+export type Input = i32
+
+export type Output = i32
+
+export default function (in: Input): Output {
+  return bridge.apply({ value: in })
+}

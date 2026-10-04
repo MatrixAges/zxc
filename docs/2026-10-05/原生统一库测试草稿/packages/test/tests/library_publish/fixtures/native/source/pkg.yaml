@@ -1,0 +1,11 @@
+name: bundle
+version: 1.0.0
+exports:
+    .: main.zx
+    ./left: left.zx
+    ./right: right.zx
+workspace:
+    packages: [pkgs/*]
+dependencies:
+    left: workspace:*
+    right: workspace:*

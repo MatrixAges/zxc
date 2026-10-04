@@ -1,0 +1,11 @@
+import left from "left"
+import right from "right"
+
+export type Input = i32
+
+export type Output = { left: i32
+ right: i32 }
+
+export default function (in: Input): Output {
+  return { left: left(in), right: right(in) }
+}

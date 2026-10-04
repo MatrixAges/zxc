@@ -1,0 +1,16 @@
+import combined from "bundle"
+import left from "bundle/left"
+import right from "bundle/right"
+
+export type Input = i32
+
+export type Result = { left: i32
+ right: i32
+ pair: { left: i32
+ right: i32 } }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+  return { left: left(in), right: right(in), pair: combined(in) }
+}
