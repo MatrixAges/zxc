@@ -1,0 +1,65 @@
+{
+	"command": [
+		"zig",
+		"build-exe",
+		"--dep",
+		"choose",
+		"--dep",
+		"read",
+		"-Mroot=docs/2026-10-05/统一库/模块联结演示/consume.zig",
+		"--dep",
+		"zxc_abi",
+		"--dep",
+		"zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec",
+		"-Mchoose=docs/2026-10-05/统一库/模块联结生成/choose.zig",
+		"--dep",
+		"zxc_abi",
+		"-Mzxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec=docs/2026-10-05/统一库/模块联结生成/zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec.zig",
+		"--dep",
+		"zxc_abi",
+		"-Mread=docs/2026-10-05/统一库/模块联结生成/read.zig",
+		"-Mzxc_abi=docs/2026-10-05/统一库/模块联结生成/abi.zig",
+		"-femit-bin=docs/2026-10-05/统一库/模块联结生成/consume"
+	],
+	"exports": [
+		{
+			"name": "choose",
+			"path": "main.rx",
+			"function": 1,
+			"types": []
+		},
+		{
+			"name": "read",
+			"path": "read.zx",
+			"function": 2,
+			"types": [
+				{
+					"name": "Input",
+					"type_id": 11
+				},
+				{
+					"name": "Output",
+					"type_id": 2
+				}
+			]
+		}
+	],
+	"runs": [
+		{
+			"input": {
+				"enabled": true,
+				"value": 42
+			},
+			"exit_code": 0,
+			"output": "{\"selected\":42,\"original\":42}\n"
+		},
+		{
+			"input": {
+				"enabled": false,
+				"value": 42
+			},
+			"exit_code": 0,
+			"output": "{\"selected\":0,\"original\":42}\n"
+		}
+	]
+}

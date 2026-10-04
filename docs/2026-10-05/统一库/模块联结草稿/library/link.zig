@@ -1,0 +1,105 @@
+const std = @import("std");
+const frontend = @import("frontend");
+const ir = @import("zx").ir;
+const model = @import("root.zig");
+const artifact = frontend.project.artifact;
+const Nodes = frontend.ArtifactNodes;
+const Types = artifact.type_link.Table;
+pub const Error = Types.Error || artifact.Error || error{ ConflictingInterface, InvalidAnalysis, InvalidIr, DuplicateExport, ConflictingStore };
+
+pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!model.Result {
+    if (inputs.len == 0) return error.InvalidModule;
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+
+    errdefer arena.deinit();
+
+    const owned = arena.allocator();
+    var temporary = std.heap.ArenaAllocator.init(allocator);
+
+    defer temporary.deinit();
+
+    const scratch = temporary.allocator();
+    var types = try Types.init(owned);
+    var functions: std.ArrayList(ir.Function) = .empty;
+    var native_modules: std.ArrayList(ir.NativeModule) = .empty;
+    const exports = try owned.alloc(model.Export, inputs.len);
+    var names: std.StringHashMapUnmanaged(void) = .empty;
+    var stores: std.StringHashMapUnmanaged(ir.TypeId) = .empty;
+
+    for (inputs, exports) |input, *exported| {
+        if (input.name.len == 0 or std.mem.indexOfScalar(u8, input.name, 0) != null or !std.unicode.utf8ValidateSlice(input.name)) return error.InvalidModule;
+        if ((try names.getOrPut(scratch, input.name)).found_existing) return error.DuplicateExport;
+        if (input.analysis.value != .ir) return error.InvalidAnalysis;
+
+        const program = input.analysis.value.ir;
+
+        if (try frontend.validateIr(scratch, program) != null) return error.InvalidIr;
+
+        const type_mapping = try types.appendFrom(scratch, program.types, input.analysis.nominal_types, 0);
+        const function_mapping = try scratch.alloc(?ir.FunctionId, program.functions.len);
+        const native_mapping = try scratch.alloc(?ir.NativeModuleId, program.native_modules.len);
+
+        for (function_mapping, 0..) |*id, index| id.* = @enumFromInt(functions.items.len + index);
+
+        @memset(native_mapping, null);
+
+        var nodes = Nodes{ .allocator = owned, .types = .{ .mapped = type_mapping }, .functions = function_mapping, .native_modules = native_mapping };
+
+        for (program.native_modules, native_mapping) |native, *id| id.* = try artifact.native_link.append(owned, &native_modules, native, &nodes);
+        for (program.functions) |function| try functions.append(owned, try nodes.function(function));
+
+        var function_id: ?ir.FunctionId = null;
+
+        if (!program.type_only) {
+            function_id = @enumFromInt(functions.items.len);
+
+            try functions.append(owned, try nodes.function(.{
+                .file_name = program.file_name,
+                .input_type = program.input_type,
+                .output_type = program.output_type,
+                .output_ownership = program.output_ownership,
+                .symbols = program.symbols,
+                .expressions = program.expressions,
+                .body = program.body,
+                .contracts = program.contracts,
+                .stores = program.stores,
+                .store_mode = program.store_mode,
+            }));
+        }
+
+        const public_types = try owned.dupe(ir.Export, program.exports);
+
+        for (public_types) |*item| {
+            item.name = try owned.dupe(u8, item.name);
+            item.type_id = try nodes.types.include(item.type_id);
+        }
+
+        exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types };
+    }
+
+    for (functions.items) |function| for (function.stores) |slot| {
+        const entry = try stores.getOrPut(scratch, slot.path);
+
+        if (entry.found_existing and entry.value_ptr.* != slot.type_id) return error.ConflictingStore;
+
+        entry.value_ptr.* = slot.type_id;
+    };
+
+    const program = ir.Program{
+        .file_name = "library",
+        .types = types.items.items,
+        .input_type = @enumFromInt(@intFromEnum(ir.Scalar.void)),
+        .output_type = @enumFromInt(@intFromEnum(ir.Scalar.void)),
+        .symbols = &.{},
+        .expressions = &.{},
+        .body = &.{},
+        .functions = functions.items,
+        .native_modules = native_modules.items,
+        .type_only = true,
+    };
+
+    if (try frontend.validateIr(scratch, program) != null) return error.InvalidIr;
+
+    return .{ .arena = arena, .program = program, .exports = exports, .nominal_types = types.origins.items.items };
+}
