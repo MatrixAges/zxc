@@ -92,7 +92,7 @@ Context 使用 compileWithContext 或 project.Options.context.contexts，每项�
 
 该能力目前通过编译器 API 由宿主提供值；普通 CLI 不会自动创建绑定，完整 RX 注入执行尚未接通。
 
-IR 实验版本 6 增加入口 Context slot 与 context_get。原生模块仍保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。后端按模块表生成并复用导入；旧原始 IR 不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
+IR 实验版本 7 在入口 Context slot 与 context_get 的基础上增加原生声明组 identity。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
 
 项目分析成功时，`AnalysisResult.modules` 保留入口可达的 ZX 模块记录，按依赖完成装载的顺序排列。每项包含规范化 `path`、原始解析源码的 SHA-256 `source_digest`、导出表、按源码顺序排列的直接 imports，以及 `body`：`types` 表示纯类型模块，`entry` 使用返回 Program 的入口主体，`function` 指向 Program.functions 中的模块函数。入口不会暴露已从 functions 列表移除的编号。
 
