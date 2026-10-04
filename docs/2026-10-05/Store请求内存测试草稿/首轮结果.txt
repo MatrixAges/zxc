@@ -1,0 +1,72 @@
+1/4 failure_test.test.generated State first failing setter discards pending data and remains usable...OK
+2/4 failure_test.test.generated State later failing setter preserves earlier publication...OK
+3/4 failure_test.test.generated State first failure and recovery allocation failures...OK
+4/4 failure_test.test.generated State later failure and recovery allocation failures...OK
+All 4 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/failure_test.zig (1475.056491ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1478.050572
+1/3 readonly_test.test.generated State rejects read only Object publication...OK
+2/3 readonly_test.test.generated State multiple Object guard preserves read only and writable values...OK
+3/3 readonly_test.test.generated State writable peer remains usable with a read only Object...OK
+All 3 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/readonly_test.zig (1431.996671ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1435.228799
+1/5 request_test.test.generated Request retains published values and outputs after request destruction...OK
+2/5 request_test.test.generated Request continuity releases all failed allocations...OK
+3/5 request_test.test.generated Request empty commit releases its independent arena...OK
+4/5 request_test.test.generated Request rejected multi Object commit releases candidate storage...OK
+5/5 request_test.test.generated State destruction releases committed request arenas...OK
+All 5 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/request_test.zig (1516.858498ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1519.866911
+1/5 state_test.test.generated State continues across top level calls and retains old borrows...OK
+2/5 state_test.test.generated State isolates two live application instances...OK
+3/5 state_test.test.generated State rejects multiple Object publication before any write...OK
+4/5 state_test.test.generated State accepts an empty pending update without replacing values...OK
+5/5 state_test.test.generated State initialization and repeated calls release failed allocations...OK
+All 5 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/state_test.zig (1484.896223ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1487.938557
+Build Summary: 11/11 steps succeeded
+test-rx-memory-state success
++- run node success 1s
+|  +- run exe compile-rx-dual-store (generated) success 9ms
+|     +- compile exe compile-rx-dual-store Debug native success 3s MaxRSS:502M
+|        +- WriteFile interfaces/0.d.zx cached
++- run node success 1s
+|  +- run exe compile-rx-dual-store (generated) success 9ms
+|     +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
++- run node success 1s
+|  +- run exe compile-rx-dual-store (generated) success 8ms
+|     +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
++- run node success 1s
+   +- run exe compile-rx-dual-store (generated) cached
+      +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)

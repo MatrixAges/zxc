@@ -1,0 +1,7 @@
+<Module>
+  <Store from="left" as="inner" />
+
+  <Call fn="advance_failure" in="{increment: $in.increment, index: $in.index, state: store.inner.counter}" setter="[store.inner.counter]" out="ctx.result" />
+
+  <Return value="ctx.result" />
+</Module>

@@ -1,0 +1,154 @@
+1/5 state_test.test.generated State continues across top level calls and retains old borrows...OK
+2/5 state_test.test.generated State isolates two live application instances...OK
+3/5 state_test.test.generated State rejects multiple Object publication before any write...OK
+4/5 state_test.test.generated State accepts an empty pending update without replacing values...OK
+5/5 state_test.test.generated State initialization and repeated calls release failed allocations...OK
+All 5 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/state_test.zig (1542.98363ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1545.985888
+1/8 request_test.test.generated Request retains published values and outputs after request destruction...OK
+2/8 request_test.test.generated Request continuity releases all failed allocations...OK
+3/8 request_test.test.generated Request empty commit releases its independent arena...OK
+4/8 request_test.test.generated Request rejected multi Object commit releases candidate storage...OK
+5/8 request_test.test.generated State destruction releases committed request arenas...OK
+6/8 request_test.test.generated Request isolates two live State instances...OK
+7/8 request_test.test.generated overlapping Request lifetimes observe current committed slots...OK
+8/8 request_test.test.generated Request finite write sequence retains earliest snapshot...OK
+All 8 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/request_test.zig (1517.635393ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1520.653409
+1/1 request_registration_test.test.generated Request fails Region registration before publishing either Object...OK
+All 1 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/request_registration_test.zig (1446.941491ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1449.824119
+1/3 readonly_test.test.generated State rejects read only Object publication...OK
+2/3 readonly_test.test.generated State multiple Object guard preserves read only and writable values...OK
+3/3 readonly_test.test.generated State writable peer remains usable with a read only Object...OK
+All 3 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/readonly_test.zig (1448.219336ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1451.133389
+1/6 request_failure_test.test.generated Request first failing setter discards pending data and remains usable...OK
+2/6 request_failure_test.test.generated Request later failing setter preserves earlier publication...OK
+3/6 request_failure_test.test.generated Request first failure and recovery allocation failures...OK
+4/6 request_failure_test.test.generated Request later failure and recovery allocation failures...OK
+5/6 request_failure_test.test.generated Request failure before publication releases all temporary memory...OK
+6/6 request_failure_test.test.generated Request failure after publication retains committed data until State destruction...OK
+All 6 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/request_failure_test.zig (1517.390301ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1520.338973
+1/4 failure_test.test.generated State first failing setter discards pending data and remains usable...OK
+2/4 failure_test.test.generated State later failing setter preserves earlier publication...OK
+3/4 failure_test.test.generated State first failure and recovery allocation failures...OK
+4/4 failure_test.test.generated State later failure and recovery allocation failures...OK
+All 4 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/failure_test.zig (1470.074582ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1473.163176
+1/4 request_readonly_test.test.generated readonly Request executes using its own arena...OK
+2/4 request_readonly_test.test.generated readonly Request cleans every allocation failure...OK
+3/4 request_readonly_test.test.generated readonly Request releases output storage after each request...OK
+4/4 request_readonly_test.test.generated readonly Request rejects publication and releases candidates...OK
+All 4 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/request_readonly_test.zig (1489.633486ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1492.576833
+Build Summary: 30/30 steps succeeded; 39/39 tests passed
+test-rx-store-runtime success
++- run test 19 pass (19 total) 4ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:257M
+|     +- run exe compile-rx-dual-store (program.zig) success 11ms
+|     |  +- compile exe compile-rx-dual-store Debug native success 3s MaxRSS:513M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
++- run test 8 pass (8 total) 4ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:250M
+|     +- run exe compile-rx-dual-store (program.zig) success 12ms
+|     |  +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
++- run test 6 pass (6 total) 3ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:255M
+|     +- run exe compile-rx-dual-store (program.zig) success 8ms
+|     |  +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
++- run test 6 pass (6 total) 3ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:262M
+|     +- run exe compile-rx-dual-store (program.zig) success 7ms
+|     |  +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-dual-store (program.zig) (+1 more reused dependencies)
++- test-rx-memory-state success
+   +- run node success 1s
+   |  +- run exe compile-rx-dual-store (generated) cached
+   |     +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
+   +- run node success 1s
+   |  +- run exe compile-rx-dual-store (generated) success 9ms
+   |     +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
+   +- run node success 1s
+   |  +- run exe compile-rx-dual-store (generated) success 10ms
+   |     +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
+   +- run node success 1s
+   |  +- run exe compile-rx-dual-store (generated) cached
+   |     +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
+   +- run node success 1s
+   |  +- run exe compile-rx-dual-store (generated) cached
+   |     +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
+   +- run node success 1s
+   |  +- run exe compile-rx-dual-store (generated) success 9ms
+   |     +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
+   +- run node success 1s
+      +- run exe compile-rx-dual-store (generated) success 7ms
+         +- compile exe compile-rx-dual-store Debug native (+1 more reused dependencies)
