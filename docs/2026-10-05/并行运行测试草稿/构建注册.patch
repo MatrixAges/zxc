@@ -1,0 +1,6 @@
+diff --git a/packages/test/build.zig b/packages/test/build.zig
+index dd87f688..87f67ee9 100644
+--- a/packages/test/build.zig
++++ b/packages/test/build.zig
+@@ -30,0 +31 @@ pub fn build(b: *std.Build) void {
++    test_step.dependOn(@import("build/rx_parallel_runtime.zig").add(b, compiler, target, optimize));

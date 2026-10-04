@@ -28,6 +28,7 @@ pub fn build(b: *std.Build) void {
     expression_step.dependOn(&b.addRunArtifact(expression_tests).step);
     test_step.dependOn(expression_step);
     test_step.dependOn(@import("build/rx_runtime.zig").add(b, compiler, target, optimize));
+    test_step.dependOn(@import("build/rx_parallel_runtime.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/expression_runtime.zig").add(b, compiler, target, optimize));
 
     const contracts_step = b.step("test-contracts", "Validate contract analysis and code generation gates");

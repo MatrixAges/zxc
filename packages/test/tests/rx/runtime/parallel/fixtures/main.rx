@@ -1,0 +1,7 @@
+<Module>
+  <Parallel>
+    <Call fn="map_values" in="$in" out="ctx.left" />
+    <Call fn="double_values" in="$in" out="ctx.right" />
+  </Parallel>
+  <Return value="{left: ctx.left, right: ctx.right}" />
+</Module>
