@@ -1,0 +1,45 @@
+{
+	"artifact": "docs/2026-10-05/统一库/模块装载生成/library.zxcir",
+	"artifact_sha256": "6b614a963486f412d6cfdf4e916580b6e5d08254ccade152a3dc23adc521d70f",
+	"separate_writer_and_reader_processes": true,
+	"command": [
+		"zig",
+		"build-exe",
+		"--dep",
+		"choose",
+		"--dep",
+		"read",
+		"-Mroot=docs/2026-10-05/统一库/模块联结演示/consume.zig",
+		"--dep",
+		"zxc_abi",
+		"--dep",
+		"zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec",
+		"-Mchoose=docs/2026-10-05/统一库/模块装载生成/public_0.zig",
+		"--dep",
+		"zxc_abi",
+		"-Mzxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec=docs/2026-10-05/统一库/模块装载生成/zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec.zig",
+		"--dep",
+		"zxc_abi",
+		"-Mread=docs/2026-10-05/统一库/模块装载生成/public_1.zig",
+		"-Mzxc_abi=docs/2026-10-05/统一库/模块装载生成/abi.zig",
+		"-femit-bin=docs/2026-10-05/统一库/模块装载生成/consume"
+	],
+	"runs": [
+		{
+			"input": {
+				"enabled": true,
+				"value": 42
+			},
+			"exit_code": 0,
+			"output": "{\"selected\":42,\"original\":42}\n"
+		},
+		{
+			"input": {
+				"enabled": false,
+				"value": 42
+			},
+			"exit_code": 0,
+			"output": "{\"selected\":0,\"original\":42}\n"
+		}
+	]
+}

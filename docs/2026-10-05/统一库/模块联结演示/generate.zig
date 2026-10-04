@@ -45,42 +45,11 @@ pub fn main(init: std.process.Init) !void {
 
     defer library.deinit();
 
-    const Module = struct { name: []const u8, imports: []const []const u8 };
-    var modules: std.ArrayList(Module) = .empty;
+    const encoded = try compiler.library.codec.encode(allocator, &library);
 
-    for (library.exports, 0..) |exported, index| {
-        var analyzed = compiler.AnalysisResult{ .arena = std.heap.ArenaAllocator.init(allocator), .value = .{ .ir = try library.module(index) }, .nominal_types = library.nominal_types };
+    try write(init.io, allocator, args[3], "library.zxcir", encoded);
 
-        defer analyzed.deinit();
-
-        var bundle = try compiler.zig.emitModules(allocator, &analyzed);
-
-        defer bundle.deinit();
-
-        try write(init.io, allocator, args[3], try std.fmt.allocPrint(allocator, "{s}.zig", .{exported.name}), bundle.entry.source);
-        try modules.append(allocator, .{ .name = exported.name, .imports = try copy(allocator, bundle.entry.imports) });
-
-        for (bundle.modules) |module| {
-            var found = false;
-
-            for (modules.items) |existing| if (std.mem.eql(u8, existing.name, module.name)) {
-                found = true;
-
-                break;
-            };
-
-            if (found) continue;
-            try write(init.io, allocator, args[3], try std.fmt.allocPrint(allocator, "{s}.zig", .{module.name}), module.source);
-            try modules.append(allocator, .{ .name = try allocator.dupe(u8, module.name), .imports = try copy(allocator, module.imports) });
-        }
-
-        try write(init.io, allocator, args[3], "abi.zig", bundle.types);
-    }
-
-    try write(init.io, allocator, args[3], "modules.json", try std.json.Stringify.valueAlloc(allocator, modules.items, .{ .whitespace = .indent_2 }));
-    try write(init.io, allocator, args[3], "exports.json", try std.json.Stringify.valueAlloc(allocator, library.exports, .{ .whitespace = .indent_2 }));
-
-    std.debug.print("exports={d} types={d} functions={d}\n", .{ library.exports.len, library.program.types.len, library.program.functions.len });
+    std.debug.print("encoded_exports={d} bytes={d}\n", .{ library.exports.len, encoded.len });
 }
 
 fn read(io: std.Io, allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
@@ -95,12 +64,4 @@ fn write(io: std.Io, allocator: std.mem.Allocator, directory: []const u8, name: 
 
     try file.file.writeStreamingAll(io, text);
     try file.replace(io);
-}
-
-fn copy(allocator: std.mem.Allocator, items: []const []const u8) ![]const []const u8 {
-    const result = try allocator.alloc([]const u8, items.len);
-
-    for (items, result) |item, *owned| owned.* = try allocator.dupe(u8, item);
-
-    return result;
 }
