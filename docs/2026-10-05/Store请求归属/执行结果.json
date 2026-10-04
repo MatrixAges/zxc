@@ -1,0 +1,264 @@
+{
+	"连续请求": {
+		"build_exit": 0,
+		"run_exit": 0,
+		"stderr": "",
+		"records": [
+			{
+				"phase": "result",
+				"input": "1",
+				"output": {
+					"after_left": {
+						"history": [9],
+						"value": 4
+					},
+					"after_right": {
+						"history": [51],
+						"value": 101
+					},
+					"before_left": {
+						"history": [8],
+						"value": 3
+					},
+					"before_right": {
+						"history": [50],
+						"value": 100
+					},
+					"first": 4,
+					"second": 101,
+					"untouched": {
+						"history": [50],
+						"value": 100
+					}
+				}
+			},
+			{
+				"phase": "closed",
+				"before": [
+					{
+						"history": [8],
+						"value": 3
+					},
+					{
+						"history": [50],
+						"value": 100
+					}
+				],
+				"after": [
+					{
+						"history": [9],
+						"value": 4
+					},
+					{
+						"history": [51],
+						"value": 101
+					}
+				]
+			},
+			{
+				"phase": "result",
+				"input": "7",
+				"output": {
+					"after_left": {
+						"history": [10],
+						"value": 11
+					},
+					"after_right": {
+						"history": [52],
+						"value": 108
+					},
+					"before_left": {
+						"history": [9],
+						"value": 4
+					},
+					"before_right": {
+						"history": [51],
+						"value": 101
+					},
+					"first": 11,
+					"second": 108,
+					"untouched": {
+						"history": [51],
+						"value": 101
+					}
+				}
+			},
+			{
+				"phase": "closed",
+				"before": [
+					{
+						"history": [9],
+						"value": 4
+					},
+					{
+						"history": [51],
+						"value": 101
+					}
+				],
+				"after": [
+					{
+						"history": [10],
+						"value": 11
+					},
+					{
+						"history": [52],
+						"value": 108
+					}
+				]
+			},
+			{
+				"phase": "result",
+				"input": "0",
+				"output": {
+					"after_left": {
+						"history": [11],
+						"value": 11
+					},
+					"after_right": {
+						"history": [53],
+						"value": 108
+					},
+					"before_left": {
+						"history": [10],
+						"value": 11
+					},
+					"before_right": {
+						"history": [52],
+						"value": 108
+					},
+					"first": 11,
+					"second": 108,
+					"untouched": {
+						"history": [52],
+						"value": 108
+					}
+				}
+			},
+			{
+				"phase": "closed",
+				"before": [
+					{
+						"history": [10],
+						"value": 11
+					},
+					{
+						"history": [52],
+						"value": 108
+					}
+				],
+				"after": [
+					{
+						"history": [11],
+						"value": 11
+					},
+					{
+						"history": [53],
+						"value": 108
+					}
+				]
+			},
+			{
+				"remaining_bytes": 0
+			}
+		],
+		"binary_sha256": "723f82ff2a79621b30d5eec4e896d41ecc0ce143302889f4cfa82975956faf91"
+	},
+	"失败恢复": {
+		"build_exit": 0,
+		"run_exit": 0,
+		"stderr": "",
+		"records": [
+			{
+				"phase": "result",
+				"input": "{\"increment\":1,\"left_index\":1,\"right_index\":0}",
+				"failure": "IndexOutOfBounds"
+			},
+			{
+				"phase": "closed",
+				"before": [
+					{
+						"history": [8],
+						"value": 3
+					},
+					{
+						"history": [50],
+						"value": 100
+					}
+				],
+				"after": [
+					{
+						"history": [8],
+						"value": 3
+					},
+					{
+						"history": [50],
+						"value": 100
+					}
+				]
+			},
+			{
+				"phase": "result",
+				"input": "{\"increment\":1,\"left_index\":0,\"right_index\":1}",
+				"failure": "IndexOutOfBounds"
+			},
+			{
+				"phase": "closed",
+				"before": [
+					{
+						"history": [8],
+						"value": 3
+					},
+					{
+						"history": [50],
+						"value": 100
+					}
+				],
+				"after": [
+					{
+						"history": [9],
+						"value": 4
+					},
+					{
+						"history": [50],
+						"value": 100
+					}
+				]
+			},
+			{
+				"phase": "result",
+				"input": "{\"increment\":1,\"left_index\":0,\"right_index\":0}",
+				"output": {
+					"first": 10,
+					"second": 51
+				}
+			},
+			{
+				"phase": "closed",
+				"before": [
+					{
+						"history": [9],
+						"value": 4
+					},
+					{
+						"history": [50],
+						"value": 100
+					}
+				],
+				"after": [
+					{
+						"history": [10],
+						"value": 5
+					},
+					{
+						"history": [51],
+						"value": 101
+					}
+				]
+			},
+			{
+				"remaining_bytes": 0
+			}
+		],
+		"binary_sha256": "1e3d586aed030f2c3f525914df6b960eb6405c909eb3e4f01bb40c8271f01a96"
+	}
+}

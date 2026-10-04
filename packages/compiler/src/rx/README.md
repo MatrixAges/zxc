@@ -15,7 +15,7 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 公共标签实现位于 `src/rx/labels/`，每个标签一个同名 `.zig` 文件，例如 `Call.zig`、`Module.zig`。Gateway 专用标签位于 `src/rx/features/gateway/labels/`，Store 专用标签位于 `src/rx/features/store/labels/`；每个文件同时承载该标签的 Schema 和专属校验。
 
-`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。Store 定义支持字段类型、初值表达式与初始化 Program 分析；目标是按实际使用的 Object 生成应用级共享内存状态，无专用运行库；当前已撤除误加的磁盘代码，顺序调用共享应用 arena；独立请求内存的长期入口仍待落实，见 [Store 设计](../../../../docs/2026-10-05/Store设计.md)。
+`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。Store 定义支持字段类型、初值表达式与初始化 Program 分析；目标是按实际使用的 Object 生成应用级共享内存状态，无专用运行库；当前已撤除误加的磁盘代码，顺序调用共享 State；独立请求由生成的 Request 管理 arena，成功提交的请求内存保留到应用结束，有界长期回收与并发仍未实现，见 [Store 设计](../../../../docs/2026-10-05/Store设计.md)。
 
 入口装载模式会读取 Store 引用文件：`from="state"` 相对当前模块目录解析到 `state.store.rx`，`from="state.store.rx"` 使用显式文件名。它验证定义存在、Schema 合法以及字段类型与初值兼容，不按 Store.name 搜索全局对象；`as` 和缺省别名保持既有约定。初值会编译为受检查的初始化 Program；读取定义不执行该程序，也不创建持久对象。
 
