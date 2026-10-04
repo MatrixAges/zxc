@@ -1,0 +1,45 @@
+{
+	"initial": {
+		"title": "initial",
+		"items": [
+			{
+				"count": 7
+			},
+			null
+		],
+		"flags": [true, false],
+		"pair": [5, "ready"],
+		"optional": null,
+		"ratio": 1.5
+	},
+	"replacement": {
+		"title": "replacement",
+		"items": [
+			{
+				"count": 19
+			},
+			null,
+			{
+				"count": 23
+			}
+		],
+		"flags": [false, true],
+		"pair": [11, "done"],
+		"optional": 29,
+		"ratio": 2.75
+	},
+	"exit_code": 0,
+	"output": "save revision=0->1 title=replacement\nold=initial current=replacement revision=1\ncompeting=Conflict saves=1\npersistence=SaveRefused saves=1\nafter failure=replacement revision=1\nafter owner release: old=initial nested=7 current=replacement nested=19\nretained={\"title\":\"replacement\",\"items\":[{\"count\":19},null,{\"count\":23}],\"flags\":[false,true],\"pair\":[11,\"done\"],\"optional\":29,\"ratio\":2.75}\nallocator=ok\n",
+	"binary_sha256": "e78f05af6432c65a817a2eb0659576bd3b7f920d0ccc8cad4fc9a0fac8238313",
+	"sources": {
+		"packages/runtime/build.zig.zon": "2b05af15434beb857b0405f79a90fb7b1d5b25167e2b00cc533ab4460cfb091f",
+		"packages/runtime/build.zig": "ed2020af1175874c80e3b58258d3c1444f1b35752dbeea23cc4eb72131ac9f1c",
+		"packages/runtime/src/store.zig": "0e966c2a9198506cc0e1ab9bbf8b3534026123bd53a7129b6b44c3e953229d32",
+		"packages/runtime/src/root.zig": "39212d323e743db52b62773f5e98029146cbc87b7f0479b084640536c002b7d0",
+		"packages/runtime/src/store/clone.zig": "ef75367b12629e00eb17df9e7f7c24e516075d341f0baf035739886c53cbc527",
+		"packages/runtime/src/store/revision.zig": "cd7e5a34e3fe49ea224952ce35a9cec2c75c9f1401c085686cf3e7b817043f90",
+		"docs/2026-10-04/RX状态宿主/演示/build.zig.zon": "f66b0db1e07fe43c81764765286c0e764184ff2bc297e1dab1de61b850c6cae3",
+		"docs/2026-10-04/RX状态宿主/演示/main.zig": "b81ac1a85be098d948ec67d6b3bfe678334efcc577861863abe9c4f28452ef5b",
+		"docs/2026-10-04/RX状态宿主/演示/build.zig": "d22d14264fc2f904bc0810f9f7bc347e1920f6c0ba76038ab5256862905dd7b1"
+	}
+}
