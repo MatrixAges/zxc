@@ -1,0 +1,14 @@
+<Module>
+  <Call fn="read" in="$in" out="ctx.value" />
+
+  <Task name="select">
+    <Switch on="$in.enabled">
+      <Case value="true">
+        <Return value="ctx.value" />
+      </Case>
+      <Default>
+        <Return value="0" />
+      </Default>
+    </Switch>
+  </Task>
+</Module>

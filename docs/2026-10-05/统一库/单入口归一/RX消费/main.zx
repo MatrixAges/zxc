@@ -1,0 +1,10 @@
+import choose from "flow-entry"
+import type { Shared } from "./types.zx"
+
+export type Input = Shared
+
+export type Output = u8
+
+export default function (in: Input): Output {
+  return choose(in)
+}
