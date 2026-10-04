@@ -39,6 +39,6 @@ zxc build src/main.zx --out app
 
 外部包的 ZX 及 zig:/c: 原生声明按包拥有者解析。同名原生接口来自不同包实例时，其声明身份、实现模块和 ABI 视图分别隔离；消费者只能使用自己声明的接口。发布为 library 时，清单保留原生实现所需的 ABI 名称映射，重新打包安装后仍可使用。构建出的 library 也可通过其生成的 build.zig 作为 Zig 模块消费。
 
-原生模块可配置自己的 include_paths，省略时继承包级路径。发布物中的 abi_aliases 保存原生源码使用的名称与包内声明的对应关系，通常由库构建器生成。系统库、外部头文件和不兼容 C ABI 仍属于原生构建环境要求；模块隔离不会消除底层链接冲突。接口格式及示例见 [原生包接口参考](../../docs/2026-10-04/原生包接口参考.md)。
+原生模块可配置自己的 include_paths，省略时继承包级路径。发布物中的 abi_aliases 保存原生源码使用的名称与包内声明的对应关系，通常由库构建器生成。纯 C 模块可通过 bundle_files 声明包根下的文件或目录；lib 导出会复制资源并重定位完整覆盖的 include 搜索目录。系统库、未打包的外部头文件和不兼容 C ABI 仍属于原生构建环境要求；模块隔离不会消除底层链接冲突。接口格式及示例见 [原生包接口参考](../../docs/2026-10-04/原生包接口参考.md)。
 
 版本范围参考 [node-semver 的范围定义](https://github.com/npm/node-semver#ranges)，本地协议参考 [pnpm workspace](https://pnpm.io/workspaces)。本包只处理版本、索引和锁定图，不把 JavaScript 包运行模型带入 ZX。

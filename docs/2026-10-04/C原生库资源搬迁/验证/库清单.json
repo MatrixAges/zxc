@@ -1,0 +1,43 @@
+{
+	"format_version": 1,
+	"zig_module": "library",
+	"zig_entry": "root.zig",
+	"zx_entry": "source/module_0.zx",
+	"ir_version": 8,
+	"native_sources_bundled": true,
+	"bundled_files": [
+		{
+			"path": "native/bridge/source/include/late.h",
+			"kind": "asset",
+			"sha256": "6b6542baac6c9e154575e1dceb78b888f460be3a977802fb0c6e1a5009d0501c",
+			"referenced_from": null
+		}
+	],
+	"native_dependencies": [
+		{
+			"name": "bridge",
+			"header": "late.h",
+			"c_imports": true,
+			"dynamic_resources": false,
+			"include_relocations": [
+				{
+					"source": "include",
+					"destination": "native/bridge/source/include"
+				}
+			]
+		}
+	],
+	"generated_modules": [
+		{
+			"name": "zxc_module_17c12b75ddf87088060b2f7d34ef6ea077cdf0936809cc6b64c9694b5fe6874b",
+			"path": "modules/zxc_module_17c12b75ddf87088060b2f7d34ef6ea077cdf0936809cc6b64c9694b5fe6874b.zig",
+			"dependencies": ["bridge"]
+		}
+	],
+	"entry_dependencies": ["zxc_module_17c12b75ddf87088060b2f7d34ef6ea077cdf0936809cc6b64c9694b5fe6874b"],
+	"external_build_requirements": {
+		"libraries": [],
+		"include_paths": [],
+		"library_paths": []
+	}
+}

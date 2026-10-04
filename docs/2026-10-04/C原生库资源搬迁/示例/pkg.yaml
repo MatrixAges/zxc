@@ -1,0 +1,12 @@
+name: watch-header
+version: 0.0.0
+include_paths: [include]
+native_modules:
+    - name: bridge
+      header: late.h
+      bundle_files: [include]
+native_interfaces:
+    - specifier: c:bridge
+      path: bridge.d.zx
+      module: bridge
+      namespace: [c]
