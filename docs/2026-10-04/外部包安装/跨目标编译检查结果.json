@@ -1,0 +1,14 @@
+{
+	"command": "zig build-exe --dep store --dep pkgs -Mroot=docs/2026-10-04/外部包安装/共享存储演示.zig --dep pkgs -Mstore=packages/compiler/src/package/store.zig -Mpkgs=packages/pkgs/src/root.zig -fno-emit-bin -target <target>",
+	"targets": [
+		{
+			"target": "x86_64-windows",
+			"exit_code": 0
+		},
+		{
+			"target": "x86_64-linux",
+			"exit_code": 0
+		}
+	],
+	"scope": "compile only; no cross-platform runtime claim"
+}
