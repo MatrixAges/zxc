@@ -24,6 +24,10 @@ pub fn read(io: std.Io, allocator: std.mem.Allocator, source: []const u8, base: 
 
     defer request.deinit();
 
+    errdefer if (request.connection) |connection| {
+        connection.closing = true;
+    };
+
     try request.sendBodiless();
 
     var redirect_buffer: [8192]u8 = undefined;
