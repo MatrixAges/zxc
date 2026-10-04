@@ -1,0 +1,13 @@
+<Module>
+  <Parallel>
+    <Task name="work" out="ctx.left">
+      <Call fn="map_values" in="$in" out="local.value" />
+      <Return value="local.value" />
+    </Task>
+    <Task name="work" out="ctx.right">
+      <Call fn="double_values" in="$in" out="local.value" />
+      <Return value="local.value" />
+    </Task>
+  </Parallel>
+  <Return value="{left: ctx.left, right: ctx.right}" />
+</Module>
