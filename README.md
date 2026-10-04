@@ -6,6 +6,8 @@
 ![Experimental](https://img.shields.io/badge/status-experimental-orange.svg)
 ![Zig 0.16.0](https://img.shields.io/badge/zig-0.16.0-f7a41d.svg)
 
+[Quick Start](#quick-start) · [CLI](packages/cli/README.md) · [RX Reference](packages/compiler/src/rx/README.md) · [Compiler](packages/compiler/README.md) · [Design](docs/zxc_deisgn_doc.md)
+
 ## At a Glance
 
 **`quote.zx`** — one file, one typed computation:
@@ -79,10 +81,6 @@ The compiler is at `zig-out/bin/zxc`. See the [CLI docs](packages/cli/README.md)
 ## Status
 
 zxc is **experimental**; the language and IR may change. ZX compilation and RX `Call` / `Return` / `Task` / `Switch` work today. Store state, `Parallel`, events and Gateway are in progress. See [capabilities and limits](packages/website/content/docs/en/limits.md).
-
-## Documentation
-
-[App Guide](packages/skills/README.md) · [CLI](packages/cli/README.md) · [RX Reference](packages/compiler/src/rx/README.md) · [Compiler](packages/compiler/README.md) · [Design](docs/zxc_deisgn_doc.md)
 
 ## License
 
