@@ -1,0 +1,53 @@
+{
+	"compile_command": [
+		"zig",
+		"build-exe",
+		"--dep",
+		"initial",
+		"-Mroot=docs/2026-10-05/统一库/Store初始化再发布/init_consume.zig",
+		"--dep",
+		"zxc_abi",
+		"-Minitial=docs/2026-10-05/统一库/Store初始化再发布/产物/modules/zxc_store_initial_e8bc35d05309f66a87901e87a458ab0a2e66686b138857c7d762c20be1acc9c1.zig",
+		"-Mzxc_abi=docs/2026-10-05/统一库/Store初始化再发布/产物/abi.zig",
+		"-femit-bin=docs/2026-10-05/统一库/Store初始化再发布/init_consume"
+	],
+	"exit_code": 0,
+	"stdout": "",
+	"stderr": "value=3 history={ 8 }\n",
+	"artifacts": [
+		{
+			"directory": "docs/2026-10-05/统一库/Store初始化发布",
+			"format": "zxc.library.v2",
+			"initializers": [
+				{
+					"identity": "store.state.store.rx:counter",
+					"schema_version": 1,
+					"function": 1
+				}
+			],
+			"access_modes": [
+				[false, true],
+				[true, false],
+				[true, true]
+			],
+			"function_count": 5
+		},
+		{
+			"directory": "docs/2026-10-05/统一库/Store初始化再发布/产物",
+			"format": "zxc.library.v2",
+			"initializers": [
+				{
+					"identity": "store.library:99:/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/统一库/Store初始化再发布/counter:state.store.rx:counter",
+					"schema_version": 1,
+					"function": 1
+				}
+			],
+			"access_modes": [
+				[false, true],
+				[true, false],
+				[true, true]
+			],
+			"function_count": 5
+		}
+	]
+}
