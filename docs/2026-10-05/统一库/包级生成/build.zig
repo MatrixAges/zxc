@@ -78,3 +78,17 @@ pub fn build(b: *std.Build) void {
         for (config.library_paths) |path| module.addLibraryPath(.{ .cwd_relative = path });
     }
 }
+
+const config: Config = .{
+    .native_modules = &.{},
+    .public_modules = &.{
+        .{ .name = "choose", .path = "public_725fed9d1ae909982052ec4fe91a5a140158b4349498c7ef020ed32d6f8a370d.zig", .dependencies = &.{"zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec"} },
+        .{ .name = "read", .path = "public_3316348dbadfb7b11c7c2ea235949419e23f9fa898ad2c198f999617912a9925.zig", .dependencies = &.{} },
+    },
+    .generated_modules = &.{
+        .{ .name = "zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec", .path = "zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec.zig", .dependencies = &.{} },
+    },
+    .libraries = &.{},
+    .include_paths = &.{},
+    .library_paths = &.{},
+};

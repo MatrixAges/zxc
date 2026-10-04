@@ -1,0 +1,40 @@
+{
+	"multi_module_build": "zig build --summary all",
+	"multi_module_directory": "docs/2026-10-05/统一库/包级消费",
+	"build_steps": "3/3",
+	"runs": [
+		{
+			"input": {
+				"enabled": true,
+				"value": 42
+			},
+			"exit_code": 0,
+			"output": "{\"selected\":42,\"original\":42}\n"
+		},
+		{
+			"input": {
+				"enabled": false,
+				"value": 42
+			},
+			"exit_code": 0,
+			"output": "{\"selected\":0,\"original\":42}\n"
+		}
+	],
+	"single_entry": {
+		"command": [
+			"zig-out/bin/zxc",
+			"build",
+			"docs/2026-10-05/统一库/公开模块示例/main.zx",
+			"--mode",
+			"lib",
+			"--out",
+			"docs/2026-10-05/统一库/单入口发布"
+		],
+		"exit_code": 0,
+		"build_command": ["zig", "build", "--summary", "all"],
+		"build_directory": "docs/2026-10-05/统一库/单入口发布",
+		"build_steps": "1/1",
+		"program_executed": false,
+		"temporary_output_removed": true
+	}
+}
