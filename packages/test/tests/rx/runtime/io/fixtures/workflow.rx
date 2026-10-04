@@ -1,0 +1,9 @@
+<Module>
+  <Call fn="write" in="{path: $in.source, text: $in.text}" />
+  <Call fn="read" in="{path: $in.source, max_bytes: $in.max_bytes}" out="ctx.before" />
+  <Call fn="copy" in="{from: $in.source, to: $in.copy, exclusive: $in.exclusive}" />
+  <Call fn="rename" in="{from: $in.copy, to: $in.destination}" />
+  <Call fn="truncate" in="{path: $in.destination, length: $in.length}" />
+  <Call fn="read" in="{path: $in.destination, max_bytes: $in.max_bytes}" out="ctx.after" />
+  <Return value="{before: ctx.before, after: ctx.after}" />
+</Module>

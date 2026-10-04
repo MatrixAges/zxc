@@ -1,0 +1,6 @@
+<Module>
+  <Call fn="write" in="{path: $in.source, text: $in.text}" />
+  <Call fn="read" in="{path: $in.source, max_bytes: $in.max_bytes}" />
+  <Call fn="write" in="{path: $in.marker, text: $in.text}" />
+  <Return value="true" />
+</Module>
