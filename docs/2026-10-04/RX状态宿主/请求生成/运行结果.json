@@ -1,0 +1,39 @@
+{
+	"persistence": "explicit in-memory host; no disk save",
+	"binary_sha256": "27083b70b82cb8c0976c4532e8e2f9930073eab676658d53d144ed0e17399a7f",
+	"runs": [
+		{
+			"increment": "1",
+			"exit_code": 0,
+			"output": "commit=0->1\ncommit=1->2\nresult={\"current\":{\"history\":[8],\"value\":5},\"first\":4,\"original\":{\"history\":[8],\"value\":3},\"second\":5}\nrevision=2 commits=2 retained=2\nrequest released\n"
+		},
+		{
+			"increment": "7",
+			"exit_code": 0,
+			"output": "commit=0->1\ncommit=1->2\nresult={\"current\":{\"history\":[8],\"value\":17},\"first\":10,\"original\":{\"history\":[8],\"value\":3},\"second\":17}\nrevision=2 commits=2 retained=2\nrequest released\n"
+		}
+	],
+	"sources": {
+		"docs/2026-10-04/RX状态宿主/请求演示/consume.zig": "888894f599d4c0bd316d0de6ca98270e498e502ed4877d5df532d15be0a52351",
+		"docs/2026-10-04/RX状态宿主/请求演示/运行.py": "6c0f55f88203bddd76b3f7be2ded962792cb68b76dd0b2ad7ca1721174fea2ae",
+		"docs/2026-10-04/RX状态宿主/请求项目/advance.rx": "d33b8699d15dfcb458ebe7aa6496414de129c3acbcdcc8f9a08b49478fc089f3",
+		"docs/2026-10-04/RX状态宿主/请求项目/advance.zx": "0da7f65543a4670ddd60caccabbe7c329a45bb9ee7a6b5dd2d34f9796bfe2a64",
+		"docs/2026-10-04/RX状态宿主/请求项目/main.rx": "83f3924b4d9fa954ac757cee2a3dc32b95f9f21d627315831ca800e5c322559d",
+		"docs/2026-10-04/RX状态宿主/请求项目/other.store.rx": "b618e4249c49467617021d8457f853efb961aaec10faca1cda0534fbdcff3689",
+		"docs/2026-10-04/RX状态宿主/请求项目/read.zx": "6d83544ab5459970beaa72c828b5c842f834679acb107b130d9443305c6472bb",
+		"docs/2026-10-04/RX状态宿主/请求项目/state.store.rx": "d337c58d2769da9824c96e930b2ff93fb64f634adf92764f5dbef7282faf9009",
+		"docs/2026-10-04/RX状态宿主/请求生成/application.zig": "5cd699185ca93267173d05ff75fd3f55e1421c1ee9cb5a245f4b1bddbe5cb055",
+		"docs/2026-10-04/RX状态宿主/请求生成/types.zig": "3d54e340e31067a0ad59f08022e54974be82759a91ba695ea14bf6e4c86a08d6",
+		"docs/2026-10-04/RX状态宿主/请求生成/zxc_module_327213d625a1a4f2e5f49e4b08df7d16caf19eecdffdad3d991d91aaf7a3b924.zig": "444fc1e7ac9ecebc49d40b0802623fa613341423362be906867c14e3af205d76",
+		"docs/2026-10-04/RX状态宿主/请求生成/zxc_module_82c4500d58b8f61da8ac20d05834dc6b593ef7ef4772463eb5a9e97c3e9b24ec.zig": "9f5caf3b88fdeea6edee7eb088d57fcd8ec3a08fd96e11183b2b40c5af02bbd6",
+		"docs/2026-10-04/RX状态宿主/请求生成/zxc_module_a90da377ff12e32470eeae28fa6748f7c3fae02be257e158b0d76ef60ac2c41b.zig": "79a067212f244bce6c4fe46bc085d0f3067436d1513f674777d891359d4654c5",
+		"docs/2026-10-04/RX状态宿主/请求生成/zxc_store_initial_48e225adb6047085dc9c57a6bbf984093fd90a4db7884bb3477c633a6862f720.zig": "c12802003350c6637d9ac6ce4aa1dcfcaf22593577be6c913648bd1ae69b9765",
+		"docs/2026-10-04/RX状态宿主/请求生成/zxc_store_initial_56bce05831fadcb73066835de0de2973b3fcb4ad407c35a13499b37613808495.zig": "e3895871584a7df98162b381fdf3245ea46f0fef17b59a71b1365e456fedb75f",
+		"docs/2026-10-04/RX状态宿主/请求生成/zxc_store_initial_d8fe27adfc86337466b3d2faf3b7698e5b47dbea060a76fd3a5cc11230586c2e.zig": "cc9b4109a5bf5c431f9f626a582fef71d98550004c09d0ad26ed7c6f70a1d804",
+		"packages/runtime/src/request.zig": "7e55b2ee641fe73e5fd11e76f0467aa1de710d5974061deaa7e3d9d4897d4dab",
+		"packages/runtime/src/root.zig": "213e9c28b9e27026b1bd05149baa627be22cb33b5260876fc2776c57ddb07865",
+		"packages/runtime/src/store.zig": "0e966c2a9198506cc0e1ab9bbf8b3534026123bd53a7129b6b44c3e953229d32",
+		"packages/runtime/src/store/clone.zig": "ef75367b12629e00eb17df9e7f7c24e516075d341f0baf035739886c53cbc527",
+		"packages/runtime/src/store/revision.zig": "cd7e5a34e3fe49ea224952ce35a9cec2c75c9f1401c085686cf3e7b817043f90"
+	}
+}

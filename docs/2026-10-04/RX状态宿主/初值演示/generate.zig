@@ -66,8 +66,17 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().createDirPath(init.io, args[2]);
     try write(init.io, allocator, args[2], "application.zig", bundle.entry.source);
     try write(init.io, allocator, args[2], "types.zig", bundle.types);
+    try write(init.io, allocator, args[2], "slots.json", try std.json.Stringify.valueAlloc(allocator, contract.program.stores, .{ .whitespace = .indent_2 }));
     for (bundle.modules) |file| try write(init.io, allocator, args[2], try std.fmt.allocPrint(allocator, "{s}.zig", .{file.name}), file.source);
     try write(init.io, allocator, args[2], "initializers.json", try std.json.Stringify.valueAlloc(allocator, bundle.store_initializers, .{ .whitespace = .indent_2 }));
+
+    const Module = struct { name: []const u8, imports: []const []const u8 };
+    const module_list = try allocator.alloc(Module, bundle.modules.len + 1);
+
+    module_list[0] = .{ .name = bundle.entry.name, .imports = bundle.entry.imports };
+
+    for (bundle.modules, module_list[1..]) |file, *module| module.* = .{ .name = file.name, .imports = file.imports };
+    try write(init.io, allocator, args[2], "modules.json", try std.json.Stringify.valueAlloc(allocator, module_list, .{ .whitespace = .indent_2 }));
 
     var repeated = try compiler.zig.emitModulesCached(allocator, &analyzed, &cache);
 

@@ -92,3 +92,17 @@ compiler 的 Zig 后端新增 `store_initializers.append`，接收已经通过�
 第二项尚未完成有类型宿主；CLI 尚未消费新增 metadata。未移除原生 Store 构建保护，不把三个初值模块执行成功视为完整 Store 应用运行成功。源码位置未来若参与 genz 输出，必须同步更新生成指纹契约。
 
 既有 `packages/test` 的 `test-module-generation` 专项通过：8/8 构建步骤，9/9 用例，包含缓存复用、语义变动、生成门禁和分配失败清理。没有新增测试用例，没有执行全量测试。只读复核确认当前 Span 只用于源码位置，生成器没有直接或间接消费这些位置。
+
+## 第三项进展：请求快照保留
+
+runtime 新增 `Request(T)`。请求开始时持有 Store 当前版本，并提供 `value` 单元作为生成 getter 的稳定目标。提交前为旧版本列表预留一个位置；提交成功后把原句柄转移到列表，更新当前句柄和值单元。这一发布后的路径没有分配操作。
+
+请求释放时统一释放历史句柄、当前句柄与列表。调用者必须在读取或序列化结果之后再释放请求，保持 owner、Request 的地址稳定，且不能并发使用同一个 Request。其他请求成功提交不会偷偷改变本请求的预期版本；旧版本写入仍由 Store 拒绝。
+
+[请求项目](RX状态宿主/请求项目/main.rx)先调用只读函数，把完整 Object 保存到 ctx.original，再执行两次真实嵌套 service/ZX setter 调用，最后读取当前 Object。它通过既有 XML 项目推导、分模块生成和共享 ABI 编译执行。[显式宿主](RX状态宿主/请求演示/consume.zig)直接使用 runtime.Request，getter 指向 request.value，commit 委托给请求对象。
+
+实际输入 increment=1 时，original.value 保持 3，first=4、second=5、current.value=5；输入 7 时，original.value 仍为 3，first=10、second=17、current.value=17。两次执行均到达 revision=2，保留两个历史版本，输出序列化后全部释放，DebugAllocator 检查通过。初值临时 arena 在执行应用前已释放。完整输出和源码摘要见[请求运行记录](RX状态宿主/请求生成/运行结果.json)。
+
+此次只编译生成器和实际请求程序，没有新增测试用例或运行全量测试。示例的保存回调仅记录内存提交，不能视为磁盘持久化验证。示例明确只有一个应用 Store 槽位；运行脚本沿生成依赖图选择所需模块，未使用的初值文件不作为链接根。
+
+自我复核：当前请求保留所有成功替换的版本，以覆盖 ctx 和最终输出对旧值的借用。没有编译期最后使用点证据时，不能提前释放旧版本。仍未生成完整宿主、接入磁盘或撤掉 CLI 的原生 Store 构建保护；多 Object 请求聚合和单次提交最多一个 Object 的宿主门禁将在生成宿主时接入。

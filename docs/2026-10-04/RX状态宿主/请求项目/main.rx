@@ -1,0 +1,10 @@
+<Module>
+  <Store from="other" as="secondary" />
+  <Store from="state" as="outer" />
+  <Call fn="read" in="store.outer.counter" out="ctx.original" />
+  <Call service="advance" in="$in" out="ctx.first" />
+  <Call service="advance" in="$in" out="ctx.second" />
+  <Call fn="read" in="store.outer.counter" out="ctx.current" />
+  <Return value="{original: ctx.original, first: ctx.first, second: ctx.second, current: ctx.current}" />
+
+</Module>
