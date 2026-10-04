@@ -8,56 +8,52 @@
 
 [Quick Start](#quick-start) · [CLI](packages/cli/README.md) · [RX Reference](packages/compiler/src/rx/README.md) · [Compiler](packages/compiler/README.md) · [Design](docs/zxc_deisgn_doc.md)
 
-## At a Glance
+## Example
 
-**`quote.zx`** — one file, one typed computation:
-
-```typescript
-export type Input = {
-  subtotal: u64
-  discount: u64
-  shipping_fee: u64
-  free_shipping_minimum: u64
-}
-
-export type Output = {
-  shipping: u64
-  payable: u64
-}
-
-export default function (in: Input): Output {
-  const discount = in.discount > in.subtotal ? in.subtotal : in.discount
-  const discounted = in.subtotal - discount
-
-  const shipping = match {
-    discounted >= in.free_shipping_minimum => 0,
-    _ => in.shipping_fee
-  }
-
-  return { shipping: shipping, payable: discounted + shipping }
-}
-```
-
-**`checkout.rx`** — the data flow, visible as structure:
+A checkout flow. **RX** is the map — every step, and what flows between them, in one file:
 
 ```xml
+<!-- checkout.rx -->
 <Module>
-  <Call fn="quote" in="$in" out="ctx.quote" />
+  <Call fn="subtotal" in="$in.items" out="ctx.subtotal" />
+  <Call fn="discount" in="{subtotal:ctx.subtotal,coupon:$in.coupon}" out="ctx.discounted" />
+  <Call fn="shipping" in="{amount:ctx.discounted,region:$in.region}" out="ctx.shipping" />
+  <Call fn="total" in="{amount:ctx.discounted,shipping:ctx.shipping}" out="ctx.total" />
 
-  <Return value="ctx.quote" />
+  <Return value="ctx.total" />
 </Module>
 ```
 
-**Build and run:**
+**ZX** holds the logic — each step is one typed function in its own file:
+
+```typescript
+// shipping.zx
+export type Input = {
+  amount: u64
+  region: string
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return match {
+    in.amount >= 10000 => 0,
+    in.region == "remote" => 1500,
+    _ => 600
+  }
+}
+```
+
+Build it into a native executable and run it:
 
 ```sh
 zxc build checkout.rx --out build/checkout
 
-./build/checkout '{"subtotal":12000,"discount":2000,"shipping_fee":600,"free_shipping_minimum":10000}'
-# {"payable":10000,"shipping":0}
+./build/checkout '{"items":[{"price":4500,"quantity":2},{"price":3000,"quantity":1}],"coupon":"SAVE10","region":"remote"}'
+# {"payable":10800,"shipping":0}
 ```
 
-Modules compose the same way: another RX file can `<Call service="checkout" />` and treat the whole module as a single unit.
+To change the shipping rule, an AI only needs `shipping.zx` — `checkout.rx` already tells it what goes in and what comes out. The compiler infers types across every `Call`, so a mismatched edit fails at build time, not in production.
 
 ## Why zxc
 
