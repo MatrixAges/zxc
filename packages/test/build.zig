@@ -216,7 +216,7 @@ pub fn build(b: *std.Build) void {
     const publish_step = b.step("test-backend-publish", "Validate real artifact publication gates and preserved outputs");
     const observed_sources = b.addWriteFiles();
 
-    for ([_][]const u8{ "cli/build/observed.zig", "cli/options.zig", "cli/watch/inputs.zig", "cli/watch/snapshot.zig", "cli/watch/directory.zig", "cli/watch/output.zig", "cli/backend/protocol.zig", "cli/backend/error_bundle.zig", "cli/backend/process.zig", "cli/toolchain/cache.zig", "package/workspace/directory.zig" }) |path| {
+    for ([_][]const u8{ "cli/build/observed.zig", "cli/options.zig", "cli/configuration/kind.zig", "cli/watch/inputs.zig", "cli/watch/snapshot.zig", "cli/watch/directory.zig", "cli/watch/output.zig", "cli/backend/protocol.zig", "cli/backend/error_bundle.zig", "cli/backend/process.zig", "cli/toolchain/cache.zig", "package/workspace/directory.zig" }) |path| {
         _ = observed_sources.addCopyFile(cli_dependency.path(b.fmt("src/{s}", .{path})), path);
     }
 

@@ -25,7 +25,7 @@ for (const path of ['.', './increment', './nested/math', './A1_b-c/2']) {
 		cases.push({
 			name: `exports ${path} to ${source}`,
 			source: base + stringify({ exports: { [path]: source } }),
-			expected: { entry: null, exports: [{ path, source }] }
+			expected: { entry: null, exports: [{ path, source, module: null }] }
 		})
 	}
 }
@@ -35,9 +35,9 @@ cases.push({
 	source: base + 'exports:\n  ./z: main.zx\n  .: main.zx\n  ./a: other.rx\n',
 	expected: {
 		exports: [
-			{ path: './z', source: 'main.zx' },
-			{ path: '.', source: 'main.zx' },
-			{ path: './a', source: 'other.rx' }
+			{ path: './z', source: 'main.zx', module: null },
+			{ path: '.', source: 'main.zx', module: null },
+			{ path: './a', source: 'other.rx', module: null }
 		]
 	}
 })
@@ -81,13 +81,19 @@ for (const source of ['/main.zx', '../main.zx', 'a/../main.zx', 'C:main.zx', 'a\
 	})
 }
 
-for (const value of ['[]', '{}', '!!int 3', '""', '"bad\\0path"']) {
+for (const value of ['[]', '!!int 3', '""', '"bad\\0path"']) {
 	const message = value.startsWith('"')
 		? 'empty strings and NUL are not allowed in this field'
 		: 'expected a string scalar'
 
 	reject({ name: `invalid implementation ${value}`, fields: `exports:\n  .: §${value}\n`, message })
 }
+
+reject({
+	name: 'invalid implementation {}',
+	fields: 'exports:\n  .: §{}\n',
+	message: 'compiled exports require exactly one module field'
+})
 
 cases.push({
 	name: 'exports conflicts with legacy entry',

@@ -18,10 +18,10 @@ for (const [args, message] of [
 	[[''], 'empty strings and NUL are not allowed in this field'],
 	[['sample', '--version', 'latest'], 'version must be a semantic version'],
 	[['sample', '--version', '01.2.3'], 'version must be a semantic version'],
-	[['sample', '--entry', '../outside.zx'], 'entry must be a package-relative .zx file path'],
-	[['sample', '--entry', '/absolute.zx'], 'entry must be a package-relative .zx file path'],
-	[['sample', '--entry', 'src/a:b.zx'], 'entry must be a package-relative .zx file path'],
-	[['sample', '--entry', 'main.ts'], 'entry must be a package-relative .zx file path'],
+	[['sample', '--entry', '../outside.zx'], 'entry must be a package-relative .zx or .rx file path'],
+	[['sample', '--entry', '/absolute.zx'], 'entry must be a package-relative .zx or .rx file path'],
+	[['sample', '--entry', 'src/a:b.zx'], 'entry must be a package-relative .zx or .rx file path'],
+	[['sample', '--entry', 'main.ts'], 'entry must be a package-relative .zx or .rx file path'],
 ] as Array<[Array<string>, string]>) {
 	cases.push({ name: `invalid manifest ${JSON.stringify(args)}`, args, diagnostic: `pkg.yaml: ${message}\n` })
 }

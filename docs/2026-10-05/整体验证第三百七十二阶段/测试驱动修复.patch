@@ -1,0 +1,55 @@
+diff --git a/packages/test/build.zig b/packages/test/build.zig
+index fd8963f3..ddfa3462 100644
+--- a/packages/test/build.zig
++++ b/packages/test/build.zig
+@@ -219 +219 @@ pub fn build(b: *std.Build) void {
+-    for ([_][]const u8{ "cli/build/observed.zig", "cli/options.zig", "cli/watch/inputs.zig", "cli/watch/snapshot.zig", "cli/watch/directory.zig", "cli/watch/output.zig", "cli/backend/protocol.zig", "cli/backend/error_bundle.zig", "cli/backend/process.zig", "cli/toolchain/cache.zig", "package/workspace/directory.zig" }) |path| {
++    for ([_][]const u8{ "cli/build/observed.zig", "cli/options.zig", "cli/configuration/kind.zig", "cli/watch/inputs.zig", "cli/watch/snapshot.zig", "cli/watch/directory.zig", "cli/watch/output.zig", "cli/backend/protocol.zig", "cli/backend/error_bundle.zig", "cli/backend/process.zig", "cli/toolchain/cache.zig", "package/workspace/directory.zig" }) |path| {
+diff --git a/packages/test/tests/package_manifest/export_cases.ts b/packages/test/tests/package_manifest/export_cases.ts
+index 91bdb112..2f70b537 100644
+--- a/packages/test/tests/package_manifest/export_cases.ts
++++ b/packages/test/tests/package_manifest/export_cases.ts
+@@ -28 +28 @@ for (const path of ['.', './increment', './nested/math', './A1_b-c/2']) {
+-			expected: { entry: null, exports: [{ path, source }] }
++			expected: { entry: null, exports: [{ path, source, module: null }] }
+@@ -38,3 +38,3 @@ cases.push({
+-			{ path: './z', source: 'main.zx' },
+-			{ path: '.', source: 'main.zx' },
+-			{ path: './a', source: 'other.rx' }
++			{ path: './z', source: 'main.zx', module: null },
++			{ path: '.', source: 'main.zx', module: null },
++			{ path: './a', source: 'other.rx', module: null }
+@@ -84 +84 @@ for (const source of ['/main.zx', '../main.zx', 'a/../main.zx', 'C:main.zx', 'a\
+-for (const value of ['[]', '{}', '!!int 3', '""', '"bad\\0path"']) {
++for (const value of ['[]', '!!int 3', '""', '"bad\\0path"']) {
+@@ -91,0 +92,6 @@ for (const value of ['[]', '{}', '!!int 3', '""', '"bad\\0path"']) {
++reject({
++	name: 'invalid implementation {}',
++	fields: 'exports:\n  .: §{}\n',
++	message: 'compiled exports require exactly one module field'
++})
++
+diff --git a/packages/test/tests/package_manifest/init_cases.ts b/packages/test/tests/package_manifest/init_cases.ts
+index 3195b197..1e4c718a 100644
+--- a/packages/test/tests/package_manifest/init_cases.ts
++++ b/packages/test/tests/package_manifest/init_cases.ts
+@@ -21,4 +21,4 @@ for (const [args, message] of [
+-	[['sample', '--entry', '../outside.zx'], 'entry must be a package-relative .zx file path'],
+-	[['sample', '--entry', '/absolute.zx'], 'entry must be a package-relative .zx file path'],
+-	[['sample', '--entry', 'src/a:b.zx'], 'entry must be a package-relative .zx file path'],
+-	[['sample', '--entry', 'main.ts'], 'entry must be a package-relative .zx file path'],
++	[['sample', '--entry', '../outside.zx'], 'entry must be a package-relative .zx or .rx file path'],
++	[['sample', '--entry', '/absolute.zx'], 'entry must be a package-relative .zx or .rx file path'],
++	[['sample', '--entry', 'src/a:b.zx'], 'entry must be a package-relative .zx or .rx file path'],
++	[['sample', '--entry', 'main.ts'], 'entry must be a package-relative .zx or .rx file path'],
+diff --git a/packages/test/tests/package_manifest/inspect_cases.ts b/packages/test/tests/package_manifest/inspect_cases.ts
+index 7665ac26..2414b024 100644
+--- a/packages/test/tests/package_manifest/inspect_cases.ts
++++ b/packages/test/tests/package_manifest/inspect_cases.ts
+@@ -27,3 +27,3 @@ const cases: Array<Case> = [
+-	{ name: 'parent entry', source: base + 'entry: ../main.zx\n', diagnostic: { message: 'entry must be a package-relative .zx file path', line: 3, column: 8 } },
+-	{ name: 'absolute entry', source: base + 'entry: /main.zx\n', diagnostic: { message: 'entry must be a package-relative .zx file path', line: 3, column: 8 } },
+-	{ name: 'wrong entry extension', source: base + 'entry: main.js\n', diagnostic: { message: 'entry must be a package-relative .zx file path', line: 3, column: 8 } },
++	{ name: 'parent entry', source: base + 'entry: ../main.zx\n', diagnostic: { message: 'entry must be a package-relative .zx or .rx file path', line: 3, column: 8 } },
++	{ name: 'absolute entry', source: base + 'entry: /main.zx\n', diagnostic: { message: 'entry must be a package-relative .zx or .rx file path', line: 3, column: 8 } },
++	{ name: 'wrong entry extension', source: base + 'entry: main.js\n', diagnostic: { message: 'entry must be a package-relative .zx or .rx file path', line: 3, column: 8 } },
