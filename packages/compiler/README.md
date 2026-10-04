@@ -14,7 +14,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 - 无捕获 map/filter/reduce，统一元组返回的消费式列表更新；禁止 clone 深拷贝。
 - Call 注入的 `$name.value` Store getter/setter、类型与独立读写权限、暂存与宿主统一提交。
 - 显式注册并审查的 zig:/c: 接口与模块成员，保留旧 lib: 兼容；无前缀 ZX 包入口映射；普通项目函数的 Input/Output 类型连接。
-- 内建 std:encoding、std:crypto、std:path、std:querystring 与 std:zlib 系列纯计算接口；它们不是完整 Node.js 标准库兼容实现。
+- 内建 std:encoding、std:crypto、std:path、std:querystring、std:zlib 与 std:os 系列纯计算接口；它们不是完整 Node.js 标准库兼容实现。
 - 原生 build、C 头文件桥接、目标与 CPU 配置，以及真实汇编输出。
 - 原生模块采用静态编译链接；动态插件与懒加载已按用户决定取消。
 - app/lib 构建模式；lib 交付独立 Zig 模块、实际静态源码依赖、ZX 源码与项目配置，不携带 zxc runtime。
@@ -36,6 +36,8 @@ ZX 不提供指针类型、取地址或解引用语法。参数、返回值和�
 以下为 Zig 宿主集成细节：生成入口使用调用方 Arena，聚合列表元素保存引用槽。新构造数据在 Arena 中分配，所有权移动不递归复制数据。push/concat/splice 为自身操作分配结果列表，pop/reverse/sort 可复用独占存储。新建聚合返回值的所有权摘要已进入 IR，输入借用不能直接消费。原生共享 ABI 和 Store 生命周期还在迁移；调用方必须使输入和 Arena 覆盖所有输出及被保留的 Store 引用。
 
 std:encoding 的 encodeUtf8/decodeUtf8 验证后返回输入的只读视图，不复制内容。Zig 直接消费方不传 allocator，也不释放这两个借用结果；输入存活期须覆盖视图使用期。
+
+std:os 提供 arch()、platform()、endianness()，返回最终编译目标的架构、平台与字节序。接口无参数，交叉编译时不读取开发机信息；返回静态只读字符串，Zig 消费方不释放。名称映射、扩展目标及示例见 [系统目标信息参考](../../docs/2026-10-04/系统目标信息参考.md)。
 
 std:crypto 新增 scrypt 密钥派生，显式接收密码与盐字节、N/r/p、输出长度和内存预算；派生前检查参数及完整缓冲请求量。接口与边界见 [scrypt 密钥派生参考](../../docs/2026-10-04/scrypt密钥派生参考.md)。
 

@@ -1,0 +1,9 @@
+import os from "std:os";
+
+export type Input = void;
+
+export type Output = { arch: string; platform: string; endianness: string; };
+
+export default function (in: Input): Output {
+  return { arch: os.arch(), platform: os.platform(), endianness: os.endianness() };
+}
