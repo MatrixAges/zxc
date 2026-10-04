@@ -1,0 +1,6 @@
+diff --git a/packages/test/build.zig b/packages/test/build.zig
+index 87f67ee9..47193c90 100644
+--- a/packages/test/build.zig
++++ b/packages/test/build.zig
+@@ -31,0 +32 @@ pub fn build(b: *std.Build) void {
++    test_step.dependOn(@import("build/rx_parallel_inference.zig").add(b, compiler, target, optimize));

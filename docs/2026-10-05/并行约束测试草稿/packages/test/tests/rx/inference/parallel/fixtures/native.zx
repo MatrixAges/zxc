@@ -1,0 +1,9 @@
+import native from "zig:sample"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return native.apply(in)
+}

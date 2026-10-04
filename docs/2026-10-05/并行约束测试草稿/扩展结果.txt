@@ -1,0 +1,66 @@
+test-rx-parallel-inference
++- run test 39 pass, 3 fail (42 total)
+error: 'scope_test.test.RX parallel reports conflicting middle output before unrelated final output' failed:
+       expected 117, found 164
+       diagnostic main.rx:6:35: name: Parallel result binding paths must not overlap
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x103fc5529 in expectEqualInner__anon_37724 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103fc776d in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/check.zig:94:9: 0x103fc7a12 in allocated (test)
+               try std.testing.expectEqual(offset, issue.location.offset);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/check.zig:18:5: 0x103fc919d in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/scope_test.zig:30:5: 0x1041bf0ca in test.RX parallel reports conflicting middle output before unrelated final output (test)
+           try h.run(.{
+           ^
+error: 'position_test.test.RX parallel overlap position ignores trailing no-output call' failed:
+       expected 90, found 124
+       diagnostic main.rx:1:125: name: Parallel result binding paths must not overlap
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x103fc5529 in expectEqualInner__anon_37724 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103fc776d in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/check.zig:94:9: 0x103fc7a12 in allocated (test)
+               try std.testing.expectEqual(offset, issue.location.offset);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/check.zig:18:5: 0x103fc919d in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/position_test.zig:4:5: 0x1041beb5a in test.RX parallel overlap position ignores trailing no-output call (test)
+           try h.run(.{
+           ^
+error: 'position_test.test.RX parallel child overlap retains original file and conflicting attribute' failed:
+       expected 118, found 165
+       diagnostic child.rx:6:35: name: Parallel result binding paths must not overlap
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x103fc5529 in expectEqualInner__anon_37724 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103fc776d in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/check.zig:94:9: 0x103fc7a12 in allocated (test)
+               try std.testing.expectEqual(offset, issue.location.offset);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/check.zig:18:5: 0x103fc919d in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/position_test.zig:11:5: 0x1041beb0a in test.RX parallel child overlap retains original file and conflicting attribute (test)
+           try h.run(.{
+           ^
+failed command: ./.zig-cache/o/935e8d9933262376401fff8b2d109255/test --cache-dir=./.zig-cache --seed=0x50f15e3c --listen=-
+
+Build Summary: 2/4 steps succeeded (1 failed); 39/42 tests passed (3 failed)
+test-rx-parallel-inference transitive failure
++- run test 39 pass, 3 fail (42 total)
+   +- compile test Debug native success 3s MaxRSS:536M
+      +- WriteFile interfaces/0.d.zx cached
+
+error: the following build command failed with exit code 1:
+.zig-cache/o/7e66911022e4dcd60dba2e9ecbb44956/build /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib /Users/xiewendao/Documents/MatrixAges/zxc/packages/test .zig-cache /Users/xiewendao/.cache/zig --seed 0x50f15e3c -Zcccb3c9736f882a2 test-rx-parallel-inference --summary all
