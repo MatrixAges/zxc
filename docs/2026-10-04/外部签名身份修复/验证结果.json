@@ -1,0 +1,31 @@
+{
+	"intent": "按导出声明共享外部签名枚举身份",
+	"base_commit": "7f0f592",
+	"isolated_nominal": {
+		"steps": 6,
+		"tests": 12,
+		"exit_code": 0
+	},
+	"targeted": {
+		"steps": 30,
+		"tests": 51,
+		"exit_code": 0
+	},
+	"compiler": {
+		"steps": 8,
+		"tests": 352,
+		"exit_code": 0
+	},
+	"root": {
+		"steps": 1778,
+		"tests": 64439,
+		"exit_code": 0,
+		"scope": "current working tree; includes independent existing regression additions"
+	},
+	"invariants": [
+		"同一模块同一公开导出共享枚举身份",
+		"不同模块或不同独立导出不按结构合并",
+		"完整 IR 与 ABI 校验不变",
+		"旧模块缓存格式拒绝并重新生成"
+	]
+}
