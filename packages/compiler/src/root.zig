@@ -21,7 +21,10 @@ pub const Result = union(enum) {
     source: []u8,
     diagnostic: Diagnostic,
     pub fn deinit(self: Result, allocator: std.mem.Allocator) void {
-        if (self == .source) allocator.free(self.source);
+        switch (self) {
+            .source => |source| allocator.free(source),
+            .diagnostic => |issue| issue.deinit(),
+        }
     }
 };
 
@@ -45,7 +48,7 @@ pub fn compileWithContext(allocator: std.mem.Allocator, source: []const u8, file
     defer analyzed.deinit();
 
     return switch (analyzed.value) {
-        .diagnostic => |issue| .{ .diagnostic = issue },
+        .diagnostic => |issue| .{ .diagnostic = try issue.clone(allocator) },
         .ir => |program| .{ .source = zig.emit(allocator, program) catch |err| switch (err) {
             error.OutOfMemory => return error.OutOfMemory,
             error.InvalidIr => return .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "internal compiler error: generated invalid IR" } },
@@ -99,7 +102,7 @@ pub fn compileProject(allocator: std.mem.Allocator, sources: []const project.Sou
     defer analyzed.deinit();
 
     return switch (analyzed.value) {
-        .diagnostic => |issue| .{ .diagnostic = issue },
+        .diagnostic => |issue| .{ .diagnostic = try issue.clone(allocator) },
         .ir => |program| .{ .source = zig.emit(allocator, program) catch |err| switch (err) {
             error.OutOfMemory => return error.OutOfMemory,
             error.InvalidIr => return .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid project IR" } },

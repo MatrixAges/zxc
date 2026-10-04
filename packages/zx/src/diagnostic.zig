@@ -1,3 +1,4 @@
+const std = @import("std");
 const Span = @import("source.zig").Span;
 
 pub const Code = enum {
@@ -20,6 +21,17 @@ pub const Diagnostic = struct {
     span: Span,
     message: []const u8,
     source_index: ?usize = null,
+    message_allocator: ?std.mem.Allocator = null,
+    pub fn clone(self: Diagnostic, allocator: std.mem.Allocator) !Diagnostic {
+        var owned = self;
+        owned.message = try allocator.dupe(u8, self.message);
+        owned.message_allocator = allocator;
+
+        return owned;
+    }
+    pub fn deinit(self: Diagnostic) void {
+        if (self.message_allocator) |allocator| allocator.free(self.message);
+    }
 };
 
 pub const Error = error{ InvalidSource, OutOfMemory };

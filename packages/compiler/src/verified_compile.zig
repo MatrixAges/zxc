@@ -16,7 +16,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) !compiler.Result 
 
     defer analyzed.deinit();
 
-    if (analyzed.value == .diagnostic) return .{ .diagnostic = analyzed.value.diagnostic };
+    if (analyzed.value == .diagnostic) return .{ .diagnostic = try analyzed.value.diagnostic.clone(allocator) };
 
     const program = analyzed.value.ir;
 
