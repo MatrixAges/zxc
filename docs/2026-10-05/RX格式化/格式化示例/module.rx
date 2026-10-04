@@ -1,0 +1,13 @@
+<Module>
+  <Call module="bundle/snapshot" out="ctx.before" />
+  <Call module="other/snapshot" out="ctx.other_before" />
+
+  <Call module="same/advance" in="$in.left" out="ctx.first" />
+  <Call module="bundle/advance" in="$in.right" out="ctx.second" />
+  <Call module="other/advance" in="$in.right" out="ctx.other" />
+
+  <Call module="same/snapshot" out="ctx.after" />
+  <Call module="other/snapshot" out="ctx.other_after" />
+
+  <Return value="{before: ctx.before, first: ctx.first, second: ctx.second, after: ctx.after, other_before: ctx.other_before, other: ctx.other, other_after: ctx.other_after}" />
+</Module>

@@ -1,0 +1,9 @@
+<Gateway name="example" protocol="http" listen="127.0.0.1:8080">
+  <Group prefix="/api">
+    <Route path="/flow" method="POST" service="main" />
+
+    <Group prefix="/shared">
+      <Route path="/read" method="GET" service="shared" />
+    </Group>
+  </Group>
+</Gateway>

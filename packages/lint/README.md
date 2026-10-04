@@ -1,6 +1,6 @@
 # lint
 
-ZX 的名称检查和 AST 空行格式化包，仅依赖 zx。
+ZX 名称检查与 ZX/RX 空行格式化包，依赖 core 的 ZX 类型及 dsl 的 XML AST。
 
 ## Intent：最终目标
 
@@ -45,4 +45,18 @@ zig-out/bin/zxc fmt application.zx --write
 
 默认 fmt 输出到标准输出；`--write` 才写回文件。compile 与 fmt 使用相同的 edits 规划逻辑，避免检查和修复规则不一致。
 
-仓库通用 GCS 格式化钩子跳过 ZX 文件；ZX 使用 `zxc fmt`，避免模型格式化结果覆盖编译器的格式契约。
+仓库通用 GCS 格式化钩子跳过 ZX/RX 文件；两种源码使用 `zxc fmt`，避免模型格式化结果覆盖编译器的格式契约。
+
+## RX 元素空行
+
+`rx.format(allocator, source, node)` 接收同一份源码经 dsl.parseXml 成功解析的根节点，返回调用方拥有的文本。完整元素跨行，或相邻元素的标签、属性名列表、子元素结构不同，元素之间保留一个空行；同结构单行元素紧凑排列。元素内部首尾不保留多余空行。
+
+只修改已有换行处的空白，不拆分同一行上的多个标签，不重排缩进或属性。保留 LF/CRLF、注释、属性引号及实体写法；CDATA 和非空白文本不参与空行替换，含混合文本的父元素不调整自身间隔。格式化不要求 RX Schema、命名、依赖或类型检查通过，也不构成这些检查。此阶段未将 RX 空行规则加入构建门禁。
+
+```sh
+zxc fmt module.rx
+zxc fmt state.store.rx --check
+zxc fmt http.gateway.rx --write
+```
+
+统一入口 `compiler.format` 根据 .rx 后缀使用 XML 解析与上述格式规则，XML 语法错误返回带位置的诊断。实现与实际执行见 [RX 格式化参考](../../docs/2026-10-05/RX格式化参考.md)。
