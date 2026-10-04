@@ -1,0 +1,9 @@
+import { Mode } from "./types.zx"
+
+export type Input = Mode
+
+export type Output = Mode
+
+export default function (in: Input): Output {
+  return in == Mode.First ? Mode.Second : in == Mode.Second ? Mode.Third : Mode.First
+}
