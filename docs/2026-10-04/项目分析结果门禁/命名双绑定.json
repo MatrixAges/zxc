@@ -1,0 +1,32 @@
+{
+	"sources": [
+		{
+			"path": "main.zx",
+			"source": "import alpha from \"lib:sample\"; import beta from \"lib:sample\"; export type Input = u64; export type Output = u64; export default function (in: Input): Output { return in; }"
+		}
+	],
+	"options": {
+		"entry": "main.zx",
+		"root_dir": "/project",
+		"externals": [
+			{
+				"specifier": "lib:sample",
+				"signature": "export enum Mode { First, Second } export type Input = Mode; export type Output = Mode;",
+				"implementation": {
+					"module": "sample",
+					"member": "first"
+				},
+				"export_name": "first"
+			},
+			{
+				"specifier": "lib:sample",
+				"export_name": "second",
+				"signature": "export enum Mode { First, Second } export type Input = Mode; export type Output = Mode;",
+				"implementation": {
+					"module": "sample",
+					"member": "second"
+				}
+			}
+		]
+	}
+}

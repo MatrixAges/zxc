@@ -1,0 +1,24 @@
+{
+	"sources": [
+		{
+			"path": "main.zx",
+			"source": "import helper from \"./helper.zx\"; import { Mode } from \"zig:first\"; export type Input = u64; export type Output = u64; export default function (in: Input): Output { return in; }"
+		},
+		{
+			"path": "helper.zx",
+			"source": "import { Mode } from \"zig:first\"; export type Input = u64; export type Output = u64; export default function (in: Input): Output { return in; }"
+		}
+	],
+	"options": {
+		"entry": "main.zx",
+		"root_dir": "/project",
+		"native_interfaces": [
+			{
+				"specifier": "zig:first",
+				"path": "first.d.zx",
+				"source": "export enum Mode { First, Second }",
+				"module": "first"
+			}
+		]
+	}
+}
