@@ -1,0 +1,170 @@
+{
+  "阶段": 354,
+  "实现提交": "dce06289",
+  "验证基线": "48ec08e7",
+  "命令": "zig build test-library-link test-library-import --summary all",
+  "steps": 31,
+  "直接Zig测试": 36,
+  "新增API测试": 12,
+  "消费者Zig执行": 22,
+  "Node驱动": 4,
+  "完整根回归": false,
+  "生成证据": [
+    {
+      "模式": "forward",
+      "文件": [
+        {
+          "名称": "alpha.zig",
+          "sha256": "d3353e49b4309039b3f25e2c62b6e9555073fbfeb534322a105df938984229dd"
+        },
+        {
+          "名称": "beta.zig",
+          "sha256": "7565fde3ae159c115cdf9999fe2f7af8b78c6015e4ea4bd381a68b58c1451d57"
+        },
+        {
+          "名称": "modules.json",
+          "sha256": "8168f6078e7545b9d6cec96363f193cbfcedaa001d01e6d80391e87f1be78577"
+        },
+        {
+          "名称": "repeat.zig",
+          "sha256": "d3353e49b4309039b3f25e2c62b6e9555073fbfeb534322a105df938984229dd"
+        },
+        {
+          "名称": "types.zig",
+          "sha256": "133f658512ba16ef6e996a34e941155a724d5675e215cda3cb838c7263ec2723"
+        },
+        {
+          "名称": "zxc_module_875df2623538e1a7d809d57f0002ccbc599e3de3095dcf5832baac936558435b.zig",
+          "sha256": "48a2f5ed2837f9b90bbcca9f372948e72050ceed308cfa38b5b3cab9306717da"
+        },
+        {
+          "名称": "zxc_module_8cd6b5169c48bff316113a00d4854fecbc0389940bfb47cb85a6da1ef0be6262.zig",
+          "sha256": "d2acb575a6d85ff9d778f33de957a02619fbcc99bd8fdd5b7fa52c8104871adf"
+        },
+        {
+          "名称": "zxc_module_c13341e9ee7fe345c94dd2069c9afc36ce474d105227b30162d54097317a0af9.zig",
+          "sha256": "c24c2bcbfdbf09eeea230f72653dfd12f10bd5e4efc7df24079dee2bdfc6b2e8"
+        },
+        {
+          "名称": "zxc_module_f4feb33d94023354302e279773cce6b983059df9314d159a947b7b5f1080c525.zig",
+          "sha256": "c3611a713918b631239308488f91c7f8333b4f71b199b2fdd7b6aac3e5cc10fb"
+        }
+      ]
+    },
+    {
+      "模式": "reverse",
+      "文件": [
+        {
+          "名称": "alpha.zig",
+          "sha256": "d3353e49b4309039b3f25e2c62b6e9555073fbfeb534322a105df938984229dd"
+        },
+        {
+          "名称": "beta.zig",
+          "sha256": "7565fde3ae159c115cdf9999fe2f7af8b78c6015e4ea4bd381a68b58c1451d57"
+        },
+        {
+          "名称": "modules.json",
+          "sha256": "fbbd51c8aab981b433e426eb44231d9b6189ce86aa5f240501878b530715c2a0"
+        },
+        {
+          "名称": "repeat.zig",
+          "sha256": "d3353e49b4309039b3f25e2c62b6e9555073fbfeb534322a105df938984229dd"
+        },
+        {
+          "名称": "types.zig",
+          "sha256": "133f658512ba16ef6e996a34e941155a724d5675e215cda3cb838c7263ec2723"
+        },
+        {
+          "名称": "zxc_module_875df2623538e1a7d809d57f0002ccbc599e3de3095dcf5832baac936558435b.zig",
+          "sha256": "48a2f5ed2837f9b90bbcca9f372948e72050ceed308cfa38b5b3cab9306717da"
+        },
+        {
+          "名称": "zxc_module_8cd6b5169c48bff316113a00d4854fecbc0389940bfb47cb85a6da1ef0be6262.zig",
+          "sha256": "d2acb575a6d85ff9d778f33de957a02619fbcc99bd8fdd5b7fa52c8104871adf"
+        },
+        {
+          "名称": "zxc_module_c13341e9ee7fe345c94dd2069c9afc36ce474d105227b30162d54097317a0af9.zig",
+          "sha256": "c24c2bcbfdbf09eeea230f72653dfd12f10bd5e4efc7df24079dee2bdfc6b2e8"
+        },
+        {
+          "名称": "zxc_module_f4feb33d94023354302e279773cce6b983059df9314d159a947b7b5f1080c525.zig",
+          "sha256": "c3611a713918b631239308488f91c7f8333b4f71b199b2fdd7b6aac3e5cc10fb"
+        }
+      ]
+    },
+    {
+      "模式": "mixed_forward",
+      "文件": [
+        {
+          "名称": "alpha.zig",
+          "sha256": "8f7535d80f28eadf5356a7386d68d97cd65151eae1410a11ff5f3050e02f9c96"
+        },
+        {
+          "名称": "beta.zig",
+          "sha256": "e7dd842c28e701a4ae8522067dada5be7aeef6979cd20425db8b10ae47a692fd"
+        },
+        {
+          "名称": "modules.json",
+          "sha256": "424706df78b4f38af91fad97a1694d0bc7b18978925f23daea256aacb002eeb9"
+        },
+        {
+          "名称": "repeat.zig",
+          "sha256": "8f7535d80f28eadf5356a7386d68d97cd65151eae1410a11ff5f3050e02f9c96"
+        },
+        {
+          "名称": "types.zig",
+          "sha256": "8ba47b31b645f71023c765be89810ac88704827b6f3e2fa1cc8b3038229f0cfc"
+        },
+        {
+          "名称": "zxc_module_1b785decf91a0b14e59dc61defbe4710b29b564b0923a9cfb9f8941c549c2714.zig",
+          "sha256": "c24c2bcbfdbf09eeea230f72653dfd12f10bd5e4efc7df24079dee2bdfc6b2e8"
+        },
+        {
+          "名称": "zxc_module_9a7964dd7af840a89bda70253167207811028e4210b649061c9ff701529e7e4a.zig",
+          "sha256": "9a66ecb0b8506da715d6482afb9af5a945367a9d8db04f8c2d48a408cec72c81"
+        },
+        {
+          "名称": "zxc_module_bd5c989f52754a629fafd9a088fc51a914b91abee90fce534311b27c9737239b.zig",
+          "sha256": "391854d5c4323f3fa0b2a095ddc61fe14ddb4999765407a4c2f87664c9b4838b"
+        }
+      ]
+    },
+    {
+      "模式": "mixed_reverse",
+      "文件": [
+        {
+          "名称": "alpha.zig",
+          "sha256": "8f7535d80f28eadf5356a7386d68d97cd65151eae1410a11ff5f3050e02f9c96"
+        },
+        {
+          "名称": "beta.zig",
+          "sha256": "e7dd842c28e701a4ae8522067dada5be7aeef6979cd20425db8b10ae47a692fd"
+        },
+        {
+          "名称": "modules.json",
+          "sha256": "d827bf23bfe8306bfeb57b1c94ef6e8136cac5656750fcbe20e79266e8a1f260"
+        },
+        {
+          "名称": "repeat.zig",
+          "sha256": "8f7535d80f28eadf5356a7386d68d97cd65151eae1410a11ff5f3050e02f9c96"
+        },
+        {
+          "名称": "types.zig",
+          "sha256": "8ba47b31b645f71023c765be89810ac88704827b6f3e2fa1cc8b3038229f0cfc"
+        },
+        {
+          "名称": "zxc_module_1b785decf91a0b14e59dc61defbe4710b29b564b0923a9cfb9f8941c549c2714.zig",
+          "sha256": "c24c2bcbfdbf09eeea230f72653dfd12f10bd5e4efc7df24079dee2bdfc6b2e8"
+        },
+        {
+          "名称": "zxc_module_9a7964dd7af840a89bda70253167207811028e4210b649061c9ff701529e7e4a.zig",
+          "sha256": "9a66ecb0b8506da715d6482afb9af5a945367a9d8db04f8c2d48a408cec72c81"
+        },
+        {
+          "名称": "zxc_module_bd5c989f52754a629fafd9a088fc51a914b91abee90fce534311b27c9737239b.zig",
+          "sha256": "391854d5c4323f3fa0b2a095ddc61fe14ddb4999765407a4c2f87664c9b4838b"
+        }
+      ]
+    }
+  ]
+}
