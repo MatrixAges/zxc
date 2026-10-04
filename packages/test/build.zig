@@ -68,7 +68,7 @@ pub fn build(b: *std.Build) void {
 
     const library_step = b.step("test-library-link", "Validate unified public module linkage identity ownership and failures");
 
-    for ([_][]const u8{ "identity", "resources", "store", "bundle", "bundle_cache", "imports/identity", "imports/rejection", "imports/native" }) |name| {
+    for ([_][]const u8{ "identity", "resources", "store", "bundle", "bundle_cache", "imports/identity", "imports/rejection", "imports/native", "compiled_store" }) |name| {
         const library_tests = b.addTest(.{ .root_module = b.createModule(.{
             .root_source_file = b.path(b.fmt("tests/library/{s}_test.zig", .{name})),
             .target = target,
