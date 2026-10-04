@@ -90,6 +90,14 @@ parse 返回拥有源码副本的 ParseResult，analyze/project.analyze 返回�
 
 Store 使用 compileWithContext 或 project.Options.context.stores，每项声明 handle、path、type_name、readable、writable。生成入口为 execute(arena, input, context)，context 提供对应 slot 的快照指针和 commit(pending)。参考 tests/runtime/store_test.zig。
 
+`compiler.parseExpression(allocator, source, file_name)` 解析单个 ZX 表达式并要求消费到 EOF；返回值拥有源码、文件名、tokens 和 AST，使用后 deinit。`compiler.expressions.analyze` 以共享 types、显式 bindings 和可选 expected 类型检查表达式，返回拥有独立 arena 的类型表、符号、表达式节点与结果 ExprId。bindings 的 name 可以是 `$in` 或 `ctx.user` 等标识符路径，路径必须唯一且不互相覆盖，类型不能是 void。这些显式外部绑定不放宽普通 ZX 源码的 `$` 命名规则，也不能绕过回调的非捕获限制。
+
+`compiler.expressions.compile` 使用相同参数生成可执行 Program，并执行所有权检查。Program.Input 是按 bindings 顺序排列的元组；没有 bindings 时为 void。外部值作为输入借用，表达式不能消费借用列表。Zig 宿主应先构造显式的 `std.meta.Child(program.Input)` 元组变量，再传其地址；当前工具链的动态匿名元组指针隐式转换已有独立错误复现。生成仍通过 zig.emit/emitBundle 的完整 IR 校验。仅需类型推导时可用 analyze，但不能把它的成功当作执行许可。
+
+这些接口尚未自动建立 RX 前序 Call.out 的可见环境，也不负责 XML 属性位置映射、分支合流或 RX 编排执行。提供者表达式与 ZX 入口组合生成时必须共享同一份类型表和 zxc_abi，不能凭对象字段相同就互传两个独立 Zig 模块中的匿名类型。
+
+`dependency.module("application")` 中的 `expression.compile` 编译真实 XML 属性并映射源码范围。普通 CLI、service 调度、Module 类型来源和完整 RX 应用生成仍未接通。API 与所有权约定见[显式表达式编译参考](../../docs/2026-10-04/显式表达式编译参考.md)。
+
 IR 实验版本 8 移除 Context 注入槽位与读取节点，保留原生声明组 identity。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
 
 项目分析成功时，`AnalysisResult.modules` 保留入口可达的 ZX 模块记录，按依赖完成装载的顺序排列。每项包含规范化 `path`、原始解析源码的 SHA-256 `source_digest`、导出表、按源码顺序排列的直接 imports，以及 `body`：`types` 表示纯类型模块，`entry` 使用返回 Program 的入口主体，`function` 指向 Program.functions 中的模块函数。入口不会暴露已从 functions 列表移除的编号。

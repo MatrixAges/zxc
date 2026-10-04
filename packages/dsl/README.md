@@ -96,15 +96,17 @@ const RuleEngineData = RuleEngine.Data;
 
 ## 输入与源码位置
 
-本包的输入为 `dsl.ast.Node`，不是 XML 字符串。XML 解析器负责良构性检查、实体解码和位置记录，然后适配为：
+Schema 校验以 `dsl.ast.Node` 为输入；`dsl.parseXml` 可从 XML 字符串完成良构性检查、实体解码和位置记录，产生以下数据：
 
 - `Node.name`：元素完整名称，大小写敏感。
 - `Node.location`：开始标签位置，用于标签错误和缺失属性诊断。
-- `Node.attributes`：保留每个属性的名称、解码值、属性名位置及值位置。
+- `Node.attributes`：保留每个属性的名称、解码值、属性名位置及值位置。文本解析入口还保存不含引号的 raw_value，引用解析结果持有的原始源码；手工 AST 可以省略该字段。
 - `Node.children`：按原文顺序保留直属子元素。
 - `Node.text`：保留全部直属文本片段，包括 CDATA 的文本内容；本包只允许 XML 空白字符。
 
 `Location.offset` 是从 0 开始的 UTF-8 源码字节偏移，line 和 column 从 1 开始，column 按 UTF-8 字节计数。适配器应将 CRLF 视为一次换行；位置必须指向原始 XML，而不是解码后的字符串。库原样传递位置，不通过搜索相同标签或属性字符串推测位置。
+
+`dsl.attributeLocation(attribute, decoded_offset)` 将解码值中的 UTF-8 字节位置映射回原始 XML 的 Location，处理实体引用和属性空白归一化。实体生成的多字节字符内部位置指向该实体起始处；`dsl.attributeEndLocation` 将实体内部的范围终点映射到实体结束之后，供非空半开区间使用；零宽范围应保留相同起终点。值末尾映射到闭引号之前。缺少 raw_value 或偏移越界时返回 null，调用者可以明确退回 value_location，不应把解码偏移直接加到原始位置上。映射所用的属性和值应来自同一次解析结果。
 
 命名空间解析不在本包内：`ns:Tag` 按完整字符串匹配。若上游要提供展开名称，Schema 也必须使用同一名称约定。解析器必须设置适合业务的输入大小和深度限制；本包不会读取文件、解析 DTD 或解析外部实体。
 

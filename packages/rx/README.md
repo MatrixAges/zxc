@@ -116,6 +116,8 @@ Store.version 为 u32。同一个 Object 的 Field 名不可重复；同名 Obje
 
 XML 输入支持 UTF-8、XML 1.0 声明、注释、CDATA、单双引号属性、预定义实体和数值字符引用。标签与属性名称限制为 ASCII，不支持命名空间、DTD、自定义实体和通用处理指令；这些输入明确返回语法诊断。位置使用原始字节偏移及一基行、字节列，CRLF 计作一次换行。
 
+`rx.attributeLocation(attribute, decoded_offset)` 可将属性表达式中解码后的字节位置映射回原 XML，涵盖实体引用及 CRLF、换行、制表符归一化。`rx.attributeEndLocation` 提供实体内部范围终点的右侧映射。它使用文本解析器保留的 raw_value；手工 AST 未提供该数据时返回 null。
+
 官方 CLI 的 `zxc check-rx <module.rx> [module.rx ...]` 读取明确传入的完整普通模块集合，检查 XML、Schema 与模块依赖。`zxc check-rx --entry <module.rx>` 则从入口自动装载 Import、所有嵌套 Call.service 和 Store.from 的文件，以当前工作目录为项目根。入口也可以是 `.gateway.rx`：先验证 Gateway Schema，再读取所有嵌套 Route.service 指向的普通模块和依赖；或 `.store.rx`：校验单个 Store 定义。入口模式不扫描无关文件，也不执行流程。显式集合模式仍只接受普通模块，不装载其 Store 定义。
 
 入口装载会检查真实文件路径：拒绝符号链接越出项目根，以及同一物理文件通过多个逻辑路径重复注册。语法库本身仍不访问文件系统；显式集合模式的调用者仍需保证物理身份一致性。
