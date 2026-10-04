@@ -1,0 +1,20 @@
+import fs from "std:fs"
+import encoding from "std:encoding"
+import type { Paths } from "./types.zx"
+import type { Stat } from "std:fs"
+
+export type Input = Paths
+
+export type Output = { text: string, hex: string, files: string[], absolute: string, metadata: Stat, directory_metadata: Stat, truncated: Stat }
+
+export default function (in: Input): Output {
+  return {
+    text: fs.readText({path: in.target, max_bytes: 1048576}),
+    hex: encoding.encodeHex(fs.readFile({path: in.target, max_bytes: 1048576})),
+    files: fs.readdir(in.directory),
+    absolute: fs.realpath(in.source),
+    metadata: fs.stat(in.source),
+    directory_metadata: fs.lstat(in.directory),
+    truncated: fs.stat(in.renamed)
+  }
+}

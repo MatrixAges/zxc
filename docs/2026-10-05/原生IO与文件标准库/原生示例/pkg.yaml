@@ -1,0 +1,24 @@
+name: native-io-example
+version: 1.0.0
+entry: main.zx
+
+native_interfaces:
+    - specifier: zig:file_host
+      path: file_host.d.zx
+      module: file_host
+
+externals:
+    - specifier: zig:file_stat
+      export_name: size
+      signature: |
+          export type Input = string
+          export type Output = u64
+      implementation:
+          module: file_host
+          member: size
+          io_argument: true
+          fallible: true
+
+native_modules:
+    - name: file_host
+      path: file_host.zig

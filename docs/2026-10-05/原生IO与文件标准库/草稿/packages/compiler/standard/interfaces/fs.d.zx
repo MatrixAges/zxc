@@ -1,0 +1,19 @@
+export enum Kind { File, Directory, SymbolicLink, BlockDevice, CharacterDevice, Fifo, Socket, Unknown }
+
+export type Stat = { kind: Kind, size: u64, mtime_ms: i64, ctime_ms: i64, atime_ms: i64? }
+
+export declare function readFile(allocator, io, in: { path: string, max_bytes: u64 }): u8[] throws
+export declare function readText(allocator, io, in: { path: string, max_bytes: u64 }): string throws
+export declare function writeFile(io, in: { path: string, data: u8[] }): void throws
+export declare function writeText(io, in: { path: string, text: string }): void throws
+export declare function truncate(io, in: { path: string, length: u64 }): void throws
+export declare function mkdir(io, in: { path: string, recursive: bool }): void throws
+export declare function readdir(allocator, io, in: string): string[] throws
+export declare function rmdir(io, in: string): void throws
+export declare function unlink(io, in: string): void throws
+export declare function rename(io, in: { from: string, to: string }): void throws
+export declare function copyFile(io, in: { from: string, to: string, exclusive: bool }): void throws
+export declare function realpath(allocator, io, in: string): string throws
+export declare function readlink(allocator, io, in: string): string throws
+export declare function stat(allocator, io, in: string): Stat throws
+export declare function lstat(allocator, io, in: string): Stat throws

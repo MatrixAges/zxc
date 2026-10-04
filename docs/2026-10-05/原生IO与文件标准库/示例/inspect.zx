@@ -1,0 +1,15 @@
+import fs from "std:fs"
+import type { Stat } from "std:fs"
+
+export type Input = { path: string, max_bytes: u64 }
+
+export type Output = { target: string, text: string, metadata: Stat, link_metadata: Stat }
+
+export default function (in: Input): Output {
+  return {
+    target: fs.readlink(in.path),
+    text: fs.readText(in),
+    metadata: fs.stat(in.path),
+    link_metadata: fs.lstat(in.path)
+  }
+}

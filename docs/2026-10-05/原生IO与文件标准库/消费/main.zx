@@ -1,0 +1,11 @@
+import filesystem from "library"
+
+export type Input = { directory: string, text: string }
+
+export type Output = { text: string, hex: string, size: u64, files: string[] }
+
+export default function (in: Input): Output {
+  const result = filesystem(in)
+
+  return {text: result.text, hex: result.hex, size: result.metadata.size, files: result.files}
+}

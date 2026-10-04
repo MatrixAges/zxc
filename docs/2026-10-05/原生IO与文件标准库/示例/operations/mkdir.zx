@@ -1,0 +1,9 @@
+import fs from "std:fs"
+
+export type Input = { path: string, recursive: bool }
+
+export type Output = void
+
+export default function (in: Input): Output {
+  return fs.mkdir(in)
+}

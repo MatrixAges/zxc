@@ -1,0 +1,10 @@
+import host from "zig:file_host"
+import metadata from "zig:file_stat"
+
+export type Input = string
+
+export type Output = { path: string, size: u64 }
+
+export default function (in: Input): Output {
+  return {path: host.echo(in), size: metadata.size(in)}
+}

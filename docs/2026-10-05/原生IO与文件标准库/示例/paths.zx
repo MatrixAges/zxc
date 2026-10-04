@@ -1,0 +1,17 @@
+import path from "std:path"
+import type { Paths } from "./types.zx"
+
+export type Input = { directory: string, text: string }
+
+export type Output = Paths
+
+export default function (in: Input): Output {
+  return {
+    directory: in.directory,
+    source: path.join([in.directory, "source.txt"]),
+    target: path.join([in.directory, "target.bin"]),
+    copy: path.join([in.directory, "copy.bin"]),
+    renamed: path.join([in.directory, "renamed.bin"]),
+    text: in.text
+  }
+}
