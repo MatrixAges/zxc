@@ -31,7 +31,7 @@ ZX 代码不允许显式分号。简单语句与声明通过换行、块结束�
 
 ## Edges：边界
 
-数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 8 的内存 API，没有稳定序列化 ABI。
+数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 9 的内存 API，没有稳定序列化 ABI。
 
 Store 的实际版本检查、锁、持久化和跨对象原子发布由宿主 commit 实现。RX XML 解析、可达模块装载和顺序服务应用生成已接通；Store 定义到调用授权及状态宿主的 RX 联结仍未完成，不能把生成端的提交接口视为生产持久化已经实现。
 
@@ -104,7 +104,7 @@ Store 使用 compileWithContext 或 project.Options.context.stores，每项声�
 
 `dependency.module("rx_analysis")` 中的 `expression.compile` 编译真实 XML 属性并映射源码范围。`rx_analysis.project.infer` 从真实模块集合共同推导输入输出类型，联结 Call.fn、Call.service、Return、Task 与 Switch，并由 CLI 生成独立应用。Store、Parallel、事件和 Gateway 执行仍未接通；用法及范围见 [RX reference](src/rx/README.md)。API 与所有权约定见[显式表达式编译参考](../../docs/2026-10-04/显式表达式编译参考.md)。
 
-IR 实验版本 8 移除 Context 注入槽位与读取节点，保留原生声明组 identity。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
+IR 实验版本 9 为 Function 保留局部 StoreSlot，Program/Function 使用 store_mode 区分 transaction 与 orchestration，call.stores 显式映射被调方槽位到调用方槽位。只有编排函数可以转交能力；事务函数成功时独立提交，编排函数禁止直接 store_set。普通 ZX import 仍不继承 Store 权限。Context 注入槽位与读取节点已移除，原生声明组 identity 保留。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
 
 项目分析成功时，`AnalysisResult.modules` 保留入口可达的 ZX 模块记录，按依赖完成装载的顺序排列。每项包含规范化 `path`、原始解析源码的 SHA-256 `source_digest`、导出表、按源码顺序排列的直接 imports，以及 `body`：`types` 表示纯类型模块，`entry` 使用返回 Program 的入口主体，`function` 指向 Program.functions 中的模块函数。入口不会暴露已从 functions 列表移除的编号。
 
