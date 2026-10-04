@@ -1,0 +1,32 @@
+{
+	"阶段": 360,
+	"起始提交": "caabded84239fc02486a51124856a3e8618951ca",
+	"提交前观察HEAD": "a42806c8bef075857781b9b99da9a64a717b4cec",
+	"入口验证": {
+		"命令": "ZXC_TEST_SOLVER=<真实Z3路径> zig build test-library-entry --summary all",
+		"退出码": 0,
+		"构建步骤": 10,
+		"Node测试": 5,
+		"应用执行": 13,
+		"独立Zig测试": 5
+	},
+	"兼容回归": {
+		"命令": "zig build test-build-modes test-watch-library --summary all",
+		"退出码": 0,
+		"构建步骤": 12,
+		"native聚合调用": 72,
+		"分配失败遍历": 2,
+		"native调用输入": 25,
+		"zlib执行": 264
+	},
+	"类型检查": {
+		"命令": "pnpm --filter @zxc/test typecheck",
+		"退出码": 0
+	},
+	"边界": [
+		"未执行根目录完整回归",
+		"并行生产变更不属于本次测试提交",
+		"不将本轮结果扩展为新增枚举验证实现的证明",
+		"Test262整体对齐仍未完成"
+	]
+}
