@@ -1,0 +1,4 @@
+<Module>
+  <Call fn='optional_list' in='$in.items' out='ctx.items'/>
+  <Return value='(ctx.items ?? $in.groups[$in.index]).length'/>
+</Module>

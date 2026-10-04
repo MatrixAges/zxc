@@ -1,0 +1,7 @@
+export type Input = { value: i64, flag: bool, text: string }
+
+export type Output = string
+
+export default function (in: Input): Output {
+  return `value=${in.value}|flag=${in.flag}|text=${in.text}`
+}

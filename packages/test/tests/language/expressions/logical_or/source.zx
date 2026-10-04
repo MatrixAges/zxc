@@ -1,0 +1,41 @@
+export type Input = u8
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  const x = false
+  const y = true
+  const object = { left: false, right: true }
+
+  switch (in) {
+    case 0: return false || false
+
+    case 1: return false || true
+
+    case 2: return true || false
+
+    case 3: return true || true
+
+    case 4: return x || true
+
+    case 5: return x || y
+
+    case 6: return object.left || object.right
+
+    case 7: return false	||	true
+
+    case 8: return false||true
+
+    case 9: return false||true
+
+    case 10: return false || true
+
+    case 11: return false
+||
+true
+
+    case 12: return false||true
+
+    default: return false
+  }
+}

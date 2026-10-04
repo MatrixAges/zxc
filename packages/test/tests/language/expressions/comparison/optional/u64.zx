@@ -1,0 +1,13 @@
+export type Input = { left: u64?
+ right: u64? }
+
+export type Output = { equal: bool
+ different: bool
+ left_none: bool
+ right_none: bool
+ none_left: bool
+ none_right: bool }
+
+export default function (in: Input): Output {
+  return { equal: in.left == in.right, different: in.left != in.right, left_none: in.left == null, right_none: in.right == null, none_left: null == in.left, none_right: null == in.right }
+}

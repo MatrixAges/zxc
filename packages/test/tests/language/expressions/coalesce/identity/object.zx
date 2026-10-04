@@ -1,0 +1,11 @@
+export type Value = { value: u64  } 
+
+export type Input = { left: Value?
+ right: Value?
+ fallback: Value  } 
+
+export type Output = Value 
+
+export default function (in: Input): Output {
+  return in.left ?? (in.right ?? in.fallback) 
+}

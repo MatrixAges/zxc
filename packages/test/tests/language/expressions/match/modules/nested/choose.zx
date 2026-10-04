@@ -1,0 +1,10 @@
+import { State } from "../types.zx"
+import type { Code } from "../types.zx"
+
+export type Input = Code
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return in == 0 ? State.First : in == 1 ? State.Second : State.Third
+}

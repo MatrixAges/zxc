@@ -1,0 +1,12 @@
+<Module>
+  <Store from="left" as="left" />
+  <Store from="right" as="right" />
+
+  <Call fn="read_pair" in="{first: store.left.counter.value, second: store.left.counter.value}" out="ctx.before" />
+  <Call fn="write_pair" in="{first: store.left.counter.value, second: store.left.counter.value, increment: $in}" setter="[store.right.counter]" out="ctx.written" />
+  <Call fn="read_pair" in="{first: store.right.counter.value, second: store.right.counter.value}" out="ctx.after" />
+  <Call fn="write_pair" in="{first: store.right.counter.value, second: store.right.counter.value, increment: $in}" setter="[store.right.counter]" out="ctx.overlap" />
+  <Call fn="write_pair" in="{first: $in, second: $in, increment: $in}" setter="[store.right.counter]" out="ctx.only" />
+
+  <Return value="{before: ctx.before, written: ctx.written, after: ctx.after, overlap: ctx.overlap, only: ctx.only}" />
+</Module>

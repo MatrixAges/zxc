@@ -1,5 +1,7 @@
 # Test262 数值分隔符剩余边界
 
+> 2026-10-04 更正：下文保留历史执行事实，但“28 项均 adapted”的结论已由[阶段三百一十六复核](../2026-10-04/Test262数字分隔符旧记录复核.md)替代。当前为 2 adapted、26 excluded；全部 ZX 回归仍保留。
+
 ## Intent：最终目标
 
 逐项处理数值字面量 numeric-separator-literal 的剩余 28 个 parse 负例，区分 ZX 十进制设计与 JavaScript legacy 数值规则。

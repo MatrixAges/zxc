@@ -1,0 +1,11 @@
+import make from "./make.zx"
+
+export type Input = u64
+
+export type Output = [u64[], u64?]
+
+export default function (in: Input): Output {
+  const items = make(in)
+
+  return items.pop()
+}

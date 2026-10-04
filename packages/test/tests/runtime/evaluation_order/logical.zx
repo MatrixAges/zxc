@@ -1,0 +1,27 @@
+import readLeft from "lib:probe-left" 
+import readRight from "lib:probe-right" 
+
+export type Input = { is_and: bool
+ reverse: bool
+ left: f64
+ right: f64
+ fail_left: bool
+ fail_right: bool  } 
+
+export type Output = bool 
+
+export default function (in: Input): Output {
+  if (in.reverse) {
+    if (in.is_and) {
+      return readRight(in.fail_right) == in.right && readLeft(in.fail_left) == in.left 
+    }
+
+    return readRight(in.fail_right) == in.right || readLeft(in.fail_left) == in.left 
+  }
+
+  if (in.is_and) {
+    return readLeft(in.fail_left) == in.left && readRight(in.fail_right) == in.right 
+  }
+
+  return readLeft(in.fail_left) == in.left || readRight(in.fail_right) == in.right 
+}

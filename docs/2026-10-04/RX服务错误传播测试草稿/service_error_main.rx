@@ -1,0 +1,4 @@
+<Module>
+  <Call service='./bridge.rx' in='$in.choose ? $in.left : $in.right' out='ctx.value'/>
+  <Return value='ctx.value + 1'/>
+</Module>

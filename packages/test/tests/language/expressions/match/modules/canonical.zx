@@ -1,0 +1,11 @@
+import { State } from "./types.zx"
+import type { Code } from "./types.zx"
+import choose from "./nested/choose.zx"
+
+export type Input = Code
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return match choose(in) { State.First => 11, State.Second => 22, _ => 33 }
+}

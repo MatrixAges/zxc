@@ -1,0 +1,14 @@
+export type Input = bool
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const local = 3
+
+  switch (in) {
+    case true:
+      return local
+    case false:
+      return local + 1
+  }
+}

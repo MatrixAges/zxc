@@ -1,0 +1,25 @@
+export type Input = { kind: u64, value: i64 }
+
+export type Output = string
+
+export default function (in: Input): Output {
+  switch (in.kind) {
+    case 0:
+      return `L${"}"}R`
+    case 1:
+      return `L${"{"}R`
+    case 2:
+      return `L${"\"}"}R`
+    case 3:
+      return `L${({ value: "}" }).value}R`
+    case 4:
+      return `L${/* } ` ${ */ in.value}R`
+    case 5:
+      return `L${`N${/* } ` */ in.value}M`}R`
+    case 6:
+      return `L${// } ` ${
+ in.value}R`
+    default:
+      return ""
+  }
+}

@@ -1,0 +1,21 @@
+import increment from "./increment.zx"
+
+export type Input = { kind: u64, value: i64 }
+
+export type Output = i64
+
+export default function (in: Input): Output {
+  switch (in.kind) {
+    case 0:
+      return increment(in.value,)
+    case 1:
+      return increment(in.value,
+      )
+    case 2:
+      return increment(in.value, /* tail */)
+    case 3:
+      return increment(in.value /* value */, )
+    default:
+      return increment(in.value)
+  }
+}

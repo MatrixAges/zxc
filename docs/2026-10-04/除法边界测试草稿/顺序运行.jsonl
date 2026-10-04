@@ -1,0 +1,16 @@
+{"id":"division_order/direct/LR/fail_left_false/fail_right_false","input":{"binding":false,"reverse":false,"fail_left":false,"fail_right":false},"expected":{"value":0.6666666666666666,"trace":"LR"}}
+{"id":"division_order/direct/LR/fail_left_false/fail_right_true","input":{"binding":false,"reverse":false,"fail_left":false,"fail_right":true},"expected":{"error":"RightFailure","trace":"LR"}}
+{"id":"division_order/direct/LR/fail_left_true/fail_right_false","input":{"binding":false,"reverse":false,"fail_left":true,"fail_right":false},"expected":{"error":"LeftFailure","trace":"L"}}
+{"id":"division_order/direct/LR/fail_left_true/fail_right_true","input":{"binding":false,"reverse":false,"fail_left":true,"fail_right":true},"expected":{"error":"LeftFailure","trace":"L"}}
+{"id":"division_order/direct/RL/fail_left_false/fail_right_false","input":{"binding":false,"reverse":true,"fail_left":false,"fail_right":false},"expected":{"value":1.5,"trace":"RL"}}
+{"id":"division_order/direct/RL/fail_left_false/fail_right_true","input":{"binding":false,"reverse":true,"fail_left":false,"fail_right":true},"expected":{"error":"RightFailure","trace":"R"}}
+{"id":"division_order/direct/RL/fail_left_true/fail_right_false","input":{"binding":false,"reverse":true,"fail_left":true,"fail_right":false},"expected":{"error":"LeftFailure","trace":"RL"}}
+{"id":"division_order/direct/RL/fail_left_true/fail_right_true","input":{"binding":false,"reverse":true,"fail_left":true,"fail_right":true},"expected":{"error":"RightFailure","trace":"R"}}
+{"id":"division_order/binding/LR/fail_left_false/fail_right_false","input":{"binding":true,"reverse":false,"fail_left":false,"fail_right":false},"expected":{"value":0.6666666666666666,"trace":"LR"}}
+{"id":"division_order/binding/LR/fail_left_false/fail_right_true","input":{"binding":true,"reverse":false,"fail_left":false,"fail_right":true},"expected":{"error":"RightFailure","trace":"LR"}}
+{"id":"division_order/binding/LR/fail_left_true/fail_right_false","input":{"binding":true,"reverse":false,"fail_left":true,"fail_right":false},"expected":{"error":"LeftFailure","trace":"L"}}
+{"id":"division_order/binding/LR/fail_left_true/fail_right_true","input":{"binding":true,"reverse":false,"fail_left":true,"fail_right":true},"expected":{"error":"LeftFailure","trace":"L"}}
+{"id":"division_order/binding/RL/fail_left_false/fail_right_false","input":{"binding":true,"reverse":true,"fail_left":false,"fail_right":false},"expected":{"value":1.5,"trace":"RL"}}
+{"id":"division_order/binding/RL/fail_left_false/fail_right_true","input":{"binding":true,"reverse":true,"fail_left":false,"fail_right":true},"expected":{"error":"RightFailure","trace":"R"}}
+{"id":"division_order/binding/RL/fail_left_true/fail_right_false","input":{"binding":true,"reverse":true,"fail_left":true,"fail_right":false},"expected":{"error":"LeftFailure","trace":"RL"}}
+{"id":"division_order/binding/RL/fail_left_true/fail_right_true","input":{"binding":true,"reverse":true,"fail_left":true,"fail_right":true},"expected":{"error":"RightFailure","trace":"R"}}

@@ -1,0 +1,47 @@
+import readLeft from "lib:probe-left"
+import readRight from "lib:probe-right"
+
+export type Input = { operator: u64
+ reverse: bool
+ left: f64
+ right: f64
+ fail_left: bool
+ fail_right: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  if (in.reverse) {
+    switch (in.operator) {
+      case 0: return (readRight(in.fail_right) + in.right - 3) < (readLeft(in.fail_left) + in.left - 2)
+
+      case 1: return (readRight(in.fail_right) + in.right - 3) > (readLeft(in.fail_left) + in.left - 2)
+
+      case 2: return (readRight(in.fail_right) + in.right - 3) <= (readLeft(in.fail_left) + in.left - 2)
+
+      case 3: return (readRight(in.fail_right) + in.right - 3) >= (readLeft(in.fail_left) + in.left - 2)
+
+      case 4: return (readRight(in.fail_right) + in.right - 3) == (readLeft(in.fail_left) + in.left - 2)
+
+      case 5: return (readRight(in.fail_right) + in.right - 3) != (readLeft(in.fail_left) + in.left - 2)
+
+      default: return false
+    }
+  }
+
+  switch (in.operator) {
+    case 0: return (readLeft(in.fail_left) + in.left - 2) < (readRight(in.fail_right) + in.right - 3)
+
+    case 1: return (readLeft(in.fail_left) + in.left - 2) > (readRight(in.fail_right) + in.right - 3)
+
+    case 2: return (readLeft(in.fail_left) + in.left - 2) <= (readRight(in.fail_right) + in.right - 3)
+
+    case 3: return (readLeft(in.fail_left) + in.left - 2) >= (readRight(in.fail_right) + in.right - 3)
+
+    case 4: return (readLeft(in.fail_left) + in.left - 2) == (readRight(in.fail_right) + in.right - 3)
+
+    case 5: return (readLeft(in.fail_left) + in.left - 2) != (readRight(in.fail_right) + in.right - 3)
+
+    default: return false
+  }
+}

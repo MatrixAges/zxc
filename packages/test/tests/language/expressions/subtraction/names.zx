@@ -1,0 +1,26 @@
+export type Input = { shape: u64
+ left: f64
+ right: f64 }
+
+export type Output = f64
+
+export default function (in: Input): Output {
+  const left = in.left
+  const right = in.right
+  const object_left = { prop: in.left }
+  const object_right = { prop: in.right }
+
+  switch (in.shape) {
+    case 0: return 1 - 1
+
+    case 1: return left - 1
+
+    case 2: return 1 - right
+
+    case 3: return left - right
+
+    case 4: return object_left.prop - object_right.prop
+
+    default: return 0
+  }
+}

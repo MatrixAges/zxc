@@ -1,0 +1,7 @@
+export type Input = { left: i64, right: i64, inner: i64 }
+
+export type Output = string
+
+export default function (in: Input): Output {
+  return `${in.left} ${in.right} ${`bar ${in.inner} baz`} qux`
+}

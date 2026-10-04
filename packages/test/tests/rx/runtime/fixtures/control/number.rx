@@ -1,0 +1,8 @@
+<Module>
+  <Call fn="./increment.zx" in="$in" out="ctx.next" />
+  <Switch on="ctx.next">
+    <Case value="1"><Return value="10" /></Case>
+    <Case value="8"><Return value="70" /></Case>
+  </Switch>
+  <Return value="ctx.next" />
+</Module>

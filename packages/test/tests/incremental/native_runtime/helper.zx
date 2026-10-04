@@ -1,0 +1,10 @@
+import native from "zig:choice" 
+import { Mode } from "zig:choice" 
+
+export type Input = Mode 
+
+export type Output = Mode 
+
+export default function (in: Input): Output {
+  return native.flip(in) 
+}

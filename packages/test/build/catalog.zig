@@ -5,7 +5,7 @@ pub const RuntimeSuite = struct {
     path: []const u8,
     shared_abi: bool = false,
     sources: []const []const u8 = &.{},
-    kind: enum { floating, floating_unary, floating_comparison, floating_ternary, control, collections },
+    kind: enum { floating, floating_unary, floating_comparison, floating_ternary, control, collections, optional_selection, string_storage, floating_optional },
 };
 
 pub const Suites = struct {
@@ -14,6 +14,7 @@ pub const Suites = struct {
     safety: []const []const u8,
     module_graphs: []const []const u8,
     stores: []const []const u8,
+    evaluation_order: []const []const u8,
 };
 
 pub fn load(b: *std.Build) Suites {

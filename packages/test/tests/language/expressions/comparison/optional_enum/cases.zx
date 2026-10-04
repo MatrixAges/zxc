@@ -1,0 +1,16 @@
+export enum State { First, Second, Third }
+
+export type Input = { left: u8?
+ right: u8? }
+
+export type Output = { equal: bool
+ different: bool
+ left_none: bool
+ right_none: bool }
+
+export default function (in: Input): Output {
+  const left: State? = in.left == null ? null : (in.left ?? 0) == 0 ? State.First : (in.left ?? 0) == 1 ? State.Second : State.Third
+  const right: State? = in.right == null ? null : (in.right ?? 0) == 0 ? State.First : (in.right ?? 0) == 1 ? State.Second : State.Third
+
+  return { equal: left == right, different: left != right, left_none: left == null, right_none: null == right }
+}

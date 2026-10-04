@@ -1,0 +1,12 @@
+import make from "./helpers/make.zx"
+import borrow from "./helpers/borrow.zx"
+
+export type Input = { choice: bool
+ value: u64
+ items: u64[] }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+  return match in.choice { true => make(in.value), _ => borrow(in.items) }
+}

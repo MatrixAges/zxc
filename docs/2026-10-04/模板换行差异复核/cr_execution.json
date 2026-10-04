@@ -1,0 +1,36 @@
+[
+  {
+    "command": [
+      "/tmp/zxc-template-newline-cli/bin/zxc",
+      "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/模板换行差异复核/cr.zx",
+      "--no-cache",
+      "--out",
+      "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/模板换行差异复核/cr.zig"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "zig",
+      "build-exe",
+      "--dep",
+      "program",
+      "-Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/模板换行差异复核/probe.zig",
+      "-Mprogram=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-04/模板换行差异复核/cr.zig",
+      "-femit-bin=/tmp/zxc-template-newline-cr"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/tmp/zxc-template-newline-cr"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "410d42\n"
+  }
+]

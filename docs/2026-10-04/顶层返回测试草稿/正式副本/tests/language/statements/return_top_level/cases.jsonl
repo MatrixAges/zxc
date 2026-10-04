@@ -1,0 +1,8 @@
+{"id":"language/statements/return_top_level/empty/bare","source":"return;\n","phase":"parse","diagnostic":"contract","span":[0,6]}
+{"id":"language/statements/return_top_level/empty/after_types","source":"export type Input = void;\n\nexport type Output = void;\n\nreturn;\n","phase":"parse","diagnostic":"contract","span":[55,61]}
+{"id":"language/statements/return_top_level/empty/after_function","source":"export type Input = void;\n\nexport type Output = void;\n\nexport default function (in: Input): Output {\n  return;\n}\nreturn;\n","phase":"parse","diagnostic":"contract","span":[113,119]}
+{"id":"language/statements/return_top_level/empty/inside","source":"export type Input = void;\n\nexport type Output = void;\n\nexport default function (in: Input): Output {\n  return;\n}\n","phase":"analyze","diagnostic":null}
+{"id":"language/statements/return_top_level/value/bare","source":"return (0);\n","phase":"parse","diagnostic":"contract","span":[0,6]}
+{"id":"language/statements/return_top_level/value/after_types","source":"export type Input = void;\n\nexport type Output = u64;\n\nreturn (0);\n","phase":"parse","diagnostic":"contract","span":[54,60]}
+{"id":"language/statements/return_top_level/value/after_function","source":"export type Input = void;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return (0);\n}\nreturn (0);\n","phase":"parse","diagnostic":"contract","span":[116,122]}
+{"id":"language/statements/return_top_level/value/inside","source":"export type Input = void;\n\nexport type Output = u64;\n\nexport default function (in: Input): Output {\n  return (0);\n}\n","phase":"analyze","diagnostic":null}

@@ -1,0 +1,10 @@
+import readLeft from "lib:probe-left"
+import readRight from "lib:probe-right"
+
+export type Input = { fail_left: bool, fail_right: bool }
+
+export type Output = string
+
+export default function (in: Input): Output {
+  return `a${readLeft(in.fail_left) - 2}b${readRight(in.fail_right) - 2}c${readLeft(in.fail_left)}d`
+}

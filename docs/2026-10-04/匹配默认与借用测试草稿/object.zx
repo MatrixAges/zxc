@@ -1,0 +1,13 @@
+export type Value = { value: u64; };
+
+export type Input = { left: Value?; right: Value?; fallback: Value; };
+
+export type Output = Value;
+
+export default function (in: Input): Output {
+  return match {
+    in.left != null => in.left ?? in.fallback,
+    in.right != null => in.right ?? in.fallback,
+    _ => in.fallback,
+  };
+}

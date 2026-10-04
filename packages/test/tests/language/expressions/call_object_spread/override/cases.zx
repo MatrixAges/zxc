@@ -1,0 +1,11 @@
+import observe from "./observe.zx"
+
+export type Input = { a: i64, b: i64, c: i64, d: i64 }
+
+export type Output = { a: i64, b: i64 }
+
+export default function (in: Input): Output {
+  const o = { a: in.a, b: in.b }
+
+  return observe({a: 1, b: 7, ...o})
+}

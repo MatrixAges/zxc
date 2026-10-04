@@ -1,0 +1,12 @@
+export type Value = u64[]
+
+export type Input = Value?
+
+export type Output = { equal: bool
+ different: bool
+ reverse_equal: bool
+ reverse_different: bool }
+
+export default function (in: Input): Output {
+  return { equal: in == null, different: in != null, reverse_equal: null == in, reverse_different: null != in }
+}

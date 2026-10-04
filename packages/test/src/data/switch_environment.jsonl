@@ -1,0 +1,6 @@
+{"path":"test/language/statements/switch/scope-lex-const.js","sha256":"0b63e6c2a19e1b2e86c04c1ff4bfe672a8aa2492da5d74ed6193d2bbcec37421","reason":"原文default内const x后在switch外访问x产生runtime ReferenceError。保留声明及越界引用，ZX包装返回改为analyze name；不声称动态运行错误阶段一致。"}
+{"path":"test/language/statements/switch/scope-lex-let.js","sha256":"5488eb40e784086d64aaa30ce8944892ef65f1da2d898c17e54550205417d4c2","reason":"原文实际为default空体及外部f引用，没有let声明。只适配未声明名称f为analyze name，不按文件名声称覆盖let或声明逃逸。"}
+{"path":"test/language/statements/switch/scope-lex-open-case.js","sha256":"6fd3a3b591b9e7460904c1c3d4deca2181c8653ef432ead76fd680e8321a714b","reason":"原文三断言通过闭包验证subject捕获外层x、动态case与语句捕获switch整体内层x。ZX不支持该闭包及动态case环境，不用直接值读取替换捕获。"}
+{"path":"test/language/statements/switch/scope-lex-open-dflt.js","sha256":"f8907fb43727ef2796d891d274b4637e874cfbced74c1065bd131289c8cbb214","reason":"原文两断言验证subject及default创建的闭包分别捕获外层与内层x。ZX分支局部绑定测试不证明闭包生命周期，故不适配。"}
+{"path":"test/language/statements/switch/scope-lex-close-case.js","sha256":"02a26f8fa47665a6febce2ca1a81020c18a4b3b67893bb4b1c5c859ec9c4b090","reason":"原文三断言依赖重复null标签及贯穿，两个case闭包共享内层x，离开switch恢复外层x。ZX禁止重复标签且分支不贯穿，不能用各自局部值冒充共享环境。"}
+{"path":"test/language/statements/switch/scope-lex-close-dflt.js","sha256":"363332435ce19d0bf548bf1891aafd7886d4c9b1183b4ceec081b5f1a1edc882","reason":"原文四断言验证独立default闭包与外层恢复，以及default贯穿case后两闭包共享内层x。ZX分支独立且无此闭包模型，故不适配。"}

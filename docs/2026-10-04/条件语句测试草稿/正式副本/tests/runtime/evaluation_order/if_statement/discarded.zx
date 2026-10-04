@@ -1,0 +1,16 @@
+import readLeft from "lib:probe-left";
+import readRight from "lib:probe-right";
+
+export type Input = { choose: bool; match_value: f64; fail_left: bool; fail_right: bool; items: f64[]; index: u64; };
+
+export type Output = f64;
+
+export default function (in: Input): Output {
+  if (in.choose) {
+    const value = readLeft(in.fail_left);
+  } else {
+    const value = readRight(in.fail_right);
+  }
+
+  return in.items[in.index];
+}

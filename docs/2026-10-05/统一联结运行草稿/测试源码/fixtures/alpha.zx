@@ -1,0 +1,10 @@
+import leaf from "./leaf.zx"
+import tail from "./tail.zx"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return tail(leaf(in)) + 5
+}

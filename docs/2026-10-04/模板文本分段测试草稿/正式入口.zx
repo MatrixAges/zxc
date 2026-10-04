@@ -1,0 +1,26 @@
+export type Input = { kind: u64, left: string, right: string }
+
+export type Output = string
+
+export default function (in: Input): Output {
+  switch (in.kind) {
+    case 0:
+      return ``
+    case 1:
+      return `foo`
+    case 2:
+      return `﻿test`
+    case 3:
+      return `${in.left}`
+    case 4:
+      return `foo${in.left}`
+    case 5:
+      return `${in.left}${in.right}`
+    case 6:
+      return `${in.left}foo${in.right}`
+    case 7:
+      return `${in.left}foo`
+    default:
+      return ""
+  }
+}

@@ -1,0 +1,11 @@
+export type Input = { left: bool
+ right: bool }
+
+export type Output = u8
+
+export default function (in: Input): Output {
+  return match in.left {
+    true => match in.right { true => 11, _ => 22 },
+    _ => match in.right { true => 33, _ => 44 },
+  }
+}

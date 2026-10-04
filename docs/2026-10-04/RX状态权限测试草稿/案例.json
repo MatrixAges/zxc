@@ -1,0 +1,222 @@
+[
+  {
+    "group": "scope",
+    "name": "Call input getter",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='read' in='store.jobs.counter.value' out='ctx.value'/><Return value='ctx.value'/></Module>",
+    "code": null,
+    "marker": "",
+    "last": false,
+    "slots": 1,
+    "other_store": false
+  },
+  {
+    "group": "scope",
+    "name": "Return cannot access getter",
+    "source": "<Module><Store from='state' as='jobs'/><Return value='store.jobs.counter.value'/></Module>",
+    "code": "name",
+    "marker": "store.jobs.counter.value",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "scope",
+    "name": "Switch cannot access getter",
+    "source": "<Module><Store from='state' as='jobs'/><Switch on='store.jobs.counter.value'><Case value='0'><Return value='1'/></Case><Default><Return value='2'/></Default></Switch></Module>",
+    "code": "name",
+    "marker": "store.jobs.counter.value",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "scope",
+    "name": "Call getter does not leak into Return",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='read' in='store.jobs.counter.value' out='ctx.value'/><Return value='store.jobs.counter.value'/></Module>",
+    "code": "name",
+    "marker": "store.jobs.counter.value",
+    "last": true,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "scope",
+    "name": "out cannot replace store",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='read' in='1' out='store'/></Module>",
+    "code": "name",
+    "marker": "store",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "scope",
+    "name": "out cannot replace store.jobs",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='read' in='1' out='store.jobs'/></Module>",
+    "code": "name",
+    "marker": "store.jobs",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "scope",
+    "name": "out cannot replace store.jobs.counter",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='read' in='1' out='store.jobs.counter'/></Module>",
+    "code": "name",
+    "marker": "store.jobs.counter",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "scope",
+    "name": "out allows similar namespace prefix",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='read' in='1' out='storehouse.value'/><Return value='storehouse.value'/></Module>",
+    "code": null,
+    "marker": "",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "setter",
+    "name": "setter rejects empty",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='[]'/></Module>",
+    "code": "capability",
+    "marker": "[]",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "setter",
+    "name": "setter rejects nonlist",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='store.jobs.counter'/></Module>",
+    "code": "capability",
+    "marker": "store.jobs.counter",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "setter",
+    "name": "setter rejects namespace",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='[store.jobs]'/></Module>",
+    "code": "capability",
+    "marker": "store.jobs",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "setter",
+    "name": "setter rejects field",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='[store.jobs.counter.value]'/></Module>",
+    "code": "capability",
+    "marker": "store.jobs.counter.value",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "setter",
+    "name": "setter rejects unknown",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='[store.jobs.missing]'/></Module>",
+    "code": "capability",
+    "marker": "store.jobs.missing",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "setter",
+    "name": "setter rejects duplicate",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='[store.jobs.counter, store.jobs.counter]'/></Module>",
+    "code": "capability",
+    "marker": "[store.jobs.counter",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "setter",
+    "name": "setter permits one complete Object",
+    "source": "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='[store.jobs.counter]' out='ctx.value'/><Return value='ctx.value'/></Module>",
+    "code": null,
+    "marker": "",
+    "last": false,
+    "slots": 1,
+    "other_store": false
+  },
+  {
+    "group": "identity",
+    "name": "normalized aliases share one slot",
+    "source": "<Module><Store from='state' as='jobs'/><Store from='./state.store.rx' as='other'/><Call fn='write' in='1' setter='[store.jobs.counter]'/><Call fn='read' in='store.other.counter.value' out='ctx.value'/><Return value='ctx.value'/></Module>",
+    "code": null,
+    "marker": "",
+    "last": false,
+    "slots": 1,
+    "other_store": false
+  },
+  {
+    "group": "identity",
+    "name": "default namespace uses Store name",
+    "source": "<Module><Store from='state'/><Call fn='read' in='store.counter_state.counter.value' out='ctx.value'/><Return value='ctx.value'/></Module>",
+    "code": null,
+    "marker": "",
+    "last": false,
+    "slots": 1,
+    "other_store": false
+  },
+  {
+    "group": "identity",
+    "name": "missing definition",
+    "source": "<Module><Store from='missing' as='jobs'/></Module>",
+    "code": "capability",
+    "marker": "missing",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "identity",
+    "name": "invalid namespace identifier",
+    "source": "<Module><Store from='state' as='bad.name'/></Module>",
+    "code": "capability",
+    "marker": "bad.name",
+    "last": false,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "identity",
+    "name": "duplicate explicit namespace",
+    "source": "<Module><Store from='state' as='jobs'/><Store from='./state.store.rx' as='jobs'/></Module>",
+    "code": "context",
+    "marker": "jobs",
+    "last": true,
+    "slots": 0,
+    "other_store": false
+  },
+  {
+    "group": "identity",
+    "name": "same display name needs aliases",
+    "source": "<Module><Store from='state'/><Store from='other'/></Module>",
+    "code": "capability",
+    "marker": "other",
+    "last": false,
+    "slots": 0,
+    "other_store": true
+  },
+  {
+    "group": "identity",
+    "name": "different paths remain distinct slots",
+    "source": "<Module><Store from='state' as='left'/><Store from='other' as='right'/><Call fn='read' in='store.left.counter.value' out='ctx.left'/><Call fn='read' in='store.right.counter.value' out='ctx.right'/><Return value='{left: ctx.left, right: ctx.right}'/></Module>",
+    "code": null,
+    "marker": "",
+    "last": false,
+    "slots": 2,
+    "other_store": true
+  }
+]

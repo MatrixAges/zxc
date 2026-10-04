@@ -1,0 +1,76 @@
+export type Input = u64
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  const maximum: f64 = 1.7976931348623157e308
+  const minimum: f64 = 5e-324
+
+  switch (in) {
+    case 0: return (1.1) < (1)
+
+    case 1: return (1) < (1.1)
+
+    case 2: return (-1.1) < (-1)
+
+    case 3: return (-1) < (-1.1)
+
+    case 4: return (0) < (0.1)
+
+    case 5: return (-0.1) < (0)
+
+    case 6: return (maximum / 2) < (maximum)
+
+    case 7: return (minimum) < (minimum * 2)
+
+    case 8: return (1) > (1.1)
+
+    case 9: return (1.1) > (1)
+
+    case 10: return (-1) > (-1.1)
+
+    case 11: return (-1.1) > (-1)
+
+    case 12: return (0.1) > (0)
+
+    case 13: return (0) > (-0.1)
+
+    case 14: return (maximum) > (maximum / 2)
+
+    case 15: return (minimum * 2) > (minimum)
+
+    case 16: return (1.1) <= (1)
+
+    case 17: return (1) <= (1.1)
+
+    case 18: return (-1.1) <= (-1)
+
+    case 19: return (-1) <= (-1.1)
+
+    case 20: return (0) <= (0.1)
+
+    case 21: return (-0.1) <= (0)
+
+    case 22: return (maximum / 2) <= (maximum)
+
+    case 23: return (minimum) <= (minimum * 2)
+
+    case 24: return (1) >= (1.1)
+
+    case 25: return (1.1) >= (1)
+
+    case 26: return (-1) >= (-1.1)
+
+    case 27: return (-1.1) >= (-1)
+
+    case 28: return (0.1) >= (0)
+
+    case 29: return (0) >= (-0.1)
+
+    case 30: return (maximum) >= (maximum / 2)
+
+    case 31: return (minimum * 2) >= (minimum)
+
+    default: return false
+  }
+}

@@ -1,0 +1,24 @@
+export type Input = { kind: u64, object: { number: i64, string: string } }
+
+export type Output = string
+
+export default function (in: Input): Output {
+  const object = in.object
+
+  switch (in.kind) {
+    case 0:
+      return `foo ${object.number} bar`
+    case 1:
+      return `foo ${object.string} bar`
+    case 2:
+      return `${0} ${object.number} bar`
+    case 3:
+      return `${0} ${object.string} bar`
+    case 4:
+      return `${0} ${1} ${object.number} bar`
+    case 5:
+      return `${0} ${1} ${object.string} bar`
+    default:
+      return ""
+  }
+}

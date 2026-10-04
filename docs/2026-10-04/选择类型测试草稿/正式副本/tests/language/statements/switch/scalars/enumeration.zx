@@ -1,0 +1,15 @@
+export enum State { First, Second, Third }
+
+export type Input = u8;
+
+export type Output = u64;
+
+export default function (in: Input): Output {
+  const value = in == 0 ? State.First : in == 1 ? State.Second : State.Third;
+
+  switch (value) {
+    case State.First: return 1;
+    case State.Second: return 2;
+    case State.Third: return 3;
+  }
+}

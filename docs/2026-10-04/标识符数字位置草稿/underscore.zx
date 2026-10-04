@@ -1,0 +1,53 @@
+export type Input = {
+  selector: u64
+  v0: u64
+  v1: u64
+  v2: u64
+  v3: u64
+  v4: u64
+  v5: u64
+  v6: u64
+  v7: u64
+  v8: u64
+  v9: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const a_0 = in.v0
+  const a_1 = in.v1
+  const a_2 = in.v2
+  const a_3 = in.v3
+  const a_4 = in.v4
+  const a_5 = in.v5
+  const a_6 = in.v6
+  const a_7 = in.v7
+  const a_8 = in.v8
+  const a_9 = in.v9
+
+  switch (in.selector) {
+    case 0:
+      return a_0
+    case 1:
+      return a_1
+    case 2:
+      return a_2
+    case 3:
+      return a_3
+    case 4:
+      return a_4
+    case 5:
+      return a_5
+    case 6:
+      return a_6
+    case 7:
+      return a_7
+    case 8:
+      return a_8
+    case 9:
+      return a_9
+    default:
+      return 0
+  }
+}

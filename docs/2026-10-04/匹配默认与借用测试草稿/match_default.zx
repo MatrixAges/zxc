@@ -1,0 +1,11 @@
+import readLeft from "lib:probe-left";
+
+export type Input = { fail: bool; items: f64[]; index: u64; };
+
+export type Output = f64;
+
+export default function (in: Input): Output {
+  return match readLeft(in.fail) {
+    _ => in.items[in.index],
+  };
+}

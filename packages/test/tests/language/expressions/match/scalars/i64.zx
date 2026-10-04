@@ -1,0 +1,13 @@
+export type Input = { target: i64
+ first: i64
+ second: i64 }
+
+export type Output = u8
+
+export default function (in: Input): Output {
+  return match in.target {
+    in.first => 11,
+    in.second => 22,
+    _ => 33,
+  }
+}

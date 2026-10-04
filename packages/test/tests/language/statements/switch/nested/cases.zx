@@ -1,0 +1,17 @@
+export type Input = { outer: u64, inner: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  switch (in.outer) {
+    case 0:
+      switch (in.inner) {
+        case 0:
+          return 3 * 2
+        default:
+          return 32 * 2
+      }
+    default:
+      return 32
+  }
+}

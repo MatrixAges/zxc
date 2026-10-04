@@ -1,0 +1,12 @@
+import readLeft from "lib:probe-left";
+import readRight from "lib:probe-right";
+
+export type Input = { fail_left: bool; fail_right: bool; pick_left: bool; };
+
+export type Output = f64;
+
+export default function (in: Input): Output {
+  const value = { item: readLeft(in.fail_left), ...{ item: readRight(in.fail_right) } };
+
+  return value.item;
+}

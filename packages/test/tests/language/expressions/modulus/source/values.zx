@@ -1,0 +1,17 @@
+export type Input = { left: f64
+ right: f64 }
+
+export type Output = { literal: f64
+ left: f64
+ right: f64
+ both: f64
+ fields: f64 }
+
+export default function (in: Input): Output {
+  const left = in.left
+  const right = in.right
+  const object_left = { prop: in.left }
+  const object_right = { prop: in.right }
+
+  return { literal: 1 % 2, left: left % 2, right: 1 % right, both: left % right, fields: object_left.prop % object_right.prop }
+}

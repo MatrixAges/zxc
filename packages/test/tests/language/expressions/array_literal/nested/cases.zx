@@ -1,0 +1,16 @@
+export type Input = { kind: u64
+ row: u64
+ column: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const array: u64[][] = [[1,2], [3], []]
+
+  if (in.kind == 0) { return array.length }
+  if (in.kind == 3) { return array[in.row][in.column] }
+
+  const subarray = array[in.row]
+
+  return in.kind == 1 ? subarray.length : subarray[in.column]
+}

@@ -1,0 +1,14 @@
+export type Input = string;
+
+export type Output = u64;
+
+export default function (in: Input): Output {
+  switch (in) {
+    case "": return 0;
+    case "a": return 1;
+    case "\n": return 2;
+    case "\t": return 3;
+    case "汉": return 4;
+    default: return 9;
+  }
+}

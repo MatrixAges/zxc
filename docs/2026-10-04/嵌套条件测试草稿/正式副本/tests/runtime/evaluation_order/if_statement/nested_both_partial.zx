@@ -1,0 +1,16 @@
+import readLeft from "lib:probe-left";
+import readRight from "lib:probe-right";
+
+export type Input = { outer: bool; left_value: f64; right_value: f64; fail_left: bool; fail_right: bool; };
+
+export type Output = f64;
+
+export default function (in: Input): Output {
+  if (in.outer) {
+    if (readLeft(in.fail_left) == in.left_value) {
+      return 1;
+    }
+  }
+
+  return 5;
+}

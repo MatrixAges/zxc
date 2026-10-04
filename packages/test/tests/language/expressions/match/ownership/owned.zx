@@ -1,0 +1,15 @@
+import make from "./helpers/make.zx"
+import other from "./helpers/other.zx"
+
+export type Input = { choice: bool
+ value: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+  const values = match in.choice { true => make(in.value), _ => other(in.value) }
+
+  const [next, _] = values.reverse()
+
+  return next
+}

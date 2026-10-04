@@ -1,0 +1,324 @@
+[
+  {
+    "path": "test/language/expressions/unary-plus/S11.4.6_A2.2_T1.js",
+    "sha256": "6035cee3c8619e73223540c67492ce148e2ca0a0e49118fcc08f98504c2a57db",
+    "scenarios": 8,
+    "reason": "8组DefaultValue优先级、valueOf返回对象后回退、抛出error和双对象结果TypeError；ZX没有一元正号或这些动态转换协议。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "var object = {valueOf: function() {return 1}};\nif (+object !== 1) {\n  throw new Test262Error('#1: var object = {valueOf: function() {return 1}}; +object === 1. Actual: ' + (+object));\n}"
+      },
+      {
+        "check": 2,
+        "body": "var object = {valueOf: function() {return 1}, toString: function() {return 0}};\nif (+object !== 1) {\n  throw new Test262Error('#2: var object = {valueOf: function() {return 1}, toString: function() {return 0}}; +object === 1. Actual: ' + (+object));\n}"
+      },
+      {
+        "check": 3,
+        "body": "var object = {valueOf: function() {return 1}, toString: function() {return {}}};\nif (+object !== 1) {\n  throw new Test262Error('#3: var object = {valueOf: function() {return 1}, toString: function() {return {}}}; +object === 1. Actual: ' + (+object));\n}"
+      },
+      {
+        "check": 4,
+        "body": "try {\n  var object = {valueOf: function() {return 1}, toString: function() {throw \"error\"}};\n  if (+object !== 1) {\n    throw new Test262Error('#4.1: var object = {valueOf: function() {return 1}, toString: function() {throw \"error\"}}; +object === 1. Actual: ' + (+object));\n  }\n}\ncatch (e) {\n  if (e === \"error\") {\n    throw new Test262Error('#4.2: var object = {valueOf: function() {return 1}, toString: function() {throw \"error\"}}; +object not throw \"error\"');\n  } else {\n    throw new Test262Error('#4.3: var object = {valueOf: function() {return 1}, toString: function() {throw \"error\"}}; +object not throw Error. Actual: ' + (e));\n  }\n}"
+      },
+      {
+        "check": 5,
+        "body": "var object = {toString: function() {return 1}};\nif (+object !== 1) {\n  throw new Test262Error('#5: var object = {toString: function() {return 1}}; +object === 1. Actual: ' + (+object));\n}"
+      },
+      {
+        "check": 6,
+        "body": "var object = {valueOf: function() {return {}}, toString: function() {return 1}}\nif (+object !== 1) {\n  throw new Test262Error('#6: var object = {valueOf: function() {return {}}, toString: function() {return 1}}; +object === 1. Actual: ' + (+object));\n}"
+      },
+      {
+        "check": 7,
+        "body": "try {\n  var object = {valueOf: function() {throw \"error\"}, toString: function() {return 1}};\n  +object;\n  throw new Test262Error('#7.1: var object = {valueOf: function() {throw \"error\"}, toString: function() {return 1}}; +object throw \"error\". Actual: ' + (+object));\n}  \ncatch (e) {\n  if (e !== \"error\") {\n    throw new Test262Error('#7.2: var object = {valueOf: function() {throw \"error\"}, toString: function() {return 1}}; +object throw \"error\". Actual: ' + (e));\n  } \n}"
+      },
+      {
+        "check": 8,
+        "body": "try {\n  var object = {valueOf: function() {return {}}, toString: function() {return {}}};\n  +object;\n  throw new Test262Error('#8.1: var object = {valueOf: function() {return {}}, toString: function() {return {}}}; +object throw TypeError. Actual: ' + (+object));\n}  \ncatch (e) {\n  if ((e instanceof TypeError) !== true) {\n    throw new Test262Error('#8.2: var object = {valueOf: function() {return {}}, toString: function() {return {}}}; +object throw TypeError. Actual: ' + (e));\n  } \n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S11.4.6_A3_T1.js",
+    "sha256": "d32a91ca95a2636e88fbd3ae2e5c248347c35bea23e78e6c860983a452dfeed2",
+    "scenarios": 2,
+    "reason": "false转正零及Boolean包装对象拆箱为1；不以静态bool或既有正号拒绝用例冒充隐式转换。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (+false !== 0) {\n  throw new Test262Error('#1: +false === 0. Actual: ' + (+false));\n}"
+      },
+      {
+        "check": 2,
+        "body": "if (+new Boolean(true) !== 1) {\n  throw new Test262Error('#2: +new Boolean(true) === 1. Actual: ' + (+new Boolean(true)));\n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S11.4.6_A3_T2.js",
+    "sha256": "d3e5f9b31c82d8fa866035a1e6fb20f314c4166cb38d30bf36063cc35ecd4710",
+    "scenarios": 2,
+    "reason": "0.1保持值及Number(-1.1)包装拆箱；ZX不支持一元正号与Number构造器。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (+0.1 !== 0.1) {\n  throw new Test262Error('#1: +0.1 === 0.1. Actual: ' + (+0.1));\n}"
+      },
+      {
+        "check": 2,
+        "body": "if (+new Number(-1.1) !== -1.1) {\n  throw new Test262Error('#2: +new Number(-1.1) === -1.1. Actual: ' + (+new Number(-1.1)));\n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S11.4.6_A3_T3.js",
+    "sha256": "e137da4c7eba59a232aa4d63d59e33b7bdda08b8386fb32afe357b4c2235bdbc",
+    "scenarios": 5,
+    "reason": "字符串1、无效x和大小写INFINITY/infinity转换；CHECK2实际为new Number(\"-1\")而非描述/错误消息所说new String。ZX无该动态ToNumber路径。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (+\"1\" !== 1) {\n  throw new Test262Error('#1: +\"1\" === 1. Actual: ' + (+\"1\"));\n}"
+      },
+      {
+        "check": 2,
+        "body": "if (+new Number(\"-1\") !== -1) {\n  throw new Test262Error('#2: +new String(\"-1\") === -1. Actual: ' + (+new String(\"-1\")));\n}"
+      },
+      {
+        "check": 3,
+        "body": "if (isNaN(+\"x\") !== true) {\n  throw new Test262Error('#3: +\"x\" === Not-a-Number. Actual: ' + (+\"x\"));\n}"
+      },
+      {
+        "check": 4,
+        "body": "if (isNaN(+\"INFINITY\") !== true) {\n  throw new Test262Error('#4: +\"INFINITY\" === Not-a-Number. Actual: ' + (+\"INFINITY\"));\n}"
+      },
+      {
+        "check": 5,
+        "body": "if (isNaN(+\"infinity\") !== true) {\n  throw new Test262Error('#5: +\"infinity\" === Not-a-Number. Actual: ' + (+\"infinity\"));\n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S11.4.6_A3_T4.js",
+    "sha256": "62a7f84aaa5e758bace085b08bb41f713e5ab6b422139430571b8b494b970d14",
+    "scenarios": 2,
+    "reason": "void 0转NaN与null转正零；不以ZX可选值替代JS undefined/null隐式转换。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (isNaN(+void 0) !== true) {\n  throw new Test262Error('#1: +void 0 === Not-a-Number. Actual: ' + (+void 0));\n}"
+      },
+      {
+        "check": 2,
+        "body": "if (+null !== 0) {\n  throw new Test262Error('#2: +null === 0. Actual: ' + (+null));\n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S11.4.6_A3_T5.js",
+    "sha256": "2792ae95025569b178b1137cbefd3cdfe7047ed3836d815e4cb3f18cd714e790",
+    "scenarios": 2,
+    "reason": "空对象及函数对象转NaN依赖动态对象转换，ZX不支持一元正号及该对象协议。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (isNaN(+{}) !== true) {\n  throw new Test262Error('#1: +{} === Not-a-Number. Actual: ' + (+{}));\n}"
+      },
+      {
+        "check": 2,
+        "body": "if (isNaN(+function(){return 1}) !== true) {\n  throw new Test262Error('#2: +function(){return 1} === Not-a-Number. Actual: ' + (+function(){return 1}));\n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/11.4.6-2-1.js",
+    "sha256": "d982389acc55bdd907a0d78b10c0c75bd798345e0e5e64ff6d7ac44f045ae28b",
+    "scenarios": 1,
+    "reason": "空字符串经一元正号转正零，用sameValue区分零符号；ZX当前不支持此语法和隐式字符串数值转换。",
+    "sections": []
+  },
+  {
+    "path": "test/language/expressions/unary-plus/bigint-throws.js",
+    "sha256": "65380dbf0568be41808a2a4cd1cfb5c69cd6a780912b2c675f3838c3e44307e4",
+    "scenarios": 4,
+    "reason": "0n、1n、-1n和1000000000000000n四例精确要求TypeError；ZX的词法/语法拒绝不能代替BigInt运行时ToNumber异常。",
+    "sections": []
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S9.3_A1_T2.js",
+    "sha256": "3fed68a7157dfdd21053a9ec2d6049224bade936790e47a1df470cf53243e425",
+    "scenarios": 3,
+    "reason": "undefined、void 0、eval声明结果三例转NaN，ZX无动态eval和JS undefined转换。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (isNaN(+(undefined)) !== true) {\n  throw new Test262Error('#1: +(undefined) === Not-a-Number. Actual: ' + (+(undefined)));\n}"
+      },
+      {
+        "check": 2,
+        "body": "if (isNaN(+(void 0)) !== true) {\n  throw new Test262Error('#2: +(void 0) === Not-a-Number. Actual: ' + (+(void 0)));\n}"
+      },
+      {
+        "check": 3,
+        "body": "if (isNaN(+(eval(\"var x\"))) !== true) {\n  throw new Test262Error('#3: +(eval(\"var x\")) === Not-a-Number. Actual: ' + (+(eval(\"var x\"))));\n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S9.3_A2_T2.js",
+    "sha256": "a3716e4cc79ff35e91cc14ffbd9318bb5089cb99556434c819f82bbd452a279d",
+    "scenarios": 1,
+    "reason": "null转零并用倒数正无穷确认正号，ZX不提供该隐式转换。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (+(null) !== 0) {\n  throw new Test262Error('#1.1: +(null) === 0. Actual: ' + (+(null))); \n} else {\n  if (1/+(null) !== Number.POSITIVE_INFINITY) {\n    throw new Test262Error('#1.2: +(null) === +0. Actual: -0');\n  }\t\n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S9.3_A3_T2.js",
+    "sha256": "66b152047d001fc90b71439956a4e1d70083d5b91d1fb73ed1ab416e1a6ed90a",
+    "scenarios": 2,
+    "reason": "false转正零以倒数确认符号、true转1；不把静态bool类型检查当成数值转换实现。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (+(false) !== +0) {\n  throw new Test262Error('#1.1: +(false) === 0. Actual: ' + (+(false)));\n} else {\n  if (1/+(false) !== Number.POSITIVE_INFINITY) {\n    throw new Test262Error('#1.2: +(false) === +0. Actual: -0');\n  }\n}"
+      },
+      {
+        "check": 2,
+        "body": "if (+(true) !== 1) {\n  throw new Test262Error('#2: +(true) === 1. Actual: ' + (+(true)));\t\n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S9.3_A4.1_T2.js",
+    "sha256": "f7ff299fa0cea1d9359293aaa638782ebc592400d35c2ce52f05bd897fa6b3a5",
+    "scenarios": 4,
+    "reason": "实际仅13、-13、1.3、-1.3保持值，描述提及MAX_VALUE/MIN_VALUE但正文未覆盖；ZX当前不支持一元正号。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (+(13) !== 13) {\n  throw new Test262Error('#1: +(13) === 13. Actual: ' + (+(13)));\n}"
+      },
+      {
+        "check": 2,
+        "body": "if (+(-13) !== -13) { \n  throw new Test262Error('#2: +(-13) === -13. Actual: ' + (+(-13)));\n}"
+      },
+      {
+        "check": 3,
+        "body": "if (+(1.3) !== 1.3) {\n  throw new Test262Error('#3: +(1.3) === 1.3. Actual: ' + (+(1.3)));\n}"
+      },
+      {
+        "check": 4,
+        "body": "if (+(-1.3) !== -1.3) {\n  throw new Test262Error('#4: +(-1.3) === -1.3. Actual: ' + (+(-1.3)));\n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S9.3_A4.2_T2.js",
+    "sha256": "60a0fb675fd1e8da410c577a60446cb6948a8ca9749a04aa6f123518540d2501",
+    "scenarios": 7,
+    "reason": "NaN、正负零、正负无穷、MAX_VALUE、MIN_VALUE保持值，零符号以倒数验证；不能改写去掉正号后宣称此操作已实现。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (isNaN(+(Number.NaN)) !== true) {\n  throw new Test262Error('#1: +(NaN) === Not-a-Number. Actual: ' + (+(NaN))); \n}"
+      },
+      {
+        "check": 2,
+        "body": "if (+(+0) !== +0) {\n  throw new Test262Error('#2.1: +(+0) === 0. Actual: ' + (+(+0))); \n} else {\n  if (1/+(+0) !== Number.POSITIVE_INFINITY) {\n    throw new Test262Error('#2.2: +(+0) === +0. Actual: -0');\n  }\t\n}"
+      },
+      {
+        "check": 3,
+        "body": "if (+(-0) !== -0) {\n  throw new Test262Error('#3.1: +(-0) === 0. Actual: ' + (+(-0))); \n} else {\n  if (1/+(-0) !== Number.NEGATIVE_INFINITY) {\n    throw new Test262Error('#3.2: +(-0) === -0. Actual: +0');\n  }\t\n}"
+      },
+      {
+        "check": 4,
+        "body": "if (+(Number.POSITIVE_INFINITY) !== Number.POSITIVE_INFINITY) {\n  throw new Test262Error('#4: +(+Infinity) === +Infinity. Actual: ' + (+(+Infinity))); \n}"
+      },
+      {
+        "check": 5,
+        "body": "if (+(Number.NEGATIVE_INFINITY) !== Number.NEGATIVE_INFINITY) {\n  throw new Test262Error('#5: +(-Infinity) === -Infinity. Actual: ' + (+(-Infinity))); \n}"
+      },
+      {
+        "check": 6,
+        "body": "if (+(Number.MAX_VALUE) !== Number.MAX_VALUE) {\n  throw new Test262Error('#6: +(Number.MAX_VALUE) === Number.MAX_VALUE. Actual: ' + (+(Number.MAX_VALUE))); \n}"
+      },
+      {
+        "check": 7,
+        "body": "if (+(Number.MIN_VALUE) !== Number.MIN_VALUE) {\n  throw new Test262Error('#7: +(Number.MIN_VALUE) === Number.MIN_VALUE. Actual: ' + (+(Number.MIN_VALUE))); \n}"
+      }
+    ]
+  },
+  {
+    "path": "test/language/expressions/unary-plus/S9.3_A5_T2.js",
+    "sha256": "2267203dc0c8637f1abdefa8cd654c82fe2bf4c10a474edc8ad4e5544e043f58",
+    "scenarios": 15,
+    "reason": "15组包装对象、数组及用户valueOf/toString；名为ToNumber的普通方法不参与标准协议。CHECK3/5原文isNaN包裹!==true所得布尔值，不能证明NaN；保留弱断言事实。ZX不支持这些动态转换。",
+    "sections": [
+      {
+        "check": 1,
+        "body": "if (+(new Number()) !== 0) {\n  throw new Test262Error('#1: +(new Number()) === 0. Actual: ' + (+(new Number())));\n}"
+      },
+      {
+        "check": 2,
+        "body": "if (+(new Number(0)) !== 0) {\n  throw new Test262Error('#2: +(new Number(0)) === 0. Actual: ' + (+(new Number(0))));\n}"
+      },
+      {
+        "check": 3,
+        "body": "if (isNaN(+(new Number(Number.NaN)) !== true)) {\n  throw new Test262Error('#3: +(new Number(Number.NaN)) === Not-a-Number. Actual: ' + (+(new Number(Number.NaN))));\n}"
+      },
+      {
+        "check": 4,
+        "body": "if (+(new Number(null)) !== 0) {\n  throw new Test262Error('#4.1: +(new Number(null)) === 0. Actual: ' + (+(new Number(null)))); \n} else {\n  if (1/+(new Number(null)) !== Number.POSITIVE_INFINITY) {\n    throw new Test262Error('#4.2: +(new Number(null)) === +0. Actual: -0');\n  }\t\n}"
+      },
+      {
+        "check": 5,
+        "body": "if (isNaN(+(new Number(void 0)) !== true)) {\n  throw new Test262Error('#5: +(new Number(void 0)) === Not-a-Number. Actual: ' + (+(new Number(void 0))));\n}"
+      },
+      {
+        "check": 6,
+        "body": "if (+(new Number(true)) !== 1) {\n  throw new Test262Error('#6: +(new Number(true)) === 1. Actual: ' + (+(new Number(true))));\n}"
+      },
+      {
+        "check": 7,
+        "body": "if (+(new Number(false)) !== +0) {\n  throw new Test262Error('#7.1: +(new Number(false)) === 0. Actual: ' + (+(new Number(false))));\n} else {\n  if (1/+(new Number(false)) !== Number.POSITIVE_INFINITY) {\n    throw new Test262Error('#7.2: +(new Number(false)) === +0. Actual: -0');\n  }\n}"
+      },
+      {
+        "check": 8,
+        "body": "if (+(new Boolean(true)) !== 1) {\n  throw new Test262Error('#8: +(new Boolean(true)) === 1. Actual: ' + (+(new Boolean(true))));\n}"
+      },
+      {
+        "check": 9,
+        "body": "if (+(new Boolean(false)) !== +0) {\n  throw new Test262Error('#9.1: +(new Boolean(false)) === 0. Actual: ' + (+(new Boolean(false))));\n} else {\n  if (1/+(new Boolean(false)) !== Number.POSITIVE_INFINITY) {\n    throw new Test262Error('#9.2: +(new Boolean(false)) === +0. Actual: -0');\n  }\n}"
+      },
+      {
+        "check": 10,
+        "body": "if (isNaN(+(new Array(2,4,8,16,32))) !== true) {\n  throw new Test262Error('#10: +(new Array(2,4,8,16,32)) === Not-a-Number. Actual: ' + (+(new Array(2,4,8,16,32))));\n}"
+      },
+      {
+        "check": 11,
+        "body": "var myobj1 = {\n                ToNumber : function(){return 12345;}, \n                toString : function(){return \"67890\";},\n                valueOf  : function(){return \"[object MyObj]\";} \n            };\n\nif (isNaN(+(myobj1)) !== true){\n  throw new Test262Error(\"#11: +(myobj1) calls ToPrimitive with hint +. Exptected: Not-a-Number. Actual: \" + (+(myobj1)));\n}"
+      },
+      {
+        "check": 12,
+        "body": "var myobj2 = {\n                ToNumber : function(){return 12345;}, \n                toString : function(){return \"67890\";},\n                valueOf  : function(){return \"9876543210\";} \n            };\n\nif (+(myobj2) !== 9876543210){\n  throw new Test262Error(\"#12: +(myobj2) calls ToPrimitive with hint +. Exptected: 9876543210. Actual: \" + (+(myobj2)));\n}"
+      },
+      {
+        "check": 13,
+        "body": "var myobj3 = {\n                ToNumber : function(){return 12345;}, \n                toString : function(){return \"[object MyObj]\";} \n            };\n\nif (isNaN(+(myobj3)) !== true){\n  throw new Test262Error(\"#13: +(myobj3) calls ToPrimitive with hint +. Exptected: Not-a-Number. Actual: \" + (+(myobj3)));\n}"
+      },
+      {
+        "check": 14,
+        "body": "var myobj4 = {\n                ToNumber : function(){return 12345;}, \n                toString : function(){return \"67890\";} \n            };\n\nif (+(myobj4) !== 67890){\n  throw new Test262Error(\"#14: +(myobj4) calls ToPrimitive with hint +. Exptected: 67890. Actual: \" + (+(myobj4)));\n}"
+      },
+      {
+        "check": 15,
+        "body": "var myobj5 = {\n                ToNumber : function(){return 12345;} \n            };\n\nif (isNaN(+(myobj5)) !== true){\n  throw new Test262Error(\"#15: +(myobj5) calls ToPrimitive with hint +. Exptected: 12345. Actual: \" + (+(myobj5)));\n}"
+      }
+    ]
+  }
+]

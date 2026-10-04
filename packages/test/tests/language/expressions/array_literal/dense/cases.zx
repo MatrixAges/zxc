@@ -1,0 +1,9 @@
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const array: u64[] = [1,2,3,4,5]
+
+  return in == 0 ? array.length : array[in - 1]
+}

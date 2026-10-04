@@ -1,0 +1,8 @@
+export type Input = { value: bool?
+ fallback: bool }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return in.value ?? in.fallback ? 0 : 42
+}

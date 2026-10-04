@@ -1,0 +1,13 @@
+import { State } from "./types.zx"
+import type { Code } from "./types.zx"
+import choose from "./nested/choose.zx"
+import probe from "./nested/probe.zx"
+
+export type Input = { state: Code
+ items: u64[] }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return match choose(in.state) { State.First => 11, probe(in.items) => 22, _ => 33 }
+}

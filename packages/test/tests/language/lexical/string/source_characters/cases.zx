@@ -1,0 +1,16 @@
+export type Input = u64
+
+export type Output = string
+
+export default function (in: Input): Output {
+  switch (in) {
+    case 0:
+      return " "
+    case 1:
+      return "᠎"
+    case 2:
+      return " "
+    default:
+      return ""
+  }
+}

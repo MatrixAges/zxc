@@ -1,0 +1,5 @@
+<Module>
+  <Call service='./bridge.rx' in='$in' out='ctx.left'/>
+  <Call service='./bridge.rx' in='$in' out='ctx.right'/>
+  <Return value='{ left: ctx.left.pop(), right: ctx.right.reverse() }'/>
+</Module>

@@ -1,0 +1,12 @@
+export type Input = u64;
+
+export type Output = u64;
+
+export default function (in: Input): Output {
+  const o = { c: 3, d: 4 };
+  const values = [{a: 1, b: 2, ...o}];
+  const value = values[0];
+  const fields: u64[] = [value.a, value.b, value.c, value.d];
+
+  return fields[in];
+}

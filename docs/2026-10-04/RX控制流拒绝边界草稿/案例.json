@@ -1,0 +1,57 @@
+[
+  [
+    "nonvoid incomplete bool path",
+    "<Module><Switch on='true'><Case value='true'><Return value='1'/></Case></Switch></Module>",
+    "return_path"
+  ],
+  [
+    "terminating Task followed by Return",
+    "<Module><Task name='finish'><Return value='1'/></Task><Return value='2'/></Module>",
+    "return_path"
+  ],
+  [
+    "terminating Default Switch followed by Return",
+    "<Module><Switch on='true'><Case value='true'><Return value='1'/></Case><Default><Return value='2'/></Default></Switch><Return value='3'/></Module>",
+    "return_path"
+  ],
+  [
+    "exhaustive bool followed by Return",
+    "<Module><Switch on='true'><Case value='true'><Return value='1'/></Case><Case value='false'><Return value='2'/></Case></Switch><Return value='3'/></Module>",
+    "return_path"
+  ],
+  [
+    "conflicting branch output types",
+    "<Module><Switch on='true'><Case value='true'><Return value='1'/></Case><Default><Return value='\"text\"'/></Default></Switch></Module>",
+    "type_mismatch"
+  ],
+  [
+    "floating Switch subject",
+    "<Module><Switch on='1.5'><Case value='1.5'><Return value='1'/></Case><Default><Return value='2'/></Default></Switch></Module>",
+    "type_mismatch"
+  ],
+  [
+    "arithmetic Case label",
+    "<Module><Switch on='2'><Case value='1 + 1'><Return value='1'/></Case><Default><Return value='2'/></Default></Switch></Module>",
+    "type_mismatch"
+  ],
+  [
+    "unsigned subject negative zero label",
+    "<Module><Switch on='0'><Case value='0'><Return value='1'/></Case><Case value='-0'><Return value='2'/></Case><Default><Return value='3'/></Default></Switch></Module>",
+    "type_mismatch"
+  ],
+  [
+    "unselected missing service",
+    "<Module><Switch on='true'><Case value='false'><Call service='./missing.rx' in='1'/><Return value='1'/></Case><Default><Return value='2'/></Default></Switch></Module>",
+    "context"
+  ],
+  [
+    "unselected self service",
+    "<Module><Switch on='true'><Case value='false'><Call service='./main.rx' in='1'/><Return value='1'/></Case><Default><Return value='2'/></Default></Switch></Module>",
+    "context"
+  ],
+  [
+    "signed positive and negative zero duplicate labels",
+    "<Module><Switch on='-1'><Case value='0'><Return value='1'/></Case><Case value='-0'><Return value='2'/></Case><Default><Return value='3'/></Default></Switch></Module>",
+    "name"
+  ]
+]

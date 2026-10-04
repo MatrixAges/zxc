@@ -1,0 +1,44 @@
+export type Input = u64
+
+export type Output = string
+
+export default function (in: Input): Output {
+  switch (in) {
+    case 0:
+      return `A
+B`
+    case 1:
+      return `AB`
+    case 2:
+      return `A
+B`
+    case 3:
+      return `A B`
+    case 4:
+      return `A B`
+    case 5:
+      return `A\rB`
+    case 6:
+      return "A\rB"
+    case 7:
+      return `A\rB`
+    case 8:
+      return `A\\rB`
+    case 9:
+      return `A${in}
+B`
+    case 10:
+      return `A
+B`
+    case 11:
+      return `
+
+`
+    case 12:
+      return ` `
+    case 13:
+      return ` `
+    default:
+      return ""
+  }
+}

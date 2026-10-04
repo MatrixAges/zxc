@@ -1,0 +1,7 @@
+export type Input = { value: bool?; left: bool; right: bool; };
+
+export type Output = bool;
+
+export default function (in: Input): Output {
+  return in.value ?? in.left && in.right;
+}

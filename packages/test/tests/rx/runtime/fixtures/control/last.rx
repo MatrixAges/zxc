@@ -1,0 +1,12 @@
+<Module>
+  <Call fn="./helper.zx" in="$in.value" out="ctx.base" />
+  <Task name="choose">
+    <Switch on="$in.enabled">
+      <Case value="true">
+        <Call service="./leaf.rx" in="ctx.base" out="ctx.value" />
+        <Return value="ctx.value + 10" />
+      </Case>
+      <Default><Return value="ctx.base" /></Default>
+    </Switch>
+  </Task>
+</Module>

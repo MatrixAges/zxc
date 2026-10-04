@@ -1,0 +1,68 @@
+import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+
+const executable = resolve(process.argv[2])
+
+export function helper(increment: number) {
+	return `export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return in + ${increment}
+}
+`
+}
+
+export default class Fixture {
+	directory = mkdtempSync(join(tmpdir(), 'zxc-semantic-disk-'))
+
+	constructor() {
+		writeFileSync(join(this.directory, 'main.zx'), 'import helper from "./helper.zx"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return helper(in)\n}\n')
+		this.writeHelper(1)
+	}
+
+	writeHelper(increment: number) {
+		writeFileSync(join(this.directory, 'helper.zx'), helper(increment))
+	}
+
+	run(flags: Array<string> = []) {
+		const result = spawnSync(executable, ['main.zx', '--cache-stats', ...flags], { cwd: this.directory, encoding: 'utf8', timeout: 30_000 })
+
+		assert.ifError(result.error)
+		assert.equal(result.signal, null)
+
+		return result
+	}
+
+	compile(flags: Array<string> = []) {
+		const result = this.run(flags)
+
+		assert.equal(result.status, 0, result.stderr)
+
+		return result
+	}
+
+	files() {
+		const root = join(this.directory, '.zxc', 'cache', 'semantic')
+		const versions = readdirSync(root)
+
+		assert.equal(versions.length, 1)
+
+		return readdirSync(join(root, versions[0])).map(name => join(root, versions[0], name)).sort()
+	}
+
+	close() {
+		rmSync(this.directory, { recursive: true, force: true })
+	}
+}
+
+export function stats(stderr: string, expected: Array<number>) {
+	const match = stderr.match(/zxc cache: analyzed=(\d+) reused=(\d+) loaded=(\d+) written=(\d+) discarded=(\d+) uncacheable=(\d+)/)
+
+	assert.ok(match, stderr)
+	assert.deepEqual(match.slice(1).map(Number), expected)
+}

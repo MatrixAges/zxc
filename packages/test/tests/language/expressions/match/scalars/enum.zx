@@ -1,0 +1,19 @@
+export enum State { First, Second, Third }
+
+export type Input = { target: u8
+ first: u8
+ second: u8 }
+
+export type Output = u8
+
+export default function (in: Input): Output {
+  const target = in.target == 0 ? State.First : in.target == 1 ? State.Second : State.Third
+  const first = in.first == 0 ? State.First : in.first == 1 ? State.Second : State.Third
+  const second = in.second == 0 ? State.First : in.second == 1 ? State.Second : State.Third
+
+  return match target {
+    first => 11,
+    second => 22,
+    _ => 33,
+  }
+}

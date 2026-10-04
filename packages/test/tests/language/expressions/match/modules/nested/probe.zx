@@ -1,0 +1,9 @@
+import { State } from "../types.zx"
+
+export type Input = u64[]
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return in[0] == 0 ? State.First : in[0] == 1 ? State.Second : State.Third
+}

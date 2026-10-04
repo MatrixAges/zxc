@@ -1,0 +1,19 @@
+import readLeft from "lib:probe-left"
+import readRight from "lib:probe-right"
+
+export type Input = { choose: bool
+ match_value: f64
+ fail_left: bool
+ fail_right: bool
+ items: f64[]
+ index: u64 }
+
+export type Output = f64
+
+export default function (in: Input): Output {
+  if (readLeft(in.fail_left) == in.match_value) {
+    return readRight(in.fail_right)
+  } else {
+    return in.items[in.index]
+  }
+}

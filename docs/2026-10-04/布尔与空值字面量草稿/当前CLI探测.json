@@ -1,0 +1,75 @@
+{
+  "compiler_sha256": "7008a276867fa60a143e138ccfa7414db859e982d79d43ebb96a52e63a45921a",
+  "cases": [
+    {
+      "name": "true_literal",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return true\n}\n",
+      "status": 0,
+      "stderr": "",
+      "generated": true
+    },
+    {
+      "name": "false_literal",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return false\n}\n",
+      "status": 0,
+      "stderr": "",
+      "generated": true
+    },
+    {
+      "name": "boolean_true",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return Boolean(true)\n}\n",
+      "status": 1,
+      "stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-literal-probe-_qj4kukc/main.zx:6:10: name: unknown imported function\n",
+      "generated": false
+    },
+    {
+      "name": "boolean_false",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return Boolean(false)\n}\n",
+      "status": 1,
+      "stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-literal-probe-_qj4kukc/main.zx:6:10: name: unknown imported function\n",
+      "generated": false
+    },
+    {
+      "name": "null_equal",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return null == null\n}\n",
+      "status": 1,
+      "stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-literal-probe-_qj4kukc/main.zx:6:10: type_mismatch: null requires an optional type context\n",
+      "generated": false
+    },
+    {
+      "name": "null_different",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return null != null\n}\n",
+      "status": 1,
+      "stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-literal-probe-_qj4kukc/main.zx:6:10: type_mismatch: null requires an optional type context\n",
+      "generated": false
+    },
+    {
+      "name": "null_regex",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return RegExp(\"0\").exec(\"1\") == null\n}\n",
+      "status": 1,
+      "stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-literal-probe-_qj4kukc/main.zx:6:10: name: unknown imported function\n",
+      "generated": false
+    },
+    {
+      "name": "escaped_true",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return tru\\u{65}\n}\n",
+      "status": 1,
+      "stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-literal-probe-_qj4kukc/main.zx:6:13: lexical: unexpected character\n",
+      "generated": false
+    },
+    {
+      "name": "escaped_false",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return f\\u{61}lse\n}\n",
+      "status": 1,
+      "stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-literal-probe-_qj4kukc/main.zx:6:11: lexical: unexpected character\n",
+      "generated": false
+    },
+    {
+      "name": "escaped_null",
+      "source": "export type Input = void\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n  return n\\u{75}ll\n}\n",
+      "status": 1,
+      "stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-literal-probe-_qj4kukc/main.zx:6:11: lexical: unexpected character\n",
+      "generated": false
+    }
+  ]
+}

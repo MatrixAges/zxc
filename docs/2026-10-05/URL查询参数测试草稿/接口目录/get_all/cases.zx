@@ -1,0 +1,10 @@
+import params from "std:url/search_params"
+import type { Entry, Lookup, Match, Update } from "std:url/search_params"
+
+export type Input = Lookup
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+  return params.getAll(in)
+}

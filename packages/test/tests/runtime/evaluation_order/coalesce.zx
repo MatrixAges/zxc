@@ -1,0 +1,19 @@
+import readLeft from "lib:probe-optional-left" 
+import readRight from "lib:probe-optional-right" 
+
+export type Input = { reverse: bool
+ left: { fail: bool
+ value: bool?  }
+ right: { fail: bool
+ value: bool?  }
+ fallback: bool  } 
+
+export type Output = bool 
+
+export default function (in: Input): Output {
+  if (in.reverse) {
+    return readRight(in.right) ?? (readLeft(in.left) ?? in.fallback) 
+  }
+
+  return readLeft(in.left) ?? (readRight(in.right) ?? in.fallback) 
+}

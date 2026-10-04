@@ -1,0 +1,14 @@
+export type Input = { left: string?
+ right: string? }
+
+export type Output = { optional_equal: bool
+ optional_different: bool
+ plain_equal: bool
+ plain_different: bool }
+
+export default function (in: Input): Output {
+  const left = in.left ?? ""
+  const right = in.right ?? ""
+
+  return { optional_equal: in.left == in.right, optional_different: in.left != in.right, plain_equal: left == right, plain_different: left != right }
+}

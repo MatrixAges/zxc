@@ -1,0 +1,9 @@
+export type Input = { left: f64?
+ items: f64[]
+ index: u64 }
+
+export type Output = f64
+
+export default function (in: Input): Output {
+  return in.left ?? in.items[in.index]
+}

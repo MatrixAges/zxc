@@ -1,0 +1,15 @@
+import readLeft from "lib:probe-left"
+import readRight from "lib:probe-right"
+
+export type Input = { match_value: f64
+ fail_left: bool
+ fail_right: bool }
+
+export type Output = f64
+
+export default function (in: Input): Output {
+  switch (readLeft(in.fail_left) == in.match_value) {
+    case true: return readRight(in.fail_right)
+    default: return 7
+  }
+}
