@@ -1,0 +1,10 @@
+import alpha from "choice/alpha"
+import type { Mode } from "./types.zx"
+
+export type Input = Mode
+
+export type Output = Mode
+
+export default function (in: Input): Output {
+  return alpha(in)
+}

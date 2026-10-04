@@ -1,0 +1,9 @@
+name: native-library-consumer
+version: 1.0.0
+exports:
+    ./twice: main.zx
+    ./once: beta.zx
+dependencies:
+    choice: workspace:*
+workspace:
+    packages: [choice]

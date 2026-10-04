@@ -1,0 +1,26 @@
+{
+	"artifact_sha256": "f098dc4a9682780d1344c845f57ce0a67eedd6c15c06ff67a7ce5bcc2172e97f",
+	"source": "packages/test/tests/library/runtime/native.zig existing cached artifact",
+	"results": [
+		{
+			"command": ["docs/2026-10-05/统一库/原生命令行消费/生成/app", "\"First\""],
+			"exit_code": 0,
+			"stdout": "\"First\"\n"
+		},
+		{
+			"command": ["docs/2026-10-05/统一库/原生命令行消费/生成/app", "\"Second\""],
+			"exit_code": 0,
+			"stdout": "\"Second\"\n"
+		},
+		{
+			"command": ["docs/2026-10-05/统一库/原生命令行消费/生成/beta", "\"First\""],
+			"exit_code": 0,
+			"stdout": "\"Second\"\n"
+		},
+		{
+			"command": ["docs/2026-10-05/统一库/原生命令行消费/生成/beta", "\"Second\""],
+			"exit_code": 0,
+			"stdout": "\"First\"\n"
+		}
+	]
+}
