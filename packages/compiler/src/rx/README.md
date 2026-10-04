@@ -45,7 +45,7 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 ## 调用与组合
 
-每个 Module 自身就是流程。可选的 in/out 声明其类型契约，当前保留为字符串，不做 ZX 类型联结。
+每个 Module 自身就是流程。可选的 in/out 用于命名推导后的类型契约，不是需要另行提供的类型文件；Schema 入口仅保留名称，`rx_analysis.module.infer` 从函数调用与返回表达式推导顺序模块的实际类型。
 
 `checkout.rx` 可以通过调用多个子模块形成新的模块：
 
@@ -163,6 +163,44 @@ validateModules 输出按输入顺序排列的 `{ path, data }`，path 是规范
 单文件 validate 仅负责语法，不能代替完整模块集合的存在性和循环校验。两种入口均采用首错返回。
 
 结果列表及规范化路径由 arena 持有，字符串借用 AST；输入 AST 必须活到结果使用结束。成功和失败都要 deinit，OutOfMemory 通过错误联合返回。
+
+## 顺序模块类型推导
+
+Zig 构建模块 `rx_analysis` 提供两个独立拥有 arena 的接口；结果使用后调用 `deinit()`。
+
+| 入口                               | 输入                                                                        | 成功结果                                                                       |
+| ---------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `call.link(allocator, options)`    | `target`（RX 路径、真实 Call 节点、ZX 源集合、项目选项）以及显式 `bindings` | `invocation`：函数与参数 Program，共享类型表和名义类型来源                     |
+| `module.infer(allocator, options)` | `owner`、真实 `module` 节点、ZX `sources`、可选 `project` 选项              | `contract`：类型表、input_type、output_type、顺序 calls、可选 result、原生接口 |
+
+两个入口失败时返回带原始路径、位置、错误码和消息的 `diagnostic`；分配失败通过错误联合返回。它们使用真实 ZX 项目分析、风格检查及类型检查，不接受类型表之外的绑定。
+
+```zig
+var parsed = try rx.parseXml(allocator, source);
+
+defer parsed.deinit();
+
+if (parsed.value == .diagnostic) return error.InvalidXml;
+
+var inferred = try rx_analysis.module.infer(allocator, .{
+    .owner = "calculate.rx",
+    .module = parsed.value.node,
+    .sources = zx_sources,
+});
+
+defer inferred.deinit();
+
+switch (inferred.value) {
+    .contract => |contract| consume(contract),
+    .diagnostic => |issue| report(issue),
+}
+```
+
+当前 module.infer 接受顺序 `Call.fn` 与最后的 `Return`。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；`Call.out` 绑定可供后续步骤与 Return 使用。绑定路径不能重叠，也不能覆盖 `$in`；Return 后的步骤拒绝为不可达。输入未被使用时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
+
+对象字段与展开保留覆盖顺序，等待后续调用约束稳定后收束；多个未知展开源可能提供同一必需字段时报告歧义。缺失必需字段、完整对象多余字段和冲突类型拒绝；源值向可选字段赋值沿用 ZX 的包装规则。仅凭 length 不能区分字符串、列表和同名对象字段时也拒绝推导。
+
+`contract` 中的调用参数、函数和 Return 均经过正式 IR 检查。该接口不负责文件系统装载、跨 RX service 图联结或实际执行。Call.service、Store、分支、事件及其他流程节点尚未纳入此顺序入口，会明确报错；完整依赖集合仍须使用 `validateModules` 校验无环约束。
 
 ## 当前边界
 
