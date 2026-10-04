@@ -1,0 +1,14 @@
+<Module>
+  <Call fn="map_values" in="$in" out="saved" />
+  <Parallel>
+    <Task name="left" out="ctx.left">
+      <Call fn="map_values" in="$in" out="local.values" />
+      <Return value="local.values" />
+    </Task>
+    <Task name="right" out="ctx.right">
+      <Call fn="double_values" in="$in" out="local.values" />
+      <Return value="local.values" />
+    </Task>
+  </Parallel>
+  <Return value="{left: ctx.left, right: ctx.right, remaining: saved.pop()}" />
+</Module>
