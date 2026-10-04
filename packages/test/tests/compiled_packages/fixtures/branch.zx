@@ -1,0 +1,9 @@
+import run from "calc"
+
+export type Input = { choose: bool, left: u64[], right: u64[] }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return run(in)
+}

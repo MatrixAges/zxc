@@ -611,6 +611,7 @@ pub fn build(b: *std.Build) void {
     }
 
     test_step.dependOn(manifest_step);
+    test_step.dependOn(@import("build/compiled_packages.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/manifest_resources.zig").add(b, cli_dependency, compiler, target, optimize));
 
     const archive_step = b.step("test-package-archive", "Validate package archive integrity paths extraction and resources");

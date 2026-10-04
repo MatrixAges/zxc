@@ -1,0 +1,12 @@
+import first from "calc"
+import second from "calc/nested/beta"
+import repeated from "calc/again"
+import type { Shared } from "./types.zx"
+
+export type Input = Shared
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return repeated(second(first(in)))
+}
