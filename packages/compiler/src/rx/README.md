@@ -59,9 +59,9 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 父模块再用 `<Call service="checkout" in="$in" out="ctx.result" />` 调用整个组合模块。Call 的 fn 用于 ZX 函数，service 用于 RX 模块，必须且只能提供一个目标。
 
-Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标是该文件的默认导出。例如 `fn="load_user"` 指向 `load_user.zx`，也可写相对目录和显式 `.zx` 后缀。入口检查会读取函数及其 ZX 导入闭包，执行现有命名、类型和依赖检查，并拒绝纯类型文件作为函数目标。可使用 `check-rx --entry <file.rx> --project <zxc.json>` 指定包与原生接口配置。
+Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标是该文件的默认导出。例如 `fn="load_user"` 指向 `load_user.zx`，也可写相对目录和显式 `.zx` 后缀。入口检查会读取函数及其 ZX 导入闭包，执行现有命名、类型和依赖检查，并拒绝纯类型文件作为函数目标。可使用 `check-rx --entry <file.rx> --project <pkg.yaml>` 指定包与原生接口配置。
 
-这尚未验证 RX `in/out` 表达式与函数参数的兼容性，也未从 RX 生成 Store 句柄上下文；需要这些上下文的函数仍待完整联结，不能把文件分析成功当作 RX 调用已经可执行。
+上述 check-rx 入口仅做结构与目标检查；`zxc build` 和下述项目推导入口会进一步验证顺序调用的参数、结果及类型兼容性。RX 尚未生成 Store 句柄上下文，需要这些上下文的函数仍待完整联结。
 
 `<Import from="users" />` 是可选的模块组合依赖声明，不接受 as；直接 Call 不必再重复写 Import。Import 本身不表示执行顺序或调用，执行关系由 Call 描述。依赖图同时包含 Import 和 Call service，要求整个注册集合无环；即使 Import 暂未被调用，也不能形成循环依赖。
 
@@ -198,7 +198,7 @@ switch (inferred.value) {
 }
 ```
 
-当前 module.infer 接受顺序 `Call.fn` 与最后的 `Return`。`module.infer` 使用项目入口处理单个普通模块；有 service 依赖时应传入完整集合。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；`Call.out` 绑定可供后续步骤与 Return 使用。绑定路径不能重叠，也不能覆盖 `$in`；Return 后的步骤拒绝为不可达。输入未被使用时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
+当前 module.infer 接受顺序 `Call.fn` 与最后的 `Return`。`module.infer` 使用项目入口处理单个普通模块；有 service 依赖时应传入完整集合。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；`Call.out` 绑定可供后续步骤与 Return 使用。绑定路径不能重叠，也不能覆盖 `$in`；Return 后的步骤拒绝为不可达。输入既未被使用、也没有调用约束时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
 
 数组字面量保留各元素的类型约束，等待目标上下文决定 list 或 tuple；目标仍不明确时才采用同质列表。嵌套数组先默认外层，再将得到的元素类型传回内层，避免把可接受 tuple 上下文的字面量提前固定为 list。空列表没有足够元素类型信息时仍拒绝推导。
 

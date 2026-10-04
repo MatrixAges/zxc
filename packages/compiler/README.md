@@ -33,7 +33,7 @@ ZX 代码不允许显式分号。简单语句与声明通过换行、块结束�
 
 数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 8 的内存 API，没有稳定序列化 ABI。
 
-Store 的实际版本检查、锁、持久化和跨对象原子发布由宿主 commit 实现。编译器不包含完整 RX XML 加载器或生产 Runtime 调度器，不能把生成端的提交接口视为生产持久化已经实现。
+Store 的实际版本检查、锁、持久化和跨对象原子发布由宿主 commit 实现。RX XML 解析、可达模块装载和顺序服务应用生成已接通；Store 定义到调用授权及状态宿主的 RX 联结仍未完成，不能把生成端的提交接口视为生产持久化已经实现。
 
 ZX 不提供指针类型、取地址或解引用语法。参数、返回值和局部绑定始终使用普通 ZX 类型；聚合值的引用传递及具体存储表示由编译器处理。clone 已删除。
 
@@ -86,7 +86,7 @@ parse 返回拥有源码副本的 ParseResult，analyze/project.analyze 返回�
 
 有 pkg.yaml 时，CLI 从入口文件定位最近的包及包含它的工作区，工作区成员来自根清单内的 `workspace.packages`。每个包分别声明 dependencies/dev_dependencies；裸导入查当前包的直接依赖，或以自身 name 引用自身 entry。`@/` 指向当前包根，文件路径不能越过包边界绕过声明。`project.Options.package_scopes` 以绝对包根和直接依赖映射提供相同的库接口。原生模块、接口及链接配置也位于当前包的 pkg.yaml。
 
-`zxc pkg inspect [pkg.yaml]` 校验清单，`zxc pkg workspace [pkg.yaml]` 发现成员，`zxc pkg graph [pkg.yaml]` 校验并输出依赖图。当前解析 workspace: 来源，支持 `workspace:*`、`workspace:^`、`workspace:~`、显式语义版本范围、`workspace:包名@范围` 别名和 `workspace:../成员` 路径引用；缺失成员、版本不匹配和循环依赖均失败。范围支持精确版本、部分版本、x/*、^、~、比较符交集、|| 及连字符区间，预发布版本按比较集合约束。目录与源码别名不能绕过物理包边界。真实 app 示例见 [包管理示例](../../docs/2026-10-03/包管理示例/)。外部来源、锁文件、共享存储和安装命令尚未实现，graph 成功不代表已安装外部依赖。
+`zxc pkg inspect [pkg.yaml]` 校验清单，`zxc pkg workspace [pkg.yaml]` 发现成员，`zxc pkg graph [pkg.yaml]` 校验并输出依赖图。当前解析 workspace: 来源，支持 `workspace:*`、`workspace:^`、`workspace:~`、显式语义版本范围、`workspace:包名@范围` 别名和 `workspace:../成员` 路径引用；缺失成员、版本不匹配和循环依赖均失败。范围支持精确版本、部分版本、x/*、^、~、比较符交集、|| 及连字符区间，预发布版本按比较集合约束。目录与源码别名不能绕过物理包边界。真实 app 示例见 [包管理示例](../../docs/2026-10-03/包管理示例/)。外部依赖通过 `zxc pkg install` 从显式索引安装，生成 pkg.lock.json 并使用校验过的共享缓存；支持 `--offline` 与 `--frozen-lockfile`。构建读取已有安装，不自动联网。graph 成功不代表已安装外部依赖；完整参数、来源与锁定规则见 [包管理 reference](../pkgs/README.md)。
 
 `zxc pkg init <name> [--version <version>] [--entry <path>] [--private]` 在当前目录创建 pkg.yaml，默认版本 0.1.0，不覆盖已有文件。入口可选，必须是包内 .zx 路径；命令只创建清单，不生成源码。例如 `zxc pkg init @sample/quote --entry main.zx --private`。未知、重复、缺值参数或无效清单字段均失败；字段校验与 inspect 使用同一 Schema。
 
@@ -100,7 +100,7 @@ Store 使用 compileWithContext 或 project.Options.context.stores，每项声�
 
 这些接口尚未自动建立 RX 前序 Call.out 的可见环境，也不负责 XML 属性位置映射、分支合流或 RX 编排执行。提供者表达式与 ZX 入口组合生成时必须共享同一份类型表和 zxc_abi，不能凭对象字段相同就互传两个独立 Zig 模块中的匿名类型。
 
-`dependency.module("rx_analysis")` 中的 `expression.compile` 编译真实 XML 属性并映射源码范围。普通 CLI、service 调度、Module 类型来源和完整 RX 应用生成仍未接通。API 与所有权约定见[显式表达式编译参考](../../docs/2026-10-04/显式表达式编译参考.md)。
+`dependency.module("rx_analysis")` 中的 `expression.compile` 编译真实 XML 属性并映射源码范围。`rx_analysis.project.infer` 从真实模块集合共同推导输入输出类型，联结顺序 Call.fn、Call.service 与 Return，并由 CLI 生成独立应用。分支、Store、事件和 Gateway 执行仍未接通；用法及范围见 [RX reference](src/rx/README.md)。API 与所有权约定见[显式表达式编译参考](../../docs/2026-10-04/显式表达式编译参考.md)。
 
 IR 实验版本 8 移除 Context 注入槽位与读取节点，保留原生声明组 identity。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
 
@@ -180,7 +180,7 @@ CLI 的普通编译、`build`、`verify` 和 `fpga` 默认把模块语义产物�
 
 使用 `--no-cache` 禁用模块语义缓存及其磁盘读写，`--cache-stats` 在 stderr 显示分析、复用、加载、写入、磁盘格式丢弃和不可缓存计数；`native_analyzed`、`native_reused`、`native_loaded`、`native_written` 单独报告原生接口。原生条目存于同一构建指纹目录下的 `native/`，只加载当前源码导入的已注册接口。缓存只原子写入新建或更新的条目，未变化文件保持时间戳。单条目读取上限为 64 MiB，JSON 嵌套上限为 2048；格式、指纹、摘要、类型或恢复后的 IR 校验不通过时重新分析。磁盘读写故障会报告错误并继续正常编译，内存分配失败仍返回错误。`fmt` 不接受缓存选项。
 
-例如，在 `packages/compiler` 目录执行已有模块示例：
+例如，在 `packages/cli` 目录执行已有模块示例：
 
 ```sh
 ../../zig-out/bin/zxc tests/runtime/cases/modules.zx --out /tmp/modules.zig --cache-stats
