@@ -47,7 +47,25 @@ fn resolve(io: std.Io, result: *Result, path: []const u8, inputs: ?*Inputs) !voi
     }
 
     result.root = try std.Io.Dir.cwd().realPathFileAlloc(io, std.fs.path.dirname(path) orelse ".", allocator);
+
+    for (discovered.packages) |package| {
+        for ([_][]const @import("manifest/model.zig").Dependency{ package.manifest.dependencies, package.manifest.dev_dependencies }) |entries| {
+            for (entries) |entry| {
+                if (std.mem.startsWith(u8, entry.requirement, "workspace:")) continue;
+
+                result.packages = @import("installed.zig").load(io, allocator, result.root, discovered.packages, inputs) catch |err| {
+                    if (err == error.PackagesNotInstalled) result.diagnostic = try std.fmt.allocPrint(allocator, "{s}/pkg.yaml: dependency {s}: external dependency is not installed; run zxc pkg install", .{ package.path, entry.name });
+
+                    return err;
+                };
+
+                return;
+            }
+        }
+    }
+
     result.packages = try allocator.alloc(Package, discovered.packages.len);
+
     for (discovered.packages, result.packages) |source, *package| package.* = .{ .path = source.path, .manifest = source.manifest };
 
     for (result.packages, 0..) |*package, owner| {
@@ -76,7 +94,7 @@ fn resolve(io: std.Io, result: *Result, path: []const u8, inputs: ?*Inputs) !voi
 }
 
 fn dependency(result: *Result, owner: usize, name: []const u8, requirement: []const u8) !usize {
-    if (!std.mem.startsWith(u8, requirement, "workspace:")) return fail(result, owner, name, "external dependency is not installed; only workspace: sources are currently resolved");
+    if (!std.mem.startsWith(u8, requirement, "workspace:")) return fail(result, owner, name, "external dependency is not installed; run zxc pkg install");
 
     const text = requirement["workspace:".len..];
     var target_name = name;

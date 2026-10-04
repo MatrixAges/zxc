@@ -1,0 +1,223 @@
+{
+	"directory": "/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w",
+	"outputs": [
+		{
+			"amount": 17,
+			"factor": 4
+		},
+		{
+			"amount": 17,
+			"factor": 2
+		}
+	],
+	"commands": [
+		{
+			"args": [
+				"pkg",
+				"install",
+				"--index",
+				"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/source/index.json"
+			],
+			"code": 0,
+			"out": "Installed 6 packages; pkg.lock.json is up to date.\n",
+			"err": ""
+		},
+		{
+			"args": ["pkg", "graph"],
+			"code": 0,
+			"out": "[\n  {\n    \"path\": \"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/project\",\n    \"manifest\": {\n      \"name\": \"@example/workspace\",\n      \"version\": \"0.1.0\",\n      \"entry\": null,\n      \"private\": true,\n      \"dependencies\": [\n        {\n          \"name\": \"@example/math\",\n          \"requirement\": \"^0.1.0\"\n        }\n      ],\n      \"dev_dependencies\": [],\n      \"workspace\": {\n        \"packages\": [\n          \"packages/*\",\n          \"!packages/ignored\"\n        ]\n      },\n      \"native_interfaces\": [],\n      \"externals\": [],\n      \"native_modules\": [],\n      \"libraries\": [],\n      \"include_paths\": [],\n      \"library_paths\": []\n    },\n    \"dependencies\": [\n      {\n        \"name\": \"@example/math\",\n        \"target\": 4,\n        \"development\": false\n      }\n    ]\n  },\n  {\n    \"path\": \"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/project/packages/app\",\n    \"manifest\": {\n      \"name\": \"@example/app\",\n      \"version\": \"0.1.0\",\n      \"entry\": \"main.zx\",\n      \"private\": true,\n      \"dependencies\": [\n        {\n          \"name\": \"@example/math\",\n          \"requirement\": \"^0.1.0\"\n        }\n      ],\n      \"dev_dependencies\": [],\n      \"workspace\": null,\n      \"native_interfaces\": [],\n      \"externals\": [],\n      \"native_modules\": [],\n      \"libraries\": [],\n      \"include_paths\": [],\n      \"library_paths\": []\n    },\n    \"dependencies\": [\n      {\n        \"name\": \"@example/math\",\n        \"target\": 4,\n        \"development\": false\n      }\n    ]\n  },\n  {\n    \"path\": \"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/project/packages/math\",\n    \"manifest\": {\n      \"name\": \"@example/math\",\n      \"version\": \"0.1.0\",\n      \"entry\": \"quote.zx\",\n      \"private\": false,\n      \"dependencies\": [],\n      \"dev_dependencies\": [],\n      \"workspace\": null,\n      \"native_interfaces\": [],\n      \"externals\": [],\n      \"native_modules\": [],\n      \"libraries\": [],\n      \"include_paths\": [],\n      \"library_paths\": []\n    },\n    \"dependencies\": []\n  },\n  {\n    \"path\": \"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/project/packages/second\",\n    \"manifest\": {\n      \"name\": \"@example/second\",\n      \"version\": \"0.1.0\",\n      \"entry\": \"main.zx\",\n      \"private\": true,\n      \"dependencies\": [\n        {\n          \"name\": \"@example/math\",\n          \"requirement\": \"^0.2.0\"\n        }\n      ],\n      \"dev_dependencies\": [],\n      \"workspace\": null,\n      \"native_interfaces\": [],\n      \"externals\": [],\n      \"native_modules\": [],\n      \"libraries\": [],\n      \"include_paths\": [],\n      \"library_paths\": []\n    },\n    \"dependencies\": [\n      {\n        \"name\": \"@example/math\",\n        \"target\": 5,\n        \"development\": false\n      }\n    ]\n  },\n  {\n    \"path\": \"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/cache/packages/v1/contents/cec18d64db9aea4f9b0a4eb4e7620ebd190a87cdef0afed8a4e5309d450e2cff/package\",\n    \"manifest\": {\n      \"name\": \"@example/math\",\n      \"version\": \"0.1.0\",\n      \"entry\": \"quote.zx\",\n      \"private\": false,\n      \"dependencies\": [],\n      \"dev_dependencies\": [],\n      \"workspace\": null,\n      \"native_interfaces\": [],\n      \"externals\": [],\n      \"native_modules\": [],\n      \"libraries\": [],\n      \"include_paths\": [],\n      \"library_paths\": []\n    },\n    \"dependencies\": []\n  },\n  {\n    \"path\": \"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/cache/packages/v1/contents/167fbec7da303c2a7d7202854e1f913197d2363bc32580c22839deed24b2cd9f/package\",\n    \"manifest\": {\n      \"name\": \"@example/math\",\n      \"version\": \"0.2.0\",\n      \"entry\": \"quote.zx\",\n      \"private\": false,\n      \"dependencies\": [],\n      \"dev_dependencies\": [],\n      \"workspace\": null,\n      \"native_interfaces\": [],\n      \"externals\": [],\n      \"native_modules\": [],\n      \"libraries\": [],\n      \"include_paths\": [],\n      \"library_paths\": []\n    },\n    \"dependencies\": []\n  }\n]\n",
+			"err": ""
+		},
+		{
+			"args": [
+				"build",
+				"packages/app/main.zx",
+				"--out",
+				"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/app"
+			],
+			"code": 0,
+			"out": "",
+			"err": ""
+		},
+		{
+			"args": [
+				"build",
+				"packages/second/main.zx",
+				"--out",
+				"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/second"
+			],
+			"code": 0,
+			"out": "",
+			"err": ""
+		},
+		{
+			"args": ["pkg", "install", "--offline", "--frozen-lockfile"],
+			"code": 0,
+			"out": "Installed 6 packages; pkg.lock.json is up to date.\n",
+			"err": ""
+		},
+		{
+			"args": [
+				"build",
+				"packages/second/main.zx",
+				"--out",
+				"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/offline"
+			],
+			"code": 0,
+			"out": "",
+			"err": ""
+		}
+	],
+	"graph": [
+		{
+			"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/project",
+			"manifest": {
+				"name": "@example/workspace",
+				"version": "0.1.0",
+				"entry": null,
+				"private": true,
+				"dependencies": [
+					{
+						"name": "@example/math",
+						"requirement": "^0.1.0"
+					}
+				],
+				"dev_dependencies": [],
+				"workspace": {
+					"packages": ["packages/*", "!packages/ignored"]
+				},
+				"native_interfaces": [],
+				"externals": [],
+				"native_modules": [],
+				"libraries": [],
+				"include_paths": [],
+				"library_paths": []
+			},
+			"dependencies": [
+				{
+					"name": "@example/math",
+					"target": 4,
+					"development": false
+				}
+			]
+		},
+		{
+			"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/project/packages/app",
+			"manifest": {
+				"name": "@example/app",
+				"version": "0.1.0",
+				"entry": "main.zx",
+				"private": true,
+				"dependencies": [
+					{
+						"name": "@example/math",
+						"requirement": "^0.1.0"
+					}
+				],
+				"dev_dependencies": [],
+				"workspace": null,
+				"native_interfaces": [],
+				"externals": [],
+				"native_modules": [],
+				"libraries": [],
+				"include_paths": [],
+				"library_paths": []
+			},
+			"dependencies": [
+				{
+					"name": "@example/math",
+					"target": 4,
+					"development": false
+				}
+			]
+		},
+		{
+			"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/project/packages/math",
+			"manifest": {
+				"name": "@example/math",
+				"version": "0.1.0",
+				"entry": "quote.zx",
+				"private": false,
+				"dependencies": [],
+				"dev_dependencies": [],
+				"workspace": null,
+				"native_interfaces": [],
+				"externals": [],
+				"native_modules": [],
+				"libraries": [],
+				"include_paths": [],
+				"library_paths": []
+			},
+			"dependencies": []
+		},
+		{
+			"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/project/packages/second",
+			"manifest": {
+				"name": "@example/second",
+				"version": "0.1.0",
+				"entry": "main.zx",
+				"private": true,
+				"dependencies": [
+					{
+						"name": "@example/math",
+						"requirement": "^0.2.0"
+					}
+				],
+				"dev_dependencies": [],
+				"workspace": null,
+				"native_interfaces": [],
+				"externals": [],
+				"native_modules": [],
+				"libraries": [],
+				"include_paths": [],
+				"library_paths": []
+			},
+			"dependencies": [
+				{
+					"name": "@example/math",
+					"target": 5,
+					"development": false
+				}
+			]
+		},
+		{
+			"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/cache/packages/v1/contents/cec18d64db9aea4f9b0a4eb4e7620ebd190a87cdef0afed8a4e5309d450e2cff/package",
+			"manifest": {
+				"name": "@example/math",
+				"version": "0.1.0",
+				"entry": "quote.zx",
+				"private": false,
+				"dependencies": [],
+				"dev_dependencies": [],
+				"workspace": null,
+				"native_interfaces": [],
+				"externals": [],
+				"native_modules": [],
+				"libraries": [],
+				"include_paths": [],
+				"library_paths": []
+			},
+			"dependencies": []
+		},
+		{
+			"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-install-2jfk3n7w/cache/packages/v1/contents/167fbec7da303c2a7d7202854e1f913197d2363bc32580c22839deed24b2cd9f/package",
+			"manifest": {
+				"name": "@example/math",
+				"version": "0.2.0",
+				"entry": "quote.zx",
+				"private": false,
+				"dependencies": [],
+				"dev_dependencies": [],
+				"workspace": null,
+				"native_interfaces": [],
+				"externals": [],
+				"native_modules": [],
+				"libraries": [],
+				"include_paths": [],
+				"library_paths": []
+			},
+			"dependencies": []
+		}
+	],
+	"offline_lock_bytes_unchanged": true
+}

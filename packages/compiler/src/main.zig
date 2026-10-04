@@ -14,7 +14,7 @@ pub fn main(init: std.process.Init) !void {
     defer stderr.flush() catch {};
 
     if (args.len > 1 and std.mem.eql(u8, args[1], "pkg")) {
-        if (!try @import("package/command.zig").run(init.io, allocator, args[2..], stdout, stderr)) {
+        if (!try @import("package/command.zig").run(init.io, allocator, args[2..], init.environ_map, stdout, stderr)) {
             try stderr.flush();
 
             std.process.exit(1);
@@ -58,6 +58,7 @@ pub fn main(init: std.process.Init) !void {
 fn usage(writer: *std.Io.Writer) std.Io.Writer.Error!void {
     try writer.writeAll("zxc pkg inspect|workspace|graph [pkg.yaml]\n");
     try writer.writeAll(@import("package/init.zig").usage);
+    try writer.writeAll(@import("package/install.zig").usage);
     try writer.writeAll("Options for compile/build/verify/fpga: --no-cache --cache-stats\n");
     try writer.writeAll("zxc pkg index [index.json]\nzxc pkg resolve <name> <range> [index.json]\n");
     try writer.writeAll("zxc <source.zx> [--project pkg.yaml] [--out output.zig] [--solver z3]\nzxc build <source.zx> --out program [--mode app|lib] [--watch] [--project pkg.yaml] [--asm program.s] [--target triple] [--cpu features] [--optimize mode] [--solver z3]\nzxc fpga <source.zx> --out kernel.sv [--project pkg.yaml] [--solver z3] [--clocked]\nzxc verify <source.zx> [--project pkg.yaml] [--solver z3] [--out query.smt2]\nzxc fmt <source.zx> [--check | --write]\nzxc check-rx <module.rx> [module.rx ...]\nzxc check-rx --entry <module.rx|gateway.gateway.rx|state.store.rx> [--project pkg.yaml]\n");

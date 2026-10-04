@@ -1,13 +1,15 @@
 const std = @import("std");
 const manifest = @import("manifest.zig");
 
-pub fn run(io: std.Io, allocator: std.mem.Allocator, args: []const []const u8, output: *std.Io.Writer, errors: *std.Io.Writer) !bool {
+pub fn run(io: std.Io, allocator: std.mem.Allocator, args: []const []const u8, environment: *const std.process.Environ.Map, output: *std.Io.Writer, errors: *std.Io.Writer) !bool {
+    if (args.len != 0 and std.mem.eql(u8, args[0], "install")) return @import("install.zig").run(io, allocator, args[1..], environment, output, errors);
     if (args.len != 0 and std.mem.eql(u8, args[0], "init")) return @import("init.zig").run(io, allocator, args, output, errors);
     if (args.len != 0 and (std.mem.eql(u8, args[0], "index") or std.mem.eql(u8, args[0], "resolve"))) return @import("index.zig").run(io, allocator, args, output, errors);
 
     if (args.len < 1 or args.len > 2 or (!std.mem.eql(u8, args[0], "inspect") and !std.mem.eql(u8, args[0], "workspace") and !std.mem.eql(u8, args[0], "graph"))) {
         try errors.writeAll("zxc pkg inspect|workspace|graph [pkg.yaml]\n");
         try errors.writeAll(@import("init.zig").usage);
+        try errors.writeAll(@import("install.zig").usage);
 
         return false;
     }
