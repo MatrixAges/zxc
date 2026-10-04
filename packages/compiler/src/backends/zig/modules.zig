@@ -7,6 +7,7 @@ const fingerprint = @import("fingerprint.zig");
 const Cache = @import("cache.zig");
 pub const Error = names.Error || generating.Error || error{ InvalidAnalysis, ConflictingFunction };
 pub const File = struct { name: []const u8, source: []const u8, imports: []const []const u8 };
+pub const StoreInitializer = struct { identity: []const u8, schema_version: u32, module_name: []const u8, type_name: []const u8 };
 
 pub const Bundle = struct {
     arena: std.heap.ArenaAllocator,
@@ -15,6 +16,7 @@ pub const Bundle = struct {
     modules: []const File,
     type_names: []const []const u8 = &.{},
     native_modules: []const @import("zx").ir.NativeModule = &.{},
+    store_initializers: []const StoreInitializer = &.{},
     pub fn deinit(self: *Bundle) void {
         self.arena.deinit();
 
@@ -89,7 +91,7 @@ pub fn createCached(allocator: std.mem.Allocator, analysis: *const Analysis, cac
     return .{ .arena = arena, .entry = entry, .types = type_source, .modules = modules, .type_names = try type_names.toOwnedSlice(owned), .native_modules = native_modules };
 }
 
-fn emit(allocator: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, unit: fingerprint.Unit, cache: ?*Cache) Error![]const u8 {
+pub fn emit(allocator: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, unit: fingerprint.Unit, cache: ?*Cache) Error![]const u8 {
     const store = cache orelse return generate(allocator, program, identities, unit);
 
     const name = switch (unit) {

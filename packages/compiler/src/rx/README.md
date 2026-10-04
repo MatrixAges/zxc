@@ -278,6 +278,12 @@ CLI `check-rx --entry state.store.rx` 以及普通入口装载到的 Store 定�
 
 项目推导的 `stores` 与普通 `modules` 分开传入，CLI 源码生成自动沿 Store.from 装载。定义先进入共享类型表，成功结果的 `contract.store_definitions` 保留各 Object 的初值 Program，供宿主初始化；它们不在每个 Call 中重新执行。
 
+维护者使用分模块后端时，先通过 `compiler.zig.emitModules` 或对应缓存入口生成应用 Bundle，再调用 `compiler.zig.store_initializers.append(&bundle, options)`。options 中的 analysis 必须是生成该 Bundle 的同一份应用分析；initializers 每项提供 `identity`、`schema_version` 与 `program`，分别来自 `store.{source_path}:{Object.name}`、Definition.version 和 Object.initial。可选 cache 与应用使用同一个 GenerationCache。
+
+该接口验证初值与应用的共享类型身份，为每个 Object 增加独立模块，并在 `bundle.store_initializers` 返回物理身份、schema 版本、模块名与 ABI 布局名。每个应用 Store 槽位必须找到同身份、同类型的初值；重复身份、缺失初值与不符合初始化约束的 Program 会被拒绝。Object 的运行值类型为该 ABI 布局的不可变指针。新增结果随 Bundle arena 一并释放。
+
+初值模块名称保持稳定，初值正文进入独立缓存指纹；诊断源码位置不影响 Zig 生成缓存。schema 版本保存在 metadata 中，宿主及构建缓存必须消费该 metadata，不能仅依据初值源码是否变化判断恢复兼容性。本接口只组装生成模块，不执行初值或创建持久状态；原生 CLI Store 宿主仍在接入。
+
 `<Store from="state" as="jobs" />` 相对模块路径读取 state.store.rx，别名省略时取定义的 Store.name。命名空间与 Object 名需要是单个标识符；显示名称不适合作为标识符时使用 as。模块源码使用 `store.jobs.counter`，运行身份使用规范化定义路径与 Object 名。同一文件的不同别名共用一个对象，不同文件的同名 Store 不合并。
 
 ```xml

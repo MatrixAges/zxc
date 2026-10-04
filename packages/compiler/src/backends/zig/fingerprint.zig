@@ -11,7 +11,7 @@ names: Names,
 pub fn create(program: ir.Program, names: Names, unit: Unit) [32]u8 {
     var self = Self{ .program = program, .names = names };
 
-    self.bytes("zxc.zig.input.v1");
+    self.bytes("zxc.zig.input.v2");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -59,6 +59,7 @@ pub fn create(program: ir.Program, names: Names, unit: Unit) [32]u8 {
 fn write(self: *Self, value: anytype) void {
     const T = @TypeOf(value);
 
+    if (T == @FieldType(ir.Expression, "span")) return;
     if (T == ir.TypeId) return self.bytes(self.names.types[@intFromEnum(value)]);
 
     if (T == ir.FunctionId) {

@@ -5,6 +5,7 @@ pub const ModuleBundle = modules.Bundle;
 pub const ModuleFile = modules.File;
 pub const GenerationCache = @import("zig/cache.zig");
 pub const abi_view = @import("genz").zx.modules.abi_view;
+pub const store_initializers = @import("zig/store_initializers.zig");
 
 pub fn emitModules(allocator: std.mem.Allocator, analysis: *const @import("frontend").AnalysisResult) (modules.Error || error{ InvalidIr, UnverifiedContracts })!ModuleBundle {
     return emitModulesCached(allocator, analysis, null);
