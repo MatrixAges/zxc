@@ -12,7 +12,7 @@ export type Request = {
 export default async function createFixtureServer() {
 	const sockets = new Set<Socket>()
 	const requests: Array<Request> = []
-	let response = Buffer.from('HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n')
+	let response: Buffer = Buffer.from('HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n')
 	const server = createServer(socket => {
 		sockets.add(socket)
 		socket.on('close', () => sockets.delete(socket))

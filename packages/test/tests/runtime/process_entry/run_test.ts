@@ -46,7 +46,7 @@ function checkSnapshot(entry: string) {
 
 		if (policy !== 'discard') {
 			check(`${entry} ${policy ?? 'default'} uses current explicit environment`, () => {
-				const env = { ...fixture.environment }
+				const env: NodeJS.ProcessEnv = { ...fixture.environment }
 				delete env.ZXC_PROCESS_CONTEXT_VALUE
 				const result = fixture.run({ command: executable, argv: [], env })
 				const snapshot = { argv: [executable], env: null, cwd: fixture.cwd }
