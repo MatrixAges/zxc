@@ -1,5 +1,5 @@
 <Module>
   <Store from="../state" as="attributes"/>
-  <Call fn="../functions/read_values" in={store.attributes.values} out="ctx.values"/>
-  <Return value={ctx.values}/>
+  <Call fn="../functions/read_values" in={store.attributes.values}/>
+  <Return value={$ctx.read_values}/>
 </Module>

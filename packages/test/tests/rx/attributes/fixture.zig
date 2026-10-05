@@ -10,6 +10,7 @@ const Case = struct {
     syntax: bool = false,
     path: ?[]const u8 = null,
     attribute: ?[]const u8 = null,
+    code: @FieldType(rx.Diagnostic, "code") = .invalid_attribute,
     offset: usize = 0,
 };
 
@@ -52,7 +53,7 @@ fn verify(allocator: std.mem.Allocator, case: Case) !void {
 
         if (case.attribute) |attribute| {
             try std.testing.expect(result.value == .diagnostic);
-            try std.testing.expectEqual(.invalid_attribute, result.value.diagnostic.code);
+            try std.testing.expectEqual(case.code, result.value.diagnostic.code);
             try std.testing.expectEqualStrings(attribute, result.value.diagnostic.attribute.?);
             try std.testing.expectEqual(case.offset, result.value.diagnostic.location.offset);
         } else {

@@ -1,5 +1,5 @@
 <Module>
   <Import from="../services/worker.rx"/>
-  <Call service="../services/worker.rx" in={$in} out="ctx.value"/>
-  <Return value={ctx.value}/>
+  <Call module="../services/worker.rx" in={$in}/>
+  <Return value={$ctx.worker}/>
 </Module>

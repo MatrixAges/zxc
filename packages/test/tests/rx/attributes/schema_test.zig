@@ -48,15 +48,15 @@ test "call-fn-expression" {
     );
 }
 
-test "call-service-string" {
+test "call-service-string-rejected" {
     try fixture.check(
-        \\{"source":"<Module><Call service=\"worker\" in=\"text\"/></Module>","path":"flow.rx"}
+        \\{"source":"<Module><Call service=\"worker\" in=\"text\"/></Module>","path":"flow.rx","attribute":"service","code":"unknown_attribute","offset":14}
     );
 }
 
-test "call-service-expression" {
+test "call-service-expression-rejected" {
     try fixture.check(
-        \\{"source":"<Module><Call service={worker} in=\"text\"/></Module>","path":"flow.rx","attribute":"service","offset":23}
+        \\{"source":"<Module><Call service={worker} in=\"text\"/></Module>","path":"flow.rx","attribute":"service","offset":14,"code":"unknown_attribute"}
     );
 }
 
@@ -72,15 +72,15 @@ test "call-module-expression" {
     );
 }
 
-test "call-out-string" {
+test "call-out-string-rejected" {
     try fixture.check(
-        \\{"source":"<Module><Call fn=\"echo\" in=\"text\" out=\"ctx.value\"/></Module>","path":"flow.rx"}
+        \\{"source":"<Module><Call fn=\"echo\" in=\"text\" out=\"ctx.value\"/></Module>","path":"flow.rx","attribute":"out","code":"unknown_attribute","offset":34}
     );
 }
 
-test "call-out-expression" {
+test "call-out-expression-rejected" {
     try fixture.check(
-        \\{"source":"<Module><Call fn=\"echo\" in=\"text\" out={ctx.value}/></Module>","path":"flow.rx","attribute":"out","offset":39}
+        \\{"source":"<Module><Call fn=\"echo\" in=\"text\" out={ctx.value}/></Module>","path":"flow.rx","attribute":"out","offset":34,"code":"unknown_attribute"}
     );
 }
 
@@ -96,15 +96,15 @@ test "task-name-expression" {
     );
 }
 
-test "task-out-string" {
+test "task-out-string-rejected" {
     try fixture.check(
-        \\{"source":"<Module><Parallel><Task name=\"work\" out=\"ctx.value\"><Return value=\"text\"/></Task></Parallel></Module>","path":"flow.rx"}
+        \\{"source":"<Module><Parallel><Task name=\"work\" out=\"ctx.value\"><Call fn=\"echo\" in=\"text\"/></Task></Parallel></Module>","path":"flow.rx","attribute":"out","offset":41}
     );
 }
 
-test "task-out-expression" {
+test "task-out-expression-schema" {
     try fixture.check(
-        \\{"source":"<Module><Parallel><Task name=\"work\" out={ctx.value}><Return value=\"text\"/></Task></Parallel></Module>","path":"flow.rx","attribute":"out","offset":41}
+        \\{"source":"<Module><Parallel><Task name=\"work\" out={$ctx.echo}><Call fn=\"echo\" in=\"text\"/></Task></Parallel></Module>","path":"flow.rx"}
     );
 }
 
