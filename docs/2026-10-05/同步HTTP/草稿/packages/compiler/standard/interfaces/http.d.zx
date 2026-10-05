@@ -1,0 +1,9 @@
+export enum Method { Get, Head, Post, Put, Patch, Delete, Options }
+
+export type Header = { name: string, value: u8[] }
+
+export type Options = { url: string, method: Method, headers: Header[], body: u8[]?, max_body_bytes: u64, max_header_bytes: u64 }
+
+export type Response = { status: u16, headers: Header[], body: u8[] }
+
+export declare function request(allocator, io, in: Options): Response throws

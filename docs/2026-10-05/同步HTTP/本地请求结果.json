@@ -1,0 +1,92 @@
+[
+	{
+		"name": "get",
+		"exit_code": 0,
+		"stdout": "{\"body\":[104,101,108,108,111,255],\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Content-Length\",\"value\":\"6\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":200}\n",
+		"stderr": ""
+	},
+	{
+		"name": "post",
+		"exit_code": 0,
+		"stdout": "{\"body\":[0,65,255],\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Content-Length\",\"value\":\"3\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":200}\n",
+		"stderr": ""
+	},
+	{
+		"name": "post_empty",
+		"exit_code": 0,
+		"stdout": "{\"body\":\"\",\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Content-Length\",\"value\":\"0\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":200}\n",
+		"stderr": ""
+	},
+	{
+		"name": "head",
+		"exit_code": 0,
+		"stdout": "{\"body\":\"\",\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Content-Length\",\"value\":\"600\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":200}\n",
+		"stderr": ""
+	},
+	{
+		"name": "no_content",
+		"exit_code": 0,
+		"stdout": "{\"body\":\"\",\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Content-Length\",\"value\":\"600\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":204}\n",
+		"stderr": ""
+	},
+	{
+		"name": "not_modified",
+		"exit_code": 0,
+		"stdout": "{\"body\":\"\",\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Content-Length\",\"value\":\"600\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":304}\n",
+		"stderr": ""
+	},
+	{
+		"name": "not_found",
+		"exit_code": 0,
+		"stdout": "{\"body\":[104,101,108,108,111,255],\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Content-Length\",\"value\":\"6\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":404}\n",
+		"stderr": ""
+	},
+	{
+		"name": "redirect",
+		"exit_code": 0,
+		"stdout": "{\"body\":[104,101,108,108,111,255],\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Location\",\"value\":\"/200/plain\"},{\"name\":\"Content-Length\",\"value\":\"6\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":302}\n",
+		"stderr": ""
+	},
+	{
+		"name": "chunked",
+		"exit_code": 0,
+		"stdout": "{\"body\":[104,101,108,108,111,255],\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Transfer-Encoding\",\"value\":\"chunked\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":200}\n",
+		"stderr": ""
+	},
+	{
+		"name": "early",
+		"exit_code": 0,
+		"stdout": "{\"body\":[104,101,108,108,111,255],\"headers\":[{\"name\":\"Server\",\"value\":\"BaseHTTP/0.6 Python/3.9.6\"},{\"name\":\"Date\",\"value\":\"Mon, 05 Oct 2026 01:35:22 GMT\"},{\"name\":\"X-Item\",\"value\":\"one\"},{\"name\":\"X-Item\",\"value\":\"two\"},{\"name\":\"X-Byte\",\"value\":[255]},{\"name\":\"Content-Length\",\"value\":\"6\"},{\"name\":\"Connection\",\"value\":\"close\"}],\"status\":200}\n",
+		"stderr": ""
+	},
+	{
+		"name": "too_large",
+		"exit_code": 1,
+		"stdout": "",
+		"stderr": "error: StreamTooLong\n"
+	},
+	{
+		"name": "small_head",
+		"exit_code": 1,
+		"stdout": "",
+		"stderr": "error: HttpHeadersOversize\n"
+	},
+	{
+		"name": "bad_header",
+		"exit_code": 1,
+		"stdout": "",
+		"stderr": "error: InvalidHttpHeader\n"
+	},
+	{
+		"name": "managed_header",
+		"exit_code": 1,
+		"stdout": "",
+		"stderr": "error: ManagedHttpHeader\n"
+	},
+	{
+		"name": "get_body",
+		"exit_code": 1,
+		"stdout": "",
+		"stderr": "error: UnsupportedRequestBody\n"
+	}
+]

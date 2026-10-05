@@ -1,0 +1,10 @@
+import type { Options, Response } from "std:http"
+import run from "library"
+
+export type Input = Options
+
+export type Output = Response
+
+export default function (in: Input): Output {
+  return run(in)
+}
