@@ -31,19 +31,22 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
 
     const frontend = compiler.module("frontend");
 
-    const parity = b.addTest(.{ .root_module = b.createModule(.{
-        .root_source_file = b.path("tests/bootstrap/type_parser/parity_test.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{
-            .{ .name = "program", .module = program },
-            .{ .name = "frontend", .module = frontend },
-            .{ .name = "lexer", .module = frontend.import_table.get("lexer").? },
-            .{ .name = "zx", .module = frontend.import_table.get("zx").? },
-        },
-    }) });
+    for ([_][]const u8{ "parity", "short_tokens" }) |name| {
+        const parity = b.addTest(.{ .root_module = b.createModule(.{
+            .root_source_file = b.path(b.fmt("tests/bootstrap/type_parser/{s}_test.zig", .{name})),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "program", .module = program },
+                .{ .name = "frontend", .module = frontend },
+                .{ .name = "lexer", .module = frontend.import_table.get("lexer").? },
+                .{ .name = "zx", .module = frontend.import_table.get("zx").? },
+            },
+        }) });
 
-    parity_step.dependOn(&b.addRunArtifact(parity).step);
+        parity_step.dependOn(&b.addRunArtifact(parity).step);
+    }
+
     step.dependOn(resources_step);
     step.dependOn(parity_step);
 
