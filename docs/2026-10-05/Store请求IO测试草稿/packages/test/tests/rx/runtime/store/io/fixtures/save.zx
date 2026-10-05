@@ -1,0 +1,11 @@
+import type { Snapshot } from "./snapshot.zx"
+
+export type Input = { value: string, state: Snapshot }
+
+export type Output = void
+
+export default function (in: Input, { store }): Output {
+  store.cache.snapshot = {text: in.value, count: in.state.count + 1}
+
+  return
+}
