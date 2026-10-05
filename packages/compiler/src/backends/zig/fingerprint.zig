@@ -16,7 +16,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, u
 
     var self = Self{ .program = program, .names = names, .value_functions = value_functions };
 
-    self.bytes("zxc.zig.input.v3");
+    self.bytes("zxc.zig.input.v4");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -75,6 +75,10 @@ fn write(self: *Self, value: anytype) void {
         self.bytes(self.names.functions[@intFromEnum(value)]);
         self.write(self.program.functions[@intFromEnum(value)].stores);
         self.write(self.value_functions[@intFromEnum(value)]);
+
+        const function = self.program.functions[@intFromEnum(value)];
+
+        self.write(!@import("genz").zx.value_call.containsDescendant(self.program, function.output_type, function.input_type));
 
         return;
     }

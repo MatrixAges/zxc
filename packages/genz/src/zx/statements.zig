@@ -4,6 +4,13 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const node.Statement {
+    const locals = @import("value_call/locals.zig");
+    const stacked = try locals.register(self, values);
+
+    defer for (stacked) |symbol| {
+        _ = self.stack_symbols.remove(symbol);
+    };
+
     const chunks = try self.allocator.alloc([]const node.Statement, values.len);
     var offset = values.len;
 
@@ -18,10 +25,10 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
             .evaluate => |id| try output.append(self.allocator, .{ .discard = try self.expr(id) }),
             .parallel => |invocations| try output.appendSlice(self.allocator, try @import("parallel/root.zig").lower(self, invocations)),
             .constant => |binding| {
-                const value = try self.expr(binding.value);
+                const value = if (self.stack_symbols.contains(binding.symbol)) try @import("value_call/root.zig").expression(self, binding.value) else try self.expr(binding.value);
                 const index = @intFromEnum(binding.symbol);
 
-                if (self.used[index]) try output.append(self.allocator, .{ .constant = .{ .name = self.names[index], .type_expr = self.types[@intFromEnum(self.program.symbols[index].type_id)], .value = value } }) else try output.append(self.allocator, .{ .discard = value });
+                if (self.used[index]) try output.append(self.allocator, .{ .constant = .{ .name = self.names[index], .type_expr = if (self.stack_symbols.contains(binding.symbol)) self.layouts[@intFromEnum(self.program.symbols[index].type_id)] else self.types[@intFromEnum(self.program.symbols[index].type_id)], .value = value } }) else try output.append(self.allocator, .{ .discard = value });
             },
             .destructure => |binding| {
                 const name = try self.fresh("tuple");

@@ -4,6 +4,7 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
 pub const functions = @import("analysis.zig").functions;
+pub const containsDescendant = @import("analysis.zig").containsDescendant;
 
 pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
     if (self.cache.contains(id)) return dereference(self, id);
@@ -26,8 +27,10 @@ fn dereference(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
 
 fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.Expression, "value"), "call")) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
+    const function = self.program.functions[@intFromEnum(value.function)];
+    const can_stack = !containsDescendant(self.program, function.output_type, function.input_type);
 
-    const argument = if (self.program.expression(value.argument).value == .object and !self.cache.contains(value.argument)) temporary: {
+    const argument = if (can_stack and self.program.expression(value.argument).value == .object and !self.cache.contains(value.argument)) temporary: {
         const layout = try aggregate.bind(self, &body, try aggregate.objectValue(self, value.argument));
 
         break :temporary try self.builder.expression(.{ .address_of = layout });

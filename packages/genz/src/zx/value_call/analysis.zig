@@ -10,28 +10,31 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
 
     for (program.functions, 0..) |function, index| {
         pure[index] = function.external == null and function.stores.len == 0 and !parallel(function.body) and calls(function.expressions, function.contracts, pure[0..index]);
-        eligible[index] = pure[index] and !function.consumes_input and flatObject(program, function.output_type);
+        eligible[index] = pure[index] and program.typeOf(function.output_type) == .object;
     }
 
     return eligible;
 }
 
-fn flatObject(program: ir.Program, id: ir.TypeId) bool {
-    const value = program.typeOf(id);
+pub fn containsDescendant(program: ir.Program, parent: ir.TypeId, root: ir.TypeId) bool {
+    return switch (program.typeOf(parent)) {
+        .optional, .list => |child| contains(program, child, root),
+        .tuple => |children| blk: {
+            for (children) |child| if (contains(program, child, root)) break :blk true;
 
-    if (value != .object) return false;
-    for (value.object) |field| if (!scalar(program, field.type_id)) return false;
+            break :blk false;
+        },
+        .object => |fields| blk: {
+            for (fields) |field| if (contains(program, field.type_id, root)) break :blk true;
 
-    return true;
-}
-
-fn scalar(program: ir.Program, id: ir.TypeId) bool {
-    return switch (program.typeOf(id)) {
-        .scalar => |value| value != .string,
-        .enumeration => true,
-        .optional => |child| scalar(program, child),
+            break :blk false;
+        },
         else => false,
     };
+}
+
+fn contains(program: ir.Program, child: ir.TypeId, root: ir.TypeId) bool {
+    return child == root or containsDescendant(program, child, root);
 }
 
 fn calls(expressions: []const ir.Expression, contracts: []const ir.Contract, pure: []const bool) bool {
