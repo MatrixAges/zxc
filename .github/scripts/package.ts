@@ -26,7 +26,7 @@ function run(command: Array<string>) {
 rmSync(prefix, { recursive: true, force: true })
 mkdirSync(artifact_dir, { recursive: true })
 
-run([zig_path, 'build', 'dist', `-Dtarget=${target}`, '-Doptimize=ReleaseSafe', '--prefix', prefix])
+run([zig_path, 'build', 'dist', `-Dtarget=${target}`, '-Doptimize=safe', '--prefix', prefix])
 
 for (const file of ['LICENSE', 'share/zxc/licenses/libyaml.txt', 'share/zxc/licenses/zig.txt']) {
 	if (!statSync(resolve(prefix, file)).isFile()) throw new Error(`Missing distribution file: ${file}`)

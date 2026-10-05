@@ -12,7 +12,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
     const options = b.addOptions();
 
     options.addOptionPath("child", child.getEmittedBin());
-    options.addOption([]const u8, "root", b.pathFromRoot("."));
+    options.addOption([]const u8, "root", b.root.toString(b.allocator) catch @panic("OOM"));
 
     for ([_][]const u8{ "results", "validation", "allocation" }) |name| {
         const module = b.createModule(.{

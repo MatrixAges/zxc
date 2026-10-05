@@ -58,7 +58,7 @@ function run(args: { command: string; argv: Array<string>; cwd: string; failure?
 try {
 	const installation = join(directory, 'installed')
 
-	run({ command: 'zig', argv: ['build', '--prefix', installation, '-Doptimize=ReleaseSafe'], cwd: compiler_dir })
+	run({ command: 'zig', argv: ['build', '--prefix', installation, '-Doptimize=safe'], cwd: compiler_dir })
 
 	const executable = join(installation, 'bin', 'zxc' + extension)
 	const project = join(directory, 'original')

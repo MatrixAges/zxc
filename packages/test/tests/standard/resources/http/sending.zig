@@ -146,7 +146,7 @@ test "http repeated calls do not reuse hidden connection or response state" {
 }
 
 test "http large request body crosses client write buffer" {
-    const body = "q" ** 16385;
+    const body = &@as([16385:0]u8, @splat('q'));
 
     try method(.Post, "POST", body);
 }

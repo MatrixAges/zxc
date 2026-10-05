@@ -29,14 +29,7 @@ export default function checkBridge(args: { directory: string; compiler_dir: str
 	mkdirSync(project)
 	run({
 		command: 'zig',
-		argv: [
-			'build',
-			'--build-file',
-			join(compiler_dir, 'build.zig'),
-			'--prefix',
-			installation,
-			'-Doptimize=ReleaseSafe'
-		]
+		argv: ['build', '--build-file', join(compiler_dir, 'build.zig'), '--prefix', installation, '-Doptimize=safe']
 	})
 	writeFileSync(
 		join(project, 'main.zx'),

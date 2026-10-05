@@ -5,6 +5,7 @@ const artifacts = @import("artifacts.zig");
 const Cache = @import("build/observed.zig").Cache;
 pub const Observed = @import("build/observed.zig");
 const Staged = @import("build/staged.zig");
+const Translation = @import("build/translation.zig");
 const Emission = union(enum) { staged: Staged, observed: Cache };
 
 pub fn run(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, environment: *const std.process.Environ.Map) !bool {
@@ -16,10 +17,24 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
 
     defer staged.deinit(io);
 
-    const arguments = try prepare(io, allocator, bundle, options, loaded, toolchain, .{ .staged = staged });
     var backend_environment = try environmentFor(allocator, environment, toolchain.library);
 
     defer backend_environment.deinit();
+
+    var translation = Translation.init(allocator, try Cache.init(io, allocator, environment));
+
+    defer translation.deinit();
+
+    const arguments = try prepare(io, allocator, bundle, options, loaded, toolchain, .{ .staged = staged }, &translation, &backend_environment) orelse {
+        var buffer: [4096]u8 = undefined;
+        var stderr = std.Io.File.stderr().writer(io, &buffer);
+
+        try stderr.interface.writeAll(translation.failure.?.stderr);
+        try translation.failure.?.diagnostics.renderToWriter(.{}, &stderr.interface);
+        try stderr.interface.flush();
+
+        return false;
+    };
 
     var child = try std.process.spawn(io, .{ .argv = arguments, .environ_map = &backend_environment });
     const termination = try child.wait(io);
@@ -38,14 +53,22 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
 
 pub fn runObserved(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, environment: *const std.process.Environ.Map, inputs: *@import("watch/inputs.zig")) !Observed {
     const cache = try Cache.init(io, allocator, environment);
-    const arguments = try prepare(io, allocator, bundle, options, loaded, toolchain, .{ .observed = cache });
     var backend_environment = try environmentFor(allocator, environment, toolchain.library);
 
     defer backend_environment.deinit();
 
-    var response = try @import("backend/process.zig").run(io, allocator, arguments, &backend_environment);
+    var translation = Translation.init(allocator, cache);
+
+    defer translation.deinit();
+
+    const arguments = try prepare(io, allocator, bundle, options, loaded, toolchain, .{ .observed = cache }, &translation, &backend_environment);
+    var response = if (arguments) |argv| try @import("backend/process.zig").run(io, allocator, argv, &backend_environment) else translation.failure.?;
+
+    translation.failure = null;
 
     errdefer response.deinit();
+
+    try translation.merge(&response);
 
     var observed = try Observed.resolve(io, &response, cache, toolchain.library, options, inputs);
 
@@ -54,7 +77,7 @@ pub fn runObserved(io: std.Io, allocator: std.mem.Allocator, bundle: @import("co
     return observed;
 }
 
-fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, emission: Emission) ![]const []const u8 {
+fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, emission: Emission, translation: *Translation, environment: *const std.process.Environ.Map) !?[]const []const u8 {
     var configuration_options = options;
     configuration_options.cache = true;
     configuration_options.cache_stats = false;
@@ -103,7 +126,7 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     if (emission == .observed) {
         const paths = emission.observed;
 
-        try arguments.appendSlice(allocator, &.{ "--listen=-", "--name", Observed.artifact_name, "--cache-dir", paths.local, "--global-cache-dir", paths.global });
+        try arguments.appendSlice(allocator, &.{ "--listen=-", "--name", Observed.artifact_name, "--build-root", paths.cwd, "--cache-dir", paths.local, "--global-cache-dir", paths.global });
         if (options.assembly != null) try arguments.append(allocator, "-femit-asm");
     } else {
         const staged = emission.staged;
@@ -173,13 +196,28 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
 
         for (include_paths) |path| try arguments.appendSlice(allocator, &.{ "-I", try std.fs.path.resolve(allocator, &.{ include_root, path }) });
 
-        const path = if (module.path) |path| try std.fs.path.resolve(allocator, &.{ loaded.project.root_dir, path }) else blk: {
+        const path = if (module.path) |path| try std.fs.path.resolve(allocator, &.{ loaded.project.root_dir, path }) else {
             const path = try std.fmt.allocPrint(allocator, "{s}/native/{s}.zig", .{ directory, module.name });
-            const text = try std.fmt.allocPrint(allocator, "pub const c = @cImport({{ @cInclude(\"{f}\"); }});\n", .{std.zig.fmtString(module.header.?)});
+            const header_path = try std.fmt.allocPrint(allocator, "{s}/native/{s}.h", .{ directory, module.name });
+            const include = try std.json.Stringify.valueAlloc(allocator, module.header.?, .{});
+            const header_source = try std.fmt.allocPrint(allocator, "#include {s}\n", .{include});
+            var command: std.ArrayList([]const u8) = .empty;
 
-            try artifacts.write(io, path, text);
+            try artifacts.retain(io, allocator, header_path, header_source);
+            try command.appendSlice(allocator, &.{ toolchain.executable, "translate-c", "--zig-lib-dir", toolchain.library, "-lc", "--listen=-", "--cache-dir", translation.cache.local, "--global-cache-dir", translation.cache.global });
+            try settings(allocator, &command, options);
+            for (include_paths) |include_path| try command.appendSlice(allocator, &.{ "-I", try std.fs.path.resolve(allocator, &.{ include_root, include_path }) });
+            try command.append(allocator, header_path);
 
-            break :blk path;
+            const translated = try translation.execute(io, command.items, environment, module.name) orelse return null;
+            const translated_name = try std.fmt.allocPrint(allocator, "zxc_c_{s}", .{module.name});
+
+            try arguments.appendSlice(allocator, &.{ "--dep", try std.fmt.allocPrint(allocator, "zxc_c={s}", .{translated_name}), try std.fmt.allocPrint(allocator, "-M{s}={s}", .{ module.name, path }) });
+            try settings(allocator, &arguments, options);
+            try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-M{s}={s}", .{ translated_name, translated }));
+            try artifacts.retain(io, allocator, path, "pub const c = @import(\"zxc_c\");\n");
+
+            continue;
         };
 
         try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-M{s}={s}", .{ module.name, path }));

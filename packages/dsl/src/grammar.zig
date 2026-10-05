@@ -87,7 +87,7 @@ pub fn grammar(comptime Parser: type, comptime Token: type, comptime Error: type
             };
 
             return struct {
-                pub const Value = std.meta.Tuple(&value_types);
+                pub const Value = @Tuple(&value_types);
 
                 pub fn parse(parser: *Parser) Error!Match(Value) {
                     const start = parser.index;

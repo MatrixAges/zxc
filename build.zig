@@ -7,7 +7,7 @@ pub fn build(b: *std.Build) void {
         std.builtin.OptimizeMode,
         "optimize",
         "Prioritize performance, safety, or binary size",
-    ) orelse .ReleaseSafe;
+    ) orelse .safe;
 
     const dsl_dependency = b.dependency("dsl", .{
         .target = target,

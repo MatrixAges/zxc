@@ -1,8 +1,8 @@
 const std = @import("std");
 pub const compiler = @import("compiler");
 pub const codec = compiler.project.SemanticCache.codec;
-pub const identity = [_]u8{17} ** 32;
-pub const context = [_]u8{29} ** 32;
+pub const identity = @as([32]u8, @splat(17));
+pub const context = @as([32]u8, @splat(29));
 pub const source = @import("record_fixture");
 
 pub fn bytes(allocator: std.mem.Allocator) ![]u8 {

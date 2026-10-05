@@ -41,7 +41,7 @@ pub fn resolve(io: std.Io, response: *Response, cache: Cache, library: []const u
 
     for (response.inputs, paths) |input, *absolute| {
         const prefix = switch (input.prefix) {
-            .cwd => cache.cwd,
+            .build_root, .cwd => cache.cwd,
             .zig_lib => library,
             .local_cache => cache.local,
             .global_cache => cache.global,
@@ -60,7 +60,7 @@ pub fn resolve(io: std.Io, response: *Response, cache: Cache, library: []const u
 
     if (response.succeeded) {
         const target = if (options.target) |triple| try std.zig.system.resolveTargetQuery(io, try std.Target.Query.parse(.{ .arch_os_abi = triple })) else builtin.target;
-        const name = try std.zig.binNameAlloc(allocator, .{ .root_name = artifact_name, .target = &target, .output_mode = if (options.host == .node) .Lib else .Exe, .link_mode = if (options.host == .node) .dynamic else .static });
+        const name = try std.zig.binNameAlloc(allocator, .{ .root_name = artifact_name, .cpu_arch = target.cpu.arch, .os_tag = target.os.tag, .ofmt = target.ofmt, .abi = target.abi, .output_mode = if (options.host == .node) .Lib else .Exe, .link_mode = if (options.host == .node) .dynamic else .static });
         const digest = std.fmt.bytesToHex(response.digest.?, .lower);
         const directory = try std.fs.path.join(allocator, &.{ cache.local, "o", &digest });
         binary = try std.fs.path.join(allocator, &.{ directory, name });

@@ -7,7 +7,8 @@ pub fn check(comptime program: type, input: *const struct { left: ?u64, right: ?
 
     const Optional = @FieldType(@typeInfo(program.Input).pointer.child, "left");
     const Scalar = @typeInfo(Optional).optional.child;
-    const Bits = std.meta.Int(.unsigned, @bitSizeOf(Scalar));
+    const Bits = @Int(.unsigned, @bitSizeOf(Scalar));
+
     const actual = try program.execute(&arena, &.{
         .left = if (input.left) |bits| @as(Scalar, @bitCast(@as(Bits, @intCast(bits)))) else null,
         .right = if (input.right) |bits| @as(Scalar, @bitCast(@as(Bits, @intCast(bits)))) else null,

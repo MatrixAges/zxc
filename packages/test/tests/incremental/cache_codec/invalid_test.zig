@@ -14,7 +14,7 @@ test "different compiler fingerprint is rejected" {
 
     defer std.testing.allocator.free(bytes);
 
-    try std.testing.expectError(error.InvalidCache, f.codec.decode(std.testing.allocator, bytes, [_]u8{18} ** 32));
+    try std.testing.expectError(error.InvalidCache, f.codec.decode(std.testing.allocator, bytes, @as([32]u8, @splat(18))));
 }
 
 test "unknown format marker is rejected" {
@@ -65,6 +65,7 @@ test "valid checksum does not admit unsupported IR version" {
     defer parsed.deinit();
 
     parsed.value.object.getPtr("ir_version").?.* = .{ .integer = 0 };
+
     const payload = try std.json.Stringify.valueAlloc(std.testing.allocator, parsed.value, .{});
 
     defer std.testing.allocator.free(payload);
@@ -86,6 +87,7 @@ test "valid envelope does not admit invalid type table" {
     defer artifact.deinit();
 
     artifact.value.types = &.{};
+
     const bytes = try f.codec.encode(std.testing.allocator, artifact.value, f.context, f.identity);
 
     defer std.testing.allocator.free(bytes);
@@ -97,7 +99,6 @@ test "excessive JSON nesting is rejected with matching digest" {
     const payload = try std.testing.allocator.alloc(u8, 4100);
 
     defer std.testing.allocator.free(payload);
-
     @memset(payload[0..2050], '[');
     @memset(payload[2050..], ']');
 

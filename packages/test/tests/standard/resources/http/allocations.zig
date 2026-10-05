@@ -63,7 +63,7 @@ test "http successful response releases every failed allocation" {
 }
 
 test "http large response releases every failed allocation" {
-    const body = "q" ** 9000;
+    const body = &@as([9000:0]u8, @splat('q'));
 
     try std.testing.checkAllAllocationFailures(f.allocator, execute, .{ "HTTP/1.1 200 OK\r\nX-Value: v\r\nContent-Length: 9000\r\n\r\n" ++ body, body });
 }
@@ -130,7 +130,7 @@ test "http missing terminal chunk releases every failed allocation" {
 }
 
 test "http oversized response head releases every failed allocation" {
-    const wire = "HTTP/1.1 200 OK\r\nX-Large: " ++ ("q" ** 8192) ++ "\r\nContent-Length: 0\r\n\r\n";
+    const wire = "HTTP/1.1 200 OK\r\nX-Large: " ++ (&@as([8192:0]u8, @splat('q'))) ++ "\r\nContent-Length: 0\r\n\r\n";
 
     try std.testing.checkAllAllocationFailures(f.allocator, failure, .{ wire, error.HttpHeadersOversize });
 }

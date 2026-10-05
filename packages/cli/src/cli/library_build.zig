@@ -31,6 +31,14 @@ pub fn build(b: *std.Build) void {
         const path: std.Build.LazyPath = if (native.path) |path| b.path(path) else b.path(b.fmt("native/{s}.zig", .{native.name}));
         const module = b.createModule(.{ .root_source_file = path, .target = target, .optimize = optimize, .link_libc = native.header != null });
 
+        if (native.header != null and native.path == null) {
+            const translated = b.addTranslateC(.{ .root_source_file = b.path(b.fmt("native/{s}.h", .{native.name})), .target = target, .optimize = optimize });
+
+            for (native.include_paths orelse config.include_paths) |include| translated.addIncludePath(if (std.fs.path.isAbsolute(include)) .{ .cwd_relative = include } else b.path(include));
+
+            module.addImport("zxc_c", translated.createModule());
+        }
+
         if (native.abi_view) |view_path| {
             const view = b.createModule(.{ .root_source_file = b.path(view_path), .target = target, .optimize = optimize });
 

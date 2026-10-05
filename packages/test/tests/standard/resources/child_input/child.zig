@@ -16,8 +16,8 @@ pub fn main(init: std.process.Init) !void {
     }
 
     if (std.mem.eql(u8, mode, "duplex")) {
-        const out = [_]u8{'o'} ** 4096;
-        const err = [_]u8{'e'} ** 4096;
+        const out = @as([4096]u8, @splat('o'));
+        const err = @as([4096]u8, @splat('e'));
 
         for (0..64) |_| {
             try std.Io.File.stdout().writeStreamingAll(init.io, &out);

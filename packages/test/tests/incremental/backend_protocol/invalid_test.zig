@@ -5,6 +5,7 @@ const allocator = std.testing.allocator;
 
 test "backend rejects truncated headers and frame bodies" {
     const bytes = try fixture.encode(allocator, &.{fixture.version});
+
     defer allocator.free(bytes);
 
     for (1..bytes.len) |length| {
@@ -35,20 +36,23 @@ test "backend rejects truncated diagnostic header" {
 }
 
 test "backend rejects diagnostic root list outside extra storage" {
-    var body = [_]u8{0} ** 20;
+    var body = @as([20]u8, @splat(0));
 
     std.mem.writeInt(u32, body[0..4], 3, .little);
     std.mem.writeInt(u32, body[8..12], 1, .little);
     std.mem.writeInt(u32, body[12..16], 100, .little);
+
     try expectFailure(error.InvalidBackendProtocol, &.{ fixture.version, .{ .tag = .error_bundle, .body = &body } });
 }
 
 fn expectFailure(expected: anyerror, frames: []const fixture.Frame) !void {
     const bytes = try fixture.encode(allocator, frames);
+
     defer allocator.free(bytes);
 
     if (protocol.decode(allocator, bytes, "", .{ .exited = 0 })) |decoded| {
         var result = decoded;
+
         defer result.deinit();
 
         return error.ExpectedProtocolRejection;
@@ -59,6 +63,7 @@ fn expectFailure(expected: anyerror, frames: []const fixture.Frame) !void {
 
 test "backend rejects diagnostic message index outside storage" {
     const body = try fixture.errorBody(allocator, &.{ 1, 3, 0, 100 }, "\x00");
+
     defer allocator.free(body);
 
     try expectFailure(error.InvalidBackendProtocol, &.{ fixture.version, .{ .tag = .error_bundle, .body = body } });
@@ -66,6 +71,7 @@ test "backend rejects diagnostic message index outside storage" {
 
 test "backend rejects diagnostic string index outside storage" {
     const body = try fixture.errorBody(allocator, &.{ 1, 3, 0, 4, 100, 1, 0, 0 }, "\x00");
+
     defer allocator.free(body);
 
     try expectFailure(error.InvalidBackendProtocol, &.{ fixture.version, .{ .tag = .error_bundle, .body = body } });
@@ -73,26 +79,27 @@ test "backend rejects diagnostic string index outside storage" {
 
 test "backend rejects unterminated diagnostic text" {
     const body = try fixture.errorBody(allocator, &.{ 1, 3, 0, 4, 1, 1, 0, 0 }, "\x00bad");
+
     defer allocator.free(body);
 
     try expectFailure(error.InvalidBackendProtocol, &.{ fixture.version, .{ .tag = .error_bundle, .body = body } });
 }
 
 test "backend rejects reserved digest flags" {
-    var body = [_]u8{0} ** (1 + std.Build.Cache.bin_digest_len);
+    var body = @as([(1 + std.Build.Cache.bin_digest_len)]u8, @splat(0));
 
     for ([_]u8{ 2, 3, 128, 255 }) |flag| {
         body[0] = flag;
+
         try expectFailure(error.InvalidBackendProtocol, &.{ fixture.version, .{ .tag = .emit_digest, .body = &body } });
     }
 }
 
 test "backend rejects wrong digest lengths" {
-    const body = [_]u8{0} ** (2 + std.Build.Cache.bin_digest_len);
+    const body = @as([(2 + std.Build.Cache.bin_digest_len)]u8, @splat(0));
 
     for (0..body.len + 1) |length| {
         if (length == 1 + std.Build.Cache.bin_digest_len) continue;
-
         try expectFailure(error.InvalidBackendProtocol, &.{ fixture.version, .{ .tag = .emit_digest, .body = body[0..length] } });
     }
 }

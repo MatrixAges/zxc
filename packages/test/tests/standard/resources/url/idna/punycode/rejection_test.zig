@@ -60,7 +60,7 @@ test "Punycode decode rejects truncated variable integer" {
 }
 
 test "Punycode decode rejects integer overflow after allocating basic prefix" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkDecode, .{@as([]const u8, "ABC-" ++ "9" ** 64)});
+    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkDecode, .{@as([]const u8, "ABC-" ++ &@as([64:0]u8, @splat('9')))});
 }
 
 test "Punycode decode rejects encoded surrogate" {

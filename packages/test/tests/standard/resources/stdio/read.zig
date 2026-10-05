@@ -74,13 +74,13 @@ test "stdio read supports maximum u64 limit without overflow" {
 }
 
 test "stdio reads beyond internal buffer" {
-    const input = [_]u8{'q'} ** 9000;
+    const input = @as([9000]u8, @splat('q'));
 
     try read(f.allocator, &input, input.len, false);
 }
 
 test "stdio overflow at internal buffer boundary" {
-    const input = [_]u8{'q'} ** 4097;
+    const input = @as([4097]u8, @splat('q'));
 
     try overflow(&input, 4096, false);
 }
@@ -137,7 +137,7 @@ test "stdio canceled read fails" {
 }
 
 test "stdio bytes releases every failed allocation" {
-    const input = [_]u8{'q'} ** 9000;
+    const input = @as([9000]u8, @splat('q'));
 
     try std.testing.checkAllAllocationFailures(f.allocator, read, .{ &input, 9000, false });
 }
@@ -162,7 +162,7 @@ fn invalidAllocation(allocator: std.mem.Allocator) !void {
 }
 
 fn overflowAllocation(allocator: std.mem.Allocator) !void {
-    const input = [_]u8{'q'} ** 9001;
+    const input = @as([9001]u8, @splat('q'));
     var stream: f.Stream = .{ .input = &input, .chunk = 257 };
     var vtable: std.Io.VTable = undefined;
 
@@ -186,7 +186,7 @@ test "stdio overflow releases every failed allocation" {
 }
 
 test "stdio text code point spans internal buffer boundary" {
-    const input = ([_]u8{'q'} ** 4095) ++ "🌿".*;
+    const input = (@as([4095]u8, @splat('q'))) ++ "🌿".*;
 
     try read(f.allocator, &input, input.len, true);
 }

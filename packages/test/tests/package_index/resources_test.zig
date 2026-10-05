@@ -1,11 +1,10 @@
 const std = @import("std");
 const Index = @import("pkgs").Index;
-const digest = "a1" ** 32;
+const digest = "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1";
 const release = "{\"version\":\"1.2.3\",\"archive\":\"archives/sample.tar.gz\",\"sha256\":\"" ++ digest ++ "\"}";
 const previous = "{\"version\":\"0.9.0\",\"archive\":\"archives/old.tar.gz\",\"sha256\":\"" ++ digest ++ "\"}";
 const package = "{\"name\":\"sample\",\"versions\":[" ++ previous ++ "," ++ release ++ "]}";
 const source = "{\"format_version\":1,\"packages\":[" ++ package ++ ",{\"name\":\"other\",\"versions\":[" ++ release ++ "]}]}";
-
 const Failure = enum { format, duplicate, digest, truncated, unknown };
 
 test "package index owns strings and releases every partial allocation" {
@@ -66,6 +65,7 @@ fn checkFailure(allocator: std.mem.Allocator, failure: Failure) !void {
         .truncated => source[0 .. source.len - 1],
         .unknown => source[0 .. source.len - 1] ++ ",\"unknown\":true}",
     };
+
     const expected: anyerror = switch (failure) {
         .format => error.UnsupportedIndexVersion,
         .duplicate => error.DuplicatePackage,
@@ -73,6 +73,7 @@ fn checkFailure(allocator: std.mem.Allocator, failure: Failure) !void {
         .truncated => error.UnexpectedEndOfInput,
         .unknown => error.UnknownField,
     };
+
     const parsed = Index.parse(allocator, input) catch |err| {
         if (err == error.OutOfMemory) return err;
 

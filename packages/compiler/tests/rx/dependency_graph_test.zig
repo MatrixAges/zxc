@@ -58,8 +58,8 @@ fn hasEdge(edges: usize, from: usize, to: usize) bool {
 }
 
 fn isAcyclic(edges: usize) bool {
-    var indegree = [_]usize{0} ** 3;
-    var removed = [_]bool{false} ** 3;
+    var indegree = @as([3]usize, @splat(0));
+    var removed = @as([3]bool, @splat(false));
 
     for (0..3) |from| {
         for (0..3) |to| {

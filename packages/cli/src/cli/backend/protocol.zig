@@ -21,6 +21,14 @@ pub const Result = struct {
 };
 
 pub fn decode(allocator: std.mem.Allocator, stdout: []const u8, stderr: []const u8, termination: std.process.Child.Term) !Result {
+    return decodeMode(allocator, stdout, stderr, termination, false);
+}
+
+pub fn decodeTranslation(allocator: std.mem.Allocator, stdout: []const u8, stderr: []const u8, termination: std.process.Child.Term) !Result {
+    return decodeMode(allocator, stdout, stderr, termination, true);
+}
+
+fn decodeMode(allocator: std.mem.Allocator, stdout: []const u8, stderr: []const u8, termination: std.process.Child.Term, translation: bool) !Result {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();
@@ -57,6 +65,9 @@ pub fn decode(allocator: std.mem.Allocator, stdout: []const u8, stderr: []const 
 
                 version_seen = true;
             },
+            .config => {
+                if (body.len != @sizeOf(Message.Config)) return error.InvalidBackendProtocol;
+            },
             .file_system_inputs => {
                 inputs_seen = true;
 
@@ -77,6 +88,8 @@ pub fn decode(allocator: std.mem.Allocator, stdout: []const u8, stderr: []const 
 
                 cached = body[0] & 1 != 0;
                 digest = body[1..][0..std.Build.Cache.bin_digest_len].*;
+
+                if (translation) finished = true;
             },
             .error_bundle => {
                 try validateErrorBundle(body);

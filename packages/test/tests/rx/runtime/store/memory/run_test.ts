@@ -10,7 +10,7 @@ const [zig, output_dir, source, standard_root, fixture_source] = process.argv.sl
 const directory = resolve(output_dir)
 const optimize = process.env.ZXC_TEST_OPTIMIZE ?? 'Debug'
 
-assert.ok(['Debug', 'ReleaseSafe', 'ReleaseFast', 'ReleaseSmall'].includes(optimize))
+assert.ok(['debug', 'safe', 'fast', 'small', 'Debug', 'ReleaseSafe', 'ReleaseFast', 'ReleaseSmall'].includes(optimize))
 
 test(`generated Store memory consumer ${source} (${optimize})`, () => {
 	const modules = JSON.parse(readFileSync(join(directory, 'modules.json'), 'utf8')) as Array<Module>

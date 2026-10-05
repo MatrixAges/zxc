@@ -88,7 +88,7 @@ test "stdio stdout text rejects malformed UTF8 before any IO" {
 }
 
 test "stdio stdout writes beyond buffer with short writes" {
-    const bytes = [_]u8{'q'} ** 9000;
+    const bytes = @as([9000]u8, @splat('q'));
 
     try check(&bytes, .stdout, false);
 }
@@ -134,7 +134,7 @@ test "stdio stderr text rejects malformed UTF8 before any IO" {
 }
 
 test "stdio stderr writes beyond buffer with short writes" {
-    const bytes = [_]u8{'q'} ** 9000;
+    const bytes = @as([9000]u8, @splat('q'));
 
     try check(&bytes, .stderr, false);
 }

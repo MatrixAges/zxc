@@ -22,8 +22,8 @@ pub fn main(init: std.process.Init) !void {
         return error.SignalDidNotTerminate;
     } else if (std.mem.eql(u8, mode, "streams")) {
         const count = try std.fmt.parseInt(usize, args[2], 10);
-        const out = [_]u8{'o'} ** 4096;
-        const err = [_]u8{'e'} ** 4096;
+        const out = @as([4096]u8, @splat('o'));
+        const err = @as([4096]u8, @splat('e'));
         var written: usize = 0;
 
         while (written < count) {

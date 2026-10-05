@@ -32,15 +32,15 @@ pub fn write(comptime shape: anytype, env: api.Env, value: anytype) anyerror!api
             else => @compileError("unsupported Node output pointer"),
         },
         .@"struct" => |info| {
-            try check(if (info.is_tuple) api.napi_create_array_with_length(env, info.fields.len, &result) else api.napi_create_object(env, &result));
+            try check(if (info.is_tuple) api.napi_create_array_with_length(env, info.field_names.len, &result) else api.napi_create_object(env, &result));
 
-            inline for (info.fields, 0..) |field, index| {
-                const item = try write(@field(shape.fields, field.name), env, @field(value, field.name));
+            inline for (info.field_names, 0..) |field_name, index| {
+                const item = try write(@field(shape.fields, field_name), env, @field(value, field_name));
 
                 if (info.is_tuple) {
                     try check(api.napi_set_element(env, result, index, item));
                 } else {
-                    const property = api.Property{ .utf8name = field.name ++ "\x00", .value = item };
+                    const property = api.Property{ .utf8name = field_name ++ "\x00", .value = item };
 
                     try check(api.napi_define_properties(env, result, 1, @ptrCast(&property)));
                 }

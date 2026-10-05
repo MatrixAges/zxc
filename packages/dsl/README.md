@@ -1,6 +1,6 @@
 # zxc DSL
 
-用于定义和校验 RX 风格 XML DSL 的 Zig 0.16.0 库。模块名为 `dsl`，不包含固定业务标签，使用 Zig 编译期类型函数生成领域数据类型。
+用于定义和校验 RX 风格 XML DSL 的 Zig 0.17.0 库。模块名为 `dsl`，不包含固定业务标签，使用 Zig 编译期类型函数生成领域数据类型。
 
 同时提供 `grammar(Parser, Token, Error)` token 语法组合工厂，供 ZX 等文本前端复用；不依赖具体语言或 compiler。
 

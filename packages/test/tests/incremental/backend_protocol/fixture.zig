@@ -1,11 +1,10 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const Message = std.zig.Server.Message;
-
 pub const Frame = struct { tag: Message.Tag, body: []const u8 };
 pub const version: Frame = .{ .tag = .zig_version, .body = builtin.zig_version_string };
-pub const finish: Frame = .{ .tag = .error_bundle, .body = &([_]u8{0} ** 8) };
-pub const digest: Frame = .{ .tag = .emit_digest, .body = &([_]u8{0} ** (1 + std.Build.Cache.bin_digest_len)) };
+pub const finish: Frame = .{ .tag = .error_bundle, .body = &(@as([8]u8, @splat(0))) };
+pub const digest: Frame = .{ .tag = .emit_digest, .body = &(@as([(1 + std.Build.Cache.bin_digest_len)]u8, @splat(0))) };
 pub const inputs: Frame = .{ .tag = .file_system_inputs, .body = &.{ 1, 'a', '.', 'z', 'i', 'g', 0 } };
 
 pub fn encode(allocator: std.mem.Allocator, frames: []const Frame) ![]u8 {
@@ -18,6 +17,7 @@ pub fn encode(allocator: std.mem.Allocator, frames: []const Frame) ![]u8 {
 
         std.mem.writeInt(u32, header[0..4], @intFromEnum(frame.tag), .little);
         std.mem.writeInt(u32, header[4..8], @intCast(frame.body.len), .little);
+
         try bytes.appendSlice(allocator, &header);
         try bytes.appendSlice(allocator, frame.body);
     }

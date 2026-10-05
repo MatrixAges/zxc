@@ -7,10 +7,12 @@ pub fn element(comptime name: []const u8, comptime Attributes: type, comptime Ch
     if (name.len == 0) @compileError("DSL element name cannot be empty");
     if (@typeInfo(Attributes) != .@"struct") @compileError("DSL attributes must be a struct");
 
-    for (std.meta.fields(Attributes)) |field| {
-        if (field.is_comptime) @compileError("DSL attributes must be runtime fields");
+    const info = @typeInfo(Attributes).@"struct";
 
-        attributes.checkType(field.type);
+    for (info.field_types, info.field_attrs) |field_type, field_attrs| {
+        if (field_attrs.@"comptime") @compileError("DSL attributes must be runtime fields");
+
+        attributes.checkType(field_type);
     }
 
     return struct {

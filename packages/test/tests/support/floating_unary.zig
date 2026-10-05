@@ -5,7 +5,7 @@ pub fn check(comptime program: type, input: u64, expected: ?u64) !void {
 
     defer arena.deinit();
 
-    const Bits = std.meta.Int(.unsigned, @bitSizeOf(program.Input));
+    const Bits = @Int(.unsigned, @bitSizeOf(program.Input));
     const actual = try program.execute(&arena, @bitCast(@as(Bits, @intCast(input))));
 
     if (expected) |bits| {

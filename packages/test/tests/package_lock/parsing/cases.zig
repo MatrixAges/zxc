@@ -13,12 +13,12 @@ pub fn input(case: Case) ![]u8 {
         .empty => .{ data.root ++ "," ++ data.archive, "" },
         .version => .{ "\"format_version\":1", "\"format_version\":2" },
         .root_path => .{ "\"workspace\":\".\"", "\"workspace\":\"nested\"" },
-        .root_archive => .{ "\"workspace\":\".\"", "\"archive\":{\"archive\":\"root.tgz\",\"sha256\":\"" ++ "b" ** 64 ++ "\"}" },
-        .uppercase_digest => .{ data.digest, "A" ** 64 },
+        .root_archive => .{ "\"workspace\":\".\"", "\"archive\":{\"archive\":\"root.tgz\",\"sha256\":\"" ++ &@as([64:0]u8, @splat('b')) ++ "\"}" },
+        .uppercase_digest => .{ data.digest, &@as([64:0]u8, @splat('A')) },
         .short_digest => .{ data.digest, "abc" },
         .archive_newline => .{ "dep.tgz", "dep\\n.tgz" },
         .duplicate_archive => .{ data.archive, data.archive ++ "," ++ "{\"name\":\"other\",\"version\":\"1.0.0\",\"source\":{\"archive\":{\"archive\":\"other.tgz\",\"sha256\":\"" ++ data.digest ++ "\"}},\"dependencies\":[]}" },
-        .duplicate_identity => .{ data.archive, data.archive ++ "," ++ "{\"name\":\"dep\",\"version\":\"1.2.3\",\"source\":{\"archive\":{\"archive\":\"other.tgz\",\"sha256\":\"" ++ "b" ** 64 ++ "\"}},\"dependencies\":[]}" },
+        .duplicate_identity => .{ data.archive, data.archive ++ "," ++ "{\"name\":\"dep\",\"version\":\"1.2.3\",\"source\":{\"archive\":{\"archive\":\"other.tgz\",\"sha256\":\"" ++ &@as([64:0]u8, @splat('b')) ++ "\"}},\"dependencies\":[]}" },
         .range => .{ "^1.0.0", "^2.0.0" },
         .target_name => .{ "\"name\":\"dep\",\"requirement\"", "\"name\":\"other\",\"requirement\"" },
         .archive_development => .{ "\"dependencies\":[]", "\"dependencies\":[{\"name\":\"dep\",\"requirement\":\"*\",\"development\":true,\"target\":1}]" },
@@ -26,6 +26,7 @@ pub fn input(case: Case) ![]u8 {
         .cycle => .{ "\"dependencies\":[]", "\"dependencies\":[" ++ data.dependency ++ "]" },
         .truncated => return std.testing.allocator.dupe(u8, data.source[0 .. data.source.len - 1]),
     };
+
     try std.testing.expect(std.mem.indexOf(u8, data.source, change[0]) != null);
 
     return std.mem.replaceOwned(u8, std.testing.allocator, data.source, change[0], change[1]);
@@ -33,7 +34,9 @@ pub fn input(case: Case) ![]u8 {
 
 pub fn check(allocator: std.mem.Allocator, case: Case) !void {
     const source = try input(case);
+
     defer std.testing.allocator.free(source);
+
     const expected: anyerror = switch (case) {
         .missing_version, .missing_name => error.MissingField,
         .unknown_root, .unknown_package => error.UnknownField,
@@ -52,11 +55,15 @@ pub fn check(allocator: std.mem.Allocator, case: Case) !void {
         .cycle => error.CyclicPackageDependencies,
         .truncated => error.UnexpectedEndOfInput,
     };
+
     const parsed = Lock.parse(allocator, source) catch |err| {
         if (err == error.OutOfMemory) return err;
+
         try std.testing.expectEqual(expected, err);
+
         return;
     };
+
     defer parsed.deinit();
 
     return error.TestExpectedError;

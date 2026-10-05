@@ -13,7 +13,7 @@ pub fn validate(allocator: std.mem.Allocator, bundle: Bundle) !void {
         return;
     }
 
-    _ = try region(bundle, 0, @typeInfo(Bundle.ErrorMessageList).@"struct".fields.len);
+    _ = try region(bundle, 0, @typeInfo(Bundle.ErrorMessageList).@"struct".field_names.len);
 
     if (bundle.string_bytes.len == 0 or bundle.string_bytes[0] != 0) return error.InvalidBackendProtocol;
 
@@ -83,7 +83,7 @@ fn references(allocator: std.mem.Allocator, bundle: Bundle, node: Node) ![]const
 
     switch (node.kind) {
         .message => {
-            const size = @typeInfo(Bundle.ErrorMessage).@"struct".fields.len;
+            const size = @typeInfo(Bundle.ErrorMessage).@"struct".field_names.len;
 
             _ = try region(bundle, node.index, size);
 
@@ -99,8 +99,8 @@ fn references(allocator: std.mem.Allocator, bundle: Bundle, node: Node) ![]const
             for (notes) |index| try children.append(allocator, .{ .kind = .message, .index = index });
         },
         .source => {
-            const size = @typeInfo(Bundle.SourceLocation).@"struct".fields.len;
-            const trace_size = @typeInfo(Bundle.ReferenceTrace).@"struct".fields.len;
+            const size = @typeInfo(Bundle.SourceLocation).@"struct".field_names.len;
+            const trace_size = @typeInfo(Bundle.ReferenceTrace).@"struct".field_names.len;
 
             if (node.index == 0) return error.InvalidBackendProtocol;
 

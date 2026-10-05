@@ -31,17 +31,17 @@ pub fn read(comptime T: type, comptime shape: anytype, allocator: std.mem.Alloca
         },
         .@"struct" => |info| result: {
             if (info.is_tuple) {
-                if (try value_api.length(env, value) != info.fields.len) return error.InvalidTupleLength;
+                if (try value_api.length(env, value) != info.field_names.len) return error.InvalidTupleLength;
             } else if (try value_api.kind(env, value) != .object) return error.ExpectedObject;
 
             var result: T = undefined;
 
-            inline for (info.fields, 0..) |field, index| {
+            inline for (info.field_names, 0..) |field_name, index| {
                 var item: api.Value = null;
 
-                try check(if (info.is_tuple) api.napi_get_element(env, value, index, &item) else api.napi_get_named_property(env, value, field.name ++ "\x00", &item));
+                try check(if (info.is_tuple) api.napi_get_element(env, value, index, &item) else api.napi_get_named_property(env, value, field_name ++ "\x00", &item));
 
-                @field(result, field.name) = try read(field.type, @field(shape.fields, field.name), allocator, env, item);
+                @field(result, field_name) = try read(info.field_types[index], @field(shape.fields, field_name), allocator, env, item);
             }
 
             break :result result;

@@ -4,11 +4,11 @@ pub const Reference = struct { path: []const u8, kind: Kind };
 pub const Result = struct { references: []const Reference, dynamic_resources: bool, c_imports: bool };
 
 pub fn read(allocator: std.mem.Allocator, source: []const u8) !Result {
-    const text = try allocator.dupeZ(u8, source);
+    const text = try allocator.dupeSentinel(u8, source, 0);
 
     defer allocator.free(text);
 
-    var tree = try std.zig.Ast.parse(allocator, text, .zig);
+    var tree = try std.zig.Ast.parse(allocator, text, .{});
 
     defer tree.deinit(allocator);
 

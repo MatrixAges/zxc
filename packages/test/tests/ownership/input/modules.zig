@@ -1,8 +1,8 @@
 const std = @import("std");
 const f = @import("fixture.zig");
 const codec = f.compiler.project.SemanticCache.codec;
-const identity = [_]u8{11} ** 32;
-const context = [_]u8{37} ** 32;
+const identity = @as([32]u8, @splat(11));
+const context = @as([32]u8, @splat(37));
 
 fn roundtrip(allocator: std.mem.Allocator, owned: bool) !void {
     var decoded: [2]codec.Decoded = undefined;

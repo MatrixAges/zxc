@@ -20,7 +20,7 @@ fn isScalar(comptime T: type) bool {
 
 fn Scalar(comptime T: type) type {
     return switch (@typeInfo(T)) {
-        .int => |value| if (value.bits <= 32) std.meta.Int(value.signedness, 32) else std.meta.Int(value.signedness, 64),
+        .int => |value| if (value.bits <= 32) @Int(value.signedness, 32) else @Int(value.signedness, 64),
         .float => T,
         else => u32,
     };

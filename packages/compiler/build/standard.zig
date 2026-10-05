@@ -6,7 +6,10 @@ pub fn create(b: *std.Build) *std.Build.Module {
 }
 
 fn generate(b: *std.Build) !*std.Build.Module {
-    const manifest = try b.build_root.handle.readFileAlloc(b.graph.io, "standard/modules.json", b.allocator, .limited(1024 * 1024));
+    b.dependOnFileContents(b.path("standard/modules.json"));
+
+    const manifest_path = try b.root.joinString(b.allocator, "standard/modules.json");
+    const manifest = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, manifest_path, b.allocator, .limited(1024 * 1024));
     const modules = try std.json.parseFromSliceLeaky([]const Module, b.allocator, manifest, .{});
     const files = b.addWriteFiles();
     var output: std.Io.Writer.Allocating = .init(b.allocator);

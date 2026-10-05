@@ -6,7 +6,7 @@ const restoring = @import("native_restore.zig");
 const entries = @import("entries.zig");
 const Self = @This();
 pub const Current = restoring.Current;
-pub const empty_context = [_]u8{0} ** 32;
+pub const empty_context: [32]u8 = @splat(0);
 
 allocator: std.mem.Allocator,
 items: entries.Map = .empty,

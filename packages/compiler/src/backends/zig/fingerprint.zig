@@ -77,15 +77,15 @@ fn write(self: *Self, value: anytype) void {
     }
 
     switch (@typeInfo(T)) {
-        .@"struct" => |info| inline for (info.fields) |field| {
-            self.bytes(field.name);
-            self.write(@field(value, field.name));
+        .@"struct" => |info| inline for (info.field_names) |field| {
+            self.bytes(field);
+            self.write(@field(value, field));
         },
         .@"union" => |info| {
             self.bytes(@tagName(value));
 
-            inline for (info.fields) |field| if (std.mem.eql(u8, @tagName(value), field.name)) {
-                self.write(@field(value, field.name));
+            inline for (info.field_names) |field| if (std.mem.eql(u8, @tagName(value), field)) {
+                self.write(@field(value, field));
             };
         },
         .@"enum" => self.write(@intFromEnum(value)),
@@ -110,7 +110,7 @@ fn write(self: *Self, value: anytype) void {
             std.mem.writeInt(u64, &encoded, @bitCast(@as(Wide, value)), .little);
             self.hash.update(&encoded);
         },
-        .float => self.write(@as(std.meta.Int(.unsigned, @bitSizeOf(T)), @bitCast(value))),
+        .float => self.write(@as(@Int(.unsigned, @bitSizeOf(T)), @bitCast(value))),
         .void => {},
         else => @compileError("unsupported generation fingerprint field"),
     }

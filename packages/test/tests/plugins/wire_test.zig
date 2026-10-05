@@ -97,7 +97,7 @@ test "plugin wire enforces object names tuple arity and nested element types" {
 
 test "plugin wire preserves finite float bits including negative zero" {
     inline for (.{ f32, f64 }) |Float| {
-        const Bits = std.meta.Int(.unsigned, @bitSizeOf(Float));
+        const Bits = @Int(.unsigned, @bitSizeOf(Float));
         const values = [_]Float{ 0, -0.0, 1, -1, std.math.floatMin(Float), std.math.floatTrueMin(Float), std.math.floatMax(Float) };
         const method = plugins.method("identity", Float, Float, Identity(Float).run);
 

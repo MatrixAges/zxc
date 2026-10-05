@@ -16,7 +16,13 @@ pub fn link(b: *std.Build, executable: *std.Build.Step.Compile, target: std.Buil
         .flags = &.{ "-DYAML_DECLARE_STATIC", "-DYAML_VERSION_MAJOR=0", "-DYAML_VERSION_MINOR=2", "-DYAML_VERSION_PATCH=5", "-DYAML_VERSION_STRING=\"0.2.5\"" },
     });
 
-    executable.root_module.addIncludePath(source.path("include"));
+    const translated = b.addTranslateC(.{ .root_source_file = source.path("include/yaml.h"), .target = target, .optimize = optimize });
+
+    translated.defineCMacro("YAML_DECLARE_STATIC", "1");
+
+    if (target.result.os.tag == .windows) translated.defineCMacro("_FORTIFY_SOURCE", "0");
+
+    executable.root_module.addImport("yaml", translated.createModule());
     executable.root_module.linkLibrary(library);
 
     const license = b.addInstallFile(source.path("License"), "share/zxc/licenses/libyaml.txt");

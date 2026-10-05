@@ -22,7 +22,7 @@ pub const Options = struct {
     assembly: ?[]const u8 = null,
     target: ?[]const u8 = null,
     cpu: ?[]const u8 = null,
-    optimize: std.builtin.OptimizeMode = .ReleaseSafe,
+    optimize: std.builtin.OptimizeMode = .safe,
     solver: ?[]const u8 = null,
     cache: bool = true,
     cache_stats: bool = false,
@@ -147,7 +147,7 @@ pub fn parse(args: []const []const u8) error{InvalidArguments}!Options {
             } else {
                 if (optimized) return error.InvalidArguments;
 
-                options.optimize = std.meta.stringToEnum(std.builtin.OptimizeMode, args[index]) orelse return error.InvalidArguments;
+                options.optimize = std.builtin.OptimizeMode.fromString(args[index]) orelse return error.InvalidArguments;
                 optimized = true;
             }
         } else return error.InvalidArguments;

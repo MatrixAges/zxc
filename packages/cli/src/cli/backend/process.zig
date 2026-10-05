@@ -40,5 +40,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, arguments: []const []const 
 
     const termination = try child.wait(io);
 
+    if (arguments.len > 1 and std.mem.eql(u8, arguments[1], "translate-c")) return protocol.decodeTranslation(allocator, reader.reader(0).buffered(), reader.reader(1).buffered(), termination);
+
     return protocol.decode(allocator, reader.reader(0).buffered(), reader.reader(1).buffered(), termination);
 }

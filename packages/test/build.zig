@@ -278,7 +278,7 @@ pub fn build(b: *std.Build) void {
     backend_runtime.addFileArg(b.path("tests/incremental/backend_runtime/runtime_test.ts"));
     backend_runtime.addArtifactArg(backend_driver);
     backend_runtime.addArg(b.graph.zig_exe);
-    backend_runtime.addArg(b.graph.zig_lib_directory.path orelse ".");
+    backend_runtime.addDirectoryArg(.zig_lib);
     backend_runtime_step.dependOn(&backend_runtime.step);
     test_step.dependOn(backend_runtime_step);
 

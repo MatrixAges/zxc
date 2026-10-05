@@ -6,7 +6,7 @@ pub fn check(comptime program: type, left: u64, right: u64, expected: program.Ou
     defer arena.deinit();
 
     const Scalar = @FieldType(@typeInfo(program.Input).pointer.child, "left");
-    const Bits = std.meta.Int(.unsigned, @bitSizeOf(Scalar));
+    const Bits = @Int(.unsigned, @bitSizeOf(Scalar));
 
     const actual = try program.execute(&arena, &.{
         .left = @bitCast(@as(Bits, @intCast(left))),

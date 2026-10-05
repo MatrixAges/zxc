@@ -11,13 +11,13 @@ pub fn checkType(comptime T: type) void {
 }
 
 pub fn decode(comptime T: type, node: ast.Node, reporter: *diagnostic.Reporter) diagnostic.Error!T {
-    const fields = std.meta.fields(T);
+    const info = @typeInfo(T).@"struct";
 
     for (node.attributes, 0..) |attribute, index| {
         var known = false;
 
-        inline for (fields) |field| {
-            if (std.mem.eql(u8, field.name, attribute.name)) known = true;
+        inline for (info.field_names) |field_name| {
+            if (std.mem.eql(u8, field_name, attribute.name)) known = true;
         }
 
         if (!known) return reporter.fail(.{
@@ -41,20 +41,20 @@ pub fn decode(comptime T: type, node: ast.Node, reporter: *diagnostic.Reporter) 
 
     var result: T = undefined;
 
-    inline for (fields) |field| {
+    inline for (info.field_names, info.field_types, info.field_attrs) |field_name, field_type, field_attrs| {
         var found = false;
 
         for (node.attributes) |attribute| {
-            if (!std.mem.eql(u8, field.name, attribute.name)) continue;
+            if (!std.mem.eql(u8, field_name, attribute.name)) continue;
 
             const source = if (attribute.kind == .expression) std.mem.trim(u8, attribute.value, " \t\r\n") else attribute.value;
 
-            @field(result, field.name) = convert(field.type, source) catch return reporter.fail(.{
+            @field(result, field_name) = convert(field_type, source) catch return reporter.fail(.{
                 .code = .invalid_attribute,
                 .location = attribute.value_location,
                 .element = node.name,
                 .attribute = attribute.name,
-                .expected = @typeName(field.type),
+                .expected = @typeName(field_type),
                 .message = "Attribute value does not match its declared type",
             });
 
@@ -64,17 +64,17 @@ pub fn decode(comptime T: type, node: ast.Node, reporter: *diagnostic.Reporter) 
         }
 
         if (!found) {
-            if (field.defaultValue()) |value| {
-                @field(result, field.name) = value;
-            } else if (@typeInfo(field.type) == .optional) {
-                @field(result, field.name) = null;
+            if (field_attrs.defaultValue(field_type)) |value| {
+                @field(result, field_name) = value;
+            } else if (@typeInfo(field_type) == .optional) {
+                @field(result, field_name) = null;
             } else {
                 return reporter.fail(.{
                     .code = .missing_attribute,
                     .location = node.location,
                     .element = node.name,
-                    .attribute = field.name,
-                    .expected = @typeName(field.type),
+                    .attribute = field_name,
+                    .expected = @typeName(field_type),
                     .message = "Required attribute is missing",
                 });
             }

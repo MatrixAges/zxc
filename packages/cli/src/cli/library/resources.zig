@@ -71,9 +71,11 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, directory: []const u8, lo
 
         if (native.header) |header| {
             const path = try std.fmt.allocPrint(allocator, "{s}/native/{s}.zig", .{ directory, native.name });
-            const text = try std.fmt.allocPrint(allocator, "pub const c = @cImport({{ @cInclude(\"{f}\"); }});\n", .{std.zig.fmtString(header)});
+            const header_path = try std.fmt.allocPrint(allocator, "{s}/native/{s}.h", .{ directory, native.name });
+            const include = try std.json.Stringify.valueAlloc(allocator, header, .{});
 
-            try artifacts.write(io, path, text);
+            try artifacts.write(io, header_path, try std.fmt.allocPrint(allocator, "#include {s}\n", .{include}));
+            try artifacts.write(io, path, "pub const c = @import(\"zxc_c\");\n");
         }
     }
 

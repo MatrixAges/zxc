@@ -39,7 +39,7 @@ pub fn sequence(comptime schemas: anytype) type {
     };
 
     return struct {
-        pub const Data = std.meta.Tuple(&types);
+        pub const Data = @Tuple(&types);
 
         pub fn decode(allocator: std.mem.Allocator, node: ast.Node, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
             if (node.children.len != schemas.len) return countError(node, reporter, .{ .min = schemas.len, .max = schemas.len });
@@ -56,7 +56,7 @@ pub fn sequence(comptime schemas: anytype) type {
 }
 
 pub fn choice(comptime schemas: anytype) type {
-    const fields = std.meta.fields(@TypeOf(schemas));
+    const fields = @typeInfo(@TypeOf(schemas)).@"struct".field_names;
 
     if (fields.len == 0) @compileError("DSL choice requires at least one schema");
 
@@ -64,7 +64,7 @@ pub fn choice(comptime schemas: anytype) type {
         var names: []const []const u8 = &.{};
 
         for (fields) |field| {
-            for (@field(schemas, field.name).names) |name| {
+            for (@field(schemas, field).names) |name| {
                 for (names) |previous| {
                     if (std.mem.eql(u8, previous, name)) @compileError("Ambiguous DSL choice element: " ++ name);
                 }
@@ -80,7 +80,7 @@ pub fn choice(comptime schemas: anytype) type {
         var types: [fields.len]type = undefined;
 
         for (fields, 0..) |field, index| {
-            types[index] = @field(schemas, field.name).Data;
+            types[index] = @field(schemas, field).Data;
         }
 
         break :blk @Union(.auto, std.meta.FieldEnum(@TypeOf(schemas)), std.meta.fieldNames(@TypeOf(schemas)), &types, &@splat(.{}));
@@ -92,16 +92,16 @@ pub fn choice(comptime schemas: anytype) type {
 
         pub fn matches(name: []const u8) bool {
             inline for (fields) |field| {
-                if (@field(schemas, field.name).matches(name)) return true;
+                if (@field(schemas, field).matches(name)) return true;
             }
 
             return false;
         }
         pub fn decode(allocator: std.mem.Allocator, node: ast.Node, reporter: *diagnostic.Reporter, context: anytype) diagnostic.Error!Data {
             inline for (fields) |field| {
-                const Schema = @field(schemas, field.name);
+                const Schema = @field(schemas, field);
 
-                if (Schema.matches(node.name)) return @unionInit(Data, field.name, try Schema.decode(allocator, node, reporter, context));
+                if (Schema.matches(node.name)) return @unionInit(Data, field, try Schema.decode(allocator, node, reporter, context));
             }
 
             return reporter.fail(.{

@@ -12,19 +12,19 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.built
     field(&hash, try target.result.zigTriple(b.allocator));
     field(&hash, @tagName(optimize));
 
-    try directory(b, &hash, "cli", b.path("src").getPath(b));
-    try directory(b, &hash, "cli-build", b.path("build").getPath(b));
-    try file(b, &hash, "cli/build.zig", b.path("build.zig").getPath(b));
-    try file(b, &hash, "cli/build.zig.zon", b.path("build.zig.zon").getPath(b));
-    try file(b, &hash, "standard/modules.json", b.dependency("compiler", .{ .target = target, .optimize = optimize }).path("standard/modules.json").getPath(b));
-    try directory(b, &hash, "standard/interfaces", b.dependency("compiler", .{ .target = target, .optimize = optimize }).path("standard/interfaces").getPath(b));
+    try directory(b, &hash, "cli", try b.root.joinString(b.allocator, "src"));
+    try directory(b, &hash, "cli-build", try b.root.joinString(b.allocator, "build"));
+    try file(b, &hash, "cli/build.zig", try b.root.joinString(b.allocator, "build.zig"));
+    try file(b, &hash, "cli/build.zig.zon", try b.root.joinString(b.allocator, "build.zig.zon"));
+    try file(b, &hash, "standard/modules.json", try b.dependency("compiler", .{ .target = target, .optimize = optimize }).builder.root.joinString(b.allocator, "standard/modules.json"));
+    try directory(b, &hash, "standard/interfaces", try b.dependency("compiler", .{ .target = target, .optimize = optimize }).builder.root.joinString(b.allocator, "standard/interfaces"));
 
     for ([_][]const u8{ "compiler", "core", "dsl", "lint", "genz", "pkgs", "napi" }) |name| {
         const dependency = b.dependency(name, .{ .target = target, .optimize = optimize });
 
-        try directory(b, &hash, name, dependency.path("src").getPath(b));
-        try file(b, &hash, b.fmt("{s}/build.zig", .{name}), dependency.path("build.zig").getPath(b));
-        try file(b, &hash, b.fmt("{s}/build.zig.zon", .{name}), dependency.path("build.zig.zon").getPath(b));
+        try directory(b, &hash, name, try dependency.builder.root.joinString(b.allocator, "src"));
+        try file(b, &hash, b.fmt("{s}/build.zig", .{name}), try dependency.builder.root.joinString(b.allocator, "build.zig"));
+        try file(b, &hash, b.fmt("{s}/build.zig.zon", .{name}), try dependency.builder.root.joinString(b.allocator, "build.zig.zon"));
     }
 
     var digest: [32]u8 = undefined;
@@ -39,6 +39,8 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.built
 }
 
 fn directory(b: *std.Build, hash: *std.crypto.hash.sha2.Sha256, name: []const u8, path: []const u8) !void {
+    b.dependOnDirectoryContents(.{ .cwd_relative = path });
+
     var dir = try std.Io.Dir.cwd().openDir(b.graph.io, path, .{ .iterate = true });
 
     defer dir.close(b.graph.io);
@@ -50,7 +52,12 @@ fn directory(b: *std.Build, hash: *std.crypto.hash.sha2.Sha256, name: []const u8
     var paths: std.ArrayList([]const u8) = .empty;
 
     while (try walker.next(b.graph.io)) |entry| {
-        if (entry.kind == .directory) continue;
+        if (entry.kind == .directory) {
+            b.dependOnDirectoryContents(.{ .cwd_relative = try std.fs.path.join(b.allocator, &.{ path, entry.path }) });
+
+            continue;
+        }
+
         if (entry.kind != .file) return error.UnsupportedSourceFile;
         try paths.append(b.allocator, try b.allocator.dupe(u8, entry.path));
     }
@@ -64,6 +71,8 @@ fn directory(b: *std.Build, hash: *std.crypto.hash.sha2.Sha256, name: []const u8
     field(hash, &count);
 
     for (paths.items) |relative| {
+        b.dependOnFileContents(.{ .cwd_relative = try std.fs.path.join(b.allocator, &.{ path, relative }) });
+
         const content = try dir.readFileAlloc(b.graph.io, relative, b.allocator, .unlimited);
 
         field(hash, relative);
@@ -73,6 +82,8 @@ fn directory(b: *std.Build, hash: *std.crypto.hash.sha2.Sha256, name: []const u8
 }
 
 fn file(b: *std.Build, hash: *std.crypto.hash.sha2.Sha256, name: []const u8, path: []const u8) !void {
+    b.dependOnFileContents(.{ .cwd_relative = path });
+
     const content = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, path, b.allocator, .unlimited);
 
     defer b.allocator.free(content);

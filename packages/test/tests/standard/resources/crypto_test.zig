@@ -23,8 +23,8 @@ fn CipherCheck(comptime cipher: Cipher) type {
                 .chacha => crypto.decryptChaCha20Poly1305,
             };
 
-            const key = [_]u8{7} ** 32;
-            const nonce = [_]u8{9} ** 12;
+            const key = @as([32]u8, @splat(7));
+            const nonce = @as([12]u8, @splat(9));
             const key_bytes = key[0..if (cipher == .aes128) 16 else 32];
             const data = "resource boundary plaintext";
             const aad = "authenticated metadata";

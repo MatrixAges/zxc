@@ -32,7 +32,7 @@ pub fn build(b: *std.Build) void {
 
     const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");
 
-    executable.root_module.addImport("bundle", @import("build/toolchain.zig").create(b, target, pkgs_index, compiler.path("standard/src")));
+    executable.root_module.addImport("bundle", @import("build/toolchain.zig").create(b, target, pkgs_index, compiler.builder.root.join(b.allocator, "standard/src") catch @panic("OOM")));
     b.addNamedLazyPath("pkgs_index", pkgs_index);
     b.installArtifact(executable);
 
