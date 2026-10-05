@@ -1,0 +1,14 @@
+export type Cell = { value: u64 }
+
+export type Input = Cell
+
+export type Output = { direct: Cell, optional: Cell?, list: Cell[], tuple: [Cell, u64] }
+
+export default function (in: Input): Output {
+  const optional: Cell = {value: in.value + 1}
+  const listed: Cell = {value: in.value + 2}
+  const paired: Cell = {value: in.value + 3}
+  const value = in.value
+
+  return {direct: in, optional, list: [listed], tuple: [paired, value]}
+}

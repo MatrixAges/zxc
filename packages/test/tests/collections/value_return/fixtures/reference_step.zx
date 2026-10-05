@@ -1,0 +1,13 @@
+export type Cell = { value: u64 }
+
+export type State = { count: u64, items: u64[], cell: Cell, saved: Cell? }
+
+export type Input = { state: State, item: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const next: State = {count: in.state.count + in.item, items: in.state.items, cell: in.state.cell, saved: in.state.saved}
+
+  return next
+}

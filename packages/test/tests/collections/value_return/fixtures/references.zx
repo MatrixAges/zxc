@@ -1,0 +1,13 @@
+import step from "./reference_step.zx"
+
+export type Cell = { value: u64 }
+
+export type State = { count: u64, items: u64[], cell: Cell, saved: Cell? }
+
+export type Input = { seed: State, steps: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return in.steps.reduce((state, item) => step({state, item}), in.seed)
+}

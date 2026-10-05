@@ -6,7 +6,7 @@ pub fn main(init: std.process.Init) !void {
     const args = try init.minimal.args.toSlice(allocator);
     const mode = args[1];
 
-    const text = inline for (.{ "direct", "wrapped", "chained", "conditional", "fallible", "enumeration" }) |name| {
+    const text = inline for (.{ "direct", "wrapped", "chained", "conditional", "fallible", "enumeration", "references", "escaping" }) |name| {
         if (std.mem.eql(u8, mode, name)) break @embedFile("fixtures/" ++ name ++ ".zx");
     } else return error.InvalidMode;
 
@@ -17,6 +17,8 @@ pub fn main(init: std.process.Init) !void {
         .{ .path = "phase.zx", .source = @embedFile("fixtures/phase.zx") },
         .{ .path = "enum_step.zx", .source = @embedFile("fixtures/enum_step.zx") },
         .{ .path = "read_step.zx", .source = @embedFile("fixtures/read_step.zx") },
+        .{ .path = "reference_step.zx", .source = @embedFile("fixtures/reference_step.zx") },
+        .{ .path = "escape_step.zx", .source = @embedFile("fixtures/escape_step.zx") },
         .{ .path = "forward.zx", .source = @embedFile("fixtures/forward.zx") },
     }, .{ .entry = "main.zx", .root_dir = "/project" });
 
