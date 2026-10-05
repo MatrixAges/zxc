@@ -1,0 +1,12 @@
+export type Input = { seed: u64[], steps: u64[] }
+
+export type State = { count: u64, previous: u64, values: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const values = in.seed.map((item) => item)
+  const initial: State = { count: 3, previous: 99, values: values }
+
+  return in.steps.reduce((state, item) => ({ count: state.count + 1, previous: state.values.length, values: state.values.push(item)[0] }), initial)
+}

@@ -9,6 +9,7 @@ pub fn build(b: *std.Build) void {
     const suites = @import("build/catalog.zig").load(b);
 
     test_step.dependOn(@import("build/reduce_runtime.zig").add(b, cli_dependency, target, optimize));
+    test_step.dependOn(@import("build/object_append.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/object_reduce.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/owned_input.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/process_entry.zig").add(b, cli_dependency, optimize));
