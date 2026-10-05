@@ -1,0 +1,58 @@
+[
+	{
+		"path": "test/built-ins/Array/prototype/forEach/15.4.4.18-8-1.js",
+		"sha256": "61cb421b209cfbf9933e4e4b94df563ccf0b5e1ac2ad39a9b80e35279dcb965b",
+		"status": "adapted",
+		"original_assertions": 1,
+		"reason": "保留原空数组与零次回调断言；外部计数改为可失败的 row[0] 观察并配套非空成功、空行失败控制。未使用的返回变量删除，固定单参数回调替代零形参函数；不把成功码或 void 宿主表示冒充 JS undefined。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/forEach/15.4.4.18-8-11.js",
+		"sha256": "9eccc9f6adb1717331355cca858174e54b125bbf52a963519e1734302c1114fa",
+		"status": "adapted",
+		"original_assertions": 5,
+		"reason": "完整保留输入[1,2,3,4,5]、回调返回true与全部五项不变断言；删除未使用idx/obj形参并内联单参数表达式。返回完整原列表作深比较，补充长度与非原始输入控制。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/forEach/15.4.4.18-7-1.js",
+		"sha256": "74d413813680689e50299a5d3b0fdee3d99d38bb6c7f2f455f7cdbbff3a787ba",
+		"status": "excluded",
+		"original_assertions": 1,
+		"reason": "原文在回调内填补稀疏数组索引2并新增索引5，断言捕获的初始长度范围和五次回调；依赖外部捕获、可变容器和空洞访问。ZX forEach 借用且不能在遍历中修改容器，不将稠密不可变列表的顺序遍历冒充该行为。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/forEach/15.4.4.18-7-c-ii-1.js",
+		"sha256": "d690f03f43f0a8e8497355d331480cb20453373f03540ac7bd07ae2470dca7b2",
+		"status": "excluded",
+		"original_assertions": 2,
+		"reason": "原文要求val/idx/obj三实参与原对象按索引身份一致，同时使用异构数组和索引999999形成的稀疏范围；ZX 第一版单参数且静态同质列表，不能删掉核心参数和对象身份断言后声明适配。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/forEach/15.4.4.18-7-c-ii-2.js",
+		"sha256": "ec5f58462509304473524e32d7748f849763b7b5d09042c749d926810d25c9c8",
+		"status": "excluded",
+		"original_assertions": 2,
+		"reason": "核心断言通过动态arguments.length证明回调实际收到三个参数；ZX 单参数静态表达式回调不提供arguments对象，不能把静态参数数量拒绝当作JS三实参协议通过。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/forEach/15.4.4.18-7-c-ii-9.js",
+		"sha256": "fe41ba78363285b23bb171fc1ccb054540a8323d1a0c3ba1bd463c7da59cb5ee",
+		"status": "excluded",
+		"original_assertions": 1,
+		"reason": "原文明确测试零正式参数函数仍被调用两次；ZX forEach当前要求一个正式参数，不把补一个参数后的执行次数检查冒充该零形参协议。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/forEach/15.4.4.18-8-2.js",
+		"sha256": "8bc1ff6342e27cbb63f15b42a0f50a2b2abc6c51b76f8d0376a28d1055895b9d",
+		"status": "excluded",
+		"original_assertions": 1,
+		"reason": "原文通过构造函数和原型继承Array，然后将自身length设为null，观察ToLength转换后的零次回调。ZX无原型继承、可变动态length及此类型转换对象模型，不能用普通空列表替代接收者。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/forEach/15.4.4.18-8-13.js",
+		"sha256": "75d90c0550fd12ec8b44f6f13b924ce3801ff5ff5e8ae75e4df5dd491fb91dcf",
+		"status": "excluded",
+		"original_assertions": 2,
+		"reason": "原文同时断言空数组未执行回调以及typeof结果为undefined；ZX仅有void且禁止typeof和独立undefined模型，宿主null或不可绑定的void不等于原动态返回断言。完整原文排除，空回调性质由另一份仅观察次数的原文适配。"
+	}
+]

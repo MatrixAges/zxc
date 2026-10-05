@@ -1,0 +1,94 @@
+✔ forEach CLI / direct receiver / ordered effects and early failure (1802.053001ms)
+✔ forEach CLI / receiver evaluated once / ordered effects and early failure (1772.756107ms)
+✖ forEach RX / void callback result is evaluated and failures propagate (6.678429ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 2
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3584.971477
+
+✖ failing tests:
+
+test at tests/collections/for_each/cli_test.ts:81:1
+✖ forEach RX / void callback result is evaluated and failures propagate (6.678429ms)
+  AssertionError [ERR_ASSERTION]: main.rx:2:9: unknown_attribute: Attribute is not allowed on this element
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/collections/for_each/cli_test.ts:96:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+test-for-each
++- test-for-each-cli
+   +- run node failure
+error: process exited with code 1
+failed command: node ./tests/collections/for_each/cli_test.ts ./.zig-cache/o/f2e8836365e0b69893f060524088da55/zxc debug
+
+Build Summary: 39/42 steps succeeded (1 failed); 42/42 tests passed
+test-for-each transitive failure
++- run test cached
+|  +- compile test debug native cached 43ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer debug native cached 45ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:266M
+|     +- run exe zxc (program.zig) success 7ms
+|     |  +- compile exe zxc debug native success 11s MaxRSS:1G
+|     |     +- WriteFile cached
+|     |     +- compile lib yaml debug native cached 41ms MaxRSS:20M
+|     |     +- compile lib yaml debug native (reused)
+|     |     +- translate-c cached 40ms MaxRSS:20M
+|     |     +- options success
+|     |     +- run exe bundle-zig (bundle) cached
+|     |     |  +- compile exe bundle-zig fast native cached 44ms MaxRSS:21M
+|     |     |  +- WriteFile bundle_manifest.json cached
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- options cached
++- run test 8 pass (8 total) 2ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:257M
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 3ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:340M
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:266M
+|     +- run exe zxc (program.zig) success 7ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options cached
++- test-for-each-catalog success
+|  +- run test for-each-preserve 7 pass (7 total) 2ms MaxRSS:1M
+|  |  +- compile test for-each-preserve debug native success 1s MaxRSS:258M
+|  |     +- run node (cases.zig) success 59ms
+|  |     +- run exe zxc (program.zig) success 8ms
+|  |        +- compile exe zxc debug native (+8 more reused dependencies)
+|  +- run test for-each-empty 9 pass (9 total) 3ms MaxRSS:1M
+|     +- compile test for-each-empty debug native success 1s MaxRSS:263M
+|        +- run node (cases.zig) success 103ms
+|        +- run exe zxc (program.zig) success 6ms
+|           +- compile exe zxc debug native (+8 more reused dependencies)
++- test-for-each-cli transitive failure
+   +- run node failure
+      +- compile exe zxc debug native (+8 more reused dependencies)
+

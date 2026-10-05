@@ -1,0 +1,54 @@
+test-for-each
++- run test
+   +- compile test debug native 1 errors
+tests/collections/for_each/analysis_test.zig:6:103: error: struct 'diagnostic.Diagnostic' has no member named 'Code'
+    const cases = [_]struct { input: []const u8 = "u64[]", body: []const u8, code: compiler.Diagnostic.Code, message: []const u8 }{
+                                                                                   ~~~~~~~~~~~~~~~~~~~^~~~~
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/core/src/diagnostic.zig:19:24: note: struct declared here
+pub const Diagnostic = struct {
+                       ^~~~~~
+referenced by:
+    test.forEach parameters captures void binding and element ownership are checked: tests/collections/for_each/analysis_test.zig:7:20
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep compiler --dep allocation_testing -Mroot=tests/collections/for_each/analysis_test.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces -Mfrontend=../compiler/src/zx/frontend.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug -Mzx=../core/src/root.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Odebug --dep dsl --dep zx -Mlint=../lint/src/root.zig -Odebug --dep zx --dep generated -Mlexer=../compiler/src/zx/frontend/lex.zig -Mstandard_interfaces=.zig-cache/o/7535f465621b95d968beec5c562886c5/catalog.zig -Odebug -Mgenerated=.zig-cache/o/27619c9189595a15b4a804e498d26816/lexer.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name test --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+Build Summary: 29/32 steps succeeded (1 failed); 26/26 tests passed
+test-for-each transitive failure
++- run test transitive failure
+|  +- compile test debug native 1 errors
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) success 55ms
+|        +- compile exe generate-lexer debug native success 3s MaxRSS:466M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:256M
+|     +- run exe zxc (program.zig) success 7ms
+|     |  +- compile exe zxc debug native success 11s MaxRSS:1G
+|     |     +- WriteFile cached
+|     |     +- compile lib yaml debug native cached 41ms MaxRSS:20M
+|     |     +- compile lib yaml debug native (reused)
+|     |     +- translate-c cached 40ms MaxRSS:20M
+|     |     +- options success
+|     |     +- run exe bundle-zig (bundle) cached
+|     |     |  +- compile exe bundle-zig fast native cached 45ms MaxRSS:21M
+|     |     |  +- WriteFile bundle_manifest.json cached
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- options success
++- run test 8 pass (8 total) 3ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:261M
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options success
++- run test 6 pass (6 total) 3ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:262M
+|     +- run exe zxc (program.zig) success 8ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options success
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:259M
+|     +- run exe zxc (program.zig) success 7ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options success
++- test-for-each-catalog success
+
