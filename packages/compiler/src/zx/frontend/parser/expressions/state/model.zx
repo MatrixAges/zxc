@@ -1,0 +1,42 @@
+import type { Span, Token } from "../../../lexer/token_model"
+import type { Diagnostic } from "../../../lexer/model"
+import type { PreparedInput, Hint } from "../prepare/model"
+import type { Tree, Frame, Control } from "../../types/model"
+import { Operator, Family } from "../prepare/model"
+
+export enum ExprKind { Number, String, Boolean, Null, Identifier, Field, Index, List, Call, Lambda, Template, Unary, Binary, Conditional, Match, Object }
+
+export enum Phase { BeginBinary, Primary, Postfix, Returning, FieldName, Arguments, ObjectName, ObjectColon, LambdaParameter, LambdaSeparator, LambdaArrow, MatchStart, MatchCondition, MatchFallbackArrow, MatchEnd, GenericType, GenericCall, TemplateGather, TemplatePart, Done }
+
+export enum FrameKind { BinaryLeft, BinaryRight, Unary, Group, Index, Arguments, ObjectValue, Lambda, ConditionalYes, ConditionalNo, MatchSubject, MatchCondition, MatchResult, MatchFallback, Template, TemplatePart, Interpolation }
+
+export type ExprNode = { kind: ExprKind, span: Span, depth: u64, name: Span, flag: bool, operator: Operator, first: u64, second: u64, third: u64, head: u64, count: u64, type_argument: u64 }
+
+export type Item = { value: u64, previous: u64 }
+
+export type Field = { name: Span, value: u64, spread: bool, previous: u64 }
+
+export type Parameter = { name: Span, previous: u64 }
+
+export type Part = { span: Span, value: u64, expression: bool, previous: u64 }
+
+export type Arm = { condition: u64, result: u64, previous: u64 }
+
+export type ExprTree = { nodes: ExprNode[], items: Item[], fields: Field[], parameters: Parameter[], parts: Part[], arms: Arm[] }
+
+export type ExprFrame = {
+  kind: FrameKind, start: u64, end: u64, depth: u64, minimum: u8, allow_lambda: bool,
+  reset_family: bool, family: Family, first: u64, second: u64, head: u64, count: u64,
+  maximum: u64, name: Span, flag: bool, cursor: u64, stream: u64, index: u64, operator: Operator
+}
+
+export type ExprControl = {
+  phase: Phase, index: u64, root_index: u64, base_depth: u64, stream: u64, depth: u64, minimum: u8, allow_lambda: bool,
+  fresh_family: bool, family: Family, result: u64, primary_start: u64, last_end: u64,
+  template_head: u64, template_count: u64, template_maximum: u64, cursor: u64, type_argument: u64,
+  token: Token, hint: Hint, template: u64, lexical_diagnostic: u64, type_diagnostic: bool, diagnostic: Diagnostic
+}
+
+export type TypeState = { tree: Tree, frames: Frame[], control: Control }
+
+export type ExprState = { prepared: PreparedInput, tree: ExprTree, types: TypeState, frames: ExprFrame[], control: ExprControl }

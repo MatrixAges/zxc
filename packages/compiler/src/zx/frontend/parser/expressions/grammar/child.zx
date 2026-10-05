@@ -1,0 +1,14 @@
+import type { ExprState } from "../state/model"
+import { Phase } from "../state/model"
+
+export type Input = { state: ExprState, minimum: u8, allow_lambda: bool, fresh: bool }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const minimum = in.minimum
+  const allow_lambda = in.allow_lambda
+  const fresh = in.fresh
+
+  return { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: { ...in.state.control, phase: Phase.BeginBinary, minimum: minimum, allow_lambda: allow_lambda, fresh_family: fresh } }
+}

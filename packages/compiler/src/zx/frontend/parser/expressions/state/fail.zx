@@ -1,0 +1,12 @@
+import type { ExprState } from "./model"
+import { Phase } from "./model"
+
+export type Input = { state: ExprState, code: string, message: string }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const diagnostic = { code: in.code, start: in.state.control.token.span.start, end: in.state.control.token.span.end, message: in.message }
+
+  return { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: { ...in.state.control, phase: Phase.Done, diagnostic: diagnostic } }
+}

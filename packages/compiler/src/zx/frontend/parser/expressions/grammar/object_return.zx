@@ -1,0 +1,34 @@
+import type { ExprState, ExprFrame } from "../state/model"
+import { Phase } from "../state/model"
+import { Symbol } from "../../../lexer/token_model"
+import consume from "../state/consume"
+import fail from "../state/fail"
+import finish from "./object_finish"
+
+export type Input = { state: ExprState, frame: ExprFrame }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const result = in.state.control.result
+  const name = in.frame.flag ? { start: in.state.tree.nodes[result].span.start, end: in.state.tree.nodes[result].span.end } : { start: in.frame.name.start, end: in.frame.name.end }
+  const head = in.state.tree.fields.length + 1
+  const count = in.frame.count + 1
+  const depth = in.state.tree.nodes[result].depth
+  const maximum = depth > in.frame.maximum ? depth : in.frame.maximum
+  const fields = in.state.tree.fields.push({ name: name, value: result, spread: in.frame.flag, previous: in.frame.head })[0]
+  const continuation = { ...in.frame, head: head, count: count, maximum: maximum }
+  const state = { prepared: in.state.prepared, tree: { nodes: in.state.tree.nodes, items: in.state.tree.items, fields: fields, parameters: in.state.tree.parameters, parts: in.state.tree.parts, arms: in.state.tree.arms }, types: in.state.types, frames: in.state.frames, control: in.state.control }
+
+  if (state.control.token.symbol == Symbol.Comma) {
+    const frames = state.frames.push(continuation)[0]
+
+    return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: frames, control: state.control }, phase: Phase.ObjectName })
+  }
+
+  if (state.control.token.symbol != Symbol.CloseBrace) {
+    return fail({ state: state, code: "syntax", message: "," })
+  }
+
+  return finish({ state: state, frame: continuation })
+}

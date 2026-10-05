@@ -1,0 +1,49 @@
+import type { ExprState } from "../state/model"
+import { Phase } from "../state/model"
+import { Symbol } from "../../../lexer/token_model"
+import consume from "../state/consume"
+import fail from "../state/fail"
+import typeStep from "../../types/step"
+import startArguments from "./start_arguments"
+import typeDone from "./type_done"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.GenericCall) {
+    if (in.control.token.symbol != Symbol.OpenParen) {
+      return fail({ state: in, code: "syntax", message: "(" })
+    }
+
+    const argument = in.control.type_argument
+
+    return startArguments({ state: in, type_argument: argument })
+  }
+
+  const token = { kind: in.control.token.kind, word: in.control.token.word, symbol: in.control.token.symbol, span: { start: in.control.token.span.start, end: in.control.token.span.end }, line_break: in.control.token.line_break, dollar: in.control.token.dollar }
+  const types = typeStep({ state: in.types, token: token })
+  const index = types.control.index
+  const root_index = in.control.stream == 0 ? index : in.control.root_index
+  const last_end = index == in.control.index ? in.control.last_end : in.control.token.span.end
+  const done = typeDone(types.control.phase)
+  const failed = types.control.diagnostic.message != ""
+  const argument = types.control.result + 1
+  const control = { ...in.control, index: index, root_index: root_index, last_end: last_end }
+  const state = { prepared: in.prepared, tree: in.tree, types: types, frames: in.frames, control: control }
+
+  if (failed) {
+    return { prepared: state.prepared, tree: state.tree, types: state.types, frames: state.frames, control: { ...state.control, phase: Phase.Done, type_diagnostic: true } }
+  }
+
+  if (!done) {
+    return state
+  }
+
+  if (state.control.token.symbol != Symbol.Greater) {
+    return fail({ state: state, code: "syntax", message: ">" })
+  }
+
+  return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: state.frames, control: { ...state.control, type_argument: argument } }, phase: Phase.GenericCall })
+}

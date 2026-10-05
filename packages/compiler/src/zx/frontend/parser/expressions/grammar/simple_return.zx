@@ -1,0 +1,70 @@
+import type { ExprState, ExprFrame, ExprControl } from "../state/model"
+import { Phase, FrameKind, ExprKind } from "../state/model"
+import { Symbol } from "../../../lexer/token_model"
+import node from "../state/node"
+import consume from "../state/consume"
+import emit from "../state/emit"
+import fail from "../state/fail"
+import finishBinary from "./finish_binary"
+
+export type Input = { state: ExprState, frame: ExprFrame }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const result = in.state.control.result
+  const child_depth = in.state.tree.nodes[result].depth
+  const start = in.frame.start
+  const end = in.state.control.last_end
+
+  if (in.frame.kind == FrameKind.Group) {
+    if (in.state.control.token.symbol != Symbol.CloseParen) {
+      return fail({ state: in.state, code: "syntax", message: ")" })
+    }
+
+    const depth = in.frame.depth
+
+    return consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: { ...in.state.control, depth: depth, primary_start: start } }, phase: Phase.Postfix })
+  }
+
+  if (in.frame.kind == FrameKind.Unary || in.frame.kind == FrameKind.Lambda) {
+    const lambda = in.frame.kind == FrameKind.Lambda
+    const depth = in.frame.depth - 1
+    const value = { ...node({ kind: lambda ? ExprKind.Lambda : ExprKind.Unary, start: start, end: end, depth: child_depth + 1 }), first: result, flag: in.frame.flag, head: in.frame.head, count: in.frame.count }
+    const control = { ...in.state.control, depth: depth, phase: Phase.Returning }
+
+    return emit({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: control }, node: value })
+  }
+
+  if (in.frame.kind == FrameKind.Index) {
+    if (in.state.control.token.symbol != Symbol.CloseBracket) {
+      return fail({ state: in.state, code: "syntax", message: "]" })
+    }
+
+    const target_depth = in.state.tree.nodes[in.frame.first].depth
+    const depth = in.frame.depth
+    const value = { ...node({ kind: ExprKind.Index, start: start, end: in.state.control.token.span.end, depth: (target_depth > child_depth ? target_depth : child_depth) + 1 }), first: in.frame.first, second: result }
+    const control = { ...in.state.control, depth: depth, primary_start: start }
+
+    return emit({ state: consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: control }, phase: Phase.Postfix }), node: value })
+  }
+
+  if (in.frame.kind == FrameKind.ConditionalYes) {
+    if (in.state.control.token.symbol != Symbol.Colon) {
+      return fail({ state: in.state, code: "syntax", message: ":" })
+    }
+
+    const allow_lambda = in.frame.allow_lambda
+    const frames = in.state.frames.push({ ...in.frame, kind: FrameKind.ConditionalNo, second: result })[0]
+    const control: ExprControl = { ...in.state.control, minimum: 0, allow_lambda: allow_lambda, fresh_family: true }
+
+    return consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: frames, control: control }, phase: Phase.BeginBinary })
+  }
+
+  const condition_depth = in.state.tree.nodes[in.frame.first].depth
+  const yes_depth = in.state.tree.nodes[in.frame.second].depth
+  const branch_depth = yes_depth > child_depth ? yes_depth : child_depth
+  const value = { ...node({ kind: ExprKind.Conditional, start: in.state.tree.nodes[in.frame.first].span.start, end: end, depth: (condition_depth > branch_depth ? condition_depth : branch_depth) + 1 }), first: in.frame.first, second: in.frame.second, third: result }
+
+  return finishBinary({ state: emit({ state: in.state, node: value }), frame: in.frame })
+}

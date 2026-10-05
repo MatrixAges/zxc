@@ -1,0 +1,19 @@
+import type { ExprState, ExprNode } from "./model"
+import { Phase } from "./model"
+
+export type Input = { state: ExprState, node: ExprNode }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.node.depth > 256) {
+    const diagnostic = { code: "unsupported", start: in.node.span.start, end: in.node.span.end, message: "expression nesting exceeds 256 levels" }
+
+    return { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: { ...in.state.control, phase: Phase.Done, diagnostic: diagnostic } }
+  }
+
+  const result = in.state.tree.nodes.length
+  const nodes = in.state.tree.nodes.push(in.node)[0]
+
+  return { prepared: in.state.prepared, tree: { nodes: nodes, items: in.state.tree.items, fields: in.state.tree.fields, parameters: in.state.tree.parameters, parts: in.state.tree.parts, arms: in.state.tree.arms }, types: in.state.types, frames: in.state.frames, control: { ...in.state.control, result: result } }
+}

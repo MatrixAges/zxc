@@ -1,0 +1,14 @@
+import type { ExprState, ExprFrame } from "./model"
+import { FrameKind } from "./model"
+import frame from "./frame"
+
+export type Input = ExprState
+
+export type Output = { state: ExprState, frame: ExprFrame }
+
+export default function (in: owned Input): Output {
+  const popped = in.frames.pop()
+  const continuation = popped[1] ?? frame({ kind: FrameKind.BinaryLeft, start: 0, depth: 0 })
+
+  return { state: { prepared: in.prepared, tree: in.tree, types: in.types, frames: popped[0], control: in.control }, frame: continuation }
+}

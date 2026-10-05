@@ -1,0 +1,55 @@
+import type { ExprState, ExprControl } from "../state/model"
+import { Phase, FrameKind, ExprKind } from "../state/model"
+import { Kind, Symbol } from "../../../lexer/token_model"
+import node from "../state/node"
+import frame from "../state/frame"
+import consume from "../state/consume"
+import emit from "../state/emit"
+import fail from "../state/fail"
+import resume from "./resume"
+import startArguments from "./start_arguments"
+import typeInitial from "../../types/initial"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.FieldName) {
+    if (in.control.token.kind != Kind.Identifier) {
+      return fail({ state: in, code: "syntax", message: "expected an identifier" })
+    }
+
+    const value = { ...node({ kind: ExprKind.Field, start: in.control.primary_start, end: in.control.token.span.end, depth: in.tree.nodes[in.control.result].depth + 1 }), first: in.control.result, name: { start: in.control.token.span.start, end: in.control.token.span.end }, flag: in.control.hint.generic }
+
+    return emit({ state: consume({ state: in, phase: Phase.Postfix }), node: value })
+  }
+
+  if (in.control.token.symbol == Symbol.Dot) {
+    return consume({ state: in, phase: Phase.FieldName })
+  }
+
+  if (in.control.token.symbol == Symbol.OpenBracket) {
+    const continuation = { ...frame({ kind: FrameKind.Index, start: in.control.primary_start, depth: in.control.depth }), first: in.control.result }
+    const frames = in.frames.push(continuation)[0]
+    const control: ExprControl = { ...in.control, minimum: 0, allow_lambda: true, fresh_family: true }
+
+    return consume({ state: { prepared: in.prepared, tree: in.tree, types: in.types, frames: frames, control: control }, phase: Phase.BeginBinary })
+  }
+
+  if (in.control.token.symbol == Symbol.Less && in.tree.nodes[in.control.result].kind == ExprKind.Field && in.tree.nodes[in.control.result].flag) {
+    const index = in.control.index + 1
+    const initial = typeInitial({ start: index, depth: in.control.depth })
+    const types = { tree: in.types.tree, frames: initial.frames, control: { ...initial.control, index: index } }
+
+    return consume({ state: { prepared: in.prepared, tree: in.tree, types: types, frames: in.frames, control: in.control }, phase: Phase.GenericType })
+  }
+
+  if (in.control.token.symbol == Symbol.OpenParen) {
+    return startArguments({ state: in, type_argument: 0 })
+  }
+
+  const depth = in.control.depth - 1
+
+  return resume({ prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: { ...in.control, depth: depth, phase: Phase.Returning } })
+}

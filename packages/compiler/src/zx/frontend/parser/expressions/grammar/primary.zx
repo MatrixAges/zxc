@@ -1,0 +1,78 @@
+import type { ExprState, ExprControl } from "../state/model"
+import { Phase, FrameKind, ExprKind } from "../state/model"
+import { Kind, Symbol } from "../../../lexer/token_model"
+import { Keyword } from "../../../lexer/keyword_model"
+import frame from "../state/frame"
+import node from "../state/node"
+import consume from "../state/consume"
+import emit from "../state/emit"
+import fail from "../state/fail"
+import startLambda from "./start_lambda"
+import startTemplate from "./start_template"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.control.depth >= 256) {
+    return fail({ state: in, code: "unsupported", message: "syntax nesting exceeds 256 levels" })
+  }
+
+  const start = in.control.token.span.start
+  const end = in.control.token.span.end
+  const depth = in.control.depth + 1
+  const state = { prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: { ...in.control, depth: depth, primary_start: start } }
+
+  if (state.control.token.word == Keyword.Match) {
+    const continuation = frame({ kind: FrameKind.MatchSubject, start: start, depth: depth })
+    const frames = state.frames.push(continuation)[0]
+
+    return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: frames, control: state.control }, phase: Phase.MatchStart })
+  }
+
+  if (state.control.token.symbol == Symbol.Not || state.control.token.symbol == Symbol.Minus) {
+    const continuation = { ...frame({ kind: FrameKind.Unary, start: start, depth: depth }), flag: state.control.token.symbol == Symbol.Minus }
+    const frames = state.frames.push(continuation)[0]
+
+    return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: frames, control: state.control }, phase: Phase.Primary })
+  }
+
+  if (state.control.allow_lambda && state.control.hint.lambda) {
+    return startLambda(state)
+  }
+
+  if (state.control.token.symbol == Symbol.OpenParen) {
+    const continuation = frame({ kind: FrameKind.Group, start: start, depth: depth })
+    const frames = state.frames.push(continuation)[0]
+    const control: ExprControl = { ...state.control, minimum: 0, allow_lambda: true, fresh_family: true }
+
+    return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: frames, control: control }, phase: Phase.BeginBinary })
+  }
+
+  if (state.control.token.symbol == Symbol.OpenBrace || state.control.token.symbol == Symbol.OpenBracket) {
+    const object = state.control.token.symbol == Symbol.OpenBrace
+    const continuation = { ...frame({ kind: object ? FrameKind.ObjectValue : FrameKind.Arguments, start: start, depth: depth }), flag: false }
+    const frames = state.frames.push(continuation)[0]
+
+    return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: frames, control: state.control }, phase: object ? Phase.ObjectName : Phase.Arguments })
+  }
+
+  if (state.control.token.kind == Kind.Template) {
+    return startTemplate(state)
+  }
+
+  const null_value = state.control.token.word == Keyword.Null
+  const boolean = state.control.token.word == Keyword.True || state.control.token.word == Keyword.False
+  const number = state.control.token.kind == Kind.Number
+  const string = state.control.token.kind == Kind.String
+
+  if (!null_value && !boolean && !number && !string && state.control.token.kind != Kind.Identifier) {
+    return fail({ state: state, code: "syntax", message: "expected an identifier" })
+  }
+
+  const kind = null_value ? ExprKind.Null : boolean ? ExprKind.Boolean : number ? ExprKind.Number : string ? ExprKind.String : ExprKind.Identifier
+  const value = { ...node({ kind: kind, start: start, end: end, depth: 1 }), name: { start: start, end: end }, flag: state.control.token.word == Keyword.True }
+
+  return emit({ state: consume({ state: state, phase: Phase.Postfix }), node: value })
+}

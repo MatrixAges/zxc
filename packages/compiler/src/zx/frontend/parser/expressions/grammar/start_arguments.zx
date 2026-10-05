@@ -1,0 +1,15 @@
+import type { ExprState } from "../state/model"
+import { Phase, FrameKind } from "../state/model"
+import frame from "../state/frame"
+import consume from "../state/consume"
+
+export type Input = { state: ExprState, type_argument: u64 }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const continuation = { ...frame({ kind: FrameKind.Arguments, start: in.state.control.primary_start, depth: in.state.control.depth }), first: in.state.control.result, maximum: in.state.tree.nodes[in.state.control.result].depth, cursor: in.type_argument, flag: true }
+  const frames = in.state.frames.push(continuation)[0]
+
+  return consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: frames, control: in.state.control }, phase: Phase.Arguments })
+}

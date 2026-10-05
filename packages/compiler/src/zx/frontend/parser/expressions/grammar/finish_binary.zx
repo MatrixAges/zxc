@@ -1,0 +1,18 @@
+import type { ExprState, ExprFrame } from "../state/model"
+import { Phase } from "../state/model"
+
+export type Input = { state: ExprState, frame: ExprFrame }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.state.control.phase == Phase.Done) {
+    return in.state
+  }
+
+  const depth = in.frame.depth
+  const family = in.frame.reset_family ? in.frame.family : in.state.control.family
+  const phase = in.state.frames.length == 0 ? Phase.Done : Phase.Returning
+
+  return { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: { ...in.state.control, depth: depth, family: family, phase: phase } }
+}

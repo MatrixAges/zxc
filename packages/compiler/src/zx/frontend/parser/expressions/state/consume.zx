@@ -1,0 +1,14 @@
+import type { ExprState } from "./model"
+import { Phase } from "./model"
+
+export type Input = { state: ExprState, phase: Phase }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const index = in.state.control.index + 1
+  const root_index = in.state.control.stream == 0 ? index : in.state.control.root_index
+  const end = in.state.control.token.span.end
+
+  return { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: { ...in.state.control, index: index, root_index: root_index, last_end: end, phase: in.phase } }
+}

@@ -1,0 +1,69 @@
+import type { ExprState, ExprControl } from "../state/model"
+import { Phase, FrameKind, ExprKind } from "../state/model"
+import node from "../state/node"
+import frame from "../state/frame"
+import emit from "../state/emit"
+import takeFrame from "../state/take_frame"
+import { PartKind } from "../../templates/model"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.TemplateGather) {
+    const cursor = in.control.cursor
+    const previous = in.prepared.lexical.parts[cursor - 1].previous
+    const continuation = { ...frame({ kind: FrameKind.TemplatePart, start: 0, depth: 0 }), cursor: cursor }
+    const frames = in.frames.push(continuation)[0]
+    const control = { ...in.control, cursor: previous, phase: previous == 0 ? Phase.TemplatePart : Phase.TemplateGather }
+
+    return { prepared: in.prepared, tree: in.tree, types: in.types, frames: frames, control: control }
+  }
+
+  const taken = takeFrame(in)
+
+  if (taken.frame.kind == FrameKind.Template) {
+    const value = { ...node({ kind: ExprKind.Template, start: taken.frame.start, end: taken.frame.end, depth: taken.state.control.template_maximum + 1 }), head: taken.state.control.template_head, count: taken.state.control.template_count }
+    const depth = taken.frame.depth
+    const start = taken.frame.start
+    const end = taken.frame.end
+    const index = taken.frame.index
+    const stream = taken.frame.stream
+    const head = taken.frame.head
+    const count = taken.frame.count
+    const maximum = taken.frame.maximum
+    const control = { ...taken.state.control, depth: depth, primary_start: start, last_end: end, index: index, stream: stream, template_head: head, template_count: count, template_maximum: maximum, phase: Phase.Postfix }
+
+    return emit({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: taken.state.frames, control: control }, node: value })
+  }
+
+  const cursor = taken.frame.cursor
+  const expression = taken.state.prepared.lexical.parts[cursor - 1].kind == PartKind.Expression
+  const start = taken.state.prepared.lexical.parts[cursor - 1].span.start
+  const end = taken.state.prepared.lexical.parts[cursor - 1].span.end
+
+  if (!expression) {
+    const head = taken.state.tree.parts.length + 1
+    const count = taken.state.control.template_count + 1
+    const parts = taken.state.tree.parts.push({ span: { start: start, end: end }, value: 0, expression: false, previous: taken.state.control.template_head })[0]
+    const control = { ...taken.state.control, template_head: head, template_count: count }
+
+    return { prepared: taken.state.prepared, tree: { nodes: taken.state.tree.nodes, items: taken.state.tree.items, fields: taken.state.tree.fields, parameters: taken.state.tree.parameters, parts: parts, arms: taken.state.tree.arms }, types: taken.state.types, frames: taken.state.frames, control: control }
+  }
+
+  const stream = taken.state.prepared.lexical.parts[cursor - 1].interpolation
+
+  if (taken.state.prepared.lexical.interpolations[stream - 1].lexed.diagnostic.message != "") {
+    const diagnostic = stream + 1
+
+    return { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: taken.state.frames, control: { ...taken.state.control, lexical_diagnostic: diagnostic, phase: Phase.Done } }
+  }
+
+  const continuation = { ...frame({ kind: FrameKind.Interpolation, start: start, depth: taken.state.control.depth }), cursor: cursor, stream: taken.state.control.stream, index: taken.state.control.index, end: taken.state.control.last_end }
+  const depth = taken.state.control.depth + 1
+  const frames = taken.state.frames.push(continuation)[0]
+  const control: ExprControl = { ...taken.state.control, stream: stream, index: 0, last_end: start, depth: depth, minimum: 0, allow_lambda: true, fresh_family: true, phase: Phase.BeginBinary }
+
+  return { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control }
+}

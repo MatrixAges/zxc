@@ -1,0 +1,34 @@
+import type { ExprState } from "../state/model"
+import { Phase, FrameKind } from "../state/model"
+import takeFrame from "../state/take_frame"
+import binary from "./binary"
+import simple from "./simple_return"
+import arguments from "./arguments_return"
+import object from "./object_return"
+import selection from "./match_return"
+import interpolation from "./interpolation_return"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.frames.length == 0) {
+    return { prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: { ...in.control, phase: Phase.Done } }
+  }
+
+  const taken = takeFrame(in)
+
+  switch (taken.frame.kind) {
+    case FrameKind.BinaryLeft: return binary(taken)
+    case FrameKind.BinaryRight: return binary(taken)
+    case FrameKind.Arguments: return arguments(taken)
+    case FrameKind.ObjectValue: return object(taken)
+    case FrameKind.MatchSubject: return selection(taken)
+    case FrameKind.MatchCondition: return selection(taken)
+    case FrameKind.MatchResult: return selection(taken)
+    case FrameKind.MatchFallback: return selection(taken)
+    case FrameKind.Interpolation: return interpolation(taken)
+    default: return simple(taken)
+  }
+}

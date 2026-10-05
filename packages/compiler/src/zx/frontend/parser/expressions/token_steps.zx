@@ -1,0 +1,10 @@
+import type { ExprState } from "./state/model"
+import step from "./step"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  return step(step(step(in)))
+}

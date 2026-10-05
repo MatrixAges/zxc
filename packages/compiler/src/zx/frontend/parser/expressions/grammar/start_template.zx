@@ -1,0 +1,17 @@
+import type { ExprState, ExprControl } from "../state/model"
+import { Phase, FrameKind } from "../state/model"
+import frame from "../state/frame"
+import consume from "../state/consume"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const cursor = in.prepared.lexical.templates[in.control.template - 1].head
+  const continuation = { ...frame({ kind: FrameKind.Template, start: in.control.token.span.start, depth: in.control.depth }), end: in.control.token.span.end, stream: in.control.stream, index: in.control.index + 1, head: in.control.template_head, count: in.control.template_count, maximum: in.control.template_maximum }
+  const frames = in.frames.push(continuation)[0]
+  const control: ExprControl = { ...in.control, cursor: cursor, template_head: 0, template_count: 0, template_maximum: 0 }
+
+  return consume({ state: { prepared: in.prepared, tree: in.tree, types: in.types, frames: frames, control: control }, phase: Phase.TemplateGather })
+}

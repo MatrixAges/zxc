@@ -1,10 +1,10 @@
-import type { Prepared } from "../../templates/model.zx"
-import type { Hint } from "./model.zx"
-import scan from "./scan.zx"
+import type { Prepared } from "../../templates/model"
+import type { PreparedInput } from "./model"
+import scan from "./scan"
 
 export type Input = Prepared
 
-export type Output = { lexical: Prepared, hints: Hint[], interpolation_hints: Hint[][] }
+export type Output = PreparedInput
 
 export default function (in: owned Input): Output {
   const hints = scan(in.lexed.tokens)

@@ -1,0 +1,23 @@
+import type { ExprState } from "../state/model"
+import { FrameKind } from "../state/model"
+import { Family } from "../prepare/model"
+import frame from "../state/frame"
+import fail from "../state/fail"
+import primary from "./primary"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.control.depth >= 256) {
+    return fail({ state: in, code: "unsupported", message: "syntax nesting exceeds 256 levels" })
+  }
+
+  const continuation = { ...frame({ kind: FrameKind.BinaryLeft, start: in.control.token.span.start, depth: in.control.depth }), minimum: in.control.minimum, allow_lambda: in.control.allow_lambda, reset_family: in.control.fresh_family, family: in.control.family }
+  const depth = in.control.depth + 1
+  const family = in.control.fresh_family ? Family.None : in.control.family
+  const frames = in.frames.push(continuation)[0]
+
+  return primary({ prepared: in.prepared, tree: in.tree, types: in.types, frames: frames, control: { ...in.control, depth: depth, family: family } })
+}

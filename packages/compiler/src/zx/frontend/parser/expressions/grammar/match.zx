@@ -1,0 +1,63 @@
+import type { ExprState, ExprControl } from "../state/model"
+import { Phase, FrameKind } from "../state/model"
+import { Symbol } from "../../../lexer/token_model"
+import { Keyword } from "../../../lexer/keyword_model"
+import consume from "../state/consume"
+import fail from "../state/fail"
+import takeFrame from "../state/take_frame"
+import beginBinary from "./begin_binary"
+import finish from "./match_finish"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.MatchEnd) {
+    if (in.control.token.symbol != Symbol.CloseBrace) {
+      return fail({ state: in, code: "syntax", message: "}" })
+    }
+
+    return finish(takeFrame(in))
+  }
+
+  if (in.control.phase == Phase.MatchFallbackArrow) {
+    if (in.control.token.symbol != Symbol.Arrow) {
+      return fail({ state: in, code: "syntax", message: "=>" })
+    }
+
+    const control: ExprControl = { ...in.control, minimum: 0, allow_lambda: true, fresh_family: true }
+
+    return consume({ state: { prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: control }, phase: Phase.BeginBinary })
+  }
+
+  const taken = takeFrame(in)
+
+  if (taken.state.control.phase == Phase.MatchStart) {
+    if (taken.state.control.token.symbol == Symbol.OpenBrace) {
+      const frames = taken.state.frames.push({ ...taken.frame, kind: FrameKind.MatchCondition })[0]
+
+      return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: taken.state.control }, phase: Phase.MatchCondition })
+    }
+
+    const frames = taken.state.frames.push(taken.frame)[0]
+    const control: ExprControl = { ...taken.state.control, minimum: 0, allow_lambda: true, fresh_family: true }
+
+    return beginBinary({ prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control })
+  }
+
+  if (taken.state.control.token.symbol == Symbol.CloseBrace) {
+    return fail({ state: taken.state, code: "syntax", message: "match requires a final _ => result branch" })
+  }
+
+  if (taken.state.control.token.word == Keyword.Underscore) {
+    const frames = taken.state.frames.push({ ...taken.frame, kind: FrameKind.MatchFallback })[0]
+
+    return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: taken.state.control }, phase: Phase.MatchFallbackArrow })
+  }
+
+  const frames = taken.state.frames.push(taken.frame)[0]
+  const control: ExprControl = { ...taken.state.control, minimum: 0, allow_lambda: false, fresh_family: true }
+
+  return beginBinary({ prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control })
+}

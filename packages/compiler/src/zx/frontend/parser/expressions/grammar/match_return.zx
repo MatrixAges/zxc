@@ -1,0 +1,63 @@
+import type { ExprState, ExprFrame, ExprControl } from "../state/model"
+import { Phase, FrameKind } from "../state/model"
+import { Symbol } from "../../../lexer/token_model"
+import consume from "../state/consume"
+import fail from "../state/fail"
+import finish from "./match_finish"
+
+export type Input = { state: ExprState, frame: ExprFrame }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const result = in.state.control.result
+  const depth = in.state.tree.nodes[result].depth
+  const maximum = depth > in.frame.maximum ? depth : in.frame.maximum
+
+  if (in.frame.kind == FrameKind.MatchSubject) {
+    if (in.state.control.token.symbol != Symbol.OpenBrace) {
+      return fail({ state: in.state, code: "syntax", message: "{" })
+    }
+
+    const frames = in.state.frames.push({ ...in.frame, kind: FrameKind.MatchCondition, first: result + 1, maximum: maximum })[0]
+
+    return consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: frames, control: in.state.control }, phase: Phase.MatchCondition })
+  }
+
+  if (in.frame.kind == FrameKind.MatchCondition) {
+    if (in.state.control.token.symbol != Symbol.Arrow) {
+      return fail({ state: in.state, code: "syntax", message: "=>" })
+    }
+
+    const frames = in.state.frames.push({ ...in.frame, kind: FrameKind.MatchResult, second: result, maximum: maximum })[0]
+    const control: ExprControl = { ...in.state.control, minimum: 0, allow_lambda: true, fresh_family: true }
+
+    return consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: frames, control: control }, phase: Phase.BeginBinary })
+  }
+
+  if (in.frame.kind == FrameKind.MatchResult) {
+    if (in.state.control.token.symbol != Symbol.Comma) {
+      return fail({ state: in.state, code: "syntax", message: "," })
+    }
+
+    const head = in.state.tree.arms.length + 1
+    const count = in.frame.count + 1
+    const arms = in.state.tree.arms.push({ condition: in.frame.second, result: result, previous: in.frame.head })[0]
+    const frames = in.state.frames.push({ ...in.frame, kind: FrameKind.MatchCondition, head: head, count: count, maximum: maximum })[0]
+    const tree = { nodes: in.state.tree.nodes, items: in.state.tree.items, fields: in.state.tree.fields, parameters: in.state.tree.parameters, parts: in.state.tree.parts, arms: arms }
+
+    return consume({ state: { prepared: in.state.prepared, tree: tree, types: in.state.types, frames: frames, control: in.state.control }, phase: Phase.MatchCondition })
+  }
+
+  if (in.state.control.token.symbol == Symbol.Comma) {
+    const frames = in.state.frames.push(in.frame)[0]
+
+    return consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: frames, control: in.state.control }, phase: Phase.MatchEnd })
+  }
+
+  if (in.state.control.token.symbol != Symbol.CloseBrace) {
+    return fail({ state: in.state, code: "syntax", message: "}" })
+  }
+
+  return finish(in)
+}

@@ -1,0 +1,30 @@
+import type { ExprState, ExprFrame } from "../state/model"
+import { Phase } from "../state/model"
+import { Kind } from "../../../lexer/token_model"
+import fail from "../state/fail"
+
+export type Input = { state: ExprState, frame: ExprFrame }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.state.control.token.kind != Kind.Eof) {
+    return fail({ state: in.state, code: "syntax", message: "expected end of template interpolation" })
+  }
+
+  const cursor = in.frame.cursor
+  const start = in.state.prepared.lexical.parts[cursor - 1].span.start
+  const end = in.state.prepared.lexical.parts[cursor - 1].span.end
+  const head = in.state.tree.parts.length + 1
+  const count = in.state.control.template_count + 1
+  const child_depth = in.state.tree.nodes[in.state.control.result].depth
+  const maximum = child_depth > in.state.control.template_maximum ? child_depth : in.state.control.template_maximum
+  const parts = in.state.tree.parts.push({ span: { start: start, end: end }, value: in.state.control.result, expression: true, previous: in.state.control.template_head })[0]
+  const stream = in.frame.stream
+  const index = in.frame.index
+  const depth = in.frame.depth
+  const last_end = in.frame.end
+  const control = { ...in.state.control, stream: stream, index: index, depth: depth, last_end: last_end, template_head: head, template_count: count, template_maximum: maximum, phase: Phase.TemplatePart }
+
+  return { prepared: in.state.prepared, tree: { nodes: in.state.tree.nodes, items: in.state.tree.items, fields: in.state.tree.fields, parameters: in.state.tree.parameters, parts: parts, arms: in.state.tree.arms }, types: in.state.types, frames: in.state.frames, control: control }
+}

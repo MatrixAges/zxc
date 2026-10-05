@@ -1,0 +1,11 @@
+import type { ExprNode } from "./model"
+import { ExprKind } from "./model"
+import { Operator } from "../prepare/model"
+
+export type Input = { kind: ExprKind, start: u64, end: u64, depth: u64 }
+
+export type Output = ExprNode
+
+export default function (in: Input): Output {
+  return { kind: in.kind, span: { start: in.start, end: in.end }, depth: in.depth, name: { start: 0, end: 0 }, flag: false, operator: Operator.None, first: 0, second: 0, third: 0, head: 0, count: 0, type_argument: 0 }
+}

@@ -1,0 +1,21 @@
+import type { ExprState } from "./model"
+import type { Token } from "../../../lexer/token_model"
+import type { Hint } from "../prepare/model"
+
+export type Input = ExprState
+
+export type Output = { token: Token, hint: Hint, template: u64 }
+
+export default function (in: Input): Output {
+  const stream = in.control.stream
+  const index = in.control.index
+  const token = stream == 0 ? in.prepared.lexical.lexed.tokens[index] : in.prepared.lexical.interpolations[stream - 1].lexed.tokens[index]
+  const hint = stream == 0 ? in.prepared.hints[index] : in.prepared.interpolation_hints[stream - 1][index]
+  const template = stream == 0 ? in.prepared.lexical.token_templates[index] : in.prepared.lexical.interpolations[stream - 1].token_templates[index]
+
+  return {
+    token: { kind: token.kind, word: token.word, symbol: token.symbol, span: { start: token.span.start, end: token.span.end }, line_break: token.line_break, dollar: token.dollar },
+    hint: { lambda: hint.lambda, generic: hint.generic, binary: { operator: hint.binary.operator, precedence: hint.binary.precedence, family: hint.binary.family } },
+    template: template
+  }
+}

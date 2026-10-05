@@ -1,0 +1,47 @@
+import type { ExprState, ExprControl } from "../state/model"
+import { Phase } from "../state/model"
+import { Kind, Symbol } from "../../../lexer/token_model"
+import consume from "../state/consume"
+import fail from "../state/fail"
+import takeFrame from "../state/take_frame"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.LambdaArrow) {
+    if (in.control.token.symbol != Symbol.Arrow) {
+      return fail({ state: in, code: "syntax", message: "=>" })
+    }
+
+    const control: ExprControl = { ...in.control, minimum: 0, allow_lambda: true, fresh_family: true }
+
+    return consume({ state: { prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: control }, phase: Phase.BeginBinary })
+  }
+
+  if (in.control.token.symbol == Symbol.CloseParen) {
+    return consume({ state: in, phase: Phase.LambdaArrow })
+  }
+
+  if (in.control.phase == Phase.LambdaSeparator) {
+    if (in.control.token.symbol != Symbol.Comma) {
+      return fail({ state: in, code: "syntax", message: "," })
+    }
+
+    return consume({ state: in, phase: Phase.LambdaParameter })
+  }
+
+  if (in.control.token.kind != Kind.Identifier) {
+    return fail({ state: in, code: "syntax", message: "expected an identifier" })
+  }
+
+  const taken = takeFrame(in)
+  const head = taken.state.tree.parameters.length + 1
+  const count = taken.frame.count + 1
+  const parameters = taken.state.tree.parameters.push({ name: { start: taken.state.control.token.span.start, end: taken.state.control.token.span.end }, previous: taken.frame.head })[0]
+  const frames = taken.state.frames.push({ ...taken.frame, head: head, count: count })[0]
+  const tree = { nodes: taken.state.tree.nodes, items: taken.state.tree.items, fields: taken.state.tree.fields, parameters: parameters, parts: taken.state.tree.parts, arms: taken.state.tree.arms }
+
+  return consume({ state: { prepared: taken.state.prepared, tree: tree, types: taken.state.types, frames: frames, control: taken.state.control }, phase: Phase.LambdaSeparator })
+}

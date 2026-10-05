@@ -1,0 +1,56 @@
+import type { ExprState, ExprFrame, ExprControl } from "../state/model"
+import { Phase, FrameKind, ExprKind } from "../state/model"
+import { Operator, Family } from "../prepare/model"
+import { Symbol } from "../../../lexer/token_model"
+import node from "../state/node"
+import consume from "../state/consume"
+import emit from "../state/emit"
+import fail from "../state/fail"
+import finishBinary from "./finish_binary"
+
+export type Input = { state: ExprState, frame: ExprFrame }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const left = in.frame.kind == FrameKind.BinaryRight ? in.frame.first : in.state.control.result
+  const right = in.state.control.result
+  const left_depth = in.state.tree.nodes[left].depth
+  const right_depth = in.state.tree.nodes[right].depth
+  const start = in.state.tree.nodes[left].span.start
+  const end = in.state.control.last_end
+  const depth = (left_depth > right_depth ? left_depth : right_depth) + 1
+  const state = in.frame.kind == FrameKind.BinaryRight ? emit({ state: in.state, node: { ...node({ kind: ExprKind.Binary, start: start, end: end, depth: depth }), first: left, second: right, operator: in.frame.operator } }) : in.state
+
+  if (state.control.phase == Phase.Done) {
+    return state
+  }
+
+  if (state.control.hint.binary.operator != Operator.None && state.control.hint.binary.precedence >= in.frame.minimum) {
+    const next_family = state.control.hint.binary.family
+
+    if (next_family != Family.None && state.control.family != Family.None && next_family != state.control.family) {
+      return fail({ state: state, code: "syntax", message: "?? cannot be mixed with && or || without parentheses" })
+    }
+
+    const family = next_family == Family.None ? state.control.family : next_family
+    const minimum: u8 = state.control.hint.binary.precedence + 1
+    const allow_lambda = in.frame.allow_lambda
+    const continuation = { ...in.frame, kind: FrameKind.BinaryRight, first: state.control.result, operator: state.control.hint.binary.operator }
+    const frames = state.frames.push(continuation)[0]
+    const control = { ...state.control, minimum: minimum, allow_lambda: allow_lambda, fresh_family: false, family: family }
+
+    return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: frames, control: control }, phase: Phase.BeginBinary })
+  }
+
+  if (in.frame.minimum == 0 && state.control.token.symbol == Symbol.Question) {
+    const allow_lambda = in.frame.allow_lambda
+    const continuation = { ...in.frame, kind: FrameKind.ConditionalYes, first: state.control.result }
+    const frames = state.frames.push(continuation)[0]
+    const control: ExprControl = { ...state.control, minimum: 0, allow_lambda: allow_lambda, fresh_family: true }
+
+    return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: frames, control: control }, phase: Phase.BeginBinary })
+  }
+
+  return finishBinary({ state: state, frame: in.frame })
+}

@@ -1,0 +1,18 @@
+import type { ExprState, ExprFrame } from "../state/model"
+import { Phase, ExprKind } from "../state/model"
+import node from "../state/node"
+import consume from "../state/consume"
+import emit from "../state/emit"
+
+export type Input = { state: ExprState, frame: ExprFrame }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const value = { ...node({ kind: in.frame.flag ? ExprKind.Call : ExprKind.List, start: in.frame.start, end: in.state.control.token.span.end, depth: in.frame.maximum + 1 }), first: in.frame.first, head: in.frame.head, count: in.frame.count, type_argument: in.frame.cursor }
+  const depth = in.frame.depth
+  const start = in.frame.start
+  const control = { ...in.state.control, depth: depth, primary_start: start }
+
+  return emit({ state: consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: control }, phase: Phase.Postfix }), node: value })
+}

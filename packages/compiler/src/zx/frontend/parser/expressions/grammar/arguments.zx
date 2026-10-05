@@ -1,0 +1,23 @@
+import type { ExprState, ExprControl } from "../state/model"
+import { Symbol } from "../../../lexer/token_model"
+import takeFrame from "../state/take_frame"
+import beginBinary from "./begin_binary"
+import finish from "./arguments_finish"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const taken = takeFrame(in)
+  const closing = taken.frame.flag ? Symbol.CloseParen : Symbol.CloseBracket
+
+  if (taken.state.control.token.symbol == closing) {
+    return finish(taken)
+  }
+
+  const frames = taken.state.frames.push(taken.frame)[0]
+  const control: ExprControl = { ...taken.state.control, minimum: 0, allow_lambda: true, fresh_family: true }
+
+  return beginBinary({ prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control })
+}

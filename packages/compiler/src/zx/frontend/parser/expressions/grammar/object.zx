@@ -1,0 +1,51 @@
+import type { ExprState, ExprControl } from "../state/model"
+import { Phase, ExprKind } from "../state/model"
+import { Kind, Symbol } from "../../../lexer/token_model"
+import node from "../state/node"
+import consume from "../state/consume"
+import emit from "../state/emit"
+import fail from "../state/fail"
+import takeFrame from "../state/take_frame"
+import finish from "./object_finish"
+import complete from "./object_return"
+
+export type Input = ExprState
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const taken = takeFrame(in)
+
+  if (taken.state.control.phase == Phase.ObjectColon) {
+    if (taken.state.control.token.symbol == Symbol.Colon) {
+      const frames = taken.state.frames.push(taken.frame)[0]
+      const control: ExprControl = { ...taken.state.control, minimum: 0, allow_lambda: true, fresh_family: true }
+
+      return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control }, phase: Phase.BeginBinary })
+    }
+
+    const value = { ...node({ kind: ExprKind.Identifier, start: taken.frame.name.start, end: taken.frame.name.end, depth: 1 }), name: { start: taken.frame.name.start, end: taken.frame.name.end } }
+
+    return complete({ state: emit({ state: taken.state, node: value }), frame: taken.frame })
+  }
+
+  if (taken.state.control.token.symbol == Symbol.CloseBrace) {
+    return finish(taken)
+  }
+
+  if (taken.state.control.token.symbol == Symbol.Spread) {
+    const frames = taken.state.frames.push({ ...taken.frame, flag: true })[0]
+    const control: ExprControl = { ...taken.state.control, minimum: 0, allow_lambda: true, fresh_family: true }
+
+    return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control }, phase: Phase.BeginBinary })
+  }
+
+  if (taken.state.control.token.kind != Kind.Identifier) {
+    return fail({ state: taken.state, code: "syntax", message: "expected an identifier" })
+  }
+
+  const name = { start: taken.state.control.token.span.start, end: taken.state.control.token.span.end }
+  const frames = taken.state.frames.push({ ...taken.frame, name: name, flag: false })[0]
+
+  return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: taken.state.control }, phase: Phase.ObjectColon })
+}
