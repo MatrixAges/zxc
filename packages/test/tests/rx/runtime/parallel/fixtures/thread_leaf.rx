@@ -1,4 +1,4 @@
 <Module>
-  <Call fn="copy_values" in={$in} out="ctx.value" />
-  <Return value={ctx.value} />
+  <Call fn="copy_values" in={$in} />
+  <Return value={$ctx.copy_values} />
 </Module>

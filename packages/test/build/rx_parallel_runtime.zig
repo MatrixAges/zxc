@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step {
     const step = b.step("test-rx-parallel-runtime", "Execute native RX parallel calls and Tasks with observed worker threads");
+    const migration = b.step("test-rx-value-migration-parallel", "Execute the migrated Task capture case across source and eight library routes");
     const owned = b.step("test-rx-owned-runtime", "Execute owned inputs across RX parallel source and compiled library boundaries");
     const archived = b.step("test-rx-parallel-library", "Execute parallel workflows replayed from unified library artifacts");
     const imported = b.step("test-rx-parallel-import", "Execute parallel workflows imported and republished by RX and ZX consumers");
@@ -48,6 +49,8 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             },
         }),
     });
+
+    tool.root_module.addAnonymousImport("rx_collection_fixtures", .{ .root_source_file = b.path("tests/rx/support/collections/root.zig"), .target = target, .optimize = optimize });
 
     const cases = [_]struct { mode: []const u8, test_name: []const u8 }{
         .{ .mode = "owned_module", .test_name = "owned" },
@@ -149,6 +152,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
         owner.dependOn(&run.step);
 
+        if (std.mem.eql(u8, mode, "task_capture")) migration.dependOn(&run.step);
         if (std.mem.startsWith(u8, mode, "owned_")) owned.dependOn(&run.step);
     };
 

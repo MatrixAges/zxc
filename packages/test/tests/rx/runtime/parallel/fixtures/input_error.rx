@@ -1,7 +1,7 @@
 <Module>
   <Parallel>
-    <Call fn="map_values" in={$in.values} out="ctx.left" />
-    <Call fn="map_values" in={[$in.missing[0]]} out="ctx.right" />
+    <Call fn="map_values" in={$in.values} />
+    <Call fn="map_values_right" in={[$in.missing[0]]} />
   </Parallel>
-  <Return value={{left: ctx.left, right: ctx.right}} />
+  <Return value={{left: $ctx.map_values, right: $ctx.map_values_right}} />
 </Module>

@@ -1,7 +1,7 @@
 <Module>
   <Parallel>
-    <Call fn="copy_values" in={$in} out="ctx.left" />
-    <Call fn="copy_values" in={$in} out="ctx.right" />
+    <Call fn="copy_values" in={$in} />
+    <Call fn="copy_values_right" in={$in} />
   </Parallel>
-  <Return value={{left: ctx.left, right: ctx.right}} />
+  <Return value={{left: $ctx.copy_values, right: $ctx.copy_values_right}} />
 </Module>

@@ -1,12 +1,12 @@
 <Module>
   <Parallel>
-    <Task name="allocate" out="ctx.values">
-      <Call fn="map_values" in={$in.values} out="local.values" />
-      <Return value={local.values} />
+    <Task name="values">
+      <Call fn="map_values" in={$in.values} />
+      <Return value={$ctx.map_values} />
     </Task>
     <Task name="check">
       <Call fn="first" in={$in.missing} />
     </Task>
   </Parallel>
-  <Return value={ctx.values} />
+  <Return value={$ctx.task.values} />
 </Module>

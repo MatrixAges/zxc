@@ -1,13 +1,13 @@
 <Module>
-  <Call fn="map_values" in={$in} out="saved" />
+  <Call fn="map_values" in={$in} />
   <Parallel>
-    <Task name="left" out="ctx.left">
-      <Return value={saved} />
+    <Task name="left">
+      <Return value={$ctx.map_values} />
     </Task>
-    <Task name="right" out="ctx.right">
-      <Call fn="map_values" in={saved} out="local.values" />
-      <Return value={local.values} />
+    <Task name="right">
+      <Call fn="map_values_local" in={$ctx.map_values} />
+      <Return value={$ctx.map_values_local} />
     </Task>
   </Parallel>
-  <Return value={{left: ctx.left, right: ctx.right}} />
+  <Return value={{left: $ctx.task.left, right: $ctx.task.right}} />
 </Module>

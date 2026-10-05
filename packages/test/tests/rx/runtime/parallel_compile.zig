@@ -66,22 +66,33 @@ pub fn main(init: std.process.Init) !void {
 
         if (owned_analysis.value != .ir) return error.InvalidOwnedInput;
 
-        owned_library = try compiler.library.link(allocator, &.{.{ .name = "consume", .analysis = &owned_analysis }});
+        owned_library = try compiler.library.link(allocator, &.{
+            .{ .name = "consume_left", .analysis = &owned_analysis },
+            .{ .name = "consume_right", .analysis = &owned_analysis },
+        });
     }
 
     var result = try analysis.project.infer(allocator, .{
         .entry = "main.rx",
         .project = .{
             .entry = "",
-            .packages = if (owned_library != null) &.{.{ .specifier = "owned/consume", .compiled = .{ .instance = "owned@1", .artifact = "owned.zxlib", .name = "consume" } }} else &.{},
+            .packages = if (owned_library != null) &.{
+                .{ .specifier = "owned/consume_left", .compiled = .{ .instance = "owned@1", .artifact = "owned.zxlib", .name = "consume_left" } },
+                .{ .specifier = "owned/consume_right", .compiled = .{ .instance = "owned@1", .artifact = "owned.zxlib", .name = "consume_right" } },
+            } else &.{},
             .compiled_libraries = if (owned_library) |library| &.{.{ .instance = "owned@1", .artifact = "owned.zxlib", .program = library.program, .exports = library.exports, .nominal_types = library.nominal_types }} else &.{},
         },
         .modules = &sources,
         .sources = &.{
+            .{ .path = "pop_values.zx", .source = @import("rx_collection_fixtures").pop_values },
             .{ .path = "consume.zx", .source = @embedFile("parallel/fixtures/owned/consume.zx") },
+            .{ .path = "consume_right.zx", .source = @embedFile("parallel/fixtures/owned/consume.zx") },
             .{ .path = "copy_values.zx", .source = @embedFile("parallel/fixtures/copy_values.zx") },
+            .{ .path = "copy_values_right.zx", .source = @embedFile("parallel/fixtures/copy_values.zx") },
             .{ .path = "first.zx", .source = @embedFile("fixtures/first.zx") },
             .{ .path = "map_values.zx", .source = @embedFile("fixtures/map_values.zx") },
+            .{ .path = "map_values_local.zx", .source = @embedFile("fixtures/map_values.zx") },
+            .{ .path = "map_values_right.zx", .source = @embedFile("fixtures/map_values.zx") },
             .{ .path = "double_values.zx", .source = @embedFile("parallel/fixtures/double_values.zx") },
         },
     });

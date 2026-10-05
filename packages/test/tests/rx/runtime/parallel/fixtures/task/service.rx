@@ -1,13 +1,13 @@
 <Module>
   <Parallel>
-    <Task name="work" out="ctx.left">
-      <Call service="left.rx" in={$in} out="local.value" />
-      <Return value={local.value} />
+    <Task name="left">
+      <Call module="left.rx" in={$in} />
+      <Return value={$ctx.left} />
     </Task>
-    <Task name="work" out="ctx.right">
-      <Call service="right.rx" in={$in} out="local.value" />
-      <Return value={local.value} />
+    <Task name="right">
+      <Call module="right.rx" in={$in} />
+      <Return value={$ctx.right} />
     </Task>
   </Parallel>
-  <Return value={{left: ctx.left, right: ctx.right}} />
+  <Return value={{left: $ctx.task.left, right: $ctx.task.right}} />
 </Module>
