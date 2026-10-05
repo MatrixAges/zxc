@@ -656,6 +656,7 @@ pub fn build(b: *std.Build) void {
 
     test_step.dependOn(manifest_step);
     test_step.dependOn(@import("build/library_publish.zig").add(b, cli_dependency));
+    test_step.dependOn(@import("build/semantic_lint.zig").add(b, cli_dependency));
     test_step.dependOn(@import("build/rx_formatting.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/configuration_formatting.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/compiled_packages.zig").add(b, cli_dependency, compiler, target, optimize));
