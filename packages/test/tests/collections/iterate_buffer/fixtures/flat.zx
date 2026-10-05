@@ -1,0 +1,19 @@
+export type Input = { values: i64[], count: u64, enabled: bool }
+
+export type State = { values: i64[], count: u64, index: u64, enabled: bool }
+
+export type Output = { original: i64[], values: i64[], seen: i64 }
+
+export default function (in: Input): Output {
+  const initial: State = { values: in.values, count: in.count, index: 0, enabled: in.enabled }
+
+  const result = iterate(initial, {
+    while: state => state.index < state.count,
+    next: state => {
+      state.values[0] += 1
+      state.index += 1
+    }
+  })
+
+  return { original: in.values, values: result.values, seen: 0 }
+}

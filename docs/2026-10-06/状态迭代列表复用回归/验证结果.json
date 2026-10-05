@@ -1,0 +1,115 @@
+{
+	"记录时间": "2026-10-06T02:17:02.862655+08:00",
+	"检出基线": {
+		"HEAD": "fd09023f",
+		"状态": "共享活动检出包含 iterate 的未提交生产实现；两个优化模式是各自构建时的证据，不是固定生产提交全仓库验证"
+	},
+	"程序": [
+		"flat",
+		"branch",
+		"switch",
+		"direct",
+		"nested",
+		"tuple",
+		"stale_local",
+		"stale_branch",
+		"stale_switch",
+		"stale_state",
+		"two_fields"
+	],
+	"模式": {
+		"Debug": {
+			"命令": "zig build test-iterate-buffer -Doptimize=Debug -j2 --summary all",
+			"工作目录": "packages/test",
+			"退出码": 0,
+			"构建步骤": "57/57",
+			"Zig测试": {
+				"通过": 66,
+				"总数": 66,
+				"执行": "全部实际执行；生成与构建依赖允许缓存"
+			},
+			"日志": "docs/2026-10-06/状态迭代列表复用回归/Debug日志.txt"
+		},
+		"ReleaseSafe": {
+			"命令": "zig build test-iterate-buffer -Doptimize=ReleaseSafe -j2 --summary all",
+			"工作目录": "packages/test",
+			"退出码": 0,
+			"构建步骤": "57/57",
+			"Zig测试": {
+				"通过": 66,
+				"总数": 66,
+				"执行": "全部实际执行；生成与构建依赖允许缓存"
+			},
+			"日志": "docs/2026-10-06/状态迭代列表复用回归/ReleaseSafe日志.txt"
+		}
+	},
+	"已有迭代集成": {
+		"命令": "zig build test-iterate -Doptimize=Debug -j2 --summary all",
+		"退出码": 0,
+		"构建步骤": "33/33",
+		"Zig测试": "26/26 全部实际执行",
+		"CLI场景": "5/5 全部实际执行",
+		"应用": {
+			"构建": 5,
+			"调用": 18,
+			"成功": 15,
+			"预期越界失败": 3
+		}
+	},
+	"资源边界": {
+		"安全扁平路径": {
+			"固定长度": 257,
+			"短轮数": 4,
+			"长轮数": 64,
+			"断言": "累计分配字节相等"
+		},
+		"无写入分支": {
+			"长度": 65537,
+			"轮数": 64,
+			"断言": "累计分配字节小于一份完整列表且结果指针与输入一致"
+		},
+		"嵌套对象与元组": {
+			"长度": 65537,
+			"轮数": 64,
+			"断言": "累计分配字节小于八份完整列表，不证明只复制一次或循环零分配"
+		},
+		"过期别名": "四条路径只验证快照结果，不强制复用",
+		"分配失败": "每个程序执行四轮，resize/remap 禁用，所有失败点清理"
+	},
+	"自我复核": [
+		"九个基础程序通过后补充 if/switch 汇合后的旧别名读取，全部十一个程序重新执行",
+		"语义空行与 Zig fmt 冲突改为直观的带结果局部块，最终两种模式重新实际执行"
+	],
+	"格式检查": {
+		"语义空行": "通过",
+		"Zig格式": "通过",
+		"Prettier文档": "通过",
+		"diff空白": "通过"
+	},
+	"生产缺陷消息": {
+		"新发现": 0,
+		"发送": 0
+	},
+	"Test262": "此提交不改目录案例或原文审阅，动态对象原文另行登记并单独提交",
+	"源码SHA256": {
+		"packages/test/build.zig": "274ef744cd0a1afc06e081318c1a3754d3c173580f127fc96d4342089f023662",
+		"packages/test/build/iterate_buffer.zig": "564bb9b1d6965617f5389f1bfac9000596cec2679984b1db0e3a8d62601048cc",
+		"packages/test/tests/collections/iterate_buffer/fixtures/branch.zx": "9eb0729d2d9b16aa838337372e4aa16ca910d06362d6cb5c2f92378bc733da73",
+		"packages/test/tests/collections/iterate_buffer/fixtures/direct.zx": "07e5b70c0dec2da4fdc02747f53af000f27b58ea6ad5ef94e3c9beaf844af3d5",
+		"packages/test/tests/collections/iterate_buffer/fixtures/flat.zx": "0e4dcfce4a5168b4d9e0e49f196d2422014bbbc52ddedb2e0051314f44f9ac0a",
+		"packages/test/tests/collections/iterate_buffer/fixtures/nested.zx": "4afe2b3ba78c75595bd2a80967d70a3d03f4d4a35977407ce914be2fbdaca8ec",
+		"packages/test/tests/collections/iterate_buffer/fixtures/stale_branch.zx": "8a607b5a45bedaa9604601b46cb4f6dab6cb07a510b7e5f4cc7a1315af7542fe",
+		"packages/test/tests/collections/iterate_buffer/fixtures/stale_local.zx": "15d22e83a3d20f5cd7ea6ce3ee679169e8a59de0e7c4ae4560ef074686781f9d",
+		"packages/test/tests/collections/iterate_buffer/fixtures/stale_state.zx": "2514f35b651b14d6dfe1f9532ee09fc30eef55d8c7ee99313fceae95be2b51f1",
+		"packages/test/tests/collections/iterate_buffer/fixtures/stale_switch.zx": "e835b5336269f0e7424fa4d2e2e9b81e6b40863e286d0824539f869f172e5ed5",
+		"packages/test/tests/collections/iterate_buffer/fixtures/switch.zx": "feef8f39fe38a6e8af3f7801a8f4313fe5976bcbe1d014ae52ba2ce96c0da0d2",
+		"packages/test/tests/collections/iterate_buffer/fixtures/tuple.zx": "db15ffe48b0edec98e3a37d20f1c56084bb5dcc17c9f1e935f8f5648288207dd",
+		"packages/test/tests/collections/iterate_buffer/fixtures/two_fields.zx": "e765fde0c1a74a586045675cd23a887337143654297f5fe932ae89bbd9c85f9f",
+		"packages/test/tests/collections/iterate_buffer/root.zig": "185e0ebc60c4e3ff351868d6c80cd414aef5d8202c9c9f01a0ac26650665efa5"
+	},
+	"证据SHA256": {
+		"docs/2026-10-06/状态迭代列表复用回归/Debug日志.txt": "fabe6ad93bb58c3f7baafebb10b9b2801f8ff758267ba47b42c1b0b6a31c7092",
+		"docs/2026-10-06/状态迭代列表复用回归/ReleaseSafe日志.txt": "3622befc81037e8c790c3b91a6886fabe1a6a5f175cd05fff19d3fbd45bf4536",
+		"docs/2026-10-06/状态迭代列表复用回归/已有迭代集成日志.txt": "6538ec754fc6d83c130ba55d84967f3eaefa4768c17c63024f5ac56c66af2133"
+	}
+}

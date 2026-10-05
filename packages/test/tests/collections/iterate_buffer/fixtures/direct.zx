@@ -1,0 +1,14 @@
+export type Input = { values: i64[], count: u64, enabled: bool }
+
+export type Output = { original: i64[], values: i64[], seen: i64 }
+
+export default function (in: Input): Output {
+  const result = iterate(in.values, {
+    while: state => state[0] < 64,
+    next: state => {
+      state[0] += 1
+    }
+  })
+
+  return { original: in.values, values: result, seen: 0 }
+}
