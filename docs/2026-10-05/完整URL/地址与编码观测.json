@@ -1,0 +1,311 @@
+[
+	{
+		"operation": "ipv4",
+		"input": "127.1",
+		"native_exit": 0,
+		"native": "127.0.0.1",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "127.0.0.1",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "1.2.3",
+		"native_exit": 0,
+		"native": "1.2.0.3",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "1.2.0.3",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "0300.0250.01.01",
+		"native_exit": 0,
+		"native": "192.168.1.1",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "192.168.1.1",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "0xffffffff",
+		"native_exit": 0,
+		"native": "255.255.255.255",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "255.255.255.255",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "4294967295",
+		"native_exit": 0,
+		"native": "255.255.255.255",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "255.255.255.255",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "4294967296",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv4"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "1.2.65535",
+		"native_exit": 0,
+		"native": "1.2.255.255",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "1.2.255.255",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "1.2.65536",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv4"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "0x",
+		"native_exit": 0,
+		"native": "0.0.0.0",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "0.0.0.0",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "09",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv4"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "1.2.3.4.5",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv4"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "1.2.3.256",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv4"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv4",
+		"input": "0xFFFFFFFFFFFFFFFFFFFFFFFF",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv4"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "::",
+		"native_exit": 0,
+		"native": "::",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "::",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "::1",
+		"native_exit": 0,
+		"native": "::1",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "::1",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "2001:db8::1",
+		"native_exit": 0,
+		"native": "2001:db8::1",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "2001:db8::1",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "2001:0db8:0:0:1:0:0:1",
+		"native_exit": 0,
+		"native": "2001:db8::1:0:0:1",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "2001:db8::1:0:0:1",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "::ffff:192.0.2.128",
+		"native_exit": 0,
+		"native": "::ffff:c000:280",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "::ffff:c000:280",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "1:2:3:4:5:6:192.0.2.1",
+		"native_exit": 0,
+		"native": "1:2:3:4:5:6:c000:201",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "1:2:3:4:5:6:c000:201",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "1::192.0.2.1",
+		"native_exit": 0,
+		"native": "1::c000:201",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "1::c000:201",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "1:2:3:4:5:6:7:8",
+		"native_exit": 0,
+		"native": "1:2:3:4:5:6:7:8",
+		"native_error": [],
+		"node_exit": 0,
+		"node": "1:2:3:4:5:6:7:8",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "1:2:3:4:5:6:7:8::",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv6"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "::ffff:192.00.2.1",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv6"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "1::2::3",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv6"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "fe80::1%lo0",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv6"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "ipv6",
+		"input": "1:2:3:4:5:6:7:8:9",
+		"native_exit": 1,
+		"native": "",
+		"native_error": ["error: InvalidIpv6"],
+		"node_exit": 1,
+		"node": "",
+		"matched": true
+	},
+	{
+		"operation": "numeric",
+		"input": "0xFFFFFFFFFFFFFFFFFFFFFFFF",
+		"native_exit": 0,
+		"output_hex": "74727565",
+		"error": []
+	},
+	{
+		"operation": "numeric",
+		"input": "0xFFFFFFFFFFFFFFFFFFFFFFFG",
+		"native_exit": 0,
+		"output_hex": "66616c7365",
+		"error": []
+	},
+	{
+		"operation": "query",
+		"input": "a b'?#<é>",
+		"native_exit": 0,
+		"output_hex": "6125323062273f253233253343254333254139253345",
+		"error": []
+	},
+	{
+		"operation": "special_query",
+		"input": "a b'?#<é>",
+		"native_exit": 0,
+		"output_hex": "61253230622532373f253233253343254333254139253345",
+		"error": []
+	},
+	{
+		"operation": "path",
+		"input": "a?^`{}[]/\\%",
+		"native_exit": 0,
+		"output_hex": "612533462535452536302537422537445b5d2f5c25",
+		"error": []
+	},
+	{
+		"operation": "userinfo",
+		"input": "a:b/c@d[]\\|",
+		"native_exit": 0,
+		"output_hex": "61253341622532466325343064253542253544253543253743",
+		"error": []
+	},
+	{
+		"operation": "decode",
+		"input": "%25%s%1G%00%FF",
+		"native_exit": 0,
+		"output_hex": "25257325314700ff",
+		"error": []
+	}
+]

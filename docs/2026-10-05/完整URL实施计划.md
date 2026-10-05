@@ -1,0 +1,67 @@
+# 完整 URL 实施计划
+
+## Intent：最终目标
+
+为 std:url 提供 URL 解析、相对地址解析、序列化、origin、域名与文件路径转换能力，遵循 WHATWG 语义，并与现有 std:url/search_params 组合。保持显式分配、纯计算和静态原生链接。
+
+## Data：可用证据
+
+目前仅有独立查询参数 API；std.Uri 的 RFC 解析不能代替 WHATWG 的特殊 scheme、反斜杠、IPv4 简写及相对 file 行为。依据 [WHATWG URL Standard](https://url.spec.whatwg.org/)与 [Node.js URL API](https://nodejs.org/api/url.html)实现，不引入 Node/V8。
+
+## Edges：边界与限制
+
+按编码、地址、域名、状态机和公开接口分工，不把未完成解析器提前注册为完整标准库模块。Unicode 域名必须包含 IDNA 映射、规范化与校验，不能只有 Punycode 就宣称完整。保留查询和片段 null 与空字符串的区别。file 转换要显式平台及当前目录，不暗读进程状态。所有实现完成并形成应用及库消费证据后才认定 URL 功能完成。
+
+## Answer：阶段交付
+
+先实现内部模型、百分号编码及 IP 地址规则，随后接入域名处理、解析状态机、序列化和公开 ZX 接口。每层保留实际构建及官方实现对照记录；不新建测试套件、不执行全量测试。正式 API 尚未接通前，结果明确标记内部实现进行中。
+
+```mermaid
+flowchart LR
+  Text[输入与可选base] --> Parser[URL状态机]
+  Parser --> Host[域名与IP]
+  Parser --> Encoding[按组件编码]
+  Parser --> Record[URL记录]
+  Record --> Serialize[序列化与origin]
+  Record --> File[文件路径转换]
+  Serialize --> ZX[ZX强类型接口]
+```
+
+```mermaid
+flowchart LR
+  Bytes[UTF8字节] --> Percent[百分号解码]
+  Percent --> Domain[IDNA与主机处理]
+  Domain --> Parts[标准化组件]
+  Parts --> URL[稳定URL序列化]
+```
+
+## 当前状态
+
+内部编码和地址层实施中。解析状态机、IDNA、公开接口与消费证据尚未完成，不对外声称已有完整 URL。
+
+## 编码与地址层阶段
+
+内部 Url 记录保留 scheme、凭据、可空 host/port、分段路径或不透明路径、可空 query/fragment。编码模块按 control、fragment、query、special_query、path、userinfo、component 分组，百分号解码返回原始字节并保留无效转义；域名层以后负责 UTF-8/IDNA 校验，不在低层擅自替换字节。
+
+IPv4 支持十进制、八进制、十六进制及简写，检查非末段 255 与末段按剩余字节的上限。主机末段数字判断只看数字语法，不因机器整数溢出把巨大十六进制误判成普通域名。IPv6 使用固定八段布局，支持最终嵌入四段 IPv4，拒绝多个压缩点、非法段数、作用域标识和带前导零的嵌入 IPv4；序列化选取第一个最长且至少两段的零序列。
+
+### 验证证据
+
+观察工具直接链接生产内部模块编译为 /tmp/zxc_url_parts，成功运行。26 次 IPv4/IPv6 真实输入与本机 Node URL 的主机标准化及拒绝结果一致，见 [地址与编码观测](完整URL/地址与编码观测.json)。另外观测 query 与 special_query 的引号差异、路径与凭据编码、无效百分号保留及原始 NUL/FF 字节。未新增正式测试套件，不运行全量测试。
+
+```sh
+zig build-exe --dep ipv4 --dep ipv6 --dep percent --dep model \
+  -Mroot=docs/2026-10-05/完整URL/观察工具/main.zig \
+  -Mipv4=packages/compiler/standard/src/url/host/ipv4.zig \
+  -Mipv6=packages/compiler/standard/src/url/host/ipv6.zig \
+  -Mpercent=packages/compiler/standard/src/url/percent.zig \
+  -Mmodel=packages/compiler/standard/src/url/model.zig \
+  -femit-bin=/tmp/zxc_url_parts
+
+/tmp/zxc_url_parts ipv4 127.1
+/tmp/zxc_url_parts ipv6 ::ffff:192.0.2.128
+```
+
+### 自我批判与下一步
+
+这只是完整 URL 所需的内部基础层，没有注册 std:url，也不能代替整个 URL 的应用与库消费验证。下一步是 IDNA、NFC 与 Unicode 校验，再实施 URL 解析状态机。Unicode 官方当前 UTS #46 为 18.0.0，需明确固定数据版本及来源，不使用旧版宿主 Unicode 数据冒充当前标准。Zig 原有 IPv6 解析的嵌入 IPv4 快捷路径不覆盖标准全部形式，因此没有直接复用它。
