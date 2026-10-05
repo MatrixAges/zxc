@@ -1,0 +1,7 @@
+export type Input = { items: u64[], value: u64 }
+
+export type Output = { items: u64[] }
+
+export default function (in: owned Input): Output {
+  return {items: in.value == 0 ? [] : in.items.push(in.value)[0]}
+}

@@ -1,0 +1,9 @@
+import step from "./forward.zx"
+
+export type Input = { a: u64[], b: u64[], value: u64 }
+
+export type Output = { a: u64[], b: u64[] }
+
+export default function (in: owned Input): Output {
+  return step(in)
+}
