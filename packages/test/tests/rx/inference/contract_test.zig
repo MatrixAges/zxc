@@ -9,15 +9,15 @@ test "RX automatic contract constant return" {
 }
 
 test "RX automatic contract input constrained by function" {
-    try h.run(.{ .source = "<Module><Call fn='number' in={$in} out='ctx.value'/><Return value={ctx.value}/></Module>", .input = .u64, .output = .u64, .calls = 1, .returned = true });
+    try h.run(.{ .source = "<Module><Call fn='number' in={$in}/><Return value={$ctx.number}/></Module>", .input = .u64, .output = .u64, .calls = 1, .returned = true });
 }
 
 test "RX automatic contract nested input fields" {
-    try h.run(.{ .source = "<Module><Call fn='number' in={$in.user.id} out='ctx.value'/><Return value={ctx.value}/></Module>", .input = .u64, .input_path = &.{ "user", "id" }, .output = .u64, .calls = 1, .returned = true });
+    try h.run(.{ .source = "<Module><Call fn='number' in={$in.user.id}/><Return value={$ctx.number}/></Module>", .input = .u64, .input_path = &.{ "user", "id" }, .output = .u64, .calls = 1, .returned = true });
 }
 
 test "RX automatic contract sequential result binding" {
-    try h.run(.{ .source = "<Module><Call fn='text' in={$in} out='ctx.text'/><Call fn='length' in={ctx.text} out='ctx.size'/><Return value={ctx.size}/></Module>", .input = .string, .output = .u64, .calls = 2, .returned = true });
+    try h.run(.{ .source = "<Module><Call fn='text' in={$in}/><Call fn='length' in={$ctx.text}/><Return value={$ctx.length}/></Module>", .input = .string, .output = .u64, .calls = 2, .returned = true });
 }
 
 test "RX automatic contract unresolved input" {

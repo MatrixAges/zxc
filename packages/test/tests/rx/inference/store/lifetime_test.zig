@@ -15,7 +15,7 @@ fn infer(allocator: std.mem.Allocator, mode: Mode) !analysis.module.Result {
     const source = try input.dupe(u8, if (mode == .setter)
         "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter.value]}/></Module>"
     else
-        "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter]} out='ctx.result'/><Return value={ctx.result}/></Module>");
+        "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter]}/><Return value={$ctx.write}/></Module>");
 
     var main = try rx.parseXml(input, source);
 

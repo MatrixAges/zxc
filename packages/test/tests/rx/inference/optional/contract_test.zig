@@ -45,17 +45,17 @@ fn run(case: Case) !void {
     }
 
     const contract = result.value.contract;
-    const input = contract.types[@intFromEnum(contract.input_type)];
-    const output = contract.types[@intFromEnum(contract.output_type)];
+    const input = contract.types[@backingInt(contract.input_type)];
+    const output = contract.types[@backingInt(contract.output_type)];
 
     if (case.input_optional) {
         try std.testing.expect(input == .optional);
-        try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.input }, contract.types[@intFromEnum(input.optional)]);
+        try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.input }, contract.types[@backingInt(input.optional)]);
     } else try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.input }, input);
 
     if (case.output_optional) {
         try std.testing.expect(output == .optional);
-        try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, contract.types[@intFromEnum(output.optional)]);
+        try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, contract.types[@backingInt(output.optional)]);
     } else try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, output);
 
     try std.testing.expect(try compiler.validateIr(std.testing.allocator, contract.program) == null);
@@ -78,11 +78,11 @@ test "literal can be wrapped for optional parameter" {
 }
 
 test "optional result is preserved in return" {
-    try run(.{ .source = "<Module><Call fn='optional' in={$in} out='ctx.value'/><Return value={ctx.value}/></Module>", .input_optional = true, .output = .u64, .output_optional = true });
+    try run(.{ .source = "<Module><Call fn='optional' in={$in}/><Return value={$ctx.optional}/></Module>", .input_optional = true, .output = .u64, .output_optional = true });
 }
 
 test "coalesced result removes one optional layer" {
-    try run(.{ .source = "<Module><Call fn='optional' in={$in} out='ctx.value'/><Return value={ctx.value ?? 7}/></Module>", .input_optional = true, .output = .u64 });
+    try run(.{ .source = "<Module><Call fn='optional' in={$in}/><Return value={$ctx.optional ?? 7}/></Module>", .input_optional = true, .output = .u64 });
 }
 
 test "optional wrappers do not merge incompatible base types" {

@@ -4,7 +4,7 @@ const h = @import("check.zig");
 
 test "RX automatic contract scalar allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.runAllocated, .{h.Case{
-        .source = "<Module><Call fn='number' in={$in} out='ctx.value'/><Return value={ctx.value}/></Module>",
+        .source = "<Module><Call fn='number' in={$in}/><Return value={$ctx.number}/></Module>",
         .input = .u64,
         .output = .u64,
         .calls = 1,
@@ -14,7 +14,7 @@ test "RX automatic contract scalar allocation failures" {
 
 test "RX automatic contract nested allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.runAllocated, .{h.Case{
-        .source = "<Module><Call fn='number' in={$in.user.id} out='ctx.value'/><Return value={ctx.value}/></Module>",
+        .source = "<Module><Call fn='number' in={$in.user.id}/><Return value={$ctx.number}/></Module>",
         .input = .u64,
         .input_path = &.{ "user", "id" },
         .output = .u64,
@@ -25,7 +25,7 @@ test "RX automatic contract nested allocation failures" {
 
 test "RX automatic contract sequential allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.runAllocated, .{h.Case{
-        .source = "<Module><Call fn='text' in={$in} out='ctx.text'/><Call fn='length' in={ctx.text} out='ctx.size'/><Return value={ctx.size}/></Module>",
+        .source = "<Module><Call fn='text' in={$in}/><Call fn='length' in={$ctx.text}/><Return value={$ctx.length}/></Module>",
         .input = .string,
         .output = .u64,
         .calls = 2,

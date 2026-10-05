@@ -1,7 +1,7 @@
 const h = @import("check.zig");
 
 test "RX Store Call input getter" {
-    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='read' in={store.jobs.counter.value} out='ctx.value'/><Return value={ctx.value}/></Module>", .slots = 1 });
+    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='read' in={store.jobs.counter.value}/><Return value={$ctx.read}/></Module>", .slots = 1 });
 }
 
 test "RX Store Return cannot access getter" {
@@ -13,21 +13,21 @@ test "RX Store Switch cannot access getter" {
 }
 
 test "RX Store Call getter does not leak into Return" {
-    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='read' in={store.jobs.counter.value} out='ctx.value'/><Return value={store.jobs.counter.value}/></Module>", .code = "name", .marker = "store.jobs.counter.value", .last = true });
+    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='read' in={store.jobs.counter.value}/><Return value={store.jobs.counter.value}/></Module>", .code = "name", .marker = "store.jobs.counter.value", .last = true });
 }
 
-test "RX Store out cannot replace store" {
-    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='read' in={1} out='store'/></Module>", .code = "name", .marker = "store" });
+test "RX Store-like result name is isolated in context" {
+    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='store' in={1}/><Call fn='read' in={$ctx.store + store.jobs.counter.value}/><Return value={$ctx.read}/></Module>", .slots = 1 });
 }
 
-test "RX Store out cannot replace store.jobs" {
-    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='read' in={1} out='store.jobs'/></Module>", .code = "name", .marker = "store.jobs" });
+test "RX Store result rejects dotted filename segments" {
+    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='store.jobs.zx' in={1}/></Module>", .code = "name", .marker = "store.jobs" });
 }
 
-test "RX Store out cannot replace store.jobs.counter" {
-    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='read' in={1} out='store.jobs.counter'/></Module>", .code = "name", .marker = "store.jobs.counter" });
+test "RX Store result rejects multiple dotted filename segments" {
+    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='store.jobs.counter.zx' in={1}/></Module>", .code = "name", .marker = "store.jobs.counter" });
 }
 
-test "RX Store out allows similar namespace prefix" {
-    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='read' in={1} out='storehouse.value'/><Return value={storehouse.value}/></Module>" });
+test "RX Store result allows similar namespace prefix" {
+    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='storehouse_value' in={1}/><Return value={$ctx.storehouse_value}/></Module>" });
 }

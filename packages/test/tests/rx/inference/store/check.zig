@@ -28,6 +28,7 @@ pub fn run(case: Case) !void {
         .{ .path = "state.store.rx", .node = state.value.node },
         .{ .path = "other.store.rx", .node = state.value.node },
     };
+
     var result = try analysis.project.infer(allocator, .{
         .entry = "main.rx",
         .modules = &.{.{ .path = "main.rx", .node = main.value.node }},
@@ -36,6 +37,11 @@ pub fn run(case: Case) !void {
             .{ .path = "list.zx", .source = @embedFile("fixtures/list.zx") },
             .{ .path = "pair.zx", .source = @embedFile("fixtures/pair.zx") },
             .{ .path = "read.zx", .source = @embedFile("fixtures/read.zx") },
+            .{ .path = "read_other.zx", .source = @embedFile("fixtures/read.zx") },
+            .{ .path = "store.zx", .source = @embedFile("fixtures/read.zx") },
+            .{ .path = "store.jobs.zx", .source = @embedFile("fixtures/read.zx") },
+            .{ .path = "store.jobs.counter.zx", .source = @embedFile("fixtures/read.zx") },
+            .{ .path = "storehouse_value.zx", .source = @embedFile("fixtures/read.zx") },
             .{ .path = "write.zx", .source = @embedFile("fixtures/write.zx") },
         },
     });

@@ -29,7 +29,7 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
 
     defer allocator.free(entry);
 
-    var main = try rx.parseXml(allocator, "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter]} out='ctx.value'/><Return value={ctx.value}/></Module>");
+    var main = try rx.parseXml(allocator, "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter]}/><Return value={$ctx.write}/></Module>");
 
     defer main.deinit();
 

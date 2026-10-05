@@ -75,18 +75,18 @@ test "RX inferred diagnostic Call parse braced end" {
     try check(.{ .source = "<Module><Call fn='number' in={1 +}/></Module>", .marker = "}/>", .code = "syntax" });
 }
 
-test "RX linked ownership diagnostic borrowed input line" {
-    try check(.{ .source = "<Module>\n  <Call fn='borrow' in={$in}/>\n  <Return value={$in.pop()}/>\n</Module>", .marker = "$in.pop()", .code = "ownership" });
+test "RX inline call diagnostic borrowed input line" {
+    try check(.{ .source = "<Module>\n  <Call fn='borrow' in={$in}/>\n  <Return value={$in.pop()}/>\n</Module>", .marker = "$in.pop()", .code = "unsupported" });
 }
 
-test "RX linked ownership diagnostic input after comment" {
-    try check(.{ .source = "<Module><Call fn='borrow' in={$in}/><Return value={/* 中 */ $in.pop()}/></Module>", .marker = "$in.pop()", .code = "ownership" });
+test "RX inline call diagnostic input after comment" {
+    try check(.{ .source = "<Module><Call fn='borrow' in={$in}/><Return value={/* 中 */ $in.pop()}/></Module>", .marker = "$in.pop()", .code = "unsupported" });
 }
 
-test "RX linked ownership diagnostic borrowed output UTF8 CRLF" {
-    try check(.{ .source = "<!--中文-->\r\n<Module>\r\n  <Call fn='borrow' in={$in} out='ctx.value'/>\r\n  <Return value={ctx.value.pop()}/>\r\n</Module>", .marker = "ctx.value.pop()", .code = "ownership" });
+test "RX inline call diagnostic borrowed output UTF8 CRLF" {
+    try check(.{ .source = "<!--中文-->\r\n<Module>\r\n  <Call fn='borrow' in={$in}/>\r\n  <Return value={$ctx.borrow.pop()}/>\r\n</Module>", .marker = "$ctx.borrow.pop()", .code = "unsupported" });
 }
 
-test "RX linked ownership diagnostic points to second consumption" {
-    try check(.{ .source = "<Module>\n  <Call fn='make' in={$in} out='ctx.items'/>\n  <Return value={{first: ctx.items.pop(), second: ctx.items.pop()}}/>\n</Module>", .marker = "ctx.items.pop()", .code = "ownership", .last = true });
+test "RX inline call diagnostic points to first forbidden call" {
+    try check(.{ .source = "<Module>\n  <Call fn='make' in={$in}/>\n  <Return value={{first: $ctx.make.pop(), second: $ctx.make.pop()}}/>\n</Module>", .marker = "$ctx.make.pop()", .code = "unsupported" });
 }

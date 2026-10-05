@@ -15,19 +15,19 @@ test "RX text Call requires input" {
 }
 
 test "RX text Call requires target" {
-    try h.reject("<Module><Call in={$in}/></Module>", .context, "service");
+    try h.reject("<Module><Call in={$in}/></Module>", .context, "module");
 }
 
 test "RX text Call forbids two targets" {
-    try h.reject("<Module><Call fn='load' service='./load' in={$in}/></Module>", .context, "service");
+    try h.reject("<Module><Call fn='load' module='./load' in={$in}/></Module>", .context, "module");
 }
 
-test "RX text Call rejects absolute service" {
-    try h.reject("<Module><Call service='/load' in={$in}/></Module>", .context, "service");
+test "RX text Call rejects absolute module" {
+    try h.reject("<Module><Call module='/load' in={$in}/></Module>", .context, "module");
 }
 
-test "RX text service Call rejects setter" {
-    try h.reject("<Module><Call service='./load' in={$in} setter={store.jobs}/></Module>", .context, "setter");
+test "RX text module Call rejects setter" {
+    try h.reject("<Module><Call module='./load' in={$in} setter={store.jobs}/></Module>", .context, "setter");
 }
 
 test "RX text Call rejects blank function" {
@@ -119,13 +119,13 @@ test "RX text preserves composed flow data" {
         \\<Module in="Input" out="Output">
         \\  <Store from="scheduler" as="jobs"/>
         \\  <Task name="validate">
-        \\    <Switch on={ctx.status}>
+        \\    <Switch on={$ctx.status}>
         \\      <Case value={blocked}><Return value={false}/></Case>
         \\      <Default><Task name="fallback"><Call fn="load" in={$in}/></Task></Default>
         \\    </Switch>
         \\  </Task>
         \\  <Parallel><Call fn="load" in={$in}/><Task name="query"><Call fn="load" in={$in}/></Task></Parallel>
-        \\  <Emit event="order.created" value={ctx.order}/>
+        \\  <Emit event="order.created" value={$ctx.order}/>
         \\  <Call fn="advance" in={$in} setter={[store.jobs.dispatcher]}/>
         \\</Module>
     ;
@@ -146,11 +146,10 @@ test "RX text preserves composed flow data" {
     try std.testing.expectEqualStrings("Input", data.attributes.in.?);
     try std.testing.expectEqualStrings("Output", data.attributes.out.?);
     try std.testing.expectEqualStrings("jobs", data.children[0].store.attributes.as.?);
-    try std.testing.expectEqualStrings("ctx.status", data.children[1].task.children[0].@"switch".attributes.on);
+    try std.testing.expectEqualStrings("$ctx.status", data.children[1].task.children[0].@"switch".attributes.on);
     try std.testing.expectEqual(@as(usize, 2), data.children[2].parallel.children.len);
     try std.testing.expectEqualStrings("order.created", data.children[3].emit.attributes.event);
     try std.testing.expectEqualStrings("[store.jobs.dispatcher]", data.children[4].call.attributes.setter.?);
-    try std.testing.expectEqual(@as(?[]const u8, null), data.children[4].call.attributes.out);
 }
 
 test "RX text empty attribute reports original value position" {
@@ -171,4 +170,14 @@ test "RX text empty attribute reports original value position" {
     try std.testing.expectEqual(.context, issue.code);
     try std.testing.expectEqualStrings("fn", issue.attribute.?);
     try std.testing.expectEqualDeep(rx.ast.Location{ .offset = 22, .line = 2, .column = 13 }, issue.location);
+}
+
+test "RX text Call rejects removed output and args attributes" {
+    try h.reject("<Module><Call fn='load' in={$in} out='ctx.value'/></Module>", .unknown_attribute, "out");
+    try h.reject("<Module><Call fn='load' args={$in}/></Module>", .unknown_attribute, "args");
+}
+
+test "RX text Call rejects removed name and service attributes" {
+    try h.reject("<Module><Call fn='load' in={$in} name='value'/></Module>", .unknown_attribute, "name");
+    try h.reject("<Module><Call service='./load' in={$in}/></Module>", .unknown_attribute, "service");
 }

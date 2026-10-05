@@ -583,6 +583,7 @@ pub fn build(b: *std.Build) void {
     });
 
     rx_inference_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
+    rx_inference_tests.root_module.addAnonymousImport("rx_collection_fixtures", .{ .root_source_file = b.path("tests/rx/support/collections/root.zig"), .target = target, .optimize = optimize });
     rx_inference_step.dependOn(&b.addRunArtifact(rx_inference_tests).step);
     test_step.dependOn(rx_inference_step);
 

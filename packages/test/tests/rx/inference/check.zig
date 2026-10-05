@@ -2,6 +2,8 @@ const std = @import("std");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
 const compiler = @import("compiler");
+const number = "export type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return in\n}\n";
+const length = "export type Input = string\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return in.length\n}\n";
 
 pub const Case = struct {
     source: []const u8,
@@ -30,9 +32,14 @@ pub fn runAllocated(allocator: std.mem.Allocator, case: Case) !void {
         .module = parsed.value.node,
         .sources = &.{
             .{ .path = "discard.zx", .source = "export type Input = u64\n\nexport type Output = void\n\nexport default function (in: Input): Output {\n}\n" },
-            .{ .path = "number.zx", .source = "export type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return in\n}\n" },
+            .{ .path = "number.zx", .source = number },
+            .{ .path = "a.b.zx", .source = number },
+            .{ .path = "$in.child.zx", .source = number },
+            .{ .path = ".a.zx", .source = number },
+            .{ .path = "$input.zx", .source = number },
             .{ .path = "text.zx", .source = "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n  return in\n}\n" },
-            .{ .path = "length.zx", .source = "export type Input = string\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return in.length\n}\n" },
+            .{ .path = "length.zx", .source = length },
+            .{ .path = "text_length.zx", .source = length },
         },
     });
 
@@ -56,16 +63,17 @@ pub fn runAllocated(allocator: std.mem.Allocator, case: Case) !void {
     var input = contract.input_type;
 
     for (case.input_path) |name| {
-        const value = contract.types[@intFromEnum(input)];
+        const value = contract.types[@backingInt(input)];
 
         try std.testing.expect(value == .object);
         try std.testing.expectEqual(@as(usize, 1), value.object.len);
         try std.testing.expectEqualStrings(name, value.object[0].name);
+
         input = value.object[0].type_id;
     }
 
-    try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.input }, contract.types[@intFromEnum(input)]);
-    try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, contract.types[@intFromEnum(contract.output_type)]);
+    try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.input }, contract.types[@backingInt(input)]);
+    try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, contract.types[@backingInt(contract.output_type)]);
     try std.testing.expectEqual(case.calls, contract.calls.len);
     try std.testing.expectEqual(case.returned, contract.result != null);
 

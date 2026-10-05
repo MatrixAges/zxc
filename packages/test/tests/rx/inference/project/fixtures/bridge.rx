@@ -1,4 +1,4 @@
 <Module>
-  <Call service='./identity.rx' in={$in} out='ctx.value'/>
-  <Return value={ctx.value}/>
+  <Call module='./identity.rx' in={$in}/>
+  <Return value={$ctx.identity}/>
 </Module>

@@ -25,5 +25,5 @@ test "RX Store setter rejects duplicate" {
 }
 
 test "RX Store setter permits one complete Object" {
-    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter]} out='ctx.value'/><Return value={ctx.value}/></Module>", .slots = 1 });
+    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter]}/><Return value={$ctx.write}/></Module>", .slots = 1 });
 }

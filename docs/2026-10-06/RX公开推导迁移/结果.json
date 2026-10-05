@@ -1,0 +1,90 @@
+{
+	"starting_commit": "d00f42f6",
+	"rx_contract_commit": "93321ca3",
+	"current_head": "9e29540c673d1fea1a71d439eab64f570cfac722",
+	"scope": "Non-parallel RX inference and real text/schema regression",
+	"commands": {
+		"Debug": "zig build test-rx-inference test-rx-text -j2 --summary all",
+		"ReleaseSafe": "zig build test-rx-inference test-rx-text -Doptimize=ReleaseSafe -j2 --summary all"
+	},
+	"results": {
+		"Debug_initial": {
+			"steps": 26,
+			"actual_tests": 260
+		},
+		"Debug_final": {
+			"steps": 26,
+			"actual_tests": 150,
+			"cached_tests": 110
+		},
+		"ReleaseSafe": {
+			"steps": 26,
+			"actual_tests": 260,
+			"cached_tests": 0
+		}
+	},
+	"test_groups": {
+		"inference": 138,
+		"text_schema": 122
+	},
+	"migration": {
+		"converted_files": 25,
+		"scoped_source_files": 32,
+		"idempotence_changed": 0,
+		"idempotence_skipped": 0
+	},
+	"production_defects_reported": [],
+	"test262_changes": false,
+	"limits": [
+		"No native runtime, CLI, Parallel or compiled-library execution claimed by these two targets.",
+		"Reverse fixture resource is not a native reverse execution claim.",
+		"Shared checkout; unrelated parser-header work may continue.",
+		"Log normalization only removes trailing whitespace and trailing blank lines."
+	],
+	"source_sha256": {
+		"packages/test/tests/rx/inference/bindings_test.zig": "306767c91d91e4ed6cb10a7d46754c91f63cd4d66848c0690518ffca0b1e3028",
+		"packages/test/tests/rx/inference/check.zig": "161801a3f407f87726e7727091f8cd1b645746e032c0119cabbba7864a9a02a0",
+		"packages/test/tests/rx/inference/contract_test.zig": "9f0df7fa734a5343e6c0a55a199a9dece043779d46373d2bdbfba81e4914efcc",
+		"packages/test/tests/rx/inference/control/rejection_test.zig": "14156c9a367a7ef0a21cbe76c0bc1d5e8578c03d5c18f06931e4c4991255906c",
+		"packages/test/tests/rx/inference/control/resources_test.zig": "e53492e48ef9e36a58289b8af865940b495506f93d3452cc8b414769de2d87ee",
+		"packages/test/tests/rx/inference/control/scope_test.zig": "dc68ef34c7c992d75f6c0e103ba4e89bf262eadc1d7a60f0c8e44125240a2a63",
+		"packages/test/tests/rx/inference/optional/contract_test.zig": "6fe06a6ca1d15288d579f5bf5b7660fb0d4d3ae817d970d3d4ad46a33f00f4e8",
+		"packages/test/tests/rx/inference/ownership/boundaries_test.zig": "87c1c679554455c927fa38a8a62cc8a599e20f52236641df6ea0b51157901ffd",
+		"packages/test/tests/rx/inference/ownership/comparison_test.zig": "6b4267a9309d664735208ad1abaa082867ccdaaa476bbd9296db48717d48b6cf",
+		"packages/test/tests/rx/inference/ownership/fixtures/main.rx": "769eb5c3d81b69c4900ec45c5c22cdf5d64784c679c7d266f9787659d7bf203f",
+		"packages/test/tests/rx/inference/position_test.zig": "30648895107958d59d05f8f319c5c6d73df7fb1b0bbc125142c9eca1011ddaf7",
+		"packages/test/tests/rx/inference/project/diamond/fixtures/forwarder.rx": "31da819a1b906ab33b0ac92ccc6b34d250342302ea3fb8efae58b841ebdad01c",
+		"packages/test/tests/rx/inference/project/diamond/fixtures/main_forward.rx": "7175e1ed8590bee87057b610f94ec7f2f326aab416f4ec3cf2dce6f538742e0e",
+		"packages/test/tests/rx/inference/project/diamond/fixtures/main_reverse.rx": "44d7e5db36c274a2418522ca77ec01fee685caa7ceac8d6ea0f25b670382dd25",
+		"packages/test/tests/rx/inference/project/fixtures/bridge.rx": "64d449a7bdbc82c381be5013dfcad2a801fb344cd583636f74cee11988553fd6",
+		"packages/test/tests/rx/inference/project/fixtures/main.rx": "43d367cf00f012a57f072f75ffff42fbe529a5909146304d951b1ac422766ad2",
+		"packages/test/tests/rx/inference/project/ownership_test.zig": "60edc8ded6ad1c3148753d6e9c8d955a2f0602e3568b794d9cba1eba45aae53e",
+		"packages/test/tests/rx/inference/project/position_test.zig": "0f0501c293e7b5902b825d9cf3343f6a901b12b277b41cb5ef96c404184c8e07",
+		"packages/test/tests/rx/inference/project/resources_test.zig": "6543007df36b377b44b10289d378839cc86242f95a8daf5af7747a85d8ca6f4a",
+		"packages/test/tests/rx/inference/resources_test.zig": "d4dceed88bca9bd01fd991ca9711d0949c227b0acc40710010a680e14a87b457",
+		"packages/test/tests/rx/inference/store/callback_test.zig": "790e1258310e540e8d5311dc268806e907135dc9d4a5ccffcbe005e87a6cb8f6",
+		"packages/test/tests/rx/inference/store/check.zig": "7bf835f5a7849a372667660c77b7ce5491c06aa2ef92065d8e8fed5da6b88e3b",
+		"packages/test/tests/rx/inference/store/function_test.zig": "c582f9176556090d1493f498f42814f5da0609ce62907a1354b41d3164f9c168",
+		"packages/test/tests/rx/inference/store/identity_test.zig": "b4722bf5ea6a49f09e6d841b2ffe2c2bb3a80565e4851bc38646c4bd2adc371b",
+		"packages/test/tests/rx/inference/store/lifetime_test.zig": "02795133097a9b58bfcc9b86e9764462459394e61d4f5b629c8658e18dc74072",
+		"packages/test/tests/rx/inference/store/scope_test.zig": "eaffa79d76f9641b2fda3a5542af5007787b340d4957988469ac8748c62e43cb",
+		"packages/test/tests/rx/inference/store/setter_test.zig": "a1bfa6af900a9da59745a69e1ef32c2bd6f9557ed2839573dc76c65bd2b082d4",
+		"packages/test/tests/rx/text/flow_test.zig": "511d5ecf05c72dafda659e74a438177ba535b13a5255966f3917e40b472ca681",
+		"packages/test/build.zig": "28ab326cbe615d6106fb56307f6d782b7c58caba0042adcc8fa75d76f6342b26",
+		"packages/test/tests/rx/support/collections/root.zig": "ed0802471c91c504eb8efdfcb9742706dfb2a744e98f6568c50630cabb67c73a",
+		"packages/test/tests/rx/support/collections/pop_values.zx": "89d7b3eaad87d0e946b1f72a82580a44fd15481198210626f94cb7e8c465ae6e",
+		"packages/test/tests/rx/support/collections/reverse_values.zx": "9c4f300ee74d4213dbceabf69696a8e658a344531b14e91c287365af209b2659"
+	},
+	"evidence_sha256": {
+		"docs/2026-10-06/RX公开推导迁移/Debug日志.txt": "d66c2bfe8a6bffdedde69fd05f7cd94f55e06b3b5c18a593d45b024740e79215",
+		"docs/2026-10-06/RX公开推导迁移/Debug首轮日志.txt": "ca419557b9e702ea577cfe5100ae5ed96dcf375a5abeab6b4b51b2bc919e55a6",
+		"docs/2026-10-06/RX公开推导迁移/ReleaseSafe日志.txt": "991ff611a4afe2cd7a76423d9b661cba43bd70751cbef4bd0a8389843ae3f457",
+		"docs/2026-10-06/RX公开推导迁移/执行范围.json": "a76ceab793f794a4ba53623e91bcb2b47669c82c8dfdefac6e7e5dd7720b52f0",
+		"docs/2026-10-06/RX公开推导迁移/标签材料.py": "e4ca1ccda24572cf24e0d34f717758bba85d05b8efe97339958616820ef4f6ef",
+		"docs/2026-10-06/RX公开推导迁移/迁移材料.py": "7cc5e515486e647c4282793a5a1496047870a3a8d0e68aebb33a16d2112fea34",
+		"docs/2026-10-06/RX公开推导迁移/重复预览范围.json": "03496b2a0d66fd2ea3754bc8a12670988cc7c4bf19a00f831771d2bf9dc9f98f",
+		"docs/2026-10-06/RX公开推导迁移/预览范围.json": "d4e60bed53c2150fa7c274752e1f26b290b38b4886e8229e9a5217ccab82a89d",
+		"docs/2026-10-06/RX公开推导迁移计划.md": "c3640c5456bd94edc8d69ca9120602e32860c15ca0b6ba52f787b5b0a6d69b9f",
+		"docs/2026-10-06/RX调用属性迁移计划.md": "7534f6778fb427372e0ea35a63510b5c4f3ee362c5759ba26eac934e83325764"
+	}
+}

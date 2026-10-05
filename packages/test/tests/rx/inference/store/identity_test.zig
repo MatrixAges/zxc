@@ -1,11 +1,11 @@
 const h = @import("check.zig");
 
 test "RX Store normalized aliases share one slot" {
-    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Store from='./state.store.rx' as='other'/><Call fn='write' in={1} setter={[store.jobs.counter]}/><Call fn='read' in={store.other.counter.value} out='ctx.value'/><Return value={ctx.value}/></Module>", .slots = 1 });
+    try h.run(.{ .source = "<Module><Store from='state' as='jobs'/><Store from='./state.store.rx' as='other'/><Call fn='write' in={1} setter={[store.jobs.counter]}/><Call fn='read' in={store.other.counter.value}/><Return value={$ctx.read}/></Module>", .slots = 1 });
 }
 
 test "RX Store default namespace uses Store name" {
-    try h.run(.{ .source = "<Module><Store from='state'/><Call fn='read' in={store.counter_state.counter.value} out='ctx.value'/><Return value={ctx.value}/></Module>", .slots = 1 });
+    try h.run(.{ .source = "<Module><Store from='state'/><Call fn='read' in={store.counter_state.counter.value}/><Return value={$ctx.read}/></Module>", .slots = 1 });
 }
 
 test "RX Store missing definition" {
@@ -25,5 +25,5 @@ test "RX Store same display name needs aliases" {
 }
 
 test "RX Store different paths remain distinct slots" {
-    try h.run(.{ .source = "<Module><Store from='state' as='left'/><Store from='other' as='right'/><Call fn='read' in={store.left.counter.value} out='ctx.left'/><Call fn='read' in={store.right.counter.value} out='ctx.right'/><Return value={{left: ctx.left, right: ctx.right}}/></Module>", .slots = 2, .other_store = true });
+    try h.run(.{ .source = "<Module><Store from='state' as='left'/><Store from='other' as='right'/><Call fn='read' in={store.left.counter.value}/><Call fn='read_other' in={store.right.counter.value}/><Return value={{left: $ctx.read, right: $ctx.read_other}}/></Module>", .slots = 2, .other_store = true });
 }

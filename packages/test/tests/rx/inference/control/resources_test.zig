@@ -7,8 +7,8 @@ const Mode = enum { success, scope, duplicate };
 
 fn check(allocator: std.mem.Allocator, mode: Mode) !void {
     const source = switch (mode) {
-        .success => "<Module><Call fn=\"./helper.zx\" in={$in.value} out=\"ctx.base\"/><Switch on={$in.enabled}><Case value={true}><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/><Return value={ctx.inner}/></Case><Case value={false}><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/><Return value={ctx.inner}/></Case></Switch></Module>",
-        .scope => "<Module><Call fn=\"./helper.zx\" in={$in.value} out=\"ctx.base\"/><Task name=\"t\"><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/></Task><Return value={ctx.inner}/></Module>",
+        .success => "<Module><Call fn=\"./helper.zx\" in={$in.value}/><Switch on={$in.enabled}><Case value={true}><Call fn=\"./inner.zx\" in={$ctx.helper}/><Return value={$ctx.inner}/></Case><Case value={false}><Call fn=\"./inner.zx\" in={$ctx.helper}/><Return value={$ctx.inner}/></Case></Switch></Module>",
+        .scope => "<Module><Call fn=\"./helper.zx\" in={$in.value}/><Task name=\"t\"><Call fn=\"./inner.zx\" in={$ctx.helper}/></Task><Return value={$ctx.inner}/></Module>",
         .duplicate => "<Module><Switch on={\"x\"}><Case value={\"x\"}><Return value={1}/></Case><Case value={\"x\"}><Return value={2}/></Case><Default><Return value={3}/></Default></Switch></Module>",
     };
 
@@ -21,7 +21,10 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
     var result = try analysis.project.infer(allocator, .{
         .entry = "main.rx",
         .modules = &.{.{ .path = "main.rx", .node = parsed.value.node }},
-        .sources = &.{.{ .path = "helper.zx", .source = @embedFile("../project/fixtures/number.zx") }},
+        .sources = &.{
+            .{ .path = "helper.zx", .source = @embedFile("../project/fixtures/number.zx") },
+            .{ .path = "inner.zx", .source = @embedFile("../project/fixtures/number.zx") },
+        },
     });
 
     defer result.deinit();

@@ -8,11 +8,11 @@ const Mode = enum { success, conflict, cycle };
 fn check(allocator: std.mem.Allocator, mode: Mode) !void {
     const main = switch (mode) {
         .success => @embedFile("fixtures/main.rx"),
-        .conflict => "<Module><Call service='./identity.rx' in={1}/><Call service='./identity.rx' in={\"text\"}/></Module>",
-        .cycle => "<Module><Call service='./bridge.rx' in={$in}/></Module>",
+        .conflict => "<Module><Task name='first'><Call module='./identity.rx' in={1}/></Task><Task name='second'><Call module='./identity.rx' in={\"text\"}/></Task></Module>",
+        .cycle => "<Module><Call module='./bridge.rx' in={$in}/></Module>",
     };
 
-    const bridge = if (mode == .cycle) "<Module><Call service='./main.rx' in={$in}/></Module>" else @embedFile("fixtures/bridge.rx");
+    const bridge = if (mode == .cycle) "<Module><Call module='./main.rx' in={$in}/></Module>" else @embedFile("fixtures/bridge.rx");
     const texts = [_][]const u8{ main, bridge, @embedFile("fixtures/identity.rx") };
     const names = [_][]const u8{ "main.rx", "bridge.rx", "identity.rx" };
     var parsed: [3]rx.XmlResult = undefined;
@@ -59,8 +59,8 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
 
     const contract = result.value.contract;
 
-    try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = .u64 }, contract.types[@intFromEnum(contract.input_type)]);
-    try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = .u64 }, contract.types[@intFromEnum(contract.output_type)]);
+    try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = .u64 }, contract.types[@backingInt(contract.input_type)]);
+    try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = .u64 }, contract.types[@backingInt(contract.output_type)]);
     try std.testing.expect(try compiler.validateIr(allocator, contract.program) == null);
 }
 
@@ -68,7 +68,7 @@ test "RX project successful chain allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.success});
 }
 
-test "RX project shared service conflict allocation failures" {
+test "RX project shared module conflict allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.conflict});
 }
 

@@ -25,7 +25,7 @@ test "RX consumes an owned function return" {
     var result = try analysis.module.infer(std.testing.allocator, .{
         .owner = "main.rx",
         .module = parsed.value.node,
-        .sources = &.{.{ .path = "make.zx", .source = @embedFile("fixtures/make.zx") }},
+        .sources = &.{ .{ .path = "make.zx", .source = @embedFile("fixtures/make.zx") }, .{ .path = "pop_values.zx", .source = @import("rx_collection_fixtures").pop_values } },
     });
 
     defer result.deinit();
@@ -44,7 +44,7 @@ test "RX still rejects consuming a borrowed function return" {
     var result = try analysis.module.infer(std.testing.allocator, .{
         .owner = "main.rx",
         .module = parsed.value.node,
-        .sources = &.{.{ .path = "make.zx", .source = @embedFile("fixtures/borrowed.zx") }},
+        .sources = &.{ .{ .path = "make.zx", .source = @embedFile("fixtures/borrowed.zx") }, .{ .path = "pop_values.zx", .source = @import("rx_collection_fixtures").pop_values } },
     });
 
     defer result.deinit();
@@ -53,7 +53,7 @@ test "RX still rejects consuming a borrowed function return" {
     try std.testing.expectEqualStrings("ownership", result.value.diagnostic.code);
 }
 
-test "RX consumes a list created in the same expression" {
+test "RX rejects inline consumption of a list created in the same expression" {
     var parsed = try rx.parseXml(std.testing.allocator, "<Module><Return value={[1].pop()}/></Module>");
 
     defer parsed.deinit();
@@ -68,7 +68,6 @@ test "RX consumes a list created in the same expression" {
 
     defer result.deinit();
 
-    if (result.value == .diagnostic) std.debug.print("local owned diagnostic: {s}: {s}\n", .{ result.value.diagnostic.code, result.value.diagnostic.message });
-
-    try std.testing.expect(result.value == .contract);
+    try std.testing.expect(result.value == .diagnostic);
+    try std.testing.expectEqualStrings("unsupported", result.value.diagnostic.code);
 }

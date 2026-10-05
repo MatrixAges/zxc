@@ -13,7 +13,10 @@ fn check(source: []const u8, accepted: bool) !void {
         .owner = "main.rx",
         .module = parsed.value.node,
         .sources = &.{
+            .{ .path = "pop_values.zx", .source = @import("rx_collection_fixtures").pop_values },
+            .{ .path = "pop_other.zx", .source = @import("rx_collection_fixtures").pop_values },
             .{ .path = "make.zx", .source = @embedFile("fixtures/make.zx") },
+            .{ .path = "make_other.zx", .source = @embedFile("fixtures/make.zx") },
             .{ .path = "borrow.zx", .source = @embedFile("fixtures/borrowed.zx") },
         },
     });
@@ -30,17 +33,17 @@ fn check(source: []const u8, accepted: bool) !void {
 }
 
 test "RX consumes two distinct owned results independently" {
-    try check("<Module><Call fn='make' in={$in} out='ctx.left'/><Call fn='make' in={$in} out='ctx.right'/><Return value={{left: ctx.left.pop(), right: ctx.right.pop()}}/></Module>", true);
+    try check("<Module><Call fn='make' in={$in}/><Call fn='make_other' in={$in}/><Call fn='pop_values' in={$ctx.make}/><Call fn='pop_other' in={$ctx.make_other}/><Return value={{left: $ctx.pop_values, right: $ctx.pop_other}}/></Module>", true);
 }
 
 test "RX rejects consuming the same result twice" {
-    try check("<Module><Call fn='make' in={$in} out='ctx.items'/><Return value={{first: ctx.items.pop(), second: ctx.items.pop()}}/></Module>", false);
+    try check("<Module><Call fn='make' in={$in}/><Call fn='pop_values' in={$ctx.make}/><Call fn='pop_other' in={$ctx.make}/><Return value={{first: $ctx.pop_values, second: $ctx.pop_other}}/></Module>", false);
 }
 
 test "RX rejects consuming the module input" {
-    try check("<Module><Call fn='borrow' in={$in}/><Return value={$in.pop()}/></Module>", false);
+    try check("<Module><Call fn='borrow' in={$in}/><Call fn='pop_values' in={$in}/><Return value={$ctx.pop_values}/></Module>", false);
 }
 
 test "RX rejects consuming an owner after publishing a borrowed alias" {
-    try check("<Module><Call fn='make' in={$in} out='ctx.items'/><Call fn='borrow' in={ctx.items} out='ctx.alias'/><Return value={{changed: ctx.items.pop(), alias: ctx.alias}}/></Module>", false);
+    try check("<Module><Call fn='make' in={$in}/><Call fn='borrow' in={$ctx.make}/><Call fn='pop_values' in={$ctx.make}/><Return value={{changed: $ctx.pop_values, alias: $ctx.borrow}}/></Module>", false);
 }

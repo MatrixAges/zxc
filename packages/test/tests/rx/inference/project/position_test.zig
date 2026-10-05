@@ -8,7 +8,7 @@ fn check(case: Case) !void {
 }
 
 fn checkOrder(case: Case, reverse: bool) !void {
-    const main_source = "<!--入口中文与额外偏移-->\n<Module>\n  <Call service='./child.rx' in={1} out='ctx.value'/>\n  <Return value={ctx.value}/>\n</Module>";
+    const main_source = "<!--入口中文与额外偏移-->\n<Module>\n  <Call module='./child.rx' in={1}/>\n  <Return value={$ctx.child}/>\n</Module>";
     var main = try rx.parseXml(std.testing.allocator, main_source);
 
     defer main.deinit();
@@ -29,7 +29,10 @@ fn checkOrder(case: Case, reverse: bool) !void {
     var result = try analysis.project.infer(std.testing.allocator, .{
         .entry = "root/main.rx",
         .modules = &sources,
-        .sources = &.{.{ .path = "root/number.zx", .source = @embedFile("fixtures/number.zx") }},
+        .sources = &.{
+            .{ .path = "root/number.zx", .source = @embedFile("fixtures/number.zx") },
+            .{ .path = "root/.bad.zx", .source = @embedFile("fixtures/number.zx") },
+        },
     });
 
     defer result.deinit();
@@ -78,17 +81,17 @@ test "RX project child braced expression end position" {
 }
 
 test "RX project child invalid result binding position" {
-    try check(.{ .source = "<Module>\n<Call fn='number' in={1} out='ctx..bad'/><Return value={true}/></Module>", .marker = "ctx..bad" });
+    try check(.{ .source = "<Module>\n<Call fn='.bad.zx' in={1}/><Return value={true}/></Module>", .marker = ".bad.zx" });
 }
 
 test "RX project child missing target position" {
-    try check(.{ .source = "<Module>\n<Call service='./missing.rx' in={$in}/></Module>", .marker = "./missing.rx", .code = "context" });
+    try check(.{ .source = "<Module>\n<Call module='./missing.rx' in={$in}/></Module>", .marker = "./missing.rx", .code = "context" });
 }
 
 test "RX project child circular target position" {
-    try check(.{ .source = "<Module>\n<Call service='./main.rx' in={$in}/></Module>", .marker = "./main.rx", .code = "context", .reverse_marker = "./child.rx" });
+    try check(.{ .source = "<Module>\n<Call module='./main.rx' in={$in}/></Module>", .marker = "./main.rx", .code = "context", .reverse_marker = "./child.rx" });
 }
 
 test "RX project child self reference position" {
-    try check(.{ .source = "<Module>\n<Call service='./child.rx' in={$in}/></Module>", .marker = "./child.rx", .code = "context" });
+    try check(.{ .source = "<Module>\n<Call module='./child.rx' in={$in}/></Module>", .marker = "./child.rx", .code = "context" });
 }

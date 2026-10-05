@@ -32,12 +32,12 @@ test "RX control rejects unsigned subject negative zero label" {
     try h.run(.{ .source = "<Module><Switch on={0}><Case value={0}><Return value={1}/></Case><Case value={-0}><Return value={2}/></Case><Default><Return value={3}/></Default></Switch></Module>", .code = "type_mismatch" });
 }
 
-test "RX control rejects unselected missing service" {
-    try h.run(.{ .source = "<Module><Switch on={true}><Case value={false}><Call service='./missing.rx' in={1}/><Return value={1}/></Case><Default><Return value={2}/></Default></Switch></Module>", .code = "context" });
+test "RX control rejects unselected missing module" {
+    try h.run(.{ .source = "<Module><Switch on={true}><Case value={false}><Call module='./missing.rx' in={1}/><Return value={1}/></Case><Default><Return value={2}/></Default></Switch></Module>", .code = "context" });
 }
 
-test "RX control rejects unselected self service" {
-    try h.run(.{ .source = "<Module><Switch on={true}><Case value={false}><Call service='./main.rx' in={1}/><Return value={1}/></Case><Default><Return value={2}/></Default></Switch></Module>", .code = "context" });
+test "RX control rejects unselected self module" {
+    try h.run(.{ .source = "<Module><Switch on={true}><Case value={false}><Call module='./main.rx' in={1}/><Return value={1}/></Case><Default><Return value={2}/></Default></Switch></Module>", .code = "context" });
 }
 
 test "RX control rejects signed positive and negative zero duplicate labels" {
