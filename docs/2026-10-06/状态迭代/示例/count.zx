@@ -1,0 +1,21 @@
+export type Input = { remaining: u64 }
+
+export type State = { remaining: u64, processed: u64 }
+
+export type Output = { initial: State, result: State }
+
+export default function (in: Input): Output {
+  const initial: State = { remaining: in.remaining, processed: 0 }
+
+  const result = loop(initial, {
+    while: state => state.remaining > 0,
+    next: state => {
+      const previous = state
+
+      state.remaining -= 1
+      state.processed = previous.processed + 1
+    }
+  })
+
+  return { initial: initial, result: result }
+}

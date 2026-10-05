@@ -21,10 +21,22 @@ pub const TypeField = struct { name: []const u8, type_id: TypeId };
 pub const Symbol = struct { name: []const u8, type_id: TypeId, span: Span, ownership: Ownership = .copy };
 pub const Export = struct { name: []const u8, type_id: TypeId };
 pub const ListOperation = enum { push, pop, sort, reverse, splice, concat };
-pub const Transform = struct { kind: enum { map, filter, reduce, forEach }, target: ExprId, parameters: []const SymbolId, body: ExprId, initial: ?ExprId = null };
+pub const Transform = struct { kind: enum { map, filter, reduce }, target: ExprId, parameters: []const SymbolId, body: ExprId, initial: ?ExprId = null };
 pub const Projection = struct { target: ExprId, index: u32 };
 pub const Match = struct { subject: ?ExprId, arms: []const MatchArm, fallback: ExprId };
 pub const MatchArm = struct { condition: ExprId, result: ExprId };
+pub const ScopeBinding = struct { symbol: ?SymbolId, value: ExprId, borrow: bool = false };
+pub const Scope = struct { bindings: []const ScopeBinding, result: ExprId };
+pub const ListUpdate = struct { target: ExprId, index: ExprId, value: ExprId };
+
+pub const Iteration = struct {
+    initial: ExprId,
+    condition_parameter: SymbolId,
+    parameter: SymbolId,
+    condition: ExprId,
+    body: ExprId,
+    postcondition: bool,
+};
 
 pub const Expression = struct {
     type_id: TypeId,
@@ -50,6 +62,9 @@ pub const Expression = struct {
         template: []const ExprId,
         list_operation: struct { kind: ListOperation, target: ExprId, arguments: []const ExprId },
         transform: Transform,
+        scope: Scope,
+        iteration: Iteration,
+        list_update: ListUpdate,
         call: struct { function: FunctionId, argument: ExprId, stores: []const u32 = &.{} },
         unary: struct { operator: enum { negate, not }, operand: ExprId },
         binary: struct { operator: Operator, left: ExprId, right: ExprId },
@@ -131,7 +146,7 @@ pub const Function = struct {
 pub const Program = struct {
     consumes_input: bool = false,
     output_ownership: Ownership = .borrowed,
-    version: u32 = 13,
+    version: u32 = 16,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,
@@ -147,11 +162,11 @@ pub const Program = struct {
     stores: []const StoreSlot = &.{},
     type_only: bool = false,
     pub fn typeOf(self: Program, id: TypeId) Type {
-        return self.types[@intFromEnum(id)];
+        return self.types[@backingInt(id)];
     }
 
     pub fn expression(self: Program, id: ExprId) Expression {
-        return self.expressions[@intFromEnum(id)];
+        return self.expressions[@backingInt(id)];
     }
 };
 

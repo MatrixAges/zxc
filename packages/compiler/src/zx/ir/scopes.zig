@@ -10,7 +10,7 @@ allocator: std.mem.Allocator,
 program: ir.Program,
 active: []bool,
 declared: []bool,
-parameter_owner: []?ir.ExprId,
+declaration_owner: []?ir.ExprId,
 pure_functions: ?[]const bool = null,
 callback_depth: usize = 0,
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
@@ -22,16 +22,17 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 
     defer allocator.free(declared);
 
-    const parameter_owner = try allocator.alloc(?ir.ExprId, program.symbols.len);
+    const declaration_owner = try allocator.alloc(?ir.ExprId, program.symbols.len);
 
-    defer allocator.free(parameter_owner);
+    defer allocator.free(declaration_owner);
     @memset(active, false);
     @memset(declared, false);
-    @memset(parameter_owner, null);
+    @memset(declaration_owner, null);
 
     active[0] = true;
     declared[0] = true;
-    var self = Self{ .allocator = allocator, .program = program, .active = active, .declared = declared, .parameter_owner = parameter_owner };
+
+    var self = Self{ .allocator = allocator, .program = program, .active = active, .declared = declared, .declaration_owner = declaration_owner };
 
     defer if (self.pure_functions) |pure| allocator.free(pure);
 
@@ -45,7 +46,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 }
 
 fn declare(self: *Self, symbol: ir.SymbolId, type_id: ir.TypeId) bool {
-    const index = @intFromEnum(symbol);
+    const index = @backingInt(symbol);
 
     if (index >= self.active.len or self.declared[index] or self.program.symbols[index].type_id != type_id or type_id == Types.scalarId(.void)) return false;
 
@@ -80,7 +81,7 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
 
                     const value = self.program.expression(invocation.value).value;
 
-                    if (value != .call or !self.pure_functions.?[@intFromEnum(value.call.function)]) return false;
+                    if (value != .call or !self.pure_functions.?[@backingInt(value.call.function)]) return false;
                 }
 
                 for (invocations) |invocation| {
@@ -130,11 +131,65 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
 }
 
 fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!bool {
-    if (@intFromEnum(id) >= self.program.expressions.len or depth > 256) return false;
+    if (@backingInt(id) >= self.program.expressions.len or depth > 256) return false;
 
     return switch (self.program.expression(id).value) {
         .store_get => self.callback_depth == 0,
-        .reference => |symbol| self.active[@intFromEnum(symbol)],
+        .list_update => |update| try self.expression(update.target, depth + 1) and try self.expression(update.index, depth + 1) and try self.expression(update.value, depth + 1),
+        .iteration => |iteration| blk: {
+            if (!try self.expression(iteration.initial, depth + 1)) break :blk false;
+
+            const saved = try self.allocator.dupe(bool, self.active);
+
+            defer self.allocator.free(saved);
+            defer @memcpy(self.active, saved);
+
+            self.callback_depth += 1;
+            defer self.callback_depth -= 1;
+            const parameters = [_]ir.SymbolId{ iteration.condition_parameter, iteration.parameter };
+            const callbacks = [_]ir.ExprId{ iteration.condition, iteration.body };
+
+            for (parameters, callbacks) |parameter, callback| {
+                @memset(self.active, false);
+
+                const index = @backingInt(parameter);
+
+                if (index >= self.active.len or (self.declared[index] and self.declaration_owner[index] != id)) break :blk false;
+
+                self.declared[index] = true;
+                self.active[index] = true;
+                self.declaration_owner[index] = id;
+
+                if (!try self.expression(callback, depth + 1)) break :blk false;
+            }
+
+            break :blk true;
+        },
+        .scope => |scope| blk: {
+            const saved = try self.allocator.dupe(bool, self.active);
+
+            defer self.allocator.free(saved);
+            defer @memcpy(self.active, saved);
+
+            for (scope.bindings) |binding| {
+                if (!try self.expression(binding.value, depth + 1)) break :blk false;
+
+                if (binding.symbol) |symbol| {
+                    const index = @backingInt(symbol);
+
+                    if (index >= self.active.len or self.active[index]) break :blk false;
+                    if (self.declared[index] and self.declaration_owner[index] != id) break :blk false;
+                    if (self.program.symbols[index].type_id == Types.scalarId(.void)) break :blk false;
+
+                    self.declared[index] = true;
+                    self.active[index] = true;
+                    self.declaration_owner[index] = id;
+                }
+            }
+
+            break :blk try self.expression(scope.result, depth + 1);
+        },
+        .reference => |symbol| self.active[@backingInt(symbol)],
         .field, .tuple_field => |field| self.expression(field.target, depth + 1),
         .index => |item| try self.expression(item.target, depth + 1) and try self.expression(item.index, depth + 1),
         .length, .some => |child| self.expression(child, depth + 1),
@@ -162,7 +217,7 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
 
             break :blk true;
         },
-        .call => |call| self.expression(call.argument, depth + 1),
+        .call => |call| (self.callback_depth == 0 or call.stores.len == 0) and try self.expression(call.argument, depth + 1),
         .list_operation => |operation| try self.expression(operation.target, depth + 1) and try self.sequence(operation.arguments, depth + 1),
         .transform => |transform| blk: {
             if (!try self.expression(transform.target, depth + 1)) break :blk false;
@@ -181,14 +236,14 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
             defer self.callback_depth -= 1;
 
             for (transform.parameters) |symbol| {
-                const index = @intFromEnum(symbol);
+                const index = @backingInt(symbol);
 
                 if (self.active[index]) break :blk false;
-                if (self.declared[index] and self.parameter_owner[index] != id) break :blk false;
+                if (self.declared[index] and self.declaration_owner[index] != id) break :blk false;
 
                 self.declared[index] = true;
                 self.active[index] = true;
-                self.parameter_owner[index] = id;
+                self.declaration_owner[index] = id;
             }
 
             break :blk try self.expression(transform.body, depth + 1);
@@ -215,7 +270,7 @@ fn switchCases(self: *Self, selection: @FieldType(ir.Statement, "switch_stmt")) 
 
     for (selection.cases, 0..) |case, index| {
         if (case.value) |id| {
-            if (@intFromEnum(id) >= self.program.expressions.len or self.program.expression(id).type_id != type_id) return false;
+            if (@backingInt(id) >= self.program.expressions.len or self.program.expression(id).type_id != type_id) return false;
 
             const value = self.program.expression(id).value;
 

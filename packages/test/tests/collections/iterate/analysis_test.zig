@@ -2,21 +2,21 @@ const std = @import("std");
 const compiler = @import("compiler");
 const allocation_testing = @import("allocation_testing");
 
-test "iterate rules callbacks captures and state update targets are checked" {
+test "loop rules callbacks captures and state update targets are checked" {
     const cases = [_]struct { expression: []const u8, code: @FieldType(compiler.Diagnostic, "code"), message: []const u8 }{
-        .{ .expression = "iterate(in)", .code = .type_mismatch, .message = "iterate requires an initial state and a rule literal" },
-        .{ .expression = "iterate(in, 1)", .code = .type_mismatch, .message = "iterate rules must be an inline literal" },
-        .{ .expression = "iterate(in, { next: s => { s += 1 } })", .code = .type_mismatch, .message = "iterate requires while and exactly one next or do step" },
-        .{ .expression = "iterate(in, { while: s => false })", .code = .type_mismatch, .message = "iterate requires while and exactly one next or do step" },
-        .{ .expression = "iterate(in, { while: s => false, next: s => { s += 1 }, do: s => { s += 1 } })", .code = .name, .message = "iterate requires exactly one next or do step" },
-        .{ .expression = "iterate(in, { while: s => false, next: s => { s += 1 }, other: 1 })", .code = .name, .message = "unknown iterate rule; expected while and next or do" },
-        .{ .expression = "iterate(in, { while: s => 1, next: s => { s += 1 } })", .code = .type_mismatch, .message = "a numeric literal requires a numeric type" },
-        .{ .expression = "iterate(in, { while: () => false, next: s => { s += 1 } })", .code = .type_mismatch, .message = "iterate callbacks require one inline state parameter" },
-        .{ .expression = "iterate(in, { while: s => false, next: s => s + 1 })", .code = .type_mismatch, .message = "iterate next and do require a state update block" },
-        .{ .expression = "iterate(in, { while: s => false, next: s => { return s } })", .code = .return_path, .message = "iterate steps yield state at the block end; return is not allowed" },
-        .{ .expression = "iterate(in, { while: s => false, next: s => { const old = s\n\n old += 1 } })", .code = .ownership, .message = "only the iterate state parameter can be updated" },
-        .{ .expression = "iterate(in, { while: s => false, next: s => { const s = 1 } })", .code = .name, .message = "the iterate state parameter cannot be redeclared" },
-        .{ .expression = "iterate(in, { while: s => in < 3, next: s => { s += 1 } })", .code = .ownership, .message = "ZX callbacks cannot capture outer bindings; use explicit callback parameters" },
+        .{ .expression = "loop(in)", .code = .type_mismatch, .message = "loop requires an initial state and a rule literal" },
+        .{ .expression = "loop(in, 1)", .code = .type_mismatch, .message = "loop rules must be an inline literal" },
+        .{ .expression = "loop(in, { next: s => { s += 1 } })", .code = .type_mismatch, .message = "loop requires while and exactly one next or do step" },
+        .{ .expression = "loop(in, { while: s => false })", .code = .type_mismatch, .message = "loop requires while and exactly one next or do step" },
+        .{ .expression = "loop(in, { while: s => false, next: s => { s += 1 }, do: s => { s += 1 } })", .code = .name, .message = "loop requires exactly one next or do step" },
+        .{ .expression = "loop(in, { while: s => false, next: s => { s += 1 }, other: 1 })", .code = .name, .message = "unknown loop rule; expected while and next or do" },
+        .{ .expression = "loop(in, { while: s => 1, next: s => { s += 1 } })", .code = .type_mismatch, .message = "a numeric literal requires a numeric type" },
+        .{ .expression = "loop(in, { while: () => false, next: s => { s += 1 } })", .code = .type_mismatch, .message = "loop callbacks require one inline state parameter" },
+        .{ .expression = "loop(in, { while: s => false, next: s => s + 1 })", .code = .type_mismatch, .message = "loop next and do require a state update block" },
+        .{ .expression = "loop(in, { while: s => false, next: s => { return s } })", .code = .return_path, .message = "loop steps yield state at the block end; return is not allowed" },
+        .{ .expression = "loop(in, { while: s => false, next: s => { const old = s\n\n old += 1 } })", .code = .ownership, .message = "only the loop state parameter can be updated" },
+        .{ .expression = "loop(in, { while: s => false, next: s => { const s = 1 } })", .code = .name, .message = "the loop state parameter cannot be redeclared" },
+        .{ .expression = "loop(in, { while: s => in < 3, next: s => { s += 1 } })", .code = .ownership, .message = "ZX callbacks cannot capture outer bindings; use explicit callback parameters" },
     };
 
     for (cases) |case| {
@@ -46,6 +46,6 @@ fn valid(allocator: std.mem.Allocator) !void {
     try std.testing.expect(std.mem.indexOf(u8, result.source, "allocator.alloc") == null);
 }
 
-test "iterate scalar analysis and lowering clean all allocation failures" {
+test "loop scalar analysis and lowering clean all allocation failures" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, valid, .{});
 }

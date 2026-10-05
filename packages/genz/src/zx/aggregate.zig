@@ -33,7 +33,7 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         try body.append(self.allocator, .{ .constant = .{ .name = name, .value = expression } });
 
         names[index] = name;
-        counts[index] = self.cache_reads[@intFromEnum(item)];
+        counts[index] = self.cache_reads[@backingInt(item)];
 
         try self.cache.put(self.allocator, item, try self.builder.identifier(name));
     }
@@ -45,24 +45,36 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
     for (value.fields, 0..) |field, index| fields[index] = .{ .name = type_fields[field.index].name, .value = try self.expr(field.value) };
 
     for (value.evaluation, 0..) |item, index| {
-        if (counts[index] == self.cache_reads[@intFromEnum(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
+        if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
     }
 
-    const result = try self.builder.expression(.{ .object = .{ .type_expr = self.layouts[@intFromEnum(type_id)], .fields = fields } });
+    const result = try self.builder.expression(.{ .object = .{ .type_expr = self.layouts[@backingInt(type_id)], .fields = fields } });
 
     return finish(self, &body, if (layout) result else try self.construct(type_id, result));
 }
 
 pub fn sequence(self: *Lower, value: ir.Expression, items: []const ir.ExprId) Lower.Error!*const node.Expression {
+    return sequenceMode(self, value, items, false);
+}
+
+pub fn tupleValue(self: *Lower, value: ir.Expression, items: []const ir.ExprId) Lower.Error!*const node.Expression {
+    return sequenceMode(self, value, items, true);
+}
+
+fn sequenceMode(self: *Lower, value: ir.Expression, items: []const ir.ExprId, layout: bool) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     const expressions = try self.allocator.alloc(*const node.Expression, items.len);
 
     for (items, 0..) |item, index| expressions[index] = try bind(self, &body, try self.expr(item));
 
     const result = switch (value.value) {
-        .tuple => try self.construct(value.type_id, try self.builder.expression(.{ .tuple = expressions })),
+        .tuple => blk: {
+            const tuple = try self.builder.expression(.{ .tuple = expressions });
+
+            break :blk if (layout) tuple else try self.construct(value.type_id, tuple);
+        },
         .list => blk: {
-            const element_type = self.types[@intFromEnum(self.program.typeOf(value.type_id).list)];
+            const element_type = self.types[@backingInt(self.program.typeOf(value.type_id).list)];
             const array = try self.builder.expression(.{ .array = .{ .element_type = element_type, .values = expressions } });
 
             break :blk try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element_type, try self.builder.expression(.{ .address_of = array }) }, true);

@@ -7,7 +7,7 @@ export type Output = { original: i64[], values: i64[], seen: i64 }
 export default function (in: Input): Output {
   const initial: State = { pair: [in.values, 0], count: in.count }
 
-  const result = iterate(initial, {
+  const result = loop(initial, {
     while: state => state.pair[1] < state.count,
     next: state => {
       state.pair[0][0] += 1

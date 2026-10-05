@@ -64,6 +64,7 @@ fn checkBinding(name: zx.ast.Name, kind: NameKind) ?zx.Diagnostic {
 fn checkBlock(block: zx.ast.Block) ?zx.Diagnostic {
     for (block.statements) |statement| {
         switch (statement.value) {
+            .state_update => |value| if (checkExpression(value.target) orelse checkExpression(value.value)) |issue| return issue,
             .evaluate => |value| if (checkExpression(value)) |issue| return issue,
             .constant => |binding| {
                 if (checkBinding(binding.name, .value)) |issue| return issue;
@@ -111,6 +112,7 @@ fn checkBlock(block: zx.ast.Block) ?zx.Diagnostic {
 
 fn checkExpression(expression: *const zx.ast.Expression) ?zx.Diagnostic {
     switch (expression.value) {
+        .state_block => |body| return checkBlock(body),
         .lambda => |lambda| {
             for (lambda.parameters) |name| {
                 if (checkBinding(name, .value)) |issue| return issue;

@@ -1,0 +1,9 @@
+export type Counter = { remaining: u64, processed: u64 }
+
+export type Input = { counter: Counter }
+
+export type Output = Counter
+
+export default function (in: Input): Output {
+  return in.counter.remaining > 0 ? { remaining: in.counter.remaining - 1, processed: in.counter.processed + 1 } : in.counter
+}

@@ -15,6 +15,7 @@ pub fn block(self: *Analyzer, value: zx.ast.Block) zx.Error![]const ir.Statement
         if (Analyzer.returns(result.items)) return self.reporter.fail(.return_path, statement.span, "unreachable statement after a terminating branch or return");
 
         switch (statement.value) {
+            .state_update => return self.reporter.fail(.unsupported, statement.span, "state updates are only allowed in loop"),
             .evaluate => |source| {
                 const id = try self.expression(source, Types.scalarId(.void));
 
@@ -81,7 +82,7 @@ pub fn block(self: *Analyzer, value: zx.ast.Block) zx.Error![]const ir.Statement
     return result.toOwnedSlice(self.allocator);
 }
 
-fn bindingName(self: *Analyzer, name: zx.ast.Name) zx.Error!void {
+pub fn bindingName(self: *Analyzer, name: zx.ast.Name) zx.Error!void {
     if (std.mem.startsWith(u8, name.text, "$") or std.mem.eql(u8, name.text, "in") or std.mem.eql(u8, name.text, "store") or std.mem.eql(u8, name.text, "_")) {
         return self.reporter.fail(.name, name.span, "reserved bindings cannot be redeclared; _ is only a tuple discard pattern");
     }

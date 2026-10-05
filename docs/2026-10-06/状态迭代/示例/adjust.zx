@@ -1,0 +1,20 @@
+export type Input = { values: i64[], increment: i64 }
+
+export type State = { values: i64[], increment: i64, index: u64, total: i64 }
+
+export type Output = { original: i64[], values: i64[], total: i64 }
+
+export default function (in: Input): Output {
+  const initial: State = { values: in.values, increment: in.increment, index: 0, total: 0 }
+
+  const final_state = loop(initial, {
+    while: state => state.index < state.values.length,
+    next: state => {
+      state.values[state.index] += state.increment
+      state.total += state.values[state.index]
+      state.index += 1
+    }
+  })
+
+  return { original: initial.values, values: final_state.values, total: final_state.total }
+}

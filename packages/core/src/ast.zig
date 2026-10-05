@@ -31,6 +31,7 @@ pub const Expression = struct {
         list: []const *const Expression,
         call: struct { callee: *const Expression, arguments: []const *const Expression, type_argument: ?*const Type = null },
         lambda: struct { parameters: []const Name, body: *const Expression },
+        state_block: Block,
         template: []const TemplatePart,
         unary: struct { operator: enum { negate, not }, operand: *const Expression },
         binary: struct { operator: Operator, left: *const Expression, right: *const Expression },
@@ -47,6 +48,7 @@ pub const Statement = struct {
     span: Span,
     value: union(enum) {
         evaluate: *const Expression,
+        state_update: struct { target: *const Expression, value: *const Expression, operator: ?Operator },
         constant: struct { name: Name, annotation: ?*const Type = null, value: *const Expression },
         destructure: struct { names: []const Name, value: *const Expression },
         branch: struct { condition: *const Expression, yes: Block, no: ?Block },

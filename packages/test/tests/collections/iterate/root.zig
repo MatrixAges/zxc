@@ -76,25 +76,25 @@ fn failures(allocator: std.mem.Allocator) !void {
     _ = try run(allocator, 17);
 }
 
-test "iterate zero initial count" {
+test "loop zero initial count" {
     _ = try run(std.testing.allocator, 0);
 }
 
-test "iterate one and two state transitions" {
+test "loop one and two state transitions" {
     for ([_]usize{ 1, 2 }) |count| _ = try run(std.testing.allocator, count);
 }
 
-test "iterate ordered state snapshots across branches" {
+test "loop ordered state snapshots across branches" {
     _ = try run(std.testing.allocator, 17);
 }
 
-test "iterate long execution and boundary inputs" {
+test "loop long execution and boundary inputs" {
     if (comptime isMode("next") or isMode("do")) {
         for ([_]usize{ 4095, 4096, 4097, 8192 }) |count| _ = try run(std.testing.allocator, count);
     } else _ = try run(std.testing.allocator, 257);
 }
 
-test "iterate cleans every allocation failure or needs no allocation" {
+test "loop cleans every allocation failure or needs no allocation" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, failures, .{});
 }
 

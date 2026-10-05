@@ -14,6 +14,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 - number→f64、boolean→bool、Array<T>→T[]；标量、对象、枚举、optional、list、tuple；const、解构、if、switch、match 表达式、return。
 - 列表和对象字面量、展开、索引、length、模板、字符串比较、三元与空值回退。
 - 无捕获 map/filter/reduce，reduce 支持独占累加器；消费式列表更新统一返回元组，可用整数常量索引选择字段；禁止 clone 深拷贝。用法与性能边界见 [归约累加器参考](../../docs/2026-10-05/归约累加器所有权参考.md)，无累加器逃逸的只追加 reduce 支持 [局部容量复用](../../docs/2026-10-05/归约追加生成参考.md)。
+- `loop(initial, { while, next })` 与 `{ do, while }` 返回最终状态，支持局部状态更新块，回调禁止捕获；ZX 与 RX 内联表达式使用同一语义。详见 [loop 使用参考](../../docs/2026-10-06/loop使用参考.md)。不提供 `forEach`。
 - 普通函数输入默认借用；`in: owned Input` 显式消费调用者的独占输入，契约贯穿模块、库与缓存。Zig 入口暴露 `consumes_input`，详见 [显式输入消费参考](../../docs/2026-10-05/显式输入消费参考.md)。
 - Call 注入的 `$name.value` Store getter/setter、类型与独立读写权限、暂存与宿主统一提交。
 - 显式注册并审查的 zig:/c: 接口与模块成员，保留旧 lib: 兼容；无前缀 ZX 包入口映射；普通项目函数的 Input/Output 类型连接。

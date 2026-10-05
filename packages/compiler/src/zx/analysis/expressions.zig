@@ -12,9 +12,9 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
     if (@import("expression_binding.zig").unit(self, expression)) return self.append(.{ .span = span, .type_id = Types.scalarId(.void), .value = .unit });
 
     if (@import("expression_binding.zig").lookup(self, expression)) |binding| {
-        const symbol = try self.resolveValue(.{ .text = self.symbols.items[@intFromEnum(binding)].name, .span = span });
+        const symbol = try self.resolveValue(.{ .text = self.symbols.items[@backingInt(binding)].name, .span = span });
 
-        return self.append(.{ .span = span, .type_id = self.symbols.items[@intFromEnum(symbol)].type_id, .value = .{ .reference = symbol } });
+        return self.append(.{ .span = span, .type_id = self.symbols.items[@backingInt(symbol)].type_id, .value = .{ .reference = symbol } });
     }
 
     switch (expression.value) {
@@ -24,7 +24,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
         .identifier => |name| {
             const symbol = try self.resolveValue(name);
 
-            return self.append(.{ .span = span, .type_id = self.symbols.items[@intFromEnum(symbol)].type_id, .value = .{ .reference = symbol } });
+            return self.append(.{ .span = span, .type_id = self.symbols.items[@backingInt(symbol)].type_id, .value = .{ .reference = symbol } });
         },
         .field => |field| {
             if (field.target.value == .identifier and std.mem.startsWith(u8, field.target.value.identifier.text, "$") and @import("expression_binding.zig").lookup(self, field.target) == null and !@import("expression_binding.zig").unit(self, field.target)) {
@@ -48,7 +48,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
             }
 
             const target = try self.expression(field.target, null);
-            const target_type = self.types.items.items[@intFromEnum(self.node(target).type_id)];
+            const target_type = self.types.items.items[@backingInt(self.node(target).type_id)];
 
             if ((target_type == .list or self.node(target).type_id == Types.scalarId(.string)) and std.mem.eql(u8, field.name.text, "length")) {
                 return self.append(.{ .span = span, .type_id = Types.scalarId(.u64), .value = .{ .length = target } });
@@ -150,17 +150,18 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
             return self.append(.{ .span = span, .type_id = target_type.list, .value = .{ .index = .{ .target = target, .index = index } } });
         },
         .call => return @import("calls.zig").analyze(self, expression, expected),
-        .lambda => return self.reporter.fail(.unsupported, span, "callbacks are only allowed directly in map, filter, reduce or forEach"),
+        .lambda => return self.reporter.fail(.unsupported, span, "callbacks are only allowed directly in map, filter, reduce or loop rules"),
+        .state_block => return self.reporter.fail(.unsupported, span, "state update blocks are only allowed in loop"),
         .template => return @import("strings.zig").template(self, expression),
     }
 }
 
 pub fn knownType(self: *const Analyzer, value: *const zx.ast.Expression) ?ir.TypeId {
     if (@import("expression_binding.zig").unit(self, value)) return Types.scalarId(.void);
-    if (@import("expression_binding.zig").lookup(self, value)) |binding| return self.symbols.items[@intFromEnum(binding)].type_id;
+    if (@import("expression_binding.zig").lookup(self, value)) |binding| return self.symbols.items[@backingInt(binding)].type_id;
 
     return switch (value.value) {
-        .identifier => |name| if (self.lookup(name.text)) |id| self.symbols.items[@intFromEnum(id)].type_id else null,
+        .identifier => |name| if (self.lookup(name.text)) |id| self.symbols.items[@backingInt(id)].type_id else null,
         .field => |field| blk: {
             if (field.target.value == .identifier and std.mem.startsWith(u8, field.target.value.identifier.text, "$")) {
                 for (self.stores) |slot| {
@@ -169,7 +170,7 @@ pub fn knownType(self: *const Analyzer, value: *const zx.ast.Expression) ?ir.Typ
             }
 
             const type_id = knownType(self, field.target) orelse break :blk null;
-            const value_type = self.types.items.items[@intFromEnum(type_id)];
+            const value_type = self.types.items.items[@backingInt(type_id)];
 
             if ((value_type == .list or type_id == Types.scalarId(.string)) and std.mem.eql(u8, field.name.text, "length")) break :blk Types.scalarId(.u64);
 

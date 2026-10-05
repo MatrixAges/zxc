@@ -1,0 +1,25 @@
+import hasCursor from "./has_cursor"
+
+export type Input = { count: u64 }
+
+export type Cursor = { remaining: u64 }
+
+export type State = { cursor: Cursor?, processed: u64 }
+
+export type Output = { initial: State, result: State }
+
+export default function (in: Input): Output {
+  const initial: State = { cursor: in.count > 0 ? { remaining: in.count } : null, processed: 0 }
+
+  const result = loop(initial, {
+    while: state => hasCursor(state),
+    next: state => {
+      const cursor = state.cursor ?? { remaining: 0 }
+
+      state.cursor = cursor.remaining > 1 ? { remaining: cursor.remaining - 1 } : null
+      state.processed += 1
+    }
+  })
+
+  return { initial: initial, result: result }
+}

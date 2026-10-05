@@ -27,30 +27,31 @@ fn read(self: Self, value: @FieldType(ir.Expression, "value")) bool {
     const safe = self.safe;
 
     return switch (value) {
+        .scope, .iteration, .list_update => false,
         .reference => |symbol| symbol != self.accumulator,
         .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .store_get => true,
-        .some => |id| safe[@intFromEnum(id)],
-        .length => |id| self.field(id) or safe[@intFromEnum(id)],
-        .field => |item| if (self.direct(item.target)) item.index != self.field_index else safe[@intFromEnum(item.target)],
-        .tuple_field => |item| safe[@intFromEnum(item.target)],
-        .index => |item| safe[@intFromEnum(item.target)] and safe[@intFromEnum(item.index)],
+        .some => |id| safe[@backingInt(id)],
+        .length => |id| self.field(id) or safe[@backingInt(id)],
+        .field => |item| if (self.direct(item.target)) item.index != self.field_index else safe[@backingInt(item.target)],
+        .tuple_field => |item| safe[@backingInt(item.target)],
+        .index => |item| safe[@backingInt(item.target)] and safe[@backingInt(item.index)],
         .list, .tuple, .template => |items| all(safe, items),
-        .list_operation => |item| safe[@intFromEnum(item.target)] and all(safe, item.arguments),
-        .transform => |item| safe[@intFromEnum(item.target)] and safe[@intFromEnum(item.body)] and (if (item.initial) |initial| safe[@intFromEnum(initial)] else true),
-        .call => |item| safe[@intFromEnum(item.argument)],
-        .unary => |item| safe[@intFromEnum(item.operand)],
-        .binary => |item| safe[@intFromEnum(item.left)] and safe[@intFromEnum(item.right)],
-        .conditional => |item| safe[@intFromEnum(item.condition)] and safe[@intFromEnum(item.yes)] and safe[@intFromEnum(item.no)],
+        .list_operation => |item| safe[@backingInt(item.target)] and all(safe, item.arguments),
+        .transform => |item| safe[@backingInt(item.target)] and safe[@backingInt(item.body)] and (if (item.initial) |initial| safe[@backingInt(initial)] else true),
+        .call => |item| safe[@backingInt(item.argument)],
+        .unary => |item| safe[@backingInt(item.operand)],
+        .binary => |item| safe[@backingInt(item.left)] and safe[@backingInt(item.right)],
+        .conditional => |item| safe[@backingInt(item.condition)] and safe[@backingInt(item.yes)] and safe[@backingInt(item.no)],
         .match_expr => |item| blk: {
-            if (item.subject) |subject| if (!safe[@intFromEnum(subject)]) break :blk false;
-            if (!safe[@intFromEnum(item.fallback)]) break :blk false;
-            for (item.arms) |arm| if (!safe[@intFromEnum(arm.condition)] or !safe[@intFromEnum(arm.result)]) break :blk false;
+            if (item.subject) |subject| if (!safe[@backingInt(subject)]) break :blk false;
+            if (!safe[@backingInt(item.fallback)]) break :blk false;
+            for (item.arms) |arm| if (!safe[@backingInt(arm.condition)] or !safe[@backingInt(arm.result)]) break :blk false;
 
             break :blk true;
         },
         .object => |item| blk: {
             if (!all(safe, item.evaluation)) break :blk false;
-            for (item.fields) |entry| if (!safe[@intFromEnum(entry.value)]) break :blk false;
+            for (item.fields) |entry| if (!safe[@backingInt(entry.value)]) break :blk false;
 
             break :blk true;
         },
@@ -60,7 +61,7 @@ fn read(self: Self, value: @FieldType(ir.Expression, "value")) bool {
 fn result(self: *Self, id: ir.ExprId) std.mem.Allocator.Error!bool {
     return switch (self.program.expression(id).value) {
         .reference => |symbol| symbol == self.accumulator,
-        .conditional => |value| self.safe[@intFromEnum(value.condition)] and try self.result(value.yes) and try self.result(value.no),
+        .conditional => |value| self.safe[@backingInt(value.condition)] and try self.result(value.yes) and try self.result(value.no),
         .object => |value| blk: {
             const selected = for (value.fields) |item| {
                 if (item.index == self.field_index) break item.value;
@@ -68,10 +69,10 @@ fn result(self: *Self, id: ir.ExprId) std.mem.Allocator.Error!bool {
 
             if (!try self.append(selected)) break :blk false;
 
-            for (value.fields) |item| if (item.index != self.field_index and !self.safe[@intFromEnum(item.value)]) break :blk false;
+            for (value.fields) |item| if (item.index != self.field_index and !self.safe[@backingInt(item.value)]) break :blk false;
 
             for (value.evaluation) |item| {
-                if (item == selected or self.safe[@intFromEnum(item)] or self.direct(item) or self.field(item)) continue;
+                if (item == selected or self.safe[@backingInt(item)] or self.direct(item) or self.field(item)) continue;
 
                 break :blk false;
             }
@@ -86,7 +87,7 @@ fn append(self: *Self, id: ir.ExprId) std.mem.Allocator.Error!bool {
     if (self.field(id)) return true;
 
     return switch (self.program.expression(id).value) {
-        .conditional => |value| self.safe[@intFromEnum(value.condition)] and try self.append(value.yes) and try self.append(value.no),
+        .conditional => |value| self.safe[@backingInt(value.condition)] and try self.append(value.yes) and try self.append(value.no),
         .tuple_field => |projection| blk: {
             const value = self.program.expression(projection.target).value;
 
@@ -116,7 +117,7 @@ fn field(self: Self, id: ir.ExprId) bool {
 }
 
 fn all(safe: []const bool, ids: []const ir.ExprId) bool {
-    for (ids) |id| if (!safe[@intFromEnum(id)]) return false;
+    for (ids) |id| if (!safe[@backingInt(id)]) return false;
 
     return true;
 }

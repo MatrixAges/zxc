@@ -31,7 +31,6 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
     const tuple_bindings_step = b.step("test-tuple-bindings", "Execute static tuple binding order mixed types and discarded slots");
     const array_pop_step = b.step("test-array-pop", "Execute empty pop after explicit list removal");
     const array_callbacks_step = b.step("test-array-callbacks", "Execute upstream dense array callback values seed and ordering");
-    const for_each_step = b.step("test-for-each-catalog", "Execute upstream forEach empty callback and input preservation cases");
     const nested_collections_step = b.step("test-nested-collections", "Execute nested collection callbacks and restored scopes");
     const nested_step = b.step("test-switch-nested", "Execute nested switch selection");
     const scope_step = b.step("test-switch-scope", "Execute switch branch-local bindings");
@@ -121,7 +120,6 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
         step.dependOn(&run.step);
 
-        if (std.mem.startsWith(u8, suite.name, "for-each-")) for_each_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "arrow-bodies-")) arrow_bodies_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "call-object-spread-")) call_object_spread_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "call-arguments-")) call_arguments_step.dependOn(&run.step);

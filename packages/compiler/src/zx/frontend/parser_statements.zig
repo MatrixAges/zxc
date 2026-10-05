@@ -145,6 +145,7 @@ const Evaluation = struct {
 
     pub fn parse(parser: *Parser) zx.Error!grammar.Match(@This().Value) {
         if (parser.current().kind != .identifier and !parser.at("(") and !parser.at("[")) return .miss;
+        if (parser.state_block_depth != 0) return .{ .hit = try @import("parser_iteration.zig").statement(parser) };
 
         const value = try parser.expression(0);
 

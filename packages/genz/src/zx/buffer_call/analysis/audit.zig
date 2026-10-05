@@ -15,7 +15,8 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
         const id: ir.ExprId = @fromBackingInt(@intCast(position));
 
         switch (expression.value) {
-            .transform => return .nested_transform,
+            .transform, .iteration => return .nested_transform,
+            .scope, .list_update => return .unsupported_operation,
             .index => |value| if (try count(trace, value.target, lane) != 0) return .element_read,
             .some => |value| if (try count(trace, value, lane) != 0) return .container_escape,
             .list => |values| for (values) |value| {

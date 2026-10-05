@@ -1,0 +1,18 @@
+import initial from "../../../../packages/compiler/src/zx/frontend/parser/expressions/state/initial"
+import request from "./request"
+
+import type { PreparedInput } from "../../../../packages/compiler/src/zx/frontend/parser/expressions/prepare/model"
+import type { Result, State } from "./model"
+
+export type Input = PreparedInput
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const indices: u64[] = []
+  const starts = in.lexical.lexed.tokens.reduce((indices, token) => indices.push(indices.length)[0], indices)
+  const results: Result[] = []
+  const state = initial({ prepared: in, start: 0, depth: 0, minimum: 0, allow_lambda: true })
+
+  return starts.reduce((state, index) => request({ state: state, start: index }), { state: state, results: results })
+}

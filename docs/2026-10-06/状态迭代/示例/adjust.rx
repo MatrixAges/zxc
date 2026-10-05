@@ -1,0 +1,13 @@
+<Module>
+  <Return value={{
+    original: $in.values,
+    adjusted: loop({ values: $in.values, increment: $in.increment, index: 0, total: 0 }, {
+      while: state => state.index < state.values.length,
+      next: state => {
+        state.values[state.index] += state.increment
+        state.total += state.values[state.index]
+        state.index += 1
+      }
+    })
+  }} />
+</Module>

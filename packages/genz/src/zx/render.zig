@@ -46,7 +46,8 @@ pub const Bundle = struct {
 };
 
 pub fn initialize(temporary: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
-    const value_functions = try value_call.functions(temporary, program);
+    const function_facts = try @import("value_call/analysis.zig").analyze(temporary, program);
+    const value_functions = function_facts.values;
 
     return .{
         .allocator = temporary,
@@ -60,6 +61,7 @@ pub fn initialize(temporary: std.mem.Allocator, program: zx.ir.Program) std.mem.
         .io_functions = try io.functions(temporary, program),
         .process_functions = try capabilities.functions(temporary, program, .process),
         .value_functions = value_functions,
+        .pure_functions = function_facts.pure,
         .buffer_functions = try buffer_call.analysis.functions(temporary, program, value_functions),
     };
 }

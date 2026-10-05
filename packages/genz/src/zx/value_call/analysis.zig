@@ -2,9 +2,19 @@ const std = @import("std");
 const ir = @import("zx").ir;
 
 pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]bool {
+    const summary = try analyze(allocator, program);
+
+    allocator.free(summary.pure);
+
+    return summary.values;
+}
+
+pub const Summary = struct { pure: []bool, values: []bool };
+
+pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Summary {
     const pure = try allocator.alloc(bool, program.functions.len);
 
-    defer allocator.free(pure);
+    errdefer allocator.free(pure);
 
     const eligible = try allocator.alloc(bool, program.functions.len);
 
@@ -13,7 +23,7 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
         eligible[index] = pure[index] and program.typeOf(function.output_type) == .object;
     }
 
-    return eligible;
+    return .{ .pure = pure, .values = eligible };
 }
 
 pub fn containsDescendant(program: ir.Program, parent: ir.TypeId, root: ir.TypeId) bool {
@@ -39,7 +49,7 @@ fn contains(program: ir.Program, child: ir.TypeId, root: ir.TypeId) bool {
 
 fn calls(expressions: []const ir.Expression, contracts: []const ir.Contract, pure: []const bool) bool {
     for (expressions) |expression| switch (expression.value) {
-        .call => |value| if (!pure[@intFromEnum(value.function)]) return false,
+        .call => |value| if (!pure[@backingInt(value.function)]) return false,
         else => {},
     };
 

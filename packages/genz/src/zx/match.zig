@@ -5,6 +5,14 @@ const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 
 pub fn lower(self: *Lower, selection: ir.Match) Lower.Error!*const node.Expression {
+    return lowerMode(self, selection, false);
+}
+
+pub fn lowerValue(self: *Lower, selection: ir.Match) Lower.Error!*const node.Expression {
+    return lowerMode(self, selection, true);
+}
+
+fn lowerMode(self: *Lower, selection: ir.Match, layout: bool) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     const previous = if (selection.subject) |subject| self.cache.get(subject) else null;
 
@@ -21,7 +29,8 @@ pub fn lower(self: *Lower, selection: ir.Match) Lower.Error!*const node.Expressi
         }
     }
 
-    var result = try self.expr(selection.fallback);
+    const values = @import("value_call/root.zig");
+    var result = if (layout) try values.expression(self, selection.fallback) else try self.expr(selection.fallback);
     var index = selection.arms.len;
 
     while (index > 0) {
@@ -34,7 +43,8 @@ pub fn lower(self: *Lower, selection: ir.Match) Lower.Error!*const node.Expressi
         else
             try self.expr(arm.condition);
 
-        result = try self.builder.expression(.{ .conditional = .{ .condition = condition, .yes = try self.expr(arm.result), .no = result } });
+        const yes = if (layout) try values.expression(self, arm.result) else try self.expr(arm.result);
+        result = try self.builder.expression(.{ .conditional = .{ .condition = condition, .yes = yes, .no = result } });
     }
 
     return if (selection.subject == null) result else aggregate.finish(self, &body, result);

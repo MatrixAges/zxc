@@ -44,14 +44,14 @@ pub fn analyze(self: *Analyzer, subject: *const zx.ast.Expression, source_cases:
     return .{ .switch_stmt = .{ .subject = value, .cases = try cases.toOwnedSlice(self.allocator), .exhaustive = exhaustive } };
 }
 
-fn isConstant(value: @FieldType(ir.Expression, "value")) bool {
+pub fn isConstant(value: @FieldType(ir.Expression, "value")) bool {
     return switch (value) {
         .integer, .negative_integer, .boolean, .string, .enum_value => true,
         else => false,
     };
 }
 
-fn equal(left: @FieldType(ir.Expression, "value"), right: @FieldType(ir.Expression, "value")) bool {
+pub fn equal(left: @FieldType(ir.Expression, "value"), right: @FieldType(ir.Expression, "value")) bool {
     if (std.meta.activeTag(left) != std.meta.activeTag(right)) {
         return (left == .integer and left.integer == 0 and right == .negative_integer and right.negative_integer == 0) or
             (right == .integer and right.integer == 0 and left == .negative_integer and left.negative_integer == 0);

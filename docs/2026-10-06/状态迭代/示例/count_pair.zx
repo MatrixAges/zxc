@@ -1,0 +1,21 @@
+export type Input = { count: u64 }
+
+export type Pair = [u64, u64]
+
+export type Output = { initial: Pair, result: Pair }
+
+export default function (in: Input): Output {
+  const initial: Pair = [in.count, 0]
+
+  const result = loop(initial, {
+    while: state => state[0] > 0,
+    next: state => {
+      const old = state
+
+      state[0] -= 1
+      state[1] = old[1] + 1
+    }
+  })
+
+  return { initial: initial, result: result }
+}

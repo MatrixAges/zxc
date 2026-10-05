@@ -70,12 +70,12 @@ fn block(self: *Self, statements: []const ir.Statement) zx.Error!void {
             .evaluate => |id| {
                 _ = try self.value(id, .read);
             },
-            .constant => |binding| self.places.assign(self.states, @intFromEnum(binding.symbol), try self.value(binding.value, .move)),
+            .constant => |binding| self.places.assign(self.states, @backingInt(binding.symbol), try self.value(binding.value, .move)),
             .parallel => |invocations| {
                 for (invocations) |invocation| {
                     const state = try self.value(invocation.value, .read);
 
-                    if (invocation.symbol) |symbol| self.places.assign(self.states, @intFromEnum(symbol), state);
+                    if (invocation.symbol) |symbol| self.places.assign(self.states, @backingInt(symbol), state);
 
                     self.freeze(self.program.expression(invocation.value).value.call.argument);
                 }
@@ -84,7 +84,7 @@ fn block(self: *Self, statements: []const ir.Statement) zx.Error!void {
                 const state = try self.value(binding.value, .move);
 
                 for (binding.symbols) |symbol| if (symbol) |id| {
-                    self.places.assign(self.states, @intFromEnum(id), state);
+                    self.places.assign(self.states, @backingInt(id), state);
                 };
             },
             .result => |result| if (result) |id| {
@@ -158,13 +158,85 @@ fn merge(target: []State, other: []const State) void {
 fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
     const expression = self.program.expression(id);
 
-    if (self.memo[@intFromEnum(id)]) |position| return self.access(position, mode, expression.span);
+    if (self.memo[@backingInt(id)]) |position| return self.access(position, mode, expression.span);
 
     const container = self.isReference(expression.type_id);
 
     const state: State = switch (expression.value) {
         .store_get => .borrowed,
-        .reference => |symbol| try self.access(@intFromEnum(symbol), mode, expression.span),
+        .list_update => |update| blk: {
+            _ = try self.value(update.target, .read);
+            _ = try self.value(update.index, .read);
+            const replacement = try self.value(update.value, .move);
+            const element = self.program.typeOf(expression.type_id).list;
+
+            if (self.isReference(element) or replacement == .borrowed or replacement == .loaned) {
+                self.freeze(update.target);
+                self.freeze(update.value);
+
+                break :blk .borrowed;
+            }
+
+            break :blk .owned;
+        },
+        .iteration => |iteration| blk: {
+            const initial = try self.value(iteration.initial, .read);
+            const temporary = self.program.expression(iteration.initial).value == .call and initial == .owned;
+            const saved = try self.allocator.dupe(State, self.states);
+
+            defer self.allocator.free(saved);
+            defer @memcpy(self.states, saved);
+
+            const state: State = if (container) .borrowed else .copy;
+
+            self.places.assign(self.states, @backingInt(iteration.condition_parameter), state);
+
+            _ = try self.value(iteration.condition, .read);
+
+            @memcpy(self.states, saved);
+            self.places.assign(self.states, @backingInt(iteration.parameter), if (temporary) .owned else state);
+
+            const result = try self.value(iteration.body, .move);
+
+            if (temporary and (result == .borrowed or result == .loaned)) {
+                @memcpy(self.states, saved);
+                self.places.assign(self.states, @backingInt(iteration.parameter), state);
+
+                _ = try self.value(iteration.body, .move);
+            }
+
+            const borrowed = container and ((!iteration.postcondition and !temporary) or result == .borrowed or result == .loaned);
+
+            if (borrowed) {
+                @memcpy(self.states, saved);
+                self.freeze(iteration.initial);
+                @memcpy(saved, self.states);
+            }
+
+            break :blk if (borrowed) .borrowed else result;
+        },
+        .scope => |scope| blk: {
+            const before = try self.allocator.dupe(State, self.states);
+
+            defer self.allocator.free(before);
+
+            for (scope.bindings) |binding| {
+                var evaluated = try self.value(binding.value, if (binding.symbol != null and !binding.borrow) .move else .read);
+
+                if (binding.borrow and self.isReference(self.program.expression(binding.value).type_id)) {
+                    self.freeze(binding.value);
+
+                    evaluated = .borrowed;
+                }
+
+                if (binding.symbol) |symbol| self.places.assign(self.states, @backingInt(symbol), evaluated);
+
+                self.releaseLoans(before);
+            }
+
+            break :blk try self.value(scope.result, mode);
+        },
+        .reference => |symbol| try self.access(@backingInt(symbol), mode, expression.span),
         .field, .tuple_field => |field| if (self.place(id)) |position| try self.access(position, if (container) mode else .read, expression.span) else try self.value(field.target, if (container) mode else .read),
         .index => |item| blk: {
             const source = try self.value(item.target, if (container) mode else .read);
@@ -194,11 +266,11 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
             defer self.allocator.free(previous);
             defer @memcpy(self.memo, previous);
 
-            for (object.evaluation, self.places.layout.cached[@intFromEnum(id)]) |item, position| {
+            for (object.evaluation, self.places.layout.cached[@backingInt(id)]) |item, position| {
                 const evaluated = try self.aggregateValue(item, mode);
 
                 self.places.assign(self.states, position, evaluated);
-                self.memo[@intFromEnum(item)] = position;
+                self.memo[@backingInt(item)] = position;
             }
 
             var result: State = .owned;
@@ -257,8 +329,6 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
 
             const result = try self.callback(transform, initial_state);
 
-            if (transform.kind == .forEach) break :blk .copy;
-
             if (transform.kind == .reduce and result == .borrowed and initial_state != .borrowed) {
                 @memcpy(self.states, saved);
 
@@ -285,7 +355,7 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
             defer self.allocator.free(before);
             defer self.releaseLoans(before);
 
-            const function = self.program.functions[@intFromEnum(call.function)];
+            const function = self.program.functions[@backingInt(call.function)];
             const argument = try self.value(call.argument, if (function.consumes_input) .move else .read);
 
             if (function.consumes_input and self.isReference(function.input_type) and argument != .owned) return self.reporter.fail(.ownership, expression.span, "owned Input requires an owned argument; borrowed values cannot be consumed");
@@ -363,10 +433,10 @@ fn access(self: *Self, position: usize, mode: Mode, span: zx.Span) zx.Error!Stat
 }
 
 fn place(self: *Self, id: ir.ExprId) ?usize {
-    if (self.memo[@intFromEnum(id)]) |position| return position;
+    if (self.memo[@backingInt(id)]) |position| return position;
 
     return switch (self.program.expression(id).value) {
-        .reference => |symbol| @intFromEnum(symbol),
+        .reference => |symbol| @backingInt(symbol),
         .field, .tuple_field => |field| if (self.place(field.target)) |parent| self.places.layout.child(parent, field.index) else null,
         else => null,
     };
@@ -384,9 +454,9 @@ fn receiverOwner(self: *Self, id: ir.ExprId) ?usize {
 
 fn callback(self: *Self, transform: ir.Transform, initial: State) zx.Error!State {
     for (transform.parameters, 0..) |parameter, index| {
-        const state: State = if (!self.isReference(self.program.symbols[@intFromEnum(parameter)].type_id)) .copy else if (transform.kind == .reduce and index == 0) initial else .borrowed;
+        const state: State = if (!self.isReference(self.program.symbols[@backingInt(parameter)].type_id)) .copy else if (transform.kind == .reduce and index == 0) initial else .borrowed;
 
-        self.places.assign(self.states, @intFromEnum(parameter), state);
+        self.places.assign(self.states, @backingInt(parameter), state);
     }
 
     return self.value(transform.body, .move);
@@ -418,6 +488,12 @@ fn borrow(self: *Self, id: ir.ExprId, permanent: bool) void {
     }
 
     switch (self.program.expression(id).value) {
+        .scope => |scope| self.borrow(scope.result, permanent),
+        .list_update => |update| {
+            self.borrow(update.target, permanent);
+            self.borrow(update.value, permanent);
+        },
+        .iteration => |iteration| self.borrow(iteration.initial, permanent),
         .field, .tuple_field => |field| self.borrow(field.target, permanent),
         .index => |item| self.borrow(item.target, permanent),
         .some => |child| self.borrow(child, permanent),

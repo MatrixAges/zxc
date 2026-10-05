@@ -12,12 +12,16 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expressio
 
     return switch (self.program.expression(id).value) {
         .object => aggregate.objectValue(self, id),
+        .tuple => |items| aggregate.tupleValue(self, self.program.expression(id), items),
+        .list_operation => |operation| @import("../collections.zig").lowerValue(self, self.program.expression(id).type_id, operation, self.layouts[@backingInt(self.program.expression(id).type_id)]),
+        .scope => |scope| @import("../scope.zig").lowerValue(self, scope),
+        .match_expr => |selection| @import("../match.zig").lowerValue(self, selection),
         .conditional => |value| self.builder.expression(.{ .conditional = .{
             .condition = try self.expr(value.condition),
             .yes = try expression(self, value.yes),
             .no = try expression(self, value.no),
         } }),
-        .call => |value| if (self.value_functions[@intFromEnum(value.function)]) invocation(self, value, null) else dereference(self, id),
+        .call => |value| if (self.value_functions[@backingInt(value.function)]) invocation(self, value, null) else dereference(self, id),
         else => dereference(self, id),
     };
 }
@@ -28,7 +32,7 @@ fn dereference(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
 
 pub fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.Expression, "value"), "call"), buffers: ?*const node.Expression) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
-    const function = self.program.functions[@intFromEnum(value.function)];
+    const function = self.program.functions[@backingInt(value.function)];
     const can_stack = !containsDescendant(self.program, function.output_type, function.input_type);
 
     const argument = if (can_stack and self.program.expression(value.argument).value == .object and !self.cache.contains(value.argument)) temporary: {
@@ -38,10 +42,10 @@ pub fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.Expression, "val
     } else try self.expr(value.argument);
 
     const callee = if (self.function_modules) |modules|
-        try self.field(try self.builtin(.import, &.{try self.builder.string(modules[@intFromEnum(value.function)])}), if (buffers != null) "callBuffered" else "callValue")
+        try self.field(try self.builtin(.import, &.{try self.builder.string(modules[@backingInt(value.function)])}), if (buffers != null) "callBuffered" else "callValue")
 
     else
-        try self.builder.identifier(try std.fmt.allocPrint(self.allocator, "function_{d}_{s}", .{ @intFromEnum(value.function), if (buffers != null) "buffered" else "value" }));
+        try self.builder.identifier(try std.fmt.allocPrint(self.allocator, "function_{d}_{s}", .{ @backingInt(value.function), if (buffers != null) "buffered" else "value" }));
 
     const arguments = try self.allocator.alloc(*const node.Expression, if (buffers != null) 3 else 2);
 

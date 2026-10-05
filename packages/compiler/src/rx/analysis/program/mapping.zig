@@ -7,15 +7,15 @@ allocator: std.mem.Allocator,
 symbols: []?ir.SymbolId,
 expressions: []?ir.ExprId,
 pub fn id(self: *const Self, value: ir.ExprId) Error!ir.ExprId {
-    if (@intFromEnum(value) >= self.expressions.len) return error.InvalidModule;
+    if (@backingInt(value) >= self.expressions.len) return error.InvalidModule;
 
-    return self.expressions[@intFromEnum(value)] orelse error.InvalidModule;
+    return self.expressions[@backingInt(value)] orelse error.InvalidModule;
 }
 
 fn symbol(self: *const Self, value: ir.SymbolId) Error!ir.SymbolId {
-    if (@intFromEnum(value) >= self.symbols.len) return error.InvalidModule;
+    if (@backingInt(value) >= self.symbols.len) return error.InvalidModule;
 
-    return self.symbols[@intFromEnum(value)] orelse error.InvalidModule;
+    return self.symbols[@backingInt(value)] orelse error.InvalidModule;
 }
 
 fn ids(self: *const Self, values: []const ir.ExprId) Error![]const ir.ExprId {
@@ -41,6 +41,26 @@ pub fn expression(self: *const Self, value: ir.Expression) Error!ir.Expression {
         .list => |items| .{ .list = try self.ids(items) },
         .tuple => |items| .{ .tuple = try self.ids(items) },
         .template => |items| .{ .template = try self.ids(items) },
+        .list_update => |update| .{ .list_update = .{ .target = try self.id(update.target), .index = try self.id(update.index), .value = try self.id(update.value) } },
+        .iteration => |item| .{ .iteration = .{
+            .initial = try self.id(item.initial),
+            .condition_parameter = try self.symbol(item.condition_parameter),
+            .parameter = try self.symbol(item.parameter),
+            .condition = try self.id(item.condition),
+            .body = try self.id(item.body),
+            .postcondition = item.postcondition,
+        } },
+        .scope => |scope| block: {
+            const bindings = try self.allocator.alloc(ir.ScopeBinding, scope.bindings.len);
+
+            for (scope.bindings, bindings) |binding, *mapped| mapped.* = .{
+                .symbol = if (binding.symbol) |source| try self.symbol(source) else null,
+                .value = try self.id(binding.value),
+                .borrow = binding.borrow,
+            };
+
+            break :block .{ .scope = .{ .bindings = bindings, .result = try self.id(scope.result) } };
+        },
         .unary => |item| .{ .unary = .{ .operator = item.operator, .operand = try self.id(item.operand) } },
         .binary => |item| .{ .binary = .{ .operator = item.operator, .left = try self.id(item.left), .right = try self.id(item.right) } },
         .conditional => |item| .{ .conditional = .{ .condition = try self.id(item.condition), .yes = try self.id(item.yes), .no = try self.id(item.no) } },

@@ -1,0 +1,22 @@
+import advanceCounter from "./advance_counter"
+
+export type Input = { count: u64 }
+
+export type Counter = { remaining: u64, processed: u64 }
+
+export type State = { counter: Counter }
+
+export type Output = { initial: State, result: State }
+
+export default function (in: Input): Output {
+  const initial: State = { counter: { remaining: in.count, processed: 0 } }
+
+  const result = loop(initial, {
+    do: state => {
+      state.counter = advanceCounter(state)
+    },
+    while: state => state.counter.remaining > 0
+  })
+
+  return { initial: initial, result: result }
+}

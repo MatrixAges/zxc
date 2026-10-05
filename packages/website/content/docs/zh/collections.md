@@ -13,15 +13,25 @@ export default function (in: Input): Output {
 
 `map` 和 `filter` 接受单参数回调；`reduce` 接受双参数回调和显式初始累加值。回调体必须是表达式，不能捕获外部值或 Store 句柄，但可以调用导入的函数。
 
-### 顺序执行，不收集结果
+### 按状态条件重复执行
+
+`loop` 接收初始状态和内联规则，返回同类型的最终状态。`while` 先判断，`next` 在条件为真时产生下一状态；不依赖预先构造的计数列表。
 
 ```typescript
-items.forEach(item => processItem(item))
+const result = loop(initial, {
+	while: state => state.remaining > 0,
+	next: state => {
+		state.remaining -= 1
+		state.processed += 1
+	}
+})
 ```
 
-`forEach` 按列表索引顺序执行单参数、无捕获的表达式回调，返回 `void`。回调结果逐轮丢弃，不创建结果列表；空列表不调用回调。它直接编译为 Zig 循环与静态调用，副作用不会被并行化。
+将 `next` 换成 `do`，则至少执行一次步骤，再判断更新后的状态。两者不能同时出现。条件返回 `bool`，步骤必须使用更新块；更新块可包含局部 `const`、`if` 和 `switch`，不能 `return` 或写入 Store。
 
-元素保持借用语义，不能在回调中消费借用元素或修改正在遍历的列表。回调失败时立即停止，不执行后续元素，也不回滚已经发生的外部副作用。`forEach` 可以独立作为语句；其他独立调用也必须返回 `void`。
+回调不能捕获外层变量，需要的数据放进初始状态。已有初值绑定仍可读取，状态更新不直接改写它。结果由外层新的 `const` 接收。`loop` 也可用于 RX 的 ZX 内联表达式；不提供 `forEach`。
+
+生成的程序使用普通 Zig 循环，是否复用对象或列表存储由编译器的所有权与别名分析决定。完整语法及已验证边界见 [loop 使用参考](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-06/loop使用参考.md)。
 
 ### 继续传递更新后的列表
 

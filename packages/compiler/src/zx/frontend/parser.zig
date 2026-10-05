@@ -9,6 +9,7 @@ tokens: []const zx.syntax.Token,
 reporter: *zx.Reporter,
 index: usize = 0,
 depth: usize = 0,
+state_block_depth: usize = 0,
 pub fn current(self: *const Self) zx.syntax.Token {
     return self.tokens[self.index];
 }

@@ -86,19 +86,19 @@ fn failures(allocator: std.mem.Allocator) !void {
     _ = try run(allocator, 4, 17, true);
 }
 
-test "iterate buffer preserves the zero step input without copying its list" {
+test "loop buffer preserves the zero step input without copying its list" {
     _ = try run(std.testing.allocator, 0, 17, true);
 }
 
-test "iterate buffer handles first and second writes" {
+test "loop buffer handles first and second writes" {
     for ([_]usize{ 1, 2 }) |count| _ = try run(std.testing.allocator, count, 17, true);
 }
 
-test "iterate buffer keeps inputs and stale versions intact across long execution" {
+test "loop buffer keeps inputs and stale versions intact across long execution" {
     for ([_]usize{ 17, 64 }) |count| _ = try run(std.testing.allocator, count, 257, true);
 }
 
-test "iterate buffer handles delayed writes and three step execution" {
+test "loop buffer handles delayed writes and three step execution" {
     if (comptime isMode("branch")) {
         const bytes = try run(std.testing.allocator, 64, 65537, false);
 
@@ -108,7 +108,7 @@ test "iterate buffer handles delayed writes and three step execution" {
     }
 }
 
-test "iterate buffer releases every allocation failure" {
+test "loop buffer releases every allocation failure" {
     try allocation_testing.checkAllAllocationFailures(std.testing.allocator, failures, .{});
 }
 

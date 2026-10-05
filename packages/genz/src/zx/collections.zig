@@ -6,6 +6,14 @@ const aggregate = @import("aggregate.zig");
 const intrinsic = @import("intrinsics.zig");
 
 pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation")) Lower.Error!*const node.Expression {
+    return lowerMode(self, type_id, operation, null);
+}
+
+pub fn lowerValue(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), layout: *const node.Expression) Lower.Error!*const node.Expression {
+    return lowerMode(self, type_id, operation, layout);
+}
+
+fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), layout: ?*const node.Expression) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(operation.target));
     const arguments = try self.allocator.alloc(*const node.Expression, operation.arguments.len);
@@ -13,7 +21,7 @@ pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(
     for (operation.arguments, arguments) |argument, *value| value.* = try aggregate.bind(self, &body, try self.expr(argument));
 
     const child = self.program.typeOf(self.program.expression(operation.target).type_id).list;
-    const child_type = self.types[@intFromEnum(child)];
+    const child_type = self.types[@backingInt(child)];
     const length = try self.field(source, "len");
     const unit = try self.builder.expression(.unit);
     var result: *const node.Expression = undefined;
@@ -84,7 +92,7 @@ pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(
         },
     }
 
-    return aggregate.finish(self, &body, try self.construct(type_id, result));
+    return aggregate.finish(self, &body, if (layout) |target| try self.cast(target, result) else try self.construct(type_id, result));
 }
 
 fn slice(self: *Lower, target: *const node.Expression, start: ?*const node.Expression, end: ?*const node.Expression) Lower.Error!*const node.Expression {

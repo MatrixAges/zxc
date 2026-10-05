@@ -7,7 +7,7 @@ export type Output = { original: i64[], values: i64[], seen: i64 }
 export default function (in: Input): Output {
   const initial: State = { values: in.values, count: in.count, index: 0, enabled: in.enabled }
 
-  const result = iterate(initial, {
+  const result = loop(initial, {
     while: state => state.index < state.count,
     next: state => {
       switch (state.index % 3) {

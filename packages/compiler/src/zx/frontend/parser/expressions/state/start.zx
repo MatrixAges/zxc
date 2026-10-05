@@ -1,0 +1,32 @@
+import { Keyword } from "../../../lexer/keyword_model"
+import { Kind, Symbol } from "../../../lexer/token_model"
+import { Operator, Family } from "../prepare/model"
+import { Phase } from "./model"
+
+import type { PreparedInput } from "../prepare/model"
+import type { ExprState, ExprTree, TypeState, ExprFrame } from "./model"
+
+export type Input = { prepared: PreparedInput, tree: ExprTree, types: TypeState, start: u64, depth: u64, minimum: u8, allow_lambda: bool }
+
+export type Output = ExprState
+
+export default function (in: owned Input): Output {
+  const frames: ExprFrame[] = []
+  const failed = in.prepared.lexical.lexed.diagnostic.message != ""
+  const last_end = failed || in.start == 0 ? 0 : in.prepared.lexical.lexed.tokens[in.start - 1].span.end
+
+  return {
+    prepared: in.prepared,
+    tree: in.tree,
+    types: in.types,
+    frames: frames,
+    control: {
+      phase: failed ? Phase.Done : Phase.BeginBinary, index: in.start, root_index: in.start, base_depth: in.depth, stream: 0, depth: in.depth, minimum: in.minimum, allow_lambda: in.allow_lambda,
+      fresh_family: true, family: Family.None, result: 0, primary_start: 0, last_end: last_end,
+      template_head: 0, template_count: 0, template_maximum: 0, cursor: 0, type_argument: 0,
+      token: { kind: Kind.Eof, word: Keyword.Root, symbol: Symbol.None, span: { start: 0, end: 0 }, line_break: false, dollar: false },
+      hint: { lambda: false, generic: false, binary: { operator: Operator.None, precedence: 0, family: Family.None } },
+      template: 0, lexical_diagnostic: failed ? 1 : 0, type_diagnostic: false, diagnostic: { code: "", start: 0, end: 0, message: "" }
+    }
+  }
+}

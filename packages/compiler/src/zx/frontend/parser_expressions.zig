@@ -75,7 +75,7 @@ fn primary(parser: *Parser, allow_lambda: bool) zx.Error!*const ast.Expression {
     } else if (parser.take("-")) {
         return parser.make(token.span.start, .{ .unary = .{ .operator = .negate, .operand = try primary(parser, allow_lambda) } });
     } else if (allow_lambda and isLambda(parser)) {
-        return lambda(parser);
+        return lambda(parser, false);
     } else if (parser.take("(")) {
         result = try parse(parser, 0);
 
@@ -100,7 +100,7 @@ fn primary(parser: *Parser, allow_lambda: bool) zx.Error!*const ast.Expression {
 
         result = try parser.make(token.span.start, .{ .object = try fields.toOwnedSlice(parser.allocator) });
     } else if (parser.take("[")) {
-        result = try parser.make(token.span.start, .{ .list = try arguments(parser, "]") });
+        result = try parser.make(token.span.start, .{ .list = try arguments(parser, "]", false) });
     } else if (parser.take("null")) {
         result = try parser.make(token.span.start, .null_value);
     } else if (parser.take("true") or parser.take("false")) {
@@ -136,18 +136,23 @@ fn primary(parser: *Parser, allow_lambda: bool) zx.Error!*const ast.Expression {
                 break;
             }
 
-            result = try parser.make(token.span.start, .{ .call = .{ .callee = result, .arguments = try arguments(parser, ")"), .type_argument = type_argument } });
+            const iteration = result.value == .identifier and std.mem.eql(u8, result.value.identifier.text, "loop");
+
+            result = try parser.make(token.span.start, .{ .call = .{ .callee = result, .arguments = try arguments(parser, ")", iteration), .type_argument = type_argument } });
         }
     }
 
     return result;
 }
 
-fn arguments(parser: *Parser, closing: []const u8) zx.Error![]const *const ast.Expression {
+fn arguments(parser: *Parser, closing: []const u8, iteration: bool) zx.Error![]const *const ast.Expression {
     var items: std.ArrayList(*const ast.Expression) = .empty;
 
     while (!parser.take(closing)) {
-        try items.append(parser.allocator, try parse(parser, 0));
+        const value = if (iteration and items.items.len == 1 and parser.at("{")) try @import("parser_iteration.zig").options(parser) else try parse(parser, 0);
+
+        try items.append(parser.allocator, value);
+
         if (!parser.take(",") and !parser.at(closing)) try parser.expect(",");
     }
 
@@ -182,7 +187,15 @@ fn isLambda(parser: *const Parser) bool {
     return index < parser.tokens.len and std.mem.eql(u8, parser.tokens[index].text(parser.source), "=>");
 }
 
-fn lambda(parser: *Parser) zx.Error!*const ast.Expression {
+pub fn stateCallback(parser: *Parser) zx.Error!*const ast.Expression {
+    return if (isLambda(parser)) lambda(parser, true) else parse(parser, 0);
+}
+
+fn lambda(parser: *Parser, updating: bool) zx.Error!*const ast.Expression {
+    const saved_depth = parser.state_block_depth;
+    parser.state_block_depth = 0;
+    defer parser.state_block_depth = saved_depth;
+
     const start = parser.current().span.start;
     const parenthesized = parser.take("(");
     var parameters: std.ArrayList(ast.Name) = .empty;
@@ -196,7 +209,9 @@ fn lambda(parser: *Parser) zx.Error!*const ast.Expression {
 
     try parser.expect("=>");
 
-    return parser.make(start, .{ .lambda = .{ .parameters = try parameters.toOwnedSlice(parser.allocator), .body = try parse(parser, 0) } });
+    const body = if (updating and parser.at("{")) try @import("parser_iteration.zig").body(parser) else try parse(parser, 0);
+
+    return parser.make(start, .{ .lambda = .{ .parameters = try parameters.toOwnedSlice(parser.allocator), .body = body } });
 }
 
 fn isGenericMethod(name: []const u8) bool {

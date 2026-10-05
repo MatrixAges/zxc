@@ -1,6 +1,6 @@
-import partSteps from "./part_steps"
 import initial from "./state/initial"
-import tokenSteps from "./token_steps"
+import { Phase } from "./state/model"
+import step from "./step"
 
 import type { PreparedInput } from "./prepare/model"
 import type { ExprState } from "./state/model"
@@ -10,11 +10,10 @@ export type Input = { prepared: PreparedInput, start: u64, depth: u64, minimum: 
 export type Output = ExprState
 
 export default function (in: owned Input): Output {
-  const tokens = in.prepared.lexical.lexed.tokens.map(token => false)
-  const streams = in.prepared.lexical.interpolations.map(interpolation => interpolation.lexed.tokens.map(token => false))
-  const parts = in.prepared.lexical.parts.map(part => false)
-  const root = tokens.reduce((state, marker) => tokenSteps(state), initial(in))
-  const nested = streams.reduce((state, stream) => stream.reduce((next, marker) => tokenSteps(next), state), root)
-
-  return parts.reduce((state, marker) => partSteps(state), nested)
+  return loop(initial(in), {
+    while: state => state.control.phase != Phase.Done,
+    next: state => {
+      state = step(state)
+    }
+  })
 }

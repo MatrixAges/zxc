@@ -25,12 +25,15 @@ ZX는 세미콜론을 사용하지 않습니다. 코드에 명시적인 `;`를 �
 | 문자열      | 바이트 동등성, 지원 스칼라 값의 템플릿 보간                                     |
 | 복사        | `clone(value)`                                                                  |
 | 변환        | 외부 값을 캡처하지 않는 `map`, `filter`, `reduce` 표현식 콜백                   |
+| 조건 반복   | `loop(initial, { while, next })` 또는 `loop(initial, { while, do })`            |
+
+일반 `for`, `while` 문은 지원하지 않습니다. `loop` 안의 `while` 규칙은 지원합니다. [컬렉션과 소유권](/docs/collections-and-ownership)을 참조하세요.
 
 템플릿 본문의 실제 CR 및 CRLF 줄바꿈은 LF로 정규화됩니다. 명시적인 `\r` 이스케이프는 CR로 유지됩니다. LF, U+2028, U+2029는 보존되며 일반 문자열 규칙은 바뀌지 않습니다.
 
 ### 지원되지 않는 가정
 
-`let`, `var`, `for`, `while`, `throw`, 일반 클로저, 사용자 정의 제네릭을 작성하지 마세요. 익숙한 구문이 TypeScript 호환성을 보장하지는 않습니다. 생성된 프로그램 아래에는 JavaScript 런타임이 없습니다.
+`let`, `var`, `throw`, 일반 클로저, 사용자 정의 제네릭을 작성하지 마세요. 익숙한 구문이 TypeScript 호환성을 보장하지는 않습니다. 생성된 프로그램 아래에는 JavaScript 런타임이 없습니다.
 
 ### 기능
 

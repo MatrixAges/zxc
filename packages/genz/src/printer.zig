@@ -171,6 +171,10 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.write("[]const ");
             try self.expression(element);
         },
+        .mutable_slice => |element| {
+            try self.write("[]");
+            try self.expression(element);
+        },
         .namespace_type => |declarations| {
             try self.write("struct {\n");
 
@@ -387,6 +391,14 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
                 try self.block(loop.body);
                 try self.write("\n");
             },
+            .while_loop => |loop| {
+                try self.write("while (");
+                try self.expression(loop.condition);
+                try self.write(") ");
+                try self.block(loop.body);
+                try self.write("\n");
+            },
+            .break_loop => try self.write("break;\n"),
             .break_value => |value| {
                 try self.write("break :");
                 try self.identifier(value.label);

@@ -13,15 +13,25 @@ export default function (in: Input): Output {
 
 `map` and `filter` take a one-argument callback. `reduce` takes a two-argument callback and an explicit initial accumulator. Callbacks have expression bodies and cannot capture outer values or Store handles. They may call imported functions.
 
-### Execute in order without collecting results
+### Repeat according to state
+
+`loop` takes an initial state and inline rules, then returns the final state of the same type. `while` checks the state first; `next` produces the next state when the condition is true.
 
 ```typescript
-items.forEach(item => processItem(item))
+const result = loop(initial, {
+	while: state => state.remaining > 0,
+	next: state => {
+		state.remaining -= 1
+		state.processed += 1
+	}
+})
 ```
 
-`forEach` executes a one-argument, non-capturing expression callback in index order and returns `void`. It discards each callback result without creating a result list. Empty lists make no calls. The compiler emits an ordinary Zig loop with static calls and preserves side-effect order.
+Use `do` instead of `next` to run the step at least once and check the updated state afterward. The rules cannot contain both. The condition returns `bool`; the step must be an update block. It may contain local `const` bindings, `if`, and `switch`, but cannot return early or write to Store.
 
-Elements remain borrowed: a callback cannot consume a borrowed element or modify the list being traversed. A failure stops the loop immediately; earlier external effects are not rolled back. `forEach` can stand alone as a statement. Other standalone calls must also return `void`.
+Callbacks cannot capture outer variables. Include required data in the initial state. An existing initial-state binding remains readable; the update does not mutate it. Bind the result to a new outer `const`. The same operation works in RX inline ZX expressions. There is no `forEach` operation.
+
+The compiler emits ordinary Zig loops. Storage reuse depends on ownership and alias analysis; using `loop` does not guarantee that every application operation avoids allocation. See the [loop reference](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-06/loop使用参考.md) for syntax and verified boundaries.
 
 ### Carry the updated list forward
 

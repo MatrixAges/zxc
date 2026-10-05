@@ -7,7 +7,7 @@ export type Output = { initial: State, result: State }
 export default function (in: Input): Output {
   const initial: State = { limit: in.count, index: 0, total: in.start, previous: in.start }
 
-  const result = iterate(initial, {
+  const result = loop(initial, {
     while: state => state.index < state.limit,
     next: state => {
       const old = state

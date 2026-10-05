@@ -26,6 +26,7 @@ pub fn infer(self: *Self, expression: *const zx.ast.Expression, expected: ?Graph
     const hint = try self.payload(expected);
 
     const value = switch (expression.value) {
+        .state_block => return self.graph.reporter.fail(.unsupported, span, "state update blocks are only allowed in loop"),
         .identifier => |name| block: {
             if (std.mem.eql(u8, name.text, "$in")) {
                 if (self.callback_depth != 0) return self.graph.reporter.fail(.ownership, span, "callbacks cannot capture the module input");
@@ -50,13 +51,7 @@ pub fn infer(self: *Self, expression: *const zx.ast.Expression, expected: ?Graph
         .null_value => try self.graph.add(.{ .optional = try self.graph.add(.unknown, span) }, span),
         .object => try @import("objects.zig").infer(self, expression, hint),
         .list => try @import("sequences.zig").infer(self, expression, hint),
-        .index => |item| block: {
-            const target = try self.infer(item.target, null);
-
-            _ = try self.infer(item.index, try self.graph.scalar(.u64, span));
-
-            break :block try self.graph.payload(target, .list, span);
-        },
+        .index => try @import("index.zig").infer(self, expression),
         .unary => |unary| block: {
             if (unary.operator == .not) break :block try self.infer(unary.operand, try self.graph.scalar(.bool, span));
             if (unary.operand.value == .number) break :block try self.graph.number(unary.operand.value.number, true, span);

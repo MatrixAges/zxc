@@ -1,0 +1,23 @@
+export type Input = { stop: u64 }
+
+export type State = { position: u64, stop: u64, even: u64, odd: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const initial: State = { position: 0, stop: in.stop, even: 0, odd: 0 }
+
+  return loop(initial, {
+    do: state => {
+      switch (state.position % 2) {
+        case 0:
+          state.even += 1
+        default:
+          state.odd += 1
+      }
+
+      state.position += 1
+    },
+    while: state => state.position < state.stop
+  })
+}

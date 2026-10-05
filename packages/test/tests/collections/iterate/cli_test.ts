@@ -9,7 +9,7 @@ const executable = resolve(process.argv[2])
 const optimize = process.argv[3]
 
 function fixture(files: Record<string, string>) {
-	const directory = mkdtempSync(join(tmpdir(), 'zxc iterate '))
+	const directory = mkdtempSync(join(tmpdir(), 'zxc loop '))
 	const application = join(directory, process.platform === 'win32' ? 'application.exe' : 'application')
 
 	for (const [path, source] of Object.entries(files)) writeFileSync(join(directory, path), source)
@@ -45,7 +45,7 @@ function fixture(files: Record<string, string>) {
 }
 
 for (const post of [false, true]) {
-	test(`iterate CLI / ${post ? 'postcondition' : 'precondition'} evaluation order`, () => {
+	test(`loop CLI / ${post ? 'postcondition' : 'precondition'} evaluation order`, () => {
 		const current = fixture({
 			'source.zx':
 				'import process from "std:process"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  process.writeStdoutText("I|")\n\n  return in\n}\n',
@@ -61,7 +61,7 @@ export type Input = u64
 export type Output = u64
 
 export default function (in: Input): Output {
-  return iterate(source(in), {
+  return loop(source(in), {
     while: state => condition(state),
     ${post ? 'do' : 'next'}: state => {
       process.writeStdoutText("S|")
@@ -91,7 +91,7 @@ export default function (in: Input): Output {
 	})
 }
 
-test('iterate CLI / index failure precedes right hand side effects', () => {
+test('loop CLI / index failure precedes right hand side effects', () => {
 	const current = fixture({
 		'position.zx':
 			'import process from "std:process"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  process.writeStdoutText("P|")\n\n  return in\n}\n',
@@ -109,7 +109,7 @@ export type Output = i64[]
 export default function (in: Input): Output {
   const initial: State = { values: in.values, count: in.count, index: 0 }
 
-  const result = iterate(initial, {
+  const result = loop(initial, {
     while: state => state.index < state.count,
     next: state => {
       state.values[position(state.index)] = value(7)
@@ -137,10 +137,10 @@ export default function (in: Input): Output {
 	}
 })
 
-test('iterate RX / dynamic writes preserve initial values', () => {
+test('loop RX / dynamic writes preserve initial values', () => {
 	const current = fixture({
 		'main.rx':
-			'<Module>\n  <Return value={{ original: $in.values, result: iterate({ values: $in.values, count: $in.count, index: 0 }, { while: state => state.index < state.count, next: state => { state.values[state.index] += 1\n state.index += 1 } }) }}/>\n</Module>\n'
+			'<Module>\n  <Return value={{ original: $in.values, result: loop({ values: $in.values, count: $in.count, index: 0 }, { while: state => state.index < state.count, next: state => { state.values[state.index] += 1\n state.index += 1 } }) }}/>\n</Module>\n'
 	})
 
 	try {
@@ -161,12 +161,12 @@ test('iterate RX / dynamic writes preserve initial values', () => {
 	}
 })
 
-test('iterate import shadows the built in without changing its calling convention', () => {
+test('loop import shadows the built in without changing its calling convention', () => {
 	const current = fixture({
 		'helper.zx':
 			'export type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return in + 1\n}\n',
 		'main.zx':
-			'import iterate from "./helper"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return iterate(in)\n}\n'
+			'import loop from "./helper"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return loop(in)\n}\n'
 	})
 
 	try {

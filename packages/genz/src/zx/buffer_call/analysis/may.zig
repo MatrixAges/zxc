@@ -24,6 +24,9 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
     }
 
     return switch (expression.value) {
+        .iteration => |value| try contains(trace, value.initial, &.{}, origin) or try contains(trace, value.body, &.{}, origin),
+        .list_update => |value| try contains(trace, value.target, &.{}, origin) or try contains(trace, value.value, &.{}, origin),
+        .scope => |scope| contains(trace, scope.result, path, origin),
         .reference => |symbol| if (@backingInt(symbol) == 0)
             prefix(path, origin) or prefix(origin, path)
         else if (trace.bindings[@backingInt(symbol)]) |binding|

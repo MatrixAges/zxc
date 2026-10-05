@@ -1,0 +1,5 @@
+import type { ExprState } from "../../../../packages/compiler/src/zx/frontend/parser/expressions/state/model"
+
+export type Result = { root: u64, index: u64, valid: bool }
+
+export type State = { state: ExprState, results: Result[] }

@@ -47,7 +47,7 @@ pub fn contains(expression: *const Expression, name: []const u8) bool {
 
             break :block false;
         },
-        .number, .string, .boolean, .null_value, .identifier, .lambda => false,
+        .number, .string, .boolean, .null_value, .identifier, .lambda, .state_block => false,
     };
 }
 

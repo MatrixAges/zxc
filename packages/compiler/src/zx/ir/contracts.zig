@@ -26,7 +26,7 @@ pub fn validate(program: ir.Program) bool {
 
         for (contract.expressions, 0..) |expression, index| {
             switch (expression.value) {
-                .call, .store_get, .list_operation, .transform => return false,
+                .call, .store_get, .list_operation, .transform, .scope, .iteration, .list_update => return false,
                 else => {},
             }
 

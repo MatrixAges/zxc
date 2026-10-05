@@ -15,7 +15,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
         if (self.lookup(name.text) != null) return self.reporter.fail(.type_mismatch, name.span, "a local value is not a callable function");
 
         for (self.active.items[0..self.scope_floor]) |symbol| {
-            if (std.mem.eql(u8, self.symbols.items[@intFromEnum(symbol)].name, name.text)) {
+            if (std.mem.eql(u8, self.symbols.items[@backingInt(symbol)].name, name.text)) {
                 _ = try self.resolveValue(name);
             }
         }
@@ -25,6 +25,8 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
 
             return importedCall(self, expression, function);
         }
+
+        if (std.mem.eql(u8, name.text, "loop")) return @import("iteration/root.zig").analyze(self, expression, expected);
 
         return self.reporter.fail(.name, name.span, "unknown imported function");
     }
@@ -38,7 +40,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
 
         if (self.lookup(namespace.text) == null) {
             for (self.active.items[0..self.scope_floor]) |symbol| {
-                if (std.mem.eql(u8, self.symbols.items[@intFromEnum(symbol)].name, namespace.text)) {
+                if (std.mem.eql(u8, self.symbols.items[@backingInt(symbol)].name, namespace.text)) {
                     _ = try self.resolveValue(namespace);
                 }
             }
@@ -74,7 +76,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
 }
 
 fn importedCall(self: *Analyzer, expression: *const zx.ast.Expression, function: Analyzer.FunctionImport) zx.Error!ir.ExprId {
-    if (self.functions[@intFromEnum(function.id)].stores.len != 0) return self.reporter.fail(.capability, expression.span, "Store functions require an explicitly authorized orchestration Call");
+    if (self.functions[@backingInt(function.id)].stores.len != 0) return self.reporter.fail(.capability, expression.span, "Store functions require an explicitly authorized orchestration Call");
 
     const call = expression.value.call;
 

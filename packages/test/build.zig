@@ -34,7 +34,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(@import("build/import_paths.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/import_order.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/runtime.zig").add(b, compiler, target, optimize, suites.runtime));
-    test_step.dependOn(@import("build/for_each.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/iterate.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/iterate_buffer.zig").add(b, cli_dependency, target, optimize));
     test_step.dependOn(@import("build/iterate_calls.zig").add(b, compiler, cli_dependency, target, optimize));

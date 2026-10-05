@@ -25,12 +25,15 @@ ZX uses no semicolons: an explicit `;` in code is a syntax error. Separate state
 | String     | Byte equality; template interpolation of supported scalar values              |
 | Copy       | `clone(value)`                                                                |
 | Transform  | Non-capturing expression callbacks for `map`, `filter`, `reduce`              |
+| Iteration  | `loop(initial, { while, next })` or `loop(initial, { while, do })`            |
+
+General `for` and `while` statements are unsupported. The `while` rule inside `loop` is supported; see [collections and ownership](/docs/collections-and-ownership).
 
 Template text normalizes literal CR and CRLF line endings to LF. Explicit `\r` escapes remain CR; literal LF, U+2028, and U+2029 are preserved. Ordinary string rules are unchanged.
 
 ### Unsupported assumptions
 
-Do not write `let`, `var`, `for`, `while`, `throw`, general closures, or user-defined generics. ZX's familiar syntax is not a promise of TypeScript compatibility. There is no JavaScript runtime underneath the generated program.
+Do not write `let`, `var`, `throw`, general closures, or user-defined generics. ZX's familiar syntax is not a promise of TypeScript compatibility. There is no JavaScript runtime underneath the generated program.
 
 ### Capabilities
 

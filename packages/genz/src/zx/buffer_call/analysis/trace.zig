@@ -19,6 +19,12 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Func
 
     try self.block(function.body);
 
+    for (function.expressions) |expression| if (expression.value == .scope) {
+        for (expression.value.scope.bindings) |binding| if (binding.symbol) |symbol| {
+            self.bindings[@backingInt(symbol)] = binding.value;
+        };
+    };
+
     return self;
 }
 

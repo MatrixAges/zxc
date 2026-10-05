@@ -1,0 +1,22 @@
+export type Input = { values: i64[], increment: i64 }
+
+export type Batch = { values: i64[], total: i64 }
+
+export type State = { batch: Batch, increment: i64, index: u64 }
+
+export type Output = { original: i64[], batch: Batch }
+
+export default function (in: Input): Output {
+  const initial: State = { batch: { values: in.values, total: 0 }, increment: in.increment, index: 0 }
+
+  const result = loop(initial, {
+    while: state => state.index < state.batch.values.length,
+    next: state => {
+      state.batch.values[state.index] += state.increment
+      state.batch.total += state.batch.values[state.index]
+      state.index += 1
+    }
+  })
+
+  return { original: in.values, batch: result.batch }
+}

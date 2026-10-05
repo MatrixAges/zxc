@@ -9,7 +9,7 @@ const void_type = Types.scalarId(.void);
 pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bool {
     const type_id = expression.type_id;
 
-    if (@intFromEnum(type_id) >= program.types.len) return false;
+    if (@backingInt(type_id) >= program.types.len) return false;
 
     const target = program.typeOf(type_id);
     const check = Check{ .program = program, .index = index };
@@ -42,7 +42,7 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
         .some => |child| target == .optional and check.typed(child, target.optional),
         .enum_value => |member| target == .enumeration and member < target.enumeration.members.len,
         .store_get => |slot| slot < program.stores.len and program.stores[slot].readable and program.stores[slot].type_id == type_id,
-        .reference => |symbol| @intFromEnum(symbol) < program.symbols.len and program.symbols[@intFromEnum(symbol)].type_id == type_id,
+        .reference => |symbol| @backingInt(symbol) < program.symbols.len and program.symbols[@backingInt(symbol)].type_id == type_id,
         .field, .tuple_field => |field| blk: {
             if (!check.earlier(field.target)) break :blk false;
 
@@ -129,8 +129,25 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
 
             break :blk check.typed(selection.fallback, type_id);
         },
-        .call => |call| @intFromEnum(call.function) < program.functions.len and type_id == program.functions[@intFromEnum(call.function)].output_type and check.typed(call.argument, program.functions[@intFromEnum(call.function)].input_type) and @import("stores.zig").call(program, call),
+        .call => |call| @backingInt(call.function) < program.functions.len and type_id == program.functions[@backingInt(call.function)].output_type and check.typed(call.argument, program.functions[@backingInt(call.function)].input_type) and @import("stores.zig").call(program, call),
         .transform => |transform| check.transform(transform, type_id),
+        .list_update => |update| target == .list and check.typed(update.target, type_id) and check.typed(update.index, Types.scalarId(.u64)) and check.typed(update.value, target.list),
+        .iteration => |iteration| type_id != void_type and check.typed(iteration.initial, type_id) and check.typed(iteration.body, type_id) and check.typed(iteration.condition, bool_type) and
+            iteration.parameter != iteration.condition_parameter and
+
+            @backingInt(iteration.parameter) < program.symbols.len and @backingInt(iteration.condition_parameter) < program.symbols.len and
+            program.symbols[@backingInt(iteration.parameter)].type_id == type_id and program.symbols[@backingInt(iteration.condition_parameter)].type_id == type_id,
+        .scope => |scope| blk: {
+            for (scope.bindings) |binding| {
+                if (!check.earlier(binding.value)) break :blk false;
+
+                if (binding.symbol) |symbol| {
+                    if (@backingInt(symbol) >= program.symbols.len or !check.typed(binding.value, program.symbols[@backingInt(symbol)].type_id)) break :blk false;
+                } else if (!check.typed(binding.value, void_type)) break :blk false;
+            }
+
+            break :blk check.typed(scope.result, type_id);
+        },
         .list_operation => |operation| check.operation(operation, target),
     };
 }
@@ -139,7 +156,7 @@ const Check = struct {
     program: ir.Program,
     index: usize,
     fn earlier(self: Check, id: ir.ExprId) bool {
-        return @intFromEnum(id) < self.index;
+        return @backingInt(id) < self.index;
     }
     fn typed(self: Check, id: ir.ExprId, type_id: ir.TypeId) bool {
         return self.earlier(id) and self.program.expression(id).type_id == type_id;
@@ -176,15 +193,14 @@ const Check = struct {
         if (source != .list or value.parameters.len != @as(usize, if (value.kind == .reduce) 2 else 1)) return false;
 
         for (value.parameters, 0..) |parameter, index| {
-            if (@intFromEnum(parameter) >= self.program.symbols.len) return false;
-            if (self.program.symbols[@intFromEnum(parameter)].type_id != (if (value.kind == .reduce and index == 0) result else source.list)) return false;
+            if (@backingInt(parameter) >= self.program.symbols.len) return false;
+            if (self.program.symbols[@backingInt(parameter)].type_id != (if (value.kind == .reduce and index == 0) result else source.list)) return false;
         }
 
         return switch (value.kind) {
             .map => value.initial == null and target == .list and self.typed(value.body, target.list),
             .filter => value.initial == null and result == source_id and self.typed(value.body, bool_type),
             .reduce => value.initial != null and self.typed(value.initial.?, result) and self.typed(value.body, result),
-            .forEach => value.initial == null and target == .scalar and target.scalar == .void,
         };
     }
 
