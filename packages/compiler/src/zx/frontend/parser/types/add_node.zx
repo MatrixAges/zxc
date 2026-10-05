@@ -1,0 +1,18 @@
+import type { State } from "./model.zx"
+import type { Span } from "../../lexer/token_model.zx"
+import { TypeKind } from "./model.zx"
+
+export type Input = { state: State, kind: TypeKind, name: Span, child: u64, head: u64, count: u64 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const result = in.state.tree.nodes.length
+  const nodes = in.state.tree.nodes.push({ kind: in.kind, name: in.name, child: in.child, head: in.head, count: in.count })[0]
+
+  return {
+    tree: { nodes: nodes, fields: in.state.tree.fields, items: in.state.tree.items },
+    frames: in.state.frames,
+    control: { ...in.state.control, result: result }
+  }
+}

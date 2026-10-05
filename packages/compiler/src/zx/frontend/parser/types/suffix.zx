@@ -1,0 +1,48 @@
+import type { State } from "./model.zx"
+import { TypeKind, Phase } from "./model.zx"
+import { Symbol } from "../../lexer/token_model.zx"
+import open from "./open.zx"
+import addNode from "./add_node.zx"
+import complete from "./complete.zx"
+import consume from "./consume.zx"
+import fail from "./fail.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.ListEnd) {
+    if (in.control.token.symbol != Symbol.CloseBracket) {
+      return fail({ state: in, code: "syntax", message: "expected ]" })
+    }
+
+    const child = in.control.result
+    const state = addNode({ state: in, kind: TypeKind.List, name: { start: 0, end: 0 }, child: child, head: 0, count: 0 })
+
+    return consume({ state: state, phase: Phase.Suffix })
+  }
+
+  if (in.control.phase == Phase.Name && in.control.token.symbol == Symbol.Less) {
+    const name = { start: in.control.name.start, end: in.control.name.end }
+
+    return open({ state: in, kind: TypeKind.Application, name: name, phase: Phase.Start })
+  }
+
+  const named = in.control.phase == Phase.Name
+  const name = { start: in.control.name.start, end: in.control.name.end }
+  const state = named ? addNode({ state: in, kind: TypeKind.Named, name: name, child: 0, head: 0, count: 0 }) : in
+
+  if (state.control.token.symbol == Symbol.Question) {
+    const child = state.control.result
+    const completed = addNode({ state: state, kind: TypeKind.Optional, name: { start: 0, end: 0 }, child: child, head: 0, count: 0 })
+
+    return consume({ state: completed, phase: Phase.Suffix })
+  }
+
+  if (state.control.token.symbol == Symbol.OpenBracket) {
+    return consume({ state: state, phase: Phase.ListEnd })
+  }
+
+  return complete(state)
+}

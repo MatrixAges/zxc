@@ -1,0 +1,43 @@
+import type { State } from "./model.zx"
+import { Phase } from "./model.zx"
+import { Kind, Symbol } from "../../lexer/token_model.zx"
+import copyFrame from "./copy_frame.zx"
+import replaceFrame from "./replace_frame.zx"
+import close from "./close.zx"
+import consume from "./consume.zx"
+import fail from "./fail.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.FieldOptional && in.control.token.symbol == Symbol.Question) {
+    const frame = copyFrame(in.frames[in.frames.length - 1])
+    const state = replaceFrame({ state: in, frame: { ...frame, optional: true } })
+
+    return consume({ state: state, phase: Phase.FieldColon })
+  }
+
+  if (in.control.phase == Phase.FieldOptional || in.control.phase == Phase.FieldColon) {
+    if (in.control.token.symbol != Symbol.Colon) {
+      return fail({ state: in, code: "syntax", message: "expected :" })
+    }
+
+    return consume({ state: in, phase: Phase.Start })
+  }
+
+  if (in.control.token.symbol == Symbol.CloseBrace) {
+    return close(in)
+  }
+
+  if (in.control.token.kind != Kind.Identifier) {
+    return fail({ state: in, code: "syntax", message: "expected an identifier" })
+  }
+
+  const frame = copyFrame(in.frames[in.frames.length - 1])
+  const name = { start: in.control.token.span.start, end: in.control.token.span.end }
+  const state = replaceFrame({ state: in, frame: { ...frame, field: name, optional: false } })
+
+  return consume({ state: state, phase: Phase.FieldOptional })
+}

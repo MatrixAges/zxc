@@ -1,0 +1,9 @@
+import type { Frame } from "./model.zx"
+
+export type Input = Frame
+
+export type Output = Frame
+
+export default function (in: Input): Output {
+  return { kind: in.kind, name: { start: in.name.start, end: in.name.end }, field: { start: in.field.start, end: in.field.end }, optional: in.optional, head: in.head, count: in.count }
+}

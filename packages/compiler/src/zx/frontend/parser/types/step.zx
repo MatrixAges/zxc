@@ -1,0 +1,36 @@
+import type { State } from "./model.zx"
+import type { Token } from "../../lexer/token_model.zx"
+import { Phase } from "./model.zx"
+import primary from "./primary.zx"
+import suffix from "./suffix.zx"
+import field from "./field.zx"
+
+export type Input = { state: State, token: Token }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.state.control.phase == Phase.Done) {
+    return in.state
+  }
+
+  if (in.state.control.index < in.state.control.start) {
+    const index = in.state.control.index + 1
+
+    return { tree: in.state.tree, frames: in.state.frames, control: { ...in.state.control, index: index } }
+  }
+
+  const state = { tree: in.state.tree, frames: in.state.frames, control: { ...in.state.control, token: in.token } }
+
+  switch (state.control.phase) {
+    case Phase.Start: return primary(state)
+    case Phase.TupleItem: return primary(state)
+    case Phase.Name: return suffix(state)
+    case Phase.Suffix: return suffix(state)
+    case Phase.ListEnd: return suffix(state)
+    case Phase.Field: return field(state)
+    case Phase.FieldOptional: return field(state)
+    case Phase.FieldColon: return field(state)
+    default: return state
+  }
+}

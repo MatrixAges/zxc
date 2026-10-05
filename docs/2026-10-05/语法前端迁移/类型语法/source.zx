@@ -1,0 +1,21 @@
+import type { State } from "../../../../packages/compiler/src/zx/frontend/parser/types/model.zx"
+import { Phase } from "../../../../packages/compiler/src/zx/frontend/parser/types/model.zx"
+import scan from "../../../../packages/compiler/src/zx/frontend/lexer/scan.zx"
+import initial from "../../../../packages/compiler/src/zx/frontend/parser/types/initial.zx"
+import parse from "../../../../packages/compiler/src/zx/frontend/parser/types/parse.zx"
+
+export type Input = { source: u8[], start: u64, depth: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const scanned = scan(in.source)
+
+  if (scanned.diagnostic.message != "") {
+    const state = initial({ start: in.start, depth: in.depth })
+
+    return { tree: state.tree, frames: state.frames, control: { ...state.control, phase: Phase.Done, diagnostic: scanned.diagnostic } }
+  }
+
+  return parse({ tokens: scanned.tokens, start: in.start, depth: in.depth })
+}

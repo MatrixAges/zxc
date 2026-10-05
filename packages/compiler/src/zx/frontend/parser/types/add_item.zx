@@ -1,0 +1,17 @@
+import type { State } from "./model.zx"
+import copyFrame from "./copy_frame.zx"
+import replaceFrame from "./replace_frame.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const frame = copyFrame(in.frames[in.frames.length - 1])
+  const head = in.tree.items.length + 1
+  const count = frame.count + 1
+  const items = in.tree.items.push({ value: in.control.result, previous: frame.head })[0]
+  const state = { tree: { nodes: in.tree.nodes, fields: in.tree.fields, items: items }, frames: in.frames, control: in.control }
+
+  return replaceFrame({ state: state, frame: { ...frame, head: head, count: count } })
+}

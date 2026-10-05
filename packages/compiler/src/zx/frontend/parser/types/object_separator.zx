@@ -1,0 +1,29 @@
+import type { State } from "./model.zx"
+import { Phase } from "./model.zx"
+import { Symbol } from "../../lexer/token_model.zx"
+import field from "./field.zx"
+import close from "./close.zx"
+import consume from "./consume.zx"
+import fail from "./fail.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.token.symbol == Symbol.Comma) {
+    return consume({ state: in, phase: Phase.Field })
+  }
+
+  if (in.control.token.symbol == Symbol.CloseBrace) {
+    return close(in)
+  }
+
+  if (in.control.token.line_break) {
+    const state = { tree: in.tree, frames: in.frames, control: { ...in.control, phase: Phase.Field } }
+
+    return field(state)
+  }
+
+  return fail({ state: in, code: "syntax", message: "expected a comma or newline between type fields" })
+}

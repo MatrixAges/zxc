@@ -1,0 +1,16 @@
+import type { State } from "./model.zx"
+import type { Span } from "../../lexer/token_model.zx"
+import { TypeKind, Phase } from "./model.zx"
+import consume from "./consume.zx"
+
+export type Input = { state: State, kind: TypeKind, name: Span, phase: Phase }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const frame = { kind: in.kind, name: in.name, field: { start: 0, end: 0 }, optional: false, head: 0, count: 0 }
+  const frames = in.state.frames.push(frame)[0]
+  const state = { tree: in.state.tree, frames: frames, control: in.state.control }
+
+  return consume({ state: state, phase: in.phase })
+}

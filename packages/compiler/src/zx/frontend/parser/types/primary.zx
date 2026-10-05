@@ -1,0 +1,38 @@
+import type { State } from "./model.zx"
+import { TypeKind, Phase } from "./model.zx"
+import { Kind, Symbol } from "../../lexer/token_model.zx"
+import open from "./open.zx"
+import close from "./close.zx"
+import consume from "./consume.zx"
+import fail from "./fail.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.TupleItem && in.control.token.symbol == Symbol.CloseBracket) {
+    return close(in)
+  }
+
+  if (in.control.depth + in.frames.length >= 256) {
+    return fail({ state: in, code: "unsupported", message: "syntax nesting exceeds 256 levels" })
+  }
+
+  if (in.control.token.symbol == Symbol.OpenBrace) {
+    return open({ state: in, kind: TypeKind.Object, name: { start: 0, end: 0 }, phase: Phase.Field })
+  }
+
+  if (in.control.token.symbol == Symbol.OpenBracket) {
+    return open({ state: in, kind: TypeKind.Tuple, name: { start: 0, end: 0 }, phase: Phase.TupleItem })
+  }
+
+  if (in.control.token.kind != Kind.Identifier) {
+    return fail({ state: in, code: "syntax", message: "expected an identifier" })
+  }
+
+  const name = { start: in.control.token.span.start, end: in.control.token.span.end }
+  const state = { tree: in.tree, frames: in.frames, control: { ...in.control, name: name } }
+
+  return consume({ state: state, phase: Phase.Name })
+}

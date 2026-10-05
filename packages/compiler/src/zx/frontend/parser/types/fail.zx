@@ -1,0 +1,12 @@
+import type { State } from "./model.zx"
+import { Phase } from "./model.zx"
+
+export type Input = { state: State, code: string, message: string }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const diagnostic = { code: in.code, start: in.state.control.token.span.start, end: in.state.control.token.span.end, message: in.message }
+
+  return { tree: in.state.tree, frames: in.state.frames, control: { ...in.state.control, phase: Phase.Done, diagnostic: diagnostic } }
+}

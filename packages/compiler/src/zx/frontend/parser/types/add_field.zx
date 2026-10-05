@@ -1,0 +1,22 @@
+import type { State } from "./model.zx"
+import { TypeKind } from "./model.zx"
+import copyFrame from "./copy_frame.zx"
+import replaceFrame from "./replace_frame.zx"
+import addNode from "./add_node.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const frame = copyFrame(in.frames[in.frames.length - 1])
+  const child = in.control.result
+  const state = frame.optional ? addNode({ state: in, kind: TypeKind.Optional, name: { start: 0, end: 0 }, child: child, head: 0, count: 0 }) : in
+
+  const head = state.tree.fields.length + 1
+  const count = frame.count + 1
+  const fields = state.tree.fields.push({ name: { start: frame.field.start, end: frame.field.end }, value: state.control.result, previous: frame.head })[0]
+  const updated = { tree: { nodes: state.tree.nodes, fields: fields, items: state.tree.items }, frames: state.frames, control: state.control }
+
+  return replaceFrame({ state: updated, frame: { ...frame, head: head, count: count } })
+}

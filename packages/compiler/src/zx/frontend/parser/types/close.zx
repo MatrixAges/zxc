@@ -1,0 +1,18 @@
+import type { State } from "./model.zx"
+import { Phase } from "./model.zx"
+import copyFrame from "./copy_frame.zx"
+import addNode from "./add_node.zx"
+import consume from "./consume.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const frame = copyFrame(in.frames[in.frames.length - 1])
+  const frames = in.frames.pop()[0]
+  const state = { tree: in.tree, frames: frames, control: in.control }
+  const completed = addNode({ state: state, kind: frame.kind, name: frame.name, child: 0, head: frame.head, count: frame.count })
+
+  return consume({ state: completed, phase: Phase.Suffix })
+}

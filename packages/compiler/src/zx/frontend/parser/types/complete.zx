@@ -1,0 +1,29 @@
+import type { State } from "./model.zx"
+import { TypeKind, Phase } from "./model.zx"
+import applicationEnd from "./application_end.zx"
+import addField from "./add_field.zx"
+import addItem from "./add_item.zx"
+import objectSeparator from "./object_separator.zx"
+import tupleSeparator from "./tuple_separator.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.frames.length == 0) {
+    return { tree: in.tree, frames: in.frames, control: { ...in.control, phase: Phase.Done } }
+  }
+
+  const kind = in.frames[in.frames.length - 1].kind
+
+  if (kind == TypeKind.Application) {
+    return applicationEnd(in)
+  }
+
+  if (kind == TypeKind.Object) {
+    return objectSeparator(addField(in))
+  }
+
+  return tupleSeparator(addItem(in))
+}

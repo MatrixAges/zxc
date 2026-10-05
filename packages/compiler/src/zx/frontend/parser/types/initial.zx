@@ -1,0 +1,30 @@
+import type { State, Node, Field, Item, Frame } from "./model.zx"
+import { Phase } from "./model.zx"
+import { Kind, Symbol } from "../../lexer/token_model.zx"
+import { Keyword } from "../../lexer/keyword_model.zx"
+
+export type Input = { start: u64, depth: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const nodes: Node[] = []
+  const fields: Field[] = []
+  const items: Item[] = []
+  const frames: Frame[] = []
+
+  return {
+    tree: { nodes: nodes, fields: fields, items: items },
+    frames: frames,
+    control: {
+      phase: Phase.Start,
+      index: 0,
+      start: in.start,
+      depth: in.depth,
+      result: 0,
+      name: { start: 0, end: 0 },
+      token: { kind: Kind.Eof, word: Keyword.Root, symbol: Symbol.None, span: { start: 0, end: 0 }, line_break: false, dollar: false },
+      diagnostic: { code: "", start: 0, end: 0, message: "" }
+    }
+  }
+}
