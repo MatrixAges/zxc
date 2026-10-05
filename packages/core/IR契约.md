@@ -1,4 +1,4 @@
-# ZX IR 契约（实验版 6）
+# ZX IR 契约（实验版 12）
 
 ## Intent：最终目标
 
@@ -8,7 +8,7 @@
 
 ### 类型、模块与符号
 
-- `Program.version` 必须是 8。`types` 起始项按 Scalar 枚举顺序排列，其后为 object、optional、list、tuple、enumeration。版本 8 移除 Context 注入；版本 7 增加原生声明组 identity；函数仍保留返回所有权摘要。旧原始 IR 不复用新含义。
+- `Program.version` 必须是 12。版本 12 增加显式输入消费契约；旧语义缓存与库必须重建。`types` 起始项按 Scalar 枚举顺序排列，其后为 object、optional、list、tuple、enumeration。版本 8 移除 Context 注入；版本 7 增加原生声明组 identity；函数仍保留返回所有权摘要。旧原始 IR 不复用新含义。
 - 复合类型只能引用更早的 TypeId。对象字段按名称排序且唯一，字段不能是 void；元组可包含 void 丢弃槽；枚举非空且成员唯一。
 - 普通函数的 `symbols[0]` 是 Input，Input 允许 void。纯类型文件设置 type_only，symbols/expressions/body 为空。
 - 每个函数有独立 SymbolId 和 ExprId 空间，共享 Program.types。符号身份由编号决定，不依赖文本名称。
@@ -58,6 +58,8 @@ match_expr 保存可选 subject、有序 arms 与必需 fallback。没有 subjec
 所有者被 const 转移或消费之后，旧绑定失效。对象、元组、列表及其 optional 都参与所有权分析，聚合字段移动保守地消费整个根所有者。借用不能执行消费式操作；clone 已禁止，不通过复制恢复修改权限。发布给 Store 的值被冻结为借用，允许读取，禁止后续消费修改。
 
 字符串虽不可变，仍可能是可变字节缓冲的只读视图，因此借用返回需要冻结可能的来源。reduce 的结果摘要同时合并初值与回调返回，不能忽略空列表路径。
+
+Program/Function.consumes_input 缺省为 false，表示借用 Input。为 true 时，引用输入以 owned 状态分析；调用点必须 move 实参且证明引用值为 owned，即使调用结果被丢弃或仅使用标量字段也不能恢复旧实参。标量仍按 copy 处理。纯类型 Program 和原生 External 不接受 true。该标记必须参与归档签名、接口比较、链接恢复和生成缓存身份；生成的 Zig 入口暴露 consumes_input，宿主负责可变存储的独占性及生命周期。消费不证明分配来源，不允许后端据此释放任意 slice。
 
 Program/Function.output_ownership 描述 copy、owned 或 borrowed 返回。普通 ZX 函数按调用拓扑分析摘要；调用者可继续消费新拥有结果，借用聚合结果保守冻结实参。校验器重新分析并拒绝无法证明的 owned/copy 声明，borrowed 允许作为更保守的摘要。原生函数暂只接受 borrowed，不从 allocator 标记推导拥有权。
 

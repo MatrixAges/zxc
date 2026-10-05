@@ -1,0 +1,85 @@
+{
+	"examples": [
+		{
+			"entry": "module",
+			"input": {
+				"seed": [1, 2],
+				"values": [3, 4]
+			},
+			"output": [4, 3, 2, 1],
+			"binary_sha256": "741fcd67e9cf9cc556e1b29267ac2446d961b0a87a434b1adb4aa46b35cbcb68"
+		},
+		{
+			"entry": "empty_reduce",
+			"input": {
+				"seed": [1, 2],
+				"values": []
+			},
+			"output": [2, 1],
+			"binary_sha256": "741fcd67e9cf9cc556e1b29267ac2446d961b0a87a434b1adb4aa46b35cbcb68"
+		},
+		{
+			"entry": "rx",
+			"input": {
+				"seed": [1, 2],
+				"value": 3
+			},
+			"output": [1, 2, 3],
+			"binary_sha256": "3d752b4be28ce416dc64281317ab6322d39b6119868429e0704e9a38109a0de2"
+		},
+		{
+			"entry": "published",
+			"input": {
+				"seed": [1, 2],
+				"value": 3
+			},
+			"output": [3, 2, 1],
+			"binary_sha256": "ad3793fa70b901560c902a434df0aba8d18092c3001df0c2e37d9d15d85e7acc"
+		},
+		{
+			"entry": "republished",
+			"input": {
+				"seed": [1, 2],
+				"value": 3
+			},
+			"output": [3, 2, 1],
+			"binary_sha256": "22042724138d583ac0deae5757df0a536e7fa488b0c5364a45a7b4e7eedb8ac3"
+		},
+		{
+			"entry": "zig_host",
+			"input": {
+				"items": [1, 2],
+				"value": 3
+			},
+			"output": [1, 2, 3],
+			"binary_sha256": "66ae79a8dcc1aa2d96606eef35f769681b295dff4ce6b992d02b38bdb9ade20c"
+		}
+	],
+	"semantic_cache": {
+		"cold": {
+			"analyzed": 2,
+			"reused": 0
+		},
+		"warm": {
+			"analyzed": 0,
+			"reused": 2,
+			"loaded": 2
+		}
+	},
+	"generation_cache": {
+		"cold": {
+			"generated": 3,
+			"reused": 0
+		},
+		"warm": {
+			"generated": 0,
+			"reused": 3,
+			"loaded": 3
+		}
+	},
+	"receiver_argument_regression": {
+		"target": "test-reduce-runtime",
+		"fixture": "packages/test/tests/collections/reduce/fixtures/argument.zx",
+		"passed": 13
+	}
+}

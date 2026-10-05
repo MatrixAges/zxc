@@ -1,0 +1,12 @@
+import append from "library"
+
+export type Input = { seed: u64[], value: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+  const items = in.seed.map(item => item)
+  const result = append({items, value: in.value})
+
+  return result.reverse()[0]
+}

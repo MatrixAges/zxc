@@ -1,0 +1,9 @@
+export type Input = { items: u64[], value: u64 }
+
+export type Output = u64[]
+
+export default function (in: owned Input): Output {
+  const value = in.value
+
+  return in.items.push(value)[0]
+}

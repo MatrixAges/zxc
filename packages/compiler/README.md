@@ -12,6 +12,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 - number→f64、boolean→bool、Array<T>→T[]；标量、对象、枚举、optional、list、tuple；const、解构、if、switch、match 表达式、return。
 - 列表和对象字面量、展开、索引、length、模板、字符串比较、三元与空值回退。
 - 无捕获 map/filter/reduce，reduce 支持独占累加器；消费式列表更新统一返回元组，可用整数常量索引选择字段；禁止 clone 深拷贝。用法与性能边界见 [归约累加器参考](../../docs/2026-10-05/归约累加器所有权参考.md)，无累加器逃逸的只追加 reduce 支持 [局部容量复用](../../docs/2026-10-05/归约追加生成参考.md)。
+- 普通函数输入默认借用；`in: owned Input` 显式消费调用者的独占输入，契约贯穿模块、库与缓存。Zig 入口暴露 `consumes_input`，详见 [显式输入消费参考](../../docs/2026-10-05/显式输入消费参考.md)。
 - Call 注入的 `$name.value` Store getter/setter、类型与独立读写权限、暂存与宿主统一提交。
 - 显式注册并审查的 zig:/c: 接口与模块成员，保留旧 lib: 兼容；无前缀 ZX 包入口映射；普通项目函数的 Input/Output 类型连接。
 - 内建 std:encoding、std:crypto、std:path、std:querystring、std:url/search_params、std:zlib 与 std:os 系列纯计算接口，以及显式宿主 I/O 的 std:fs 文件接口；它们不是完整 Node.js 标准库兼容实现。
@@ -41,7 +42,7 @@ ZX 代码不允许显式分号。简单语句与声明通过换行、块结束�
 
 ## Edges：边界
 
-数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 9 的内存 API，没有稳定序列化 ABI。
+数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 12 的内存 API，没有稳定序列化 ABI。
 
 Store 是应用生命周期内的共享内存，由生成代码初始化和发布值，不自动持久化。RX XML 解析、可达模块装载、顺序服务应用及纯内存状态生成已接通；独立请求内存的长期归属与并发调度仍待落实，见 [Store 设计](../../docs/2026-10-05/Store设计.md)。
 
@@ -59,7 +60,7 @@ std:querystring 使用有序 Entry 列表保留重复键。parse/stringify 使�
 
 std:url/search_params 提供查询参数的 form 编解码、重复键查询、不可变编辑及 UTF-16 稳定排序，共 12 个静态接口。编辑结果共享已有只读条目与字符串，不修改输入；完整 URL 地址解析仍未实现。类型、语义及 ZX/Zig 消费示例见 [URL 查询参数参考](../../docs/2026-10-05/URL查询参数参考.md)。
 
-std:fs 提供 15 个文件读写、目录、路径及元数据接口。I/O 能力沿调用图静态传递，CLI 使用进程 std.Io，生成库由 Zig 宿主显式提供；纯计算入口保持原签名。RX 无 out 的顺序 Call 使用 evaluate 语句保留执行与错误传播，不创建 void 变量。IR 当前版本为 11；原生声明、库和缓存同步携带 io_argument。接口及边界见 [文件标准库与原生 I/O 参考](../../docs/2026-10-05/文件标准库与原生IO参考.md)。
+std:fs 提供 15 个文件读写、目录、路径及元数据接口。I/O 能力沿调用图静态传递，CLI 使用进程 std.Io，生成库由 Zig 宿主显式提供；纯计算入口保持原签名。RX 无 out 的顺序 Call 使用 evaluate 语句保留执行与错误传播，不创建 void 变量。IR 当前版本为 12；原生声明、库和缓存同步携带 io_argument。接口及边界见 [文件标准库与原生 I/O 参考](../../docs/2026-10-05/文件标准库与原生IO参考.md)。
 
 std:zlib 提供 gzip/deflate/deflateRaw，输入 u8[]；gzipWith/deflateWith/deflateRawWith 接收 `{ data: u8[], level: i32, }`，级别为 -1（默认）、0（不压缩）、1–9。gunzip/inflate/inflateRaw 接收 `{ data: u8[], max_output_length: u32, }`。结果均为新分配字节数组。解压验证容器校验和、gzip 长度及总输出上限，支持连续 gzip 成员，拒绝尾随垃圾。新增 zstdDecompress 接收 `{ data: u8[], max_output_length: u32, max_window_length: u32, }`，支持连续 Zstd 帧、可跳过帧和校验和验证；两个上限分别约束总输出与单帧窗口。当前不提供流、预设字典、其他压缩参数、Brotli 或 Zstd 编码。详见 [Zstd 解压参考](../../docs/2026-10-04/Zstd解压参考.md)。
 
@@ -118,7 +119,7 @@ Store 使用 compileWithContext 或 project.Options.context.stores，每项声�
 
 `dependency.module("rx_analysis")` 中的 `expression.compile` 编译真实 XML 属性并映射源码范围。`rx_analysis.project.infer` 从真实模块集合共同推导输入输出类型，联结 Call.fn、Call.service、Return、Task 与 Switch，并由 CLI 生成独立应用。Store、Parallel、事件和 Gateway 执行仍未接通；用法及范围见 [RX reference](src/rx/README.md)。API 与所有权约定见[显式表达式编译参考](../../docs/2026-10-04/显式表达式编译参考.md)。
 
-IR 实验版本 9 为 Function 保留局部 StoreSlot，Program/Function 使用 store_mode 区分 transaction 与 orchestration，call.stores 显式映射被调方槽位到调用方槽位。只有编排函数可以转交能力；事务函数成功时独立提交，编排函数禁止直接 store_set。普通 ZX import 仍不继承 Store 权限。Context 注入槽位与读取节点已移除，原生声明组 identity 保留。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
+IR 为 Function 保留局部 StoreSlot，Program/Function 使用 store_mode 区分 transaction 与 orchestration，call.stores 显式映射被调方槽位到调用方槽位。只有编排函数可以转交能力；事务函数成功时独立提交，编排函数禁止直接 store_set。普通 ZX import 仍不继承 Store 权限。Context 注入槽位与读取节点已移除，原生声明组 identity 保留。原生模块保存为 `Program.native_modules`，函数通过 `NativeModuleId` 和成员路径数组引用模块，并携带返回所有权摘要。同名 specifier 来自不同包实例时，IR、缓存和 ABI 按声明组隔离；没有显式 identity 的 API 调用继续以 specifier 作为身份。后端按模块表生成并复用导入；旧版本原始 IR 与语义缓存不再接受。标准库签名来自 standard/interfaces 中的真实 .d.zx 源码，原成员注册表已删除。
 
 项目分析成功时，`AnalysisResult.modules` 保留入口可达的 ZX 模块记录，按依赖完成装载的顺序排列。每项包含规范化 `path`、原始解析源码的 SHA-256 `source_digest`、导出表、按源码顺序排列的直接 imports，以及 `body`：`types` 表示纯类型模块，`entry` 使用返回 Program 的入口主体，`function` 指向 Program.functions 中的模块函数。入口不会暴露已从 functions 列表移除的编号。
 

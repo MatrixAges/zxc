@@ -1,0 +1,9 @@
+import consume from "owned-input-consumer"
+
+export type Input = { seed: u64[], value: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+  return consume(in)
+}
