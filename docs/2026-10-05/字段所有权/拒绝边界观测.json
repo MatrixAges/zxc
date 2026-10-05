@@ -1,0 +1,44 @@
+[
+	{
+		"boundary": "部分移动后使用整个父值",
+		"source": "export type Input = { first: u64[], second: u64[] }\n\nexport type Output = Input\n\nexport default function (in: owned Input): Output {\n const first = in.first.reverse()[0]\n\n return in\n}\n",
+		"exit_code": 1,
+		"diagnostic": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/字段所有权/示例/boundary.zx:8:9: ownership: the previous owner was consumed; use the new binding returned by the operation\n"
+	},
+	{
+		"boundary": "重复消费同一字段",
+		"source": "export type Input = { first: u64[], second: u64[] }\n\nexport type Output = u64[]\n\nexport default function (in: owned Input): Output {\n const first = in.first.reverse()[0]\n\n return in.first.sort()[0]\n}\n",
+		"exit_code": 1,
+		"diagnostic": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/字段所有权/示例/boundary.zx:8:9: ownership: the previous owner was consumed; use the new binding returned by the operation\n"
+	},
+	{
+		"boundary": "分支消费后使用原字段",
+		"source": "export type Input = bool\n\nexport type Output = u64[]\n\nexport default function (in: Input): Output {\n const source = { first: [3, 1], second: [4, 2] }\n\n if (in) { const first = source.first.reverse()[0] }\n\n return source.first\n}\n",
+		"exit_code": 1,
+		"diagnostic": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/字段所有权/示例/boundary.zx:10:9: ownership: the previous owner was consumed; use the new binding returned by the operation\n"
+	},
+	{
+		"boundary": "动态索引仍消费整个列表",
+		"source": "export type Input = u64[][]\n\nexport type Output = u64[]\n\nexport default function (in: owned Input): Output {\n const first = in[0].reverse()[0]\n\n return in[1]\n}\n",
+		"exit_code": 1,
+		"diagnostic": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/字段所有权/示例/boundary.zx:8:9: ownership: the previous owner was consumed; use the new binding returned by the operation\n"
+	},
+	{
+		"boundary": "借用输入不能消费字段",
+		"source": "export type Input = { first: u64[], second: u64[] }\n\nexport type Output = u64[]\n\nexport default function (in: Input): Output {\n return in.first.reverse()[0]\n}\n",
+		"exit_code": 1,
+		"diagnostic": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/字段所有权/示例/boundary.zx:6:9: ownership: consuming list operations require an owned value; borrowed values cannot be consumed\n"
+	},
+	{
+		"boundary": "父借用别名冻结所有兄弟字段",
+		"source": "import borrow from \"./borrow.zx\"\n\nexport type Input = void\n\nexport type Output = u64[]\n\nexport default function (in: Input): Output {\n const source = { first: [3, 1], second: [4, 2] }\n const first = borrow(source.first)\n const alias = source\n\n return source.second.reverse()[0]\n}\n",
+		"exit_code": 1,
+		"diagnostic": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/字段所有权/示例/boundary.zx:12:9: ownership: consuming list operations require an owned value; borrowed values cannot be consumed\n"
+	},
+	{
+		"boundary": "展开不能制造字段独占别名",
+		"source": "export type Input = void\n\nexport type Output = u64[]\n\nexport default function (in: Input): Output {\n const source = { first: [3, 1], second: [4, 2] }\n const next = { ...source, second: source.first }\n const first = next.first.reverse()[0]\n\n return next.second\n}\n",
+		"exit_code": 1,
+		"diagnostic": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/字段所有权/示例/boundary.zx:7:36: ownership: the previous owner was consumed; use the new binding returned by the operation\n"
+	}
+]

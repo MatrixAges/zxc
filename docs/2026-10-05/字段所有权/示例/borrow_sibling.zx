@@ -1,0 +1,13 @@
+import borrow from "./borrow.zx"
+
+export type Input = void
+
+export type Output = { first: u64[], second: u64[] }
+
+export default function (in: Input): Output {
+  const source: Output = { first: [3, 1], second: [4, 2] }
+  const first = borrow(source.first)
+  const second = source.second.reverse()[0]
+
+  return { first: first, second: second }
+}

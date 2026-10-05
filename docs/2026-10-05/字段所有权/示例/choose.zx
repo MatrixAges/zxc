@@ -1,0 +1,11 @@
+export type Input = bool
+
+export type Output = { selected: u64[], remaining: u64[] }
+
+export default function (in: Input): Output {
+  const source: Output = { selected: [3, 1, 2], remaining: [4, 2] }
+  const selected = in ? source.selected.reverse()[0] : source.selected.sort()[0]
+  const remaining = source.remaining.reverse()[0]
+
+  return { selected: selected, remaining: remaining }
+}

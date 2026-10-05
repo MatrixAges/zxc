@@ -1,0 +1,12 @@
+export type Lists = { first: u64[], second: u64[] }
+
+export type Input = { lists: Lists, count: u64 }
+
+export type Output = Input
+
+export default function (in: owned Input): Output {
+  const first = in.lists.first.reverse()[0]
+  const second = in.lists.second.sort()[0]
+
+  return { lists: { first: first, second: second }, count: in.count }
+}

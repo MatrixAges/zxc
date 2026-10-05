@@ -1,0 +1,10 @@
+export type Input = [u64[], u64[]]
+
+export type Output = Input
+
+export default function (in: owned Input): Output {
+  const first = in[0].reverse()[0]
+  const second = in[1].sort()[0]
+
+  return [first, second]
+}
