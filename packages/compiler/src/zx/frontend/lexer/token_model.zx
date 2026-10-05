@@ -1,0 +1,23 @@
+import { Keyword } from "./keyword_model.zx"
+
+export enum Kind { Identifier, Keyword, Number, String, Template, Punctuation, Eof }
+
+export enum Symbol {
+  None,
+  OpenBrace, CloseBrace, OpenParen, CloseParen, OpenBracket, CloseBracket,
+  Colon, Semicolon, Comma, Dot, Question,
+  Plus, Minus, Star, Slash, Percent,
+  Less, Greater, Assign, Not, Ampersand, Pipe,
+  Arrow, Equal, NotEqual, LessEqual, GreaterEqual, Coalesce, And, Or, Spread
+}
+
+export type Span = { start: u64, end: u64 }
+
+export type Token = {
+  kind: Kind
+  word: Keyword
+  symbol: Symbol
+  span: Span
+  line_break: bool
+  dollar: bool
+}

@@ -26,7 +26,15 @@ pub fn lex(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Repor
     const comments = try allocator.alloc(zx.Span, result.comments.len);
 
     for (result.tokens, tokens) |token, *item| item.* = .{
-        .kind = std.meta.stringToEnum(@FieldType(zx.syntax.Token, "kind"), token.kind) orelse unreachable,
+        .kind = switch (token.kind) {
+            .Identifier => .identifier,
+            .Keyword => .keyword,
+            .Number => .number,
+            .String => .string,
+            .Template => .template,
+            .Punctuation => .punctuation,
+            .Eof => .eof,
+        },
         .span = .{ .start = @intCast(token.span.start), .end = @intCast(token.span.end) },
     };
 

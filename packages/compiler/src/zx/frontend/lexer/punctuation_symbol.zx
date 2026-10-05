@@ -1,0 +1,49 @@
+import { Symbol } from "./token_model.zx"
+
+export type Input = { byte: u8, next: u8, length: u64 }
+
+export type Output = Symbol
+
+export default function (in: Input): Output {
+  if (in.length == 3) {
+    return Symbol.Spread
+  }
+
+  if (in.length == 2) {
+    return match {
+      in.byte == 61 && in.next == 62 => Symbol.Arrow,
+      in.byte == 61 => Symbol.Equal,
+      in.byte == 33 => Symbol.NotEqual,
+      in.byte == 60 => Symbol.LessEqual,
+      in.byte == 62 => Symbol.GreaterEqual,
+      in.byte == 63 => Symbol.Coalesce,
+      in.byte == 38 => Symbol.And,
+      _ => Symbol.Or
+    }
+  }
+
+  return match {
+    in.byte == 123 => Symbol.OpenBrace,
+    in.byte == 125 => Symbol.CloseBrace,
+    in.byte == 40 => Symbol.OpenParen,
+    in.byte == 41 => Symbol.CloseParen,
+    in.byte == 91 => Symbol.OpenBracket,
+    in.byte == 93 => Symbol.CloseBracket,
+    in.byte == 58 => Symbol.Colon,
+    in.byte == 59 => Symbol.Semicolon,
+    in.byte == 44 => Symbol.Comma,
+    in.byte == 46 => Symbol.Dot,
+    in.byte == 63 => Symbol.Question,
+    in.byte == 43 => Symbol.Plus,
+    in.byte == 45 => Symbol.Minus,
+    in.byte == 42 => Symbol.Star,
+    in.byte == 47 => Symbol.Slash,
+    in.byte == 37 => Symbol.Percent,
+    in.byte == 60 => Symbol.Less,
+    in.byte == 62 => Symbol.Greater,
+    in.byte == 61 => Symbol.Assign,
+    in.byte == 33 => Symbol.Not,
+    in.byte == 38 => Symbol.Ampersand,
+    _ => Symbol.Pipe
+  }
+}

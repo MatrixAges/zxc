@@ -7,8 +7,10 @@ export type Input = AdvanceInput
 export type Output = LexerState
 
 export default function (in: owned Input): Output {
+  const line_break = in.state.line_break || in.byte == 10 || in.byte == 13
+
   if (in.state.mode == Mode.LineComment && (in.byte == 10 || in.byte == 13)) {
-    return emit({ kind: "", start: in.state.start, end: in.state.offset, comment: true, state: { ...in.state, mode: Mode.Idle } })
+    return emit({ kind: "", start: in.state.start, end: in.state.offset, comment: true, state: { ...in.state, mode: Mode.Idle, line_break: true } })
   }
 
   if (in.state.mode == Mode.BlockComment && in.byte == 42 && in.has_next && in.next == 47) {
@@ -17,5 +19,5 @@ export default function (in: owned Input): Output {
     return emit({ kind: "", start: in.state.start, end: in.state.offset + 2, comment: true, state: { ...in.state, skip_until: next_skip_until, mode: Mode.Idle } })
   }
 
-  return in.state
+  return { ...in.state, line_break: line_break }
 }

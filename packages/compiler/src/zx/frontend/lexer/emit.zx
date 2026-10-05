@@ -1,4 +1,7 @@
 import type { LexerState } from "./model.zx"
+import { Keyword } from "./keyword_model.zx"
+import { Symbol } from "./token_model.zx"
+import tokenKind from "./token_kind.zx"
 
 export type Input = { kind: string, start: u64, end: u64, comment: bool, state: LexerState }
 
@@ -9,7 +12,14 @@ export default function (in: owned Input): Output {
 
   if (in.comment) {
     return {
-      source_length: in.state.source_length, warmed: in.state.warmed, ahead_one: in.state.ahead_one, ahead_two: in.state.ahead_two, keyword: in.state.keyword,
+      source_length: in.state.source_length,
+      warmed: in.state.warmed,
+      ahead_one: in.state.ahead_one,
+      ahead_two: in.state.ahead_two,
+      keyword: in.state.keyword,
+      symbol: in.state.symbol,
+      line_break: in.state.line_break,
+      dollar: in.state.dollar,
       offset: in.state.offset,
       skip_until: in.state.skip_until,
       mode: in.state.mode,
@@ -24,18 +34,38 @@ export default function (in: owned Input): Output {
     }
   }
 
+  const word = in.kind == "identifier" || in.kind == "keyword" ? in.state.keyword : Keyword.Root
+
+  const kind = tokenKind(in.kind)
+
+  const token = {
+    kind: kind,
+    word: word,
+    symbol: in.state.symbol,
+    span: span,
+    line_break: in.state.tokens.length != 0 && in.state.line_break,
+    dollar: in.state.dollar
+  }
+
   return {
-      source_length: in.state.source_length, warmed: in.state.warmed, ahead_one: in.state.ahead_one, ahead_two: in.state.ahead_two, keyword: in.state.keyword,
-      offset: in.state.offset,
-      skip_until: in.state.skip_until,
-      mode: in.state.mode,
-      start: in.state.start,
-      braces: in.state.braces,
-      depth: in.state.depth,
-      frames: in.state.frames,
-      number: in.state.number,
-      tokens: in.state.tokens.push({ kind: in.kind, span: span })[0],
-      comments: in.state.comments,
-      diagnostic: in.state.diagnostic
-    }
+    source_length: in.state.source_length,
+    warmed: in.state.warmed,
+    ahead_one: in.state.ahead_one,
+    ahead_two: in.state.ahead_two,
+    keyword: in.state.keyword,
+    symbol: Symbol.None,
+    line_break: false,
+    dollar: false,
+    offset: in.state.offset,
+    skip_until: in.state.skip_until,
+    mode: in.state.mode,
+    start: in.state.start,
+    braces: in.state.braces,
+    depth: in.state.depth,
+    frames: in.state.frames,
+    number: in.state.number,
+    tokens: in.state.tokens.push(token)[0],
+    comments: in.state.comments,
+    diagnostic: in.state.diagnostic
+  }
 }

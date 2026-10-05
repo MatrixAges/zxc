@@ -28,7 +28,7 @@ pub fn main(init: std.process.Init) !void {
 
     std.mem.sort(compiler.project.Source, sources.items, {}, lessThan);
 
-    var analyzed = try compiler.analyzeProject(allocator, sources.items, .{ .entry = "lex.zx" });
+    var analyzed = try compiler.analyzeProject(allocator, sources.items, .{ .entry = "scan.zx" });
 
     defer analyzed.deinit();
 

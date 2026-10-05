@@ -2,11 +2,18 @@ import json
 from pathlib import Path
 
 root = Path(__file__).parent
-words = json.loads((root / "keywords.json").read_text())
+keywords = json.loads((root / "keywords.json").read_text())
+words = keywords + json.loads((root / "contextual_words.json").read_text())
 prefixes = sorted({word[:length] for word in words for length in range(1, len(word) + 1)})
 
 
 def symbol(prefix):
+    if prefix == "_":
+        return "Underscore"
+
+    if prefix and prefix[0].isupper():
+        return "Upper" + prefix
+
     return prefix[0].upper() + prefix[1:] if prefix else "Root"
 
 
@@ -40,7 +47,7 @@ for prefix in [""] + prefixes:
 source.extend(["    default: return Keyword.Dead", "  }", "}", ""])
 (root / "keyword_transition.zx").write_text("\n".join(source))
 
-predicate = " ||\n    ".join(f"in == Keyword.{symbol(word)}" for word in words)
+predicate = " ||\n    ".join(f"in == Keyword.{symbol(word)}" for word in keywords)
 header = '''import { Keyword } from "./keyword_model.zx"
 
 export type Input = Keyword

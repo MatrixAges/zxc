@@ -20,6 +20,9 @@ export default function (in: owned Input): Output {
 
   return {
       source_length: in.source_length, warmed: in.warmed, ahead_one: in.ahead_one, ahead_two: in.ahead_two, keyword: in.keyword,
+      symbol: in.symbol,
+      line_break: in.line_break,
+      dollar: in.dollar,
       offset: in.offset,
       skip_until: in.skip_until,
       mode: mode,

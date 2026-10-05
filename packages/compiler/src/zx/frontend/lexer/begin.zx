@@ -6,6 +6,7 @@ import keywordTransition from "./keyword_transition.zx"
 import isDigit from "./number/is_digit.zx"
 import isLetter from "./is_letter.zx"
 import isPunctuation from "./is_punctuation.zx"
+import punctuationSymbol from "./punctuation_symbol.zx"
 import operatorLength from "./operator_length.zx"
 import emit from "./emit.zx"
 import fail from "./fail.zx"
@@ -16,10 +17,12 @@ export type Input = AdvanceInput
 export type Output = LexerState
 
 export default function (in: owned Input): Output {
+  const line_break = in.state.line_break || in.byte == 10 || in.byte == 13
+
   const offset = in.state.offset
 
   if (in.byte == 32 || (in.byte >= 9 && in.byte <= 13)) {
-    return in.state
+    return { ...in.state, line_break: line_break }
   }
 
   if (in.byte == 47 && in.has_next) {
@@ -33,7 +36,7 @@ export default function (in: owned Input): Output {
   }
 
   if (isLetter(in.byte) || in.byte == 95 || in.byte == 36) {
-    return { ...in.state, keyword: keywordTransition({ keyword: Keyword.Root, byte: in.byte }), mode: Mode.Identifier, start: offset }
+    return { ...in.state, keyword: keywordTransition({ keyword: Keyword.Root, byte: in.byte }), dollar: in.byte == 36, mode: Mode.Identifier, start: offset }
   }
 
   if (isDigit(in.byte)) {
@@ -54,7 +57,8 @@ export default function (in: owned Input): Output {
 
   const length = operatorLength({ byte: in.byte, next: in.next, after: in.after, has_next: in.has_next, has_after: in.has_after })
 
+  const symbol = punctuationSymbol({ byte: in.byte, next: in.next, length: length })
   const next_skip_until = offset + length
 
-  return emit({ kind: "punctuation", start: offset, end: offset + length, comment: false, state: { ...in.state, skip_until: next_skip_until } })
+  return emit({ kind: "punctuation", start: offset, end: offset + length, comment: false, state: { ...in.state, symbol: symbol, skip_until: next_skip_until } })
 }

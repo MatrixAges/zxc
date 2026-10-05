@@ -6,7 +6,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 
 提供可独立调用的声明式前端、开放 IR 和 Zig 后端，同时执行命名与 AST 空行门禁。第三方后端依赖 compiler 的 frontend 模块与 core 数据模型。RX/ZX 语言实现在 src/rx、src/zx；命令与系统交互位于独立 cli 包。
 
-主词法扫描已由 `src/zx/frontend/lexer/` 的 ZX 源码实现。构建用 `bootstrap/lexer/` 宿主种子生成词法模块，正式 frontend 通过适配层调用生成结果；不依赖 docs 或预装 zxc。Parser 等其余阶段尚未完成迁移，详见 [正式词法前端参考](../../docs/2026-10-05/正式词法前端参考.md)。
+主词法扫描已由 `src/zx/frontend/lexer/scan.zx` 及其 helper 实现，内部 token 使用枚举与字节位置；`lex.zx` 保留旧词法结果形状。构建用 `bootstrap/lexer/` 宿主种子生成词法模块，正式 frontend 通过适配层调用生成结果；不依赖 docs 或预装 zxc。Parser 等其余阶段尚未完成迁移，详见 [正式词法前端参考](../../docs/2026-10-05/正式词法前端参考.md)。
 
 ## Data：实现范围
 

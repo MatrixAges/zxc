@@ -1,0 +1,17 @@
+import { Kind } from "./token_model.zx"
+
+export type Input = string
+
+export type Output = Kind
+
+export default function (in: Input): Output {
+  return match {
+    in == "identifier" => Kind.Identifier,
+    in == "keyword" => Kind.Keyword,
+    in == "number" => Kind.Number,
+    in == "string" => Kind.String,
+    in == "template" => Kind.Template,
+    in == "punctuation" => Kind.Punctuation,
+    _ => Kind.Eof
+  }
+}
