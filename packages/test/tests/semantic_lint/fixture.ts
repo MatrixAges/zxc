@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 
@@ -17,13 +17,14 @@ export default function createFixture(files: Record<string, string>) {
 
 	function snapshot(): Array<[string, string | null]> {
 		return readdirSync(root, { recursive: true, withFileTypes: true })
-			.map(entry => {
+			.map((entry): [string, string | null] => {
 				const path = join(entry.parentPath, entry.name)
+				let content: string | null = null
 
-				return [path, entry.isDirectory() ? null : readFileSync(path).toString('base64')] as [
-					string,
-					string | null
-				]
+				if (entry.isSymbolicLink()) content = `symlink:${readlinkSync(path)}`
+				else if (!entry.isDirectory()) content = readFileSync(path).toString('base64')
+
+				return [path, content]
 			})
 			.sort(([left], [right]) => left.localeCompare(right))
 	}
