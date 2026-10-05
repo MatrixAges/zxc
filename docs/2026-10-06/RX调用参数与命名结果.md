@@ -108,3 +108,25 @@ zig-out/bin/zxc check-rx --entry docs/2026-10-06/RX模块命名/消费/main.rx -
 ```
 
 未新增测试用例，未执行全量测试；上述是既有源码和输入的定向重放。Route.service 的 Schema 与路由解析保持原样；本轮没有启动 HTTP 服务实测。旧别名、重复结果和循环等负例未重新执行，图遍历本体保持原有实现，仅改为读取 module 并区分已声明包目标，不能据此宣称完整回归通过。函数头自举草稿仍未完成，不纳入本次提交。
+
+## 无输出结果引用诊断修复
+
+- Intent：保持无输出 Call/Task 不产生值绑定的契约，引用它们时在 RX 属性中的原位置报告 name。
+- Data：测试会话提交的既有用例 `RX parallel Task without Return cannot expose void output` 曾把 `$ctx.task.value` 误报为 Store capability。
+- Edges：不能给 void 结果补造值，也不能修改 Store 授权或添加仅识别该 Task 名称的特例。
+- Answer：RX 推导遇到结果绑定引用时检查其值类型；已知 void 立即拒绝，未知类型记录引用位置，在类型图收敛过程中复查。已知非 void 不增加延迟检查。
+
+根因是类型推导仍接受 void 占位结果，而链接时会删除 void 值绑定，导致后续 ZX 分析把未绑定的 `$` 根误送入 Store 处理。修复放在 RX 值语义边界，不改通用 ZX Store 路由。
+
+```mermaid
+flowchart LR
+  Ref[RX 结果引用] --> Known{类型已知}
+  Known -->|void| Error[原引用位置 name 诊断]
+  Known -->|非 void| Value[正常值推导]
+  Known -->|未知| Track[记录类型节点和引用 span]
+  Track --> Finish[每轮类型推导复查]
+  Finish --> Error
+  Finish --> Value
+```
+
+定向执行 `packages/test` 下的 `zig build test-rx-parallel-inference -j2 --summary all`，105/105 项通过。未增加用例、未执行全量测试、未修改测试会话文件。该证据覆盖当前并行推导集合；不能据此宣称所有跨模块未知类型路径均已单独回归。

@@ -16,6 +16,7 @@ pub fn infer(self: *Self, expression: *const zx.ast.Expression, expected: ?Graph
     const span = self.sourceSpan(expression.span);
 
     if (self.lookup(expression)) |binding| {
+        try self.graph.requireValue(binding, span);
         if (expected) |hint| try self.graph.expect(binding, hint, span);
 
         return expected orelse binding;

@@ -9,6 +9,7 @@ pub const Shape = union(enum) { unknown, sequence, known: zx.ir.TypeId, object: 
 pub const Node = struct { parent: Id, shape: Shape, span: zx.Span, allowed: ?Mask = null, fallback: ?zx.ir.Scalar = null };
 
 const Projection = struct { target: Id, value: Id, span: zx.Span };
+const ValueUse = struct { value: Id, span: zx.Span };
 const Assignment = @import("assignment.zig");
 
 allocator: std.mem.Allocator,
@@ -16,6 +17,7 @@ reporter: *zx.Reporter,
 types: Types,
 nodes: std.ArrayList(Node) = .empty,
 lengths: std.ArrayList(Projection) = .empty,
+value_uses: std.ArrayList(ValueUse) = .empty,
 assignments: std.ArrayList(Assignment.Edge) = .empty,
 constructions: std.ArrayList(@import("construction.zig").Object) = .empty,
 sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
@@ -33,7 +35,7 @@ pub fn init(allocator: std.mem.Allocator, reporter: *zx.Reporter, existing: []co
 }
 
 pub fn add(self: *Self, initial_shape: Shape, span: zx.Span) zx.Error!Id {
-    const id: Id = @enumFromInt(self.nodes.items.len);
+    const id: Id = @fromBackingInt(@intCast(self.nodes.items.len));
 
     try self.nodes.append(self.allocator, .{ .parent = id, .shape = initial_shape, .span = span });
 
@@ -41,7 +43,7 @@ pub fn add(self: *Self, initial_shape: Shape, span: zx.Span) zx.Error!Id {
 }
 
 pub fn known(self: *Self, type_id: zx.ir.TypeId, span: zx.Span) zx.Error!Id {
-    if (@intFromEnum(type_id) >= self.types.items.items.len) return self.reporter.fail(.contract, span, "inference type is outside the shared table");
+    if (@backingInt(type_id) >= self.types.items.items.len) return self.reporter.fail(.contract, span, "inference type is outside the shared table");
 
     const entry = try self.known_types.getOrPut(self.allocator, type_id);
 
@@ -57,13 +59,13 @@ pub fn scalar(self: *Self, value: zx.ir.Scalar, span: zx.Span) zx.Error!Id {
 pub fn root(self: *const Self, id: Id) Id {
     var current = id;
 
-    while (self.nodes.items[@intFromEnum(current)].parent != current) current = self.nodes.items[@intFromEnum(current)].parent;
+    while (self.nodes.items[@backingInt(current)].parent != current) current = self.nodes.items[@backingInt(current)].parent;
 
     return current;
 }
 
 pub fn shape(self: *const Self, id: Id) Shape {
-    return self.nodes.items[@intFromEnum(self.root(id))].shape;
+    return self.nodes.items[@backingInt(self.root(id))].shape;
 }
 
 pub fn unify(self: *Self, left: Id, right: Id, span: zx.Span) zx.Error!void {
@@ -82,8 +84,20 @@ pub fn expect(self: *Self, value: Id, expected: Id, span: zx.Span) zx.Error!void
     self.revision += 1;
 }
 
+pub fn requireValue(self: *Self, value: Id, span: zx.Span) zx.Error!void {
+    try self.checkValue(.{ .value = value, .span = span });
+    if (self.shape(value) != .unknown) return;
+    try self.value_uses.append(self.allocator, .{ .value = value, .span = span });
+}
+
+fn checkValue(self: *Self, use: ValueUse) zx.Error!void {
+    const value = self.shape(use.value);
+
+    if (value == .known and value.known == Types.scalarId(.void)) return self.reporter.fail(.name, use.span, "flow value is not defined in this scope");
+}
+
 pub fn restrict(self: *Self, id: Id, allowed: Mask, span: zx.Span) zx.Error!void {
-    const index = @intFromEnum(self.root(id));
+    const index = @backingInt(self.root(id));
     const merged = if (self.nodes.items[index].allowed) |previous| previous.intersectWith(allowed) else allowed;
 
     if (merged.count() == 0) return self.reporter.fail(.type_mismatch, span, "incompatible inferred scalar requirements");
@@ -109,7 +123,7 @@ pub fn number(self: *Self, text: []const u8, negative: bool, span: zx.Span) zx.E
 
     try self.restrict(id, if (floating) Mask.initMany(&.{ .f32, .f64 }) else if (negative) Mask.initMany(&.{ .i32, .i64, .f32, .f64 }) else numeric(), span);
 
-    self.nodes.items[@intFromEnum(id)].fallback = if (floating) .f64 else if (negative) .i64 else .u64;
+    self.nodes.items[@backingInt(id)].fallback = if (floating) .f64 else if (negative) .i64 else .u64;
 
     return id;
 }
@@ -119,7 +133,7 @@ pub fn numeric() Mask {
 }
 
 pub fn field(self: *Self, id: Id, name: []const u8, span: zx.Span) zx.Error!Id {
-    const index = @intFromEnum(self.root(id));
+    const index = @backingInt(self.root(id));
     const value = self.nodes.items[index].shape;
 
     if (value == .known) {
@@ -185,6 +199,7 @@ pub fn finish(self: *Self) zx.Error!void {
     while (true) {
         const revision = self.revision;
 
+        for (self.value_uses.items) |use| try self.checkValue(use);
         for (self.sequences.items) |sequence| try @import("sequences.zig").propagate(self, sequence);
         for (self.constructions.items) |object| try @import("construction.zig").propagate(self, object, false);
 
