@@ -11,7 +11,7 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 - 纯类型与可执行文件，类型/枚举/默认函数导入，./、../、@/ 路径及导入无环检查。
 - number→f64、boolean→bool、Array<T>→T[]；标量、对象、枚举、optional、list、tuple；const、解构、if、switch、match 表达式、return。
 - 列表和对象字面量、展开、索引、length、模板、字符串比较、三元与空值回退。
-- 无捕获 map/filter/reduce，统一元组返回的消费式列表更新；禁止 clone 深拷贝。
+- 无捕获 map/filter/reduce，reduce 支持独占累加器；消费式列表更新统一返回元组，可用整数常量索引选择字段；禁止 clone 深拷贝。用法与性能边界见 [归约累加器参考](../../docs/2026-10-05/归约累加器所有权参考.md)。
 - Call 注入的 `$name.value` Store getter/setter、类型与独立读写权限、暂存与宿主统一提交。
 - 显式注册并审查的 zig:/c: 接口与模块成员，保留旧 lib: 兼容；无前缀 ZX 包入口映射；普通项目函数的 Input/Output 类型连接。
 - 内建 std:encoding、std:crypto、std:path、std:querystring、std:url/search_params、std:zlib 与 std:os 系列纯计算接口，以及显式宿主 I/O 的 std:fs 文件接口；它们不是完整 Node.js 标准库兼容实现。

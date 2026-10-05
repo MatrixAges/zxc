@@ -1,0 +1,9 @@
+export type Input = { seed: u64[], steps: { push: bool, value: u64 }[] }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+  const initial = in.seed.map(item => item)
+
+  return in.steps.reduce((items, step) => step.push ? items.push(step.value)[0] : items.pop()[0], initial)
+}

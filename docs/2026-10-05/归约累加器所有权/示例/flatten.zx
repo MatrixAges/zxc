@@ -1,0 +1,12 @@
+export type Input = u64[][]
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+  const initial: u64[] = []
+  const flattened = in.reduce((items, row) => items.concat(row)[0], initial)
+
+  const [reversed, _] = flattened.reverse()
+
+  return reversed
+}
