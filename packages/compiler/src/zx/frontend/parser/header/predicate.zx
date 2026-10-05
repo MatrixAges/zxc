@@ -1,0 +1,31 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Symbol } from "../../lexer/token_model"
+import { Phase } from "../expressions/state/model"
+import step from "../expressions/step"
+import expect from "./expect"
+import { HeaderPhase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == HeaderPhase.Predicate) {
+    const expression = step(in.expression)
+    const failed = expression.control.diagnostic.message != "" || expression.control.lexical_diagnostic != 0 || expression.control.type_diagnostic
+    const phase = failed ? HeaderPhase.Done : expression.control.phase == Phase.Done ? HeaderPhase.ContractClose : HeaderPhase.Predicate
+
+    return { expression: expression, contracts: in.contracts, control: { ...in.control, phase: phase, expression_diagnostic: failed } }
+  }
+
+  const contract = { ensures: in.control.ensures, predicate: in.expression.control.result, span: { start: in.control.contract_start, end: in.control.token.span.end } }
+  const state = expect({ state: in, word: Keyword.Root, symbol: Symbol.CloseParen, phase: HeaderPhase.Contract, message: ")" })
+
+  if (state.control.phase == HeaderPhase.Done) {
+    return state
+  }
+
+  return { expression: state.expression, contracts: state.contracts.push(contract)[0], control: state.control }
+}

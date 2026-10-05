@@ -1,0 +1,7 @@
+<Module>
+  <Call module="prepare" in={$in.source} />
+
+  <Call fn="header/parse" in={{prepared: $ctx.prepare, start: $in.start, depth: $in.depth}} />
+
+  <Return value={$ctx.parse} />
+</Module>

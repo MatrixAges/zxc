@@ -1,0 +1,14 @@
+import type { Diagnostic } from "../../lexer/model"
+import type { Span, Token } from "../../lexer/token_model"
+import type { ExprState } from "../expressions/state/model"
+
+export enum HeaderPhase { Open, Input, Colon, Ownership, InputName, ParameterEnd, StoreOpen, StoreName, StoreClose, StoreEnd, Close, ResultColon, ResultName, Contract, ContractOpen, Predicate, ContractClose, Done }
+
+export type Contract = { ensures: bool, predicate: u64, span: Span }
+
+export type Control = {
+  phase: HeaderPhase, token: Token, consumes_input: bool, has_store: bool,
+  has_ensures: bool, ensures: bool, contract_start: u64, expression_diagnostic: bool, diagnostic: Diagnostic
+}
+
+export type State = { expression: ExprState, contracts: Contract[], control: Control }

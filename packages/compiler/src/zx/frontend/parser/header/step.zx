@@ -1,0 +1,31 @@
+import current from "../expressions/state/current"
+import contracts from "./contracts"
+import { HeaderPhase } from "./model"
+import predicate from "./predicate"
+import signature from "./signature"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == HeaderPhase.Done) {
+    return in
+  }
+
+  if (in.control.phase == HeaderPhase.Predicate) {
+    return predicate(in)
+  }
+
+  const at = current(in.expression)
+  const state = { expression: in.expression, contracts: in.contracts, control: { ...in.control, token: at.token } }
+
+  switch (state.control.phase) {
+    case HeaderPhase.Contract: return contracts(state)
+    case HeaderPhase.ContractOpen: return contracts(state)
+    case HeaderPhase.ContractClose: return predicate(state)
+    default: return signature(state)
+  }
+}

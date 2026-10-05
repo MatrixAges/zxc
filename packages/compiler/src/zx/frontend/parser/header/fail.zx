@@ -1,0 +1,13 @@
+import { HeaderPhase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = { state: State, code: string, message: string }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const diagnostic = { code: in.code, start: in.state.control.token.span.start, end: in.state.control.token.span.end, message: in.message }
+
+  return { expression: in.state.expression, contracts: in.state.contracts, control: { ...in.state.control, phase: HeaderPhase.Done, diagnostic: diagnostic } }
+}

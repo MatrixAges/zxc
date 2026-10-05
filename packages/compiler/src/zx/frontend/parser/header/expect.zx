@@ -1,0 +1,21 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Symbol } from "../../lexer/token_model"
+import consume from "./consume"
+import fail from "./fail"
+import { HeaderPhase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = { state: State, word: Keyword, symbol: Symbol, phase: HeaderPhase, message: string }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const matches = in.word == Keyword.Root ? in.state.control.token.symbol == in.symbol : in.state.control.token.word == in.word
+
+  if (!matches) {
+    return fail({ state: in.state, code: "syntax", message: in.message })
+  }
+
+  return consume({ state: in.state, phase: in.phase })
+}

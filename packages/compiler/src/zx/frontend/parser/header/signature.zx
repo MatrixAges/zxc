@@ -1,0 +1,52 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Symbol } from "../../lexer/token_model"
+import consume from "./consume"
+import expect from "./expect"
+import { HeaderPhase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  switch (in.control.phase) {
+    case HeaderPhase.Open: return expect({ state: in, word: Keyword.Root, symbol: Symbol.OpenParen, phase: HeaderPhase.Input, message: "(" })
+    case HeaderPhase.Input: return expect({ state: in, word: Keyword.In, symbol: Symbol.None, phase: HeaderPhase.Colon, message: "in" })
+    case HeaderPhase.Colon: return expect({ state: in, word: Keyword.Root, symbol: Symbol.Colon, phase: HeaderPhase.Ownership, message: ":" })
+    case HeaderPhase.Ownership:
+      if (in.control.token.word == Keyword.Owned) {
+        return consume({ state: { expression: in.expression, contracts: in.contracts, control: { ...in.control, consumes_input: true } }, phase: HeaderPhase.InputName })
+      }
+
+      return expect({ state: in, word: Keyword.UpperInput, symbol: Symbol.None, phase: HeaderPhase.ParameterEnd, message: "Input" })
+    case HeaderPhase.InputName: return expect({ state: in, word: Keyword.UpperInput, symbol: Symbol.None, phase: HeaderPhase.ParameterEnd, message: "Input" })
+    case HeaderPhase.ParameterEnd:
+      if (in.control.token.symbol == Symbol.Comma) {
+        return consume({ state: in, phase: HeaderPhase.StoreOpen })
+      }
+
+      return expect({ state: in, word: Keyword.Root, symbol: Symbol.CloseParen, phase: HeaderPhase.ResultColon, message: ")" })
+    case HeaderPhase.StoreOpen:
+      if (in.control.token.symbol == Symbol.CloseParen) {
+        return consume({ state: in, phase: HeaderPhase.ResultColon })
+      }
+
+      return expect({ state: in, word: Keyword.Root, symbol: Symbol.OpenBrace, phase: HeaderPhase.StoreName, message: "{" })
+    case HeaderPhase.StoreName: return expect({ state: in, word: Keyword.Store, symbol: Symbol.None, phase: HeaderPhase.StoreClose, message: "store" })
+    case HeaderPhase.StoreClose:
+      const state = { expression: in.expression, contracts: in.contracts, control: { ...in.control, has_store: true } }
+
+      return expect({ state: state, word: Keyword.Root, symbol: Symbol.CloseBrace, phase: HeaderPhase.StoreEnd, message: "}" })
+    case HeaderPhase.StoreEnd:
+      if (in.control.token.symbol == Symbol.Comma) {
+        return consume({ state: in, phase: HeaderPhase.Close })
+      }
+
+      return expect({ state: in, word: Keyword.Root, symbol: Symbol.CloseParen, phase: HeaderPhase.ResultColon, message: ")" })
+    case HeaderPhase.Close: return expect({ state: in, word: Keyword.Root, symbol: Symbol.CloseParen, phase: HeaderPhase.ResultColon, message: ")" })
+    case HeaderPhase.ResultColon: return expect({ state: in, word: Keyword.Root, symbol: Symbol.Colon, phase: HeaderPhase.ResultName, message: ":" })
+    default: return expect({ state: in, word: Keyword.UpperOutput, symbol: Symbol.None, phase: HeaderPhase.Contract, message: "Output" })
+  }
+}

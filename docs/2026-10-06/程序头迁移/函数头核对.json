@@ -1,0 +1,1889 @@
+{
+	"sources": 239,
+	"headers": 226,
+	"owned_headers": 95,
+	"store_headers": 9,
+	"requires": 15,
+	"ensures": 80,
+	"failures": [],
+	"skipped": [
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/model.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/prepare/model.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/model.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/model.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/imports/model.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/model.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/model.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/model.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/model.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/io/fixtures/snapshot.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "public_cases:all public modules proved and hidden invalid source ignored:hidden.zx",
+			"skipped": "invalid program",
+			"diagnostic": {
+				"code": "contract",
+				"span": {
+					"start": 0,
+					"end": 7
+				},
+				"message": "imports and types must precede the single anonymous default function"
+			}
+		},
+		{
+			"source": "public_cases:type only public module does not invoke solver:types.zx",
+			"skipped": "type-only file"
+		},
+		{
+			"source": "public_cases:unreferenced public syntax failure prevents partial proof:broken.zx",
+			"skipped": "invalid program",
+			"diagnostic": {
+				"code": "contract",
+				"span": {
+					"start": 0,
+					"end": 7
+				},
+				"message": "imports and types must precede the single anonymous default function"
+			}
+		}
+	],
+	"records": [
+		{
+			"source": "docs/2026-10-05/并行任务/消费/main.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 5
+		},
+		{
+			"source": "docs/2026-10-05/并行任务/示例/identity.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "docs/2026-10-05/并行纯计算证明/消费/main.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 5
+		},
+		{
+			"source": "docs/2026-10-05/并行纯计算证明/示例/checked.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "docs/2026-10-05/并行纯计算证明/示例/identity.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "docs/2026-10-05/库受管文件测试草稿/输入/源码/identity.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "docs/2026-10-05/统一库/发布清单/源码/identity.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "docs/2026-10-05/统一库/编译包重建/验证源码/identity.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "docs/2026-10-05/统一库发布测试草稿/tests/library_publish/fixtures/source/identity.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "docs/2026-10-05/编译清单契约测试草稿/输入/source/identity.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "docs/2026-10-05/编译清单重建测试草稿/输入/source/identity.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "docs/2026-10-05/自举词法扫描/number_result.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "docs/2026-10-05/首页示例/bounded_discount.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 1,
+			"nodes": 9
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/begin.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/consume.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/enumeration.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/fail.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/header.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/initial.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/parse.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/publish.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/step.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/declarations/typed.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/arguments.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/arguments_finish.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/arguments_return.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/begin_binary.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/binary.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/child.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/finish_binary.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/generic.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/interpolation_return.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/lambda.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/match.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/match_finish.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/match_return.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/object.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/object_finish.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/object_return.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/postfix.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/primary.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/resume.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/simple_return.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/start_arguments.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/start_lambda.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/start_template.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/grammar/template.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/parse.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/prepare/all.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/prepare/operator.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/prepare/scan.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/prepare/step.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/consume.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/current.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/emit.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/fail.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/frame.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/initial.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/node.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/start.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/state/take_frame.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/expressions/step.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/consume.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/contracts.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/expect.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/fail.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/initial.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/parse.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/predicate.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/signature.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/header/step.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/imports/begin.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/imports/fail.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/imports/finish.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/imports/initial.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/imports/parse.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/imports/step.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/add_part.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/advance.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/append_token_ids.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/close_interpolation.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/close_template.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/copy_frame.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/empty.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/finish.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/flush.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/initial.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/observe.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/open_interpolation.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/open_template.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/scan.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/boundary/tick.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/prepare.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/close_interpolation.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/close_template.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/event.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/feed.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/finish_prefix.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/initial.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/open_interpolation.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/open_template.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/result.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/resume.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/session.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/templates/streams/step.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/add_field.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/add_item.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/add_node.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/application_end.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/close.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/complete.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/consume.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/copy_frame.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/done.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/fail.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/field.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/initial.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/lexical_failure.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/object_separator.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/open.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/parse.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/primary.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/replace_frame.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/step.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/suffix.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/compiler/src/zx/frontend/parser/types/tuple_separator.zx",
+			"consumes_input": true,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/dual/fixtures/advance.zx",
+			"consumes_input": false,
+			"has_store": true,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/dual/fixtures/advance_borrowed.zx",
+			"consumes_input": false,
+			"has_store": true,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/dual/fixtures/advance_failure.zx",
+			"consumes_input": false,
+			"has_store": true,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/dual/fixtures/read_pair.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/dual/fixtures/snapshot.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/dual/fixtures/write_left_pair.zx",
+			"consumes_input": false,
+			"has_store": true,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/dual/fixtures/write_pair.zx",
+			"consumes_input": false,
+			"has_store": true,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/fixtures/advance.zx",
+			"consumes_input": false,
+			"has_store": true,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/fixtures/read.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/io/fixtures/combine.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/io/fixtures/read.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/io/fixtures/save.zx",
+			"consumes_input": false,
+			"has_store": true,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/store/io/fixtures/view.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/targets/napi/fixtures/state/advance.zx",
+			"consumes_input": false,
+			"has_store": true,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/targets/napi/fixtures/state/select.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "packages/test/tests/targets/wasm/fixtures/state/advance.zx",
+			"consumes_input": false,
+			"has_store": true,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "public_cases:all public modules proved and hidden invalid source ignored:left.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "public_cases:all public modules proved and hidden invalid source ignored:right.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "public_cases:same source aliases have independent proof files:left.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "public_cases:unreferenced public syntax failure prevents partial proof:first.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "public_cases:missing public source prevents partial proof:first.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "public_cases:RX and ZX public proofs share collection:read.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "public_cases:counterexample does not skip other public entry false:good.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "public_cases:counterexample does not skip other public entry false:bad.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "public_cases:counterexample does not skip other public entry true:good.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "public_cases:counterexample does not skip other public entry true:bad.zx",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 0,
+			"nodes": 0
+		},
+		{
+			"source": "enumeration_cases:1 members / scalar / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:1 members / scalar / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:1 members / scalar / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:1 members / nested object / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 6
+		},
+		{
+			"source": "enumeration_cases:1 members / nested object / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:1 members / nested object / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 6
+		},
+		{
+			"source": "enumeration_cases:1 members / tuple / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:1 members / tuple / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:2 members / scalar / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 9
+		},
+		{
+			"source": "enumeration_cases:2 members / scalar / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:2 members / scalar / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 9
+		},
+		{
+			"source": "enumeration_cases:2 members / scalar / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "enumeration_cases:2 members / nested object / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 13
+		},
+		{
+			"source": "enumeration_cases:2 members / nested object / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:2 members / nested object / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 13
+		},
+		{
+			"source": "enumeration_cases:2 members / nested object / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 5
+		},
+		{
+			"source": "enumeration_cases:2 members / tuple / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:2 members / tuple / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:2 members / tuple / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:3 members / scalar / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 14
+		},
+		{
+			"source": "enumeration_cases:3 members / scalar / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:3 members / scalar / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 14
+		},
+		{
+			"source": "enumeration_cases:3 members / scalar / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "enumeration_cases:3 members / nested object / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 20
+		},
+		{
+			"source": "enumeration_cases:3 members / nested object / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:3 members / nested object / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 20
+		},
+		{
+			"source": "enumeration_cases:3 members / nested object / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 5
+		},
+		{
+			"source": "enumeration_cases:3 members / tuple / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:3 members / tuple / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:3 members / tuple / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:4 members / scalar / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 19
+		},
+		{
+			"source": "enumeration_cases:4 members / scalar / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:4 members / scalar / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 19
+		},
+		{
+			"source": "enumeration_cases:4 members / scalar / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "enumeration_cases:4 members / nested object / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 27
+		},
+		{
+			"source": "enumeration_cases:4 members / nested object / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:4 members / nested object / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 27
+		},
+		{
+			"source": "enumeration_cases:4 members / nested object / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 5
+		},
+		{
+			"source": "enumeration_cases:4 members / tuple / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:4 members / tuple / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:4 members / tuple / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:5 members / scalar / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 24
+		},
+		{
+			"source": "enumeration_cases:5 members / scalar / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:5 members / scalar / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 24
+		},
+		{
+			"source": "enumeration_cases:5 members / scalar / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "enumeration_cases:5 members / nested object / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 34
+		},
+		{
+			"source": "enumeration_cases:5 members / nested object / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:5 members / nested object / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 34
+		},
+		{
+			"source": "enumeration_cases:5 members / nested object / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 5
+		},
+		{
+			"source": "enumeration_cases:5 members / tuple / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:5 members / tuple / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:5 members / tuple / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:8 members / scalar / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 39
+		},
+		{
+			"source": "enumeration_cases:8 members / scalar / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:8 members / scalar / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 39
+		},
+		{
+			"source": "enumeration_cases:8 members / scalar / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "enumeration_cases:8 members / nested object / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 55
+		},
+		{
+			"source": "enumeration_cases:8 members / nested object / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:8 members / nested object / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 55
+		},
+		{
+			"source": "enumeration_cases:8 members / nested object / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 5
+		},
+		{
+			"source": "enumeration_cases:8 members / tuple / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:8 members / tuple / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:8 members / tuple / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:9 members / scalar / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 44
+		},
+		{
+			"source": "enumeration_cases:9 members / scalar / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:9 members / scalar / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 44
+		},
+		{
+			"source": "enumeration_cases:9 members / scalar / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 3
+		},
+		{
+			"source": "enumeration_cases:9 members / nested object / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 62
+		},
+		{
+			"source": "enumeration_cases:9 members / nested object / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:9 members / nested object / empty input domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 1,
+			"ensures": 0,
+			"nodes": 62
+		},
+		{
+			"source": "enumeration_cases:9 members / nested object / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 5
+		},
+		{
+			"source": "enumeration_cases:9 members / tuple / exhaustive domain",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		},
+		{
+			"source": "enumeration_cases:9 members / tuple / last member counterexample",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 4
+		},
+		{
+			"source": "enumeration_cases:9 members / tuple / rotation has no fixed point",
+			"consumes_input": false,
+			"has_store": false,
+			"requires": 0,
+			"ensures": 1,
+			"nodes": 1
+		}
+	]
+}

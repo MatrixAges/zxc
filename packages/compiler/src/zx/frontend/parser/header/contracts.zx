@@ -1,0 +1,51 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Symbol } from "../../lexer/token_model"
+import start from "../expressions/state/start"
+import consume from "./consume"
+import expect from "./expect"
+import fail from "./fail"
+import { HeaderPhase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == HeaderPhase.Contract) {
+    const word = in.control.token.word
+
+    if (word != Keyword.Requires && word != Keyword.Ensures) {
+      return { expression: in.expression, contracts: in.contracts, control: { ...in.control, phase: HeaderPhase.Done } }
+    }
+
+    const contract_start = in.control.token.span.start
+
+    const state = {
+      expression: in.expression, contracts: in.contracts,
+      control: { ...in.control, ensures: word == Keyword.Ensures, contract_start: contract_start }
+    }
+
+    return consume({ state: state, phase: HeaderPhase.ContractOpen })
+  }
+
+  if (!in.control.ensures && in.control.has_ensures) {
+    return fail({ state: in, code: "contract", message: "requires clauses must precede ensures clauses" })
+  }
+
+  const state = expect({ state: in, word: Keyword.Root, symbol: Symbol.OpenParen, phase: HeaderPhase.Predicate, message: "(" })
+
+  if (state.control.phase == HeaderPhase.Done) {
+    return state
+  }
+
+  const expression = start({
+    prepared: state.expression.prepared, tree: state.expression.tree, types: state.expression.types,
+    start: state.expression.control.index, depth: state.expression.control.base_depth, minimum: 0, allow_lambda: true
+  })
+
+  const has_ensures = state.control.has_ensures || state.control.ensures
+
+  return { expression: expression, contracts: state.contracts, control: { ...state.control, has_ensures: has_ensures } }
+}

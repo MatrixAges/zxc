@@ -1,0 +1,22 @@
+import { HeaderPhase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = { state: State, phase: HeaderPhase }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const index = in.state.expression.control.index + 1
+  const last_end = in.state.control.token.span.end
+
+  return {
+    expression: {
+      prepared: in.state.expression.prepared, tree: in.state.expression.tree,
+      types: in.state.expression.types, frames: in.state.expression.frames,
+      control: { ...in.state.expression.control, index: index, root_index: index, last_end: last_end }
+    },
+    contracts: in.state.contracts,
+    control: { ...in.state.control, phase: in.phase }
+  }
+}
