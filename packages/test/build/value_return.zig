@@ -10,7 +10,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         .imports = &.{.{ .name = "compiler", .module = compiler.module("compiler") }},
     }) });
 
-    for ([_][]const u8{ "direct", "wrapped", "chained", "conditional", "fallible", "enumeration", "references", "escaping" }) |mode| {
+    for ([_][]const u8{ "direct", "wrapped", "chained", "conditional", "fallible", "enumeration", "references", "escaping", "escape_optional", "escape_list", "escape_tuple", "escape_nested" }) |mode| {
         const compile = b.addRunArtifact(tool);
 
         compile.addArg(mode);
@@ -24,7 +24,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
             options.addOption([]const u8, "mode", mode);
 
-            const runner = if (std.mem.eql(u8, mode, "fallible")) "failure" else if (std.mem.eql(u8, mode, "enumeration")) "enumeration" else if (std.mem.eql(u8, mode, "references")) "references" else if (std.mem.eql(u8, mode, "escaping")) "escaping" else "root";
+            const runner = if (std.mem.eql(u8, mode, "fallible")) "failure" else if (std.mem.eql(u8, mode, "enumeration")) "enumeration" else if (std.mem.eql(u8, mode, "references")) "references" else if (std.mem.eql(u8, mode, "escaping")) "escaping" else if (std.mem.startsWith(u8, mode, "escape_")) "containers" else "root";
             const module = b.createModule(.{ .root_source_file = b.path(b.fmt("tests/collections/value_return/{s}.zig", .{runner})), .target = target, .optimize = optimize, .imports = &.{.{ .name = "program", .module = program }} });
 
             module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });

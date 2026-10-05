@@ -1,0 +1,13 @@
+import step from "./escape_tuple_step.zx"
+
+export type Cell = { value: u64 }
+
+export type Bundle = { argument: [u64, Cell], local: [u64, Cell] }
+
+export type Input = u64[]
+
+export type Output = Bundle[]
+
+export default function (in: Input): Output {
+  return in.map(item => [item].reduce((state, value) => step({value}), step({value: 0})))
+}

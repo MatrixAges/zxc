@@ -1,0 +1,12 @@
+export type Cell = { value: u64 }
+
+export type Input = Cell
+
+export type Output = { argument: Cell?, local: Cell? }
+
+export default function (in: Input): Output {
+  const value = in.value
+  const local: Cell = {value: value + 1}
+
+  return {argument: in, local: local}
+}

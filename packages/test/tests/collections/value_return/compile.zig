@@ -6,7 +6,7 @@ pub fn main(init: std.process.Init) !void {
     const args = try init.minimal.args.toSlice(allocator);
     const mode = args[1];
 
-    const text = inline for (.{ "direct", "wrapped", "chained", "conditional", "fallible", "enumeration", "references", "escaping" }) |name| {
+    const text = inline for (.{ "direct", "wrapped", "chained", "conditional", "fallible", "enumeration", "references", "escaping", "escape_optional", "escape_list", "escape_tuple", "escape_nested" }) |name| {
         if (std.mem.eql(u8, mode, name)) break @embedFile("fixtures/" ++ name ++ ".zx");
     } else return error.InvalidMode;
 
@@ -19,6 +19,10 @@ pub fn main(init: std.process.Init) !void {
         .{ .path = "read_step.zx", .source = @embedFile("fixtures/read_step.zx") },
         .{ .path = "reference_step.zx", .source = @embedFile("fixtures/reference_step.zx") },
         .{ .path = "escape_step.zx", .source = @embedFile("fixtures/escape_step.zx") },
+        .{ .path = "escape_optional_step.zx", .source = @embedFile("fixtures/escape_optional_step.zx") },
+        .{ .path = "escape_list_step.zx", .source = @embedFile("fixtures/escape_list_step.zx") },
+        .{ .path = "escape_tuple_step.zx", .source = @embedFile("fixtures/escape_tuple_step.zx") },
+        .{ .path = "escape_nested_step.zx", .source = @embedFile("fixtures/escape_nested_step.zx") },
         .{ .path = "forward.zx", .source = @embedFile("fixtures/forward.zx") },
     }, .{ .entry = "main.zx", .root_dir = "/project" });
 
