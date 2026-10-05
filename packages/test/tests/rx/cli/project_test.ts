@@ -49,7 +49,7 @@ test('RX disk project rebuilds ZX dependency and preserves last app on failure',
 
 		const original = createHash('sha256').update(readFileSync(application)).digest('hex')
 
-		writeFiles(directory, { 'flows/forward.rx': "<Module>\n<Return value='missing'/>\n</Module>" })
+		writeFiles(directory, { 'flows/forward.rx': '<Module>\n<Return value={missing}/>\n</Module>' })
 		run({ argv: build, directory, diagnostic: /flows\/forward\.rx:2:\d+: name:/ })
 		assert.equal(createHash('sha256').update(readFileSync(application)).digest('hex'), original)
 		assert.equal(run({ command: application, argv: ['7'], directory }).trim(), '24')
@@ -71,7 +71,8 @@ for (const scenario of failures) {
 			assert.equal(existsSync(output), false)
 			assert.equal(existsSync(output + '.abi.zig'), false)
 
-			for (const [name, source] of Object.entries(sources)) assert.equal(readFileSync(join(directory, name), 'utf8'), source)
+			for (const [name, source] of Object.entries(sources))
+				assert.equal(readFileSync(join(directory, name), 'utf8'), source)
 		} finally {
 			rmSync(directory, { recursive: true, force: true })
 		}
@@ -79,9 +80,19 @@ for (const scenario of failures) {
 }
 
 for (const scenario of [
-	{ name: 'invalid RX body', path: 'flows/forward.rx', source: "<Module><Return value='missing'/></Module>", diagnostic: /forward\.rx:1:\d+: name:/ },
+	{
+		name: 'invalid RX body',
+		path: 'flows/forward.rx',
+		source: '<Module><Return value={missing}/></Module>',
+		diagnostic: /forward\.rx:1:\d+: name:/
+	},
 	{ name: 'deleted RX service', path: 'flows/forward.rx', source: null, diagnostic: /FileNotFound/ },
-	{ name: 'deleted transitive ZX import', path: 'functions/helper.zx', source: null, diagnostic: /module: import target is missing from the source set/ },
+	{
+		name: 'deleted transitive ZX import',
+		path: 'functions/helper.zx',
+		source: null,
+		diagnostic: /module: import target is missing from the source set/
+	}
 ]) {
 	test('RX disk project recovers from ' + scenario.name, () => {
 		const directory = mkdtempSync(join(tmpdir(), 'zxc rx recovery '))
@@ -106,7 +117,8 @@ for (const scenario of [
 			assert.equal(run({ command: application, argv: ['7'], directory }).trim(), '32')
 			assert.equal(run({ command: application, argv: ['0'], directory }).trim(), '18')
 
-			for (const [name, source] of Object.entries({ ...files, 'functions/helper.zx': helper(9) })) assert.equal(readFileSync(join(directory, name), 'utf8'), source)
+			for (const [name, source] of Object.entries({ ...files, 'functions/helper.zx': helper(9) }))
+				assert.equal(readFileSync(join(directory, name), 'utf8'), source)
 		} finally {
 			rmSync(directory, { recursive: true, force: true })
 		}

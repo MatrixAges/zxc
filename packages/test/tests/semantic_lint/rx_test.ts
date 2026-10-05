@@ -21,7 +21,7 @@ for (const input of ['state.store.rx', 'read.rx', 'main.gateway.rx', 'pkg.yaml']
 	test(`semantic lint / Store initial type / ${input}`, () => {
 		const fixture = createFixture({
 			...files,
-			'state.store.rx': files['state.store.rx'].replace('value="3"', 'value="true"')
+			'state.store.rx': files['state.store.rx'].replace('value={3}', 'value={true}')
 		})
 
 		try {

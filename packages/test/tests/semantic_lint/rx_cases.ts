@@ -1,6 +1,6 @@
-const store = `<Store name="counter_state" version="1">
+const store = `<Store name="counter_state" version={1}>
   <Object name="counter">
-    <Field name="value" type="u64" value="3" />
+    <Field name="value" type="u64" value={3} />
   </Object>
 </Store>
 `
@@ -11,9 +11,9 @@ const gateway = `<Gateway name="state" protocol="http">
 const service = `<Module>
   <Store from="state" as="reader" />
 
-  <Call fn="read" in="store.reader.counter.value" out="ctx.result" />
+  <Call fn="read" in={store.reader.counter.value} out="ctx.result" />
 
-  <Return value="ctx.result" />
+  <Return value={ctx.result} />
 </Module>
 `
 const identity = `export type Input = u64

@@ -19,9 +19,9 @@ dependencies:
 `,
 	'main.zx': `import run from "bundle"\n\n${identity.replace('return in', 'return run(in)')}`,
 	'main.rx': `<Module>
-  <Call module="bundle/flow" in="$in" out="ctx.result" />
+  <Call module="bundle/flow" in={$in} out="ctx.result" />
 
-  <Return value="ctx.result" />
+  <Return value={ctx.result} />
 </Module>
 `
 }

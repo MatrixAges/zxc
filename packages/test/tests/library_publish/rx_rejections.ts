@@ -27,22 +27,22 @@ const cases = [
 	},
 	{
 		name: 'module and fn are mutually exclusive',
-		call: '<Call module="bundle/read" fn="read" in="$in" out="ctx.result" />',
+		call: '<Call module="bundle/read" fn="read" in={$in} out="ctx.result" />',
 		diagnostic: /exactly one of fn, service or module/
 	},
 	{
 		name: 'module and service are mutually exclusive',
-		call: '<Call module="bundle/read" service="read" in="$in" out="ctx.result" />',
+		call: '<Call module="bundle/read" service="read" in={$in} out="ctx.result" />',
 		diagnostic: /exactly one of fn, service or module/
 	},
 	{
 		name: 'module cannot grant a setter',
-		call: '<Call module="bundle/advance" in="$in" setter="[store.fake.counter]" out="ctx.result" />',
+		call: '<Call module="bundle/advance" in={$in} setter={[store.fake.counter]} out="ctx.result" />',
 		diagnostic: /Store authorization belongs inside the published RX module/
 	},
 	{
 		name: 'input must match compiled public signature',
-		call: '<Call module="bundle/advance" in="true" out="ctx.result" />',
+		call: '<Call module="bundle/advance" in={true} out="ctx.result" />',
 		diagnostic: /type_mismatch|constraint/
 	}
 ]
@@ -62,7 +62,7 @@ export default async function reject(args: {
 			await context.test(entry.name, () => {
 				writeFileSync(
 					join(consumer, 'main.rx'),
-					`<Module>\n  ${entry.call}\n  <Return value="ctx.result" />\n</Module>\n`
+					`<Module>\n  ${entry.call}\n  <Return value={ctx.result} />\n</Module>\n`
 				)
 				const result = fixture.run({
 					cwd: consumer,

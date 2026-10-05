@@ -24,9 +24,9 @@ exports:
 `,
 		'identity.zx': identity,
 		'flow.rx': `<Module>
-  <Call fn="identity" in="$in" out="ctx.result" />
+  <Call fn="identity" in={$in} out="ctx.result" />
 
-  <Return value="ctx.result" />
+  <Return value={ctx.result} />
 </Module>
 `
 	})
