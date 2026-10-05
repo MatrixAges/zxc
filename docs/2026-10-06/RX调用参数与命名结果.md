@@ -130,3 +130,24 @@ flowchart LR
 ```
 
 定向执行 `packages/test` 下的 `zig build test-rx-parallel-inference -j2 --summary all`，105/105 项通过。未增加用例、未执行全量测试、未修改测试会话文件。该证据覆盖当前并行推导集合；不能据此宣称所有跨模块未知类型路径均已单独回归。
+
+### 重复 void 调用不占用结果名称
+
+测试会话随后反馈：已有 IO discard/input_error 程序连续调用 write，其返回类型为 void，却被当成 `$ctx.write` 重名。命名约束现在只针对最终非 void 结果；已知 void 立即排除，尚未确定的本地模块输出保存名称冲突约束，在类型图收敛时判定。多个同名候选的引用也推迟到唯一非 void 候选确定后联结，避免后出现的 void 模块遮住先前有效结果。一般单候选查询不增加临时列表分配。
+
+用于 lowering 的每个 Call/Task 结果槽仍完整保留，包括 void；它与表达式可见命名表职责不同。首轮删掉整个登记时，定向回归发现无输出 Task 导致步骤槽越界，已修复为保留内部槽、只排除公开值绑定。没有修改执行顺序或略去 void 调用。
+
+```mermaid
+flowchart LR
+  Step[Call 或 Task] --> Slot[保留内部步骤结果槽]
+  Step --> Type{结果类型}
+  Type -->|void| Hidden[不进入可见命名表]
+  Type -->|非 void| Names[正常检查结果名称]
+  Type -->|未知| Constraints[保存名称冲突与引用候选]
+  Constraints --> Infer[类型图收敛]
+  Infer --> Hidden
+  Infer --> Names
+  Slot --> Lower[保持顺序与副作用的 lowering]
+```
+
+修复后 `test-rx-parallel-inference` 重新通过 105/105；`zig build test-rx-io -j2 --summary failures` 退出 0 且无错误输出，覆盖当前 IO 来源、库重放、RX/ZX 消费和再发布集合。早先使用中间版本启动的 test-rx-runtime 已在确认步骤槽缺陷后中止，不算通过。没有执行项目全量测试，没有新增或修改用例。尚未为同名未知模块候选组合增加专项样例，相关处理来自类型图规则和代码复核，不能混同为该组合的独立运行证据。

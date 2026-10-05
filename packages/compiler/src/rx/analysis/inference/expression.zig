@@ -15,7 +15,7 @@ span_offset: usize = 0,
 pub fn infer(self: *Self, expression: *const zx.ast.Expression, expected: ?Graph.Id) zx.Error!Graph.Id {
     const span = self.sourceSpan(expression.span);
 
-    if (self.lookup(expression)) |binding| {
+    if (try self.lookup(expression)) |binding| {
         try self.graph.requireValue(binding, span);
         if (expected) |hint| try self.graph.expect(binding, hint, span);
 
@@ -125,17 +125,26 @@ pub fn sourceSpan(self: *const Self, value: zx.Span) zx.Span {
     return .{ .start = self.span_offset + start, .end = self.span_offset + (if (value.start == value.end) start else (rx.attributeEndLocation(self.attribute, value.end) orelse self.attribute.value_location).offset) };
 }
 
-fn lookup(self: *const Self, expression: *const zx.ast.Expression) ?Graph.Id {
-    var index = self.bindings.items.len;
+fn lookup(self: *Self, expression: *const zx.ast.Expression) zx.Error!?Graph.Id {
+    var selected: ?Graph.Id = null;
+    var candidates: std.ArrayList(Graph.Id) = .empty;
 
-    while (index > 0) {
-        index -= 1;
-        const binding = self.bindings.items[index];
+    defer candidates.deinit(self.graph.allocator);
 
-        if (matches(expression, binding.name)) return binding.value;
+    for (self.bindings.items) |binding| {
+        if (!matches(expression, binding.name) or @import("bindings.zig").isVoid(self.graph, binding.value)) continue;
+
+        if (selected) |previous| {
+            if (candidates.items.len == 0) try candidates.append(self.graph.allocator, previous);
+            try candidates.append(self.graph.allocator, binding.value);
+        }
+
+        selected = binding.value;
     }
 
-    return null;
+    if (candidates.items.len == 0) return selected;
+
+    return try @import("bindings.zig").lookup(self.graph, candidates.items, self.sourceSpan(expression.span));
 }
 
 fn matches(expression: *const zx.ast.Expression, name: []const u8) bool {

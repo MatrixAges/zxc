@@ -18,6 +18,8 @@ types: Types,
 nodes: std.ArrayList(Node) = .empty,
 lengths: std.ArrayList(Projection) = .empty,
 value_uses: std.ArrayList(ValueUse) = .empty,
+binding_collisions: std.ArrayList(@import("bindings.zig").Collision) = .empty,
+binding_lookups: std.ArrayList(@import("bindings.zig").Lookup) = .empty,
 assignments: std.ArrayList(Assignment.Edge) = .empty,
 constructions: std.ArrayList(@import("construction.zig").Object) = .empty,
 sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
@@ -200,6 +202,8 @@ pub fn finish(self: *Self) zx.Error!void {
         const revision = self.revision;
 
         for (self.value_uses.items) |use| try self.checkValue(use);
+
+        try @import("bindings.zig").propagate(self, false);
         for (self.sequences.items) |sequence| try @import("sequences.zig").propagate(self, sequence);
         for (self.constructions.items) |object| try @import("construction.zig").propagate(self, object, false);
 
@@ -232,6 +236,7 @@ pub fn finish(self: *Self) zx.Error!void {
         if (self.shape(projection.target) == .unknown) return self.reporter.fail(.type_mismatch, projection.span, "length alone cannot determine whether the input is a list, string or object");
     }
 
+    try @import("bindings.zig").propagate(self, true);
     try Assignment.validate(self);
 }
 

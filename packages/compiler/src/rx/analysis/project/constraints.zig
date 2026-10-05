@@ -113,7 +113,7 @@ const Walker = struct {
 
                 for (outputs.items, 0..) |binding, index| {
                     for (outputs.items[0..index]) |previous| {
-                        if (paths.overlaps(previous.name, binding.name)) return expression.graph.reporter.fail(.name, binding.span, "Parallel result binding paths must not overlap");
+                        if (paths.overlaps(previous.name, binding.name)) try @import("../inference/bindings.zig").distinct(expression.graph, previous.value, binding.value, binding.span, "Parallel result binding paths must not overlap");
                     }
 
                     try expression.bindings.append(expression.graph.allocator, binding);
@@ -197,15 +197,16 @@ const Walker = struct {
 
         const prefix: []const u8 = if (kind == .task) "$ctx.task" else "$ctx";
         const name = try std.fmt.allocPrint(graph.allocator, "{s}.{s}", .{ prefix, result.name });
-
-        for (expression.bindings.items) |binding| {
-            if (paths.overlaps(binding.name, name)) return graph.reporter.fail(.name, span, "flow result paths must not overlap; each visible Call target name must be unique");
-        }
-
         const binding = Expression.Binding{ .name = name, .value = output, .span = span };
 
-        try expression.bindings.append(graph.allocator, binding);
         try self.bindings.append(graph.allocator, binding);
+        if (@import("../inference/bindings.zig").isVoid(graph, output)) return;
+
+        for (expression.bindings.items) |previous| {
+            if (paths.overlaps(previous.name, name)) try @import("../inference/bindings.zig").distinct(graph, previous.value, output, span, "flow result paths must not overlap; each visible Call target name must be unique");
+        }
+
+        try expression.bindings.append(graph.allocator, binding);
     }
 };
 
