@@ -1,0 +1,11 @@
+export type Input = u64[]
+
+export type State = { count: u64, total: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const initial: State = { count: 0, total: 0 }
+
+  return in.reduce((state, item) => ({ count: state.count + 1, total: state.total + item }), initial)
+}

@@ -1,0 +1,7 @@
+export type Input = { count: u64, total: u64 }
+
+export type Output = Input
+
+export default function (in: Input): Output {
+  return { count: in.count + 1, total: in.total + 1 }
+}
