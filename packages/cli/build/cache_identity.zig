@@ -19,7 +19,7 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.built
     try file(b, &hash, "standard/modules.json", b.dependency("compiler", .{ .target = target, .optimize = optimize }).path("standard/modules.json").getPath(b));
     try directory(b, &hash, "standard/interfaces", b.dependency("compiler", .{ .target = target, .optimize = optimize }).path("standard/interfaces").getPath(b));
 
-    for ([_][]const u8{ "compiler", "core", "dsl", "lint", "genz", "pkgs" }) |name| {
+    for ([_][]const u8{ "compiler", "core", "dsl", "lint", "genz", "pkgs", "napi" }) |name| {
         const dependency = b.dependency(name, .{ .target = target, .optimize = optimize });
 
         try directory(b, &hash, name, dependency.path("src").getPath(b));

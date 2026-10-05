@@ -13,6 +13,8 @@ pub const Options = struct {
     write: bool = false,
     native: bool = false,
     mode: enum { app, lib } = .app,
+    host: enum { process, node } = .process,
+    node_library: ?[]const u8 = null,
     result: enum { json, discard } = .json,
     verifying: bool = false,
     fpga: bool = false,
@@ -42,6 +44,7 @@ pub fn parse(args: []const []const u8) error{InvalidArguments}!Options {
     var options = Options{ .input = args[input_index], .formatting = formatting, .linting = linting, .native = native, .verifying = verifying, .fpga = fpga };
     var optimized = false;
     var selected_mode = false;
+    var selected_host = false;
     var selected_result = false;
     var index = input_index + 1;
 
@@ -102,6 +105,17 @@ pub fn parse(args: []const []const u8) error{InvalidArguments}!Options {
             index += 1;
             options.mode = std.meta.stringToEnum(@TypeOf(options.mode), args[index]) orelse return error.InvalidArguments;
             selected_mode = true;
+        } else if (std.mem.eql(u8, argument, "--node-lib")) {
+            if (!native or options.node_library != null or index + 1 == args.len) return error.InvalidArguments;
+
+            index += 1;
+            options.node_library = args[index];
+        } else if (std.mem.eql(u8, argument, "--host")) {
+            if (!native or selected_host or index + 1 == args.len) return error.InvalidArguments;
+
+            index += 1;
+            options.host = std.meta.stringToEnum(@TypeOf(options.host), args[index]) orelse return error.InvalidArguments;
+            selected_host = true;
         } else if (std.mem.eql(u8, argument, "--result")) {
             if (!native or selected_result or index + 1 == args.len) return error.InvalidArguments;
 
@@ -143,6 +157,8 @@ pub fn parse(args: []const []const u8) error{InvalidArguments}!Options {
     if (linting and ((options.project != null and !options.semantic_lint) or (options.semantic_lint and options.config_kind != null))) return error.InvalidArguments;
     if ((native or fpga) and options.output == null) return error.InvalidArguments;
     if (options.mode == .lib and (options.assembly != null or options.target != null or options.cpu != null or optimized or selected_result)) return error.InvalidArguments;
+    if (options.host == .node and (options.mode != .app or selected_result)) return error.InvalidArguments;
+    if (options.node_library != null and options.host != .node) return error.InvalidArguments;
 
     return options;
 }

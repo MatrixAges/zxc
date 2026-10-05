@@ -44,6 +44,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     try output.append(self.allocator, .{ .constant = .{ .name = "requires_io", .value = try self.builder.expression(.{ .boolean = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.io_functions) }), .exported = true } });
     try output.append(self.allocator, .{ .constant = .{ .name = "requires_process", .value = try self.builder.expression(.{ .boolean = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.process_functions) }), .exported = true } });
     if (self.program.type_only) return output.toOwnedSlice(self.allocator);
+    try @import("shape.zig").lower(self, &output);
 
     for ([_][]const u8{ "Input", "Output" }, [_]ir.TypeId{ self.program.input_type, self.program.output_type }) |contract_name, type_id| {
         var exported = false;

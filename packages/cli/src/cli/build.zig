@@ -46,10 +46,17 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     configuration_options.cache = true;
     configuration_options.cache_stats = false;
     configuration_options.watch = false;
-    const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = configuration_options, .project = loaded }, .{});
+    const node = options.host == .node;
+    const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = configuration_options, .project = loaded, .node_sources = if (node) @as([]const @import("napi_resources").File, &@import("napi_resources").files) else &.{} }, .{});
     const abi = try @import("abi.zig").create(allocator, bundle, loaded);
     const wasm = try @import("wasm/target.zig").freestanding(options.target);
     var executable_bundle = bundle;
+
+    if (node) {
+        if (wasm or bundle.runner != null) return error.UnsupportedNodeRunner;
+
+        executable_bundle.runner = if (bundle.state_module != null) "const stateful = true;\n" ++ @embedFile("node/runner.zig") else "const stateful = false;\n" ++ @embedFile("node/runner.zig");
+    }
 
     if (wasm) {
         if (bundle.runner != null) return error.UnsupportedWasmRunner;
@@ -60,7 +67,24 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     const directory = try artifacts.prepare(io, allocator, executable_bundle, configuration, abi, options.result == .json);
     var arguments: std.ArrayList([]const u8) = .empty;
 
-    try arguments.appendSlice(allocator, &.{ toolchain.executable, "build-exe", "--zig-lib-dir", toolchain.library });
+    try arguments.appendSlice(allocator, &.{ toolchain.executable, if (node) "build-lib" else "build-exe", "--zig-lib-dir", toolchain.library });
+
+    if (node) {
+        const target = if (options.target) |triple| try std.Target.Query.parse(.{ .arch_os_abi = triple }) else std.Target.Query.fromTarget(&@import("builtin").target);
+        const os = target.os_tag orelse @import("builtin").os.tag;
+        const arch = target.cpu_arch orelse @import("builtin").cpu.arch;
+
+        if (arch == .wasm32 or arch == .wasm64) return error.UnsupportedNodeTarget;
+        if (os == .windows and options.node_library == null) return error.NodeImportLibraryRequired;
+        try arguments.append(allocator, "-dynamic");
+
+        if (options.node_library) |path| {
+            try arguments.append(allocator, try std.fs.path.resolve(allocator, &.{path}));
+        } else try arguments.append(allocator, "-fallow-shlib-undefined");
+
+        for (@import("napi_resources").files) |file| try artifacts.retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "napi", file.path }), file.source);
+    }
+
     if (wasm) try arguments.appendSlice(allocator, &.{ "-fno-entry", "--export-memory", "-rdynamic" });
 
     if (emission == .observed) {
@@ -92,6 +116,7 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     }
 
     try settings(allocator, &arguments, options);
+    if (node) try arguments.appendSlice(allocator, &.{ "--dep", "zxc_napi" });
     if (bundle.state_module) |name| try arguments.appendSlice(allocator, &.{ "--dep", name });
     try arguments.appendSlice(allocator, &.{ "--dep", "application", try std.fmt.allocPrint(allocator, "-Mroot={s}/main.zig", .{directory}) });
     try settings(allocator, &arguments, options);
@@ -154,6 +179,11 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
 
     try settings(allocator, &arguments, options);
     try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-Mzxc_abi={s}/abi.zig", .{directory}));
+
+    if (node) {
+        try settings(allocator, &arguments, options);
+        try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-Mzxc_napi={s}/napi/root.zig", .{directory}));
+    }
 
     const manifest = try std.json.Stringify.valueAlloc(allocator, arguments.items, .{ .whitespace = .indent_2 });
 

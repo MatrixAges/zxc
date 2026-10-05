@@ -1,0 +1,16 @@
+export enum Mode { Read, Write }
+
+export type Input = {
+  name: string,
+  bytes: u8[],
+  count: i64,
+  pair: [bool, f64],
+  mode: Mode,
+  note: string?
+}
+
+export type Output = Input
+
+export default function (in: Input): Output {
+  return in
+}

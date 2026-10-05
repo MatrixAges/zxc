@@ -51,7 +51,7 @@ pub fn modulePath(allocator: std.mem.Allocator, module: @import("compiler").zig.
     return std.fmt.allocPrint(allocator, ".zxc/build/modules/{s}/{s}.zig", .{ module.name, std.fmt.bytesToHex(digest, .lower) });
 }
 
-fn retain(io: std.Io, allocator: std.mem.Allocator, path: []const u8, content: []const u8) !void {
+pub fn retain(io: std.Io, allocator: std.mem.Allocator, path: []const u8, content: []const u8) !void {
     const existing = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(content.len + 1)) catch |err| switch (err) {
         error.FileNotFound, error.StreamTooLong => return write(io, path, content),
         else => return err,

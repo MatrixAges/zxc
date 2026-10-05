@@ -97,3 +97,7 @@ zxc build pkg.yaml --mode lib --out dist/arithmetic
 ## WebAssembly
 
 `zxc build main.zx --target wasm32-wasi --out main.wasm` 生成 WASI preview1 命令应用；`--target wasm32-freestanding` 生成可由标准 WebAssembly 宿主实例化的调用模块。ZX 与普通 RX 共用生成管线，RX Store 在实例内跨调用保留。freestanding 提供 JSON 输入输出及标量直接调用，显式管理请求与状态生命周期，不提供 OS I/O、进程或 Gateway。构建命令、导出 ABI、错误与内存边界见 [WASM reference](../../docs/2026-10-05/WASM参考.md)。
+
+## Node 原生插件
+
+`zxc build main.zx --host node --out addon.node` 生成 Node-API 6 插件，Node 使用 `require("./addon.node").execute(input)` 调用。插件直接转换 JavaScript 值，不通过 JSON 中转；64 位整数使用 BigInt，void 输出为 undefined，RX Store 按插件函数实例保留。Windows 构建通过 --node-lib 指定对应架构的 Node 导入库。类型、生命周期与当前能力边界见 [N-API reference](../../docs/2026-10-05/NAPI参考.md)。
