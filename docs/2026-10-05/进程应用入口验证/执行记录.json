@@ -1,0 +1,33 @@
+{
+	"part": 390,
+	"recorded_at": "2026-10-05T02:03:09.631712+00:00",
+	"head_at_recording": "c691b73920c190640af64c2242669f5001bb964b",
+	"production_status_at_recording": [
+		" M packages/cli/src/cli/rx/collection.zig",
+		" M packages/compiler/src/rx/analysis/root.zig",
+		"?? packages/cli/src/cli/rx/gateway/",
+		"?? packages/compiler/src/rx/analysis/gateway.zig",
+		"?? packages/compiler/src/rx/analysis/gateway/"
+	],
+	"unique_scenarios": 46,
+	"fix_commit": "c691b739",
+	"executions": [
+		{
+			"command": "zig build test-process-entry -j4 --summary all",
+			"cwd": "packages/test",
+			"exit_code": 0,
+			"checks_passed": 46,
+			"steps": "10/10",
+			"log": "Debug检查.txt"
+		},
+		{
+			"command": "zig build test-process-entry -Doptimize=ReleaseSafe -j4 --summary all",
+			"cwd": "packages/test",
+			"exit_code": 0,
+			"checks_passed": 46,
+			"steps": "10/10",
+			"log": "ReleaseSafe检查.txt"
+		}
+	],
+	"scope": "Test sources and docs only; shared checkout changed during execution; recording snapshot is not whole-run clean-commit evidence."
+}

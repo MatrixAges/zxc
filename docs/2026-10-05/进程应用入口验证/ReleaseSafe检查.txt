@@ -1,0 +1,59 @@
+ok 1: snapshot.zx default transfers raw argv, environment and cwd
+ok 2: snapshot.zx default uses current explicit environment
+ok 3: snapshot.zx json transfers raw argv, environment and cwd
+ok 4: snapshot.zx json uses current explicit environment
+ok 5: snapshot.zx discard accepts raw argv and discards result
+ok 6: typed json keeps raw JSON argument in Process argv
+ok 7: typed json rejects absent JSON input
+ok 8: typed json rejects multiple inputs despite Process capability
+ok 9: typed json does not suppress application failure
+ok 10: pure.zx json accepts no business arguments
+ok 11: pure.zx json rejects extra argv without Process capability
+ok 12: cwd.zx json accepts no business arguments
+ok 13: cwd.zx json rejects extra argv without Process capability
+ok 14: stdout json preserves business output separately from void result
+ok 15: stderr json preserves business output separately from void result
+ok 16: typed discard accepts JSON input and discards result
+ok 17: typed discard rejects absent JSON input
+ok 18: typed discard rejects multiple inputs despite Process capability
+ok 19: typed discard does not suppress application failure
+ok 20: pure.zx discard accepts no business arguments
+ok 21: pure.zx discard rejects extra argv without Process capability
+ok 22: cwd.zx discard accepts no business arguments
+ok 23: cwd.zx discard rejects extra argv without Process capability
+ok 24: stdout discard preserves business output separately from void result
+ok 25: stderr discard preserves business output separately from void result
+ok 26: same application path changes json to discard and back without stale policy
+ok 27: build rejects invalid result options --result yaml
+ok 28: build rejects invalid result options --result
+ok 29: build rejects invalid result options --result json --result discard
+ok 30: build rejects invalid result options --mode lib --result json
+ok 31: compile command rejects app result policy
+ok 32: workflow.rx default transfers raw argv, environment and cwd
+ok 33: workflow.rx default uses current explicit environment
+ok 34: workflow.rx json transfers raw argv, environment and cwd
+ok 35: workflow.rx json uses current explicit environment
+ok 36: workflow.rx discard accepts raw argv and discards result
+ok 37: service.rx default transfers raw argv, environment and cwd
+ok 38: service.rx default uses current explicit environment
+ok 39: service.rx json transfers raw argv, environment and cwd
+ok 40: service.rx json uses current explicit environment
+ok 41: service.rx discard accepts raw argv and discards result
+ok 42: state.rx default transfers raw argv, environment and cwd
+ok 43: state.rx default uses current explicit environment
+ok 44: state.rx json transfers raw argv, environment and cwd
+ok 45: state.rx json uses current explicit environment
+ok 46: state.rx discard accepts raw argv and discards result
+Process application entry: 46 checks passed
+Build Summary: 10/10 steps succeeded
+test-process-entry success
++- run node success 2m
+   +- compile exe zxc ReleaseSafe native success 50s MaxRSS:2G
+      +- WriteFile cached
+      +- compile lib yaml ReleaseSafe native cached 39ms MaxRSS:20M
+      +- compile lib yaml ReleaseSafe native (reused)
+      +- options success
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig ReleaseFast native cached 44ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- WriteFile interfaces/0.d.zx cached

@@ -1,0 +1,9 @@
+import process from "std:process"
+
+export type Input = string
+
+export type Output = void
+
+export default function (in: Input): Output {
+  return process.writeStdoutText(in)
+}

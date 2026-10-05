@@ -1,0 +1,76 @@
+ok 1: snapshot.zx default transfers raw argv, environment and cwd
+ok 2: snapshot.zx default uses current explicit environment
+ok 3: snapshot.zx json transfers raw argv, environment and cwd
+ok 4: snapshot.zx json uses current explicit environment
+ok 5: snapshot.zx discard accepts raw argv and discards result
+ok 6: typed json keeps raw JSON argument in Process argv
+ok 7: typed json rejects absent JSON input
+ok 8: typed json rejects multiple inputs despite Process capability
+ok 9: typed json does not suppress application failure
+ok 10: pure.zx json accepts no business arguments
+ok 11: pure.zx json rejects extra argv without Process capability
+ok 12: cwd.zx json accepts no business arguments
+ok 13: cwd.zx json rejects extra argv without Process capability
+ok 14: stdout json preserves business output separately from void result
+ok 15: stderr json preserves business output separately from void result
+ok 16: typed discard accepts JSON input and discards result
+ok 17: typed discard rejects absent JSON input
+ok 18: typed discard rejects multiple inputs despite Process capability
+ok 19: typed discard does not suppress application failure
+ok 20: pure.zx discard accepts no business arguments
+ok 21: pure.zx discard rejects extra argv without Process capability
+ok 22: cwd.zx discard accepts no business arguments
+ok 23: cwd.zx discard rejects extra argv without Process capability
+ok 24: stdout discard preserves business output separately from void result
+ok 25: stderr discard preserves business output separately from void result
+ok 26: same application path changes json to discard and back without stale policy
+ok 27: build rejects invalid result options --result yaml
+ok 28: build rejects invalid result options --result
+ok 29: build rejects invalid result options --result json --result discard
+ok 30: build rejects invalid result options --mode lib --result json
+ok 31: compile command rejects app result policy
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: workflow.rx:2:27: name: unknown value or use before declaration
+
+
+1 !== 0
+
+    at run (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/runtime/process_entry/fixture.ts:37:17)
+    at Object.buildApp (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/runtime/process_entry/fixture.ts:49:3)
+    at checkSnapshot (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/runtime/process_entry/run_test.ts:21:30)
+    at file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/runtime/process_entry/run_test.ts:161:2
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v25.8.1
+test-process-entry
++- run node failure
+error: process exited with error code 1
+failed command: node /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/runtime/process_entry/run_test.ts ./.zig-cache/o/c97a2578dccba622bdf6a2c933b1ee1e/zxc /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/runtime/process_entry/fixtures ReleaseSafe
+
+Build Summary: 8/10 steps succeeded (1 failed)
+test-process-entry transitive failure
++- run node failure
+   +- compile exe zxc ReleaseSafe native success 50s MaxRSS:2G
+      +- WriteFile cached
+      +- compile lib yaml ReleaseSafe native cached 42ms MaxRSS:20M
+      +- compile lib yaml ReleaseSafe native (reused)
+      +- options success
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig ReleaseFast native cached 45ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- WriteFile interfaces/0.d.zx cached
+
+error: the following build command failed with exit code 1:
+.zig-cache/o/3f828eaa9f8e82e2536cfa9fb8952610/build /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib /Users/xiewendao/Documents/MatrixAges/zxc/packages/test .zig-cache /Users/xiewendao/.cache/zig --seed 0xb9f3c78c -Z1a9565dd1206862a test-process-entry -Doptimize=ReleaseSafe -j4 --summary all
