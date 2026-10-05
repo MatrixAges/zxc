@@ -1,0 +1,36 @@
+import type { Url, Platform } from "std:url"
+import url from "std:url"
+
+export type Input = {
+  address: string, relative: string, domain: string,
+  file_path: string, cwd: string, invalid: string
+}
+
+export type Output = {
+  parsed: Url, resolved: string, serialized: string,
+  pathname: string, origin: string, ascii: string, unicode: string,
+  file_url: string, file_path: string, file_bytes: u8[],
+  valid: bool, invalid: Url?
+}
+
+export default function (in: Input): Output {
+  const parsed = url.parse(in.address)
+  const resolved = url.resolve({input: in.relative, base: in.address})
+  const file_url = url.pathToFileURL({path: in.file_path, platform: Platform.Posix, cwd: in.cwd})
+  const file = url.parse(file_url)
+
+  return {
+    parsed: parsed,
+    resolved: url.stringify(resolved),
+    serialized: url.stringify(parsed),
+    pathname: url.pathname(parsed),
+    origin: url.origin(parsed),
+    ascii: url.domainToASCII(in.domain),
+    unicode: url.domainToUnicode(in.domain),
+    file_url: file_url,
+    file_path: url.fileURLToPath({url: file, platform: Platform.Posix}),
+    file_bytes: url.fileURLToBytes({url: file, platform: Platform.Posix}),
+    valid: url.canParse({input: in.address, base: null}),
+    invalid: url.tryParse({input: in.invalid, base: null})
+  }
+}

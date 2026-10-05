@@ -1,0 +1,18 @@
+import type { Url } from "std:url"
+import library from "library"
+
+export type Input = {
+  address: string, relative: string, domain: string,
+  file_path: string, cwd: string, invalid: string
+}
+
+export type Output = {
+  parsed: Url, resolved: string, serialized: string,
+  pathname: string, origin: string, ascii: string, unicode: string,
+  file_url: string, file_path: string, file_bytes: u8[],
+  valid: bool, invalid: Url?
+}
+
+export default function (in: Input): Output {
+  return library(in)
+}

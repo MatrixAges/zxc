@@ -190,3 +190,15 @@ zig build-exe --dep standard \
 局部编译通过，[45 次文件路径观测](完整URL/文件路径观测.json)与本机 Node 一致。相对路径的 Node 对照显式使用同一 cwd 先 resolve，避免依赖观察进程目录。二进制结果用十六进制记录，覆盖非 UTF-8、NUL、无效转义与编码分隔符。实现过程中发现 POSIX 的 /C|/a 被通用 file 解析误归一为盘符，已依照文件路径编码集合修正为 /C%7C/a。未运行全量测试。
 
 自我批判：公开 ZX 类型与函数、字段修改接口以及应用/库消费仍未接通。本阶段是内部文件路径能力，不代表 URL 全功能已完成；Windows 每盘符当前目录没有被隐式补齐，缺失时仍按现有路径 API 返回错误。编码数据仅用于格式转换，不在此层执行文件系统操作。
+
+## 公开 ZX 接口接入
+
+Intent：让普通应用通过 std:url 使用上述原生能力，而不是仅保留内部 Zig 观察入口。Data：现有 std:path 与 std:url/search_params 的 ABI 类型、allocator 和 throws 契约。Edges：公开 Url 是不可变组件记录，不持有可变 JavaScript 对象；parse 返回字段独立复制到调用方分配器，内部临时 arena 随调用释放。Answer：注册 std:url 的声明与原生适配层，构建应用、发布库并验证独立消费；字段编辑仍需后续补齐。
+
+Url 保留 scheme、username、password、可空 host/port、分段 path 或 opaque_path、可空 query/fragment。公开 parse、resolve、tryParse、canParse、stringify、pathname、origin、domainToASCII、domainToUnicode、pathToFileURL、fileURLToPath、fileURLToBytes。解析失败由 throws 表达；tryParse/canParse 将语义拒绝映射为 null/false，但不吞掉分配失败。域名转换保留 Node 空字符串失败结果及当前 URL ASCII 兼容规则。
+
+### 接入验证结果
+
+编译器 dist 构建 13/13 通过；应用调用全部 12 个入口并实际执行。相同应用发布为库后，ZX 工作区消费者构建运行成功，独立 Zig 消费者构建 3/3 并运行成功，三方 JSON 输出一致。示例最初误用 url.Url 类型路径，已改成现有语言支持的 import type；没有为示例扩大语言规则。Zig 新消费者按编译器提示生成了独立 fingerprint。
+
+公开类型与复制命令见 [完整 URL 参考](完整URL参考.md)。未执行全量测试；字段编辑、可选格式化和 HTTP options 仍是明确待办，公开解析入口接通不代表整个 Node URL 功能或自举已完成。
