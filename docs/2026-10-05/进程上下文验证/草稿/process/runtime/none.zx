@@ -1,0 +1,9 @@
+import unused from "./context.zx"
+
+export type Input = string
+
+export type Output = { argv: string[], env: string?, cwd: string }
+
+export default function (in: Input): Output {
+  return {argv: [], env: null, cwd: "pure"}
+}

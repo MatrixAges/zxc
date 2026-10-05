@@ -1,0 +1,9 @@
+import process from "std:process"
+
+export type Input = void
+
+export type Output = string
+
+export default function (in: Input): Output {
+  return process.cwd()
+}
