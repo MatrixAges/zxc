@@ -27,6 +27,7 @@ input_paths: []const []const u8,
 new_inputs: bool,
 binary: ?[]const u8,
 assembly: ?[]const u8,
+bindings: ?@import("../node/bindings.zig") = null,
 pub fn deinit(self: *Self) void {
     self.response.deinit();
 
@@ -85,6 +86,16 @@ pub fn publish(self: *const Self, io: std.Io, allocator: std.mem.Allocator, inpu
         if (std.mem.eql(u8, output, assembly)) return error.ConflictingOutputPaths;
     }
 
+    if (self.bindings) |files| {
+        try files.check(io, allocator, options);
+
+        for ([_][]const u8{ files.module_path, files.declaration_path }) |path| {
+            const checked = try @import("../watch/output.zig").check(io, allocator, inputs, path);
+
+            allocator.free(checked);
+        }
+    }
+
     var observed = try inputs.observed(allocator);
 
     defer observed.deinit();
@@ -94,6 +105,7 @@ pub fn publish(self: *const Self, io: std.Io, allocator: std.mem.Allocator, inpu
     defer current.deinit();
 
     if (!observed.same(current)) return false;
+    if (self.bindings) |files| try files.publish(io);
     if (self.assembly) |path| try std.Io.Dir.cwd().copyFile(path, .cwd(), options.assembly.?, io, .{ .make_path = true });
     try std.Io.Dir.cwd().copyFile(self.binary.?, .cwd(), options.output.?, io, .{ .make_path = true });
 

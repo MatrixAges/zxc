@@ -8,6 +8,10 @@ const Staged = @import("build/staged.zig");
 const Emission = union(enum) { staged: Staged, observed: Cache };
 
 pub fn run(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, environment: *const std.process.Environ.Map) !bool {
+    const bindings = try @import("node/bindings.zig").create(allocator, bundle, options);
+
+    if (bindings) |files| try files.check(io, allocator, options);
+
     const staged = try Staged.init(io, allocator, options);
 
     defer staged.deinit(io);
@@ -21,6 +25,11 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     const termination = try child.wait(io);
 
     if (termination != .exited or termination.exited != 0) return false;
+
+    if (bindings) |files| {
+        try files.check(io, allocator, options);
+        try files.stage(io, allocator, std.fs.path.dirname(staged.binary).?);
+    }
 
     try staged.publish(io, allocator, options);
 
@@ -38,7 +47,11 @@ pub fn runObserved(io: std.Io, allocator: std.mem.Allocator, bundle: @import("co
 
     errdefer response.deinit();
 
-    return Observed.resolve(io, &response, cache, toolchain.library, options, inputs);
+    var observed = try Observed.resolve(io, &response, cache, toolchain.library, options, inputs);
+
+    observed.bindings = try @import("node/bindings.zig").create(response.arena.allocator(), bundle, options);
+
+    return observed;
 }
 
 fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, emission: Emission) ![]const []const u8 {

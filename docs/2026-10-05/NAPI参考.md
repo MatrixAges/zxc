@@ -23,6 +23,33 @@ const output = addon.execute(input)
 
 ## Edges：能力和生命周期
 
+构建会自动生成同名 `addon.cjs` 与 `addon.d.cts`。推荐通过普通模块入口获得类型检查：
+
+```typescript
+import type { Input, Output } from './addon.cjs'
+
+import { execute } from './addon.cjs'
+
+const output: Output = execute(input)
+```
+
+声明导出 Input、Output 和 execute，void 输入使用无参数签名。`.d.cts` 对应 CommonJS `.cjs`，由 TypeScript NodeNext 自动解析，见 [TypeScript 模块参考](https://www.typescriptlang.org/docs/handbook/modules/reference)。CommonJS 可使用 `require("./addon.cjs")`。
+
+发布 npm 包时，将自己的 package.json 指向生成文件即可按包名导入：
+
+```json
+{
+	"main": "./addon.cjs",
+	"types": "./addon.d.cts",
+	"exports": {
+		"types": "./addon.d.cts",
+		"default": "./addon.cjs"
+	}
+}
+```
+
+入口和声明带有生成标记。同名非生成文件会导致 NodeBindingWouldOverwriteFile，构建不会覆盖它；请选择其他输出基名。失败编译保留既有三份产物。Node 宿主的 --out 须以 `.node` 结尾。
+
 当前插件同步执行，会占用调用线程。I/O/process 依赖和 Gateway 未接入 Node 宿主；构建会拒绝，不隐式伪造进程上下文。需要隔离长计算时，可在 Node Worker 中加载插件。每个 Worker 的 execute 有独立 Store，上下文不跨环境共享。
 
 每次调用的输入复制到原生请求 arena；返回值转换成 JS 自有数据后释放请求，Store 引用的数据沿现有事务内存机制保留。execute 函数对象的 finalizer 释放持久上下文，单独保存 execute 引用仍会保持其上下文存活。

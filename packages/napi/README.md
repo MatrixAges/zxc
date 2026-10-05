@@ -10,6 +10,8 @@ api.zig 声明所需的稳定 C ABI；read.zig 和 write.zig 根据编译期类�
 
 ## Edges：边界
 
+declarations.zig 从编译器保留的入口类型表生成 TypeScript 声明，分别描述输入接受范围和输出实际类型。该模块只在构建阶段使用，不进入插件运行代码。
+
 包不负责命令行、动态库链接或应用 Store 生命周期，后者由 CLI 宿主入口管理。字符串与字节列表由 genz 的形状区分。JS 输入复制到请求 arena；返回值成为 JS 自有数据。64 位整数使用 BigInt 且禁止有损转换。void 映射 undefined，可空值映射 null，枚举映射成员名称。
 
 ## Answer：入口

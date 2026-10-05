@@ -8,6 +8,7 @@ const Cache = @import("cache.zig");
 pub const Error = names.Error || generating.Error || error{ InvalidAnalysis, ConflictingFunction };
 pub const File = struct { name: []const u8, source: []const u8, imports: []const []const u8 };
 pub const StoreInitializer = struct { identity: []const u8, schema_version: u32, module_name: []const u8, type_name: []const u8 };
+pub const Signature = struct { types: []const @import("zx").ir.Type, input: @import("zx").ir.TypeId, output: @import("zx").ir.TypeId };
 
 pub const Bundle = struct {
     arena: std.heap.ArenaAllocator,
@@ -19,6 +20,7 @@ pub const Bundle = struct {
     store_initializers: []const StoreInitializer = &.{},
     state_module: ?[]const u8 = null,
     runner: ?[]const u8 = null,
+    signature: ?Signature = null,
     pub fn deinit(self: *Bundle) void {
         self.arena.deinit();
 
@@ -47,7 +49,11 @@ pub fn createCached(allocator: std.mem.Allocator, analysis: *const Analysis, cac
     const type_names = try typeNames(owned, program, identities);
     const native_modules = try nativeModules(owned, program);
 
-    return .{ .arena = arena, .entry = entry, .types = type_source, .modules = modules, .type_names = type_names, .native_modules = native_modules };
+    return .{ .arena = arena, .entry = entry, .types = type_source, .modules = modules, .type_names = type_names, .native_modules = native_modules, .signature = .{
+        .types = try @import("frontend").type_table.copy(owned, program.types),
+        .input = program.input_type,
+        .output = program.output_type,
+    } };
 }
 
 pub fn emit(allocator: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, unit: fingerprint.Unit, cache: ?*Cache) Error![]const u8 {
