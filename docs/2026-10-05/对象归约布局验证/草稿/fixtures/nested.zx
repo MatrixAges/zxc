@@ -1,0 +1,11 @@
+export type Child = { value: u64 }
+
+export type State = { count: u64, total: u64, last: u64, labels: string[], text: string, child: Child }
+
+export type Input = { seed: State, steps: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return in.steps.reduce((state, item) => item == 0 ? state : item % 2 == 0 ? ({...state, count: state.count + 1, total: state.total + state.count + item, last: state.count}) : ({count: state.count + 1, total: state.total + state.count + item, last: state.count, labels: state.labels, text: state.text, child: state.child}), in.seed)
+}

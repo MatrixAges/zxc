@@ -1,0 +1,13 @@
+import step from "./step.zx"
+
+export type Child = { value: u64 }
+
+export type State = { count: u64, total: u64, last: u64, labels: string[], text: string, child: Child }
+
+export type Input = { seed: State, steps: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return in.steps.reduce((state, item) => ({...step(state), total: state.total + state.count + item}), in.seed)
+}
