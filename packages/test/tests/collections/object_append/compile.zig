@@ -6,7 +6,7 @@ pub fn main(init: std.process.Init) !void {
     const args = try init.minimal.args.toSlice(allocator);
     const mode = args[1];
 
-    const text = inline for (.{ "push", "concat", "select", "field_select", "index_read", "overwritten", "call_push", "call_concat", "call_chain" }) |name| {
+    const text = inline for (.{ "push", "concat", "select", "field_select", "index_read", "overwritten", "call_push", "call_concat", "call_chain", "call_foreign" }) |name| {
         if (std.mem.eql(u8, mode, name)) break @embedFile("fixtures/" ++ name ++ ".zx");
     } else return error.InvalidMode;
 
