@@ -35,11 +35,11 @@ fn copyInput(comptime T: type, allocator: std.mem.Allocator, input: T) std.mem.A
 
             return result;
         },
-        .@"struct" => {
+        .@"struct" => |structure| {
             var result = input;
 
-            inline for (std.meta.fields(T)) |field| {
-                @field(result, field.name) = try copyInput(field.type, allocator, @field(input, field.name));
+            inline for (structure.field_names) |field| {
+                @field(result, field) = try copyInput(@FieldType(T, field), allocator, @field(input, field));
             }
 
             return result;
