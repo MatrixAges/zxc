@@ -1,0 +1,12 @@
+export type State = { count: u64, previous: u64, values: u64[] }
+
+export type Input = { state: State, item: u64 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const previous = in.state.values.length
+  const next = in.state.values.push(in.item)
+
+  return {count: in.state.count + 1, previous, values: next[0]}
+}

@@ -10,7 +10,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         .imports = &.{.{ .name = "compiler", .module = compiler.module("compiler") }},
     }) });
 
-    for ([_][]const u8{ "push", "concat", "select", "field_select", "index_read", "overwritten", "call_push", "call_concat", "call_chain", "call_foreign", "call_dual", "call_mixed" }) |mode| {
+    for ([_][]const u8{ "push", "concat", "select", "field_select", "index_read", "overwritten", "call_push", "call_concat", "call_chain", "call_foreign", "call_dual", "call_mixed", "call_cached" }) |mode| {
         const compile = b.addRunArtifact(tool);
 
         compile.addArg(mode);
@@ -23,7 +23,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             const options = b.addOptions();
 
             options.addOption([]const u8, "mode", if (std.mem.eql(u8, mode, "call_concat")) "concat" else mode);
-            options.addOption(bool, "bounded", !std.mem.eql(u8, mode, "index_read") and !std.mem.eql(u8, mode, "overwritten"));
+            options.addOption(bool, "bounded", !std.mem.eql(u8, mode, "index_read") and !std.mem.eql(u8, mode, "overwritten") and !std.mem.eql(u8, mode, "call_cached"));
 
             const runner = if (std.mem.eql(u8, mode, "call_foreign")) "foreign" else if (std.mem.eql(u8, mode, "call_dual")) "dual" else if (std.mem.eql(u8, mode, "call_mixed")) "mixed" else "root";
             const module = b.createModule(.{ .root_source_file = b.path(b.fmt("tests/collections/object_append/{s}.zig", .{runner})), .target = target, .optimize = optimize, .imports = &.{.{ .name = "program", .module = program }} });
