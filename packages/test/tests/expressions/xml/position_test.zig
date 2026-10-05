@@ -6,36 +6,36 @@ test "XML expression mapped position plain" {
     try h.run(std.testing.allocator, h.Case{ .source = "<Call in={missing}/>", .marker = "missing", .valid = false, .eof = false });
 }
 
-test "XML expression mapped position decimal_first" {
-    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={missing}/>", .marker = "&#109;issing", .valid = false, .eof = false });
+test "XML literal mapped position decimal_first" {
+    try h.run(std.testing.allocator, h.Case{ .source = "<Call in=\"&#109;issing\"/>", .marker = "&#109;issing", .valid = true, .eof = false });
 }
 
-test "XML expression mapped position decimal_first allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .source = "<Call in={missing}/>", .marker = "&#109;issing", .valid = false, .eof = false }});
+test "XML literal mapped position decimal_first allocation failures" {
+    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .source = "<Call in=\"&#109;issing\"/>", .marker = "&#109;issing", .valid = true, .eof = false }});
 }
 
-test "XML expression mapped position hex_last" {
-    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={missing}/>", .marker = "missin&#x67;", .valid = false, .eof = false });
+test "XML literal mapped position hex_last" {
+    try h.run(std.testing.allocator, h.Case{ .source = "<Call in=\"missin&#x67;\"/>", .marker = "missin&#x67;", .valid = true, .eof = false });
 }
 
-test "XML expression mapped position quoted_entity_prefix" {
+test "XML expression mapped position quoted_utf8_prefix" {
     try h.run(std.testing.allocator, h.Case{ .source = "<Call in={\"文\" + missing}/>", .marker = "missing", .valid = false, .eof = false });
 }
 
 test "XML expression mapped position crlf" {
-    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 +  missing}/>", .marker = "missing", .valid = false, .eof = false });
+    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 +\r\n missing}/>", .marker = "missing", .valid = false, .eof = false });
 }
 
 test "XML expression mapped position cr" {
-    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 +  missing}/>", .marker = "missing", .valid = false, .eof = false });
+    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 +\r missing}/>", .marker = "missing", .valid = false, .eof = false });
 }
 
 test "XML expression mapped position lf" {
-    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 +  missing}/>", .marker = "missing", .valid = false, .eof = false });
+    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 +\n missing}/>", .marker = "missing", .valid = false, .eof = false });
 }
 
-test "XML expression mapped position entity_newline" {
-    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 +\n missing}/>", .marker = "missing", .valid = false, .eof = false });
+test "XML literal mapped position entity_newline" {
+    try h.run(std.testing.allocator, h.Case{ .source = "<Call in=\"1 +&#10; missing\"/>", .marker = "1 +&#10; missing", .valid = true, .eof = false });
 }
 
 test "XML expression mapped position utf8_prefix" {
@@ -43,23 +43,23 @@ test "XML expression mapped position utf8_prefix" {
 }
 
 test "XML expression mapped position eof" {
-    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 + }/>", .marker = "'/>", .valid = false, .eof = true });
+    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 + }/>", .marker = "}", .valid = false, .eof = true });
 }
 
 test "XML expression mapped position numeric_ir" {
-    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 + 2}/>", .marker = "&#49; + &#x32;", .valid = true, .eof = false });
+    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={1 + 2}/>", .marker = "1 + 2", .valid = true, .eof = false });
 }
 
 test "XML expression mapped position numeric_ir allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .source = "<Call in={1 + 2}/>", .marker = "&#49; + &#x32;", .valid = true, .eof = false }});
+    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .source = "<Call in={1 + 2}/>", .marker = "1 + 2", .valid = true, .eof = false }});
 }
 
 test "XML expression mapped position string_ir" {
-    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={\"🙂\"}/>", .marker = "&quot;&#x1F642;&quot;", .valid = true, .eof = false });
+    try h.run(std.testing.allocator, h.Case{ .source = "<Call in={\"🙂\"}/>", .marker = "\"🙂\"", .valid = true, .eof = false });
 }
 
 test "XML multibyte entity maps interior start and end boundaries" {
-    const source = "<Call in={a🙂b}/>";
+    const source = "<Call in=\"a&#x1F642;b\"/>";
     var xml = try rx.parseXml(std.testing.allocator, source);
 
     defer xml.deinit();

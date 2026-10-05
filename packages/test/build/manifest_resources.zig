@@ -8,6 +8,7 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
     _ = files.addCopyDirectory(cli.path("src/package/manifest"), "manifest", .{});
 
     const yaml = cli.builder.dependency("libyaml", .{});
+
     const manifest = b.createModule(.{
         .root_source_file = root,
         .target = target,
@@ -20,8 +21,18 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
 
     manifest.addIncludePath(yaml.path("include"));
 
+    const translated = b.addTranslateC(.{ .root_source_file = yaml.path("include/yaml.h"), .target = target, .optimize = optimize });
+
+    translated.defineCMacro("YAML_DECLARE_STATIC", "1");
+
+    if (target.result.os.tag == .windows) translated.defineCMacro("_FORTIFY_SOURCE", "0");
+
+    manifest.addImport("yaml", translated.createModule());
+
     const yaml_module = b.createModule(.{ .target = target, .optimize = optimize, .link_libc = true });
+
     yaml_module.addIncludePath(yaml.path("include"));
+
     yaml_module.addCSourceFiles(.{
         .root = yaml.path(""),
         .files = &.{ "src/api.c", "src/reader.c", "src/scanner.c", "src/parser.c", "src/loader.c", "src/writer.c", "src/emitter.c", "src/dumper.c" },
@@ -29,6 +40,7 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
     });
 
     const library = b.addLibrary(.{ .name = "manifest-test-yaml", .linkage = .static, .root_module = yaml_module });
+
     const tests = b.addTest(.{ .root_module = b.createModule(.{
         .root_source_file = b.path("tests/package_manifest/resources/exports_test.zig"),
         .target = target,

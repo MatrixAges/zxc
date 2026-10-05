@@ -12,7 +12,7 @@ test('RX formatting preserves execution before and after writing through the rea
 	try {
 		writeFileSync(join(fixture.root, 'pkg.yaml'), 'name: formatting\nversion: 1.0.0\n')
 		const source =
-			'<Module>\n\n  <Call fn="identity" in="$in" out="ctx.value" />\n  <!-- 保留运行路径 -->\n  <Return value="ctx.value" />\n\n</Module>\n'
+			'<Module>\n\n  <Call fn="identity" in={$in} out="ctx.value" />\n  <!-- 保留运行路径 -->\n  <Return value={ctx.value} />\n\n</Module>\n'
 		const path = join(fixture.root, 'main.rx')
 		writeFileSync(path, source)
 		writeFileSync(
