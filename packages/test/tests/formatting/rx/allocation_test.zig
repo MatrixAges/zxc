@@ -2,7 +2,7 @@ const std = @import("std");
 const compiler = @import("compiler");
 
 fn valid(allocator: std.mem.Allocator) !void {
-    const source = try allocator.dupe(u8, "<Module>\n\n <Task>\n  <Call value='a > b &amp; c' />\n  <!-- keep -->\n  <Return value='$in' />\n </Task>\n <Task><![CDATA[raw <text>\n\n]]></Task>\n</Module>\n");
+    const source = try allocator.dupe(u8, "<Module>\n\n <Task>\n  <Call value='a > b &amp; c' />\n  <!-- keep -->\n  <Return value={$in} />\n </Task>\n <Task><![CDATA[raw <text>\n\n]]></Task>\n</Module>\n");
 
     const first = compiler.format(allocator, source, "module.rx") catch |err| {
         allocator.free(source);

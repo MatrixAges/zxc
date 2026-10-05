@@ -94,11 +94,11 @@ test "Gateway execution rejects mqtt protocol" {
 }
 
 test "Gateway rejects zero header limit" {
-    try f.reject("<Gateway name='api' max_header_bytes='0'/>", "context");
+    try f.reject("<Gateway name='api' max_header_bytes={0}/>", "context");
 }
 
 test "Gateway rejects above maximum header limit" {
-    try f.reject("<Gateway name='api' max_header_bytes='16777217'/>", "context");
+    try f.reject("<Gateway name='api' max_header_bytes={16777217}/>", "context");
 }
 
 test "Gateway rejects hostname listen address" {
@@ -118,7 +118,7 @@ test "Gateway rejects port overflow listen address" {
 }
 
 test "Gateway accepts bracketed IPv6 and boundary limits" {
-    var result = try f.analyze(f.allocator, "<Gateway name='api' protocol='http' listen='[::1]:0' max_header_bytes='16777216' max_body_bytes='0'/>", "main.gateway.rx");
+    var result = try f.analyze(f.allocator, "<Gateway name='api' protocol='http' listen='[::1]:0' max_header_bytes={16777216} max_body_bytes={0}/>", "main.gateway.rx");
 
     defer result.deinit();
 

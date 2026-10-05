@@ -5,6 +5,7 @@ pub const Location = struct {
 };
 
 pub const Attribute = struct {
+    kind: enum { string, expression } = .string,
     name: []const u8,
     value: []const u8,
     location: Location,

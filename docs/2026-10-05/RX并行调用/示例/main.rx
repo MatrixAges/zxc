@@ -1,9 +1,9 @@
 <Module>
   <Parallel>
-    <Call fn="map_values" in="$in" out="ctx.mapped" />
-    <Call fn="map_values" in="$in" out="ctx.another" />
-    <Call fn="sum_values" in="$in" out="ctx.total" />
-    <Call service="first" in="$in" out="ctx.first" />
+    <Call fn="map_values" in={$in} out="ctx.mapped" />
+    <Call fn="map_values" in={$in} out="ctx.another" />
+    <Call fn="sum_values" in={$in} out="ctx.total" />
+    <Call service="first" in={$in} out="ctx.first" />
   </Parallel>
-  <Return value="{values: ctx.mapped, alternate: ctx.another, total: ctx.total, first: ctx.first}" />
+  <Return value={{values: ctx.mapped, alternate: ctx.another, total: ctx.total, first: ctx.first}} />
 </Module>

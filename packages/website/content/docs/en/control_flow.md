@@ -5,11 +5,11 @@ RX groups and selects work; ZX performs typed computation inside that work. The 
 ```xml
 <Module>
   <Task name="prepare">
-    <Call service="users/load" in="$in.user_id" out="ctx.user" />
-    <Call fn="quote" in="$in" out="ctx.quote" />
+    <Call service="users/load" in={$in.user_id} out="ctx.user" />
+    <Call fn="quote" in={$in} out="ctx.quote" />
   </Task>
 
-  <Return value="ctx.quote" />
+  <Return value={ctx.quote} />
 </Module>
 ```
 
@@ -19,8 +19,8 @@ RX groups and selects work; ZX performs typed computation inside that work. The 
 
 ```xml
 <Parallel>
-  <Call service="users/load" in="$in.user_id" out="ctx.user" />
-  <Call service="catalog/load" in="$in.item_id" out="ctx.item" />
+  <Call service="users/load" in={$in.user_id} out="ctx.user" />
+  <Call service="catalog/load" in={$in.item_id} out="ctx.item" />
 </Parallel>
 ```
 
@@ -29,13 +29,13 @@ RX groups and selects work; ZX performs typed computation inside that work. The 
 ### Select a branch
 
 ```xml
-<Switch on="$in.kind">
-  <Case value="priority">
-    <Call service="orders/priority" in="$in" out="ctx.order" />
+<Switch on={$in.kind}>
+  <Case value={priority}>
+    <Call service="orders/priority" in={$in} out="ctx.order" />
   </Case>
 
   <Default>
-    <Call service="orders/standard" in="$in" out="ctx.order" />
+    <Call service="orders/standard" in={$in} out="ctx.order" />
   </Default>
 </Switch>
 ```

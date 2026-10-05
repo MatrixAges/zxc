@@ -1,8 +1,8 @@
 <Module>
   <Store from="state" as="cache" />
-  <Call fn="read" in="{path: $in.path, max_bytes: $in.max_bytes}" out="text" />
-  <Call fn="save" in="{value: text, state: store.cache.snapshot}" setter="[store.cache.snapshot]" />
-  <Call fn="read" in="{path: $in.after_path, max_bytes: $in.max_bytes}" />
-  <Call fn="view" in="store.cache.snapshot" out="saved" />
-  <Return value="saved" />
+  <Call fn="read" in={{path: $in.path, max_bytes: $in.max_bytes}} out="text" />
+  <Call fn="save" in={{value: text, state: store.cache.snapshot}} setter={[store.cache.snapshot]} />
+  <Call fn="read" in={{path: $in.after_path, max_bytes: $in.max_bytes}} />
+  <Call fn="view" in={store.cache.snapshot} out="saved" />
+  <Return value={saved} />
 </Module>

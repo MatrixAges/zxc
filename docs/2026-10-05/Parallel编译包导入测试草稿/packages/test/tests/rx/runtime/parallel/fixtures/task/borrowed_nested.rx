@@ -1,18 +1,18 @@
 <Module>
-  <Call fn="map_values" in="$in" out="saved" />
+  <Call fn="map_values" in={$in} out="saved" />
   <Parallel>
     <Task name="outer" out="ctx.result">
       <Parallel>
         <Task name="left" out="local.left">
-          <Return value="saved" />
+          <Return value={saved} />
         </Task>
         <Task name="right" out="local.right">
-          <Call fn="map_values" in="saved" out="nested.values" />
-          <Return value="nested.values" />
+          <Call fn="map_values" in={saved} out="nested.values" />
+          <Return value={nested.values} />
         </Task>
       </Parallel>
-      <Return value="{left: local.left, right: local.right}" />
+      <Return value={{left: local.left, right: local.right}} />
     </Task>
   </Parallel>
-  <Return value="ctx.result" />
+  <Return value={ctx.result} />
 </Module>

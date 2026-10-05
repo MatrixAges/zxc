@@ -25,7 +25,7 @@ test "Gateway text rejects unknown attribute" {
 }
 
 test "Gateway text rejects flow Call" {
-    try h.reject("<Gateway name='api'><Call fn='load' in='$in'/></Gateway>", .unexpected_element, null);
+    try h.reject("<Gateway name='api'><Call fn='load' in={$in}/></Gateway>", .unexpected_element, null);
 }
 
 test "Gateway text rejects nested Gateway" {
@@ -45,7 +45,7 @@ test "Gateway text Group requires children" {
 }
 
 test "Gateway text Group rejects Return" {
-    try h.reject("<Gateway name='api'><Group prefix='/api'><Return value='$in'/></Group></Gateway>", .unexpected_element, null);
+    try h.reject("<Gateway name='api'><Group prefix='/api'><Return value={$in}/></Group></Gateway>", .unexpected_element, null);
 }
 
 test "Gateway text Route requires path" {

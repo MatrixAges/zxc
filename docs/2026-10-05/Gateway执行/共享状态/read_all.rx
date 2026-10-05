@@ -3,7 +3,7 @@
   <Store from="state" as="first" />
 
   <Call fn="read_all"
-    in="{secondary: store.second.other.value, primary: store.first.counter.value, history: store.first.counter.history}"
+    in={{secondary: store.second.other.value, primary: store.first.counter.value, history: store.first.counter.history}}
     out="ctx.result" />
-  <Return value="ctx.result" />
+  <Return value={ctx.result} />
 </Module>

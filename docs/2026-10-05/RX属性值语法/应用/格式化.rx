@@ -1,0 +1,11 @@
+<Module>
+  <Call fn="echo" in="literal $in &amp; ctx.value" out="ctx.literal" />
+  <Call fn="calculate" in={{count: $in.count, limit: 5}} out="ctx.value" />
+
+  <Return value={{
+    literal: ctx.literal,
+    value: ctx.value,
+    small: $in.count < 10 && true,
+    text: `value=${ctx.value}; nested=${"}"}`
+  }} />
+</Module>

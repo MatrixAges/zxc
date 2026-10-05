@@ -1,4 +1,4 @@
-<Gateway name="gateway_test" listen="127.0.0.1:0" max_header_bytes="512" max_body_bytes="128">
+<Gateway name="gateway_test" listen="127.0.0.1:0" max_header_bytes={512} max_body_bytes={128}>
   <Group prefix="/api/">
     <Group prefix="/v1/">
       <Route method="POST" path="/echo" service="basic/echo"/>

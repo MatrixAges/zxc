@@ -47,7 +47,9 @@ pub fn decode(comptime T: type, node: ast.Node, reporter: *diagnostic.Reporter) 
         for (node.attributes) |attribute| {
             if (!std.mem.eql(u8, field.name, attribute.name)) continue;
 
-            @field(result, field.name) = convert(field.type, attribute.value) catch return reporter.fail(.{
+            const source = if (attribute.kind == .expression) std.mem.trim(u8, attribute.value, " \t\r\n") else attribute.value;
+
+            @field(result, field.name) = convert(field.type, source) catch return reporter.fail(.{
                 .code = .invalid_attribute,
                 .location = attribute.value_location,
                 .element = node.name,

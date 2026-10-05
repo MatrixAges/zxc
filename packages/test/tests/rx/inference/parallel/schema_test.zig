@@ -39,17 +39,17 @@ fn check(source: []const u8, allowed: bool) !void {
 }
 
 test "RX single and collection schemas reject ordinary Task output" {
-    try check("<Module><Task name='work' out='ctx.value'><Return value='1'/></Task></Module>", false);
+    try check("<Module><Task name='work' out='ctx.value'><Return value={1}/></Task></Module>", false);
 }
 
 test "RX single and collection schemas reject Switch Task output" {
-    try check("<Module><Switch on='true'><Case value='true'><Task name='work' out='ctx.value'><Return value='1'/></Task></Case></Switch></Module>", false);
+    try check("<Module><Switch on={true}><Case value={true}><Task name='work' out='ctx.value'><Return value={1}/></Task></Case></Switch></Module>", false);
 }
 
 test "RX single and collection schemas accept direct Parallel Task output" {
-    try check("<Module><Parallel><Task name='work' out='ctx.value'><Return value='1'/></Task></Parallel></Module>", true);
+    try check("<Module><Parallel><Task name='work' out='ctx.value'><Return value={1}/></Task></Parallel></Module>", true);
 }
 
 test "RX single and collection schemas accept nested Parallel Task output" {
-    try check("<Module><Task name='outer'><Parallel><Task name='work' out='ctx.value'><Return value='1'/></Task></Parallel></Task></Module>", true);
+    try check("<Module><Task name='outer'><Parallel><Task name='work' out='ctx.value'><Return value={1}/></Task></Parallel></Task></Module>", true);
 }

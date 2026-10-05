@@ -23,9 +23,9 @@ Gateway と Store ファイルは、アプリケーションの境界を記述�
 ### 共有データを記述する
 
 ```xml
-<Store name="inventory" version="1">
+<Store name="inventory" version={1}>
   <Object name="Stock">
-    <Field name="available" type="u64" value="0" />
+    <Field name="available" type="u64" value={0} />
   </Object>
 </Store>
 ```

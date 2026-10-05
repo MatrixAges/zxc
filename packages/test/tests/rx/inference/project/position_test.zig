@@ -1,7 +1,6 @@
 const std = @import("std");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
-
 const Case = struct { source: []const u8, marker: []const u8, code: []const u8 = "name", reverse_marker: ?[]const u8 = null };
 
 fn check(case: Case) !void {
@@ -9,7 +8,7 @@ fn check(case: Case) !void {
 }
 
 fn checkOrder(case: Case, reverse: bool) !void {
-    const main_source = "<!--入口中文与额外偏移-->\n<Module>\n  <Call service='./child.rx' in='1' out='ctx.value'/>\n  <Return value='ctx.value'/>\n</Module>";
+    const main_source = "<!--入口中文与额外偏移-->\n<Module>\n  <Call service='./child.rx' in={1} out='ctx.value'/>\n  <Return value={ctx.value}/>\n</Module>";
     var main = try rx.parseXml(std.testing.allocator, main_source);
 
     defer main.deinit();
@@ -49,6 +48,7 @@ fn checkOrder(case: Case, reverse: bool) !void {
     while (index < offset) : (index += 1) {
         if (expected_source[index] == '\r' or expected_source[index] == '\n') {
             if (expected_source[index] == '\r' and index + 1 < offset and expected_source[index + 1] == '\n') index += 1;
+
             line += 1;
             column = 1;
         } else column += 1;
@@ -62,33 +62,33 @@ fn checkOrder(case: Case, reverse: bool) !void {
 }
 
 test "RX project child unknown name position" {
-    try check(.{ .source = "<Module><Return value='missing'/></Module>", .marker = "missing" });
+    try check(.{ .source = "<Module><Return value={missing}/></Module>", .marker = "missing" });
 }
 
 test "RX project child UTF8 CRLF entity position" {
-    try check(.{ .source = "<!--中文-->\r\n<Module>\r\n  <Return value='&#109;issing'/>\r\n</Module>", .marker = "&#109;" });
+    try check(.{ .source = "<!--中文-->\r\n<Module>\r\n  <Return value={missing}/>\r\n</Module>", .marker = "&#109;" });
 }
 
 test "RX project child normalized attribute line position" {
-    try check(.{ .source = "<Module><Return value='\r\n missing'/></Module>", .marker = "missing" });
+    try check(.{ .source = "<Module><Return value={  missing}/></Module>", .marker = "missing" });
 }
 
 test "RX project child encoded expression end position" {
-    try check(.{ .source = "<Module><Return value='1 &#43;'/></Module>", .marker = "'/>", .code = "syntax" });
+    try check(.{ .source = "<Module><Return value={1 +}/></Module>", .marker = "'/>", .code = "syntax" });
 }
 
 test "RX project child invalid result binding position" {
-    try check(.{ .source = "<Module>\n<Call fn='number' in='1' out='ctx..bad'/><Return value='true'/></Module>", .marker = "ctx..bad" });
+    try check(.{ .source = "<Module>\n<Call fn='number' in={1} out='ctx..bad'/><Return value={true}/></Module>", .marker = "ctx..bad" });
 }
 
 test "RX project child missing target position" {
-    try check(.{ .source = "<Module>\n<Call service='./missing.rx' in='$in'/></Module>", .marker = "./missing.rx", .code = "context" });
+    try check(.{ .source = "<Module>\n<Call service='./missing.rx' in={$in}/></Module>", .marker = "./missing.rx", .code = "context" });
 }
 
 test "RX project child circular target position" {
-    try check(.{ .source = "<Module>\n<Call service='./main.rx' in='$in'/></Module>", .marker = "./main.rx", .code = "context", .reverse_marker = "./child.rx" });
+    try check(.{ .source = "<Module>\n<Call service='./main.rx' in={$in}/></Module>", .marker = "./main.rx", .code = "context", .reverse_marker = "./child.rx" });
 }
 
 test "RX project child self reference position" {
-    try check(.{ .source = "<Module>\n<Call service='./child.rx' in='$in'/></Module>", .marker = "./child.rx", .code = "context" });
+    try check(.{ .source = "<Module>\n<Call service='./child.rx' in={$in}/></Module>", .marker = "./child.rx", .code = "context" });
 }

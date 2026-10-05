@@ -2,7 +2,6 @@ const std = @import("std");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
 const compiler = @import("compiler");
-
 const Mode = enum { success, setter, duplicate };
 
 fn infer(allocator: std.mem.Allocator, mode: Mode) !analysis.module.Result {
@@ -11,10 +10,12 @@ fn infer(allocator: std.mem.Allocator, mode: Mode) !analysis.module.Result {
     defer inputs.deinit();
 
     const input = inputs.allocator();
+
     const source = try input.dupe(u8, if (mode == .setter)
-        "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='[store.jobs.counter.value]'/></Module>"
+        "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter.value]}/></Module>"
     else
-        "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='[store.jobs.counter]' out='ctx.result'/><Return value='ctx.result'/></Module>");
+        "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter]} out='ctx.result'/><Return value={ctx.result}/></Module>");
+
     var main = try rx.parseXml(input, source);
 
     defer main.deinit();

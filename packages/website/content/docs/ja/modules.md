@@ -22,15 +22,15 @@ orders/create.rx
 
 ```xml
 <Module>
-  <Call service="users/load" in="$in.user_id" out="ctx.user" />
+  <Call service="users/load" in={$in.user_id} out="ctx.user" />
 
   <Call
     service="orders/create"
-    in="{user:ctx.user,items:$in.items}"
+    in={{user:ctx.user,items:$in.items}}
     out="ctx.order"
   />
 
-  <Return value="ctx.order" />
+  <Return value={ctx.order} />
 </Module>
 ```
 

@@ -1,5 +1,4 @@
 const std = @import("std");
-const frontend = @import("frontend");
 const rx = @import("rx");
 const Store = @import("../store.zig");
 const target = @import("../call/target.zig");
@@ -11,7 +10,7 @@ pub fn analyze(allocator: std.mem.Allocator, owner: []const u8, node: rx.ast.Nod
     var reads: std.ArrayList(Store.Binding) = .empty;
 
     if (target.optionalAttribute(node, "in")) |input| {
-        var parsed = try frontend.parseExpression(allocator, input.value, owner);
+        var parsed = try @import("../attribute.zig").parse(allocator, input, owner);
 
         defer parsed.deinit();
 
@@ -31,7 +30,7 @@ pub fn analyze(allocator: std.mem.Allocator, owner: []const u8, node: rx.ast.Nod
     for (node.attributes) |attribute| {
         if (!std.mem.eql(u8, attribute.name, "setter")) continue;
 
-        var writes = try frontend.parseExpression(allocator, attribute.value, owner);
+        var writes = try @import("../attribute.zig").parse(allocator, attribute, owner);
 
         defer writes.deinit();
 

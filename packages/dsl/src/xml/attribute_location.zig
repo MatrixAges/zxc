@@ -14,6 +14,20 @@ fn locateWithBias(attribute: ast.Attribute, decoded_offset: usize, end_bias: boo
 
     const source = attribute.raw_value orelse return null;
     var location = attribute.value_location;
+
+    if (attribute.kind == .expression) {
+        for (source[0..decoded_offset], 0..) |byte, index| {
+            if (byte == '\r' or (byte == '\n' and (index == 0 or source[index - 1] != '\r'))) {
+                location.line += 1;
+                location.column = 1;
+            } else if (byte != '\n') location.column += 1;
+        }
+
+        location.offset += decoded_offset;
+
+        return location;
+    }
+
     var raw_offset: usize = 0;
     var offset: usize = 0;
 

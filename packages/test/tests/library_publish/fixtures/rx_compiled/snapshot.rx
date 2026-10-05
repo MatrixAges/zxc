@@ -1,5 +1,5 @@
 <Module>
   <Store from="state" as="reader" />
-  <Call fn="snapshot" in="store.reader.counter" out="ctx.result" />
-  <Return value="ctx.result" />
+  <Call fn="snapshot" in={store.reader.counter} out="ctx.result" />
+  <Return value={ctx.result} />
 </Module>

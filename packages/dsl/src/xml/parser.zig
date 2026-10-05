@@ -6,9 +6,8 @@ const Self = @This();
 allocator: std.mem.Allocator,
 source: []const u8,
 reporter: *diagnostics.Reporter,
-
+read_expression: ?@import("expression.zig").Reader = null,
 offset: usize = 0,
-
 line: usize = 1,
 column: usize = 1,
 pub fn document(self: *Self) diagnostics.Error!ast.Node {
@@ -61,6 +60,29 @@ fn element(self: *Self, depth: usize) diagnostics.Error!ast.Node {
         try self.require("=");
 
         _ = self.whitespace();
+
+        if (self.starts("{") and self.read_expression != null) {
+            self.advance(1);
+
+            const value_location = self.location();
+
+            const end = switch (self.read_expression.?(self.source, self.offset)) {
+                .end => |end| end,
+                .failure => |failure| {
+                    self.advance(failure.offset - self.offset);
+
+                    return self.fail(failure.message);
+                },
+            };
+
+            const source = self.source[self.offset..end];
+
+            self.advance(end + 1 - self.offset);
+
+            try attributes.append(self.allocator, .{ .kind = .expression, .name = attribute_name, .value = source, .location = attribute_location, .value_location = value_location, .raw_value = source });
+
+            continue;
+        }
 
         if (self.offset == self.source.len or (self.source[self.offset] != '\'' and self.source[self.offset] != '"')) return self.fail("XML attribute values must be quoted");
 

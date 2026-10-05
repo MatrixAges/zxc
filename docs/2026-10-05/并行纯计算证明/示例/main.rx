@@ -1,8 +1,8 @@
 <Module>
   <Parallel>
-    <Call fn="identity" in="$in.value" out="ctx.value" />
-    <Call service="flag" in="$in.enabled" out="ctx.flag" />
-    <Call fn="checked" in="$in.value" />
+    <Call fn="identity" in={$in.value} out="ctx.value" />
+    <Call service="flag" in={$in.enabled} out="ctx.flag" />
+    <Call fn="checked" in={$in.value} />
   </Parallel>
-  <Return value="{value: ctx.value, enabled: ctx.flag}" />
+  <Return value={{value: ctx.value, enabled: ctx.flag}} />
 </Module>

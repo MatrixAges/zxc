@@ -205,7 +205,7 @@ const Walker = struct {
 
 fn parse(expression: *Expression, owner: []const u8, attribute: rx.ast.Attribute) zx.Error!*const zx.ast.Expression {
     expression.attribute = attribute;
-    const parsed = try frontend.parseExpression(expression.graph.allocator, attribute.value, owner);
+    const parsed = try @import("../attribute.zig").parse(expression.graph.allocator, attribute, owner);
 
     if (parsed.value == .diagnostic) {
         const issue = parsed.value.diagnostic;

@@ -1,11 +1,11 @@
 <Module>
   <Store from="state" as="cache" />
 
-  <Call fn="read" in="$in" out="text" />
+  <Call fn="read" in={$in} out="text" />
 
-  <Call fn="save" in="text" setter="[store.cache.snapshot]" />
+  <Call fn="save" in={text} setter={[store.cache.snapshot]} />
 
-  <Call fn="value" in="store.cache.snapshot" out="saved" />
+  <Call fn="value" in={store.cache.snapshot} out="saved" />
 
-  <Return value="saved" />
+  <Return value={saved} />
 </Module>

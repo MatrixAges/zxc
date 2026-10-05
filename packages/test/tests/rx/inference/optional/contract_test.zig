@@ -62,29 +62,29 @@ fn run(case: Case) !void {
 }
 
 test "optional signature alone retains optional input" {
-    try run(.{ .source = "<Module><Call fn='optional' in='$in'/></Module>", .input_optional = true });
+    try run(.{ .source = "<Module><Call fn='optional' in={$in}/></Module>", .input_optional = true });
 }
 
 test "required before optional infers required input" {
-    try run(.{ .source = "<Module><Call fn='number' in='$in'/><Call fn='optional' in='$in'/></Module>" });
+    try run(.{ .source = "<Module><Call fn='number' in={$in}/><Call fn='optional' in={$in}/></Module>" });
 }
 
 test "optional before required infers required input" {
-    try run(.{ .source = "<Module><Call fn='optional' in='$in'/><Call fn='number' in='$in'/></Module>" });
+    try run(.{ .source = "<Module><Call fn='optional' in={$in}/><Call fn='number' in={$in}/></Module>" });
 }
 
 test "literal can be wrapped for optional parameter" {
-    try run(.{ .source = "<Module><Call fn='optional' in='7'/></Module>", .input = .void });
+    try run(.{ .source = "<Module><Call fn='optional' in={7}/></Module>", .input = .void });
 }
 
 test "optional result is preserved in return" {
-    try run(.{ .source = "<Module><Call fn='optional' in='$in' out='ctx.value'/><Return value='ctx.value'/></Module>", .input_optional = true, .output = .u64, .output_optional = true });
+    try run(.{ .source = "<Module><Call fn='optional' in={$in} out='ctx.value'/><Return value={ctx.value}/></Module>", .input_optional = true, .output = .u64, .output_optional = true });
 }
 
 test "coalesced result removes one optional layer" {
-    try run(.{ .source = "<Module><Call fn='optional' in='$in' out='ctx.value'/><Return value='ctx.value ?? 7'/></Module>", .input_optional = true, .output = .u64 });
+    try run(.{ .source = "<Module><Call fn='optional' in={$in} out='ctx.value'/><Return value={ctx.value ?? 7}/></Module>", .input_optional = true, .output = .u64 });
 }
 
 test "optional wrappers do not merge incompatible base types" {
-    try run(.{ .source = "<Module><Call fn='optional' in='$in'/><Call fn='text' in='$in'/></Module>", .rejected = true });
+    try run(.{ .source = "<Module><Call fn='optional' in={$in}/><Call fn='text' in={$in}/></Module>", .rejected = true });
 }

@@ -1,7 +1,7 @@
 <Module>
-  <Call fn='number' in='$in.number' out='ctx.number'/>
-  <Call fn='optional' in='$in.maybe' out='ctx.maybe'/>
-  <Call service='./right.rx' in='ctx.maybe' out='ctx.right'/>
-  <Call service='./left.rx' in='ctx.number' out='ctx.left'/>
-  <Return value='{ left: ctx.left, right: ctx.right }'/>
+  <Call fn='number' in={$in.number} out='ctx.number'/>
+  <Call fn='optional' in={$in.maybe} out='ctx.maybe'/>
+  <Call service='./right.rx' in={ctx.maybe} out='ctx.right'/>
+  <Call service='./left.rx' in={ctx.number} out='ctx.left'/>
+  <Return value={{ left: ctx.left, right: ctx.right }}/>
 </Module>

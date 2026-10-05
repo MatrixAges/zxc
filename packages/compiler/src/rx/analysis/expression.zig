@@ -24,7 +24,7 @@ pub fn compileForLinking(allocator: std.mem.Allocator, path: []const u8, attribu
 }
 
 fn compileStage(allocator: std.mem.Allocator, path: []const u8, attribute: rx.ast.Attribute, options: frontend.expressions.Options, comptime linking: bool) std.mem.Allocator.Error!Result {
-    var parsed = try frontend.parseExpression(allocator, attribute.value, path);
+    var parsed = try @import("attribute.zig").parse(allocator, attribute, path);
 
     if (parsed.value == .diagnostic) return .{ .arena = parsed.arena, .value = .{ .diagnostic = diagnostic(attribute, parsed.value.diagnostic) } };
 

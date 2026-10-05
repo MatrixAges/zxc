@@ -6,10 +6,11 @@ const Mode = enum { success, scope, duplicate };
 
 fn check(allocator: std.mem.Allocator, mode: Mode) !void {
     const source = switch (mode) {
-        .success => "<Module><Call fn=\"./helper.zx\" in=\"$in.value\" out=\"ctx.base\"/><Switch on=\"$in.enabled\"><Case value=\"true\"><Call fn=\"./helper.zx\" in=\"ctx.base\" out=\"ctx.inner\"/><Return value=\"ctx.inner\"/></Case><Case value=\"false\"><Call fn=\"./helper.zx\" in=\"ctx.base\" out=\"ctx.inner\"/><Return value=\"ctx.inner\"/></Case></Switch></Module>",
-        .scope => "<Module><Call fn=\"./helper.zx\" in=\"$in.value\" out=\"ctx.base\"/><Task name=\"t\"><Call fn=\"./helper.zx\" in=\"ctx.base\" out=\"ctx.inner\"/></Task><Return value=\"ctx.inner\"/></Module>",
-        .duplicate => "<Module><Switch on='\"x\"'><Case value='\"x\"'><Return value=\"1\"/></Case><Case value='&quot;x&quot;'><Return value=\"2\"/></Case><Default><Return value=\"3\"/></Default></Switch></Module>",
+        .success => "<Module><Call fn=\"./helper.zx\" in={$in.value} out=\"ctx.base\"/><Switch on={$in.enabled}><Case value={true}><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/><Return value={ctx.inner}/></Case><Case value={false}><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/><Return value={ctx.inner}/></Case></Switch></Module>",
+        .scope => "<Module><Call fn=\"./helper.zx\" in={$in.value} out=\"ctx.base\"/><Task name=\"t\"><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/></Task><Return value={ctx.inner}/></Module>",
+        .duplicate => "<Module><Switch on={\"x\"}><Case value={\"x\"}><Return value={1}/></Case><Case value={\"x\"}><Return value={2}/></Case><Default><Return value={3}/></Default></Switch></Module>",
     };
+
     var parsed = try rx.parseXml(allocator, source);
 
     defer parsed.deinit();

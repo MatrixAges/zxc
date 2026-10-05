@@ -11,12 +11,14 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
         .helper_read => header ++ "export default function (in: Input): Output {\n  return $store.value.value\n}\n",
         else => header ++ "export default function (in: Input): Output {\n  return in + 1\n}\n",
     };
+
     const body = switch (mode) {
         .entry_read => "  const next = $store.value.value\n\n  store.jobs.counter = { value: next, history: [8] }\n",
         .field_write => "  const next = helper(in)\n\n  store.jobs.counter.value = next\n",
         .incomplete_object => "  const next = helper(in)\n\n  store.jobs.counter = { value: next }\n",
         else => "  const next = helper(in)\n\n  store.jobs.counter = { value: next, history: [8] }\n",
     };
+
     const entry = try std.mem.concat(allocator, u8, &.{
         "import helper from \"./helper.zx\"\n\n" ++ header,
         if (mode == .missing_parameter) "export default function (in: Input): Output {\n" else "export default function (in: Input, { store }): Output {\n",
@@ -26,7 +28,7 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
 
     defer allocator.free(entry);
 
-    var main = try rx.parseXml(allocator, "<Module><Store from='state' as='jobs'/><Call fn='write' in='1' setter='[store.jobs.counter]' out='ctx.value'/><Return value='ctx.value'/></Module>");
+    var main = try rx.parseXml(allocator, "<Module><Store from='state' as='jobs'/><Call fn='write' in={1} setter={[store.jobs.counter]} out='ctx.value'/><Return value={ctx.value}/></Module>");
 
     defer main.deinit();
 

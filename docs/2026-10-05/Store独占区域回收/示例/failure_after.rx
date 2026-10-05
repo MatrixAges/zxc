@@ -2,9 +2,9 @@
   <Store from="state" as="inner" />
 
   <Call fn="advance"
-    in="{increment: $in, state: store.inner.counter}"
-    setter="[store.inner.counter]"
+    in={{increment: $in, state: store.inner.counter}}
+    setter={[store.inner.counter]}
     out="ctx.result" />
-  <Call fn="read_index" in="{values: ctx.result.history, index: $in}" out="ctx.selected" />
-  <Return value="ctx.selected" />
+  <Call fn="read_index" in={{values: ctx.result.history, index: $in}} out="ctx.selected" />
+  <Return value={ctx.selected} />
 </Module>

@@ -22,7 +22,7 @@ pub fn end(source: []const u8, start: usize, reporter: *zx.Reporter, depth: usiz
     return reporter.fail(.lexical, .{ .start = start, .end = source.len }, "unterminated template string");
 }
 
-fn interpolationEnd(source: []const u8, start: usize, reporter: *zx.Reporter, depth: usize) zx.Error!usize {
+pub fn interpolationEnd(source: []const u8, start: usize, reporter: *zx.Reporter, depth: usize) zx.Error!usize {
     var braces: usize = 0;
     var offset = start;
 

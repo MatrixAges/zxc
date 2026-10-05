@@ -26,7 +26,14 @@ const Planner = struct {
     edits: std.ArrayList(spacing.Edit) = .empty,
     fn element(self: *Planner, node: dsl.ast.Node) std.mem.Allocator.Error!zx.Span {
         const start = node.location.offset;
-        const opening_end = bounds.tagEnd(self.source, start);
+
+        const after_attributes = if (node.attributes.len == 0) start else block: {
+            const last = node.attributes[node.attributes.len - 1];
+
+            break :block last.value_location.offset + last.raw_value.?.len + 1;
+        };
+
+        const opening_end = bounds.tagEnd(self.source, after_attributes);
 
         if (self.source[opening_end - 2] == '/') return .{ .start = start, .end = opening_end };
 

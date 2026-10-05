@@ -15,7 +15,10 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/rx/root.zig"),
         .target = target,
         .optimize = optimize,
-        .imports = &.{.{ .name = "dsl", .module = b.dependency("dsl", .{ .target = target, .optimize = optimize }).module("dsl") }},
+        .imports = &.{
+            .{ .name = "dsl", .module = b.dependency("dsl", .{ .target = target, .optimize = optimize }).module("dsl") },
+            .{ .name = "frontend", .module = frontend },
+        },
     });
 
     _ = b.addModule("rx_analysis", .{

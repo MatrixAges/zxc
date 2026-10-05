@@ -1,9 +1,9 @@
 <Module>
   <Store from="state" as="outer" />
-  <Call service="advance" in="$in" out="ctx.first" />
-  <Call service="advance" in="$in" out="ctx.second" />
-  <Call fn="read" in="store.outer.counter.value" out="ctx.current" />
+  <Call service="advance" in={$in} out="ctx.first" />
+  <Call service="advance" in={$in} out="ctx.second" />
+  <Call fn="read" in={store.outer.counter.value} out="ctx.current" />
 
-  <Return value="{first: ctx.first, second: ctx.second, current: ctx.current}" />
+  <Return value={{first: ctx.first, second: ctx.second, current: ctx.current}} />
 
 </Module>

@@ -1,31 +1,31 @@
 <Module>
-  <Call fn="identity" in="$in.value" out="ctx.seed" />
+  <Call fn="identity" in={$in.value} out="ctx.seed" />
   <Parallel>
     <Task name="number" out="ctx.number">
-      <Call fn="identity" in="ctx.seed" out="local.first" />
-      <Call fn="identity" in="local.first" out="local.second" />
-      <Return value="local.second" />
+      <Call fn="identity" in={ctx.seed} out="local.first" />
+      <Call fn="identity" in={local.first} out="local.second" />
+      <Return value={local.second} />
     </Task>
     <Task name="flag" out="ctx.flag">
-      <Switch on="$in.enabled">
-        <Case value="true">
+      <Switch on={$in.enabled}>
+        <Case value={true}>
           <Parallel>
             <Task name="nested" out="local.flag">
-              <Call fn="invert" in="$in.enabled" out="local.value" />
-              <Return value="local.value" />
+              <Call fn="invert" in={$in.enabled} out="local.value" />
+              <Return value={local.value} />
             </Task>
-            <Call fn="identity" in="ctx.seed" />
+            <Call fn="identity" in={ctx.seed} />
           </Parallel>
-          <Return value="local.flag" />
+          <Return value={local.flag} />
         </Case>
         <Default>
-          <Return value="true" />
+          <Return value={true} />
         </Default>
       </Switch>
     </Task>
     <Task name="discard">
-      <Call fn="identity" in="ctx.seed" />
+      <Call fn="identity" in={ctx.seed} />
     </Task>
   </Parallel>
-  <Return value="{value: ctx.number, enabled: ctx.flag}" />
+  <Return value={{value: ctx.number, enabled: ctx.flag}} />
 </Module>

@@ -1,7 +1,7 @@
 <Module>
   <Parallel>
-    <Call fn="discard" in="$in" />
-    <Call fn="identity" in="$in" out="ctx.value" />
+    <Call fn="discard" in={$in} />
+    <Call fn="identity" in={$in} out="ctx.value" />
   </Parallel>
-  <Return value="ctx.value" />
+  <Return value={ctx.value} />
 </Module>

@@ -7,10 +7,11 @@ const Mode = enum { success, conflict, cycle };
 fn check(allocator: std.mem.Allocator, mode: Mode) !void {
     const main = switch (mode) {
         .success => @embedFile("fixtures/main.rx"),
-        .conflict => "<Module><Call service='./identity.rx' in='1'/><Call service='./identity.rx' in='\"text\"'/></Module>",
-        .cycle => "<Module><Call service='./bridge.rx' in='$in'/></Module>",
+        .conflict => "<Module><Call service='./identity.rx' in={1}/><Call service='./identity.rx' in={\"text\"}/></Module>",
+        .cycle => "<Module><Call service='./bridge.rx' in={$in}/></Module>",
     };
-    const bridge = if (mode == .cycle) "<Module><Call service='./main.rx' in='$in'/></Module>" else @embedFile("fixtures/bridge.rx");
+
+    const bridge = if (mode == .cycle) "<Module><Call service='./main.rx' in={$in}/></Module>" else @embedFile("fixtures/bridge.rx");
     const texts = [_][]const u8{ main, bridge, @embedFile("fixtures/identity.rx") };
     const names = [_][]const u8{ "main.rx", "bridge.rx", "identity.rx" };
     var parsed: [3]rx.XmlResult = undefined;

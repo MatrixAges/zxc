@@ -1,6 +1,6 @@
 <Module>
   <Store from="state" as="cache" />
-  <Call fn="read" in="{path: $in.path, max_bytes: $in.max_bytes}" out="text" />
-  <Call fn="combine" in="{stored: store.cache.snapshot, read: text}" out="result" />
-  <Return value="result" />
+  <Call fn="read" in={{path: $in.path, max_bytes: $in.max_bytes}} out="text" />
+  <Call fn="combine" in={{stored: store.cache.snapshot, read: text}} out="result" />
+  <Return value={result} />
 </Module>

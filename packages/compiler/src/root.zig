@@ -69,7 +69,7 @@ pub fn compileWithContext(allocator: std.mem.Allocator, source: []const u8, file
 
 pub fn format(allocator: std.mem.Allocator, source: []const u8, file_name: []const u8) std.mem.Allocator.Error!Result {
     if (std.mem.endsWith(u8, file_name, ".rx")) {
-        var parsed = try @import("dsl").parseXml(allocator, source);
+        var parsed = try frontend.parseExpressionXml(allocator, source);
 
         defer parsed.deinit();
 

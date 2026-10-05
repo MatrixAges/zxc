@@ -1,9 +1,9 @@
 <Module>
-  <Call fn="copy_values" in="$in" out="first"/>
-  <Call fn="copy_values" in="$in" out="second"/>
+  <Call fn="copy_values" in={$in} out="first"/>
+  <Call fn="copy_values" in={$in} out="second"/>
   <Parallel>
-    <Call fn="consume" in="first" out="left"/>
-    <Call fn="consume" in="second" out="right"/>
+    <Call fn="consume" in={first} out="left"/>
+    <Call fn="consume" in={second} out="right"/>
   </Parallel>
-  <Return value="{left, right}"/>
+  <Return value={{left, right}}/>
 </Module>

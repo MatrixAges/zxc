@@ -36,7 +36,7 @@ pub fn parseModules(allocator: std.mem.Allocator, sources: []const Source) std.m
     try parsed.ensureTotalCapacity(temporary, sources.len);
 
     for (sources, 0..) |source, index| {
-        const item = try dsl.parseXml(allocator, source.source);
+        const item = try @import("frontend").parseExpressionXml(allocator, source.source);
 
         parsed.appendAssumeCapacity(item);
 

@@ -1,10 +1,10 @@
 const std = @import("std");
 const rx = @import("rx");
-const leaf = "<Module><Return value='$in'/></Module>";
+const leaf = "<Module><Return value={$in}/></Module>";
 
 test "RX text resolves normalized module imports" {
     const sources = [_]rx.TextSource{
-        .{ .path = "app/start.rx", .source = "<Module><Import from='../shared/leaf'/><Return value='$in'/></Module>" },
+        .{ .path = "app/start.rx", .source = "<Module><Import from='../shared/leaf'/><Return value={$in}/></Module>" },
         .{ .path = "shared/leaf.rx", .source = leaf },
     };
 

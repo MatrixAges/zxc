@@ -1,16 +1,16 @@
 <Module>
-  <Switch on="$in.enabled">
-    <Case value="true">
+  <Switch on={$in.enabled}>
+    <Case value={true}>
       <Task name="once">
-        <Call service="./leaf.rx" in="$in.values" out="ctx.items" />
-        <Return value="ctx.items.pop()" />
+        <Call service="./leaf.rx" in={$in.values} out="ctx.items" />
+        <Return value={ctx.items.pop()} />
       </Task>
     </Case>
     <Default>
       <Task name="twice">
-        <Call service="./leaf.rx" in="$in.values" out="ctx.items" />
-        <Call service="./leaf.rx" in="ctx.items" out="ctx.twice" />
-        <Return value="ctx.twice.pop()" />
+        <Call service="./leaf.rx" in={$in.values} out="ctx.items" />
+        <Call service="./leaf.rx" in={ctx.items} out="ctx.twice" />
+        <Return value={ctx.twice.pop()} />
       </Task>
     </Default>
   </Switch>

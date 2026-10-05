@@ -21,9 +21,9 @@ Paths identify modules. Keep file placement aligned with business responsibiliti
 <Module>
   <Import from="shared/validate" />
 
-  <Call service="orders/create" in="$in" out="ctx.order" />
+  <Call service="orders/create" in={$in} out="ctx.order" />
 
-  <Return value="ctx.order" />
+  <Return value={ctx.order} />
 </Module>
 ```
 

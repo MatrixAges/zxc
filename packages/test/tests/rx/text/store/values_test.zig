@@ -2,10 +2,10 @@ const std = @import("std");
 const rx = @import("rx");
 
 const fragments =
-    \\<Store name="scheduler" version="1">
-    \\  <Object name="state"><Field name="cursor" type="u64" value="0"/></Object>
-    \\  <Object name="state"><Field name="label" type="string" value=""/></Object>
-    \\  <Object name="other"><Field name="cursor" type="string" value="A&amp;B"/></Object>
+    \\<Store name="scheduler" version={1}>
+    \\  <Object name="state"><Field name="cursor" type="u64" value={0}/></Object>
+    \\  <Object name="state"><Field name="label" type="string" value={}/></Object>
+    \\  <Object name="other"><Field name="cursor" type="string" value={A&B}/></Object>
     \\</Store>
 ;
 
@@ -47,7 +47,7 @@ test "Store text accepts maximum u32 version" {
 }
 
 fn checkVersion(version: []const u8, expected: u32) !void {
-    const source = try std.fmt.allocPrint(std.testing.allocator, "<Store name='state' version='{s}'><Object name='state'><Field name='x' type='string' value=''/></Object></Store>", .{version});
+    const source = try std.fmt.allocPrint(std.testing.allocator, "<Store name='state' version={{{s}}}><Object name='state'><Field name='x' type='string' value={{}}/></Object></Store>", .{version});
 
     defer std.testing.allocator.free(source);
 
@@ -75,9 +75,11 @@ test "Store text duplicate fragments release every allocation failure" {
 
 fn checkAllocation(allocator: std.mem.Allocator, invalid: bool) !void {
     const source = if (invalid)
-        "<Store name='state' version='1'><Object name='state'><Field name='x' type='u64' value='0'/></Object><Object name='state'><Field name='x' type='string' value=''/></Object></Store>"
+        "<Store name='state' version={1}><Object name='state'><Field name='x' type='u64' value={0}/></Object><Object name='state'><Field name='x' type='string' value={}/></Object></Store>"
+
     else
         fragments;
+
     var parsed = try rx.parseXml(allocator, source);
 
     defer parsed.deinit();
@@ -100,7 +102,7 @@ fn checkAllocation(allocator: std.mem.Allocator, invalid: bool) !void {
 }
 
 test "Store text duplicate decoded name reports second original value position" {
-    var parsed = try rx.parseXml(std.testing.allocator, "<Store name='s' version='1'>\r\n<Object name='state'><Field name='x' type='u64' value='0'/></Object>\r\n<Object name='state'><Field name='&#120;' type='string' value=''/></Object>\r\n</Store>");
+    var parsed = try rx.parseXml(std.testing.allocator, "<Store name='s' version={1}>\r\n<Object name='state'><Field name='x' type='u64' value={0}/></Object>\r\n<Object name='state'><Field name='&#120;' type='string' value={}/></Object>\r\n</Store>");
 
     defer parsed.deinit();
 

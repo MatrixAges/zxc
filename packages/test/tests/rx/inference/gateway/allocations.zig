@@ -22,5 +22,5 @@ test "Gateway path diagnostic releases every failed allocation" {
 }
 
 test "Gateway limit diagnostic releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{ "<Gateway name='api' max_header_bytes='0'><Route path='/a' service='a'/></Gateway>", false });
+    try std.testing.checkAllAllocationFailures(f.allocator, check, .{ "<Gateway name='api' max_header_bytes={0}><Route path='/a' service='a'/></Gateway>", false });
 }

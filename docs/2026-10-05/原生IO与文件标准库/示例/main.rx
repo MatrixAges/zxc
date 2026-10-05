@@ -1,22 +1,22 @@
 <Module>
-  <Call fn="paths" in="$in" out="paths" />
+  <Call fn="paths" in={$in} out="paths" />
 
-  <Call fn="operations/mkdir" in="{path:paths.directory,recursive:true}" />
-  <Call fn="operations/write_text" in="{path:paths.source,text:paths.text}" />
+  <Call fn="operations/mkdir" in={{path:paths.directory,recursive:true}} />
+  <Call fn="operations/write_text" in={{path:paths.source,text:paths.text}} />
 
-  <Call fn="operations/read_file" in="{path:paths.source,max_bytes:1048576}" out="bytes" />
+  <Call fn="operations/read_file" in={{path:paths.source,max_bytes:1048576}} out="bytes" />
 
-  <Call fn="operations/write_file" in="{path:paths.target,data:bytes}" />
-  <Call fn="operations/copy_file" in="{from:paths.target,to:paths.copy,exclusive:true}" />
-  <Call fn="operations/rename" in="{from:paths.copy,to:paths.renamed}" />
-  <Call fn="operations/truncate" in="{path:paths.renamed,length:0}" />
+  <Call fn="operations/write_file" in={{path:paths.target,data:bytes}} />
+  <Call fn="operations/copy_file" in={{from:paths.target,to:paths.copy,exclusive:true}} />
+  <Call fn="operations/rename" in={{from:paths.copy,to:paths.renamed}} />
+  <Call fn="operations/truncate" in={{path:paths.renamed,length:0}} />
 
-  <Call fn="inspect_files" in="paths" out="result" />
+  <Call fn="inspect_files" in={paths} out="result" />
 
-  <Call fn="operations/unlink" in="paths.source" />
-  <Call fn="operations/unlink" in="paths.target" />
-  <Call fn="operations/unlink" in="paths.renamed" />
-  <Call fn="operations/rmdir" in="paths.directory" />
+  <Call fn="operations/unlink" in={paths.source} />
+  <Call fn="operations/unlink" in={paths.target} />
+  <Call fn="operations/unlink" in={paths.renamed} />
+  <Call fn="operations/rmdir" in={paths.directory} />
 
-  <Return value="result" />
+  <Return value={result} />
 </Module>

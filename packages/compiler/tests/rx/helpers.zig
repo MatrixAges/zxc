@@ -11,6 +11,7 @@ pub fn node(comptime name: []const u8, comptime attributes: anytype, children: [
 
         for (fields, 0..) |field, index| {
             result[index] = .{
+                .kind = if (expressionAttribute(name, field.name)) .expression else .string,
                 .name = field.name,
                 .value = @field(attributes, field.name),
                 .location = location,
@@ -22,6 +23,19 @@ pub fn node(comptime name: []const u8, comptime attributes: anytype, children: [
     };
 
     return .{ .name = name, .location = location, .attributes = &values, .children = children };
+}
+
+fn expressionAttribute(comptime name: []const u8, comptime field: []const u8) bool {
+    if (std.mem.eql(u8, name, "Call")) return std.mem.eql(u8, field, "in") or std.mem.eql(u8, field, "setter");
+    if (std.mem.eql(u8, name, "Switch")) return std.mem.eql(u8, field, "on");
+    if (std.mem.eql(u8, name, "Store")) return std.mem.eql(u8, field, "version");
+    if (std.mem.eql(u8, name, "Gateway")) return std.mem.eql(u8, field, "max_header_bytes") or std.mem.eql(u8, field, "max_body_bytes");
+
+    inline for (.{ "Return", "Case", "Emit", "Field" }) |tag| {
+        if (std.mem.eql(u8, name, tag)) return std.mem.eql(u8, field, "value");
+    }
+
+    return false;
 }
 
 pub fn module(children: []const rx.ast.Node) rx.ast.Node {

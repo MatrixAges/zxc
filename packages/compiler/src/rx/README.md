@@ -43,6 +43,16 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 不进行按名称搜索、目录 index 猜测或扩展名候选搜索。绝对路径、越出项目根的路径和特殊 RX 文件不能作为普通模块依赖。
 
+## 属性值
+
+属性使用引号或花括号区分值的语义：`value="hello"` 是字符串，`value={expression}` 使用 ZX 表达式。`value="$in"` 返回字符串 `$in`；读取输入应写 `value={$in}`。对象表达式外面仍需属性花括号，例如 `in={{user: $in.user}}`。
+
+花括号内部直接使用 ZX 源码，支持对象、列表、比较、逻辑运算、注释和模板，不进行 XML 实体解码或空白归一化；`<`、`&&` 无需写成 XML 实体。引号字符串仍使用标签转义，例如 `&amp;`、`&quot;`。
+
+`Call.in`、`Return.value`、`Switch.on`、`Case.value`、`Emit.value` 和 Store `Field.value` 都使用这一规则。`setter` 写作 `{[store.alias.object]}`，仍只授权一个完整 Store Object。路径、名称、`out` 绑定及 `Field.type` 保持静态引号字符串，不接受动态表达式。Store.version 和 Gateway 字节上限是静态整数配置，使用 `{1}`、`{8192}` 等整数字面量，保留各自范围检查。
+
+旧 `in="$in"` 需迁移为 `in={$in}`；旧表达式中通过 XML 实体表示的符号需在花括号内恢复为 ZX 符号。无后缀调用保留：`fn="load"` 对应 `load.zx`，`service="orders"` 对应 `orders.rx`，不需要 `.zig`。
+
 ## 调用与组合
 
 每个 Module 自身就是流程。可选的 in/out 用于命名推导后的类型契约，不是需要另行提供的类型文件；Schema 入口仅保留名称，`rx_analysis.module.infer` 从函数调用与返回表达式推导顺序模块的实际类型。
@@ -51,13 +61,13 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 ```xml
 <Module in="CheckoutInput" out="CheckoutOutput">
-  <Call service="users" in="$in.user" out="ctx.user" />
-  <Call service="orders" in="{user:ctx.user,items:$in.items}" out="ctx.order" />
-  <Emit event="order.created" value="ctx.order" />
+  <Call service="users" in={$in.user} out="ctx.user" />
+  <Call service="orders" in={{user:ctx.user,items:$in.items}} out="ctx.order" />
+  <Emit event="order.created" value={ctx.order} />
 </Module>
 ```
 
-父模块再用 `<Call service="checkout" in="$in" out="ctx.result" />` 调用整个组合模块。Call 的 fn 用于本地 ZX 函数，service 用于本地 RX 模块，module 用于依赖包的公开编译模块，三者必须且只能提供一个目标。
+父模块再用 `<Call service="checkout" in={$in} out="ctx.result" />` 调用整个组合模块。Call 的 fn 用于本地 ZX 函数，service 用于本地 RX 模块，module 用于依赖包的公开编译模块，三者必须且只能提供一个目标。
 
 Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标是该文件的默认导出。例如 `fn="load_user"` 指向 `load_user.zx`，也可写相对目录和显式 `.zx` 后缀。入口检查会读取函数及其 ZX 导入闭包，执行现有命名、类型和依赖检查，并拒绝纯类型文件作为函数目标。可使用 `check-rx --entry <file.rx> --project <pkg.yaml>` 指定包与原生接口配置。
 
@@ -65,13 +75,13 @@ Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标�
 
 ```xml
 <Module>
-  <Call module="shared-counter/advance" in="$in" out="ctx.updated" />
+  <Call module="shared-counter/advance" in={$in} out="ctx.updated" />
   <Call module="shared-counter/read" out="ctx.current" />
-  <Return value="ctx.current" />
+  <Return value={ctx.current} />
 </Module>
 ```
 
-module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶段拒绝。原有 fn/service 的 in 契约保持不变。模块输入被推导为 void 时，显式 `$in` 表示编译期单位值，可用于 `in="$in"`，不占用运行时环境字段；普通 out 仍不能绑定 void。已编译 RX 模块保留模块内部声明的 Store 及逐次 Call 授权，与本地 service 调用相同；module 调用不能附加 setter，也不会给调用者提供库内部 Store 的读写句柄。带 Store 的裸事务函数不能作为 module 调用目标，普通 ZX 仍不能隐式调用 Store 函数。应用从库保存的初值生成共享内存状态，按包实例区分身份；再次发布继续保存初值和权限。
+module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶段拒绝。原有 fn/service 的 in 契约保持不变。模块输入被推导为 void 时，显式 `$in` 表示编译期单位值，可用于 `in={$in}`，不占用运行时环境字段；普通 out 仍不能绑定 void。已编译 RX 模块保留模块内部声明的 Store 及逐次 Call 授权，与本地 service 调用相同；module 调用不能附加 setter，也不会给调用者提供库内部 Store 的读写句柄。带 Store 的裸事务函数不能作为 module 调用目标，普通 ZX 仍不能隐式调用 Store 函数。应用从库保存的初值生成共享内存状态，按包实例区分身份；再次发布继续保存初值和权限。
 
 上述 check-rx 入口仅做结构与目标检查；`zxc build` 和下述项目推导入口会进一步验证顺序调用的参数、结果及类型兼容性。Store 支持显式授权的源码生成；原生 app 在应用启动时初始化共享内存，以普通 JSON 参数运行；不同进程重新使用初值。
 
@@ -237,12 +247,12 @@ try output.writeAll(generated);
 ```xml
 <Module>
   <Task name="choose">
-    <Switch on="$in.enabled">
-      <Case value="true">
-        <Call fn="calculate" in="$in.value" out="ctx.result" />
-        <Return value="ctx.result" />
+    <Switch on={$in.enabled}>
+      <Case value={true}>
+        <Call fn="calculate" in={$in.value} out="ctx.result" />
+        <Return value={ctx.result} />
       </Case>
-      <Default><Return value="$in.value" /></Default>
+      <Default><Return value={$in.value} /></Default>
     </Switch>
   </Task>
 </Module>
@@ -276,7 +286,7 @@ Parallel 的直接 Call.fn、Call.service 和编译模块 Call 可以并行执�
 
 入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 service 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.service、Return、Task、Switch 与 Parallel Call/Task 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store 引用独立分析并进入显式调用授权；事件仍明确拒绝。
 
-子模块可以只有 `<Return value="$in" />`，由调用者或下游函数确定其类型。同一个文件在所有调用点共享一个契约，不按调用点生成不同类型的实例；不相容的调用会报错。未读取输入的子模块仍可接收调用者传来的有类型值；无使用、无调用约束的输入才默认为 void。完整集合仍无法确定的类型会报告推导失败。
+子模块可以只有 `<Return value={$in} />`，由调用者或下游函数确定其类型。同一个文件在所有调用点共享一个契约，不按调用点生成不同类型的实例；不相容的调用会报错。未读取输入的子模块仍可接收调用者传来的有类型值；无使用、无调用约束的输入才默认为 void。完整集合仍无法确定的类型会报告推导失败。
 
 生成保留顺序调用及跨步骤所有权检查，共享依赖和重复调用均允许。模块的 Return 只结束当前模块。错误位置保留实际来源文件；库不读取文件系统，也不启动生成的程序。使用结束后调用结果的 `deinit()`。
 
@@ -310,10 +320,10 @@ CLI `check-rx --entry state.store.rx` 以及普通入口装载到的 Store 定�
 <Module>
   <Store from="state" as="jobs" />
   <Call fn="advance"
-    in="{increment: $in, state: store.jobs.counter}"
-    setter="[store.jobs.counter]"
+    in={{increment: $in, state: store.jobs.counter}}
+    setter={[store.jobs.counter]}
     out="ctx.result" />
-  <Return value="ctx.result" />
+  <Return value={ctx.result} />
 </Module>
 ```
 

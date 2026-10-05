@@ -15,7 +15,7 @@ const paths = [_]Path{
 test "RX parallel output path matrix distinguishes segment ancestry from textual prefixes" {
     for (paths) |left| {
         for (paths, 0..) |right, index| {
-            const source = try std.fmt.allocPrint(std.testing.allocator, "<Module><Parallel><Call fn='number' in='1' out='{s}'/><Call fn='number' in='2' out='{s}'/><Call fn='number' in='3' out='unrelated'/></Parallel><Return value='0'/></Module>", .{ left.name, right.name });
+            const source = try std.fmt.allocPrint(std.testing.allocator, "<Module><Parallel><Call fn='number' in={{1}} out='{s}'/><Call fn='number' in={{2}} out='{s}'/><Call fn='number' in={{3}} out='unrelated'/></Parallel><Return value={{0}}/></Module>", .{ left.name, right.name });
 
             defer std.testing.allocator.free(source);
 

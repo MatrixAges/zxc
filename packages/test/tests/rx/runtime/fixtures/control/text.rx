@@ -1,10 +1,10 @@
 <Module>
-  <Call fn="./text.zx" in="$in" out="ctx.text" />
-  <Switch on="ctx.text">
-    <Case value='"ready"'><Return value="10" /></Case>
-    <Case value='""'><Return value="20" /></Case>
-    <Case value='"中文"'><Return value="30" /></Case>
-    <Case value='"a&amp;b"'><Return value="40" /></Case>
+  <Call fn="./text.zx" in={$in} out="ctx.text" />
+  <Switch on={ctx.text}>
+    <Case value={"ready"}><Return value={10} /></Case>
+    <Case value={""}><Return value={20} /></Case>
+    <Case value={"中文"}><Return value={30} /></Case>
+    <Case value={"a&b"}><Return value={40} /></Case>
   </Switch>
-  <Return value="99" />
+  <Return value={99} />
 </Module>

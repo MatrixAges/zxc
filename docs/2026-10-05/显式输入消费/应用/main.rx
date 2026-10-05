@@ -1,5 +1,5 @@
 <Module>
-  <Call fn="copy" in="$in.seed" out="ctx.items" />
-  <Call fn="append" in="{items: ctx.items, value: $in.value}" out="ctx.result" />
-  <Return value="ctx.result" />
+  <Call fn="copy" in={$in.seed} out="ctx.items" />
+  <Call fn="append" in={{items: ctx.items, value: $in.value}} out="ctx.result" />
+  <Return value={ctx.result} />
 </Module>

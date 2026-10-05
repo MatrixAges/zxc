@@ -1,7 +1,7 @@
 <Module>
   <Parallel>
-    <Call fn="invert" in="$in" out="ctx.value" />
-    <Call fn="invert" in="$in" />
+    <Call fn="invert" in={$in} out="ctx.value" />
+    <Call fn="invert" in={$in} />
   </Parallel>
-  <Return value="ctx.value" />
+  <Return value={ctx.value} />
 </Module>

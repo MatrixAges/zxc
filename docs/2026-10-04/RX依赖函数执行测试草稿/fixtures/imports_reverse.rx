@@ -1,5 +1,5 @@
 <Module>
-  <Call fn="right" in="$in" out="ctx.right" />
-  <Call fn="bridge" in="$in" out="ctx.left" />
-  <Return value="ctx.left * 1000 + ctx.right" />
+  <Call fn="right" in={$in} out="ctx.right" />
+  <Call fn="bridge" in={$in} out="ctx.left" />
+  <Return value={ctx.left * 1000 + ctx.right} />
 </Module>

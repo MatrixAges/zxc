@@ -1,15 +1,15 @@
 <Module>
   <Parallel>
     <Task name="left" out="ctx.left">
-      <Call fn="copy_values" in="$in" out="items"/>
-      <Call fn="consume" in="items" out="result"/>
-      <Return value="result"/>
+      <Call fn="copy_values" in={$in} out="items"/>
+      <Call fn="consume" in={items} out="result"/>
+      <Return value={result}/>
     </Task>
     <Task name="right" out="ctx.right">
-      <Call fn="copy_values" in="$in" out="items"/>
-      <Call fn="consume" in="items" out="result"/>
-      <Return value="result"/>
+      <Call fn="copy_values" in={$in} out="items"/>
+      <Call fn="consume" in={items} out="result"/>
+      <Return value={result}/>
     </Task>
   </Parallel>
-  <Return value="{left: ctx.left, right: ctx.right}"/>
+  <Return value={{left: ctx.left, right: ctx.right}}/>
 </Module>

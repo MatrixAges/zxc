@@ -1,6 +1,6 @@
 <Module>
-  <Call fn="write" in="{path: $in.source, text: $in.text}" />
-  <Call fn="copy" in="{from: $in.source, to: $in.copy, exclusive: $in.exclusive}" />
-  <Call fn="rename" in="{from: $in.copy, to: $in.destination}" />
-  <Call fn="truncate" in="{path: $in.destination, length: $in.length}" />
+  <Call fn="write" in={{path: $in.source, text: $in.text}} />
+  <Call fn="copy" in={{from: $in.source, to: $in.copy, exclusive: $in.exclusive}} />
+  <Call fn="rename" in={{from: $in.copy, to: $in.destination}} />
+  <Call fn="truncate" in={{path: $in.destination, length: $in.length}} />
 </Module>

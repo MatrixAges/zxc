@@ -12,7 +12,6 @@ test "ZX consumes an owned function return" {
     defer result.deinit();
 
     if (result.value == .diagnostic) std.debug.print("ZX diagnostic: {s}\n", .{result.value.diagnostic.message});
-
     try std.testing.expect(result.value == .ir);
 }
 
@@ -32,7 +31,6 @@ test "RX consumes an owned function return" {
     defer result.deinit();
 
     if (result.value == .diagnostic) std.debug.print("RX diagnostic: {s}: {s}\n", .{ result.value.diagnostic.code, result.value.diagnostic.message });
-
     try std.testing.expect(result.value == .contract);
 }
 
@@ -56,7 +54,7 @@ test "RX still rejects consuming a borrowed function return" {
 }
 
 test "RX consumes a list created in the same expression" {
-    var parsed = try rx.parseXml(std.testing.allocator, "<Module><Return value='[1].pop()'/></Module>");
+    var parsed = try rx.parseXml(std.testing.allocator, "<Module><Return value={[1].pop()}/></Module>");
 
     defer parsed.deinit();
 

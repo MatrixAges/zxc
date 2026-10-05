@@ -35,25 +35,25 @@ fn check(source: []const u8, code: ?[]const u8, offset: usize) !void {
 }
 
 test "RX Task binding cannot escape scope" {
-    try check("<Module><Call fn=\"./helper.zx\" in=\"$in.value\" out=\"ctx.base\"/><Task name=\"t\"><Call fn=\"./helper.zx\" in=\"ctx.base\" out=\"ctx.inner\"/></Task><Return value=\"ctx.inner\"/></Module>", "name", 153);
+    try check("<Module><Call fn=\"./helper.zx\" in={$in.value} out=\"ctx.base\"/><Task name=\"t\"><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/></Task><Return value={ctx.inner}/></Module>", "name", 153);
 }
 
 test "RX Case binding cannot escape scope" {
-    try check("<Module><Call fn=\"./helper.zx\" in=\"$in.value\" out=\"ctx.base\"/><Switch on=\"$in.enabled\"><Case value=\"true\"><Call fn=\"./helper.zx\" in=\"ctx.base\" out=\"ctx.inner\"/></Case></Switch><Return value=\"ctx.inner\"/></Module>", "name", 191);
+    try check("<Module><Call fn=\"./helper.zx\" in={$in.value} out=\"ctx.base\"/><Switch on={$in.enabled}><Case value={true}><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/></Case></Switch><Return value={ctx.inner}/></Module>", "name", 191);
 }
 
 test "RX Task binding cannot shadow outer path" {
-    try check("<Module><Call fn=\"./helper.zx\" in=\"$in.value\" out=\"ctx.base\"/><Task name=\"t\"><Call fn=\"./helper.zx\" in=\"ctx.base\" out=\"ctx.base\"/></Task><Return value=\"ctx.base\"/></Module>", "name", 119);
+    try check("<Module><Call fn=\"./helper.zx\" in={$in.value} out=\"ctx.base\"/><Task name=\"t\"><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.base\"/></Task><Return value={ctx.base}/></Module>", "name", 119);
 }
 
 test "RX Switch label rejects dynamic binding" {
-    try check("<Module><Call fn=\"./helper.zx\" in=\"$in.value\" out=\"ctx.base\"/><Switch on=\"ctx.base\"><Case value=\"ctx.base\"><Return value=\"1\"/></Case><Default><Return value=\"2\"/></Default></Switch></Module>", "type_mismatch", 97);
+    try check("<Module><Call fn=\"./helper.zx\" in={$in.value} out=\"ctx.base\"/><Switch on={ctx.base}><Case value={ctx.base}><Return value={1}/></Case><Default><Return value={2}/></Default></Switch></Module>", "type_mismatch", 97);
 }
 
 test "RX Switch rejects decoded duplicate labels" {
-    try check("<Module><Switch on='\"x\"'><Case value='\"x\"'><Return value=\"1\"/></Case><Case value='&quot;x&quot;'><Return value=\"2\"/></Case><Default><Return value=\"3\"/></Default></Switch></Module>", "context", 82);
+    try check("<Module><Switch on={\"x\"}><Case value={\"x\"}><Return value={1}/></Case><Case value={\"x\"}><Return value={2}/></Case><Default><Return value={3}/></Default></Switch></Module>", "context", 82);
 }
 
 test "RX sibling Cases allow same binding and exhaustive bool" {
-    try check("<Module><Call fn=\"./helper.zx\" in=\"$in.value\" out=\"ctx.base\"/><Switch on=\"$in.enabled\"><Case value=\"true\"><Call fn=\"./helper.zx\" in=\"ctx.base\" out=\"ctx.inner\"/><Return value=\"ctx.inner\"/></Case><Case value=\"false\"><Call fn=\"./helper.zx\" in=\"ctx.base\" out=\"ctx.inner\"/><Return value=\"ctx.inner\"/></Case></Switch></Module>", null, 0);
+    try check("<Module><Call fn=\"./helper.zx\" in={$in.value} out=\"ctx.base\"/><Switch on={$in.enabled}><Case value={true}><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/><Return value={ctx.inner}/></Case><Case value={false}><Call fn=\"./helper.zx\" in={ctx.base} out=\"ctx.inner\"/><Return value={ctx.inner}/></Case></Switch></Module>", null, 0);
 }

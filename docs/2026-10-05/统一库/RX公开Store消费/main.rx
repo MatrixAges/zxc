@@ -1,8 +1,8 @@
 <Module>
     <Call module="shared-counter/read" out="ctx.before" />
-    <Call module="shared-counter/advance" in="$in" out="ctx.first" />
-    <Call module="shared-counter/advance" in="$in" out="ctx.second" />
+    <Call module="shared-counter/advance" in={$in} out="ctx.first" />
+    <Call module="shared-counter/advance" in={$in} out="ctx.second" />
     <Call module="shared-counter/read" out="ctx.after" />
-    <Return value="{before: ctx.before, first: ctx.first, second: ctx.second, after: ctx.after}" />
+    <Return value={{before: ctx.before, first: ctx.first, second: ctx.second, after: ctx.after}} />
 
 </Module>

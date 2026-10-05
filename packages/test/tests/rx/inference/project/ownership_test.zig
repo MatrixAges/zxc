@@ -6,10 +6,11 @@ const compiler = @import("compiler");
 fn check(main_source: []const u8, accepted: bool) !void {
     const texts = [_][]const u8{
         main_source,
-        "<Module><Call fn='make' in='$in' out='ctx.items'/><Return value='ctx.items'/></Module>",
-        "<Module><Call fn='borrowed' in='$in' out='ctx.items'/><Return value='ctx.items'/></Module>",
-        "<Module><Call service='./owned.rx' in='$in' out='ctx.items'/><Return value='ctx.items'/></Module>",
+        "<Module><Call fn='make' in={$in} out='ctx.items'/><Return value={ctx.items}/></Module>",
+        "<Module><Call fn='borrowed' in={$in} out='ctx.items'/><Return value={ctx.items}/></Module>",
+        "<Module><Call service='./owned.rx' in={$in} out='ctx.items'/><Return value={ctx.items}/></Module>",
     };
+
     const names = [_][]const u8{ "main.rx", "owned.rx", "borrowed.rx", "relay.rx" };
     var parsed: [4]rx.XmlResult = undefined;
     var count: usize = 0;
@@ -48,6 +49,7 @@ fn check(main_source: []const u8, accepted: bool) !void {
 
     if (result.value == .diagnostic) {
         const issue = result.value.diagnostic;
+
         std.debug.print("{s}:{d}:{d}: {s}: {s}\n", .{ issue.path, issue.location.line, issue.location.column, issue.code, issue.message });
 
         return error.UnexpectedDiagnostic;
@@ -57,25 +59,25 @@ fn check(main_source: []const u8, accepted: bool) !void {
 }
 
 test "RX service owned return can be consumed" {
-    try check("<Module><Call service='./owned.rx' in='$in' out='ctx.items'/><Return value='ctx.items.pop()'/></Module>", true);
+    try check("<Module><Call service='./owned.rx' in={$in} out='ctx.items'/><Return value={ctx.items.pop()}/></Module>", true);
 }
 
 test "RX service borrowed return cannot be consumed" {
-    try check("<Module><Call service='./borrowed.rx' in='$in' out='ctx.items'/><Return value='ctx.items.pop()'/></Module>", false);
+    try check("<Module><Call service='./borrowed.rx' in={$in} out='ctx.items'/><Return value={ctx.items.pop()}/></Module>", false);
 }
 
 test "RX service independent owned returns can both be consumed" {
-    try check("<Module><Call service='./owned.rx' in='$in' out='ctx.left'/><Call service='./owned.rx' in='$in' out='ctx.right'/><Return value='{left: ctx.left.pop(), right: ctx.right.pop()}'/></Module>", true);
+    try check("<Module><Call service='./owned.rx' in={$in} out='ctx.left'/><Call service='./owned.rx' in={$in} out='ctx.right'/><Return value={{left: ctx.left.pop(), right: ctx.right.pop()}}/></Module>", true);
 }
 
 test "RX service same owner cannot be consumed twice" {
-    try check("<Module><Call service='./owned.rx' in='$in' out='ctx.items'/><Return value='{first: ctx.items.pop(), second: ctx.items.pop()}'/></Module>", false);
+    try check("<Module><Call service='./owned.rx' in={$in} out='ctx.items'/><Return value={{first: ctx.items.pop(), second: ctx.items.pop()}}/></Module>", false);
 }
 
 test "RX service borrowed alias prevents consuming original owner" {
-    try check("<Module><Call service='./owned.rx' in='$in' out='ctx.items'/><Call service='./borrowed.rx' in='ctx.items' out='ctx.alias'/><Return value='{changed: ctx.items.pop(), alias: ctx.alias}'/></Module>", false);
+    try check("<Module><Call service='./owned.rx' in={$in} out='ctx.items'/><Call service='./borrowed.rx' in={ctx.items} out='ctx.alias'/><Return value={{changed: ctx.items.pop(), alias: ctx.alias}}/></Module>", false);
 }
 
 test "RX service owned return remains owned through relay" {
-    try check("<Module><Call service='./relay.rx' in='$in' out='ctx.items'/><Return value='ctx.items.pop()'/></Module>", true);
+    try check("<Module><Call service='./relay.rx' in={$in} out='ctx.items'/><Return value={ctx.items.pop()}/></Module>", true);
 }

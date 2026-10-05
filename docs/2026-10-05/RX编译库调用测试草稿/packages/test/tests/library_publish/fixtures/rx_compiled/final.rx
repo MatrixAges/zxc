@@ -1,7 +1,7 @@
 <Module>
-  <Call module="relay" in="$in" out="ctx.first" />
-  <Call module="relay" in="$in" out="ctx.second" />
+  <Call module="relay" in={$in} out="ctx.first" />
+  <Call module="relay" in={$in} out="ctx.second" />
 
-  <Return value="{first: ctx.first, second: ctx.second}" />
+  <Return value={{first: ctx.first, second: ctx.second}} />
 
 </Module>
