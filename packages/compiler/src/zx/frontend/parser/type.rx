@@ -1,0 +1,17 @@
+<Module>
+  <Call service="../lexical" in={$in.source} out="ctx.prepared" />
+
+  <Switch on={ctx.prepared.lexed.diagnostic.message == ""}>
+    <Case value={true}>
+      <Call fn="types/parse" in={{tokens: ctx.prepared.lexed.tokens, start: $in.start, depth: $in.depth}} out="ctx.parsed" />
+
+      <Return value={ctx.parsed} />
+    </Case>
+
+    <Default>
+      <Call fn="types/lexical_failure" in={{start: $in.start, depth: $in.depth, diagnostic: ctx.prepared.lexed.diagnostic}} out="ctx.failed" />
+
+      <Return value={ctx.failed} />
+    </Default>
+  </Switch>
+</Module>

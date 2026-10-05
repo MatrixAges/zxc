@@ -1,0 +1,15 @@
+import type { State } from "./model.zx"
+import session from "./session.zx"
+import resume from "./resume.zx"
+
+export type Input = { state: State, template: u64 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const popped = in.state.parents.pop()
+  const parent = popped[1] ?? { session: session({ start: 0, end: in.state.length, present: false }), start: 0 }
+  const active = resume({ session: parent.session, start: parent.start, end: in.state.offset + 1, template: in.template })
+
+  return { active: active, parents: popped[0], interpolations: in.state.interpolations, events: in.state.events, event_index: in.state.event_index, offset: in.state.offset, length: in.state.length, skip: true }
+}

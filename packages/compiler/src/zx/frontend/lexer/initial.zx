@@ -1,0 +1,38 @@
+import type { LexerState, Frame } from "./model.zx"
+import type { Token, Span } from "./token_model.zx"
+import { Mode } from "./model.zx"
+import { Symbol } from "./token_model.zx"
+import { Keyword } from "./keyword_model.zx"
+import { Phase } from "./number/number_state.zx"
+
+export type Input = { start: u64, end: u64 }
+
+export type Output = LexerState
+
+export default function (in: Input): Output {
+  const tokens: Token[] = []
+  const comments: Span[] = []
+  const frames: Frame[] = []
+
+  return {
+    source_length: in.end,
+    warmed: 0,
+    ahead_one: 0,
+    ahead_two: 0,
+    keyword: Keyword.Root,
+    symbol: Symbol.None,
+    line_break: false,
+    dollar: false,
+    offset: in.start,
+    skip_until: in.start,
+    mode: Mode.Idle,
+    start: in.start,
+    braces: 0,
+    depth: 0,
+    frames: frames,
+    number: { end: 0, phase: Phase.Integer, last_byte: 0, separators_valid: true },
+    tokens: tokens,
+    comments: comments,
+    diagnostic: { code: "", start: 0, end: 0, message: "" }
+  }
+}

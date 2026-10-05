@@ -1,0 +1,32 @@
+import type { Graph } from "./model.zx"
+import { Mode } from "../../../lexer/model.zx"
+import openTemplate from "./open_template.zx"
+import closeTemplate from "./close_template.zx"
+import openInterpolation from "./open_interpolation.zx"
+import closeInterpolation from "./close_interpolation.zx"
+
+export type Input = { graph: Graph, mode: Mode, offset: u64, braces: u64, byte: u8, next: u8, has_next: bool }
+
+export type Output = Graph
+
+export default function (in: owned Input): Output {
+  if (in.mode == Mode.Template) {
+    if (in.byte == 96) {
+      return closeTemplate({ graph: in.graph, offset: in.offset })
+    }
+
+    if (in.byte == 36 && in.has_next && in.next == 123) {
+      return openInterpolation({ graph: in.graph, offset: in.offset })
+    }
+  }
+
+  if (in.mode == Mode.Interpolation && in.byte == 125 && in.braces == 0) {
+    return closeInterpolation({ graph: in.graph, offset: in.offset })
+  }
+
+  if (in.byte == 96 && (in.mode == Mode.Idle || in.mode == Mode.Identifier || in.mode == Mode.Number || in.mode == Mode.Interpolation)) {
+    return openTemplate({ graph: in.graph, offset: in.offset })
+  }
+
+  return in.graph
+}

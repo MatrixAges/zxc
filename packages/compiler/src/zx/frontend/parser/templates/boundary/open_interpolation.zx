@@ -1,0 +1,15 @@
+import type { Graph } from "./model.zx"
+import { PartKind, EventKind } from "../model.zx"
+import addPart from "./add_part.zx"
+
+export type Input = { graph: Graph, offset: u64 }
+
+export type Output = Graph
+
+export default function (in: owned Input): Output {
+  const start = in.graph.frames[in.graph.frames.length - 1].text_start
+  const graph = addPart({ graph: in.graph, kind: PartKind.Text, span: { start: start, end: in.offset }, interpolation: 0, text_start: in.offset + 2 })
+  const events = graph.events.push({ kind: EventKind.InterpolationOpen, offset: in.offset + 2, reference: 0 })[0]
+
+  return { templates: graph.templates, parts: graph.parts, events: events, frames: graph.frames, interpolations: graph.interpolations, token_templates: graph.token_templates }
+}

@@ -1,0 +1,14 @@
+import type { State, Suspended } from "./model.zx"
+import type { Event, Interpolation } from "../model.zx"
+import session from "./session.zx"
+
+export type Input = { events: Event[], length: u64 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const parents: Suspended[] = []
+  const interpolations: Interpolation[] = []
+
+  return { active: session({ start: 0, end: in.length, present: false }), parents: parents, interpolations: interpolations, events: in.events, event_index: 0, offset: 0, length: in.length, skip: false }
+}

@@ -1,0 +1,16 @@
+import type { State } from "./model.zx"
+import tick from "../../../lexer/tick.zx"
+import appendTokenIds from "../boundary/append_token_ids.zx"
+
+export type Input = { state: State, byte: u8 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const previous = in.state.active.lexer.tokens.length
+  const lexer = tick({ state: in.state.active.lexer, byte: in.byte })
+  const token_templates = appendTokenIds({ ids: in.state.active.token_templates, count: lexer.tokens.length - previous, template: 0 })
+  const active = { present: in.state.active.present, start: in.state.active.start, lexer: lexer, token_templates: token_templates }
+
+  return { active: active, parents: in.state.parents, interpolations: in.state.interpolations, events: in.state.events, event_index: in.state.event_index, offset: in.state.offset, length: in.state.length, skip: in.state.skip }
+}

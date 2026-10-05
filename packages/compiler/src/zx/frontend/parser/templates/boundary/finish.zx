@@ -1,0 +1,15 @@
+import type { State } from "./model.zx"
+import finish from "../../../lexer/finish.zx"
+import appendTokenIds from "./append_token_ids.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const previous = in.lexer.tokens.length
+  const lexer = finish(in.lexer)
+  const token_templates = appendTokenIds({ ids: in.graph.token_templates, count: lexer.tokens.length - previous, template: 0 })
+
+  return { lexer: lexer, graph: { templates: in.graph.templates, parts: in.graph.parts, events: in.graph.events, frames: in.graph.frames, interpolations: in.graph.interpolations, token_templates: token_templates } }
+}

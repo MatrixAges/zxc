@@ -1,0 +1,23 @@
+import type { Prepared, Interpolation } from "./model.zx"
+import scan from "./boundary/scan.zx"
+import initial from "./streams/initial.zx"
+import step from "./streams/step.zx"
+
+export type Input = u8[]
+
+export type Output = Prepared
+
+export default function (in: Input): Output {
+  const boundary = scan(in)
+
+  if (boundary.lexed.diagnostic.message != "") {
+    const interpolations: Interpolation[] = []
+
+    return { lexed: boundary.lexed, token_templates: boundary.token_templates, templates: boundary.templates, parts: boundary.parts, interpolations: interpolations }
+  }
+
+  const state = initial({ events: boundary.events, length: in.length })
+  const completed = in.reduce((state, byte) => step({ state: state, byte: byte }), state)
+
+  return { lexed: boundary.lexed, token_templates: boundary.token_templates, templates: boundary.templates, parts: boundary.parts, interpolations: completed.interpolations }
+}

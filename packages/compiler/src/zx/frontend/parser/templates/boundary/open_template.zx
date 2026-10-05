@@ -1,0 +1,13 @@
+import type { Graph } from "./model.zx"
+import { EventKind } from "../model.zx"
+
+export type Input = { graph: Graph, offset: u64 }
+
+export type Output = Graph
+
+export default function (in: owned Input): Output {
+  const frames = in.graph.frames.push({ start: in.offset, text_start: in.offset + 1, head: 0, count: 0 })[0]
+  const events = in.graph.events.push({ kind: EventKind.TemplateOpen, offset: in.offset, reference: 0 })[0]
+
+  return { templates: in.graph.templates, parts: in.graph.parts, events: events, frames: frames, interpolations: in.graph.interpolations, token_templates: in.graph.token_templates }
+}

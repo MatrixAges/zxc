@@ -1,13 +1,12 @@
-import type { LexerState, Result, Frame } from "./model.zx"
+import type { Result } from "./model.zx"
 import type { Token, Span } from "./token_model.zx"
 import { Kind, Symbol } from "./token_model.zx"
 import { Keyword } from "./keyword_model.zx"
 import flush from "./flush.zx"
-import { Mode } from "./model.zx"
-import { Phase } from "./number/number_state.zx"
 import validateUtf8 from "./utf8/validate.zx"
 import tick from "./tick.zx"
 import finish from "./finish.zx"
+import initial from "./initial.zx"
 
 export type Input = u8[]
 
@@ -21,31 +20,7 @@ export default function (in: Input): Output {
     return { tokens: tokens, comments: comments, diagnostic: { code: "lexical", start: 0, end: in.length, message: "source must be valid UTF-8" } }
   }
 
-  const frames: Frame[] = []
-
-  const initial: LexerState = {
-    source_length: in.length,
-    warmed: 0,
-    ahead_one: 0,
-    ahead_two: 0,
-    keyword: Keyword.Root,
-    symbol: Symbol.None,
-    line_break: false,
-    dollar: false,
-    offset: 0,
-    skip_until: 0,
-    mode: Mode.Idle,
-    start: 0,
-    braces: 0,
-    depth: 0,
-    frames: frames,
-    number: { end: 0, phase: Phase.Integer, last_byte: 0, separators_valid: true },
-    tokens: tokens,
-    comments: comments,
-    diagnostic: { code: "", start: 0, end: 0, message: "" }
-  }
-
-  const state = in.reduce((state, byte) => tick({ byte: byte, state: state }), initial)
+  const state = in.reduce((state, byte) => tick({ byte: byte, state: state }), initial({ start: 0, end: in.length }))
   const completed = finish(flush(state))
 
   if (completed.diagnostic.message != "") {

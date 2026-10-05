@@ -1,0 +1,17 @@
+import type { Graph } from "./model.zx"
+import type { Span } from "../../../lexer/token_model.zx"
+import { PartKind } from "../model.zx"
+import copyFrame from "./copy_frame.zx"
+
+export type Input = { graph: Graph, kind: PartKind, span: Span, interpolation: u64, text_start: u64 }
+
+export type Output = Graph
+
+export default function (in: owned Input): Output {
+  const frame = copyFrame(in.graph.frames[in.graph.frames.length - 1])
+  const head = in.graph.parts.length + 1
+  const parts = in.graph.parts.push({ kind: in.kind, span: in.span, interpolation: in.interpolation, previous: frame.head })[0]
+  const frames = in.graph.frames.pop()[0].push({ start: frame.start, text_start: in.text_start, head: head, count: frame.count + 1 })[0]
+
+  return { templates: in.graph.templates, parts: parts, events: in.graph.events, frames: frames, interpolations: in.graph.interpolations, token_templates: in.graph.token_templates }
+}

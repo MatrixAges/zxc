@@ -1,0 +1,14 @@
+import type { State } from "./model.zx"
+import type { Diagnostic } from "../../lexer/model.zx"
+import { Phase } from "./model.zx"
+import initial from "./initial.zx"
+
+export type Input = { start: u64, depth: u64, diagnostic: Diagnostic }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const state = initial({ start: in.start, depth: in.depth })
+
+  return { tree: state.tree, frames: state.frames, control: { ...state.control, phase: Phase.Done, diagnostic: in.diagnostic } }
+}

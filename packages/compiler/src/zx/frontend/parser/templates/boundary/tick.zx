@@ -1,0 +1,27 @@
+import type { State } from "./model.zx"
+import advance from "./advance.zx"
+
+export type Input = { state: State, byte: u8 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.state.lexer.diagnostic.message != "") {
+    return in.state
+  }
+
+  if (in.state.lexer.warmed == 0) {
+    return { lexer: { ...in.state.lexer, warmed: 1, ahead_one: in.byte }, graph: in.state.graph }
+  }
+
+  if (in.state.lexer.warmed == 1) {
+    return { lexer: { ...in.state.lexer, warmed: 2, ahead_two: in.byte }, graph: in.state.graph }
+  }
+
+  const ahead_one = in.state.lexer.ahead_two
+  const ahead_two = in.byte
+  const next = advance({ byte: in.state.lexer.ahead_one, next: in.state.lexer.ahead_two, after: in.byte, has_next: true, has_after: true, state: in.state })
+  const offset = next.lexer.offset + 1
+
+  return { lexer: { ...next.lexer, ahead_one: ahead_one, ahead_two: ahead_two, offset: offset }, graph: next.graph }
+}

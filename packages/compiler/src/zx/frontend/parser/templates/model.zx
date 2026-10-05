@@ -1,0 +1,18 @@
+import type { Span } from "../../lexer/token_model.zx"
+import type { Result } from "../../lexer/model.zx"
+
+export enum PartKind { Text, Expression }
+
+export enum EventKind { TemplateOpen, TemplateClose, InterpolationOpen, InterpolationClose }
+
+export type Template = { span: Span, head: u64, count: u64 }
+
+export type Part = { kind: PartKind, span: Span, interpolation: u64, previous: u64 }
+
+export type Event = { kind: EventKind, offset: u64, reference: u64 }
+
+export type Boundary = { lexed: Result, token_templates: u64[], templates: Template[], parts: Part[], events: Event[] }
+
+export type Interpolation = { span: Span, lexed: Result, token_templates: u64[] }
+
+export type Prepared = { lexed: Result, token_templates: u64[], templates: Template[], parts: Part[], interpolations: Interpolation[] }

@@ -1,0 +1,19 @@
+import type { Graph } from "./model.zx"
+import { PartKind, EventKind } from "../model.zx"
+import copyFrame from "./copy_frame.zx"
+import addPart from "./add_part.zx"
+
+export type Input = { graph: Graph, offset: u64 }
+
+export type Output = Graph
+
+export default function (in: owned Input): Output {
+  const start = in.graph.frames[in.graph.frames.length - 1].text_start
+  const graph = addPart({ graph: in.graph, kind: PartKind.Text, span: { start: start, end: in.offset }, interpolation: 0, text_start: in.offset })
+  const frame = copyFrame(graph.frames[graph.frames.length - 1])
+  const reference = graph.templates.length + 1
+  const templates = graph.templates.push({ span: { start: frame.start, end: in.offset + 1 }, head: frame.head, count: frame.count })[0]
+  const events = graph.events.push({ kind: EventKind.TemplateClose, offset: in.offset, reference: reference })[0]
+
+  return { templates: templates, parts: graph.parts, events: events, frames: graph.frames.pop()[0], interpolations: graph.interpolations, token_templates: graph.token_templates }
+}

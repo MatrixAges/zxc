@@ -1,0 +1,18 @@
+import type { Boundary, Template, Part, Event } from "../model.zx"
+import type { Token, Span } from "../../../lexer/token_model.zx"
+import type { Diagnostic } from "../../../lexer/model.zx"
+
+export type Input = Diagnostic
+
+export type Output = Boundary
+
+export default function (in: owned Input): Output {
+  const tokens: Token[] = []
+  const comments: Span[] = []
+  const templates: Template[] = []
+  const parts: Part[] = []
+  const events: Event[] = []
+  const token_templates: u64[] = []
+
+  return { lexed: { tokens: tokens, comments: comments, diagnostic: in }, templates: templates, parts: parts, events: events, token_templates: token_templates }
+}

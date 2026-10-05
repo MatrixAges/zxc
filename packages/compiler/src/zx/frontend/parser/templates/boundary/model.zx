@@ -1,0 +1,10 @@
+import type { LexerState } from "../../../lexer/model.zx"
+import type { Template, Part, Event } from "../model.zx"
+
+export type Frame = { start: u64, text_start: u64, head: u64, count: u64 }
+
+export type Graph = { templates: Template[], parts: Part[], events: Event[], frames: Frame[], interpolations: u64, token_templates: u64[] }
+
+export type State = { lexer: LexerState, graph: Graph }
+
+export type Advance = { state: State, byte: u8, next: u8, after: u8, has_next: bool, has_after: bool }

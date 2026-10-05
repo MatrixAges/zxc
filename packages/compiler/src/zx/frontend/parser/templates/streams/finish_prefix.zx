@@ -1,0 +1,16 @@
+import type { Session } from "./model.zx"
+import flush from "../../../lexer/flush.zx"
+import finish from "../../../lexer/finish.zx"
+import appendTokenIds from "../boundary/append_token_ids.zx"
+
+export type Input = { session: Session, end: u64 }
+
+export type Output = Session
+
+export default function (in: owned Input): Output {
+  const previous = in.session.lexer.tokens.length
+  const lexer = finish(flush({ ...in.session.lexer, source_length: in.end }))
+  const token_templates = appendTokenIds({ ids: in.session.token_templates, count: lexer.tokens.length - previous, template: 0 })
+
+  return { present: in.session.present, start: in.session.start, lexer: lexer, token_templates: token_templates }
+}

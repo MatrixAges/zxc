@@ -1,0 +1,17 @@
+import type { LexerState } from "../../../lexer/model.zx"
+import type { Event, Interpolation } from "../model.zx"
+
+export type Session = { present: bool, start: u64, lexer: LexerState, token_templates: u64[] }
+
+export type Suspended = { session: Session, start: u64 }
+
+export type State = {
+  active: Session
+  parents: Suspended[]
+  interpolations: Interpolation[]
+  events: Event[]
+  event_index: u64
+  offset: u64
+  length: u64
+  skip: bool
+}

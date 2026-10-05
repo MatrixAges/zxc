@@ -1,0 +1,37 @@
+import type { Boundary } from "../model.zx"
+import { Kind, Symbol } from "../../../lexer/token_model.zx"
+import { Keyword } from "../../../lexer/keyword_model.zx"
+import validateUtf8 from "../../../lexer/utf8/validate.zx"
+import initial from "./initial.zx"
+import tick from "./tick.zx"
+import flush from "./flush.zx"
+import finish from "./finish.zx"
+import empty from "./empty.zx"
+
+export type Input = u8[]
+
+export type Output = Boundary
+
+export default function (in: Input): Output {
+  if (!validateUtf8(in)) {
+    return empty({ code: "lexical", start: 0, end: in.length, message: "source must be valid UTF-8" })
+  }
+
+  const state = in.reduce((state, byte) => tick({ state: state, byte: byte }), initial(in.length))
+  const completed = finish(flush(state))
+
+  if (completed.lexer.diagnostic.message != "") {
+    return empty(completed.lexer.diagnostic)
+  }
+
+  const line_break = completed.lexer.tokens.length != 0 && completed.lexer.line_break
+  const tokens = completed.lexer.tokens.push({ kind: Kind.Eof, word: Keyword.Root, symbol: Symbol.None, span: { start: in.length, end: in.length }, line_break: line_break, dollar: false })[0]
+
+  return {
+    lexed: { tokens: tokens, comments: completed.lexer.comments, diagnostic: completed.lexer.diagnostic },
+    token_templates: completed.graph.token_templates.push(0)[0],
+    templates: completed.graph.templates,
+    parts: completed.graph.parts,
+    events: completed.graph.events
+  }
+}

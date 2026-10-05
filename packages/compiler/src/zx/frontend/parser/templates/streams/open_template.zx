@@ -1,0 +1,14 @@
+import type { State } from "./model.zx"
+import finishPrefix from "./finish_prefix.zx"
+import session from "./session.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const active = in.active.present ? finishPrefix({ session: in.active, end: in.offset }) : in.active
+  const parents = in.parents.push({ session: active, start: in.offset })[0]
+
+  return { active: session({ start: 0, end: in.length, present: false }), parents: parents, interpolations: in.interpolations, events: in.events, event_index: in.event_index, offset: in.offset, length: in.length, skip: true }
+}

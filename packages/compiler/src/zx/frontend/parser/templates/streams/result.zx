@@ -1,0 +1,24 @@
+import type { Session } from "./model.zx"
+import type { Interpolation } from "../model.zx"
+import type { Token, Span } from "../../../lexer/token_model.zx"
+import { Kind, Symbol } from "../../../lexer/token_model.zx"
+import { Keyword } from "../../../lexer/keyword_model.zx"
+
+export type Input = { session: Session, end: u64 }
+
+export type Output = Interpolation
+
+export default function (in: owned Input): Output {
+  if (in.session.lexer.diagnostic.message != "") {
+    const tokens: Token[] = []
+    const comments: Span[] = []
+    const token_templates: u64[] = []
+
+    return { span: { start: in.session.start, end: in.end }, lexed: { tokens: tokens, comments: comments, diagnostic: in.session.lexer.diagnostic }, token_templates: token_templates }
+  }
+
+  const line_break = in.session.lexer.tokens.length != 0 && in.session.lexer.line_break
+  const tokens = in.session.lexer.tokens.push({ kind: Kind.Eof, word: Keyword.Root, symbol: Symbol.None, span: { start: in.end, end: in.end }, line_break: line_break, dollar: false })[0]
+
+  return { span: { start: in.session.start, end: in.end }, lexed: { tokens: tokens, comments: in.session.lexer.comments, diagnostic: in.session.lexer.diagnostic }, token_templates: in.session.token_templates.push(0)[0] }
+}

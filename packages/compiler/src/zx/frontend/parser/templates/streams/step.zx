@@ -1,0 +1,15 @@
+import type { State } from "./model.zx"
+import event from "./event.zx"
+import feed from "./feed.zx"
+
+export type Input = { state: State, byte: u8 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const routed = event(event({ ...in.state, skip: false }))
+  const next = routed.active.present && !routed.skip ? feed({ state: routed, byte: in.byte }) : routed
+  const offset = next.offset + 1
+
+  return { ...next, offset: offset }
+}

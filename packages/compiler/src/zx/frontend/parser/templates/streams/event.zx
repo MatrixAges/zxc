@@ -1,0 +1,28 @@
+import type { State } from "./model.zx"
+import { EventKind } from "../model.zx"
+import openTemplate from "./open_template.zx"
+import closeTemplate from "./close_template.zx"
+import openInterpolation from "./open_interpolation.zx"
+import closeInterpolation from "./close_interpolation.zx"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.event_index == in.events.length || in.events[in.event_index].offset != in.offset) {
+    return in
+  }
+
+  const kind = in.events[in.event_index].kind
+  const reference = in.events[in.event_index].reference
+  const index = in.event_index + 1
+  const state = { ...in, event_index: index }
+
+  switch (kind) {
+    case EventKind.TemplateOpen: return openTemplate(state)
+    case EventKind.TemplateClose: return closeTemplate({ state: state, template: reference })
+    case EventKind.InterpolationOpen: return openInterpolation(state)
+    default: return closeInterpolation(state)
+  }
+}

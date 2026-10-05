@@ -1,0 +1,24 @@
+import type { Session } from "./model.zx"
+import type { LexerState } from "../../../lexer/model.zx"
+import { Mode } from "../../../lexer/model.zx"
+import emit from "../../../lexer/emit.zx"
+
+export type Input = { session: Session, start: u64, end: u64, template: u64 }
+
+export type Output = Session
+
+export default function (in: owned Input): Output {
+  if (!in.session.present) {
+    return in.session
+  }
+
+  const lexer: LexerState = { ...in.session.lexer, warmed: 0, ahead_one: 0, ahead_two: 0, offset: in.end, source_length: in.end, skip_until: in.end, mode: Mode.Idle }
+
+  if (lexer.diagnostic.message != "") {
+    return { present: true, start: in.session.start, lexer: lexer, token_templates: in.session.token_templates }
+  }
+
+  const emitted = emit({ kind: "template", start: in.start, end: in.end, comment: false, state: lexer })
+
+  return { present: true, start: in.session.start, lexer: emitted, token_templates: in.session.token_templates.push(in.template)[0] }
+}
