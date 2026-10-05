@@ -8,6 +8,12 @@ folder = Path(__file__).resolve().parent
 repo = folder.parents[2]
 draft = folder.parent / "跨函数列表追加"
 observer = draft / "zig-out/bin/list-flow-observe"
+draft_sources = [draft / name for name in ["flow.zig", "trace.zig", "may.zig", "audit.zig", "observe.zig"]]
+source_hashes = {str(source): hashlib.sha256(source.read_bytes()).hexdigest() for source in draft_sources}
+with (folder / "观测器构建.log").open("w") as output:
+    subprocess.run(["zig", "build", "-Doptimize=ReleaseSafe", "--summary", "all"], cwd=draft, stdout=output, stderr=subprocess.STDOUT, check=True)
+if any(hashlib.sha256(Path(source).read_bytes()).hexdigest() != digest for source, digest in source_hashes.items()):
+    raise RuntimeError("draft changed while rebuilding observer")
 cases = [
     ("push", True, "u64[]", "return {items: in.items.push(in.value)[0]}", [None]),
     ("concat", True, "u64[]", "return {items: in.items.concat([in.value])[0]}", [None]),
@@ -68,6 +74,9 @@ for swapped in [False, True]:
     records.append({"name": name, "expected_paths": [[list(a), list(b)] for a, b in sorted(expected)], "actual": summary, "exit_code": result.returncode, "stderr": result.stderr, "passed": passed})
 
 sources = list((folder / "输入").rglob("*.zx")) + [draft / name for name in ["flow.zig", "trace.zig", "may.zig", "audit.zig", "observe.zig"]]
+if any(hashlib.sha256(Path(source).read_bytes()).hexdigest() != digest for source, digest in source_hashes.items()):
+    raise RuntimeError("draft changed during observation")
+
 report = {"count": len(records), "failures": sum(not record["passed"] for record in records), "records": records, "sha256": {str(source.relative_to(repo)): hashlib.sha256(source.read_bytes()).hexdigest() for source in sources}, "observer_sha256": hashlib.sha256(observer.read_bytes()).hexdigest(), "code_generation_verified": False}
 (folder / "验证结果.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
 print(json.dumps({"count": report["count"], "failures": report["failures"]}))
