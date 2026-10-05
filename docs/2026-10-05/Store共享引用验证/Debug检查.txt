@@ -1,0 +1,32 @@
+1/16 cross_request.test.cross Store full slice survives source slot replacement...OK
+2/16 cross_request.test.cross Store interior slice survives source region end...OK
+3/16 cross_request.test.cross Store empty tail slice remains valid...OK
+4/16 cross_request.test.cross Store single element slice remains valid...OK
+5/16 cross_request.test.cross Store large slice survives repeated unrelated writes...OK
+6/16 cross_request.test.cross Store shared history releases every failed allocation...OK
+7/16 cross_request.test.cross Store final destruction releases all live and historical slices...OK
+8/16 same_request.test.overlapping requests retain intermediate commit with producer ending first...OK
+9/16 same_request.test.overlapping requests retain intermediate commit with consumer ending first...OK
+10/16 same_request.test.overlapping producer first lifecycle allocation failures...OK
+11/16 same_request.test.overlapping consumer first lifecycle allocation failures...OK
+12/16 same_request.test.overlapping requests release all regions on State destruction...OK
+13/16 failure.test.rejected alias commit preserves earlier request state...OK
+14/16 failure.test.rejected alias commit preserves earlier successful commit in same request...OK
+15/16 failure.test.rejected alias commit then recovery allocation failures...OK
+16/16 failure.test.committed alias then rejection allocation failures...OK
+All 16 tests passed.
+✔ generated Store memory consumer /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/store/memory/aliases/root.zig (1511.828518ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1514.805714
+Build Summary: 5/5 steps succeeded
+test-store-alias-lifetime success
++- run node success 1s
+   +- run exe compile-store-alias-lifetime (generated) success 9ms
+      +- compile exe compile-store-alias-lifetime Debug native success 3s MaxRSS:540M
+         +- WriteFile interfaces/0.d.zx cached

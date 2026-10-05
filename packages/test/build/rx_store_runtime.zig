@@ -74,6 +74,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
         run.addFileArg(b.path("tests/rx/runtime/store/memory/run_test.ts"));
         run.addArg(b.graph.zig_exe);
+        run.setEnvironmentVariable("ZXC_TEST_OPTIMIZE", @tagName(optimize));
         run.addDirectoryArg(directory);
         run.addFileArg(b.path(b.fmt("tests/rx/runtime/store/memory/{s}_test.zig", .{case.name})));
         memory_step.dependOn(&run.step);
