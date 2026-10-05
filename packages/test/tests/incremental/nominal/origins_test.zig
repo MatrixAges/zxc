@@ -4,7 +4,7 @@ const h = @import("check.zig");
 
 test "same named source enums keep distinct declaration identities" {
     var result = try compiler.project.analyze(std.testing.allocator, &.{
-        .{ .path = "main.zx", .source = "import helper from \"./helper.zx\"\n " ++ h.declaration ++ " " ++ h.identity },
+        .{ .path = "main.zx", .source = "import helper from \"./helper\"\n " ++ h.declaration ++ " " ++ h.identity },
         .{ .path = "helper.zx", .source = h.declaration ++ " " ++ h.identity },
     }, .{ .entry = "main.zx", .root_dir = "/project" });
 
@@ -17,8 +17,8 @@ test "same named source enums keep distinct declaration identities" {
 
 test "shared source declaration is recorded once through repeated imports" {
     var result = try compiler.project.analyze(std.testing.allocator, &.{
-        .{ .path = "main.zx", .source = "import helper from \"./helper.zx\"\n import { Mode } from \"./shared.zx\"\n " ++ h.identity },
-        .{ .path = "helper.zx", .source = "import { Mode } from \"./shared.zx\"\n " ++ h.identity },
+        .{ .path = "main.zx", .source = "import helper from \"./helper\"\n import { Mode } from \"./shared\"\n " ++ h.identity },
+        .{ .path = "helper.zx", .source = "import { Mode } from \"./shared\"\n " ++ h.identity },
         .{ .path = "shared.zx", .source = h.declaration },
     }, .{ .entry = "main.zx", .root_dir = "/project" });
 
@@ -101,8 +101,9 @@ test "context seeded enum is not attributed to the consuming module" {
 
 test "legacy imports in different source modules share the exported enum identity" {
     const signature = h.declaration ++ " export type Input = Mode\n export type Output = Mode\n";
+
     var result = try compiler.project.analyze(std.testing.allocator, &.{
-        .{ .path = "main.zx", .source = "import helper from \"./helper.zx\"\n import alpha from \"lib:sample\"\n " ++ h.identity },
+        .{ .path = "main.zx", .source = "import helper from \"./helper\"\n import alpha from \"lib:sample\"\n " ++ h.identity },
         .{ .path = "helper.zx", .source = "import alpha from \"lib:sample\"\n " ++ h.identity },
     }, .{
         .entry = "main.zx",
@@ -124,6 +125,7 @@ test "native origin owns provider specifier after mutation and release" {
         defer provider.deinit();
 
         const specifier = try provider.allocator().dupe(u8, "zig:sample");
+
         var analyzed = try compiler.project.analyze(std.testing.allocator, &.{.{
             .path = "main.zx",
             .source = "import { Mode } from \"zig:sample\"\n " ++ h.identity,
@@ -136,6 +138,7 @@ test "native origin owns provider specifier after mutation and release" {
         errdefer analyzed.deinit();
 
         try h.check(analyzed, 1);
+
         @memset(specifier, 'x');
 
         break :blk analyzed;
@@ -149,6 +152,7 @@ test "native origin owns provider specifier after mutation and release" {
 
 test "single legacy enum binding is a valid control for repeated imports" {
     const signature = h.declaration ++ " export type Input = Mode\n export type Output = Mode\n";
+
     var result = try compiler.project.analyze(std.testing.allocator, &.{.{
         .path = "main.zx",
         .source = "import alpha from \"lib:sample\"\n " ++ h.identity,

@@ -1,14 +1,15 @@
 const std = @import("std");
 const compiler = @import("compiler");
-const main_source = "import left from \"./left.zx\"\n import right from \"./right.zx\"\n export type Input = u8\n export type Output = u64\n export default function (in: Input): Output { return match left(in) { right(in) => 11, _ => 22 } }";
+const main_source = "import left from \"./left\"\n import right from \"./right\"\n export type Input = u8\n export type Output = u64\n export default function (in: Input): Output { return match left(in) { right(in) => 11, _ => 22 } }";
 const enum_source = "export enum State { First, Second }";
-const left_source = "import { State } from \"./left_types.zx\"\n export type Input = u8\n export type Output = State\n export default function (in: Input): Output { return State.First }";
+const left_source = "import { State } from \"./left_types\"\n export type Input = u8\n export type Output = State\n export default function (in: Input): Output { return State.First }";
 
 fn check(shared: bool) !void {
     const right_source = if (shared)
-        "import { State } from \"./left_types.zx\"\n export type Input = u8\n export type Output = State\n export default function (in: Input): Output { return State.First }"
+        "import { State } from \"./left_types\"\n export type Input = u8\n export type Output = State\n export default function (in: Input): Output { return State.First }"
+
     else
-        "import { State } from \"./right_types.zx\"\n export type Input = u8\n export type Output = State\n export default function (in: Input): Output { return State.First }";
+        "import { State } from \"./right_types\"\n export type Input = u8\n export type Output = State\n export default function (in: Input): Output { return State.First }";
 
     var result = try compiler.project.analyze(std.testing.allocator, &.{
         .{ .path = "main.zx", .source = main_source },

@@ -1,8 +1,7 @@
 const std = @import("std");
 const compiler = @import("compiler");
-
-pub const main = "import helper from \"./helper.zx\"\nimport { Mode } from \"./shared.zx\"\nimport unused from \"./unused.zx\"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return helper(in)\n}\n";
-pub const helper = "import type { Count } from \"./shared.zx\"\n\nexport type Input = Count\n\nexport type Output = Count\n\nexport default function (in: Input): Output {\n  return in + 1\n}\n";
+pub const main = "import helper from \"./helper\"\nimport { Mode } from \"./shared\"\nimport unused from \"./unused\"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return helper(in)\n}\n";
+pub const helper = "import type { Count } from \"./shared\"\n\nexport type Input = Count\n\nexport type Output = Count\n\nexport default function (in: Input): Output {\n  return in + 1\n}\n";
 pub const shared = "export enum Mode { First, Second }\n\nexport type Count = u64\n";
 pub const unused = "export type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return in\n}\n";
 pub const detached = "export enum Hidden { Value }\n";

@@ -31,7 +31,7 @@ An `Import` declares a graph edge; it does not execute the imported module and h
 
 ### ZX imports
 
-ZX file imports may omit the `.zx` extension and start with `./`, `../`, or `@/`. `./calculate_quote` and `./calculate_quote.zx` identify the same module. Relative paths start at the importing file. `@/` starts at the owning package or project root, or the CLI working directory when no project configuration is present.
+ZX file imports must omit the `.zx` extension and start with `./`, `../`, or `@/`. Use `./calculate_quote`; an explicit `./calculate_quote.zx` import is rejected. Relative paths start at the importing file. `@/` starts at the owning package or project root, or the CLI working directory when no project configuration is present.
 
 ```typescript
 import calculateQuote from './calculate_quote'

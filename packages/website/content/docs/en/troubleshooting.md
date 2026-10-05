@@ -23,7 +23,7 @@ The code describes the failure category. Keep the message and source location wh
 
 ### An import cannot be resolved
 
-Check the file exists, the `.zx` extension is explicit, and relative paths start at the importing file. For `@/`, check the compiler process's working directory. Ensure type imports point to type-only files and function imports point to executable files.
+Check the file exists, the import omits the `.zx` extension, and relative paths start at the importing file. For `@/`, check the owning package or project root, or the CLI working directory when no project configuration exists. Ensure type imports point to type-only files and function imports point to executable files.
 
 ### A list cannot be used again
 

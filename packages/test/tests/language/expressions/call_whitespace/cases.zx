@@ -1,4 +1,4 @@
-import increment from "./increment.zx"
+import increment from "./increment"
 
 export type Input = { kind: u64, value: i64 }
 
@@ -18,7 +18,8 @@ export default function (in: Input): Output {
       return increment
 (in.value)
     case 5:
-      return increment(in.value)
+      return increment
+(in.value)
     default:
       return increment(in.value)
   }

@@ -1,9 +1,9 @@
-import type { Graph } from "./model.zx"
-import { Mode } from "../../../lexer/model.zx"
-import openTemplate from "./open_template.zx"
-import closeTemplate from "./close_template.zx"
-import openInterpolation from "./open_interpolation.zx"
-import closeInterpolation from "./close_interpolation.zx"
+import type { Graph } from "./model"
+import { Mode } from "../../../lexer/model"
+import openTemplate from "./open_template"
+import closeTemplate from "./close_template"
+import openInterpolation from "./open_interpolation"
+import closeInterpolation from "./close_interpolation"
 
 export type Input = { graph: Graph, mode: Mode, offset: u64, braces: u64, byte: u8, next: u8, has_next: bool }
 

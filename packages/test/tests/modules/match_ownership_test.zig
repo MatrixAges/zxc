@@ -7,9 +7,10 @@ const borrow = "export type Input = u64[]\n export type Output = u64[]\n export 
 fn check(mode: Mode) !void {
     const first = if (mode == .borrowed_first) "borrow(in.items)" else "make(in.value)";
     const fallback = if (mode == .borrowed_fallback) "borrow(in.items)" else "make(in.value)";
+
     const source = try std.fmt.allocPrint(
         std.testing.allocator,
-        "import make from \"./make.zx\"\n import borrow from \"./borrow.zx\"\n " ++
+        "import make from \"./make\"\n import borrow from \"./borrow\"\n " ++
             "export type Input = {{ choice: bool\n value: u64\n items: u64[] }}\n export type Output = u64[]\n " ++
             "export default function (in: Input): Output {{ const values = match in.choice {{ true => {s}, _ => {s} }}\n " ++
             "const [next, _] = values.reverse()\n return next }}",

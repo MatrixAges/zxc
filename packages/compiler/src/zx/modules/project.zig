@@ -533,11 +533,11 @@ pub fn resolvePath(allocator: std.mem.Allocator, from: []const u8, path: []const
     const basename = std.fs.path.basename(path);
 
     if (basename.len == 0 or std.mem.endsWith(u8, path, "/") or std.mem.eql(u8, basename, ".") or std.mem.eql(u8, basename, "..")) return reporter.fail(.module, span, "project imports must name a ZX module");
-    if (extension.len != 0 and !std.mem.eql(u8, extension, ".zx")) return reporter.fail(.module, span, "project imports must reference ZX modules; runtime and RX imports are forbidden");
+    if (extension.len != 0) return reporter.fail(.module, span, "project imports must omit the .zx extension; runtime and RX imports are forbidden");
 
-    const source_path = if (extension.len == 0) try std.fmt.allocPrint(allocator, "{s}.zx", .{path}) else path;
+    const source_path = try std.fmt.allocPrint(allocator, "{s}.zx", .{path});
 
-    defer if (extension.len == 0) allocator.free(source_path);
+    defer allocator.free(source_path);
 
     if (std.mem.startsWith(u8, path, "@/")) return std.fs.path.resolve(allocator, &.{ root, source_path[2..] });
     if (!std.mem.startsWith(u8, path, "./") and !std.mem.startsWith(u8, path, "../")) return reporter.fail(.module, span, "imports require ./, ../ or @/ paths; external interfaces require explicit registration");

@@ -83,7 +83,7 @@ fn checkAllocation(allocator: std.mem.Allocator) !void {
 
 test "project compilation cannot bypass an imported unverified contract" {
     const result = try compiler.compileProject(std.testing.allocator, &.{
-        .{ .path = "main.zx", .source = "import dependency from \"./dependency.zx\"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return dependency(in)\n}\n" },
+        .{ .path = "main.zx", .source = "import dependency from \"./dependency\"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return dependency(in)\n}\n" },
         .{ .path = "dependency.zx", .source = valid },
     }, .{ .entry = "main.zx" });
 

@@ -1,7 +1,7 @@
-import type { LexerState } from "./model.zx"
-import { Keyword } from "./keyword_model.zx"
-import { Symbol } from "./token_model.zx"
-import tokenKind from "./token_kind.zx"
+import type { LexerState } from "./model"
+import { Keyword } from "./keyword_model"
+import { Symbol } from "./token_model"
+import tokenKind from "./token_kind"
 
 export type Input = { kind: string, start: u64, end: u64, comment: bool, state: LexerState }
 

@@ -8,7 +8,7 @@ pub fn run(case: Case) !void {
 }
 
 pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
-    const source = try std.fmt.allocPrint(allocator, "import borrow from \"./borrow.zx\"\nimport parent from \"./parent.zx\"\nimport count from \"./count.zx\"\n\nexport type Input = {s}\n\nexport type Output = u64\n\nexport default function (in: {s}Input): Output {{\n{s}\n}}\n", .{ case.input, if (case.owned) "owned " else "", case.body });
+    const source = try std.fmt.allocPrint(allocator, "import borrow from \"./borrow\"\nimport parent from \"./parent\"\nimport count from \"./count\"\n\nexport type Input = {s}\n\nexport type Output = u64\n\nexport default function (in: {s}Input): Output {{\n{s}\n}}\n", .{ case.input, if (case.owned) "owned " else "", case.body });
 
     defer allocator.free(source);
 

@@ -72,6 +72,7 @@ test "artifact remains readable after original analysis is destroyed" {
     try std.testing.expectEqualStrings("helper", result.value.dependencies[0].names[0]);
     try std.testing.expectEqualStrings("/project/helper.zx", result.value.dependencies[0].target.source);
     try std.testing.expectEqualStrings("in", result.value.function.?.symbols[0].name);
+
     const nominal = result.value.nominal_types[0];
 
     try std.testing.expectEqualStrings("Mode", nominal.name);
@@ -80,8 +81,9 @@ test "artifact remains readable after original analysis is destroyed" {
 }
 
 test "global function id is remapped to the module local import id" {
-    const main = "import noise from \"./noise.zx\"\n import helper from \"./helper.zx\"\n export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return helper(in) }";
-    const helper = "import leaf from \"./leaf.zx\"\n export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return leaf(in) }";
+    const main = "import noise from \"./noise\"\n import helper from \"./helper\"\n export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return helper(in) }";
+    const helper = "import leaf from \"./leaf\"\n export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return leaf(in) }";
+
     var analysis = try compiler.project.analyze(std.testing.allocator, &.{
         .{ .path = "main.zx", .source = main },
         .{ .path = "noise.zx", .source = f.unused },
@@ -108,6 +110,7 @@ test "global function id is remapped to the module local import id" {
     for (result.value.function.?.expressions) |expression| {
         if (expression.value == .call) {
             try std.testing.expectEqual(@as(u32, 0), @intFromEnum(expression.value.call.function));
+
             calls += 1;
         }
     }
@@ -117,7 +120,7 @@ test "global function id is remapped to the module local import id" {
 
 test "enum type id is remapped after unrelated earlier declarations are omitted" {
     var analysis = try compiler.project.analyze(std.testing.allocator, &.{
-        .{ .path = "main.zx", .source = "import noise from \"./noise.zx\"\n import { Mode } from \"./shared.zx\"\n " ++ f.unused },
+        .{ .path = "main.zx", .source = "import noise from \"./noise\"\n import { Mode } from \"./shared\"\n " ++ f.unused },
         .{ .path = "noise.zx", .source = "export enum Noise { Tag } " ++ f.unused },
         .{ .path = "shared.zx", .source = f.shared },
     }, .{ .entry = "main.zx", .root_dir = "/project" });
@@ -126,13 +129,14 @@ test "enum type id is remapped after unrelated earlier declarations are omitted"
 
     try std.testing.expect(analysis.value == .ir);
     try std.testing.expectEqualStrings("Mode", analysis.nominal_types[1].name);
-    const global_id = analysis.nominal_types[1].type_id;
 
+    const global_id = analysis.nominal_types[1].type_id;
     var result = try artifact.extract(std.testing.allocator, &analysis, 1);
 
     defer result.deinit();
 
     try std.testing.expectEqual(@as(usize, 1), result.value.nominal_types.len);
+
     const local_id = result.value.nominal_types[0].type_id;
 
     try std.testing.expect(global_id != local_id);
@@ -143,8 +147,8 @@ test "enum type id is remapped after unrelated earlier declarations are omitted"
 
     for (result.value.exports) |item| {
         if (!std.mem.eql(u8, item.name, "Mode")) continue;
-
         try std.testing.expectEqual(local_id, item.type_id);
+
         found = true;
     }
 

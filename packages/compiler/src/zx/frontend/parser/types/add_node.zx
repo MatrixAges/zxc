@@ -1,6 +1,6 @@
-import type { State } from "./model.zx"
-import type { Span } from "../../lexer/token_model.zx"
-import { TypeKind } from "./model.zx"
+import type { State } from "./model"
+import type { Span } from "../../lexer/token_model"
+import { TypeKind } from "./model"
 
 export type Input = { state: State, kind: TypeKind, name: Span, child: u64, head: u64, count: u64 }
 

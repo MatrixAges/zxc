@@ -4,13 +4,18 @@ pub const call = "import run from \"sample\"\nimport { Mode } from \"sample/type
 
 pub fn library() !compiler.library.Result {
     const sources = [_]compiler.project.Source{
-        .{ .path = "run.zx", .source = "import { Mode } from \"./types.zx\"\nexport type Input = Mode\nexport type Output = Mode\nexport default function (in: Input): Output { return in }\n" },
+        .{ .path = "run.zx", .source = "import { Mode } from \"./types\"\nexport type Input = Mode\nexport type Output = Mode\nexport default function (in: Input): Output { return in }\n" },
         .{ .path = "types.zx", .source = "export enum Mode { First, Second }\n" },
     };
+
     var run = try compiler.project.analyze(std.testing.allocator, &sources, .{ .entry = "run.zx", .root_dir = "/library" });
+
     defer run.deinit();
+
     var types = try compiler.project.analyze(std.testing.allocator, &sources, .{ .entry = "types.zx", .root_dir = "/library" });
+
     defer types.deinit();
+
     try std.testing.expect(run.value == .ir and types.value == .ir);
 
     return compiler.library.link(std.testing.allocator, &.{ .{ .name = "call", .analysis = &run }, .{ .name = "types", .analysis = &types } });
@@ -35,7 +40,9 @@ pub fn analyze(source: []const u8, packages: []const compiler.project.Package, l
 
 pub fn reject(packages: []const compiler.project.Package, libraries: []const compiler.project.compiled.Library, message: []const u8) !void {
     var result = try analyze(call, packages, libraries);
+
     defer result.deinit();
+
     try std.testing.expect(result.value == .diagnostic);
     try std.testing.expectEqual(.module, result.value.diagnostic.code);
     try std.testing.expectEqual(@as(?usize, 0), result.value.diagnostic.source_index);

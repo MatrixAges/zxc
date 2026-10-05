@@ -21,7 +21,7 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
     };
 
     const entry = try std.mem.concat(allocator, u8, &.{
-        "import helper from \"./helper.zx\"\n\n" ++ header,
+        "import helper from \"./helper\"\n\n" ++ header,
         if (mode == .missing_parameter) "export default function (in: Input): Output {\n" else "export default function (in: Input, { store }): Output {\n",
         body,
         "\n  return next\n}\n",

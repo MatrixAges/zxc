@@ -3,7 +3,7 @@ const compiler = @import("compiler");
 
 fn source(allocator: std.mem.Allocator, input: []const u8, output: []const u8, body: []const u8, imported: bool) ![]const u8 {
     return std.fmt.allocPrint(allocator, "{s}export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n{s}\n}}\n", .{
-        if (imported) "import dependency from \"./dependency.zx\"\n\n" else "",
+        if (imported) "import dependency from \"./dependency\"\n\n" else "",
         input,
         output,
         body,

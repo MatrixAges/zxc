@@ -1,7 +1,6 @@
 const std = @import("std");
 const compiler = @import("compiler");
-
-const main = "import helper from \"./helper.zx\"\n export type State = { count: u64 }\n export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { $store_a.value = { count: $store_a.value.count + in }\n return helper($store_a.value.count + $store_b.value.count) }";
+const main = "import helper from \"./helper\"\n export type State = { count: u64 }\n export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { $store_a.value = { count: $store_a.value.count + in }\n return helper($store_a.value.count + $store_b.value.count) }";
 const helper = "export enum Noise { Tag } export type Input = u64\n export type Output = u64\n export default function (in: Input): Output { return in }";
 
 pub fn analyze(allocator: std.mem.Allocator) !compiler.AnalysisResult {

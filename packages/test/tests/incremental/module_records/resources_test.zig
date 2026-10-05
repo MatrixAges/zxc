@@ -16,7 +16,7 @@ test "partial module loading failure cleans every allocation failure" {
 }
 
 fn run(allocator: std.mem.Allocator, missing: bool) !void {
-    const prefix = "import helper from \"./helper.zx\"\nimport absent from \"./absent.zx\"\n";
+    const prefix = "import helper from \"./helper\"\nimport absent from \"./absent\"\n";
     var sources = f.sources;
 
     if (missing) sources[0].source = prefix ++ f.unused;

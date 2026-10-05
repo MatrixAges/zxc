@@ -31,7 +31,7 @@
 
 ### ZX 导入
 
-ZX 文件导入可以省略 `.zx` 后缀，以 `./`、`../` 或 `@/` 开头。`./calculate_quote` 与 `./calculate_quote.zx` 指向同一个模块。相对路径以导入文件为起点，`@/` 相对于所属包或项目的根目录；没有项目配置时使用 CLI 当前工作目录。
+ZX 文件导入必须省略 `.zx` 后缀，以 `./`、`../` 或 `@/` 开头。使用 `./calculate_quote`；显式写成 `./calculate_quote.zx` 会报错。相对路径以导入文件为起点，`@/` 相对于所属包或项目的根目录；没有项目配置时使用 CLI 当前工作目录。
 
 ```typescript
 import calculateQuote from './calculate_quote'

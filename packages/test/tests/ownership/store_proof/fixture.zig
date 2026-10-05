@@ -14,7 +14,7 @@ pub fn run(case: Case) !void {
 }
 
 pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
-    const writer = try std.fmt.allocPrint(allocator, "{s}{s}export type Output = void\n\nexport default function (in: Input, {{ store }}): Output {{\n  store.jobs.snapshot = {s}\n\n  return\n}}\n", .{ if (case.helper) "import make from \"./make.zx\"\n\n" else "", types, if (case.helper) "make(in)" else case.value });
+    const writer = try std.fmt.allocPrint(allocator, "{s}{s}export type Output = void\n\nexport default function (in: Input, {{ store }}): Output {{\n  store.jobs.snapshot = {s}\n\n  return\n}}\n", .{ if (case.helper) "import make from \"./make\"\n\n" else "", types, if (case.helper) "make(in)" else case.value });
 
     defer allocator.free(writer);
 

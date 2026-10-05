@@ -14,7 +14,7 @@ pub fn run(case: Case) !void {
 }
 
 pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
-    const source = try std.fmt.allocPrint(allocator, "import inspect from \"./inspect.zx\"\nimport count from \"./count.zx\"\n\nexport type Input = void\n\nexport type Output = u64\n\nexport default function (in: Input): Output {{\n  const values: u64[] = [1, 2, 3]\n\n{s}\n}}\n", .{case.body});
+    const source = try std.fmt.allocPrint(allocator, "import inspect from \"./inspect\"\nimport count from \"./count\"\n\nexport type Input = void\n\nexport type Output = u64\n\nexport default function (in: Input): Output {{\n  const values: u64[] = [1, 2, 3]\n\n{s}\n}}\n", .{case.body});
 
     defer allocator.free(source);
 

@@ -1,7 +1,7 @@
-import type { Graph } from "./model.zx"
-import type { Span } from "../../../lexer/token_model.zx"
-import { PartKind } from "../model.zx"
-import copyFrame from "./copy_frame.zx"
+import type { Graph } from "./model"
+import type { Span } from "../../../lexer/token_model"
+import { PartKind } from "../model"
+import copyFrame from "./copy_frame"
 
 export type Input = { graph: Graph, kind: PartKind, span: Span, interpolation: u64, text_start: u64 }
 

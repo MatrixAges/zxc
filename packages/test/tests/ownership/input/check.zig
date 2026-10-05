@@ -20,11 +20,11 @@ pub fn run(case: Case) !void {
 }
 
 pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
-    const source = try std.fmt.allocPrint(allocator, "import consume from \"./consume.zx\"\n\nexport type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: {s}Input): Output {{\n{s}\n}}\n", .{ case.input, case.output, if (case.owned) "owned " else "", case.body });
+    const source = try std.fmt.allocPrint(allocator, "import consume from \"./consume\"\n\nexport type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: {s}Input): Output {{\n{s}\n}}\n", .{ case.input, case.output, if (case.owned) "owned " else "", case.body });
 
     defer allocator.free(source);
 
-    const helper = try std.fmt.allocPrint(allocator, "{s}export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: {s}Input): Output {{\n{s}\n}}\n", .{ if (case.helper_borrows) "import view from \"./view.zx\"\n" else "", case.helper_input, case.helper_output, if (case.helper_owned) "owned " else "", case.helper_body });
+    const helper = try std.fmt.allocPrint(allocator, "{s}export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: {s}Input): Output {{\n{s}\n}}\n", .{ if (case.helper_borrows) "import view from \"./view\"\n" else "", case.helper_input, case.helper_output, if (case.helper_owned) "owned " else "", case.helper_body });
 
     defer allocator.free(helper);
 
