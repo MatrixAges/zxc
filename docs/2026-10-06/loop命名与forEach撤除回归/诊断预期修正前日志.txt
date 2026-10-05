@@ -1,0 +1,83 @@
+test-loop-policy
++- run test 3 pass, 1 fail (4 total)
+ocuments/MatrixAges/zxc/packages/test/tests/language/expressions/loop_policy/analysis_test.zig:36:5: 0x108b54ce9 in test.iterate is not retained as a legacy built in alias (test)
+    try rejected(std.testing.allocator, "iterate(in)", false);
+    ^
+error: 'analysis_test.test.iterate is not retained as a legacy built in alias' failed:
+       ====== expected this output: =========
+       unknown function␃
+
+       ======== instead found this: =========
+       unknown imported function␃
+
+       ======================================
+       First difference occurs on line 1:
+       expected:
+       unknown function
+               ^ ('\x66')
+       found:
+       unknown imported function
+               ^ ('\x69')
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:696:9: 0x108ae1295 in expectEqualStrings (test)
+               return error.TestExpectedEqual;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/language/expressions/loop_policy/analysis_test.zig:23:5: 0x108ae1bb7 in rejected (test)
+           try std.testing.expectEqualStrings(if (list) "unknown list operation" else "unknown function", result.value.diagnostic.message);
+           ^
+       /Users/xiewendao/D
+failed command: ./.zig-cache/o/7401d6187970fd2e9b07e342bfd31111/test --cache-dir=./.zig-cache --seed=0x9bc1b6af --listen=-
+
+✖ ZX and RX reject removed APIs without producing applications or modifying input files (22.487733ms)
+✔ ordinary imported names loop and iterate remain callable and independent void calls still execute (4691.690834ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4717.643445
+
+✖ failing tests:
+
+test at tests/language/expressions/loop_policy/cli_test.ts:63:1
+✖ ZX and RX reject removed APIs without producing applications or modifying input files (22.487733ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc loop policy 7WyI81/main.zx:6:10: name: unknown imported function
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/language/expressions/loop_policy/cli_test.ts:76:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+test-loop-policy
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/language/expressions/loop_policy/cli_test.ts ./.zig-cache/o/d74a72731f611de903eb766e489e30fd/zxc debug
+
+Build Summary: 13/16 steps succeeded (2 failed); 3/4 tests passed (1 failed)
+test-loop-policy transitive failure
++- run test 3 pass, 1 fail (4 total)
+|  +- compile test debug native success 3s MaxRSS:569M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer debug native cached 44ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run node failure
+   +- compile exe zxc debug native success 11s MaxRSS:1G
+      +- WriteFile cached
+      +- compile lib yaml debug native cached 40ms MaxRSS:20M
+      +- compile lib yaml debug native (reused)
+      +- translate-c cached 42ms MaxRSS:20M
+      +- options success
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig fast native cached 55ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)

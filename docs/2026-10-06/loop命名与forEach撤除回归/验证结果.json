@@ -1,0 +1,127 @@
+{
+	"记录时间": "2026-10-06T03:23:16.312351+08:00",
+	"检出基线": {
+		"启动时HEAD": "c8d4ca20",
+		"收尾HEAD": "d51232540a197c2c21fa043c3d72a0567c197c3d",
+		"说明": "验证来自活动共享检出；实现会话随后提交 d5123254。不是固定版本全仓库执行记录。"
+	},
+	"IDEA文档": "docs/2026-10-06/loop命名与forEach撤除回归计划.md",
+	"模式": {
+		"Debug": {
+			"命令": "zig build test-loop-policy -Doptimize=Debug -j2 --summary all",
+			"工作目录": "packages/test",
+			"退出码": 0,
+			"构建步骤": "16/16",
+			"Zig声明": {
+				"通过": 4,
+				"总数": 4,
+				"执行": "全部实际执行"
+			},
+			"CLI声明": {
+				"通过": 2,
+				"总数": 2,
+				"执行": "全部实际执行"
+			},
+			"拒绝构建": 5,
+			"应用构建": 3,
+			"成功调用": 9,
+			"日志": "docs/2026-10-06/loop命名与forEach撤除回归/Debug日志.txt"
+		},
+		"ReleaseSafe": {
+			"命令": "zig build test-loop-policy -Doptimize=ReleaseSafe -j2 --summary all",
+			"工作目录": "packages/test",
+			"退出码": 0,
+			"构建步骤": "16/16",
+			"Zig声明": {
+				"通过": 4,
+				"总数": 4,
+				"执行": "全部实际执行"
+			},
+			"CLI声明": {
+				"通过": 2,
+				"总数": 2,
+				"执行": "全部实际执行"
+			},
+			"拒绝构建": 5,
+			"应用构建": 3,
+			"成功调用": 9,
+			"日志": "docs/2026-10-06/loop命名与forEach撤除回归/ReleaseSafe日志.txt"
+		}
+	},
+	"门禁": {
+		"forEach形状": ["单参数", "无参数", "额外参数", "双正式参数"],
+		"旧iterate": "未导入时拒绝；ZX 标识符诊断范围",
+		"有效loop": "公开编译生成普通 Zig while，检查全部分配失败",
+		"名称保留": ["普通导入 loop", "普通导入 iterate"],
+		"独立void": "标准输出 V| 与返回值均验证",
+		"拒绝边界": "ZX 独立/返回调用与 RX；无应用产物、无标准输出、源码逐字不变"
+	},
+	"Test262": {
+		"版本": "7ab7fafa0003f73fc85c1b95d88094d33f7eb8bd",
+		"原文数": 9,
+		"实际JavaScript执行": 18,
+		"断言": 22,
+		"全部通过": true,
+		"新增excluded": 9,
+		"新增目录案例": 0,
+		"新增ZX通过映射": 0,
+		"说明": "完整原文回放只核对 JavaScript 原文，已撤除的方法不以其他操作替代"
+	},
+	"当前矩阵": {
+		"catalog_cases": 80155,
+		"reviewed": {
+			"adapted": 690,
+			"excluded": 1481,
+			"equivalent": 103
+		},
+		"unreviewed": 51323,
+		"linked_cases": 4933,
+		"execution_status": "not measured by this audit; see zig build test results"
+	},
+	"生成检查": {
+		"命令": "node src/generate_for_each_reviews.ts --check",
+		"退出码": 0,
+		"登记数": 26,
+		"说明": "仅同步审阅，不生成已撤除方法的案例"
+	},
+	"类型检查": {
+		"命令": "npm run typecheck",
+		"工作目录": "packages/test",
+		"退出码": 0
+	},
+	"格式检查": {
+		"语义空行": "通过",
+		"Zig格式": "通过",
+		"Prettier": "通过",
+		"diff空白": "通过"
+	},
+	"自我复核": "前三次失败是旧入口夹具语法、诊断文本与范围预期错误；阅读分析实现后修正并完整重跑两模式。没有生产修复。",
+	"生产缺陷消息": {
+		"新发现": 0,
+		"发送": 0
+	},
+	"提交范围": "新增测试登记、测试实现、审阅同步脚本、九条审阅及本轮文档；实现会话已自行提交命名迁移与撤除。",
+	"源码SHA256": {
+		"packages/test/build.zig": "2a1b3b2b3c3caa6730b49ac36a23caa6aac4456cc0a9421557789a51b173f20b",
+		"packages/test/build/loop_policy.zig": "3fa26ee9660bf65bb72b7aee77837f6b26f992ffb2a4eaf94084ab1b72f66b2d",
+		"packages/test/tests/language/expressions/loop_policy/analysis_test.zig": "0b814e0af7beb749eeefeb1048607464f82db9add45c6d5ab3ee4afa37208582",
+		"packages/test/tests/language/expressions/loop_policy/cli_test.ts": "550d8ef00131b0c0ea552f2af2a69549277d940a301156e8150014e9a4cc6232",
+		"packages/test/src/generate_for_each_reviews.ts": "85f2c7e7a3bd591ea5f7cf7420c7241c3431a86ca7f7fdd876480fc9f6290fbd",
+		"packages/test/src/data/for_each.jsonl": "aeb78dea011384df91c960479225797e4a4c66c148b9597f7dc09aff6494df99",
+		"packages/test/upstream/reviews/built_ins/array/for_each.jsonl": "0e388936e41748d91457b1413262608605346462b86c620084b8e30ac9cd2f09",
+		"docs/2026-10-06/loop命名与forEach撤除回归计划.md": "5d85598ae28fad82550ef5c7465acca2bf5317f613873e68b69f8cade0c9534f"
+	},
+	"证据SHA256": {
+		"docs/2026-10-06/loop命名与forEach撤除回归/Debug日志.txt": "b38fcc03ce59c9cfe891370ab8977938f0bd5d03dd618660f1a500a5f7662f62",
+		"docs/2026-10-06/loop命名与forEach撤除回归/ReleaseSafe日志.txt": "246f4862439ff77b8594dbd6d02a1f524b706d834c8fc58851732f13aff28bef",
+		"docs/2026-10-06/loop命名与forEach撤除回归/原文清单.json": "985ac2081372ca5b2c7f4d35015f40c7f5a0368e51cc173fb6976a47a409dedf",
+		"docs/2026-10-06/loop命名与forEach撤除回归/原文结果.json": "157c9ce6b7ee6b30a99327be1b35e6428eefc2b1aaa34598d9590204d430b171",
+		"docs/2026-10-06/loop命名与forEach撤除回归/原文验证.mjs": "1d511dfc564c44095dda49b4289f1a6ad1ca27fc1f018ffd56cd8825344ba8d9",
+		"docs/2026-10-06/loop命名与forEach撤除回归/旧名夹具修正前日志.txt": "5794f1f4bc2c973a2a96ca8b64aeb95b5f691568b51fd3e40555cb547ba86428",
+		"docs/2026-10-06/loop命名与forEach撤除回归/类型检查日志.txt": "dac125c794db702133345f3a0d33f3193f975fddc564ca4f1498b0d4132ed500",
+		"docs/2026-10-06/loop命名与forEach撤除回归/范围预期修正前日志.txt": "f5ae19b3c80acf9a171c7d05a3391bed89535b7433b014d1fb65b6f6f1d648d3",
+		"docs/2026-10-06/loop命名与forEach撤除回归/覆盖审计.json": "aabddc099cb93ce4dc504b3033ff7c9cf34ec92f467a0c62882e9f94e74e17f9",
+		"docs/2026-10-06/loop命名与forEach撤除回归/诊断预期修正前日志.txt": "45d7d8daadede76f8431316b6233eff47828dfe3dc90e7d1e7eaa7becf6db6e6"
+	},
+	"日志保存": "仅清除行尾空白和文件末多余空行；执行输出、诊断及计数保持原样"
+}
