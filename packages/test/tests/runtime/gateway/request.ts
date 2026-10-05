@@ -34,9 +34,10 @@ export default async function exchange(args: {
 				socket.end(continue_body)
 			}
 		})
-		socket.on('error', error => {
+		socket.on('error', (error: NodeJS.ErrnoException) => {
 			clearTimeout(timer)
-			reject(error)
+
+			if (error.code !== 'ECONNRESET') reject(error)
 		})
 		socket.on('close', () => {
 			clearTimeout(timer)
