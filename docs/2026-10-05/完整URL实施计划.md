@@ -87,3 +87,24 @@ zig build-exe --dep punycode --dep nfc \
 ```
 
 自我复核：Punycode 和 NFC 仍不是完整 IDNA。映射状态处理、连接字符上下文、双向文字校验、主机整合以及 URL 状态机仍需完成。此阶段不开放 std:url，不修改现有查询参数 API；数据表和算法的小范围观测不能替代完整规范一致性证据。
+
+## IDNA 内部转换阶段
+
+按 IDEA 继续收口：Intent 是为 URL 主机提供有效域名的 ASCII/Unicode 转换；Data 为固定 Unicode 18.0.0 映射、字符属性、NFC 数据和 UTS #46、RFC 5893、RFC 5892；Edges 是内部严格转换，不提供 UTS #46 带错误恢复结果的通用 ToUnicode API；Answer 为静态数据表、转换与校验实现及局部编译观测。
+
+映射表含 9416 个连续区间，字符属性表含 1183 个非默认区间，生成前核对官方原始数据摘要。采用非 transitional 处理，不检查 DNS 长度和连字符位置，不启用 STD3；启用 Bidi、ContextJ，拒绝无效 Punycode。主机禁止字符与空域名由后续 host 层处理。
+
+整个域名先映射和 NFC，再按点分标签；ACE 标签解码后必须包含非 ASCII 字符且已为 NFC，不对解码结果再映射或修正。所有标签通过字符合法性后，若任意标签含 R、AL、AN，则对所有非空标签检查 Bidi；连接字符按 virama 或 Joining_Type 上下文校验。临时分配统一随转换 arena 释放，返回字节由调用方 allocator 持有。
+
+```sh
+python3 docs/2026-10-05/完整URL/数据生成/idna.py
+
+zig build-exe --dep idna \
+  -Mroot=docs/2026-10-05/完整URL/域名观察/idna.zig \
+  -Midna=packages/compiler/standard/src/url/host/idna/root.zig \
+  -femit-bin=/tmp/zxc_idna
+```
+
+局部编译及 zig fmt 检查通过。[17 次 IDNA 观测](完整URL/IDNA观测.json)与本机 Node domainToASCII 的接受、拒绝和输出一致，包含全角映射、偏差字符、有效连接符、无效连接符、非 NFC ACE、空标签与域名级 Bidi 触发。没有新增测试套件或运行全量测试。
+
+自我批判：这些小范围观测不构成完整 IDNA 一致性证明。Unicode 18 新增字符尚需独立规范数据核验；主机解析、URL 状态机和公开接口仍未完成。本阶段不把内部转换注册成完整 std:url。
