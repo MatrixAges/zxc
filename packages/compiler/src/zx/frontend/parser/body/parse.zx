@@ -1,5 +1,6 @@
 import expression from "../expressions/state/initial"
 import { Phase } from "./model"
+import emptyTree from "./state/empty_tree"
 import initial from "./state/initial"
 import step from "./step"
 
@@ -11,7 +12,7 @@ export type Input = { prepared: PreparedInput, start: u64, depth: u64, state_blo
 export type Output = State
 
 export default function (in: owned Input): Output {
-  return loop(initial({ expression: expression({ prepared: in.prepared, start: in.start, depth: in.depth, minimum: 0, allow_lambda: true }), state_block: in.state_block }), {
+  return loop(initial({ expression: expression({ prepared: in.prepared, start: in.start, depth: in.depth, minimum: 0, allow_lambda: true }), state_block: in.state_block, tree: emptyTree(), expression_only: false }), {
     while: state => state.control.phase != Phase.Done,
     next: state => {
       state = step(state)

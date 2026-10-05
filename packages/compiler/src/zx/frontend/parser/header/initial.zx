@@ -1,3 +1,4 @@
+import emptyTree from "../body/state/empty_tree"
 import { HeaderPhase } from "./model"
 
 import type { ExprState } from "../expressions/state/model"
@@ -18,7 +19,7 @@ export default function (in: owned Input): Output {
   }
 
   return {
-    expression: in, contracts: contracts,
+    expression: in, body: emptyTree(), contracts: contracts,
     control: {
       phase: failed ? HeaderPhase.Done : HeaderPhase.Open, token: token, consumes_input: false, has_store: false,
       has_ensures: false, ensures: false, contract_start: 0, expression_diagnostic: failed,

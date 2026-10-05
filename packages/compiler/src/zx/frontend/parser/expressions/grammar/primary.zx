@@ -40,7 +40,7 @@ export default function (in: owned Input): Output {
   }
 
   if (state.control.allow_lambda && state.control.hint.lambda) {
-    return startLambda(state)
+    return startLambda({ state: state, updating: false })
   }
 
   if (state.control.token.symbol == Symbol.OpenParen) {
@@ -73,7 +73,7 @@ export default function (in: owned Input): Output {
   }
 
   const kind = null_value ? ExprKind.Null : boolean ? ExprKind.Boolean : number ? ExprKind.Number : string ? ExprKind.String : ExprKind.Identifier
-  const value = { ...node({ kind: kind, start: start, end: end, depth: 1 }), name: { start: start, end: end }, flag: state.control.token.word == Keyword.True }
+  const value = { ...node({ kind: kind, start: start, end: end, depth: 1 }), name: { start: start, end: end }, flag: state.control.token.word == Keyword.True || state.control.token.word == Keyword.Loop }
 
   return emit({ state: consume({ state: state, phase: Phase.Postfix }), node: value })
 }

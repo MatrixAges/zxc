@@ -1,0 +1,19 @@
+import { Phase } from "./model"
+import initial from "./state/initial"
+import step from "./step"
+
+import type { ExprState } from "../expressions/state/model"
+import type { State, Tree } from "./model"
+
+export type Input = { expression: ExprState, tree: Tree }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  return loop(initial({ expression: in.expression, tree: in.tree, state_block: false, expression_only: true }), {
+    while: state => state.control.phase != Phase.Done,
+    next: state => {
+      state = step(state)
+    }
+  })
+}

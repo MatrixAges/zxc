@@ -1,11 +1,11 @@
 from expand_ast import expand_expression, expand_type, name
 
 
-def expand_body(source, state):
+def expand_body(source, state, root=None):
     tree = state["tree"]
 
     def expr(index):
-        return expand_expression(source, state["expressions"], state["types"], index)
+        return expand_expression(source, state["expressions"], state["types"], index, block)
 
     def chain(node, table):
         result = []
@@ -52,4 +52,4 @@ def expand_body(source, state):
 
         return {"span": node["span"], "value": value}
 
-    return block(state["result"])
+    return block(state["result"] if root is None else root)

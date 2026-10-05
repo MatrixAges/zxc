@@ -9,5 +9,5 @@ export type Output = State
 export default function (in: owned Input): Output {
   const diagnostic = { code: in.code, start: in.state.control.token.span.start, end: in.state.control.token.span.end, message: in.message }
 
-  return { expression: in.state.expression, contracts: in.state.contracts, control: { ...in.state.control, phase: HeaderPhase.Done, diagnostic: diagnostic } }
+  return { expression: in.state.expression, body: in.state.body, contracts: in.state.contracts, control: { ...in.state.control, phase: HeaderPhase.Done, diagnostic: diagnostic } }
 }

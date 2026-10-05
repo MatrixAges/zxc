@@ -1,8 +1,9 @@
+import { Keyword } from "../../../lexer/keyword_model"
 import { Kind, Symbol } from "../../../lexer/token_model"
 import consume from "../state/consume"
 import emit from "../state/emit"
 import fail from "../state/fail"
-import { Phase, ExprKind } from "../state/model"
+import { Phase, FrameKind, ExprKind } from "../state/model"
 import node from "../state/node"
 import takeFrame from "../state/take_frame"
 import finish from "./object_finish"
@@ -19,10 +20,15 @@ export default function (in: owned Input): Output {
 
   if (taken.state.control.phase == Phase.ObjectColon) {
     if (taken.state.control.token.symbol == Symbol.Colon) {
+      const phase = taken.frame.callback ? Phase.Callback : Phase.BeginBinary
       const frames = taken.state.frames.push(taken.frame)[0]
       const control: ExprControl = { ...taken.state.control, minimum: 0, allow_lambda: true, fresh_family: true }
 
-      return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control }, phase: Phase.BeginBinary })
+      return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control }, phase: phase })
+    }
+
+    if (taken.frame.condition) {
+      return fail({ state: taken.state, code: "syntax", message: ":" })
     }
 
     const value = { ...node({ kind: ExprKind.Identifier, start: taken.frame.name.start, end: taken.frame.name.end, depth: 1 }), name: { start: taken.frame.name.start, end: taken.frame.name.end } }
@@ -41,12 +47,16 @@ export default function (in: owned Input): Output {
     return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: control }, phase: Phase.BeginBinary })
   }
 
-  if (taken.state.control.token.kind != Kind.Identifier) {
+  const options = taken.frame.kind == FrameKind.OptionsValue
+  const condition = options && taken.state.control.token.word == Keyword.While
+  const callback = options && (taken.state.control.token.word == Keyword.Next || taken.state.control.token.word == Keyword.Do)
+
+  if (taken.state.control.token.kind != Kind.Identifier && !condition) {
     return fail({ state: taken.state, code: "syntax", message: "expected an identifier" })
   }
 
   const name = { start: taken.state.control.token.span.start, end: taken.state.control.token.span.end }
-  const frames = taken.state.frames.push({ ...taken.frame, name: name, flag: false })[0]
+  const frames = taken.state.frames.push({ ...taken.frame, name: name, flag: false, callback: callback, condition: condition })[0]
 
   return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: taken.state.control }, phase: Phase.ObjectColon })
 }

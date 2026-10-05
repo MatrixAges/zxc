@@ -19,7 +19,7 @@ export default function (in: owned Input): Output {
 
   if (in.control.phase == Phase.SwitchClose) {
     const result = in.expression.control.result
-    const state = { expression: in.expression, tree: in.tree, frames: in.frames, frame: { ...in.frame, first: result }, control: in.control }
+    const state = { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: { ...in.frame, first: result }, control: in.control }
 
     return expect({ state: state, symbol: Symbol.CloseParen, phase: Phase.SwitchBrace, message: ")" })
   }
@@ -41,7 +41,7 @@ export default function (in: owned Input): Output {
 
     const state = enter({ state: in, kind: FrameKind.Case, phase: Phase.SwitchCase, resume: Phase.SwitchCase, nested: false })
 
-    return consume({ state: { expression: state.expression, tree: state.tree, frames: state.frames, frame: { ...state.frame, third: named ? 1 : 0 }, control: state.control }, phase: named ? Phase.BeginCase : Phase.CaseColon })
+    return consume({ state: { expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: { ...state.frame, third: named ? 1 : 0 }, control: state.control }, phase: named ? Phase.BeginCase : Phase.CaseColon })
   }
 
   if (in.control.phase == Phase.CaseColon) {

@@ -1,3 +1,4 @@
+import emptyTree from "../../../../packages/compiler/src/zx/frontend/parser/body/state/empty_tree"
 import initial from "../../../../packages/compiler/src/zx/frontend/parser/expressions/state/initial"
 import request from "./request"
 
@@ -14,5 +15,5 @@ export default function (in: owned Input): Output {
   const results: Result[] = []
   const state = initial({ prepared: in, start: 0, depth: 0, minimum: 0, allow_lambda: true })
 
-  return starts.reduce((state, index) => request({ state: state, start: index }), { state: state, results: results })
+  return starts.reduce((state, index) => request({ state: state, start: index }), { state: state, body: emptyTree(), results: results })
 }

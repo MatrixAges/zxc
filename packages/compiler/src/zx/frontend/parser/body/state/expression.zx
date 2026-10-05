@@ -17,5 +17,5 @@ export default function (in: owned Input): Output {
   const depth = in.state.frame.depth
   const expression = restart({ state: in.state.expression, depth: depth, minimum: in.minimum })
 
-  return { expression: expression, tree: in.state.tree, frames: in.state.frames, frame: in.state.frame, control: { ...in.state.control, phase: Phase.Expression, resume: in.resume } }
+  return { expression: expression, tree: in.state.tree, frames: in.state.frames, suspended: in.state.suspended, frame: in.state.frame, control: { ...in.state.control, phase: Phase.Expression, resume: in.resume } }
 }

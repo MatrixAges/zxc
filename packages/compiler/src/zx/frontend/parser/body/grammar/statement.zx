@@ -15,7 +15,7 @@ export default function (in: owned Input): Output {
   const word = in.expression.control.token.word
   const symbol = in.expression.control.token.symbol
   const kind = word == Keyword.Const ? StatementKind.Constant : word == Keyword.Return ? StatementKind.Result : word == Keyword.If ? StatementKind.Branch : word == Keyword.Switch ? StatementKind.Switch : StatementKind.Evaluate
-  const state = { expression: in.expression, tree: in.tree, frames: in.frames, frame: { ...in.frame, statement: kind }, control: in.control }
+  const state = { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: { ...in.frame, statement: kind }, control: in.control }
 
   if (word == Keyword.Const) {
     return consume({ state: state, phase: Phase.ConstName })
@@ -30,7 +30,7 @@ export default function (in: owned Input): Output {
   }
 
   if (word == Keyword.Store || state.expression.control.token.dollar) {
-    return expression({ state: { expression: state.expression, tree: state.tree, frames: state.frames, frame: { ...state.frame, statement: StatementKind.StoreSet }, control: state.control }, resume: Phase.StoreAssign, minimum: 0 })
+    return expression({ state: { expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: { ...state.frame, statement: StatementKind.StoreSet }, control: state.control }, resume: Phase.StoreAssign, minimum: 0 })
   }
 
   if (state.expression.control.token.kind == Kind.Identifier || symbol == Symbol.OpenParen || symbol == Symbol.OpenBracket) {

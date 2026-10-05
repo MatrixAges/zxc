@@ -2,24 +2,20 @@ import { FrameKind, Phase } from "../model"
 import frame from "./frame"
 
 import type { ExprState } from "../../expressions/state/model"
-import type { State, Statement, Block, Item, Name, Case, Frame } from "../model"
+import type { State, Tree, Frame, Suspension } from "../model"
 
-export type Input = { expression: ExprState, state_block: bool }
+export type Input = { expression: ExprState, state_block: bool, tree: Tree, expression_only: bool }
 
 export type Output = State
 
 export default function (in: owned Input): Output {
-  const statements: Statement[] = []
-  const blocks: Block[] = []
-  const items: Item[] = []
-  const names: Name[] = []
-  const cases: Case[] = []
   const frames: Frame[] = []
+  const suspended: Suspension[] = []
   const root = frame({ kind: FrameKind.Root, start: 0, depth: in.expression.control.base_depth })
   const failed = in.expression.control.lexical_diagnostic != 0
 
   return {
-    expression: in.expression, tree: { statements: statements, blocks: blocks, items: items, names: names, cases: cases }, frames: frames, frame: root,
-    control: { phase: failed ? Phase.Done : Phase.BlockOpen, resume: Phase.Done, state_block: in.state_block, result: 0, expression_diagnostic: failed, diagnostic: { code: "", start: 0, end: 0, message: "" } }
+    expression: in.expression, tree: in.tree, frames: frames, suspended: suspended, frame: root,
+    control: { phase: failed ? Phase.Done : in.expression_only ? Phase.Expression : Phase.BlockOpen, resume: Phase.Done, state_block: in.state_block, result: 0, expression_diagnostic: failed, diagnostic: { code: "", start: 0, end: 0, message: "" } }
   }
 }

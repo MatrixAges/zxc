@@ -60,6 +60,7 @@ pub fn main(init: std.process.Init) !void {
             .has_store = actual.control.has_store,
             .contracts = actual.contracts,
             .tree = actual.expression.tree,
+            .body = actual.body,
             .types = actual.expression.types.tree,
             .index = actual.expression.control.index,
             .last_end = actual.expression.control.last_end,

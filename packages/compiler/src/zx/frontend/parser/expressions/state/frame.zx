@@ -8,5 +8,5 @@ export type Input = { kind: FrameKind, start: u64, depth: u64 }
 export type Output = ExprFrame
 
 export default function (in: Input): Output {
-  return { kind: in.kind, start: in.start, end: 0, depth: in.depth, minimum: 0, allow_lambda: true, reset_family: false, family: Family.None, first: 0, second: 0, head: 0, count: 0, maximum: 0, name: { start: 0, end: 0 }, flag: false, cursor: 0, stream: 0, index: 0, operator: Operator.None }
+  return { kind: in.kind, start: in.start, end: 0, depth: in.depth, minimum: 0, allow_lambda: true, reset_family: false, family: Family.None, first: 0, second: 0, head: 0, count: 0, maximum: 0, name: { start: 0, end: 0 }, flag: false, callback: false, condition: false, cursor: 0, stream: 0, index: 0, operator: Operator.None }
 }

@@ -8,6 +8,7 @@ import object from "./grammar/object"
 import postfix from "./grammar/postfix"
 import primary from "./grammar/primary"
 import resume from "./grammar/resume"
+import startLambda from "./grammar/start_lambda"
 import template from "./grammar/template"
 import current from "./state/current"
 import fail from "./state/fail"
@@ -43,6 +44,9 @@ export default function (in: owned Input): Output {
     case Phase.LambdaParameter: return lambda(state)
     case Phase.LambdaSeparator: return lambda(state)
     case Phase.LambdaArrow: return lambda(state)
+    case Phase.LambdaBody: return lambda(state)
+    case Phase.Callback: return state.control.hint.lambda ? startLambda({ state: state, updating: true }) : beginBinary(state)
+    case Phase.StateBlock: return fail({ state: state, code: "contract", message: "state block requires the statement driver" })
     case Phase.MatchStart: return selection(state)
     case Phase.MatchCondition: return selection(state)
     case Phase.MatchFallbackArrow: return selection(state)

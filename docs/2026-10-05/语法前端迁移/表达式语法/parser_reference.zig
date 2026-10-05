@@ -44,7 +44,7 @@ pub fn main(init: std.process.Init) !void {
         if (actual.control.phase != .Done) return error.ExpressionDriverBudgetExhausted;
 
         const actual_issue = if (actual.control.lexical_diagnostic != 0) (if (actual.control.lexical_diagnostic == 1) actual.prepared.lexical.lexed.diagnostic else actual.prepared.lexical.interpolations[actual.control.lexical_diagnostic - 2].lexed.diagnostic) else if (actual.control.type_diagnostic) actual.types.control.diagnostic else actual.control.diagnostic;
-        try std.json.Stringify.value(.{ .start = start, .expected = .{ .value = expected, .index = parser.index, .diagnostic = diagnostic }, .actual = .{ .tree = actual.tree, .types = actual.types.tree, .result = actual.control.result, .index = actual.control.root_index, .diagnostic = actual_issue } }, .{}, &output.interface);
+        try std.json.Stringify.value(.{ .start = start, .expected = .{ .value = expected, .index = parser.index, .diagnostic = diagnostic }, .actual = .{ .tree = actual.tree, .body = actual.body, .types = actual.types.tree, .result = actual.control.result, .index = actual.control.root_index, .diagnostic = actual_issue } }, .{}, &output.interface);
         try output.interface.writeByte('\n');
     }
 

@@ -17,7 +17,7 @@ export default function (in: owned Input): Output {
     case HeaderPhase.Colon: return expect({ state: in, word: Keyword.Root, symbol: Symbol.Colon, phase: HeaderPhase.Ownership, message: ":" })
     case HeaderPhase.Ownership:
       if (in.control.token.word == Keyword.Owned) {
-        return consume({ state: { expression: in.expression, contracts: in.contracts, control: { ...in.control, consumes_input: true } }, phase: HeaderPhase.InputName })
+        return consume({ state: { expression: in.expression, body: in.body, contracts: in.contracts, control: { ...in.control, consumes_input: true } }, phase: HeaderPhase.InputName })
       }
 
       return expect({ state: in, word: Keyword.UpperInput, symbol: Symbol.None, phase: HeaderPhase.ParameterEnd, message: "Input" })
@@ -36,7 +36,7 @@ export default function (in: owned Input): Output {
       return expect({ state: in, word: Keyword.Root, symbol: Symbol.OpenBrace, phase: HeaderPhase.StoreName, message: "{" })
     case HeaderPhase.StoreName: return expect({ state: in, word: Keyword.Store, symbol: Symbol.None, phase: HeaderPhase.StoreClose, message: "store" })
     case HeaderPhase.StoreClose:
-      const state = { expression: in.expression, contracts: in.contracts, control: { ...in.control, has_store: true } }
+      const state = { expression: in.expression, body: in.body, contracts: in.contracts, control: { ...in.control, has_store: true } }
 
       return expect({ state: state, word: Keyword.Root, symbol: Symbol.CloseBrace, phase: HeaderPhase.StoreEnd, message: "}" })
     case HeaderPhase.StoreEnd:

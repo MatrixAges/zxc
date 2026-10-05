@@ -1,5 +1,6 @@
 import type { Diagnostic } from "../../lexer/model"
 import type { Span, Token } from "../../lexer/token_model"
+import type { Tree } from "../body/model"
 import type { ExprState } from "../expressions/state/model"
 
 export enum HeaderPhase { Open, Input, Colon, Ownership, InputName, ParameterEnd, StoreOpen, StoreName, StoreClose, StoreEnd, Close, ResultColon, ResultName, Contract, ContractOpen, Predicate, ContractClose, Done }
@@ -11,4 +12,4 @@ export type Control = {
   has_ensures: bool, ensures: bool, contract_start: u64, expression_diagnostic: bool, diagnostic: Diagnostic
 }
 
-export type State = { expression: ExprState, contracts: Contract[], control: Control }
+export type State = { expression: ExprState, body: Tree, contracts: Contract[], control: Control }

@@ -16,7 +16,7 @@ export default function (in: owned Input): Output {
       types: in.state.expression.types, frames: in.state.expression.frames,
       control: { ...in.state.expression.control, index: index, root_index: index, last_end: last_end }
     },
-    contracts: in.state.contracts,
+    body: in.state.body, contracts: in.state.contracts,
     control: { ...in.state.control, phase: in.phase }
   }
 }

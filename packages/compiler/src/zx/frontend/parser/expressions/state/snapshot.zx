@@ -1,0 +1,17 @@
+import type { ExprControl } from "./model"
+
+export type Input = ExprControl
+
+export type Output = ExprControl
+
+export default function (in: Input): Output {
+  return {
+    phase: in.phase, index: in.index, root_index: in.root_index, base_depth: in.base_depth, stream: in.stream, depth: in.depth, minimum: in.minimum, allow_lambda: in.allow_lambda,
+    fresh_family: in.fresh_family, family: in.family, result: in.result, primary_start: in.primary_start, last_end: in.last_end,
+    template_head: in.template_head, template_count: in.template_count, template_maximum: in.template_maximum, cursor: in.cursor, type_argument: in.type_argument,
+    token: { kind: in.token.kind, word: in.token.word, symbol: in.token.symbol, span: { start: in.token.span.start, end: in.token.span.end }, line_break: in.token.line_break, dollar: in.token.dollar },
+    hint: { lambda: in.hint.lambda, generic: in.hint.generic, binary: { operator: in.hint.binary.operator, precedence: in.hint.binary.precedence, family: in.hint.binary.family } },
+    template: in.template, lexical_diagnostic: in.lexical_diagnostic, type_diagnostic: in.type_diagnostic,
+    diagnostic: { code: "", start: 0, end: 0, message: "" }
+  }
+}

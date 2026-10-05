@@ -20,7 +20,7 @@ export default function (in: owned Input): Output {
   }
 
   const at = current(in.expression)
-  const state = { expression: in.expression, contracts: in.contracts, control: { ...in.control, token: at.token } }
+  const state = { expression: in.expression, body: in.body, contracts: in.contracts, control: { ...in.control, token: at.token } }
 
   switch (state.control.phase) {
     case HeaderPhase.Contract: return contracts(state)

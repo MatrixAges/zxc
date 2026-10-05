@@ -17,13 +17,13 @@ export default function (in: owned Input): Output {
     const word = in.control.token.word
 
     if (word != Keyword.Requires && word != Keyword.Ensures) {
-      return { expression: in.expression, contracts: in.contracts, control: { ...in.control, phase: HeaderPhase.Done } }
+      return { expression: in.expression, body: in.body, contracts: in.contracts, control: { ...in.control, phase: HeaderPhase.Done } }
     }
 
     const contract_start = in.control.token.span.start
 
     const state = {
-      expression: in.expression, contracts: in.contracts,
+      expression: in.expression, body: in.body, contracts: in.contracts,
       control: { ...in.control, ensures: word == Keyword.Ensures, contract_start: contract_start }
     }
 
@@ -47,5 +47,5 @@ export default function (in: owned Input): Output {
 
   const has_ensures = state.control.has_ensures || state.control.ensures
 
-  return { expression: expression, contracts: state.contracts, control: { ...state.control, has_ensures: has_ensures } }
+  return { expression: expression, body: state.body, contracts: state.contracts, control: { ...state.control, has_ensures: has_ensures } }
 }

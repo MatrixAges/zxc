@@ -6,7 +6,10 @@ import subprocess
 import sys
 import tempfile
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "docs/2026-10-06/语句块迁移"))
+
 from expand_ast import expand_expression
+from expand_body import expand_body
 
 
 scanner, reference, destination = sys.argv[1:4]
@@ -54,7 +57,8 @@ with tempfile.TemporaryDirectory(prefix="zxc-expression-ast-") as directory:
             actual = {"value": None, "index": state["index"], "diagnostic": state["diagnostic"]}
 
             if not state["diagnostic"]["message"]:
-                actual["value"] = expand_expression(source, state["tree"], state["types"], state["result"])
+                body_state = {"tree": state["body"], "expressions": state["tree"], "types": state["types"]}
+                actual["value"] = expand_expression(source, state["tree"], state["types"], state["result"], lambda index: expand_body(source, body_state, index))
             else:
                 diagnostics.add(state["diagnostic"]["message"])
 

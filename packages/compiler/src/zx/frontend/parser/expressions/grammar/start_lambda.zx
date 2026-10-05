@@ -5,26 +5,26 @@ import { Phase, FrameKind } from "../state/model"
 
 import type { ExprState } from "../state/model"
 
-export type Input = ExprState
+export type Input = { state: ExprState, updating: bool }
 
 export type Output = ExprState
 
 export default function (in: owned Input): Output {
-  const parenthesized = in.control.token.symbol == Symbol.OpenParen
-  const start = in.control.token.span.start
-  const end = in.control.token.span.end
-  const continuation = frame({ kind: FrameKind.Lambda, start: start, depth: in.control.depth })
+  const parenthesized = in.state.control.token.symbol == Symbol.OpenParen
+  const start = in.state.control.token.span.start
+  const end = in.state.control.token.span.end
+  const continuation = { ...frame({ kind: FrameKind.Lambda, start: start, depth: in.state.control.depth + (in.updating ? 1 : 0) }), flag: in.updating }
 
   if (parenthesized) {
-    const frames = in.frames.push(continuation)[0]
+    const frames = in.state.frames.push(continuation)[0]
 
-    return consume({ state: { prepared: in.prepared, tree: in.tree, types: in.types, frames: frames, control: in.control }, phase: Phase.LambdaParameter })
+    return consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: frames, control: in.state.control }, phase: Phase.LambdaParameter })
   }
 
-  const head = in.tree.parameters.length + 1
-  const parameters = in.tree.parameters.push({ name: { start: start, end: end }, previous: 0 })[0]
-  const frames = in.frames.push({ ...continuation, head: head, count: 1 })[0]
-  const tree = { nodes: in.tree.nodes, items: in.tree.items, fields: in.tree.fields, parameters: parameters, parts: in.tree.parts, arms: in.tree.arms }
+  const head = in.state.tree.parameters.length + 1
+  const parameters = in.state.tree.parameters.push({ name: { start: start, end: end }, previous: 0 })[0]
+  const frames = in.state.frames.push({ ...continuation, head: head, count: 1 })[0]
+  const tree = { nodes: in.state.tree.nodes, items: in.state.tree.items, fields: in.state.tree.fields, parameters: parameters, parts: in.state.tree.parts, arms: in.state.tree.arms }
 
-  return consume({ state: { prepared: in.prepared, tree: tree, types: in.types, frames: frames, control: in.control }, phase: Phase.LambdaArrow })
+  return consume({ state: { prepared: in.state.prepared, tree: tree, types: in.state.types, frames: frames, control: in.state.control }, phase: Phase.LambdaArrow })
 }

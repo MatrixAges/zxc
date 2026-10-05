@@ -14,12 +14,13 @@ export default function (in: owned Input): Output {
   const span = { start: in.frame.start, end: in.expression.control.last_end }
 
   if (in.frame.kind == FrameKind.Block) {
+    const complete_phase = parent.kind == FrameKind.Root && in.suspended.length != 0 ? Phase.Resume : phase
     const result = in.tree.blocks.length
     const blocks = in.tree.blocks.push({ span: span, head: in.frame.head, count: in.frame.count })[0]
     const next = parent.kind == FrameKind.Root ? parent : parent.phase == Phase.IfElse ? { ...parent, second: result } : { ...parent, third: result + 1 }
     const tree = { statements: in.tree.statements, blocks: blocks, items: in.tree.items, names: in.tree.names, cases: in.tree.cases }
 
-    return { expression: in.expression, tree: tree, frames: popped[0], frame: next, control: { ...in.control, phase: phase, result: result } }
+    return { expression: in.expression, tree: tree, frames: popped[0], suspended: in.suspended, frame: next, control: { ...in.control, phase: complete_phase, result: result } }
   }
 
   const result = in.tree.statements.length
@@ -32,12 +33,12 @@ export default function (in: owned Input): Output {
     const blocks = in.tree.blocks.push({ span: span, head: head, count: 1 })[0]
     const tree = { statements: statements, blocks: blocks, items: items, names: in.tree.names, cases: in.tree.cases }
 
-    return { expression: in.expression, tree: tree, frames: popped[0], frame: { ...parent, third: block }, control: { ...in.control, phase: Phase.Publish } }
+    return { expression: in.expression, tree: tree, frames: popped[0], suspended: in.suspended, frame: { ...parent, third: block }, control: { ...in.control, phase: Phase.Publish } }
   }
 
   const count = parent.count + 1
   const next = { ...parent, head: head, count: count }
   const tree = { statements: statements, blocks: in.tree.blocks, items: items, names: in.tree.names, cases: in.tree.cases }
 
-  return { expression: in.expression, tree: tree, frames: popped[0], frame: next, control: { ...in.control, phase: phase } }
+  return { expression: in.expression, tree: tree, frames: popped[0], suspended: in.suspended, frame: next, control: { ...in.control, phase: phase } }
 }

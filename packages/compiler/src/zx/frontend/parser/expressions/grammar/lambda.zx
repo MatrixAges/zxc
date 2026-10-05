@@ -11,6 +11,13 @@ export type Input = ExprState
 export type Output = ExprState
 
 export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.LambdaBody) {
+    const updating = in.frames[in.frames.length - 1].flag
+    const phase = updating && in.control.token.symbol == Symbol.OpenBrace ? Phase.StateBlock : Phase.BeginBinary
+
+    return { prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: { ...in.control, phase: phase } }
+  }
+
   if (in.control.phase == Phase.LambdaArrow) {
     if (in.control.token.symbol != Symbol.Arrow) {
       return fail({ state: in, code: "syntax", message: "=>" })
@@ -18,7 +25,7 @@ export default function (in: owned Input): Output {
 
     const control: ExprControl = { ...in.control, minimum: 0, allow_lambda: true, fresh_family: true }
 
-    return consume({ state: { prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: control }, phase: Phase.BeginBinary })
+    return consume({ state: { prepared: in.prepared, tree: in.tree, types: in.types, frames: in.frames, control: control }, phase: Phase.LambdaBody })
   }
 
   if (in.control.token.symbol == Symbol.CloseParen) {

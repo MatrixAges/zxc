@@ -17,5 +17,5 @@ export default function (in: owned Input): Output {
   const next = frame({ kind: in.kind, start: in.state.expression.control.token.span.start, depth: depth + (in.nested ? 1 : 0) })
   const frames = in.state.frames.push({ ...in.state.frame, phase: in.resume })[0]
 
-  return { expression: in.state.expression, tree: in.state.tree, frames: frames, frame: next, control: { ...in.state.control, phase: in.phase } }
+  return { expression: in.state.expression, tree: in.state.tree, frames: frames, suspended: in.state.suspended, frame: next, control: { ...in.state.control, phase: in.phase } }
 }

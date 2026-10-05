@@ -1,7 +1,6 @@
 import { Keyword } from "../../lexer/keyword_model"
 import { Symbol } from "../../lexer/token_model"
-import { Phase } from "../expressions/state/model"
-import step from "../expressions/step"
+import parse from "../body/expression"
 import expect from "./expect"
 import { HeaderPhase } from "./model"
 
@@ -13,11 +12,11 @@ export type Output = State
 
 export default function (in: owned Input): Output {
   if (in.control.phase == HeaderPhase.Predicate) {
-    const expression = step(in.expression)
-    const failed = expression.control.diagnostic.message != "" || expression.control.lexical_diagnostic != 0 || expression.control.type_diagnostic
-    const phase = failed ? HeaderPhase.Done : expression.control.phase == Phase.Done ? HeaderPhase.ContractClose : HeaderPhase.Predicate
+    const parsed = parse({ expression: in.expression, tree: in.body })
+    const failed = parsed.control.expression_diagnostic || parsed.control.diagnostic.message != ""
+    const phase = failed ? HeaderPhase.Done : HeaderPhase.ContractClose
 
-    return { expression: expression, contracts: in.contracts, control: { ...in.control, phase: phase, expression_diagnostic: failed } }
+    return { expression: parsed.expression, body: parsed.tree, contracts: in.contracts, control: { ...in.control, phase: phase, expression_diagnostic: failed, diagnostic: parsed.control.diagnostic } }
   }
 
   const contract = { ensures: in.control.ensures, predicate: in.expression.control.result, span: { start: in.control.contract_start, end: in.control.token.span.end } }
@@ -27,5 +26,5 @@ export default function (in: owned Input): Output {
     return state
   }
 
-  return { expression: state.expression, contracts: state.contracts.push(contract)[0], control: state.control }
+  return { expression: state.expression, body: state.body, contracts: state.contracts.push(contract)[0], control: state.control }
 }

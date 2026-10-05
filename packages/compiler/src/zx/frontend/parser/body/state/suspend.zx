@@ -1,0 +1,26 @@
+import snapshot from "../../expressions/state/snapshot"
+import { FrameKind, Phase } from "../model"
+import frame from "./frame"
+
+import type { ExprFrame } from "../../expressions/state/model"
+import type { State, Frame } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const depth = in.expression.control.depth
+  const start = in.expression.control.token.span.start
+  const saved = snapshot(in.expression.control)
+  const suspended = in.suspended.push({ expression: in.expression.control, expression_frames: in.expression.frames, frames: in.frames, frame: in.frame, control: in.control })[0]
+  const expression_frames: ExprFrame[] = []
+  const frames: Frame[] = []
+  const root = frame({ kind: FrameKind.Root, start: start, depth: depth })
+
+  return {
+    expression: { prepared: in.expression.prepared, tree: in.expression.tree, types: in.expression.types, frames: expression_frames, control: saved },
+    tree: in.tree, frames: frames, suspended: suspended, frame: root,
+    control: { phase: Phase.BlockOpen, resume: Phase.Done, state_block: true, result: 0, expression_diagnostic: false, diagnostic: { code: "", start: 0, end: 0, message: "" } }
+  }
+}

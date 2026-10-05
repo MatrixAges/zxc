@@ -13,6 +13,7 @@ from expand_body import expand_body
 
 paths = set((root / "packages/compiler/src/zx/frontend/parser").rglob("*.zx"))
 paths.update((root / "packages/test/tests/collections/iterate/fixtures").glob("*.zx"))
+paths.update((root / "docs/2026-10-06/状态迭代/示例").glob("*.zx"))
 paths.update((root / "packages/test/tests/rx/runtime/store").rglob("*.zx"))
 paths.update((root / "packages/test/tests/targets/napi/fixtures/state").glob("*.zx"))
 paths.update((root / "packages/test/tests/targets/wasm/fixtures/state").glob("*.zx"))
@@ -52,14 +53,6 @@ for item in json.loads(subprocess.check_output(["bun", "--eval", export], cwd=ro
 records = []
 failures = []
 skipped = []
-pending = []
-
-
-def contains_state_block(value):
-    if isinstance(value, dict):
-        return "state_block" in value or any(contains_state_block(child) for child in value.values())
-
-    return isinstance(value, list) and any(contains_state_block(child) for child in value)
 
 
 def state_blocks(value):
@@ -89,10 +82,6 @@ def compare(label, source, record):
             failures.append({"source": label, "expected_error": record["expected_error"], "actual_error": actual})
 
         records.append({"source": label, "statements": 0, "blocks": 0, "cases": 0, "diagnostic": True})
-        return
-
-    if contains_state_block(record["expected"]["body"]):
-        pending.append({"source": label, "reason": "expression state-block handoff not integrated", "diagnostic": state["value_diagnostic"]})
         return
 
     failed = state["expression_diagnostic"] or bool(state["diagnostic"]["message"])
@@ -126,9 +115,9 @@ with tempfile.TemporaryDirectory(prefix="zxc_body_replay_") as directory:
                 replay = json.loads(subprocess.check_output(["/tmp/zxc_body_reference", str(source_path), str(offset), str(depth), mode], text=True, timeout=30))
                 compare(f"{label}:{offset}:{mode}:depth={depth}", source, replay)
 
-report = {"sources": len(sources), "entries": len(records), "diagnostics": sum(item["diagnostic"] for item in records), "statements": sum(item["statements"] for item in records), "blocks": sum(item["blocks"] for item in records), "cases": sum(item["cases"] for item in records), "failures": failures, "pending": pending, "skipped": skipped, "records": records}
+report = {"sources": len(sources), "entries": len(records), "diagnostics": sum(item["diagnostic"] for item in records), "statements": sum(item["statements"] for item in records), "blocks": sum(item["blocks"] for item in records), "cases": sum(item["cases"] for item in records), "failures": failures, "skipped": skipped, "records": records}
 Path(__file__).with_name("语句块核对.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
-print(json.dumps({key: len(value) if key in {"failures", "pending", "skipped"} else value for key, value in report.items() if key != "records"}))
+print(json.dumps({key: len(value) if key in {"failures", "skipped"} else value for key, value in report.items() if key != "records"}))
 
 if failures:
     raise SystemExit(1)

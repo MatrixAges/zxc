@@ -2,13 +2,13 @@ import { Operator } from "../expressions/prepare/model"
 
 import type { Diagnostic } from "../../lexer/model"
 import type { Span } from "../../lexer/token_model"
-import type { ExprState } from "../expressions/state/model"
+import type { ExprState, ExprControl, ExprFrame } from "../expressions/state/model"
 
 export enum StatementKind { Constant, Destructure, Result, Branch, Switch, StoreSet, Evaluate, StateUpdate }
 
 export enum FrameKind { Root, Block, Statement, Case }
 
-export enum Phase { BlockOpen, BlockNext, Statement, ConstName, ConstAfterName, PatternName, PatternSeparator, ConstAssign, ReturnValue, IfOpen, IfClose, IfElse, IfAlternative, SwitchOpen, SwitchClose, SwitchBrace, SwitchCase, CaseColon, CaseBody, CaseNext, StoreAssign, UpdateOperator, UpdateAssign, BeginValue, BeginCondition, BeginSwitch, BeginCase, Value, Expression, Type, EndStatement, Publish, Done }
+export enum Phase { BlockOpen, BlockNext, Statement, ConstName, ConstAfterName, PatternName, PatternSeparator, ConstAssign, ReturnValue, IfOpen, IfClose, IfElse, IfAlternative, SwitchOpen, SwitchClose, SwitchBrace, SwitchCase, CaseColon, CaseBody, CaseNext, StoreAssign, UpdateOperator, UpdateAssign, BeginValue, BeginCondition, BeginSwitch, BeginCase, Value, Expression, Type, EndStatement, Publish, Resume, Done }
 
 export type Statement = { kind: StatementKind, span: Span, name: Span, annotation: u64, first: u64, second: u64, third: u64, head: u64, count: u64, operator: Operator }
 
@@ -26,4 +26,6 @@ export type Frame = { kind: FrameKind, statement: StatementKind, start: u64, dep
 
 export type Control = { phase: Phase, resume: Phase, state_block: bool, result: u64, expression_diagnostic: bool, diagnostic: Diagnostic }
 
-export type State = { expression: ExprState, tree: Tree, frames: Frame[], frame: Frame, control: Control }
+export type Suspension = { expression: ExprControl, expression_frames: ExprFrame[], frames: Frame[], frame: Frame, control: Control }
+
+export type State = { expression: ExprState, tree: Tree, frames: Frame[], suspended: Suspension[], frame: Frame, control: Control }

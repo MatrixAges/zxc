@@ -1,4 +1,7 @@
 import { Symbol } from "../../../lexer/token_model"
+import consume from "../state/consume"
+import frame from "../state/frame"
+import { Phase, FrameKind, ExprKind } from "../state/model"
 import takeFrame from "../state/take_frame"
 import finish from "./arguments_finish"
 import beginBinary from "./begin_binary"
@@ -15,6 +18,15 @@ export default function (in: owned Input): Output {
 
   if (taken.state.control.token.symbol == closing) {
     return finish(taken)
+  }
+
+  const loop_options = taken.frame.flag && taken.frame.count == 1 && taken.state.tree.nodes[taken.frame.first].kind == ExprKind.Identifier && taken.state.tree.nodes[taken.frame.first].flag && taken.state.control.token.symbol == Symbol.OpenBrace
+
+  if (loop_options) {
+    const continuation = frame({ kind: FrameKind.OptionsValue, start: taken.state.control.token.span.start, depth: taken.state.control.depth })
+    const frames = taken.state.frames.push(taken.frame)[0].push(continuation)[0]
+
+    return consume({ state: { prepared: taken.state.prepared, tree: taken.state.tree, types: taken.state.types, frames: frames, control: taken.state.control }, phase: Phase.ObjectName })
   }
 
   const frames = taken.state.frames.push(taken.frame)[0]

@@ -16,10 +16,10 @@ export default function (in: owned Input): Output {
     const end = in.expression.tree.nodes[result].span.end
     const diagnostic = { code: "syntax", start: start, end: end, message: "only calls can be used as standalone expressions" }
 
-    return { expression: in.expression, tree: in.tree, frames: in.frames, frame: in.frame, control: { ...in.control, phase: Phase.Done, diagnostic: diagnostic } }
+    return { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: in.frame, control: { ...in.control, phase: Phase.Done, diagnostic: diagnostic } }
   }
 
   const next = kind == StatementKind.StoreSet || kind == StatementKind.StateUpdate ? { ...in.frame, second: result } : { ...in.frame, first: kind == StatementKind.Result ? result + 1 : result }
 
-  return { expression: in.expression, tree: in.tree, frames: in.frames, frame: next, control: { ...in.control, phase: Phase.EndStatement } }
+  return { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: next, control: { ...in.control, phase: Phase.EndStatement } }
 }

@@ -25,6 +25,7 @@ export default function (in: owned Input): Output {
     case FrameKind.BinaryRight: return binary(taken)
     case FrameKind.Arguments: return arguments(taken)
     case FrameKind.ObjectValue: return object(taken)
+    case FrameKind.OptionsValue: return object(taken)
     case FrameKind.MatchSubject: return selection(taken)
     case FrameKind.MatchCondition: return selection(taken)
     case FrameKind.MatchResult: return selection(taken)

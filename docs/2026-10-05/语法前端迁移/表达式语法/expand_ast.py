@@ -32,12 +32,12 @@ def expand_type(source, tree, index):
 
 
 
-def expand_expression(source, tree, types, index):
+def expand_expression(source, tree, types, index, block=None):
     node = tree["nodes"][index]
     kind = node["kind"]
 
     def expr(child):
-        return expand_expression(source, tree, types, child)
+        return expand_expression(source, tree, types, child, block)
 
     def text(span):
         return source[span["start"]:span["end"]].decode()
@@ -73,6 +73,11 @@ def expand_expression(source, tree, types, index):
         value = {"call": {"callee": expr(node["first"]), "arguments": [expr(edge["value"]) for edge in chain("items")], "type_argument": expand_type(source, types, node["type_argument"] - 1) if node["type_argument"] else None}}
     elif kind == "Lambda":
         value = {"lambda": {"parameters": [name(source, edge["name"]) for edge in chain("parameters")], "body": expr(node["first"])}}
+    elif kind == "StateBlock":
+        if block is None:
+            raise ValueError("StateBlock requires a block table")
+
+        value = {"state_block": block(node["first"])}
     elif kind == "Template":
         value = {"template": [{"expression": expr(edge["value"])} if edge["expression"] else {"text": text(edge["span"])} for edge in chain("parts")]}
     elif kind == "Unary":

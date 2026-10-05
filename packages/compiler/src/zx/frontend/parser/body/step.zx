@@ -16,6 +16,7 @@ import value from "./grammar/value"
 import { FrameKind, Phase } from "./model"
 import expression from "./state/expression"
 import publish from "./state/publish"
+import resume from "./state/resume"
 
 import type { State } from "./model"
 
@@ -25,7 +26,7 @@ export type Output = State
 
 export default function (in: owned Input): Output {
   if (in.control.phase == Phase.Done || in.control.expression_diagnostic) {
-    return { expression: in.expression, tree: in.tree, frames: in.frames, frame: in.frame, control: { ...in.control, phase: Phase.Done } }
+    return { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: in.frame, control: { ...in.control, phase: Phase.Done } }
   }
 
   if (in.control.phase == Phase.Expression) {
@@ -33,7 +34,7 @@ export default function (in: owned Input): Output {
   }
 
   const at = current(in.expression)
-  const state = { expression: { prepared: in.expression.prepared, tree: in.expression.tree, types: in.expression.types, frames: in.expression.frames, control: { ...in.expression.control, token: at.token, hint: at.hint, template: at.template } }, tree: in.tree, frames: in.frames, frame: in.frame, control: in.control }
+  const state = { expression: { prepared: in.expression.prepared, tree: in.expression.tree, types: in.expression.types, frames: in.expression.frames, control: { ...in.expression.control, token: at.token, hint: at.hint, template: at.template } }, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: in.frame, control: in.control }
 
   switch (state.control.phase) {
     case Phase.BlockOpen: return state.frame.kind == FrameKind.Statement ? branch(state) : block(state)
@@ -62,11 +63,11 @@ export default function (in: owned Input): Output {
       const named = state.frame.third != 0
       const first = named ? state.expression.control.result + 1 : 0
 
-      return selection({ expression: state.expression, tree: state.tree, frames: state.frames, frame: { ...state.frame, first: first }, control: state.control })
+      return selection({ expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: { ...state.frame, first: first }, control: state.control })
     case Phase.CaseBody:
       const start = state.expression.control.token.span.start
 
-      return { expression: state.expression, tree: state.tree, frames: state.frames, frame: { ...state.frame, name: { start: start, end: start } }, control: { ...state.control, phase: Phase.CaseNext } }
+      return { expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: { ...state.frame, name: { start: start, end: start } }, control: { ...state.control, phase: Phase.CaseNext } }
     case Phase.CaseNext:
       const word = state.expression.control.token.word
       const closing = word == Keyword.Case || word == Keyword.Default || state.expression.control.token.symbol == Symbol.CloseBrace
@@ -78,6 +79,7 @@ export default function (in: owned Input): Output {
     case Phase.Value: return value(state)
     case Phase.EndStatement: return end(state)
     case Phase.Publish: return publish(state)
+    case Phase.Resume: return resume(state)
     default: return state
   }
 }

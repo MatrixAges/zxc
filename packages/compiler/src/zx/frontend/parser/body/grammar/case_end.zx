@@ -17,5 +17,5 @@ export default function (in: owned Input): Output {
   const cases = in.tree.cases.push({ span: { start: in.frame.start, end: in.expression.control.last_end }, value: in.frame.first, body: body, previous: parent.head })[0]
   const tree = { statements: in.tree.statements, blocks: blocks, items: in.tree.items, names: in.tree.names, cases: cases }
 
-  return { expression: in.expression, tree: tree, frames: popped[0], frame: { ...parent, head: head, count: count }, control: { ...in.control, phase: Phase.SwitchCase } }
+  return { expression: in.expression, tree: tree, frames: popped[0], suspended: in.suspended, frame: { ...parent, head: head, count: count }, control: { ...in.control, phase: Phase.SwitchCase } }
 }

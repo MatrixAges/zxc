@@ -30,13 +30,13 @@ export default function (in: owned Input): Output {
     const index = in.expression.control.index + 1
     const initial = typeInitial({ start: index, depth: in.frame.depth })
     const types = { tree: in.expression.types.tree, frames: initial.frames, control: { ...initial.control, index: index } }
-    const state = { expression: { prepared: in.expression.prepared, tree: in.expression.tree, types: types, frames: in.expression.frames, control: in.expression.control }, tree: in.tree, frames: in.frames, frame: in.frame, control: in.control }
+    const state = { expression: { prepared: in.expression.prepared, tree: in.expression.tree, types: types, frames: in.expression.frames, control: in.expression.control }, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: in.frame, control: in.control }
 
     return consume({ state: state, phase: Phase.Type })
   }
 
   if (in.control.phase == Phase.ConstName && symbol == Symbol.OpenBracket) {
-    const state = { expression: in.expression, tree: in.tree, frames: in.frames, frame: { ...in.frame, statement: StatementKind.Destructure }, control: in.control }
+    const state = { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: { ...in.frame, statement: StatementKind.Destructure }, control: in.control }
 
     return consume({ state: state, phase: Phase.PatternName })
   }
@@ -60,7 +60,7 @@ export default function (in: owned Input): Output {
   const name = { start: in.expression.control.token.span.start, end: in.expression.control.token.span.end }
 
   if (in.control.phase == Phase.ConstName) {
-    return consume({ state: { expression: in.expression, tree: in.tree, frames: in.frames, frame: { ...in.frame, name: name }, control: in.control }, phase: Phase.ConstAfterName })
+    return consume({ state: { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: { ...in.frame, name: name }, control: in.control }, phase: Phase.ConstAfterName })
   }
 
   const head = in.tree.names.length + 1
@@ -68,5 +68,5 @@ export default function (in: owned Input): Output {
   const names = in.tree.names.push({ span: name, previous: in.frame.head })[0]
   const tree = { statements: in.tree.statements, blocks: in.tree.blocks, items: in.tree.items, names: names, cases: in.tree.cases }
 
-  return consume({ state: { expression: in.expression, tree: tree, frames: in.frames, frame: { ...in.frame, head: head, count: count }, control: in.control }, phase: Phase.PatternSeparator })
+  return consume({ state: { expression: in.expression, tree: tree, frames: in.frames, suspended: in.suspended, frame: { ...in.frame, head: head, count: count }, control: in.control }, phase: Phase.PatternSeparator })
 }

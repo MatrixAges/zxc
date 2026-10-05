@@ -5,11 +5,11 @@ import type { Span, Token } from "../../../lexer/token_model"
 import type { Tree, Frame, Control } from "../../types/model"
 import type { PreparedInput, Hint } from "../prepare/model"
 
-export enum ExprKind { Number, String, Boolean, Null, Identifier, Field, Index, List, Call, Lambda, Template, Unary, Binary, Conditional, Match, Object }
+export enum ExprKind { Number, String, Boolean, Null, Identifier, Field, Index, List, Call, Lambda, Template, Unary, Binary, Conditional, Match, Object, StateBlock }
 
-export enum Phase { BeginBinary, Primary, Postfix, Returning, FieldName, Arguments, ObjectName, ObjectColon, LambdaParameter, LambdaSeparator, LambdaArrow, MatchStart, MatchCondition, MatchFallbackArrow, MatchEnd, GenericType, GenericCall, TemplateGather, TemplatePart, Done }
+export enum Phase { BeginBinary, Primary, Postfix, Returning, FieldName, Arguments, ObjectName, ObjectColon, LambdaParameter, LambdaSeparator, LambdaArrow, LambdaBody, Callback, StateBlock, MatchStart, MatchCondition, MatchFallbackArrow, MatchEnd, GenericType, GenericCall, TemplateGather, TemplatePart, Done }
 
-export enum FrameKind { BinaryLeft, BinaryRight, Unary, Group, Index, Arguments, ObjectValue, Lambda, ConditionalYes, ConditionalNo, MatchSubject, MatchCondition, MatchResult, MatchFallback, Template, TemplatePart, Interpolation }
+export enum FrameKind { BinaryLeft, BinaryRight, Unary, Group, Index, Arguments, ObjectValue, OptionsValue, Lambda, ConditionalYes, ConditionalNo, MatchSubject, MatchCondition, MatchResult, MatchFallback, Template, TemplatePart, Interpolation }
 
 export type ExprNode = { kind: ExprKind, span: Span, depth: u64, name: Span, flag: bool, operator: Operator, first: u64, second: u64, third: u64, head: u64, count: u64, type_argument: u64 }
 
@@ -28,7 +28,7 @@ export type ExprTree = { nodes: ExprNode[], items: Item[], fields: Field[], para
 export type ExprFrame = {
   kind: FrameKind, start: u64, end: u64, depth: u64, minimum: u8, allow_lambda: bool,
   reset_family: bool, family: Family, first: u64, second: u64, head: u64, count: u64,
-  maximum: u64, name: Span, flag: bool, cursor: u64, stream: u64, index: u64, operator: Operator
+  maximum: u64, name: Span, flag: bool, callback: bool, condition: bool, cursor: u64, stream: u64, index: u64, operator: Operator
 }
 
 export type ExprControl = {

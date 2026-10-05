@@ -8,7 +8,10 @@ import tempfile
 root = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(root / "docs/2026-10-05/语法前端迁移/表达式语法"))
 
+sys.path.insert(0, str(root / "docs/2026-10-06/语句块迁移"))
+
 from expand_ast import expand_expression
+from expand_body import expand_body
 
 
 paths = set((root / "packages/compiler/src/zx/frontend/parser").rglob("*.zx"))
@@ -71,7 +74,7 @@ with tempfile.TemporaryDirectory(prefix="zxc_header_replay_") as directory:
             for contract in state["contracts"]:
                 contracts.append({
                     "kind": "ensures" if contract["ensures"] else "requires",
-                    "predicate": expand_expression(source, state["tree"], state["types"], contract["predicate"]),
+                    "predicate": expand_expression(source, state["tree"], state["types"], contract["predicate"], lambda index: expand_body(source, {"tree": state["body"], "expressions": state["tree"], "types": state["types"]}, index)),
                     "span": contract["span"],
                 })
 

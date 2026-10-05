@@ -1,6 +1,5 @@
-import { Phase } from "../../../../packages/compiler/src/zx/frontend/parser/expressions/state/model"
+import parse from "../../../../packages/compiler/src/zx/frontend/parser/body/expression"
 import start from "../../../../packages/compiler/src/zx/frontend/parser/expressions/state/start"
-import step from "../../../../packages/compiler/src/zx/frontend/parser/expressions/step"
 
 import type { State } from "./model"
 
@@ -9,25 +8,20 @@ export type Input = { state: State, start: u64 }
 export type Output = State
 
 export default function (in: owned Input): Output {
-  const parsed = loop(start({
+  const parsed = parse({ expression: start({
     prepared: in.state.state.prepared,
     tree: in.state.state.tree,
     types: in.state.state.types,
     start: in.start, depth: 0, minimum: 0, allow_lambda: true
-  }), {
-    while: state => state.control.phase != Phase.Done,
-    next: state => {
-      state = step(state)
-    }
-  })
+  }), tree: in.state.body })
 
   const result = {
-    root: parsed.control.result,
-    index: parsed.control.root_index,
-    valid: parsed.control.diagnostic.message == "" && parsed.control.lexical_diagnostic == 0 && !parsed.control.type_diagnostic
+    root: parsed.expression.control.result,
+    index: parsed.expression.control.root_index,
+    valid: parsed.control.diagnostic.message == "" && !parsed.control.expression_diagnostic
   }
 
   const results = in.state.results.push(result)[0]
 
-  return { state: parsed, results: results }
+  return { state: parsed.expression, body: parsed.tree, results: results }
 }
