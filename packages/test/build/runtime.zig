@@ -28,6 +28,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
     const template_delimiters_step = b.step("test-template-delimiters", "Execute quoted and commented interpolation boundaries");
     const template_characters_step = b.step("test-template-characters", "Execute template escapes and literal interpolation markers");
     const template_step = b.step("test-template-nesting", "Execute original and dynamic nested template literals");
+    const array_callbacks_step = b.step("test-array-callbacks", "Execute upstream dense array callback values seed and ordering");
     const nested_collections_step = b.step("test-nested-collections", "Execute nested collection callbacks and restored scopes");
     const nested_step = b.step("test-switch-nested", "Execute nested switch selection");
     const scope_step = b.step("test-switch-scope", "Execute switch branch-local bindings");
@@ -141,6 +142,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         if (std.mem.startsWith(u8, suite.name, "template-delimiters-")) template_delimiters_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "template-characters-")) template_characters_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "template-nested-")) template_step.dependOn(&run.step);
+        if (std.mem.startsWith(u8, suite.name, "array-callbacks-")) array_callbacks_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "nested-collections-")) nested_collections_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "switch-nested-")) nested_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "switch-scope-")) scope_step.dependOn(&run.step);

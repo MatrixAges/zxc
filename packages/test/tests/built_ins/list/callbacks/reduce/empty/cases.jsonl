@@ -1,0 +1,9 @@
+{"id":"built_ins/list/callbacks/reduce/empty/original_no_callback","input":{"items":[],"seed":3},"expected":{"value":3}}
+{"id":"built_ins/list/callbacks/reduce/empty/original_seed","input":{"items":[],"seed":1},"expected":{"value":1}}
+{"id":"built_ins/list/callbacks/reduce/empty/zero_seed","input":{"items":[],"seed":0},"expected":{"value":0}}
+{"id":"built_ins/list/callbacks/reduce/empty/negative_seed","input":{"items":[],"seed":-2},"expected":{"value":-2}}
+{"id":"built_ins/list/callbacks/reduce/empty/nonempty_success","input":{"items":[[2],[5]],"seed":3},"expected":{"value":10}}
+{"id":"built_ins/list/callbacks/reduce/empty/nonempty_failure","input":{"items":[[]],"seed":3},"expected":{"error":"IndexOutOfBounds"}}
+{"id":"built_ins/list/callbacks/reduce/empty/later_failure","input":{"items":[[2],[]],"seed":3},"expected":{"error":"IndexOutOfBounds"}}
+{"id":"built_ins/list/callbacks/reduce/empty/zero_element","input":{"items":[[0]],"seed":3},"expected":{"value":3}}
+{"id":"built_ins/list/callbacks/reduce/empty/first_field","input":{"items":[[0,9]],"seed":3},"expected":{"value":3}}
