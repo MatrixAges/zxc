@@ -55,6 +55,30 @@ pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
         .{ .path = "write_list.zx", .source = @embedFile("fixtures/write_list.zx") },
         .{ .path = "list.zx", .source = @embedFile("fixtures/list.zx") },
         .{ .path = "number.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number_first.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number_second.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number_later.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number_other.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number_base.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number_left.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number_right.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number_total.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number_local.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "a.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "ab.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "group_a.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "group_b.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "$in_value.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "store_value.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "task.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "number.child.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "value.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "alpha.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "alpha_x.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "alphabet.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "beta.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "alpha.x.zx", .source = @embedFile("fixtures/number.zx") },
+        .{ .path = "1x.zx", .source = @embedFile("fixtures/number.zx") },
         .{ .path = "write.zx", .source = @embedFile("fixtures/write.zx") },
         .{ .path = "native.zx", .source = @embedFile("fixtures/native.zx") },
         .{ .path = "bridge.zx", .source = @embedFile("fixtures/bridge.zx") },
@@ -118,7 +142,7 @@ pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
 
         const program = result.value.contract.program;
 
-        try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, program.types[@intFromEnum(program.output_type)]);
+        try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, program.types[@backingInt(program.output_type)]);
         try std.testing.expectEqual(case.slots, program.stores.len);
         try std.testing.expect(try compiler.validateIr(allocator, program) == null);
     }
