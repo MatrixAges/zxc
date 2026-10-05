@@ -1,0 +1,41 @@
+{
+	"part": 393,
+	"recorded_at": "2026-10-05T03:24:00.069519+00:00",
+	"head_at_recording": "530b944d3c26f18dbf2927eb9bf4daf17cc777c3",
+	"production_status_at_recording": [
+		" M packages/genz/src/zx/lower.zig",
+		" M packages/genz/src/zx/object_reduce/root.zig",
+		"?? packages/genz/src/zx/object_reduce/append/"
+	],
+	"new_checks": 134,
+	"analysis_test_declarations": 48,
+	"application_scenarios": 86,
+	"production_fix": "530b944d",
+	"executions": [
+		{
+			"command": "zig build test-gateway -j4 --summary all",
+			"cwd": "packages/test",
+			"exit_code": 0,
+			"analysis_tests_passed": 48,
+			"app_checks_passed": 86,
+			"steps": "16/16",
+			"log": "Debug检查.txt"
+		},
+		{
+			"command": "zig build test-gateway -Doptimize=ReleaseSafe -j4 --summary all",
+			"cwd": "packages/test",
+			"exit_code": 0,
+			"analysis_tests_passed": 48,
+			"app_checks_passed": 86,
+			"steps": "16/16",
+			"log": "ReleaseSafe检查.txt"
+		}
+	],
+	"boundaries": [
+		"No claim of concurrent requests or built-in timeout",
+		"Write request arenas retained until application exit; long-term bounded reclamation unimplemented",
+		"Analysis OOM only, no complete runtime allocation failure coverage",
+		"No Gateway watch or complete build-option matrix in this stage",
+		"Recording-time shared checkout snapshot does not describe entire execution period"
+	]
+}

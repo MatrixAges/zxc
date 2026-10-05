@@ -1,0 +1,5 @@
+<Module>
+  <Call service="advance" in="$in.increment" out="ctx.first"/>
+  <Call service="fail" in="$in" out="ctx.second"/>
+  <Return value="ctx.second"/>
+</Module>

@@ -1,0 +1,9 @@
+export type Input = { value: u64, history: u64[], label: string }
+
+export type Output = Input
+
+export default function (in: Input, { store }): Output {
+  store.inner.counter = in
+
+  return in
+}

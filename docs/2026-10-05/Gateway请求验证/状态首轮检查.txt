@@ -1,0 +1,51 @@
+ok 1: nested Group route supports GET JSON body
+ok 2: nested Group route supports POST JSON body
+ok 3: query does not change route or service input
+ok 4: literal route rejects unmatched /missing
+ok 5: literal route rejects unmatched /api/echo
+ok 6: literal route rejects unmatched /api/v1/echo/
+ok 7: literal route rejects unmatched /VOID
+ok 8: literal route rejects unmatched /literal/item
+ok 9: literal route rejects unmatched /literal%2fitem
+ok 10: encoded route remains literal without percent decoding
+ok 11: trailing slash identifies a separate void output service
+ok 12: method mismatch reports configured Allow set
+ok 13: HEAD does not implicitly match a GET route
+ok 14: route without method handles GET
+ok 15: route without method handles HEAD
+ok 16: route without method handles POST
+ok 17: route without method handles PUT
+ok 18: route without method handles DELETE
+ok 19: route without method handles CONNECT
+ok 20: route without method handles OPTIONS
+ok 21: route without method handles TRACE
+ok 22: route without method handles PATCH
+ok 23: different scalar service retains its own Input type
+ok 24: HTTP cannot forge server argv environment or cwd
+ok 25: service error returns generic 500 and server continues
+ok 26: two Stores initialize once and reversed local slots map correctly
+ok 27: primary update 2 persists arrays across requests
+ok 28: primary update 5 persists arrays across requests
+ok 29: primary update 0 persists arrays across requests
+ok 30: second physical Store updates without changing first
+ok 31: later Call in same request observes first committed Store value
+ok 32: failed transaction does not commit pending setter
+ok 33: later failed Call does not roll back earlier successful Call
+ok 34: HEAD executes configured writer but sends no response body
+ok 35: owned list result and request string survive setter request 91
+ok 36: owned list result and request string survive setter request 12
+ok 37: malformed mutation request leaves both Stores unchanged
+ok 38: successful write still works after transaction and parse failures
+Gateway applications: 38 checks passed
+Build Summary: 10/10 steps succeeded
+test-gateway success
++- run node success 1s
+   +- compile exe zxc Debug native cached 46ms MaxRSS:21M
+      +- WriteFile cached
+      +- compile lib yaml Debug native cached 39ms MaxRSS:20M
+      +- compile lib yaml Debug native (reused)
+      +- options cached
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig ReleaseFast native cached 46ms MaxRSS:20M
+      |  +- WriteFile bundle_manifest.json cached
+      +- WriteFile interfaces/0.d.zx cached
