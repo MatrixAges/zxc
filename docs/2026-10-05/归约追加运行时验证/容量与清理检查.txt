@@ -1,0 +1,56 @@
+test-reduce-runtime
++- run test reduce-argument
+   +- compile test reduce-argument Debug native
+      +- run exe zxc (program.zig) failure
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/collections/reduce/fixtures/argument.zx:8:54: ownership: the previous owner was consumed; use the new binding returned by the operation
+error: process exited with error code 1
+failed command: ./.zig-cache/o/bf5c5b9ebdfd2c640b3b2db0aa627568/zxc /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/collections/reduce/fixtures/argument.zx --out /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/.zig-cache/o/36235fb89c327d35c3cf3bafd08fda5e/program.zig
+
+Build Summary: 33/37 steps succeeded (1 failed); 86/86 tests passed
+test-reduce-runtime transitive failure
++- run test reduce-push 15 pass (15 total) 6ms MaxRSS:1M
+|  +- compile test reduce-push Debug native success 1s MaxRSS:246M
+|     +- run exe zxc (program.zig) cached
+|     |  +- compile exe zxc Debug native cached 47ms MaxRSS:21M
+|     |     +- WriteFile cached
+|     |     +- compile lib yaml Debug native cached 41ms MaxRSS:20M
+|     |     +- compile lib yaml Debug native (reused)
+|     |     +- options cached
+|     |     +- run exe bundle-zig (bundle) cached
+|     |     |  +- compile exe bundle-zig ReleaseFast native cached 45ms MaxRSS:21M
+|     |     |  +- WriteFile bundle_manifest.json cached
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     +- options cached
++- run test reduce-concat 15 pass (15 total) 7ms MaxRSS:1M
+|  +- compile test reduce-concat Debug native success 1s MaxRSS:253M
+|     +- run exe zxc (program.zig) cached
+|     |  +- compile exe zxc Debug native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-select 15 pass (15 total) 7ms MaxRSS:1M
+|  +- compile test reduce-select Debug native success 1s MaxRSS:248M
+|     +- run exe zxc (program.zig) cached
+|     |  +- compile exe zxc Debug native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-nested 15 pass (15 total) 6ms MaxRSS:1M
+|  +- compile test reduce-nested Debug native success 1s MaxRSS:253M
+|     +- run exe zxc (program.zig) cached
+|     |  +- compile exe zxc Debug native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-condition 13 pass (13 total) 8ms MaxRSS:1M
+|  +- compile test reduce-condition Debug native success 1s MaxRSS:249M
+|     +- run exe zxc (program.zig) cached
+|     |  +- compile exe zxc Debug native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-argument transitive failure
+|  +- compile test reduce-argument Debug native transitive failure
+|     +- run exe zxc (program.zig) failure
+|     |  +- compile exe zxc Debug native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-stack 13 pass (13 total) 6ms MaxRSS:1M
+   +- compile test reduce-stack Debug native success 1s MaxRSS:250M
+      +- run exe zxc (program.zig) cached
+      |  +- compile exe zxc Debug native (+6 more reused dependencies)
+      +- options cached
+
+error: the following build command failed with exit code 1:
+.zig-cache/o/92f9cf9a67a2f0d0181c056652c01ab8/build /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib /Users/xiewendao/Documents/MatrixAges/zxc/packages/test .zig-cache /Users/xiewendao/.cache/zig --seed 0x81180393 -Z16610a2737b56796 test-reduce-runtime --summary all

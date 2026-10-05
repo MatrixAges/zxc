@@ -1,0 +1,54 @@
+Build Summary: 44/44 steps succeeded; 159/159 tests passed
+test-reduce-runtime success
++- run test reduce-push 15 pass (15 total) 5ms MaxRSS:1M
+|  +- compile test reduce-push ReleaseSafe native success 7s MaxRSS:323M
+|     +- run exe zxc (program.zig) success 8ms
+|     |  +- compile exe zxc ReleaseSafe native success 51s MaxRSS:2G
+|     |     +- WriteFile cached
+|     |     +- compile lib yaml ReleaseSafe native cached 42ms MaxRSS:20M
+|     |     +- compile lib yaml ReleaseSafe native (reused)
+|     |     +- options success
+|     |     +- run exe bundle-zig (bundle) cached
+|     |     |  +- compile exe bundle-zig ReleaseFast native cached 47ms MaxRSS:21M
+|     |     |  +- WriteFile bundle_manifest.json cached
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     +- options cached
++- run test reduce-concat 15 pass (15 total) 4ms MaxRSS:1M
+|  +- compile test reduce-concat ReleaseSafe native success 7s MaxRSS:316M
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc ReleaseSafe native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-select 15 pass (15 total) 4ms MaxRSS:1M
+|  +- compile test reduce-select ReleaseSafe native success 7s MaxRSS:325M
+|     +- run exe zxc (program.zig) success 8ms
+|     |  +- compile exe zxc ReleaseSafe native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-nested 15 pass (15 total) 4ms MaxRSS:1M
+|  +- compile test reduce-nested ReleaseSafe native success 7s MaxRSS:320M
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc ReleaseSafe native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-condition 13 pass (13 total) 4ms MaxRSS:1M
+|  +- compile test reduce-condition ReleaseSafe native success 7s MaxRSS:325M
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc ReleaseSafe native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-argument 13 pass (13 total) 5ms MaxRSS:1M
+|  +- compile test reduce-argument ReleaseSafe native success 7s MaxRSS:310M
+|     +- run exe zxc (program.zig) success 7ms
+|     |  +- compile exe zxc ReleaseSafe native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-first_value 13 pass (13 total) 5ms MaxRSS:1M
+|  +- compile test reduce-first_value ReleaseSafe native success 7s MaxRSS:329M
+|     +- run exe zxc (program.zig) success 5ms
+|     |  +- compile exe zxc ReleaseSafe native (+6 more reused dependencies)
+|     +- options cached
++- run test reduce-stack 13 pass (13 total) 4ms MaxRSS:1M
+   +- compile test reduce-stack ReleaseSafe native success 7s MaxRSS:334M
+      +- run exe zxc (program.zig) success 8ms
+      |  +- compile exe zxc ReleaseSafe native (+6 more reused dependencies)
+      +- options cached
+test-ownership-contracts success
++- run test 47 pass (47 total) 25ms MaxRSS:1M
+   +- compile test ReleaseSafe native success 12s MaxRSS:473M
+      +- WriteFile interfaces/0.d.zx (reused)

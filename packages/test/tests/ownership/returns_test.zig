@@ -90,4 +90,5 @@ comptime {
     _ = @import("loans/root.zig");
     _ = @import("reduce/root.zig");
     _ = @import("reduce/tuple.zig");
+    _ = @import("reduce/receiver.zig");
 }
