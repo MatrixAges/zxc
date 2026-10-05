@@ -1,6 +1,6 @@
 <Module>
-  <Call fn='increment' in={$in} out='ctx.start'/>
-  <Call service='./bridge.rx' in={ctx.start} out='ctx.middle'/>
-  <Call fn='multiply' in={ctx.middle} out='ctx.result'/>
-  <Return value={ctx.result}/>
+  <Call fn='increment' in={$in}/>
+  <Call module='./bridge.rx' in={$ctx.increment}/>
+  <Call fn='multiply' in={$ctx.bridge}/>
+  <Return value={$ctx.multiply}/>
 </Module>

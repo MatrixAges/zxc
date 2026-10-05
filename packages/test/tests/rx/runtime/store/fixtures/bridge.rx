@@ -1,5 +1,5 @@
 <Module>
-  <Call service="advance" in={$in} out="ctx.result" />
+  <Call module="advance" in={$in} />
 
-  <Return value={ctx.result} />
+  <Return value={$ctx.advance} />
 </Module>

@@ -7,6 +7,7 @@ pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
     const args = try init.minimal.args.toSlice(allocator);
     const services = std.mem.eql(u8, args[1], "store_services");
+
     const texts = [_][]const u8{
         if (services) @embedFile("fixtures/services.rx") else @embedFile("fixtures/main.rx"),
         @embedFile("fixtures/advance.rx"),
@@ -14,6 +15,7 @@ pub fn main(init: std.process.Init) !void {
         @embedFile("fixtures/bridge.rx"),
         @embedFile("fixtures/read_state.rx"),
     };
+
     var parsed: [5]rx.XmlResult = undefined;
     var count: usize = 0;
 
@@ -29,13 +31,15 @@ pub fn main(init: std.process.Init) !void {
     const modules = [_]rx.ModuleSource{
         .{ .path = "main.rx", .node = parsed[0].value.node },
         .{ .path = "advance.rx", .node = parsed[1].value.node },
+        .{ .path = "advance_next.rx", .node = parsed[1].value.node },
         .{ .path = "bridge.rx", .node = parsed[3].value.node },
+        .{ .path = "bridge_next.rx", .node = parsed[3].value.node },
         .{ .path = "read_state.rx", .node = parsed[4].value.node },
     };
 
     var result = try analysis.project.infer(allocator, .{
         .entry = "main.rx",
-        .modules = modules[0..(if (services) @as(usize, 4) else 2)],
+        .modules = modules[0..(if (services) @as(usize, 6) else 3)],
         .stores = &.{.{ .path = "state.store.rx", .node = parsed[2].value.node }},
         .sources = &.{
             .{ .path = "advance.zx", .source = @embedFile("fixtures/advance.zx") },
@@ -47,6 +51,7 @@ pub fn main(init: std.process.Init) !void {
 
     if (result.value == .diagnostic) {
         const issue = result.value.diagnostic;
+
         std.debug.print("{s}:{d}:{d}: {s}: {s}\n", .{ issue.path, issue.location.line, issue.location.column, issue.code, issue.message });
 
         return error.InvalidContract;

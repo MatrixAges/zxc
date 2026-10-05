@@ -1,0 +1,51 @@
+test-rx-parallel-inference
++- run test 104 pass, 1 crash (105 total)
+error: 'task_test.test.RX parallel Task without Return is valid when output is omitted' terminated with signal ABRT with stderr:
+       thread 9584369 panic: index out of bounds: index 2, len 2
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/flow_compile.zig:141:33: 0x1054a93d5 in call (test)
+           const binding = self.results[self.next_binding];
+                                       ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/flow_compile.zig:39:55: 0x1053dd3f9 in steps (test)
+                               .call => |index| try self.call(self.loaded[index]),
+                                                             ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/module_compile.zig:36:29: 0x10539c990 in compile (test)
+           const steps = flow.steps(options.steps) catch |err| {
+                                   ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/project/lower.zig:46:68: 0x10539a5b1 in compile (test)
+               const result = try @import("../module_compile.zig").compile(allocator, .{
+                                                                          ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/project.zig:81:54: 0x105398082 in inferIn (test)
+           var result = @import("project/lower.zig").compile(&graph, prepared.loaded, states, checked.dependency_order, entry_index) catch |err| return report(allocator, source_map, reporter, err);
+                                                            ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/project.zig:24:30: 0x105395d63 in infer (test)
+           const value = try inferIn(arena.allocator(), options);
+                                    ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/check.zig:92:44: 0x10534fe53 in allocated (test)
+           var result = try analysis.project.infer(allocator, .{
+                                                  ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/check.zig:22:18: 0x105352dea in run (test)
+           try allocated(std.testing.allocator, case);
+                        ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/parallel/task_test.zig:88:14: 0x1055d3ec7 in test.RX parallel Task without Return is valid when output is omitted (test)
+           try h.run(.{ .source = "<Module><Parallel><Task name='work'><Call fn='number' in={1}/></Task><Call fn='number_other' in={2}/></Parallel><Return value={$ctx.number_other}/></Module>" });
+                    ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x1053263b6 in mainServer (test)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x105326abd in main (test)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x105324576 in callMain (test)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: ./.zig-cache/o/0954082e75d15116a023db122f034b68/test --cache-dir=./.zig-cache --seed=0xe1acb83e --listen=-
+
+Build Summary: 5/7 steps succeeded (1 failed); 104/105 tests passed (1 crashed)
+test-rx-parallel-inference transitive failure
++- run test 104 pass, 1 crash (105 total)
+   +- compile test debug native cached 1s MaxRSS:21M
+      +- WriteFile interfaces/0.d.zx cached
+      +- run exe generate-lexer (lexer.zig) cached
+         +- compile exe generate-lexer debug native cached 42ms MaxRSS:21M
+            +- WriteFile interfaces/0.d.zx cached

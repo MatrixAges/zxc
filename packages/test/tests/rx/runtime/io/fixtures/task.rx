@@ -1,6 +1,6 @@
 <Module>
   <Task name="files">
-    <Call service="leaf" in={$in} out="local.result" />
-    <Return value={local.result} />
+    <Call module="leaf" in={$in} />
+    <Return value={$ctx.leaf} />
   </Task>
 </Module>

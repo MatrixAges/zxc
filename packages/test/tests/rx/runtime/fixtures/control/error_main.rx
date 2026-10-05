@@ -1,8 +1,8 @@
 <Module>
   <Switch on={$in.enabled}>
     <Case value={true}>
-      <Call service="./leaf.rx" in={$in.values} out="ctx.value" />
-      <Return value={ctx.value} />
+      <Call module="./leaf.rx" in={$in.values} />
+      <Return value={$ctx.leaf} />
     </Case>
     <Default><Return value={9} /></Default>
   </Switch>

@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step {
     const step = b.step("test-rx-runtime", "Execute sequential RX programs through generated Zig");
+    const migration = b.step("test-rx-value-migration-runtime", "Execute migrated owned list calls and service control flow");
 
     step.dependOn(@import("rx_store_runtime.zig").add(b, compiler, target, optimize));
     step.dependOn(@import("rx_io_runtime.zig").add(b, compiler, target, optimize));
@@ -48,6 +49,9 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         }),
     });
 
+    tool.root_module.addAnonymousImport("rx_collection_fixtures", .{ .root_source_file = b.path("tests/rx/support/collections/root.zig"), .target = target, .optimize = optimize });
+    project_tool.root_module.addAnonymousImport("rx_collection_fixtures", .{ .root_source_file = b.path("tests/rx/support/collections/root.zig"), .target = target, .optimize = optimize });
+
     for ([_][]const u8{ "order", "borrow", "discard", "imports_forward", "imports_reverse", "conditional", "aggregate", "owned_pop", "optional_return", "optional_coalesce", "optional_list", "project_forward", "project_reverse", "diamond_forward", "diamond_reverse_calls", "diamond_reverse_modules", "diamond_reverse_both", "owned_service", "error_service", "control_last", "control_first", "control_error", "control_owned", "selection_number", "selection_text", "store_calls", "store_services" }) |mode| {
         const is_store = std.mem.startsWith(u8, mode, "store_");
         const is_control = std.mem.startsWith(u8, mode, "control_");
@@ -89,7 +93,12 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         });
 
         tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
-        step.dependOn(&b.addRunArtifact(tests).step);
+
+        const run = b.addRunArtifact(tests);
+
+        step.dependOn(&run.step);
+
+        if (std.mem.eql(u8, mode, "owned_pop") or std.mem.eql(u8, mode, "owned_service") or std.mem.eql(u8, mode, "control_owned")) migration.dependOn(&run.step);
     }
 
     return step;

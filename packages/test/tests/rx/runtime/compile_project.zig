@@ -13,9 +13,14 @@ pub fn main(init: std.process.Init) !void {
     const diamond = std.mem.startsWith(u8, args[1], "diamond_");
     const reverse_calls = mode == .diamond_reverse_calls or mode == .diamond_reverse_both;
     const reverse_modules = mode == .project_reverse or mode == .diamond_reverse_modules or mode == .diamond_reverse_both;
-    const texts: []const []const u8 = if (control) &.{
-        if (mode == .control_owned) @embedFile("fixtures/control/owned_main.rx") else if (mode == .control_error) @embedFile("fixtures/control/error_main.rx") else if (mode == .control_first) @embedFile("fixtures/control/first.rx") else @embedFile("fixtures/control/last.rx"),
-        if (mode == .control_owned) @embedFile("fixtures/control/owned_leaf.rx") else if (mode == .control_error) @embedFile("fixtures/control/error_leaf.rx") else @embedFile("fixtures/control/leaf.rx"),
+
+    const texts: []const []const u8 = if (mode == .control_owned) &.{
+        @embedFile("fixtures/control/owned_main.rx"),
+        @embedFile("fixtures/control/owned_leaf.rx"),
+        @embedFile("fixtures/control/owned_leaf.rx"),
+    } else if (control) &.{
+        if (mode == .control_error) @embedFile("fixtures/control/error_main.rx") else if (mode == .control_first) @embedFile("fixtures/control/first.rx") else @embedFile("fixtures/control/last.rx"),
+        if (mode == .control_error) @embedFile("fixtures/control/error_leaf.rx") else @embedFile("fixtures/control/leaf.rx"),
     } else if (error_service) &.{
         @embedFile("fixtures/service_error_main.rx"),
         @embedFile("fixtures/service_error_bridge.rx"),
@@ -24,6 +29,7 @@ pub fn main(init: std.process.Init) !void {
         @embedFile("fixtures/service_owned_main.rx"),
         @embedFile("fixtures/service_owned_bridge.rx"),
         @embedFile("fixtures/service_owned_leaf.rx"),
+        @embedFile("fixtures/service_owned_bridge.rx"),
     } else if (diamond) &.{
         if (reverse_calls) @embedFile("fixtures/diamond/main_reverse.rx") else @embedFile("fixtures/diamond/main_forward.rx"),
         @embedFile("fixtures/diamond/forwarder.rx"),
@@ -34,7 +40,8 @@ pub fn main(init: std.process.Init) !void {
         @embedFile("fixtures/project_bridge.rx"),
         @embedFile("fixtures/project_leaf.rx"),
     };
-    const names: []const []const u8 = if (control) &.{ "main.rx", "leaf.rx" } else if (diamond) &.{ "main.rx", "left.rx", "right.rx", "identity.rx" } else &.{ "main.rx", "bridge.rx", "leaf.rx" };
+
+    const names: []const []const u8 = if (mode == .control_owned) &.{ "main.rx", "leaf.rx", "leaf_again.rx" } else if (control) &.{ "main.rx", "leaf.rx" } else if (owned) &.{ "main.rx", "bridge.rx", "leaf.rx", "bridge_other.rx" } else if (diamond) &.{ "main.rx", "left.rx", "right.rx", "identity.rx" } else &.{ "main.rx", "bridge.rx", "leaf.rx" };
     const parsed = try allocator.alloc(rx.XmlResult, texts.len);
 
     defer allocator.free(parsed);
@@ -56,6 +63,7 @@ pub fn main(init: std.process.Init) !void {
 
     for (names, 0..) |name, index| {
         const target = if (reverse_modules) names.len - 1 - index else index;
+
         sources[target] = .{ .path = name, .node = parsed[index].value.node };
     }
 
@@ -63,6 +71,8 @@ pub fn main(init: std.process.Init) !void {
         .entry = "main.rx",
         .modules = sources,
         .sources = &.{
+            .{ .path = "pop_values.zx", .source = @import("rx_collection_fixtures").pop_values },
+            .{ .path = "reverse_values.zx", .source = @import("rx_collection_fixtures").reverse_values },
             .{ .path = "helper.zx", .source = @embedFile("fixtures/control/helper.zx") },
             .{ .path = "first.zx", .source = @embedFile("fixtures/first.zx") },
             .{ .path = "map_values.zx", .source = @embedFile("fixtures/map_values.zx") },
@@ -77,6 +87,7 @@ pub fn main(init: std.process.Init) !void {
 
     if (result.value == .diagnostic) {
         const issue = result.value.diagnostic;
+
         std.debug.print("{s}:{d}:{d}: {s}: {s}\n", .{ issue.path, issue.location.line, issue.location.column, issue.code, issue.message });
 
         return error.InvalidContract;

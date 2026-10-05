@@ -1,4 +1,4 @@
 <Module>
-  <Call service="leaf" in={$in} out="ctx.result" />
-  <Return value={ctx.result} />
+  <Call module="leaf" in={$in} />
+  <Return value={$ctx.leaf} />
 </Module>

@@ -1,5 +1,7 @@
 <Module>
-  <Call service='./bridge.rx' in={$in} out='ctx.left'/>
-  <Call service='./bridge.rx' in={$in} out='ctx.right'/>
-  <Return value={{ left: ctx.left.pop(), right: ctx.right.reverse() }}/>
+  <Call module='./bridge.rx' in={$in}/>
+  <Call module='./bridge_other.rx' in={$in}/>
+  <Call fn="pop_values" in={$ctx.bridge}/>
+  <Call fn="reverse_values" in={$ctx.bridge_other}/>
+  <Return value={{ left: $ctx.pop_values, right: $ctx.reverse_values }}/>
 </Module>

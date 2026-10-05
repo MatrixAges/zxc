@@ -42,6 +42,7 @@ pub fn main(init: std.process.Init) !void {
         .sources = &.{
             .{ .path = "write.zx", .source = @embedFile("io/fixtures/write.zx") },
             .{ .path = "read.zx", .source = @embedFile("io/fixtures/read.zx") },
+            .{ .path = "read_after.zx", .source = @embedFile("io/fixtures/read.zx") },
             .{ .path = "copy.zx", .source = @embedFile("io/fixtures/copy.zx") },
             .{ .path = "rename.zx", .source = @embedFile("io/fixtures/rename.zx") },
             .{ .path = "truncate.zx", .source = @embedFile("io/fixtures/truncate.zx") },

@@ -1,5 +1,5 @@
 <Module>
-  <Call service="permuted" in={$in} out="ctx.result" />
+  <Call module="permuted" in={$in} />
 
-  <Return value={ctx.result} />
+  <Return value={$ctx.permuted} />
 </Module>

@@ -1,8 +1,8 @@
 <Module>
   <Store from="left" as="left" />
 
-  <Call fn="snapshot" in={store.left.counter} out="ctx.before" />
-  <Call service="bridge" in={$in} out="ctx.child" />
+  <Call fn="snapshot" in={store.left.counter} />
+  <Call module="bridge" in={$in} />
 
-  <Return value={{before: ctx.before, child: ctx.child}} />
+  <Return value={{before: $ctx.snapshot, child: $ctx.bridge}} />
 </Module>

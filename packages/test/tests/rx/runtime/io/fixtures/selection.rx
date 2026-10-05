@@ -1,8 +1,8 @@
 <Module>
   <Switch on={$in.enabled}>
     <Case value={true}>
-      <Call service="leaf" in={$in.request} out="ctx.result" />
-      <Return value={ctx.result} />
+      <Call module="leaf" in={$in.request} />
+      <Return value={$ctx.leaf} />
     </Case>
     <Default>
       <Return value={{before: $in.fallback, after: $in.fallback}} />

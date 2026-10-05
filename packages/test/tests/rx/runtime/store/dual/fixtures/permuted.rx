@@ -2,8 +2,8 @@
   <Store from="right" as="right" />
   <Store from="left" as="left" />
 
-  <Call fn="read_pair" in={{first: store.right.counter.value, second: store.left.counter.value}} out="ctx.initial" />
-  <Call fn="write_left_pair" in={{first: store.right.counter.value, second: store.right.counter.value, increment: $in}} setter={[store.left.counter]} out="ctx.written" />
+  <Call fn="read_pair" in={{first: store.right.counter.value, second: store.left.counter.value}} />
+  <Call fn="write_left_pair" in={{first: store.right.counter.value, second: store.right.counter.value, increment: $in}} setter={[store.left.counter]} />
 
-  <Return value={{initial: ctx.initial, written: ctx.written}} />
+  <Return value={{initial: $ctx.read_pair, written: $ctx.write_left_pair}} />
 </Module>

@@ -1,0 +1,33 @@
+test-rx-parallel-inference
++- run test 104 pass, 1 crash (105 total)
+error: 'task_test.test.RX parallel Task without Return is valid when output is omitted' terminated with signal ABRT with stderr:
+       thread 9584970 panic: index out of bounds: index 2, len 2
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/flow_compile.zig:141:33: 0x100140880 in call (test)
+           const binding = self.results[self.next_binding];
+                                       ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/flow_compile.zig:39:55: 0x100105b13 in steps (test)
+                               .call => |index| try self.call(self.loaded[index]),
+                                                             ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/module_compile.zig:36:29: 0x1000efa95 in compile (test)
+           const steps = flow.steps(options.steps) catch |err| {
+                                   ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/../compiler/src/rx/analysis/project.zig:81:54: 0x1000dbf26 in inferIn (test)
+           var result = @import("project/lower.zig").compile(&graph, prepared.loaded, states, checked.dependency_order, entry_index) catch |err| return report(allocator, source_map, reporter, err);
+                                                            ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x10006f8cf in mainServer (test)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x10006ea1b in main (test)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: ./.zig-cache/o/1ec054e40af865b7b645d62389b8f05a/test --cache-dir=./.zig-cache --seed=0x95de3224 --listen=-
+
+Build Summary: 5/7 steps succeeded (1 failed); 104/105 tests passed (1 crashed)
+test-rx-parallel-inference transitive failure
++- run test 104 pass, 1 crash (105 total)
+   +- compile test safe native success 24s MaxRSS:703M
+      +- WriteFile interfaces/0.d.zx cached
+      +- run exe generate-lexer (lexer.zig) cached
+         +- compile exe generate-lexer safe native cached 42ms MaxRSS:21M
+            +- WriteFile interfaces/0.d.zx cached

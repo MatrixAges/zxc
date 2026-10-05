@@ -1,7 +1,7 @@
 <Module>
-  <Call service="bridge" in={$in} out="ctx.first" />
-  <Call service="bridge" in={$in} out="ctx.second" />
-  <Call service="read_state" in={$in} out="ctx.current" />
+  <Call module="bridge" in={$in} />
+  <Call module="bridge_next" in={$in} />
+  <Call module="read_state" in={$in} />
 
-  <Return value={{first: ctx.first, second: ctx.second, current: ctx.current}} />
+  <Return value={{first: $ctx.bridge, second: $ctx.bridge_next, current: $ctx.read_state}} />
 </Module>

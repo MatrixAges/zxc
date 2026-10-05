@@ -2,13 +2,13 @@
   <Store from="left" as="left" />
   <Store from="right" as="right" />
 
-  <Call fn="snapshot" in={store.left.counter} out="ctx.before_left" />
-  <Call fn="snapshot" in={store.right.counter} out="ctx.before_right" />
-  <Call service="write_left" in={$in} out="ctx.first" />
-  <Call fn="snapshot" in={store.right.counter} out="ctx.untouched" />
-  <Call service="write_right" in={$in} out="ctx.second" />
-  <Call fn="snapshot" in={store.left.counter} out="ctx.after_left" />
-  <Call fn="snapshot" in={store.right.counter} out="ctx.after_right" />
+  <Call fn="snapshot_before_left" in={store.left.counter} />
+  <Call fn="snapshot_before_right" in={store.right.counter} />
+  <Call module="write_left" in={$in} />
+  <Call fn="snapshot_untouched" in={store.right.counter} />
+  <Call module="write_right" in={$in} />
+  <Call fn="snapshot_after_left" in={store.left.counter} />
+  <Call fn="snapshot_after_right" in={store.right.counter} />
 
-  <Return value={{before_left: ctx.before_left, before_right: ctx.before_right, untouched: ctx.untouched, after_left: ctx.after_left, after_right: ctx.after_right, first: ctx.first, second: ctx.second}} />
+  <Return value={{before_left: $ctx.snapshot_before_left, before_right: $ctx.snapshot_before_right, untouched: $ctx.snapshot_untouched, after_left: $ctx.snapshot_after_left, after_right: $ctx.snapshot_after_right, first: $ctx.write_left, second: $ctx.write_right}} />
 </Module>

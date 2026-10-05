@@ -36,6 +36,7 @@ pub fn main(init: std.process.Init) !void {
         .stores = &.{.{ .path = "state.store.rx", .node = parsed[2].value.node }},
         .sources = &.{
             .{ .path = "read.zx", .source = @embedFile("io/fixtures/read.zx") },
+            .{ .path = "read_after.zx", .source = @embedFile("io/fixtures/read.zx") },
             .{ .path = "save.zx", .source = @embedFile("io/fixtures/save.zx") },
             .{ .path = "view.zx", .source = @embedFile("io/fixtures/view.zx") },
             .{ .path = "combine.zx", .source = @embedFile("io/fixtures/combine.zx") },

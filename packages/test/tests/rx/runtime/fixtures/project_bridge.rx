@@ -1,4 +1,4 @@
 <Module>
-  <Call service='./leaf.rx' in={$in} out='ctx.value'/>
-  <Return value={ctx.value * 3}/>
+  <Call module='./leaf.rx' in={$in}/>
+  <Return value={$ctx.leaf * 3}/>
 </Module>

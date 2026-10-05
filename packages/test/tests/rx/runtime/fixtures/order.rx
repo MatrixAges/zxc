@@ -1,6 +1,6 @@
 <Module>
-  <Call fn="increment" in={$in} out="ctx.a" />
-  <Call fn="multiply" in={ctx.a} out="ctx.ab" />
-  <Call fn="increment" in={ctx.ab} />
-  <Return value={ctx.a + ctx.ab} />
+  <Call fn="increment" in={$in} />
+  <Call fn="multiply" in={$ctx.increment} />
+  <Call fn="increment_discard" in={$ctx.multiply} />
+  <Return value={$ctx.increment + $ctx.multiply} />
 </Module>
