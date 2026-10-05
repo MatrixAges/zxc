@@ -1,0 +1,14 @@
+export type Step = { enabled: bool, values: u64[] }
+
+export type Input = Step[]
+
+export type State = { count: u64, values: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const values: u64[] = [10]
+  const initial: State = { count: 0, values: values }
+
+  return in.reduce((state, item) => item.enabled ? ({ count: state.count + 1, values: state.values.concat(item.values)[0] }) : state, initial)
+}

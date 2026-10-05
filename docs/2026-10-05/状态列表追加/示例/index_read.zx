@@ -1,0 +1,12 @@
+export type Input = u64[]
+
+export type State = { previous: u64, values: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const values: u64[] = [7]
+  const initial: State = { previous: 0, values: values }
+
+  return in.reduce((state, item) => ({ previous: state.values[0], values: state.values.push(item)[0] }), initial)
+}

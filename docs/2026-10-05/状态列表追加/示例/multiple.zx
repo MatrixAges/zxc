@@ -1,0 +1,13 @@
+export type Input = u64[]
+
+export type State = { primary: u64[], secondary: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const primary: u64[] = []
+  const secondary: u64[] = []
+  const initial: State = { primary: primary, secondary: secondary }
+
+  return in.reduce((state, item) => item == 0 ? state : ({ primary: state.primary.push(item)[0], secondary: state.secondary.concat([item, item + 1])[0] }), initial)
+}

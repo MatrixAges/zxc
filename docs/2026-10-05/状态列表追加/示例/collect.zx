@@ -1,0 +1,12 @@
+export type Input = u64[]
+
+export type State = { count: u64, values: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const values: u64[] = []
+  const initial: State = { count: 0, values: values }
+
+  return in.reduce((state, item) => ({ count: state.count + 1, values: state.values.push(item)[0] }), initial)
+}
