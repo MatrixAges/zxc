@@ -31,14 +31,16 @@
 
 ### ZX 导入
 
-ZX 导入必须显式写出 `.zx` 扩展名，并以 `./`、`../` 或 `@/` 开头。相对路径以导入文件为起点，CLI 的 `@/` 则相对于当前工作目录。
+ZX 文件导入可以省略 `.zx` 后缀，以 `./`、`../` 或 `@/` 开头。`./calculate_quote` 与 `./calculate_quote.zx` 指向同一个模块。相对路径以导入文件为起点，`@/` 相对于所属包或项目的根目录；没有项目配置时使用 CLI 当前工作目录。
 
 ```typescript
-import calculateQuote from './calculate_quote.zx'
-import type { Money } from './types.zx'
+import calculateQuote from './calculate_quote'
+import type { Money } from './types'
 ```
 
 默认函数导入来自可执行 ZX 文件，共享类型和枚举导入来自纯类型文件。纯类型文件至少导出一个类型或枚举，没有默认函数。不要用可执行模块导出的 `Input` 替代共享类型模块。
+
+无扩展名的文件路径只补齐 `.zx`，不会搜索目录入口或其他语言后缀。包名与 `std:`、`zig:`、`c:` 导入仍按各自的模块声明解析。
 
 ### 两种依赖图都必须无环
 

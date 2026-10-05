@@ -31,14 +31,16 @@ An `Import` declares a graph edge; it does not execute the imported module and h
 
 ### ZX imports
 
-ZX imports use explicit `.zx` extensions and one of `./`, `../`, or `@/`. Relative paths start at the importing file. The CLI resolves `@/` from its current working directory.
+ZX file imports may omit the `.zx` extension and start with `./`, `../`, or `@/`. `./calculate_quote` and `./calculate_quote.zx` identify the same module. Relative paths start at the importing file. `@/` starts at the owning package or project root, or the CLI working directory when no project configuration is present.
 
 ```typescript
-import calculateQuote from './calculate_quote.zx'
-import type { Money } from './types.zx'
+import calculateQuote from './calculate_quote'
+import type { Money } from './types'
 ```
 
 Default function imports come from executable ZX files. Shared type and enum imports come from type-only files. A type-only file exports at least one type or enum and has no default function. Do not use an executable module's `Input` export as a substitute for a shared type module.
+
+An extensionless file reference only gains `.zx`; it does not search directory entry points or other language extensions. Package names and `std:`, `zig:`, and `c:` imports retain their own module resolution rules.
 
 ### Keep both graphs acyclic
 

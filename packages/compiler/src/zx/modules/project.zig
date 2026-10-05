@@ -529,11 +529,20 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
 }
 
 pub fn resolvePath(allocator: std.mem.Allocator, from: []const u8, path: []const u8, root: []const u8, reporter: *zx.Reporter, span: zx.Span) zx.Error![]const u8 {
-    if (!std.mem.endsWith(u8, path, ".zx")) return reporter.fail(.module, span, "project imports must end in .zx; runtime and RX imports are forbidden");
-    if (std.mem.startsWith(u8, path, "@/")) return std.fs.path.resolve(allocator, &.{ root, path[2..] });
+    const extension = std.fs.path.extension(path);
+    const basename = std.fs.path.basename(path);
+
+    if (basename.len == 0 or std.mem.endsWith(u8, path, "/") or std.mem.eql(u8, basename, ".") or std.mem.eql(u8, basename, "..")) return reporter.fail(.module, span, "project imports must name a ZX module");
+    if (extension.len != 0 and !std.mem.eql(u8, extension, ".zx")) return reporter.fail(.module, span, "project imports must reference ZX modules; runtime and RX imports are forbidden");
+
+    const source_path = if (extension.len == 0) try std.fmt.allocPrint(allocator, "{s}.zx", .{path}) else path;
+
+    defer if (extension.len == 0) allocator.free(source_path);
+
+    if (std.mem.startsWith(u8, path, "@/")) return std.fs.path.resolve(allocator, &.{ root, source_path[2..] });
     if (!std.mem.startsWith(u8, path, "./") and !std.mem.startsWith(u8, path, "../")) return reporter.fail(.module, span, "imports require ./, ../ or @/ paths; external interfaces require explicit registration");
 
-    return std.fs.path.resolve(allocator, &.{ std.fs.path.dirname(from) orelse ".", path });
+    return std.fs.path.resolve(allocator, &.{ std.fs.path.dirname(from) orelse ".", source_path });
 }
 
 pub fn resolveImport(allocator: std.mem.Allocator, from: []const u8, path: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error![]const u8 {
