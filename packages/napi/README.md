@@ -17,3 +17,5 @@ declarations.zig 从编译器保留的入口类型表生成 TypeScript 声明，
 ## Answer：入口
 
 Zig 消费者通过模块 napi 使用 read、write、check、fail；CLI 使用 --host node 构建 addon.node，公开用法见 [N-API reference](../../docs/2026-10-05/NAPI参考.md)。正式 Node 插件最低声明 Node-API 6。
+
+executeAsync 返回 Promise<Output>；CLI 的 node 宿主管理原生任务队列、Store 调用顺序及环境生命周期，本包提供相应的稳定 C ABI。

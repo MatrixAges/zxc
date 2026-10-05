@@ -83,7 +83,7 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     configuration_options.cache_stats = false;
     configuration_options.watch = false;
     const node = options.host == .node;
-    const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = configuration_options, .project = loaded, .node_sources = if (node) @as([]const @import("napi_resources").File, &@import("napi_resources").files) else &.{} }, .{});
+    const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = configuration_options, .project = loaded, .node_host_sources = if (node) @as([]const @import("node/resources.zig").File, &@import("node/resources.zig").files) else &.{}, .node_sources = if (node) @as([]const @import("napi_resources").File, &@import("napi_resources").files) else &.{} }, .{});
     const abi = try @import("abi.zig").create(allocator, bundle, loaded);
     const wasm = try @import("wasm/target.zig").freestanding(options.target);
     var executable_bundle = bundle;
@@ -91,7 +91,7 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     if (node) {
         if (wasm or bundle.runner != null) return error.UnsupportedNodeRunner;
 
-        executable_bundle.runner = if (bundle.state_module != null) "const stateful = true;\n" ++ @embedFile("node/runner.zig") else "const stateful = false;\n" ++ @embedFile("node/runner.zig");
+        executable_bundle.runner = if (bundle.state_module != null) "pub const stateful = true;\n" ++ @embedFile("node/runner.zig") else "pub const stateful = false;\n" ++ @embedFile("node/runner.zig");
     }
 
     if (wasm) {
@@ -118,6 +118,7 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
             try arguments.append(allocator, try std.fs.path.resolve(allocator, &.{path}));
         } else try arguments.append(allocator, "-fallow-shlib-undefined");
 
+        for (@import("node/resources.zig").files) |file| try artifacts.retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "node", file.path }), file.source);
         for (@import("napi_resources").files) |file| try artifacts.retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "napi", file.path }), file.source);
     }
 

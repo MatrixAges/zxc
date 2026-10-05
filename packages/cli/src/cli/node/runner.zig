@@ -2,19 +2,8 @@ const std = @import("std");
 const application = @import("application");
 const napi = @import("zxc_napi");
 const api = napi.api;
-const State = if (stateful) @import("zxc_state") else void;
-
-const Context = struct {
-    arena: std.heap.ArenaAllocator,
-    state: State = undefined,
-    busy: bool = false,
-    fn deinit(self: *@This()) void {
-        if (stateful) self.state.deinit();
-
-        self.arena.deinit();
-        std.heap.page_allocator.destroy(self);
-    }
-};
+const Context = @import("node/context.zig");
+const enqueue = @import("node/enqueue.zig").callback;
 
 comptime {
     if (application.requires_io or application.requires_process) @compileError("Node addons require an explicit host implementation for I/O and process capabilities");
@@ -31,25 +20,28 @@ export fn napi_register_module_v1(env: api.Env, exports: api.Value) api.Value {
 fn register(env: api.Env, exports: api.Value) !api.Value {
     const context = try std.heap.page_allocator.create(Context);
 
-    context.* = .{ .arena = std.heap.ArenaAllocator.init(std.heap.page_allocator) };
+    context.* = .{ .arena = std.heap.ArenaAllocator.init(std.heap.page_allocator), .env = env };
+
+    defer context.release();
 
     if (stateful) context.state = .{ .arena = &context.arena };
-
-    var attached = false;
-
-    errdefer if (!attached) context.deinit();
-
     if (stateful) try context.state.initialize();
+    try napi.check(api.napi_add_env_cleanup_hook(env, Context.cleanup, context));
 
-    var function: api.Value = null;
+    context.hooked = true;
 
-    try napi.check(api.napi_create_function(env, "execute", 7, callback, context, &function));
-    try napi.check(api.napi_add_finalizer(env, function, context, finalize, null, null));
+    inline for (.{ .{ "execute", callback }, .{ "executeTask", enqueue } }) |entry| {
+        var function: api.Value = null;
 
-    attached = true;
-    const property = api.Property{ .utf8name = "execute", .value = function };
+        try napi.check(api.napi_create_function(env, entry[0], entry[0].len, entry[1], context, &function));
+        try napi.check(api.napi_add_finalizer(env, function, context, finalize, null, null));
 
-    try napi.check(api.napi_define_properties(env, exports, 1, @ptrCast(&property)));
+        context.retain();
+
+        const property = api.Property{ .utf8name = entry[0], .value = function };
+
+        try napi.check(api.napi_define_properties(env, exports, 1, @ptrCast(&property)));
+    }
 
     return exports;
 }
@@ -57,7 +49,7 @@ fn register(env: api.Env, exports: api.Value) !api.Value {
 fn finalize(_: api.Env, data: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
     const context: *Context = @ptrCast(@alignCast(data.?));
 
-    context.deinit();
+    context.release();
 }
 
 fn callback(env: api.Env, info: api.Info) callconv(.c) api.Value {
@@ -77,7 +69,9 @@ fn execute(env: api.Env, info: api.Info) !api.Value {
 
     const context: *Context = @ptrCast(@alignCast(data.?));
 
+    if (context.closing) return error.EnvironmentClosing;
     if (context.busy) return error.ReentrantInvocation;
+    if (stateful and context.running) return error.PendingAsyncInvocation;
 
     context.busy = true;
     defer context.busy = false;

@@ -100,4 +100,4 @@ zxc build pkg.yaml --mode lib --out dist/arithmetic
 
 ## Node 原生插件
 
-`zxc build main.zx --host node --out addon.node` 生成 Node-API 6 插件及 `addon.cjs`、`addon.d.cts`。Node 使用 `require("./addon.cjs").execute(input)`，ESM/TypeScript 使用 `import { execute } from "./addon.cjs"`；声明自动导出 Input、Output 和 execute，支持 NodeNext 类型检查。插件直接转换 JavaScript 值，不通过 JSON 中转；64 位整数使用 BigInt，void 输出为 undefined，RX Store 按插件函数实例保留。Windows 构建通过 --node-lib 指定对应架构的 Node 导入库。类型、生命周期与当前能力边界见 [N-API reference](../../docs/2026-10-05/NAPI参考.md)。
+`zxc build main.zx --host node --out addon.node` 生成 Node-API 6 插件及 `addon.cjs`、`addon.d.cts`。Node 使用 `require("./addon.cjs").execute(input)`，ESM/TypeScript 使用 `import { execute } from "./addon.cjs"`；声明自动导出 Input、Output、execute 和 executeAsync，支持 NodeNext 类型检查。`await executeAsync(input)` 通过 Node 工作池执行原生计算，同一 Store 的任务按提交顺序执行。插件直接转换 JavaScript 值，不通过 JSON 中转；64 位整数使用 BigInt，void 输出为 undefined，RX Store 按插件函数实例保留。Windows 构建通过 --node-lib 指定对应架构的 Node 导入库。类型、生命周期与当前能力边界见 [N-API reference](../../docs/2026-10-05/NAPI参考.md)。

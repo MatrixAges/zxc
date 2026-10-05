@@ -1,6 +1,11 @@
 pub const Env = ?*opaque {};
 pub const Value = ?*opaque {};
 pub const Info = ?*opaque {};
+pub const Ref = ?*opaque {};
+pub const Work = ?*opaque {};
+pub const AsyncExecute = *const fn (Env, ?*anyopaque) callconv(.c) void;
+pub const AsyncComplete = *const fn (Env, Status, ?*anyopaque) callconv(.c) void;
+pub const Cleanup = *const fn (?*anyopaque) callconv(.c) void;
 pub const Status = enum(c_int) { ok = 0, pending_exception = 10, _ };
 pub const Kind = enum(c_int) { undefined, null, boolean, number, string, symbol, object, function, external, bigint };
 pub const Callback = *const fn (Env, Info) callconv(.c) Value;
@@ -46,3 +51,14 @@ pub extern fn napi_get_cb_info(Env, Info, *usize, ?[*]Value, ?*Value, *?*anyopaq
 pub extern fn napi_add_finalizer(Env, Value, ?*anyopaque, Finalize, ?*anyopaque, ?*?*anyopaque) Status;
 pub extern fn napi_is_exception_pending(Env, *bool) Status;
 pub extern fn napi_throw_error(Env, ?[*:0]const u8, [*:0]const u8) Status;
+pub extern fn napi_create_async_work(Env, Value, Value, AsyncExecute, AsyncComplete, ?*anyopaque, *Work) Status;
+pub extern fn napi_queue_async_work(Env, Work) Status;
+pub extern fn napi_delete_async_work(Env, Work) Status;
+pub extern fn napi_create_reference(Env, Value, u32, *Ref) Status;
+pub extern fn napi_delete_reference(Env, Ref) Status;
+pub extern fn napi_get_reference_value(Env, Ref, *Value) Status;
+pub extern fn napi_call_function(Env, Value, Value, usize, ?[*]const Value, *Value) Status;
+pub extern fn napi_create_error(Env, Value, Value, *Value) Status;
+pub extern fn napi_get_and_clear_last_exception(Env, *Value) Status;
+pub extern fn napi_add_env_cleanup_hook(Env, Cleanup, ?*anyopaque) Status;
+pub extern fn napi_remove_env_cleanup_hook(Env, Cleanup, ?*anyopaque) Status;

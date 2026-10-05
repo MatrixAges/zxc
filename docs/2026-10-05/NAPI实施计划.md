@@ -77,3 +77,7 @@ Windows 的 node.lib 下载至临时目录，SHA-256 与官方校验清单一致
 ## 类型与模块入口完成
 
 已从 IR 签名生成 `.d.cts`，随 `.node` 发布 `.cjs` 普通模块入口。覆盖 ESM/CommonJS、strict/NodeNext、void、Store、观察构建和失败发布保护。实现边界、自我复核与证据见 [类型实施计划](NAPI类型实施计划.md)。用户最终明确对齐 napi-rs 的使用方式，即原生插件、类型导出和普通模块导入；不要求照搬 napi-rs 的异步能力。Promise/任务调度草稿已撤销，现有宿主能力边界继续如实记录。
+
+## 后续异步授权
+
+用户随后明确要求 Zig 执行到 Node 异步的桥接。新增 executeAsync、Promise 类型声明及原生工作队列，保留 execute；实现与宿主 I/O 未完成边界见 [异步实施计划](NAPI异步实施计划.md)。本项不是扩展为 napi-rs 全特性对齐。

@@ -1,0 +1,37 @@
+{
+	"工具链": { "Zig": "0.17.0", "Node": "25.8.1", "平台": "x86_64-macos" },
+	"构建": "zig build dist: 14/14 steps succeeded",
+	"输入输出": {
+		"提交时复制输入": true,
+		"BigInt大整数": true,
+		"Unicode与Buffer": true,
+		"无状态并发调用": 1000,
+		"错误参数拒绝Promise": true
+	},
+	"Store": {
+		"首调用current": "13n",
+		"第二调用current": "17n",
+		"排队时同步调用": "PendingAsyncInvocation",
+		"队列后同步调用current": "19n"
+	},
+	"Worker退出": { "轮次": 12, "每轮排队任务数": 3000, "结果": "无崩溃，进程正常退出" },
+	"Parallel": {
+		"输入长度": 100000,
+		"total": "100000n",
+		"mapped长度": 100000,
+		"saved剩余长度": 99999,
+		"saved末项": "2n",
+		"完成前定时器次数": 1
+	},
+	"应用错误": { "无效hex": "Promise拒绝InvalidCharacter", "随后有效hex": "Buffer[0,255]" },
+	"无参数入口": "executeAsync() => 7",
+	"类型检查": "strict / NodeNext / ES2022 / --types node: exit 0",
+	"限制": [
+		"未执行全量测试",
+		"未新增正式测试用例",
+		"I/O/process宿主尚未接入",
+		"无公开取消接口",
+		"Zig panic不能转换Promise拒绝",
+		"未实跑Linux/Windows"
+	]
+}

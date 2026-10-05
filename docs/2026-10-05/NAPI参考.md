@@ -28,12 +28,13 @@ const output = addon.execute(input)
 ```typescript
 import type { Input, Output } from './addon.cjs'
 
-import { execute } from './addon.cjs'
+import { execute, executeAsync } from './addon.cjs'
 
 const output: Output = execute(input)
+const async_output: Output = await executeAsync(input)
 ```
 
-声明导出 Input、Output 和 execute，void 输入使用无参数签名。`.d.cts` 对应 CommonJS `.cjs`，由 TypeScript NodeNext 自动解析，见 [TypeScript 模块参考](https://www.typescriptlang.org/docs/handbook/modules/reference)。CommonJS 可使用 `require("./addon.cjs")`。
+声明导出 Input、Output、execute 与返回 Promise<Output> 的 executeAsync，void 输入使用无参数签名。`.d.cts` 对应 CommonJS `.cjs`，由 TypeScript NodeNext 自动解析，见 [TypeScript 模块参考](https://www.typescriptlang.org/docs/handbook/modules/reference)。CommonJS 可使用 `require("./addon.cjs")`。
 
 发布 npm 包时，将自己的 package.json 指向生成文件即可按包名导入：
 
@@ -50,11 +51,15 @@ const output: Output = execute(input)
 
 入口和声明带有生成标记。同名非生成文件会导致 NodeBindingWouldOverwriteFile，构建不会覆盖它；请选择其他输出基名。失败编译保留既有三份产物。Node 宿主的 --out 须以 `.node` 结尾。
 
-当前插件同步执行，会占用调用线程。I/O/process 依赖和 Gateway 未接入 Node 宿主；构建会拒绝，不隐式伪造进程上下文。需要隔离长计算时，可在 Node Worker 中加载插件。每个 Worker 的 execute 有独立 Store，上下文不跨环境共享。
+execute 同步执行，占用调用线程。executeAsync 把原生计算交给 Node 工作池，返回 Promise<Output>；输入复制与输出转换仍在 JavaScript 线程执行。无 Store 的调用可以并行执行；同一插件实例的 Store 调用按提交顺序执行，队列未清空时 execute 抛出 PendingAsyncInvocation。
 
-每次调用的输入复制到原生请求 arena；返回值转换成 JS 自有数据后释放请求，Store 引用的数据沿现有事务内存机制保留。execute 函数对象的 finalizer 释放持久上下文，单独保存 execute 引用仍会保持其上下文存活。
+I/O/process 依赖和 Gateway 仍未接入 Node 宿主，构建会拒绝。executeAsync 是现有 Zig 应用的原生异步执行入口，并不表示完整 std.Io 异步宿主已经实现。Zig 0.17 Threaded 的进程信号所有权与 Evented 的网络缺口见 [异步实施计划](NAPI异步实施计划.md)。每个 Node Worker 拥有独立 Store，上下文不跨环境共享。
 
-读取 JS 对象字段可能调用 getter。已有 JavaScript 异常会原样传播；转换错误及应用错误抛出 Error，message 为对应错误名称。禁止重入同一 execute，以免在一次状态操作未结束时再次修改共享状态。已提交的事务不会因后续返回值转换失败而回滚。
+异步输入在提交时复制，提交后修改原对象不会改变已提交的调用。没有公开取消 API；Worker 退出会等待已经开始的原生工作结束，尚未开始的 Store 排队任务会清理。不要把 Worker.terminate 当作能抢占任意原生计算的取消操作。生成的 cjs 负责创建 Promise，原生 executeTask 是此入口的内部桥接接口。
+
+每次调用的输入复制到原生请求 arena；返回值转换成 JS 自有数据后释放请求，Store 引用的数据沿现有事务内存机制保留。函数对象及活动异步任务共同持有持久上下文，最后一份引用释放时清理。单独保存 execute 或 executeAsync 引用仍会保持上下文存活。
+
+读取 JS 对象字段可能调用 getter。已有 JavaScript 异常会原样传播；同步转换错误及应用错误抛出 Error，异步调用拒绝 Promise，message 为对应错误名称。禁止重入同一 execute，以免在一次状态操作未结束时再次修改共享状态。已提交的事务不会因后续返回值转换失败而回滚。Zig panic、运行安全检查失败（例如整数溢出）及原生崩溃不属于可返回的错误，不会转换为 Promise 拒绝，可能终止 Node 进程。
 
 没有 ZX 解释器或 JSON 转换中转。Node-API 值转换和内存复制有实际成本，不能把跨 JS 边界称为零成本。
 

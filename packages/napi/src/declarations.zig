@@ -33,6 +33,7 @@ fn write(writer: *std.Io.Writer, types: []const ir.Type, input: ir.TypeId, outpu
 
     try writer.print("export type Input = InputType{d};\nexport type Output = OutputType{d};\n\n", .{ @intFromEnum(input), @intFromEnum(output) });
     try writer.writeAll(if (types[@intFromEnum(input)] == .scalar and types[@intFromEnum(input)].scalar == .void) "export function execute(): Output;\n" else "export function execute(input: Input): Output;\n");
+    try writer.writeAll(if (types[@intFromEnum(input)] == .scalar and types[@intFromEnum(input)].scalar == .void) "export function executeAsync(): Promise<Output>;\n" else "export function executeAsync(input: Input): Promise<Output>;\n");
 }
 
 fn mark(types: []const ir.Type, id: ir.TypeId, seen: []bool) void {

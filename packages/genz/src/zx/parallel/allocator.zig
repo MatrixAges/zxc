@@ -10,7 +10,7 @@ pub const source =
     \\    fn alloc(context: *anyopaque, len: usize, alignment: std.mem.Alignment, ret_addr: usize) ?[*]u8 {
     \\        const self: *@This() = @ptrCast(@alignCast(context));
     \\
-    \\        std.Io.Threaded.mutexLock(&self.mutex);
+    \\        std.Io.Threaded.mutexLockUncancelable(&self.mutex);
     \\        defer std.Io.Threaded.mutexUnlock(&self.mutex);
     \\
     \\        return self.child.rawAlloc(len, alignment, ret_addr);
@@ -19,7 +19,7 @@ pub const source =
     \\    fn resize(context: *anyopaque, memory: []u8, alignment: std.mem.Alignment, len: usize, ret_addr: usize) bool {
     \\        const self: *@This() = @ptrCast(@alignCast(context));
     \\
-    \\        std.Io.Threaded.mutexLock(&self.mutex);
+    \\        std.Io.Threaded.mutexLockUncancelable(&self.mutex);
     \\        defer std.Io.Threaded.mutexUnlock(&self.mutex);
     \\
     \\        return self.child.rawResize(memory, alignment, len, ret_addr);
@@ -28,7 +28,7 @@ pub const source =
     \\    fn remap(context: *anyopaque, memory: []u8, alignment: std.mem.Alignment, len: usize, ret_addr: usize) ?[*]u8 {
     \\        const self: *@This() = @ptrCast(@alignCast(context));
     \\
-    \\        std.Io.Threaded.mutexLock(&self.mutex);
+    \\        std.Io.Threaded.mutexLockUncancelable(&self.mutex);
     \\        defer std.Io.Threaded.mutexUnlock(&self.mutex);
     \\
     \\        return self.child.rawRemap(memory, alignment, len, ret_addr);
@@ -37,7 +37,7 @@ pub const source =
     \\    fn free(context: *anyopaque, memory: []u8, alignment: std.mem.Alignment, ret_addr: usize) void {
     \\        const self: *@This() = @ptrCast(@alignCast(context));
     \\
-    \\        std.Io.Threaded.mutexLock(&self.mutex);
+    \\        std.Io.Threaded.mutexLockUncancelable(&self.mutex);
     \\        defer std.Io.Threaded.mutexUnlock(&self.mutex);
     \\
     \\        self.child.rawFree(memory, alignment, ret_addr);
