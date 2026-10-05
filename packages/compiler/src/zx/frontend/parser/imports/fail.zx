@@ -1,0 +1,20 @@
+import { Phase } from "./model"
+
+import type { Span } from "../../lexer/token_model"
+import type { State } from "./model"
+
+export type Input = { state: State, span: Span, message: string }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  return {
+    imports: in.state.imports,
+    names: in.state.names,
+    control: {
+      ...in.state.control,
+      phase: Phase.Done,
+      diagnostic: { code: "syntax", start: in.span.start, end: in.span.end, message: in.message }
+    }
+  }
+}

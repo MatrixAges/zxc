@@ -1,0 +1,25 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Phase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const importing = in.control.token.word == Keyword.Import
+  const first = in.names.length
+  const opening = { start: in.control.token.span.start, end: in.control.token.span.end }
+  const index = in.control.index + (importing ? 1 : 0)
+
+  return {
+    imports: in.imports,
+    names: in.names,
+    control: {
+      ...in.control, phase: importing ? Phase.Binding : Phase.Done,
+      index: index, opening: opening,
+      first: first, count: 0, named: false, type_only: false
+    }
+  }
+}

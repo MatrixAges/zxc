@@ -1,0 +1,26 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Kind, Symbol } from "../../lexer/token_model"
+import { Phase } from "./model"
+
+import type { Span } from "../../lexer/token_model"
+import type { Import, State } from "./model"
+
+export type Input = u64
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const imports: Import[] = []
+  const names: Span[] = []
+
+  return {
+    imports: imports,
+    names: names,
+    control: {
+      phase: Phase.Start, index: 0, start: in,
+      token: { kind: Kind.Eof, word: Keyword.Root, symbol: Symbol.None, span: { start: 0, end: 0 }, line_break: false, dollar: false },
+      opening: { start: 0, end: 0 }, path: { start: 0, end: 0 }, first: 0, count: 0, named: false, type_only: false,
+      diagnostic: { code: "", start: 0, end: 0, message: "" }
+    }
+  }
+}

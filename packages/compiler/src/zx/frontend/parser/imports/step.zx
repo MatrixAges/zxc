@@ -1,0 +1,86 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Kind, Symbol } from "../../lexer/token_model"
+import begin from "./begin"
+import fail from "./fail"
+import finish from "./finish"
+import { Phase } from "./model"
+
+import type { Token } from "../../lexer/token_model"
+import type { State } from "./model"
+
+export type Input = { state: State, token: Token }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.state.control.phase == Phase.Done) {
+    return in.state
+  }
+
+  if (in.state.control.index < in.state.control.start) {
+    const index = in.state.control.index + 1
+
+    return { imports: in.state.imports, names: in.state.names, control: { ...in.state.control, index: index } }
+  }
+
+  const state = { imports: in.state.imports, names: in.state.names, control: { ...in.state.control, token: in.token } }
+  const phase = state.control.phase
+  const span = { start: state.control.token.span.start, end: state.control.token.span.end }
+  const symbol = state.control.token.symbol
+  const word = state.control.token.word
+  const kind = state.control.token.kind
+  const index = state.control.index + 1
+
+  if (phase == Phase.Start) {
+    return begin(state)
+  }
+
+  if (phase == Phase.End) {
+    return finish(state)
+  }
+
+  if (phase == Phase.Binding && !state.control.type_only && word == Keyword.Type) {
+    return { imports: state.imports, names: state.names, control: { ...state.control, type_only: true, index: index } }
+  }
+
+  if (phase == Phase.Binding && symbol == Symbol.OpenBrace) {
+    return { imports: state.imports, names: state.names, control: { ...state.control, named: true, phase: Phase.Name, index: index } }
+  }
+
+  if ((phase == Phase.Name || phase == Phase.Separator) && symbol == Symbol.CloseBrace) {
+    return { imports: state.imports, names: state.names, control: { ...state.control, phase: Phase.From, index: index } }
+  }
+
+  if (phase == Phase.Binding || phase == Phase.Name) {
+    if (kind != Kind.Identifier) {
+      return fail({ state: state, span: span, message: "expected an identifier" })
+    }
+
+    const count = state.control.count + 1
+    const names = state.names.push(span)[0]
+
+    return { imports: state.imports, names: names, control: { ...state.control, phase: phase == Phase.Binding ? Phase.From : Phase.Separator, count: count, index: index } }
+  }
+
+  if (phase == Phase.Separator) {
+    if (symbol != Symbol.Comma) {
+      return fail({ state: state, span: span, message: "expected }" })
+    }
+
+    return { imports: state.imports, names: state.names, control: { ...state.control, phase: Phase.Name, index: index } }
+  }
+
+  if (phase == Phase.From) {
+    if (word != Keyword.From) {
+      return fail({ state: state, span: span, message: "expected from" })
+    }
+
+    return { imports: state.imports, names: state.names, control: { ...state.control, phase: Phase.Path, index: index } }
+  }
+
+  if (kind != Kind.String) {
+    return fail({ state: state, span: span, message: "import path must be a string literal" })
+  }
+
+  return { imports: state.imports, names: state.names, control: { ...state.control, phase: Phase.End, path: span, index: index } }
+}
