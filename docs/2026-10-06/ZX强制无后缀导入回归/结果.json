@@ -1,0 +1,71 @@
+{
+	"记录时间": "2026-10-06T00:32:36.166913+08:00",
+	"检出基线": "6b25ce82394628c23b3de28e168bff07946ac7d8",
+	"验证范围": "活动共享检出的 ZX 强制无后缀导入局部回归；不代表整个仓库新版本全量通过",
+	"模式": [
+		{
+			"名称": "Debug",
+			"命令": "zig build test-zx-import-paths -j2 --summary all",
+			"退出码": 0,
+			"构建步骤": 19,
+			"库测试": 11,
+			"库测试实际执行日志": "诊断预期修正前日志.txt",
+			"库测试最终复用缓存": true,
+			"CLI测试": 14,
+			"应用构建": 7,
+			"应用执行": 21,
+			"日志": "Debug日志.txt"
+		},
+		{
+			"名称": "ReleaseSafe",
+			"命令": "zig build test-zx-import-paths -Doptimize=ReleaseSafe -j2 --summary all",
+			"退出码": 0,
+			"构建步骤": 19,
+			"库测试": 11,
+			"库测试最终复用缓存": false,
+			"CLI测试": 14,
+			"应用构建": 7,
+			"应用执行": 21,
+			"日志": "ReleaseSafe日志.txt"
+		}
+	],
+	"类型检查": {
+		"命令": "npm run typecheck",
+		"退出码": 0,
+		"日志": "类型检查日志.txt"
+	},
+	"源码SHA256": {
+		"packages/test/build.zig": "5292edccb52af00df354b7ca3c19656addba442b2011b17cc71fde11921ae99f",
+		"packages/test/build/import_paths.zig": "5fd2b3cc19fa6d73c8c58a900c8c323871355d6b43d0ab0c92a4769dc790410f",
+		"packages/test/tests/modules/import_paths/cli_cases.ts": "62371bdc6cdc687f03b4b011aab4aeed006ad98750678ff69858b8da255ca3ae",
+		"packages/test/tests/modules/import_paths/cli_test.ts": "f6313c219fb549297caa7ba498a5f0c2525c554da62d31482c55a9ab6cdfb804",
+		"packages/test/tests/modules/import_paths/fixture.zig": "e66f78df1ff2ad7bfec058e7fc2d9ea17e5b3881001cbac84b8545fa7a3aeef3",
+		"packages/test/tests/modules/import_paths/project_test.zig": "5e15cb1ee9d5ffd2fc3288ac76e1410b58830dfdb999ac2620f79aedc861e3c8",
+		"packages/test/tests/modules/import_paths/resolve_test.zig": "0bd4c42c07b8cbadd9d9524a27b32e772a5a2d338fc259f373c222d92aa2585e"
+	},
+	"CLISHA256": {
+		"Debug": "6f735bcb62e3477abe6c46fc0b9df07eaf70e008ebcdfd533b8aef20dfb86cff",
+		"ReleaseSafe": "c561d257841bfac5ffed3510b57ed05a36943396448101cc7ad9b8b07ecba1eb"
+	},
+	"日志SHA256": {
+		"Debug日志.txt": "5e0f2ca369dd772ec70d9e914514d2325222cec743a4ed1d8cb90e8957d8dd57",
+		"ReleaseSafe日志.txt": "dec9e20588bb61663732b56e149cd930a728751e5dc8a63ac866eaceb7939103",
+		"类型检查日志.txt": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f",
+		"自举迁移前阻断日志.txt": "9a80d088914ea55c9ad85c3d24732124c34035e49d097d20fe8d6edaf5ffb24a",
+		"诊断预期修正前日志.txt": "495f282c9296b1702d8935decb5ff059e0fbf1d0b0fa9829f3e9c2ecc51ed59f"
+	},
+	"首轮偏差": [
+		"实现会话新增 import 排序门禁、自举源码正在迁移，首次生成 lexer 失败；迁移完成后通过。",
+		"目录 index 负例最初误预期 FileNotFound；实际公开诊断为 import target is missing from the source set，与既有库层契约一致。修正测试预期后通过。"
+	],
+	"生产缺陷消息": "未发送；未发现新的生产缺陷，首次构建阻断已由实现会话处理。",
+	"Test262审阅数": {
+		"目录用例": 80155,
+		"已审阅": 2248,
+		"适配": 690,
+		"等价": 103,
+		"排除": 1455,
+		"未审阅": 51349,
+		"关联": 4933
+	}
+}

@@ -1,0 +1,77 @@
+✔ ZX import paths / relative (1619.234114ms)
+✔ ZX import paths / parent directory (1552.531134ms)
+✔ ZX import paths / project root (1551.280672ms)
+✔ ZX import paths / normalized directory (1536.941566ms)
+✔ ZX import paths / dots in directory (1546.629181ms)
+✔ ZX import paths / repeated normalized references share a function (1561.371359ms)
+✔ ZX import paths / type and enum identity across relative and root paths (1553.295333ms)
+✔ ZX import paths / reject explicit function suffix ./helper.zx (6.410367ms)
+✔ ZX import paths / reject explicit function suffix @/app/helper.zx (5.442734ms)
+✔ ZX import paths / reject explicit function suffix ../app/helper.zx (5.563285ms)
+✔ ZX import paths / reject explicit suffix import type { Count } (5.5236ms)
+✔ ZX import paths / reject explicit suffix import { Mode } (5.780011ms)
+✖ ZX import paths / reject directory index fallback (5.997639ms)
+✔ ZX import paths / reject normalized cycle through unused imports (5.610516ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 13
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10965.367363
+
+✖ failing tests:
+
+test at tests/modules/import_paths/cli_test.ts:13:2
+✖ ZX import paths / reject directory index fallback (5.997639ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /FileNotFound/. Input:
+  
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-import-paths-bzaQ1N/app/main.zx:1:1: module: import target is missing from the source set\n'
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/modules/import_paths/cli_test.ts:40:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-import-paths-bzaQ1N/app/main.zx:1:1: module: import target is missing from the source set\n',
+    expected: /FileNotFound/,
+    operator: 'match',
+    diff: 'simple'
+  }
+test-zx-import-paths
++- test-zx-import-paths-cli
+   +- run node failure
+error: process exited with code 1
+failed command: node ./tests/modules/import_paths/cli_test.ts ./.zig-cache/o/bc2d3513ad6b3027b1f8b04686bda62b/zxc debug
+
+Build Summary: 16/19 steps succeeded (1 failed); 11/11 tests passed
+test-zx-import-paths transitive failure
++- run test 4 pass (4 total) 3ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:272M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) success 54ms
+|        +- compile exe generate-lexer debug native success 3s MaxRSS:443M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 7 pass (7 total) 6ms MaxRSS:2M
+|  +- compile test debug native success 2s MaxRSS:416M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- test-zx-import-paths-cli transitive failure
+   +- run node failure
+      +- compile exe zxc debug native success 11s MaxRSS:1G
+         +- WriteFile cached
+         +- compile lib yaml debug native cached 45ms MaxRSS:20M
+         +- compile lib yaml debug native (reused)
+         +- translate-c cached 41ms MaxRSS:20M
+         +- options success
+         +- run exe bundle-zig (bundle) cached
+         |  +- compile exe bundle-zig fast native cached 46ms MaxRSS:21M
+         |  +- WriteFile bundle_manifest.json cached
+         +- WriteFile interfaces/0.d.zx (reused)
+         +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

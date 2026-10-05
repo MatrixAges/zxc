@@ -16,20 +16,19 @@ fn check(allocator: std.mem.Allocator, path: []const u8, expected: []const u8) !
 
 test "extensionless relative and root references resolve to explicit ZX identities" {
     const paths = [_][]const u8{
-        "./helper",      "./helper.zx",      "./nested/../helper", "./nested/../helper.zx",
-        "../app/helper", "../app/helper.zx", "@/app/helper",       "@/app/helper.zx",
+        "./helper", "./nested/../helper", "../app/helper", "@/app/helper",
     };
 
     for (paths) |path| try check(std.testing.allocator, path, "/project/app/helper.zx");
 }
 
 test "dots in directory names do not suppress ZX suffix completion" {
-    for ([_][]const u8{ "../v1.2/helper", "../v1.2/helper.zx", "@/v1.2/helper" }) |path| {
+    for ([_][]const u8{ "../v1.2/helper", "@/v1.2/helper" }) |path| {
         try check(std.testing.allocator, path, "/project/v1.2/helper.zx");
     }
 }
 
-test "directory references and foreign extensions preserve import diagnostics" {
+test "directory references and explicit extensions preserve import diagnostics" {
     const cases = [_]struct { path: []const u8, message: []const u8 }{
         .{ .path = "./", .message = "project imports must name a ZX module" },
         .{ .path = "../", .message = "project imports must name a ZX module" },
@@ -37,9 +36,12 @@ test "directory references and foreign extensions preserve import diagnostics" {
         .{ .path = "./folder/", .message = "project imports must name a ZX module" },
         .{ .path = "./folder/.", .message = "project imports must name a ZX module" },
         .{ .path = "./folder/..", .message = "project imports must name a ZX module" },
-        .{ .path = "./helper.rx", .message = "project imports must reference ZX modules; runtime and RX imports are forbidden" },
-        .{ .path = "./helper.js", .message = "project imports must reference ZX modules; runtime and RX imports are forbidden" },
-        .{ .path = "./helper.zxcir", .message = "project imports must reference ZX modules; runtime and RX imports are forbidden" },
+        .{ .path = "./helper.zx", .message = "project imports must omit the .zx extension; runtime and RX imports are forbidden" },
+        .{ .path = "../app/helper.zx", .message = "project imports must omit the .zx extension; runtime and RX imports are forbidden" },
+        .{ .path = "@/app/helper.zx", .message = "project imports must omit the .zx extension; runtime and RX imports are forbidden" },
+        .{ .path = "./helper.rx", .message = "project imports must omit the .zx extension; runtime and RX imports are forbidden" },
+        .{ .path = "./helper.js", .message = "project imports must omit the .zx extension; runtime and RX imports are forbidden" },
+        .{ .path = "./helper.zxcir", .message = "project imports must omit the .zx extension; runtime and RX imports are forbidden" },
     };
 
     for (cases) |case| {

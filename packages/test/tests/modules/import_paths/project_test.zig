@@ -2,8 +2,8 @@ const std = @import("std");
 const compiler = @import("compiler");
 const f = @import("fixture.zig");
 
-test "explicit relative and root imports share one module function and cache entry" {
-    const source = "import first from \"./helper\"\nimport second from \"./helper\"\nimport third from \"@/app/helper\"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return first(second(third(in)))\n}\n";
+test "normalized relative and root imports share one module function and cache entry" {
+    const source = "import third from \"@/app/helper\"\n\nimport first from \"./helper\"\nimport second from \"./nested/../helper\"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return first(second(third(in)))\n}\n";
     var cache = compiler.project.ParseCache{ .allocator = std.testing.allocator };
 
     defer cache.deinit();
@@ -22,17 +22,17 @@ test "explicit relative and root imports share one module function and cache ent
     try std.testing.expectEqualStrings("/project/app/helper.zx", result.modules[0].path);
     try std.testing.expectEqual(@as(usize, 3), result.modules[1].imports.len);
 
-    for ([_][]const u8{ "./helper", "./helper.zx", "@/app/helper" }, result.modules[1].imports) |specifier, dependency| {
+    for ([_][]const u8{ "@/app/helper", "./helper", "./nested/../helper" }, result.modules[1].imports) |specifier, dependency| {
         try std.testing.expectEqualStrings(specifier, dependency.specifier);
         try std.testing.expect(dependency.target == .source);
         try std.testing.expectEqualStrings("/project/app/helper.zx", dependency.target.source);
     }
 }
 
-test "type and enum imports share nominal identity across extension variants" {
+test "type and enum imports share nominal identity across normalized paths" {
     const shared = "export enum Mode { First, Second }\n\nexport type Count = u64\n";
-    const helper = "import type { Count } from \"../types/shared\"\nimport { Mode } from \"../types/shared\"\n\nexport type Input = { value: Count, mode: Mode }\n\nexport type Output = Mode\n\nexport default function (in: Input): Output {\n  return in.mode\n}\n";
-    const main = "import type { Count } from \"../types/shared\"\nimport { Mode } from \"../types/shared\"\nimport helper from \"./helper\"\n\nexport type Input = { value: Count, mode: Mode }\n\nexport type Output = Mode\n\nexport default function (in: Input): Output {\n  return helper(in)\n}\n";
+    const helper = "import { Mode } from \"../types/./shared\"\n\nimport type { Count } from \"../types/shared\"\n\nexport type Input = { value: Count, mode: Mode }\n\nexport type Output = Mode\n\nexport default function (in: Input): Output {\n  return in.mode\n}\n";
+    const main = "import { Mode } from \"../types/./shared\"\nimport helper from \"./helper\"\n\nimport type { Count } from \"../types/shared\"\n\nexport type Input = { value: Count, mode: Mode }\n\nexport type Output = Mode\n\nexport default function (in: Input): Output {\n  return helper(in)\n}\n";
 
     var result = try compiler.project.analyze(std.testing.allocator, &.{
         .{ .path = "app/main.zx", .source = main },
@@ -118,16 +118,33 @@ test "extensionless imports do not fall back to directory index modules" {
     }, .{ .entry = "main.zx", .root_dir = "/project" }, "import target is missing from the source set");
 }
 
-test "extension variants cannot hide cycles through unused imports" {
+test "normalized extensionless paths cannot hide cycles through unused imports" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
 
     defer arena.deinit();
 
     const main = try f.main(arena.allocator(), "./helper");
-    const helper = try f.main(arena.allocator(), "@/main.zx");
+    const helper = try f.main(arena.allocator(), "@/main");
 
     try f.expectFailure(&.{
         .{ .path = "main.zx", .source = main },
         .{ .path = "helper.zx", .source = helper },
     }, .{ .entry = "main.zx", .root_dir = "/project" }, "ZX module imports must be acyclic, including unused imports");
+}
+
+test "explicit ZX suffixes are rejected for existing function type and enum modules" {
+    const sources = [_][]const u8{
+        "import helper from \"./helper.zx\"\n\n" ++ f.identity,
+        "import type { Count } from \"./helper.zx\"\n\n" ++ f.identity,
+        "import { Mode } from \"./helper.zx\"\n\n" ++ f.identity,
+    };
+
+    const target = "export enum Mode { First, Second }\n\nexport type Count = u64\n\n" ++ f.helper;
+
+    for (sources) |source| {
+        try f.expectFailure(&.{
+            .{ .path = "main.zx", .source = source },
+            .{ .path = "helper.zx", .source = target },
+        }, .{ .entry = "main.zx", .root_dir = "/project" }, "project imports must omit the .zx extension; runtime and RX imports are forbidden");
+    }
 }
