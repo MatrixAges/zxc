@@ -1,0 +1,5 @@
+<Module>
+  <Store from="state" as="shared"/>
+  <Call fn="advance" in={{increment: $in, state: store.shared.counter}} setter={[store.shared.counter]} out="ctx.result"/>
+  <Return value={ctx.result}/>
+</Module>
