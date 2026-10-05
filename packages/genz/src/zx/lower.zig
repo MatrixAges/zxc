@@ -41,11 +41,13 @@ pending_name: []const u8 = "zx_pending",
 type_names: ?[]const []const u8 = null,
 function_modules: ?[]const []const u8 = null,
 comparisons: *std.ArrayList(ir.TypeId) = undefined,
+task_declarations: *std.ArrayList(node.Declaration) = undefined,
 pub fn declarations(self: *Self) Error![]const node.Declaration {
     var output: std.ArrayList(node.Declaration) = .empty;
     var comparisons: std.ArrayList(ir.TypeId) = .empty;
-
+    var task_declarations: std.ArrayList(node.Declaration) = .empty;
     self.comparisons = &comparisons;
+    self.task_declarations = &task_declarations;
 
     try output.append(self.allocator, .{ .constant = .{ .name = "std", .value = try self.builtin(.import, &.{try self.builder.string("std")}) } });
     if (self.function_modules == null) self.native_names = try @import("imports.zig").lower(self, &output);
@@ -53,7 +55,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     for (self.program.exports) |item| try output.append(self.allocator, .{ .constant = .{ .name = item.name, .value = self.types[@backingInt(item.type_id)], .exported = true } });
     try output.append(self.allocator, .{ .constant = .{ .name = "consumes_input", .value = try self.builder.expression(.{ .boolean = self.program.consumes_input }), .exported = true } });
     try output.append(self.allocator, .{ .constant = .{ .name = "requires_io", .value = try self.builder.expression(.{ .boolean = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.io_functions) }), .exported = true } });
-    try output.append(self.allocator, .{ .constant = .{ .name = "requires_process", .value = try self.builder.expression(.{ .boolean = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.process_functions) }), .exported = true } });
+    try output.append(self.allocator, .{ .constant = .{ .name = "requires_process", .value = try self.builder.expression(.{ .boolean = @import("capabilities.zig").uses(self.program.expressions, self.program.contracts, self.process_functions) }), .exported = true } });
     if (self.program.type_only) return output.toOwnedSlice(self.allocator);
     try @import("shape.zig").lower(self, &output);
 
@@ -103,6 +105,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
 
     try @import("store.zig").declaration(self, &output);
     try output.append(self.allocator, try self.function("execute", true));
+    try output.appendSlice(self.allocator, task_declarations.items);
     if (self.uses_parallel) try output.append(self.allocator, .{ .source = @import("parallel/allocator.zig").source });
     for (comparisons.items) |type_id| try output.append(self.allocator, try @import("comparison.zig").ordering(self, type_id));
 
@@ -124,7 +127,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     self.uses_buffers = false;
 
     const needs_io = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.io_functions);
-    const needs_process = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.process_functions);
+    const needs_process = @import("capabilities.zig").uses(self.program.expressions, self.program.contracts, self.process_functions);
 
     for (self.names, 0..) |*item, index| item.* = if (index == 0) "in" else try std.fmt.allocPrint(self.allocator, "value_{d}", .{index});
 
@@ -138,7 +141,11 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     try body.append(self.allocator, .{ .expression = try self.builtin(.setRuntimeSafety, &.{try self.builder.expression(.{ .boolean = true })}) });
 
     if (exported and self.uses_allocator) {
-        try body.append(self.allocator, .{ .constant = .{ .name = "allocator", .value = try self.call(try self.field(try self.builder.identifier("arena"), "allocator"), &.{}, false) } });
+        if (try @import("tasks/allocator.zig").required(self.allocator, self.program)) {
+            self.uses_io = true;
+
+            try @import("tasks/allocator.zig").initialize(self, &body);
+        } else try body.append(self.allocator, .{ .constant = .{ .name = "allocator", .value = try self.call(try self.field(try self.builder.identifier("arena"), "allocator"), &.{}, false) } });
     } else if (!self.uses_allocator) try body.append(self.allocator, .{ .discard = try self.builder.identifier(if (exported) "arena" else "allocator") });
 
     if (self.program.stores.len > 0 and !self.transaction() and !self.uses_context) try body.append(self.allocator, .{ .discard = try self.builder.identifier("context") });
@@ -195,6 +202,9 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
     const value_type = self.types[@backingInt(value.type_id)];
 
     return switch (value.value) {
+        .task => @import("tasks/root.zig").start(self, id, false),
+        .await_task => |child| @import("tasks/root.zig").wait(self, child),
+        .parallel => |branches| @import("tasks/root.zig").parallel(self, value.type_id, branches),
         .capture => |child| @import("capture.zig").lower(self, value.type_id, child),
         .optional_value => |child| self.builder.expression(.{ .optional_unwrap = try self.expr(child) }),
         .integer => |integer| self.cast(value_type, try self.builder.integer(integer)),

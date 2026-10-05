@@ -84,7 +84,7 @@ fn enumeration(self: *Self, value: ir.Type, origin: Origins.Origin) Error!ir.Typ
 
 fn insert(self: *Self, value: ir.Type) Error!ir.TypeId {
     const owned: ir.Type = switch (value) {
-        .scalar, .optional, .list => value,
+        .scalar, .optional, .list, .task => value,
         .tuple => |children| .{ .tuple = try self.allocator.dupe(ir.TypeId, children) },
         .object => |fields| blk: {
             const copied = try self.allocator.dupe(ir.TypeField, fields);
@@ -119,6 +119,7 @@ fn insert(self: *Self, value: ir.Type) Error!ir.TypeId {
 fn remap(allocator: std.mem.Allocator, value: ir.Type, mapping: []const ir.TypeId) Error!ir.Type {
     return switch (value) {
         .scalar, .enumeration, .error_set => value,
+        .task => |task| .{ .task = .{ .result = mapping[@backingInt(task.result)], .errors = mapping[@backingInt(task.errors)] } },
         .optional => |child| .{ .optional = mapping[@backingInt(child)] },
         .list => |child| .{ .list = mapping[@backingInt(child)] },
         .tuple => |children| blk: {
@@ -143,6 +144,7 @@ fn sameType(left: ir.Type, right: ir.Type) bool {
 
     return switch (left) {
         .scalar => |value| value == right.scalar,
+        .task => |task| task.result == right.task.result and task.errors == right.task.errors,
         .error_set => |members| blk: {
             if (members.len != right.error_set.len) break :blk false;
 

@@ -14,7 +14,57 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
     const target = program.typeOf(type_id);
     const check = Check{ .program = program, .index = index };
 
+    if (target == .task and expression.value != .task and expression.value != .reference) return false;
+
     return switch (expression.value) {
+        .task => |task| blk: {
+            if (target != .task or !check.typed(task.body, target.task.result)) break :blk false;
+
+            for (task.captures, 0..) |symbol, capture_index| {
+                if (@backingInt(symbol) >= program.symbols.len or program.typeOf(program.symbols[@backingInt(symbol)].type_id) == .task) break :blk false;
+                if (std.mem.indexOfScalar(ir.SymbolId, task.captures[0..capture_index], symbol) != null) break :blk false;
+            }
+
+            break :blk true;
+        },
+        .await_task => |child| blk: {
+            if (!check.earlier(child)) break :blk false;
+
+            const task = program.typeOf(program.expression(child).type_id);
+
+            break :blk task == .task and task.task.result == type_id;
+        },
+        .parallel => |branches| blk: {
+            if (target != .object and type_id != void_type) break :blk false;
+
+            var fields: usize = 0;
+
+            for (branches, 0..) |branch, branch_index| {
+                if (!check.earlier(branch.task)) break :blk false;
+
+                const task = program.expression(branch.task);
+
+                if (task.value != .task or program.typeOf(task.type_id) != .task) break :blk false;
+
+                const result = program.typeOf(task.type_id).task.result;
+
+                if (branch.field) |field| {
+                    if (target != .object or field >= target.object.len or target.object[field].type_id != result) break :blk false;
+
+                    for (branches[0..branch_index]) |previous| if (previous.field == field) {
+                        break :blk false;
+                    };
+
+                    fields += 1;
+                } else if (result != void_type) break :blk false;
+
+                for (branches[0..branch_index]) |previous| if (previous.task == branch.task) {
+                    break :blk false;
+                };
+            }
+
+            break :blk fields == (if (target == .object) target.object.len else @as(usize, 0));
+        },
         .integer, .negative_integer => |magnitude| blk: {
             if (!numbers.isInteger(type_id)) break :blk false;
 
@@ -100,7 +150,7 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
         .object => |object| blk: {
             if (target != .object or target.object.len != object.fields.len) break :blk false;
 
-            for (object.evaluation) |item| if (!check.earlier(item)) {
+            for (object.evaluation) |item| if (!check.earlier(item) or program.typeOf(program.expression(item).type_id) == .task) {
                 break :blk false;
             };
 

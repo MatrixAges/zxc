@@ -1,4 +1,4 @@
-# ZX IR 契约（实验版 12）
+# ZX IR 契约（实验版 19）
 
 ## Intent：最终目标
 
@@ -8,7 +8,7 @@
 
 ### 类型、模块与符号
 
-- `Program.version` 必须是 12。版本 12 增加显式输入消费契约；旧语义缓存与库必须重建。`types` 起始项按 Scalar 枚举顺序排列，其后为 object、optional、list、tuple、enumeration。版本 8 移除 Context 注入；版本 7 增加原生声明组 identity；函数仍保留返回所有权摘要。旧原始 IR 不复用新含义。
+- `Program.version` 必须是 19。版本 19 增加作用域任务、并发表达式和原生并发契约；旧语义缓存与库必须重建。`types` 起始项按 Scalar 枚举顺序排列，其后为 object、optional、list、tuple、enumeration、error_set、task。版本 12 增加显式输入消费契约；版本 8 移除 Context 注入；版本 7 增加原生声明组 identity。旧原始 IR 不复用新含义。
 - 复合类型只能引用更早的 TypeId。对象字段按名称排序且唯一，字段不能是 void；元组可包含 void 丢弃槽；枚举非空且成员唯一。
 - 普通函数的 `symbols[0]` 是 Input，Input 允许 void。纯类型文件设置 type_only，symbols/expressions/body 为空。
 - 每个函数有独立 SymbolId 和 ExprId 空间，共享 Program.types。符号身份由编号决定，不依赖文本名称。
@@ -74,6 +74,16 @@ concat/splice 的结果缓冲区可以容纳标量或引用槽；聚合借用参
 transform 参数只在自身回调体可见：map/filter 各一个元素参数，reduce 为累加值和元素两个参数。target 与 initial 在外层求值。回调体不能引用外层符号或 Store slot；验证不能因为 ExprId 已访问而跳过不同作用域的检查。
 
 Symbol.ownership 是描述信息，不能用它绕过验证。官方校验器重新执行移动、借用、发布冻结和分支合流检查，不信任第三方给出的所有权声明。
+
+### 作用域任务与有限错误
+
+Type.task 保存 result 和 errors 两个更早的 TypeId，errors 必须为 error_set。task 表达式保存延后执行的 body 和不重复的捕获 SymbolId；await_task 的类型与 task.result 一致。parallel 保存源码顺序的 task 表达式及可选结果字段索引，字段类型排序不得改变启动或首错顺序。
+
+task 类型不进入输入输出、导出或容器；局部 constant 必须直接创建 task，引用仅可被 await 消费一次。验证器检查合法使用位置、控制流消费及 capture 的活动作用域。任务体不取得 Store 能力，原生调用须声明 External.concurrent，调用链同时满足此约束。
+
+task 创建本身不传播 body 错误；await 从 task.errors 传播。parallel 合并分支错误与 ConcurrencyUnavailable，非 void 结果还包含组装分配错误。验证器重算主体错误集，不能相信发布产物自行声称的集合。capture 将有限错误和成功值转换为受检 tuple，直接解构可建立成功关联。
+
+捕获引用只读且保持至作用域结束；退出时后端取消并等待任务。当前 await/parallel 的引用结果保守为 borrowed。Zig 后端以普通 worker 和 std.Io Future 实现，不增加专用运行库。
 
 ### Store
 

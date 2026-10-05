@@ -83,7 +83,7 @@ pub fn infer(self: *Self, expression: *const zx.ast.Expression, expected: ?Graph
 
             break :block result;
         },
-        .call, .lambda, .state_block, .capture => return self.graph.reporter.fail(.unsupported, span, @import("../value_rules.zig").message),
+        .call, .lambda, .state_block, .capture, .task, .await_task => return self.graph.reporter.fail(.unsupported, span, @import("../value_rules.zig").message),
     };
 
     if (expected) |target| try self.graph.expect(value, target, span);

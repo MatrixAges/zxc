@@ -199,6 +199,10 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.write("[]");
             try self.expression(element);
         },
+        .many_pointer => |element| {
+            try self.write("[*]");
+            try self.expression(element);
+        },
         .namespace_type => |declarations| {
             try self.write("struct {\n");
 
@@ -377,6 +381,16 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
                 try self.write("defer ");
                 try self.expression(value);
                 try self.write(";\n");
+            },
+            .defer_scope => |body| {
+                try self.write("defer ");
+                try self.block(body);
+                try self.write("\n");
+            },
+            .discard_error => |value| {
+                try self.write("if (");
+                try self.expression(value);
+                try self.write(") |_| {} else |_| {}\n");
             },
             .constant => |value| try self.constant(value),
             .variable => |value| {

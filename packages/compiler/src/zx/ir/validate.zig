@@ -21,6 +21,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
             }
 
             if (!@import("native_modules.zig").validateExport(program, function_index)) return invalid();
+            if (program.typeOf(item.input_type) == .task or program.typeOf(item.output_type) == .task) return invalid();
             if (external.expand_tuple and program.typeOf(item.input_type) != .tuple) return invalid();
 
             if (external.input) |shape| {
@@ -49,6 +50,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 
     for (program.exports, 0..) |item, index| {
         if (@backingInt(item.type_id) >= program.types.len or item.name.len == 0) return invalid();
+        if (program.typeOf(item.type_id) == .task) return invalid();
 
         for (program.exports[0..index]) |previous| {
             if (std.mem.eql(u8, item.name, previous.name)) return invalid();
@@ -76,6 +78,7 @@ fn function(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
     }
 
     if (!try @import("scopes.zig").validate(allocator, program)) return false;
+    if (!try @import("tasks.zig").validate(allocator, program)) return false;
 
     var reporter: zx.Reporter = .{};
 

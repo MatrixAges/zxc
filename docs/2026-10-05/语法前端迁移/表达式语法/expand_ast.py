@@ -73,6 +73,8 @@ def expand_expression(source, tree, types, index, block=None):
         value = {"call": {"callee": expr(node["first"]), "arguments": [expr(edge["value"]) for edge in chain("items")], "type_argument": expand_type(source, types, node["type_argument"] - 1) if node["type_argument"] else None}}
     elif kind == "Lambda":
         value = {"lambda": {"parameters": [name(source, edge["name"]) for edge in chain("parameters")], "body": expr(node["first"])}}
+    elif kind in ("Capture", "Async", "Await"):
+        value = {{"Capture": "capture", "Async": "task", "Await": "await_task"}[kind]: expr(node["first"])}
     elif kind == "StateBlock":
         if block is None:
             raise ValueError("StateBlock requires a block table")

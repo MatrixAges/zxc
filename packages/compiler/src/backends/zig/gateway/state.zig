@@ -36,7 +36,7 @@ pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bun
                     if (std.mem.eql(u8, candidate.identity, slot.path)) break candidate;
                 } else return error.MissingInitializer;
 
-                if (!std.mem.eql(u8, initial.type_name, identities.types[@intFromEnum(slot.type_id)])) return error.InvalidInitializer;
+                if (!std.mem.eql(u8, initial.type_name, identities.types[@backingInt(slot.type_id)])) return error.InvalidInitializer;
 
                 entry.value_ptr.* = .{ .index = objects.items.len, .type_id = slot.type_id };
 
@@ -52,7 +52,7 @@ pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bun
             .name = facade.name,
             .module_name = facade.file.name,
             .slots = bindings,
-            .requires_io = generating.zx.capabilities.uses(program.expressions, program.contracts, io_functions),
+            .requires_io = generating.zx.io.uses(program.expressions, program.contracts, io_functions),
             .requires_process = generating.zx.capabilities.uses(program.expressions, program.contracts, process_functions),
         };
     }

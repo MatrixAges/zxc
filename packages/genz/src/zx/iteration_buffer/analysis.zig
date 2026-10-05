@@ -89,7 +89,7 @@ fn expression(self: *Self, id: ir.ExprId) Error!Value {
     if (self.cached[@backingInt(id)]) |value| return value;
 
     return switch (self.program.expression(id).value) {
-        .capture, .optional_value => blk: {
+        .capture, .optional_value, .task, .await_task, .parallel => blk: {
             self.valid = false;
 
             break :blk .none;

@@ -5,6 +5,8 @@ const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error!void {
     for (self.program.types, 0..) |value, index| {
+        if (value == .task) continue;
+
         var fields: std.ArrayList(node.Field) = .empty;
 
         const kind: []const u8 = switch (value) {
@@ -13,6 +15,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error
             .optional => "optional",
             .list => "list",
             .object, .tuple => "object",
+            .task => unreachable,
         };
 
         try fields.append(self.allocator, .{ .name = "kind", .value = try self.builder.expression(.{ .enum_literal = kind }) });

@@ -23,9 +23,10 @@ pub fn programPure(allocator: std.mem.Allocator, program: ir.Program) std.mem.Al
 
 fn calls(expressions: []const ir.Expression, pure: []const bool) bool {
     for (expressions) |expression| switch (expression.value) {
+        .task, .await_task, .parallel => return false,
         .store_get => return false,
         .call => |invocation| {
-            const index = @intFromEnum(invocation.function);
+            const index = @backingInt(invocation.function);
 
             if (invocation.stores.len != 0 or index >= pure.len or !pure[index]) return false;
         },

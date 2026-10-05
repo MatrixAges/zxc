@@ -26,11 +26,13 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, u
     self.bytes(@tagName(unit));
     self.write(program.version);
 
+    if (unit == .entry) self.write(try @import("genz").zx.tasks.required(allocator, program));
+
     switch (unit) {
         .function => |id| {
-            self.write(value_functions[@intFromEnum(id)]);
-            self.write(buffer_functions[@intFromEnum(id)]);
-            self.write(program.functions[@intFromEnum(id)]);
+            self.write(value_functions[@backingInt(id)]);
+            self.write(buffer_functions[@backingInt(id)]);
+            self.write(program.functions[@backingInt(id)]);
         },
         .entry => self.write(.{
             .consumes_input = program.consumes_input,
@@ -76,15 +78,15 @@ fn write(self: *Self, value: anytype) void {
     const T = @TypeOf(value);
 
     if (T == @FieldType(ir.Expression, "span")) return;
-    if (T == ir.TypeId) return self.bytes(self.names.types[@intFromEnum(value)]);
+    if (T == ir.TypeId) return self.bytes(self.names.types[@backingInt(value)]);
 
     if (T == ir.FunctionId) {
-        self.bytes(self.names.functions[@intFromEnum(value)]);
-        self.write(self.program.functions[@intFromEnum(value)].stores);
-        self.write(self.value_functions[@intFromEnum(value)]);
-        self.write(self.buffer_functions[@intFromEnum(value)]);
+        self.bytes(self.names.functions[@backingInt(value)]);
+        self.write(self.program.functions[@backingInt(value)].stores);
+        self.write(self.value_functions[@backingInt(value)]);
+        self.write(self.buffer_functions[@backingInt(value)]);
 
-        const function = self.program.functions[@intFromEnum(value)];
+        const function = self.program.functions[@backingInt(value)];
 
         self.write(!@import("genz").zx.value_call.containsDescendant(self.program, function.output_type, function.input_type));
 
@@ -92,7 +94,7 @@ fn write(self: *Self, value: anytype) void {
     }
 
     if (T == ir.NativeModuleId) {
-        const module = self.program.native_modules[@intFromEnum(value)];
+        const module = self.program.native_modules[@backingInt(value)];
 
         return self.write(.{ .specifier = module.specifier, .identity = module.identity, .import_name = module.import_name, .type_namespace = module.type_namespace });
     }
@@ -109,7 +111,7 @@ fn write(self: *Self, value: anytype) void {
                 self.write(@field(value, field));
             };
         },
-        .@"enum" => self.write(@intFromEnum(value)),
+        .@"enum" => self.write(@backingInt(value)),
         .optional => {
             self.write(value != null);
 

@@ -10,7 +10,7 @@ export declare function readFile(allocator, io, in: { path: string, max_bytes: u
   PermissionDenied, PipeBusy, ProcessFdQuotaExceeded, ReadOnlyFileSystem,
   SocketUnconnected, StreamTooLong, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
   Unexpected, WouldBlock
-}
+} concurrent
 
 export declare function readText(allocator, io, in: { path: string, max_bytes: u64 }): string throws {
   AccessDenied, AntivirusInterference, BadPathName, Canceled, ConnectionResetByPeer,
@@ -20,7 +20,7 @@ export declare function readText(allocator, io, in: { path: string, max_bytes: u
   PermissionDenied, PipeBusy, ProcessFdQuotaExceeded, ReadOnlyFileSystem,
   SocketUnconnected, StreamTooLong, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
   Unexpected, WouldBlock
-}
+} concurrent
 
 export declare function writeFile(io, in: { path: string, data: u8[] }): void throws {
   AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled, DeviceBusy,
@@ -29,7 +29,7 @@ export declare function writeFile(io, in: { path: string, data: u8[] }): void th
   NoSpaceLeft, NotDir, NotOpenForWriting, PathAlreadyExists, PermissionDenied, PipeBusy,
   ProcessFdQuotaExceeded, ReadOnlyFileSystem, SymLinkLoop, SystemFdQuotaExceeded,
   SystemResources, Unexpected, WouldBlock
-}
+} concurrent
 
 export declare function writeText(io, in: { path: string, text: string }): void throws {
   AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled, DeviceBusy,
@@ -38,7 +38,7 @@ export declare function writeText(io, in: { path: string, text: string }): void 
   NoSpaceLeft, NotDir, NotOpenForWriting, PathAlreadyExists, PermissionDenied, PipeBusy,
   ProcessFdQuotaExceeded, ReadOnlyFileSystem, SymLinkLoop, SystemFdQuotaExceeded,
   SystemResources, Unexpected, WouldBlock
-}
+} concurrent
 
 export declare function truncate(io, in: { path: string, length: u64 }): void throws {
   AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
@@ -47,7 +47,7 @@ export declare function truncate(io, in: { path: string, length: u64 }): void th
   PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
   ReadOnlyFileSystem, SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected,
   WouldBlock
-}
+} concurrent
 
 export declare function mkdir(io, in: { path: string, recursive: bool }): void throws {
   AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, DiskQuota,
@@ -56,25 +56,25 @@ export declare function mkdir(io, in: { path: string, recursive: bool }): void t
   PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
   ReadOnlyFileSystem, Streaming, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
   Unexpected, WouldBlock
-}
+} concurrent
 
 export declare function readdir(allocator, io, in: string): string[] throws {
   AccessDenied, BadPathName, Canceled, FileNotFound, InvalidPath, InvalidUtf8,
   NameTooLong, NetworkNotFound, NoDevice, NotDir, OutOfMemory, PermissionDenied,
   ProcessFdQuotaExceeded, SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected
-}
+} concurrent
 
 export declare function rmdir(io, in: string): void throws {
   AccessDenied, BadPathName, Canceled, DirNotEmpty, FileBusy, FileNotFound, FileSystem,
   InvalidPath, InvalidUtf8, NameTooLong, NetworkNotFound, NotDir, PermissionDenied,
   ReadOnlyFileSystem, SymLinkLoop, SystemResources, Unexpected
-}
+} concurrent
 
 export declare function unlink(io, in: string): void throws {
   AccessDenied, BadPathName, Canceled, FileBusy, FileNotFound, FileSystem, InvalidPath,
   InvalidUtf8, IsDir, NameTooLong, NetworkNotFound, NotDir, PermissionDenied,
   ReadOnlyFileSystem, SymLinkLoop, SystemResources, Unexpected
-}
+} concurrent
 
 export declare function rename(io, in: { from: string, to: string }): void throws {
   AccessDenied, AntivirusInterference, BadPathName, Canceled, CrossDevice, DirNotEmpty,
@@ -82,7 +82,7 @@ export declare function rename(io, in: { from: string, to: string }): void throw
   LinkQuotaExceeded, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir,
   PermissionDenied, PipeBusy, ReadOnlyFileSystem, SymLinkLoop, SystemResources,
   Unexpected
-}
+} concurrent
 
 export declare function copyFile(io, in: { from: string, to: string, exclusive: bool }): void throws {
   AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled,
@@ -93,7 +93,7 @@ export declare function copyFile(io, in: { from: string, to: string, exclusive: 
   NotOpenForWriting, OperationUnsupported, PathAlreadyExists, PermissionDenied, PipeBusy,
   ProcessFdQuotaExceeded, ReadOnlyFileSystem, SocketUnconnected, Streaming, SymLinkLoop,
   SystemFdQuotaExceeded, SystemResources, Unexpected, WouldBlock
-}
+} concurrent
 
 export declare function realpath(allocator, io, in: string): string throws {
   AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
@@ -101,14 +101,14 @@ export declare function realpath(allocator, io, in: string): string throws {
   NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir, OperationUnsupported,
   OutOfMemory, PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
   SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected, UnrecognizedVolume
-}
+} concurrent
 
 export declare function readlink(allocator, io, in: string): string throws {
   AccessDenied, AntivirusInterference, BadPathName, Canceled, FileBusy, FileNotFound,
   FileSystem, InvalidPath, InvalidUtf8, NameTooLong, NetworkNotFound, NotDir, NotLink,
   OutOfMemory, PermissionDenied, SymLinkLoop, SystemResources, Unexpected,
   UnsupportedReparsePointType
-}
+} concurrent
 
 export declare function stat(allocator, io, in: string): Stat throws {
   AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
@@ -117,7 +117,7 @@ export declare function stat(allocator, io, in: string): Stat throws {
   PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
   ReadOnlyFileSystem, Streaming, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
   TimestampOutOfRange, Unexpected, WouldBlock
-}
+} concurrent
 
 export declare function lstat(allocator, io, in: string): Stat throws {
   AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
@@ -126,4 +126,4 @@ export declare function lstat(allocator, io, in: string): Stat throws {
   PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
   ReadOnlyFileSystem, Streaming, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
   TimestampOutOfRange, Unexpected, WouldBlock
-}
+} concurrent

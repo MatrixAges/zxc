@@ -28,6 +28,8 @@ fn sameExpression(left: *const ast.Expression, right: *const ast.Expression) boo
         .field => |field| sameExpression(field.target, right.value.field.target),
         .index => |index| sameExpression(index.target, right.value.index.target) and sameExpression(index.index, right.value.index.index),
         .capture => |child| sameExpression(child, right.value.capture),
+        .task => |child| sameExpression(child, right.value.task),
+        .await_task => |child| sameExpression(child, right.value.await_task),
         .unary => |unary| sameExpression(unary.operand, right.value.unary.operand),
         .binary => |binary| sameExpression(binary.left, right.value.binary.left) and sameExpression(binary.right, right.value.binary.right),
         .call => |call| sameExpression(call.callee, right.value.call.callee) and sameType(call.type_argument, right.value.call.type_argument) and sameItems(call.arguments, right.value.call.arguments),

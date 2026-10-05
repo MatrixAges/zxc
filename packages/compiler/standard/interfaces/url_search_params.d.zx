@@ -9,24 +9,24 @@ export type Update = { entries: Entry[]
  key: string
  value: string }
 
-export declare function parse(allocator, in: string): Entry[] throws { OutOfMemory }
+export declare function parse(allocator, in: string): Entry[] throws { OutOfMemory } concurrent
 
-export declare function stringify(allocator, in: Entry[]): string throws { InvalidUtf8, OutOfMemory }
+export declare function stringify(allocator, in: Entry[]): string throws { InvalidUtf8, OutOfMemory } concurrent
 
-export declare function get(in: Lookup): string?
-export declare function getAll(allocator, in: Lookup): string[] throws { OutOfMemory }
+export declare function get(in: Lookup): string? concurrent
+export declare function getAll(allocator, in: Lookup): string[] throws { OutOfMemory } concurrent
 
-export declare function has(in: Match): bool
-export declare function append(allocator, in: Update): Entry[] throws { OutOfMemory, Overflow }
+export declare function has(in: Match): bool concurrent
+export declare function append(allocator, in: Update): Entry[] throws { OutOfMemory, Overflow } concurrent
 
-export declare function set(allocator, in: Update): Entry[] throws { OutOfMemory }
+export declare function set(allocator, in: Update): Entry[] throws { OutOfMemory } concurrent
 
-export declare function remove(allocator, in: Match): Entry[] throws { OutOfMemory }
+export declare function remove(allocator, in: Match): Entry[] throws { OutOfMemory } concurrent
 
-export declare function sort(allocator, in: Entry[]): Entry[] throws { InvalidUtf8, OutOfMemory }
+export declare function sort(allocator, in: Entry[]): Entry[] throws { InvalidUtf8, OutOfMemory } concurrent
 
-export declare function keys(allocator, in: Entry[]): string[] throws { OutOfMemory }
+export declare function keys(allocator, in: Entry[]): string[] throws { OutOfMemory } concurrent
 
-export declare function values(allocator, in: Entry[]): string[] throws { OutOfMemory }
+export declare function values(allocator, in: Entry[]): string[] throws { OutOfMemory } concurrent
 
-export declare function size(in: Entry[]): u64
+export declare function size(in: Entry[]): u64 concurrent

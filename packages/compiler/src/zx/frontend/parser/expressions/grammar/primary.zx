@@ -32,8 +32,9 @@ export default function (in: owned Input): Output {
     return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: frames, control: state.control }, phase: Phase.MatchStart })
   }
 
-  if (state.control.token.word == Keyword.Try) {
-    const continuation = frame({ kind: FrameKind.Capture, start: start, depth: depth })
+  if (state.control.token.word == Keyword.Try || state.control.token.word == Keyword.Async || state.control.token.word == Keyword.Await) {
+    const kind = state.control.token.word == Keyword.Try ? FrameKind.Capture : state.control.token.word == Keyword.Async ? FrameKind.Async : FrameKind.Await
+    const continuation = frame({ kind: kind, start: start, depth: depth })
     const frames = state.frames.push(continuation)[0]
 
     return consume({ state: { prepared: state.prepared, tree: state.tree, types: state.types, frames: frames, control: state.control }, phase: Phase.Primary })

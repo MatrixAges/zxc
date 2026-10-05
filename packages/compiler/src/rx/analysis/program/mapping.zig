@@ -88,7 +88,7 @@ pub fn expression(self: *const Self, value: ir.Expression) Error!ir.Expression {
 
             break :block .{ .object = .{ .fields = fields, .evaluation = try self.ids(item.evaluation) } };
         },
-        .store_get, .call => return error.InvalidModule,
+        .store_get, .call, .task, .await_task, .parallel => return error.InvalidModule,
     };
 
     return result;

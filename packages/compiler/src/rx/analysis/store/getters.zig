@@ -26,7 +26,7 @@ pub fn contains(expression: *const Expression, name: []const u8) bool {
 
             break :block false;
         },
-        .capture => |child| contains(child, name),
+        .capture, .task, .await_task => |child| contains(child, name),
         .unary => |unary| contains(unary.operand, name),
         .binary => |binary| contains(binary.left, name) or contains(binary.right, name),
         .conditional => |branch| contains(branch.condition, name) or contains(branch.yes, name) or contains(branch.no, name),

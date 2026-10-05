@@ -27,6 +27,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
         }
 
         if (std.mem.eql(u8, name.text, "loop")) return @import("iteration/root.zig").analyze(self, expression, expected);
+        if (std.mem.eql(u8, name.text, "parallel")) return @import("tasks.zig").parallel(self, expression);
 
         return self.reporter.fail(.name, name.span, "unknown imported function");
     }

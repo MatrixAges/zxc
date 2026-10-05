@@ -149,6 +149,8 @@ fn external(decoder: *Decoder, value: *const c.yaml_node_t) Error!compiler.proje
                     result.implementation.errors = try decoder.strings(field_value);
                 } else if (std.mem.eql(u8, name, "fallible")) {
                     result.implementation.fallible = try decoder.boolean(field_value);
+                } else if (std.mem.eql(u8, name, "concurrent")) {
+                    result.implementation.concurrent = try decoder.boolean(field_value);
                 } else return decoder.fail(decoder.node(part.key), "unknown external implementation field");
             }
         } else return decoder.fail(decoder.node(entry.key), "unknown external interface field");

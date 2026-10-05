@@ -53,7 +53,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
         for (evaluation, positions) |id, *position| {
             position.* = try builder.root(program.expression(id).type_id);
 
-            try roots[@intFromEnum(id)].append(allocator, position.*);
+            try roots[@backingInt(id)].append(allocator, position.*);
         }
     }
 
@@ -64,11 +64,11 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
 
     for (program.expressions, 0..) |expression, index| {
         switch (expression.value) {
-            .reference => |symbol| bindings[index] = @intFromEnum(symbol),
+            .reference => |symbol| bindings[index] = @backingInt(symbol),
             .field, .tuple_field => |field| {
-                if (bindings[@intFromEnum(field.target)]) |parent| bindings[index] = try builder.child(parent, field.index, expression.type_id);
+                if (bindings[@backingInt(field.target)]) |parent| bindings[index] = try builder.child(parent, field.index, expression.type_id);
 
-                var ancestor: ir.ExprId = @enumFromInt(index);
+                var ancestor: ir.ExprId = @fromBackingInt(@intCast(index));
 
                 while (true) {
                     ancestor = switch (program.expression(ancestor).value) {
@@ -76,7 +76,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
                         else => break,
                     };
 
-                    for (roots[@intFromEnum(ancestor)].items) |root| _ = try builder.path(root, ancestor, @enumFromInt(index));
+                    for (roots[@backingInt(ancestor)].items) |root| _ = try builder.path(root, ancestor, @fromBackingInt(@intCast(index)));
                 }
             },
             else => {},
@@ -101,7 +101,7 @@ pub fn child(self: Self, parent: usize, index: u32) ?usize {
 
 pub fn isReference(program: ir.Program, id: ir.TypeId) bool {
     return switch (program.typeOf(id)) {
-        .list, .object, .tuple => true,
+        .list, .object, .tuple, .task => true,
         .optional => |item| isReference(program, item),
         .scalar => |scalar| scalar == .string,
         else => false,

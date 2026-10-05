@@ -1,4 +1,4 @@
-pub const Implementation = struct { module: []const u8, member: []const u8, allocator_argument: bool = false, io_argument: bool = false, process_argument: bool = false, expand_tuple: bool = false, fallible: bool = false, errors: ?[]const []const u8 = null };
+pub const Implementation = struct { module: []const u8, member: []const u8, allocator_argument: bool = false, io_argument: bool = false, process_argument: bool = false, expand_tuple: bool = false, fallible: bool = false, errors: ?[]const []const u8 = null, concurrent: bool = false };
 
 pub const External = struct {
     identity: ?[]const u8 = null,

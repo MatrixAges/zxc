@@ -29,6 +29,7 @@ pub fn block(self: *Analyzer, value: zx.ast.Block) zx.Error![]const ir.Statement
                 const annotation = if (binding.annotation) |type_node| try self.types.resolve(type_node) else null;
                 const initializer = try self.expression(binding.value, annotation);
 
+                if (self.types.get(self.node(initializer).type_id) == .task and self.node(initializer).value != .task) return self.reporter.fail(.ownership, binding.name.span, "a task binding must create its own task; task handles cannot be copied");
                 if (self.node(initializer).type_id == Types.scalarId(.void)) return self.reporter.fail(.type_mismatch, binding.name.span, "void results cannot be bound to a value");
 
                 const symbol = try self.bind(binding.name, self.node(initializer).type_id, scope_start);

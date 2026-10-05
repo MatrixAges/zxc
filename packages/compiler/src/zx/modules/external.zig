@@ -66,6 +66,7 @@ pub fn load(allocator: std.mem.Allocator, entry: External, module: ir.NativeModu
             .expand_tuple = implementation.expand_tuple,
             .fallible = implementation.fallible,
             .errors = errors,
+            .concurrent = implementation.concurrent,
         },
     } };
 }

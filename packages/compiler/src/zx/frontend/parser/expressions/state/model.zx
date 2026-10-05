@@ -5,11 +5,11 @@ import type { Span, Token } from "../../../lexer/token_model"
 import type { Tree, Frame, Control } from "../../types/model"
 import type { PreparedInput, Hint } from "../prepare/model"
 
-export enum ExprKind { Number, String, Boolean, Null, Identifier, Field, Index, List, Call, Lambda, Template, Unary, Binary, Conditional, Match, Object, StateBlock, Capture }
+export enum ExprKind { Number, String, Boolean, Null, Identifier, Field, Index, List, Call, Lambda, Template, Unary, Binary, Conditional, Match, Object, StateBlock, Capture, Async, Await }
 
 export enum Phase { BeginBinary, Primary, Postfix, Returning, FieldName, Arguments, ObjectName, ObjectColon, LambdaParameter, LambdaSeparator, LambdaArrow, LambdaBody, Callback, StateBlock, MatchStart, MatchCondition, MatchFallbackArrow, MatchEnd, GenericType, GenericCall, TemplateGather, TemplatePart, Done }
 
-export enum FrameKind { BinaryLeft, BinaryRight, Unary, Group, Index, Arguments, ObjectValue, OptionsValue, Lambda, ConditionalYes, ConditionalNo, MatchSubject, MatchCondition, MatchResult, MatchFallback, Template, TemplatePart, Interpolation, Capture }
+export enum FrameKind { BinaryLeft, BinaryRight, Unary, Group, Index, Arguments, ObjectValue, OptionsValue, Lambda, ConditionalYes, ConditionalNo, MatchSubject, MatchCondition, MatchResult, MatchFallback, Template, TemplatePart, Interpolation, Capture, Async, Await }
 
 export type ExprNode = { kind: ExprKind, span: Span, depth: u64, name: Span, flag: bool, operator: Operator, first: u64, second: u64, third: u64, head: u64, count: u64, type_argument: u64 }
 

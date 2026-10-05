@@ -30,14 +30,14 @@ pub fn types(allocator: std.mem.Allocator, program: ir.Program, names: Names) Er
 }
 
 pub fn function(allocator: std.mem.Allocator, program: ir.Program, id: ir.FunctionId, names: Names) Error![]u8 {
-    if (@intFromEnum(id) >= program.functions.len) return error.InvalidFunction;
+    if (@backingInt(id) >= program.functions.len) return error.InvalidFunction;
 
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
     const temporary = arena.allocator();
-    const selected = program.functions[@intFromEnum(id)];
+    const selected = program.functions[@backingInt(id)];
     var lower = try initialize(temporary, program, names);
 
     lower.program.symbols = selected.symbols;
@@ -55,25 +55,26 @@ pub fn function(allocator: std.mem.Allocator, program: ir.Program, id: ir.Functi
 
     var output: std.ArrayList(node.Declaration) = .empty;
     var comparisons: std.ArrayList(ir.TypeId) = .empty;
-
+    var task_declarations: std.ArrayList(node.Declaration) = .empty;
     lower.comparisons = &comparisons;
+    lower.task_declarations = &task_declarations;
 
     try output.append(temporary, .{ .constant = .{ .name = "std", .value = try lower.builtin(.import, &.{try lower.builder.string("std")}) } });
     try @import("types.zig").lower(&lower, &output, false);
     try @import("store.zig").declaration(&lower, &output);
 
     var declaration = if (selected.external) |external| native: {
-        const module = program.native_modules[@intFromEnum(external.module)];
+        const module = program.native_modules[@backingInt(external.module)];
         const native_names = try temporary.alloc([]const u8, program.native_modules.len);
 
         @memset(native_names, "");
-        native_names[@intFromEnum(external.module)] = "zx_native";
+        native_names[@backingInt(external.module)] = "zx_native";
 
         lower.native_names = native_names;
 
         try output.append(temporary, .{ .constant = .{ .name = "zx_native", .value = try lower.builtin(.import, &.{try lower.builder.string(module.import_name)}) } });
 
-        break :native try @import("external.zig").lower(&lower, selected, @intFromEnum(id));
+        break :native try @import("external.zig").lower(&lower, selected, @backingInt(id));
     } else try lower.function("call", false);
 
     declaration.function.name = "call";
@@ -81,7 +82,7 @@ pub fn function(allocator: std.mem.Allocator, program: ir.Program, id: ir.Functi
 
     try output.append(temporary, declaration);
 
-    if (lower.value_functions[@intFromEnum(id)]) {
+    if (lower.value_functions[@backingInt(id)]) {
         var value_declaration = try lower.functionValue("callValue");
 
         value_declaration.function.exported = true;
@@ -89,8 +90,8 @@ pub fn function(allocator: std.mem.Allocator, program: ir.Program, id: ir.Functi
         try output.append(temporary, value_declaration);
     }
 
-    if (@import("buffer_call/root.zig").available(lower.buffer_functions[@intFromEnum(id)])) {
-        var buffered_declaration = try @import("buffer_call/root.zig").declaration(&lower, "callBuffered", lower.buffer_functions[@intFromEnum(id)]);
+    if (@import("buffer_call/root.zig").available(lower.buffer_functions[@backingInt(id)])) {
+        var buffered_declaration = try @import("buffer_call/root.zig").declaration(&lower, "callBuffered", lower.buffer_functions[@backingInt(id)]);
 
         buffered_declaration.function.exported = true;
 
@@ -98,6 +99,7 @@ pub fn function(allocator: std.mem.Allocator, program: ir.Program, id: ir.Functi
     }
 
     if (lower.uses_parallel) try output.append(temporary, .{ .source = @import("parallel/allocator.zig").source });
+    try output.appendSlice(temporary, task_declarations.items);
     for (comparisons.items) |type_id| try output.append(temporary, try @import("comparison.zig").ordering(&lower, type_id));
 
     return render(allocator, try output.toOwnedSlice(temporary));

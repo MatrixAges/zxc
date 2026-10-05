@@ -24,7 +24,13 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
         switch (values[offset]) {
             .evaluate => |id| try output.append(self.allocator, .{ .discard = try self.expr(id) }),
             .parallel => |invocations| try output.appendSlice(self.allocator, try @import("parallel/root.zig").lower(self, invocations)),
-            .constant => |binding| {
+            .constant => |binding| binding_block: {
+                if (self.program.typeOf(self.program.expression(binding.value).type_id) == .task) {
+                    try @import("tasks/root.zig").bind(self, &output, self.names[@backingInt(binding.symbol)], binding.value, false);
+
+                    break :binding_block;
+                }
+
                 const value = if (self.stack_symbols.contains(binding.symbol)) try @import("value_call/root.zig").expression(self, binding.value) else try self.expr(binding.value);
                 const index = @backingInt(binding.symbol);
 

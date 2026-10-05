@@ -26,6 +26,8 @@ pub const Expression = struct {
         boolean: bool,
         null_value,
         capture: *const Expression,
+        task: *const Expression,
+        await_task: *const Expression,
         identifier: Name,
         field: struct { target: *const Expression, name: Name },
         index: struct { target: *const Expression, index: *const Expression },

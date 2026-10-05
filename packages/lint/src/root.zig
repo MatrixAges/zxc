@@ -122,7 +122,7 @@ fn checkExpression(expression: *const zx.ast.Expression) ?zx.Diagnostic {
         },
         .field => |field| return checkExpression(field.target),
         .index => |item| return checkExpression(item.target) orelse checkExpression(item.index),
-        .capture => |child| return checkExpression(child),
+        .capture, .task, .await_task => |child| return checkExpression(child),
         .unary => |unary| return checkExpression(unary.operand),
         .binary => |binary| return checkExpression(binary.left) orelse checkExpression(binary.right),
         .conditional => |value| return checkExpression(value.condition) orelse checkExpression(value.yes) orelse checkExpression(value.no),

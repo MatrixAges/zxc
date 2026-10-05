@@ -14,14 +14,13 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 
 fn expressions(allocator: std.mem.Allocator, program: ir.Program, values: []const ir.Expression) std.mem.Allocator.Error!bool {
     for (values) |value| {
-        if (value.value != .capture) continue;
+        if (value.value != .capture and value.value != .task) continue;
 
-        const members = try zx.error_effects.expression(allocator, program.types, program.functions, values, value.value.capture) orelse return false;
+        const members = try zx.error_effects.expression(allocator, program.types, program.functions, values, if (value.value == .task) value.value.task.body else value.value.capture) orelse return false;
 
         defer allocator.free(members);
 
-        const tuple = program.typeOf(value.type_id).tuple;
-        const errors = program.typeOf(program.typeOf(tuple[0]).optional).error_set;
+        const errors = if (value.value == .task) program.typeOf(program.typeOf(value.type_id).task.errors).error_set else program.typeOf(program.typeOf(program.typeOf(value.type_id).tuple[0]).optional).error_set;
 
         if (members.len != errors.len) return false;
 

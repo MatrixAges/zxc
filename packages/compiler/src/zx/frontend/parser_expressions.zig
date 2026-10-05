@@ -68,7 +68,11 @@ fn primary(parser: *Parser, allow_lambda: bool) zx.Error!*const ast.Expression {
     const token = parser.current();
     var result: *const ast.Expression = undefined;
 
-    if (parser.take("try")) {
+    if (parser.take("async")) {
+        return parser.make(token.span.start, .{ .task = try primary(parser, allow_lambda) });
+    } else if (parser.take("await")) {
+        return parser.make(token.span.start, .{ .await_task = try primary(parser, allow_lambda) });
+    } else if (parser.take("try")) {
         return parser.make(token.span.start, .{ .capture = try primary(parser, allow_lambda) });
     } else if (parser.take("match")) {
         result = try @import("parser_match.zig").parse(parser, token.span.start);

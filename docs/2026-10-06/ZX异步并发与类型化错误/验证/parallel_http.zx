@@ -1,0 +1,20 @@
+import http from "std:http"
+
+import type { Options, Response } from "std:http"
+
+export type Input = { first: Options, second: Options }
+
+export type Output = { first: Response, second: Response }?
+
+export default function (in: Input): Output {
+  const [err, res] = try parallel({
+    first: () => http.request(in.first),
+    second: () => http.request(in.second)
+  })
+
+  if (err != null) {
+    return null
+  }
+
+  return res
+}

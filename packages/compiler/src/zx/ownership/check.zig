@@ -405,6 +405,32 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
             break :blk if (left == .borrowed or right == .borrowed) .borrowed else .owned;
         },
         .capture => |child| try self.value(child, mode),
+        .task => |task| blk: {
+            for (task.captures) |symbol| {
+                _ = try self.access(@backingInt(symbol), .read, expression.span);
+
+                self.places.borrow(self.states, @backingInt(symbol), true);
+            }
+
+            const saved = try self.allocator.dupe(State, self.states);
+
+            defer self.allocator.free(saved);
+            defer @memcpy(self.states, saved);
+
+            _ = try self.value(task.body, .read);
+
+            break :blk .owned;
+        },
+        .await_task => |child| blk: {
+            _ = try self.value(child, .move);
+
+            break :blk .borrowed;
+        },
+        .parallel => |branches| blk: {
+            for (branches) |branch| _ = try self.value(branch.task, .move);
+
+            break :blk .borrowed;
+        },
         .unary => |unary| blk: {
             _ = try self.value(unary.operand, .read);
 

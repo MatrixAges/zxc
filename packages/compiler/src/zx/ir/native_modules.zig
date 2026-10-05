@@ -76,6 +76,7 @@ pub fn validateExport(program: ir.Program, index: usize) bool {
         if (!std.mem.eql(u8, other.exportName(), name)) continue;
         if (previous.input_type != function.input_type or previous.output_type != function.output_type) return false;
         if (other.fallible != external.fallible) return false;
+        if (other.concurrent != external.concurrent) return false;
         if ((other.errors == null) != (external.errors == null)) return false;
 
         if (external.errors) |errors| {
@@ -112,6 +113,7 @@ pub fn validateType(program: ir.Program, module_id: ir.NativeModuleId, type_id: 
     }
 
     switch (program.typeOf(type_id)) {
+        .task => return false,
         .scalar, .enumeration, .error_set => return shape.children.len == 0,
         .optional, .list => |child| return shape.children.len == 1 and validateType(program, module_id, child, shape.children[0], depth + 1),
         .tuple => |children| {

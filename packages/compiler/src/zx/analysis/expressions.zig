@@ -69,6 +69,8 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
             return self.reporter.fail(.name, field.name.span, "unknown object field");
         },
         .capture => |child| return @import("capture.zig").analyze(self, child, span),
+        .task => |child| return @import("tasks.zig").start(self, child, span),
+        .await_task => |child| return @import("tasks.zig").wait(self, child, span),
         .unary => |unary| {
             if (unary.operator == .negate and unary.operand.value == .number) return numbers.literal(self, unary.operand.value.number, span, aggregates.payload(self, expected), true);
 
@@ -182,6 +184,14 @@ pub fn knownType(self: *const Analyzer, value: *const zx.ast.Expression) ?ir.Typ
     if (@import("expression_binding.zig").lookup(self, value)) |binding| return @import("refinement.zig").typeOf(self, binding);
 
     return switch (value.value) {
+        .await_task => |child| blk: {
+            if (child.value == .task) break :blk knownType(self, child.value.task);
+
+            const type_id = knownType(self, child) orelse break :blk null;
+            const target = self.types.get(type_id);
+
+            break :blk if (target == .task) target.task.result else null;
+        },
         .identifier => |name| if (self.lookup(name.text)) |id| @import("refinement.zig").typeOf(self, id) else null,
         .field => |field| blk: {
             if (field.target.value == .identifier and std.mem.startsWith(u8, field.target.value.identifier.text, "$")) {

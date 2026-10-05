@@ -28,6 +28,10 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: []cons
         field(&hash, @tagName(value));
 
         switch (value) {
+            .task => |task| {
+                field(&hash, &digests[@backingInt(task.result)]);
+                field(&hash, &digests[@backingInt(task.errors)]);
+            },
             .scalar => |scalar| field(&hash, @tagName(scalar)),
             .optional, .list => |child| field(&hash, &digests[@backingInt(child)]),
             .tuple => |children| for (children) |child| {

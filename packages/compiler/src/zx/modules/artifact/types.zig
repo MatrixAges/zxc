@@ -50,6 +50,10 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
             try pending.append(self.temporary, .{ .id = step.id, .ready = true });
 
             switch (value) {
+                .task => |task| {
+                    try pending.append(self.temporary, .{ .id = task.result });
+                    try pending.append(self.temporary, .{ .id = task.errors });
+                },
                 .optional, .list => |child| try pending.append(self.temporary, .{ .id = child }),
                 .tuple => |children| {
                     var remaining = children.len;
@@ -101,6 +105,7 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
 fn copy(self: *Self, value: ir.Type) Error!ir.Type {
     return switch (value) {
         .scalar => value,
+        .task => |task| .{ .task = .{ .result = self.mapping[@backingInt(task.result)].?, .errors = self.mapping[@backingInt(task.errors)].? } },
         .optional => |child| .{ .optional = self.mapping[@backingInt(child)].? },
         .list => |child| .{ .list = self.mapping[@backingInt(child)].? },
         .tuple => |children| blk: {

@@ -6,6 +6,24 @@ pub fn visit(self: *Effects, values: []const ir.Expression, value: ir.Expression
     switch (value.value) {
         .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value, .reference, .store_get => {},
         .capture => try self.add("OutOfMemory"),
+        .task => {},
+        .await_task => |child| {
+            try self.visit(values, child);
+
+            const task = self.types[@backingInt(values[@backingInt(child)].type_id)].task;
+
+            for (self.types[@backingInt(task.errors)].error_set) |name| try self.add(name);
+        },
+        .parallel => |branches| {
+            try self.add("ConcurrencyUnavailable");
+            if (value.type_id != @as(ir.TypeId, @fromBackingInt(0))) try self.add("OutOfMemory");
+
+            for (branches) |branch| {
+                const task = self.types[@backingInt(values[@backingInt(branch.task)].type_id)].task;
+
+                for (self.types[@backingInt(task.errors)].error_set) |name| try self.add(name);
+            }
+        },
         .some, .optional_value, .length => |child| try self.visit(values, child),
         .field, .tuple_field => |field| try self.visit(values, field.target),
         .index => |index| {

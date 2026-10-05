@@ -72,6 +72,10 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
         if (!needed[remaining]) continue;
 
         switch (program.types[remaining]) {
+            .task => |task| {
+                try self.mark(task.result);
+                try self.mark(task.errors);
+            },
             .optional, .list => |child| try self.mark(child),
             .tuple => |children| for (children) |child| try self.mark(child),
             .object => |fields| for (fields) |field| try self.mark(field.type_id),

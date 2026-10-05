@@ -3,7 +3,7 @@ const zx = @import("zx");
 const Parser = @import("../frontend/parser.zig");
 const naming = @import("lint");
 
-pub const Function = struct { name: zx.ast.Name, parameters: []const *const zx.ast.Type, output: *const zx.ast.Type, allocator_argument: bool, io_argument: bool, process_argument: bool, fallible: bool, errors: ?[]const []const u8 };
+pub const Function = struct { name: zx.ast.Name, parameters: []const *const zx.ast.Type, output: *const zx.ast.Type, allocator_argument: bool, io_argument: bool, process_argument: bool, fallible: bool, errors: ?[]const []const u8, concurrent: bool };
 pub const Program = struct { types: []const zx.ast.Declaration, functions: []const Function };
 
 pub fn parse(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Reporter) zx.Error!Program {
@@ -71,9 +71,10 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Rep
         const output = try parser.typeNode();
         const fallible = parser.take("throws");
         const errors = if (fallible and parser.take("{")) try errorSet(&parser) else null;
+        const concurrent = parser.take("concurrent");
 
         try parser.endStatement();
-        try functions.append(allocator, .{ .name = name, .parameters = parameters.items, .output = output, .allocator_argument = allocating, .io_argument = uses_io, .process_argument = uses_process, .fallible = fallible, .errors = errors });
+        try functions.append(allocator, .{ .name = name, .parameters = parameters.items, .output = output, .allocator_argument = allocating, .io_argument = uses_io, .process_argument = uses_process, .fallible = fallible, .errors = errors, .concurrent = concurrent });
     }
 
     if (types.items.len == 0 and functions.items.len == 0) return reporter.fail(.contract, .{ .start = 0, .end = 0 }, "native interfaces must export types or functions");

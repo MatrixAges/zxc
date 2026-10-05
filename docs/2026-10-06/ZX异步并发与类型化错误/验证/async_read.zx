@@ -1,0 +1,17 @@
+import fs from "std:fs"
+
+export type Input = { path: string, max_bytes: u64 }
+
+export type Output = string?
+
+export default function (in: Input): Output {
+  const task = async fs.readText(in)
+
+  const [err, res] = try await task
+
+  if (err != null) {
+    return null
+  }
+
+  return res
+}

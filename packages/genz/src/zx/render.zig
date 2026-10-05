@@ -9,6 +9,7 @@ pub const io = @import("io.zig");
 pub const value_call = @import("value_call/root.zig");
 pub const buffer_call = @import("buffer_call/root.zig");
 pub const capabilities = @import("capabilities.zig");
+pub const tasks = @import("tasks/root.zig");
 
 pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error![]u8 {
     var arena = std.heap.ArenaAllocator.init(allocator);

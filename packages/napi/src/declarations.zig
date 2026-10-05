@@ -55,6 +55,7 @@ fn definition(writer: *std.Io.Writer, types: []const ir.Type, value: ir.Type, in
     const name = prefix(incoming);
 
     switch (value) {
+        .task => unreachable,
         .scalar => |scalar| try writer.writeAll(switch (scalar) {
             .void => "void",
             .bool => "boolean",

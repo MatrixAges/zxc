@@ -15,6 +15,7 @@ pub const Type = union(enum) {
     list: TypeId,
     tuple: []const TypeId,
     error_set: []const []const u8,
+    task: struct { result: TypeId, errors: TypeId },
     enumeration: struct { name: []const u8, members: []const []const u8 },
 };
 
@@ -29,6 +30,8 @@ pub const MatchArm = struct { condition: ExprId, result: ExprId };
 pub const ScopeBinding = struct { symbol: ?SymbolId, value: ExprId, borrow: bool = false };
 pub const Scope = struct { bindings: []const ScopeBinding, result: ExprId };
 pub const ListUpdate = struct { target: ExprId, index: ExprId, value: ExprId };
+pub const Task = struct { body: ExprId, captures: []const SymbolId };
+pub const ParallelBranch = struct { task: ExprId, field: ?u32 };
 
 pub const Iteration = struct {
     initial: ExprId,
@@ -52,6 +55,9 @@ pub const Expression = struct {
         unit,
         some: ExprId,
         capture: ExprId,
+        task: Task,
+        await_task: ExprId,
+        parallel: []const ParallelBranch,
         optional_value: ExprId,
         enum_value: u32,
         error_value: u32,
@@ -120,6 +126,7 @@ pub const External = struct {
     expand_tuple: bool = false,
     fallible: bool = false,
     errors: ?[]const []const u8 = null,
+    concurrent: bool = false,
     pub fn exportName(self: External) []const u8 {
         return self.export_name orelse self.member[self.member.len - 1];
     }
@@ -151,7 +158,7 @@ pub const Function = struct {
 pub const Program = struct {
     consumes_input: bool = false,
     output_ownership: Ownership = .borrowed,
-    version: u32 = 18,
+    version: u32 = 19,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,

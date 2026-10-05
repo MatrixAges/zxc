@@ -13,6 +13,7 @@ declared: []bool,
 declaration_owner: []?ir.ExprId,
 pure_functions: ?[]const bool = null,
 callback_depth: usize = 0,
+task_depth: usize = 0,
 refinement: zx.Refinement = .{},
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
     const active = try allocator.alloc(bool, program.symbols.len);
@@ -155,7 +156,7 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
     if (@backingInt(id) >= self.program.expressions.len or depth > 256) return false;
 
     return switch (self.program.expression(id).value) {
-        .store_get => self.callback_depth == 0,
+        .store_get => self.callback_depth == 0 and self.task_depth == 0,
         .list_update => |update| try self.expression(update.target, depth + 1) and try self.expression(update.index, depth + 1) and try self.expression(update.value, depth + 1),
         .iteration => |iteration| blk: {
             if (!try self.expression(iteration.initial, depth + 1)) break :blk false;
@@ -221,6 +222,30 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
         .index => |item| try self.expression(item.target, depth + 1) and try self.expression(item.index, depth + 1),
         .length, .some => |child| self.expression(child, depth + 1),
         .capture => |child| self.expression(child, depth + 1),
+        .await_task => |child| self.expression(child, depth + 1),
+        .task => |task| blk: {
+            const saved = try self.allocator.dupe(bool, self.active);
+
+            defer self.allocator.free(saved);
+            defer @memcpy(self.active, saved);
+            @memset(self.active, false);
+
+            for (task.captures) |symbol| {
+                if (!saved[@backingInt(symbol)]) break :blk false;
+
+                self.active[@backingInt(symbol)] = true;
+            }
+
+            self.task_depth += 1;
+            defer self.task_depth -= 1;
+
+            break :blk try self.expression(task.body, depth + 1);
+        },
+        .parallel => |branches| blk: {
+            for (branches) |branch| if (!try self.expression(branch.task, depth + 1)) break :blk false;
+
+            break :blk true;
+        },
         .optional_value => |child| blk: {
             const value = self.program.expression(child).value;
 
@@ -275,7 +300,7 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
 
             break :blk true;
         },
-        .call => |call| (self.callback_depth == 0 or call.stores.len == 0) and try self.expression(call.argument, depth + 1),
+        .call => |call| (self.callback_depth == 0 or call.stores.len == 0) and (self.task_depth == 0 or try @import("tasks.zig").callSafe(self.allocator, self.program.functions, call.function)) and try self.expression(call.argument, depth + 1),
         .list_operation => |operation| try self.expression(operation.target, depth + 1) and try self.sequence(operation.arguments, depth + 1),
         .transform => |transform| blk: {
             if (!try self.expression(transform.target, depth + 1)) break :blk false;

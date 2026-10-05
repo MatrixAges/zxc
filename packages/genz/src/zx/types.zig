@@ -17,6 +17,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
                 else => try self.builder.expression(.{ .primitive = std.meta.stringToEnum(@FieldType(node.Expression, "primitive"), @tagName(scalar)).? }),
             },
             .error_set => |members| try self.builder.expression(.{ .error_set = members }),
+            .task => |task| try self.call(try @import("intrinsics.zig").standardField(self, &.{ "Io", "Future" }), &.{try self.builder.expression(.{ .error_union = .{ .errors = self.program.typeOf(task.errors).error_set, .payload = self.types[@backingInt(task.result)] } })}, false),
             .optional => |child| try self.builder.expression(.{ .optional_type = self.types[@backingInt(child)] }),
             .list => |child| try self.builder.expression(.{ .const_slice = self.types[@backingInt(child)] }),
             .object, .tuple, .enumeration => blk: {
