@@ -1,5 +1,5 @@
 {
-	"count": 11,
+	"count": 15,
 	"failures": 0,
 	"records": [
 		{
@@ -132,6 +132,50 @@
 							"appends": [],
 							"calls": [],
 							"rejection": "borrowed_input"
+						}
+					]
+				}
+			],
+			"exit_code": 0,
+			"stderr": "",
+			"passed": true
+		},
+		{
+			"name": "conditional_read",
+			"expected_rejections": ["element_read"],
+			"actual": [
+				{
+					"file": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/列表流草稿独立验证/输入/conditional_read/step.zx",
+					"consumes_input": true,
+					"provenance": [
+						{
+							"input": [0],
+							"output": [0],
+							"appends": [16],
+							"calls": [],
+							"rejection": "element_read"
+						}
+					]
+				}
+			],
+			"exit_code": 0,
+			"stderr": "",
+			"passed": true
+		},
+		{
+			"name": "nested_read",
+			"expected_rejections": ["nested_transform"],
+			"actual": [
+				{
+					"file": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/列表流草稿独立验证/输入/nested_read/step.zx",
+					"consumes_input": true,
+					"provenance": [
+						{
+							"input": [0],
+							"output": [0],
+							"appends": [13],
+							"calls": [],
+							"rejection": "nested_transform"
 						}
 					]
 				}
@@ -317,6 +361,60 @@
 			"exit_code": 0,
 			"stderr": "",
 			"passed": true
+		},
+		{
+			"name": "helper_read",
+			"expected_rejections": ["unsupported_call"],
+			"actual": [
+				{
+					"file": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/列表流草稿独立验证/输入/helper_read/read.zx",
+					"consumes_input": false,
+					"provenance": []
+				},
+				{
+					"file": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/列表流草稿独立验证/输入/helper_read/step.zx",
+					"consumes_input": true,
+					"provenance": [
+						{
+							"input": [0],
+							"output": [0],
+							"appends": [9],
+							"calls": [],
+							"rejection": "unsupported_call"
+						}
+					]
+				}
+			],
+			"exit_code": 0,
+			"stderr": "",
+			"passed": true
+		},
+		{
+			"name": "optional_read",
+			"expected_rejections": ["container_escape"],
+			"actual": [
+				{
+					"file": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/列表流草稿独立验证/输入/optional_read/read.zx",
+					"consumes_input": false,
+					"provenance": []
+				},
+				{
+					"file": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/列表流草稿独立验证/输入/optional_read/step.zx",
+					"consumes_input": true,
+					"provenance": [
+						{
+							"input": [0],
+							"output": [0],
+							"appends": [16],
+							"calls": [],
+							"rejection": "container_escape"
+						}
+					]
+				}
+			],
+			"exit_code": 0,
+			"stderr": "",
+			"passed": true
 		}
 	],
 	"sha256": {
@@ -333,12 +431,22 @@
 		"docs/2026-10-05/列表流草稿独立验证/输入/reset/main.zx": "d799626335841118ff575b5e65a98c162f77db8518360b9469e90191d7e997ca",
 		"docs/2026-10-05/列表流草稿独立验证/输入/read/step.zx": "eef36df614cb9609a9cc60b99848fecfbb91af603bd843f49035dc98d6240683",
 		"docs/2026-10-05/列表流草稿独立验证/输入/read/main.zx": "a78f733f3810aed71124524b0bb6151e8e38240d10ed21075a492845542830a9",
+		"docs/2026-10-05/列表流草稿独立验证/输入/optional_read/step.zx": "ece93e9d2fc3fb68f2c34431fa6116192d296ea4312ccb50e03907d88012c4f3",
+		"docs/2026-10-05/列表流草稿独立验证/输入/optional_read/main.zx": "a78f733f3810aed71124524b0bb6151e8e38240d10ed21075a492845542830a9",
+		"docs/2026-10-05/列表流草稿独立验证/输入/optional_read/read.zx": "b67a9e37835944e19b67bc4fa3f80b913ead42fc8f23387149d604328657bd0d",
+		"docs/2026-10-05/列表流草稿独立验证/输入/helper_read/step.zx": "61b2d30c86a1f5d76bdb3e0e16b35e6ce8e55fffb7e4729e6ddca2c98ca79659",
+		"docs/2026-10-05/列表流草稿独立验证/输入/helper_read/main.zx": "a78f733f3810aed71124524b0bb6151e8e38240d10ed21075a492845542830a9",
+		"docs/2026-10-05/列表流草稿独立验证/输入/helper_read/read.zx": "9defc270769a5d921832926ad78df0844849a785b1d40f196848ff399c54b5fc",
 		"docs/2026-10-05/列表流草稿独立验证/输入/reverse/step.zx": "35a30c8d33f97fa4ebe444a17e9139ba1795280b38f9a0e3fdbf256bb648a128",
 		"docs/2026-10-05/列表流草稿独立验证/输入/reverse/main.zx": "d799626335841118ff575b5e65a98c162f77db8518360b9469e90191d7e997ca",
+		"docs/2026-10-05/列表流草稿独立验证/输入/nested_read/step.zx": "1dae918b6ec46d96730786ca7f34a9e5ea138666aa85e63197ec275a8f77fc0f",
+		"docs/2026-10-05/列表流草稿独立验证/输入/nested_read/main.zx": "a78f733f3810aed71124524b0bb6151e8e38240d10ed21075a492845542830a9",
 		"docs/2026-10-05/列表流草稿独立验证/输入/push/step.zx": "d9cee9d391eec4a970656301e498c2a7b5d2ece547f698ed50789e0c1e273610",
 		"docs/2026-10-05/列表流草稿独立验证/输入/push/main.zx": "d799626335841118ff575b5e65a98c162f77db8518360b9469e90191d7e997ca",
 		"docs/2026-10-05/列表流草稿独立验证/输入/carry/step.zx": "5aaa775f0a7d6ec825902ce8fca64d3abb9af1c2c8df0f4929212d2358f280a3",
 		"docs/2026-10-05/列表流草稿独立验证/输入/carry/main.zx": "d799626335841118ff575b5e65a98c162f77db8518360b9469e90191d7e997ca",
+		"docs/2026-10-05/列表流草稿独立验证/输入/conditional_read/step.zx": "1ea2d54aba911af58c0320d541f65fa7344f6ace054bc4abb5080115bd224244",
+		"docs/2026-10-05/列表流草稿独立验证/输入/conditional_read/main.zx": "a78f733f3810aed71124524b0bb6151e8e38240d10ed21075a492845542830a9",
 		"docs/2026-10-05/列表流草稿独立验证/输入/separate_fields/step.zx": "b7d11f9eff4b75aeee037b1904bff77e23e957c7cc694bd6ef5c36ce84b12aea",
 		"docs/2026-10-05/列表流草稿独立验证/输入/separate_fields/main.zx": "c7f2b9faf187c149f0fd53420d319b703e786795da2e04442420d444a8565b23",
 		"docs/2026-10-05/列表流草稿独立验证/输入/forward_swapped/step.zx": "b7d11f9eff4b75aeee037b1904bff77e23e957c7cc694bd6ef5c36ce84b12aea",

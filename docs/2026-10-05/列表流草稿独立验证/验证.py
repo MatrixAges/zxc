@@ -22,6 +22,8 @@ cases = [
     ("reset", True, "u64[]", "return {items: in.value == 0 ? [] : in.items.push(in.value)[0]}", []),
     ("reverse", True, "u64[]", "return {items: in.items.reverse()[0]}", []),
     ("borrowed", False, "u64[]", "return {items: in.items}", ["borrowed_input"]),
+    ("conditional_read", True, "u64[]", "return {seen: (in.value == 0 ? in.items : [])[0], items: in.items.push(in.value)[0]}", ["element_read"]),
+    ("nested_read", True, "u64[]", "return {seen: in.items.reduce((sum, item) => sum + item, 0), items: in.items.push(in.value)[0]}", ["nested_transform"]),
     ("read", True, "u64[]", "return {seen: in.items[0], items: in.items.push(in.value)[0]}", ["element_read"]),
 ]
 records = []
@@ -30,7 +32,7 @@ for name, owned, kind, body, expected in cases:
     location = folder / "输入" / name
     location.mkdir(parents=True, exist_ok=True)
     input_type = "{ items: " + kind + ", value: u64 }"
-    output_type = "{ items: u64[], seen: u64 }" if name == "read" else "{ items: u64[] }"
+    output_type = "{ items: u64[], seen: u64 }" if name in {"read", "conditional_read", "optional_read", "nested_read"} else "{ items: u64[] }"
     signature = "owned Input" if owned else "Input"
     declarations = f"export type Input = {input_type}\n\nexport type Output = {output_type}\n\n"
     helper = declarations + f"export default function (in: {signature}): Output {{\n  {body}\n}}\n"
@@ -72,6 +74,22 @@ for swapped in [False, True]:
     paths = {(tuple(lane["input"]), tuple(lane["output"])) for lane in lanes}
     passed = result.returncode == 0 and len(summary) == 2 and len(lanes) == 2 and paths == expected and all(lane["rejection"] is None and len(lane["calls"]) == 1 for lane in lanes)
     records.append({"name": name, "expected_paths": [[list(a), list(b)] for a, b in sorted(expected)], "actual": summary, "exit_code": result.returncode, "stderr": result.stderr, "passed": passed})
+
+for name, input_type, read_body, argument, rejection in [
+    ("helper_read", "u64[]", "in[0]", "in.items", "unsupported_call"),
+    ("optional_read", "u64[]?", "(in ?? [])[0]", "in.value == 0 ? in.items : null", "container_escape"),
+]:
+    target = folder / "输入" / name
+    target.mkdir(parents=True, exist_ok=True)
+    declarations = "export type Input = { items: u64[], value: u64 }\n\nexport type Output = { items: u64[], seen: u64 }\n\n"
+    (target / "read.zx").write_text("export type Input = " + input_type + "\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return " + read_body + "\n}\n")
+    (target / "step.zx").write_text('import read from "./read.zx"\n\n' + declarations + "export default function (in: owned Input): Output {\n  return {seen: read(" + argument + "), items: in.items.push(in.value)[0]}\n}\n")
+    (target / "main.zx").write_text('import step from "./step.zx"\n\n' + declarations + "export default function (in: owned Input): Output {\n  return step(in)\n}\n")
+    result = subprocess.run([str(observer), str(target / "main.zx"), *map(str, sorted(target.glob("*.zx")))], capture_output=True, text=True, timeout=30)
+    summary = [json.loads(line) for line in result.stdout.splitlines()] if result.returncode == 0 else []
+    actual = [lane["rejection"] for row in summary for lane in row["provenance"]]
+    passed = result.returncode == 0 and len(summary) == 2 and actual == [rejection]
+    records.append({"name": name, "expected_rejections": [rejection], "actual": summary, "exit_code": result.returncode, "stderr": result.stderr, "passed": passed})
 
 sources = list((folder / "输入").rglob("*.zx")) + [draft / name for name in ["flow.zig", "trace.zig", "may.zig", "audit.zig", "observe.zig"]]
 if any(hashlib.sha256(Path(source).read_bytes()).hexdigest() != digest for source, digest in source_hashes.items()):

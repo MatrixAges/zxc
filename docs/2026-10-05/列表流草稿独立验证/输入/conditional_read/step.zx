@@ -1,0 +1,7 @@
+export type Input = { items: u64[], value: u64 }
+
+export type Output = { items: u64[], seen: u64 }
+
+export default function (in: owned Input): Output {
+  return {seen: (in.value == 0 ? in.items : [])[0], items: in.items.push(in.value)[0]}
+}
