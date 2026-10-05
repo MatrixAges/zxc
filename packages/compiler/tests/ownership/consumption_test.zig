@@ -48,8 +48,13 @@ test "ownership: duplicate container fields cannot create owned aliases" {
     try check("const items = [1]\n const pair = { left: items, right: items }\n return 0\n", false);
 }
 
-test "ownership: moving a nested container consumes its root owner" {
-    try check("const object = { values: [1], count: 2 }\n const values = object.values\n return object.count\n", false);
+test "ownership: moving a nested field preserves independent siblings" {
+    try check("const object = { values: [1], count: 2 }\n const values = object.values\n return object.count\n", true);
+}
+
+test "ownership: moved fields and their incomplete parent cannot be reused" {
+    try check("const object = { values: [1], count: 2 }\n const values = object.values\n return object.values[0]\n", false);
+    try check("const object = { values: [1], count: 2 }\n const values = object.values\n const copy = object\n return copy.count\n", false);
 }
 
 test "ownership: an escaping nested view freezes the original owner" {

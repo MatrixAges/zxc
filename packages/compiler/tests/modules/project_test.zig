@@ -1,5 +1,6 @@
 const std = @import("std");
 const frontend = @import("compiler");
+const allocation_testing = @import("../support/allocation_testing.zig");
 const project = frontend.project;
 
 fn valid(sources: []const project.Source, entry: []const u8) !void {
@@ -85,5 +86,5 @@ fn projectAllocationFailures(allocator: std.mem.Allocator) !void {
 }
 
 test "modules: allocation failures release parsed dependency arenas" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, projectAllocationFailures, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, projectAllocationFailures, .{});
 }
