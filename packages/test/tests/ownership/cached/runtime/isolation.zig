@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 fn run(gpa: std.mem.Allocator) !void {
@@ -21,5 +22,5 @@ test "cached spread separate invocations retain earlier result" {
 }
 
 test "cached spread repeated invocations allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{});
 }

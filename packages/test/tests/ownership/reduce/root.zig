@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "reduce fresh initial allows push and consumes resulting accumulator" {
@@ -101,13 +102,13 @@ test "reduce source loan prevents consuming source as initial" {
 }
 
 test "reduce owned success cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const initial: u64[] = []\n  const result = in.reduce((items, item) => items.push(item)[0], initial)\n\n  return result.reverse()[0]",
     }});
 }
 
 test "reduce borrowed recurrence rejection cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const initial: u64[] = []\n\n  return in.reduce((items, row) => row.length > 0 ? items.push(1)[0] : row, initial)",
         .input = "u64[][]",
         .marker = "items.push(1)",

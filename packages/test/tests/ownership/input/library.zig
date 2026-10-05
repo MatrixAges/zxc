@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 const compiler = f.compiler;
 const borrowed_call = "import consume from \"owned\"\nexport type Input = u64[]\nexport type Output = u64[]\nexport default function (in: Input): Output { return consume(in) }\n";
@@ -123,9 +124,9 @@ fn restoreAllocated(allocator: std.mem.Allocator, publish_again: bool) !void {
 }
 
 test "library encode restore chain cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, restoreAllocated, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, restoreAllocated, .{false});
 }
 
 test "library republish chain cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, restoreAllocated, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, restoreAllocated, .{true});
 }

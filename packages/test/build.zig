@@ -459,6 +459,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    ownership_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
     ownership_step.dependOn(&b.addRunArtifact(ownership_tests).step);
     test_step.dependOn(ownership_step);
 

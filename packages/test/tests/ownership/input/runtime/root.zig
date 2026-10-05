@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const h = @import("check.zig");
 
@@ -35,9 +36,9 @@ test "owned helper chain executes larger sequence" {
 }
 
 test "owned helper chain releases every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{@as(usize, 128)});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{@as(usize, 128)});
 }
 
 test "empty owned helper chain releases every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{@as(usize, 0)});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{@as(usize, 0)});
 }

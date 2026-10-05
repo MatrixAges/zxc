@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "nested siblings independently move" {
@@ -47,14 +48,14 @@ test "deep child move preserves other branch" {
 }
 
 test "nested valid analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const first = in.lists.first.reverse()[0]\n  const second = in.lists.second.sort()[0]\n\n  return first.length + second.length + in.count",
         .input = "{ lists: { first: u64[], second: u64[] }, count: u64 }",
     }});
 }
 
 test "nested rejected analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const first = in.lists.first.reverse()[0]\n  const whole = parent(in)\n\n  return first.length + whole.count",
         .input = "{ lists: { first: u64[], second: u64[] }, count: u64 }",
         .reject = true,

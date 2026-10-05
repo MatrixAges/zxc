@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 const pair = "{ first: u64[], second: u64[] }";
 const consumed = "{ first: u64[], second: [u64[], void] }";
@@ -95,9 +96,9 @@ test "later scalar call cannot release an already escaped borrow" {
 }
 
 test "temporary borrow success releases analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{readonly});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{readonly});
 }
 
 test "temporary borrow conflict releases analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{conflict});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{conflict});
 }

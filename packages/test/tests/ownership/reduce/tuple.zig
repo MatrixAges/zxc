@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "static tuple index heterogeneous first member" {
@@ -82,7 +83,7 @@ test "static tuple index tuple list member stays borrowed" {
 }
 
 test "static tuple index out of bounds cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .input = "[u64, bool]",
         .output = "u64",
         .body = "  return in[2]",

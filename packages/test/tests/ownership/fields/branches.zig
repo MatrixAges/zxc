@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "exclusive branches may consume same field" {
@@ -41,13 +42,13 @@ test "conditional borrow preserves independent sibling" {
 }
 
 test "branches valid analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const first = in.count == 0 ? in.first.reverse()[0] : in.first.sort()[0]\n  const second = in.second.reverse()[0]\n\n  return first.length + second.length",
     }});
 }
 
 test "branches rejected analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const size = in.count == 0 ? in.first.reverse()[0].length : 0\n\n  return size + in.first.length",
         .reject = true,
     }});

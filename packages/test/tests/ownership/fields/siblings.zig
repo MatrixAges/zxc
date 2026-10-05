@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "independent owned list fields can both move" {
@@ -49,13 +50,13 @@ test "scalar copy before moves remains available" {
 }
 
 test "siblings valid analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const first = in.first.reverse()[0]\n  const second = in.second.sort()[0]\n\n  return first.length + second.length + in.count",
     }});
 }
 
 test "siblings rejected analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const first = in.first.reverse()[0]\n  const whole = parent(in)\n\n  return first.length + whole.count",
         .reject = true,
     }});

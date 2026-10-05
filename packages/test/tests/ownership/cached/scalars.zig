@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "cached scalars direct none" {
@@ -34,9 +35,9 @@ test "cached scalars nested swap" {
 }
 
 test "cached scalars none allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .shape = .scalars, .mutation = .none, .nested = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .shape = .scalars, .mutation = .none, .nested = true }});
 }
 
 test "cached scalars duplicate_path allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .shape = .scalars, .mutation = .duplicate_path, .nested = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .shape = .scalars, .mutation = .duplicate_path, .nested = true }});
 }

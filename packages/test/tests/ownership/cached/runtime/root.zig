@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "cached spread empty first field retains nonempty sibling" {
@@ -26,11 +27,11 @@ test "cached spread equal contents do not imply shared ownership" {
 }
 
 test "cached spread runtime allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 31 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 31 }});
 }
 
 test "cached spread alternative branch runtime allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 31, .choice = false }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 31, .choice = false }});
 }
 
 comptime {

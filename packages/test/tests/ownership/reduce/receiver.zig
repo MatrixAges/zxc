@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 const scalar_read = h.Case{
@@ -37,7 +38,7 @@ test "borrowed receiver is not made owned by scalar argument read" {
 }
 
 test "consuming receiver scalar argument cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{scalar_read});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{scalar_read});
 }
 
 test "consuming receiver permits scalar reads through object owner" {

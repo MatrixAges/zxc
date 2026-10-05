@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "escaped child borrow preserves independent sibling move" {
@@ -49,13 +50,13 @@ test "nested borrow preserves sibling at same depth" {
 }
 
 test "borrows valid analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const first = borrow(in.first)\n  const second = in.second.reverse()[0]\n\n  return first.length + second.length",
     }});
 }
 
 test "borrows rejected analysis allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  const first = borrow(in.first)\n  const second = in.first.reverse()[0]\n\n  return first.length + second.length",
         .reject = true,
     }});

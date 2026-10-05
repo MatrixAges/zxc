@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 const codec = f.compiler.project.SemanticCache.codec;
 const identity = @as([32]u8, @splat(11));
@@ -94,9 +95,9 @@ test "link rejects importer claiming borrowed callee consumes" {
 }
 
 test "owned module cache and relink chain releases allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, roundtrip, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, roundtrip, .{true});
 }
 
 test "borrowed module cache and relink chain releases allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, roundtrip, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, roundtrip, .{false});
 }

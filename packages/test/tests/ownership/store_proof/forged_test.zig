@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("fixture.zig");
 
 test "Store archive rejects forged whole helper owned summary" {
@@ -34,9 +35,9 @@ test "Store archive rejects forged branch nested service owned summary" {
 }
 
 test "Store forged whole summary allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .value = "in", .expected = false, .helper = true, .service = true, .forge_summary = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .value = "in", .expected = false, .helper = true, .service = true, .forge_summary = true }});
 }
 
 test "Store forged rows summary allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .value = "{ count: 9, rows: in.rows.map(row => row), labels: [\"fresh\"] }", .expected = false, .helper = true, .service = true, .forge_summary = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .value = "{ count: 9, rows: in.rows.map(row => row), labels: [\"fresh\"] }", .expected = false, .helper = true, .service = true, .forge_summary = true }});
 }

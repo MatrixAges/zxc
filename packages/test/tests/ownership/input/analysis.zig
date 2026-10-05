@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "fresh mapped value transfers to owned helper" {
@@ -143,13 +144,13 @@ test "owned input identity return remains owned" {
 }
 
 test "owned helper success releases allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  return consume(in.map(item => item))",
     }});
 }
 
 test "borrowed helper call rejection releases allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .body = "  return consume(in)",
         .marker = "consume(in)",
     }});
