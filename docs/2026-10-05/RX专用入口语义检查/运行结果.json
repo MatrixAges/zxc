@@ -1,0 +1,183 @@
+[
+	{
+		"name": "gateway",
+		"args": ["lint", "docs/2026-10-05/RX专用入口语义检查/示例/main.gateway.rx", "--semantic"],
+		"returncode": 0,
+		"stdout": "",
+		"stderr": "",
+		"files_unchanged": true
+	},
+	{
+		"name": "empty",
+		"args": ["lint", "docs/2026-10-05/RX专用入口语义检查/示例/empty.gateway.rx", "--semantic"],
+		"returncode": 0,
+		"stdout": "",
+		"stderr": "",
+		"files_unchanged": true
+	},
+	{
+		"name": "store",
+		"args": ["lint", "docs/2026-10-05/RX专用入口语义检查/示例/state.store.rx", "--semantic"],
+		"returncode": 0,
+		"stdout": "",
+		"stderr": "",
+		"files_unchanged": true
+	},
+	{
+		"name": "manifest_gateway",
+		"args": ["lint", "docs/2026-10-05/RX专用入口语义检查/示例/pkg.yaml", "--semantic"],
+		"returncode": 0,
+		"stdout": "",
+		"stderr": "",
+		"files_unchanged": true
+	},
+	{
+		"name": "ordinary_store_user",
+		"args": ["lint", "docs/2026-10-05/RX专用入口语义检查/示例/advance.rx", "--semantic"],
+		"returncode": 0,
+		"stdout": "",
+		"stderr": "",
+		"files_unchanged": true
+	},
+	{
+		"name": "duplicate_route",
+		"args": [
+			"lint",
+			"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/main.gateway.rx",
+			"--semantic"
+		],
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "main.gateway.rx:6:30: context: Gateway routes overlap after Group prefix expansion\n",
+		"files_unchanged": true
+	},
+	{
+		"name": "missing_service",
+		"args": [
+			"lint",
+			"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/main.gateway.rx",
+			"--semantic"
+		],
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "missing.rx: FileNotFound\n",
+		"files_unchanged": true
+	},
+	{
+		"name": "service_type_error",
+		"args": [
+			"lint",
+			"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/main.gateway.rx",
+			"--semantic"
+		],
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/advance.zx:14:10: type_mismatch: expression type does not match its context\n",
+		"files_unchanged": true
+	},
+	{
+		"name": "store_schema_only",
+		"args": ["lint", "/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/state.store.rx"],
+		"returncode": 0,
+		"stdout": "",
+		"stderr": "",
+		"files_unchanged": true
+	},
+	{
+		"name": "store_type_error",
+		"args": [
+			"lint",
+			"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/state.store.rx",
+			"--semantic"
+		],
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "state.store.rx:3:43: type_mismatch: expression type does not match its context\n",
+		"files_unchanged": true
+	},
+	{
+		"name": "gateway_store_type_error",
+		"args": [
+			"lint",
+			"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/main.gateway.rx",
+			"--semantic"
+		],
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "state.store.rx:3:43: type_mismatch: expression type does not match its context\n",
+		"files_unchanged": true
+	},
+	{
+		"name": "store_format",
+		"args": [
+			"lint",
+			"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/state.store.rx",
+			"--semantic"
+		],
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/state.store.rx: blank lines require formatting\n",
+		"files_unchanged": true
+	},
+	{
+		"name": "gateway_store_format",
+		"args": [
+			"lint",
+			"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/main.gateway.rx",
+			"--semantic"
+		],
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/state.store.rx: blank lines require formatting\n",
+		"files_unchanged": true
+	},
+	{
+		"name": "module_store_format",
+		"args": [
+			"lint",
+			"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/advance.rx",
+			"--semantic"
+		],
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/state.store.rx: blank lines require formatting\n",
+		"files_unchanged": true
+	},
+	{
+		"name": "manifest_store",
+		"args": [
+			"lint",
+			"/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc_rx_semantic_o2xnrfu1/pkg.yaml",
+			"--semantic"
+		],
+		"returncode": 0,
+		"stdout": "",
+		"stderr": "",
+		"files_unchanged": true
+	},
+	{
+		"name": "previous_public_modules",
+		"returncode": 0,
+		"stdout": "",
+		"stderr": ""
+	},
+	{
+		"name": "compiled_store_consumer",
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "docs/2026-10-05/统一库/RX公开Store消费/main.rx: semantic lint: IncompatibleLibraryVersion\n"
+	},
+	{
+		"name": "consumer_workspace_name_mismatch",
+		"returncode": 1,
+		"stdout": "",
+		"stderr": "./pkg.yaml: dependency counter: workspace dependency has no matching local package\n",
+		"library_sha256": "a7ae9e4bf8b2525e6396ba892011205d40c3f85abf13921dcf6f97c08270fc6d"
+	},
+	{
+		"name": "current_compiled_store_rx_consumer",
+		"returncode": 0,
+		"stdout": "",
+		"stderr": ""
+	}
+]

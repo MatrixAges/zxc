@@ -1,0 +1,7 @@
+<Module>
+  <Store from="state" as="reader" />
+
+  <Call fn="read" in="store.reader.counter.value" out="ctx.result" />
+
+  <Return value="ctx.result" />
+</Module>
