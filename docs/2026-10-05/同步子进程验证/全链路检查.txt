@@ -1,0 +1,31 @@
+Build Summary: 23/23 steps succeeded; 41/41 tests passed
+test-child-process success
++- run test 20 pass (20 total) 117ms MaxRSS:2M
+|  +- compile test Debug native success 1s MaxRSS:272M
+|     +- options success
+|     |  +- compile exe child-process-fixture Debug native success 1s MaxRSS:242M
+|     +- run exe standard-types (standard_abi.zig) cached
+|        +- compile exe standard-types Debug native cached 46ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 11 pass (11 total) 5ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:257M
+|     +- options (+1 more reused dependencies)
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run test 4 pass (4 total) 37ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:262M
+|     +- options (+1 more reused dependencies)
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run test 6 pass (6 total) 19ms MaxRSS:1M
+   +- compile test Debug native success 1s MaxRSS:271M
+      +- run exe zxc (program.zig) success 8ms
+      |  +- compile exe zxc Debug native success 10s MaxRSS:1G
+      |     +- WriteFile cached
+      |     +- compile lib yaml Debug native cached 43ms MaxRSS:20M
+      |     +- compile lib yaml Debug native (reused)
+      |     +- options success
+      |     +- run exe bundle-zig (bundle) success 6s
+      |     |  +- compile exe bundle-zig ReleaseFast native cached 47ms MaxRSS:21M
+      |     |  +- WriteFile bundle_manifest.json success
+      |     +- WriteFile interfaces/0.d.zx cached
+      +- options (+1 more reused dependencies)
+      +- run exe zxc (program.zig) (+1 more reused dependencies)

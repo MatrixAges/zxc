@@ -927,6 +927,7 @@ pub fn build(b: *std.Build) void {
     }
 
     standard_step.dependOn(@import("build/standard_fs.zig").add(b, compiler, target, optimize));
+    standard_step.dependOn(@import("build/child_process.zig").add(b, compiler, target, optimize));
     test_step.dependOn(standard_step);
     test_step.dependOn(@import("build/module_graphs.zig").add(b, rx, target, optimize, suites.module_graphs));
 
