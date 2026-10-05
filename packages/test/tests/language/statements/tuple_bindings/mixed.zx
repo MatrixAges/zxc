@@ -1,0 +1,11 @@
+export type Input = { value: i64, enabled: bool, text: string }
+
+export type Output = { value: i64, enabled: bool, text: string }
+
+export default function (in: Input): Output {
+  const values: [i64, bool, string] = [in.value, in.enabled, in.text]
+
+  const [value, enabled, text] = values
+
+  return {value, enabled, text}
+}

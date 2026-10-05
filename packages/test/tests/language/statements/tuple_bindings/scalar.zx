@@ -1,0 +1,11 @@
+export type Input = { a: i64, b: i64, c: i64 }
+
+export type Output = { x: i64, y: i64, z: i64, reverse: i64[] }
+
+export default function (in: Input): Output {
+  const values: [i64, i64, i64] = [in.a, in.b, in.c]
+
+  const [x, y, z] = values
+
+  return {x, y, z, reverse: [z, y, x]}
+}
