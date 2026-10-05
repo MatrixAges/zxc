@@ -1,0 +1,34 @@
+import type { Token } from "../../../packages/compiler/src/zx/frontend/lexer/token_model.zx"
+import type { Batch } from "./model.zx"
+import { Phase } from "../../../packages/compiler/src/zx/frontend/parser/types/model.zx"
+import initial from "../../../packages/compiler/src/zx/frontend/parser/types/initial.zx"
+import step from "../../../packages/compiler/src/zx/frontend/parser/types/step.zx"
+
+export type Input = { batch: Batch, token: Token }
+
+export type Output = Batch
+
+export default function (in: owned Input): Output {
+  const position = in.batch.position
+
+  if (in.batch.next >= in.batch.starts.length || position < in.batch.starts[in.batch.next]) {
+    return { ...in.batch, position: position + 1 }
+  }
+
+  const start = in.batch.starts[in.batch.next]
+  const fresh = initial({start, depth: 0})
+
+  const state = position == start
+    ? {tree: in.batch.state.tree, frames: fresh.frames, control: {...fresh.control, index: position}}
+    : in.batch.state
+
+  const parsed = step({state, token: in.token})
+  const complete = parsed.control.phase == Phase.Done
+  const root = parsed.control.result
+  const stop = parsed.control.index
+  const next = in.batch.next + (complete ? 1 : 0)
+  const roots = complete ? in.batch.roots.push(root)[0] : in.batch.roots
+  const stops = complete ? in.batch.stops.push(stop)[0] : in.batch.stops
+
+  return {state: parsed, starts: in.batch.starts, roots, stops, position: position + 1, next}
+}

@@ -1,0 +1,20 @@
+import type { Batch } from "./model.zx"
+import scan from "../../../packages/compiler/src/zx/frontend/lexer/scan.zx"
+import initial from "../../../packages/compiler/src/zx/frontend/parser/types/initial.zx"
+import advance from "./advance.zx"
+
+export type Input = { source: u8[], starts: u64[] }
+
+export type Output = Batch
+
+export default function (in: Input): Output {
+  const scanned = scan(in.source)
+  const starts = in.starts.map(value => value)
+
+  const roots: u64[] = []
+  const stops: u64[] = []
+  const state = initial({start: 0, depth: 0})
+  const batch: Batch = {state, starts, roots, stops, position: 0, next: 0}
+
+  return scanned.tokens.reduce((batch, token) => advance({batch, token: {kind: token.kind, word: token.word, symbol: token.symbol, span: {start: token.span.start, end: token.span.end}, line_break: token.line_break, dollar: token.dollar}}), batch)
+}
