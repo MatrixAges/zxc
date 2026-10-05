@@ -1,0 +1,267 @@
+test-cached-ownership
++- run test 35 pass, 15 fail (50 total)
+error: 'lists.test.cached lists direct duplicate_id' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/lists.zig:9:5: 0x1035b4e2a in test.cached lists direct duplicate_id (test)
+           try h.run(.{ .shape = .lists, .mutation = .duplicate_id, .nested = false });
+           ^
+error: 'lists.test.cached lists direct duplicate_path' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/lists.zig:13:5: 0x1035b4dda in test.cached lists direct duplicate_path (test)
+           try h.run(.{ .shape = .lists, .mutation = .duplicate_path, .nested = false });
+           ^
+error: 'lists.test.cached lists nested duplicate_id' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/lists.zig:25:5: 0x1035b4cea in test.cached lists nested duplicate_id (test)
+           try h.run(.{ .shape = .lists, .mutation = .duplicate_id, .nested = true });
+           ^
+error: 'lists.test.cached lists nested duplicate_path' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/lists.zig:29:5: 0x1035b4c9a in test.cached lists nested duplicate_path (test)
+           try h.run(.{ .shape = .lists, .mutation = .duplicate_path, .nested = true });
+           ^
+error: 'lists.test.cached lists duplicate_path allocation failures' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:1124:9: 0x103482c8f in checkAllAllocationFailures__anon_37149 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/lists.zig:41:5: 0x1035b4b91 in test.cached lists duplicate_path allocation failures (test)
+           try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .shape = .lists, .mutation = .duplicate_path, .nested = true }});
+           ^
+error: 'objects.test.cached objects direct duplicate_id' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/objects.zig:9:5: 0x1035b4aea in test.cached objects direct duplicate_id (test)
+           try h.run(.{ .shape = .objects, .mutation = .duplicate_id, .nested = false });
+           ^
+error: 'objects.test.cached objects direct duplicate_path' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/objects.zig:13:5: 0x1035b4a9a in test.cached objects direct duplicate_path (test)
+           try h.run(.{ .shape = .objects, .mutation = .duplicate_path, .nested = false });
+           ^
+error: 'objects.test.cached objects nested duplicate_id' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/objects.zig:25:5: 0x1035b49aa in test.cached objects nested duplicate_id (test)
+           try h.run(.{ .shape = .objects, .mutation = .duplicate_id, .nested = true });
+           ^
+error: 'objects.test.cached objects nested duplicate_path' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/objects.zig:29:5: 0x1035b495a in test.cached objects nested duplicate_path (test)
+           try h.run(.{ .shape = .objects, .mutation = .duplicate_path, .nested = true });
+           ^
+error: 'objects.test.cached objects duplicate_path allocation failures' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:1124:9: 0x103482c8f in checkAllAllocationFailures__anon_37149 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/objects.zig:41:5: 0x1035b4851 in test.cached objects duplicate_path allocation failures (test)
+           try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .shape = .objects, .mutation = .duplicate_path, .nested = true }});
+           ^
+error: 'tuples.test.cached tuples direct duplicate_id' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/tuples.zig:9:5: 0x1035b47aa in test.cached tuples direct duplicate_id (test)
+           try h.run(.{ .shape = .tuples, .mutation = .duplicate_id, .nested = false });
+           ^
+error: 'tuples.test.cached tuples direct duplicate_path' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/tuples.zig:13:5: 0x1035b475a in test.cached tuples direct duplicate_path (test)
+           try h.run(.{ .shape = .tuples, .mutation = .duplicate_path, .nested = false });
+           ^
+error: 'tuples.test.cached tuples nested duplicate_id' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/tuples.zig:25:5: 0x1035b466a in test.cached tuples nested duplicate_id (test)
+           try h.run(.{ .shape = .tuples, .mutation = .duplicate_id, .nested = true });
+           ^
+error: 'tuples.test.cached tuples nested duplicate_path' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:8:5: 0x1035b3efd in run (test)
+           try allocated(std.testing.allocator, case);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/tuples.zig:29:5: 0x1035b461a in test.cached tuples nested duplicate_path (test)
+           try h.run(.{ .shape = .tuples, .mutation = .duplicate_path, .nested = true });
+           ^
+error: 'tuples.test.cached tuples duplicate_path allocation failures' failed:
+       expected .ownership, found .contract
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:118:17: 0x10348027d in expectEqualInner__anon_37575 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:83:5: 0x103482252 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/check.zig:81:9: 0x1034823ee in allocated (test)
+               try std.testing.expectEqual(.ownership, issue.?.code);
+               ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:1124:9: 0x103482c8f in checkAllAllocationFailures__anon_37149 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/ownership/cached/tuples.zig:41:5: 0x1035b4511 in test.cached tuples duplicate_path allocation failures (test)
+           try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .shape = .tuples, .mutation = .duplicate_path, .nested = true }});
+           ^
+failed command: ./.zig-cache/o/aefc07372125da4ddf7f183c48a19c57/test --cache-dir=./.zig-cache --seed=0x8d339465 --listen=-
+
+Build Summary: 2/4 steps succeeded (1 failed); 35/50 tests passed (15 failed)
+test-cached-ownership transitive failure
++- run test 35 pass, 15 fail (50 total)
+   +- compile test Debug native success 2s MaxRSS:374M
+      +- WriteFile interfaces/0.d.zx cached
+
+error: the following build command failed with exit code 1:
+.zig-cache/o/c31e17c38336f02fca6fd2417a4593fa/build /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib /Users/xiewendao/Documents/MatrixAges/zxc/packages/test .zig-cache /Users/xiewendao/.cache/zig --seed 0x8d339465 -Z37df61b868b0263c test-cached-ownership --summary all

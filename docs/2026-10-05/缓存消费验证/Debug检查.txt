@@ -1,0 +1,61 @@
+Build Summary: 40/40 steps succeeded; 150/150 tests passed
+test-cached-ownership success
++- run test 50 pass (50 total) 1s MaxRSS:3M
+|  +- compile test Debug native success 3s MaxRSS:456M
+|     +- WriteFile interfaces/0.d.zx cached
++- run test cached-ownership-fresh-source 10 pass (10 total) 5ms MaxRSS:1M
+|  +- compile test cached-ownership-fresh-source Debug native cached 58ms MaxRSS:21M
+|     +- run exe compile-cached-ownership (source.zig) cached
+|     |  +- compile exe compile-cached-ownership Debug native cached 46ms MaxRSS:21M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     +- options cached
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
++- run test cached-ownership-fresh-library 10 pass (10 total) 5ms MaxRSS:1M
+|  +- compile test cached-ownership-fresh-library Debug native cached 57ms MaxRSS:21M
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
++- run test cached-ownership-nested-source 10 pass (10 total) 4ms MaxRSS:1M
+|  +- compile test cached-ownership-nested-source Debug native cached 57ms MaxRSS:21M
+|     +- run exe compile-cached-ownership (source.zig) cached
+|     |  +- compile exe compile-cached-ownership Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
++- run test cached-ownership-nested-library 10 pass (10 total) 6ms MaxRSS:1M
+|  +- compile test cached-ownership-nested-library Debug native cached 58ms MaxRSS:21M
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
++- run test cached-ownership-child-source 10 pass (10 total) 8ms MaxRSS:1M
+|  +- compile test cached-ownership-child-source Debug native cached 58ms MaxRSS:21M
+|     +- run exe compile-cached-ownership (source.zig) cached
+|     |  +- compile exe compile-cached-ownership Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
++- run test cached-ownership-child-library 10 pass (10 total) 6ms MaxRSS:1M
+|  +- compile test cached-ownership-child-library Debug native cached 61ms MaxRSS:21M
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
++- run test cached-ownership-borrowed-source 10 pass (10 total) 7ms MaxRSS:1M
+|  +- compile test cached-ownership-borrowed-source Debug native cached 61ms MaxRSS:21M
+|     +- run exe compile-cached-ownership (source.zig) cached
+|     |  +- compile exe compile-cached-ownership Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
++- run test cached-ownership-borrowed-library 10 pass (10 total) 8ms MaxRSS:1M
+|  +- compile test cached-ownership-borrowed-library Debug native cached 57ms MaxRSS:21M
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
++- run test cached-ownership-conditional-source 10 pass (10 total) 9ms MaxRSS:1M
+|  +- compile test cached-ownership-conditional-source Debug native cached 59ms MaxRSS:21M
+|     +- run exe compile-cached-ownership (source.zig) cached
+|     |  +- compile exe compile-cached-ownership Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
++- run test cached-ownership-conditional-library 10 pass (10 total) 7ms MaxRSS:1M
+   +- compile test cached-ownership-conditional-library Debug native cached 63ms MaxRSS:21M
+      +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-cached-ownership (source.zig) (+1 more reused dependencies)

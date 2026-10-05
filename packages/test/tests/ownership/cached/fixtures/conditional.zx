@@ -1,0 +1,11 @@
+export type Input = { first: u64[], second: u64[], choice: bool }
+
+export type Output = { first: u64[], second: u64[] }
+
+export default function (in: Input): Output {
+  const first = in.first.map((item) => item)
+  const second = in.second.map((item) => item)
+  const source: Output = { first: first, second: second }
+
+  return in.choice ? {...source} : {...source}
+}

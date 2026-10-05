@@ -1,0 +1,273 @@
+Build Summary: 177/177 steps succeeded; 576/576 tests passed
+test-field-ownership success
++- run test 35 pass (35 total) 522ms MaxRSS:2M
+   +- compile test Debug native success 3s MaxRSS:400M
+      +- WriteFile interfaces/0.d.zx cached
+test-multiple-append success
++- run test multiple-append-plain-source 14 pass (14 total) 36ms MaxRSS:2M
+|  +- compile test multiple-append-plain-source Debug native success 3s MaxRSS:268M
+|     +- run exe compile-multiple-append (source.zig) success 9ms
+|     |  +- compile exe compile-multiple-append Debug native success 4s MaxRSS:499M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     +- options cached
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
++- run test multiple-append-plain-library 14 pass (14 total) 69ms MaxRSS:2M
+|  +- compile test multiple-append-plain-library Debug native success 3s MaxRSS:276M
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
++- run test multiple-append-select-source 14 pass (14 total) 48ms MaxRSS:2M
+|  +- compile test multiple-append-select-source Debug native success 3s MaxRSS:277M
+|     +- run exe compile-multiple-append (source.zig) success 9ms
+|     |  +- compile exe compile-multiple-append Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
++- run test multiple-append-select-library 14 pass (14 total) 22ms MaxRSS:2M
+|  +- compile test multiple-append-select-library Debug native success 3s MaxRSS:273M
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
++- run test multiple-append-independent-source 14 pass (14 total) 18ms MaxRSS:2M
+|  +- compile test multiple-append-independent-source Debug native success 3s MaxRSS:271M
+|     +- run exe compile-multiple-append (source.zig) success 8ms
+|     |  +- compile exe compile-multiple-append Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
++- run test multiple-append-independent-library 14 pass (14 total) 20ms MaxRSS:2M
+|  +- compile test multiple-append-independent-library Debug native success 3s MaxRSS:266M
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
++- run test multiple-append-reordered-source 14 pass (14 total) 32ms MaxRSS:2M
+|  +- compile test multiple-append-reordered-source Debug native success 3s MaxRSS:270M
+|     +- run exe compile-multiple-append (source.zig) success 9ms
+|     |  +- compile exe compile-multiple-append Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
++- run test multiple-append-reordered-library 14 pass (14 total) 59ms MaxRSS:2M
+   +- compile test multiple-append-reordered-library Debug native success 3s MaxRSS:274M
+      +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-multiple-append (source.zig) (+1 more reused dependencies)
+test-object-reduce success
++- run test object-reduce-plain-source 10 pass (10 total) 13ms MaxRSS:1M
+|  +- compile test object-reduce-plain-source Debug native success 2s MaxRSS:275M
+|     +- run exe compile-object-reduce (source.zig) success 12ms
+|     |  +- compile exe compile-object-reduce Debug native success 4s MaxRSS:497M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-plain-library 10 pass (10 total) 17ms MaxRSS:1M
+|  +- compile test object-reduce-plain-library Debug native success 3s MaxRSS:273M
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-spread-source 10 pass (10 total) 17ms MaxRSS:1M
+|  +- compile test object-reduce-spread-source Debug native success 3s MaxRSS:266M
+|     +- run exe compile-object-reduce (source.zig) success 25ms
+|     |  +- compile exe compile-object-reduce Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-spread-library 10 pass (10 total) 8ms MaxRSS:1M
+|  +- compile test object-reduce-spread-library Debug native success 2s MaxRSS:277M
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-select-source 10 pass (10 total) 23ms MaxRSS:1M
+|  +- compile test object-reduce-select-source Debug native success 3s MaxRSS:274M
+|     +- run exe compile-object-reduce (source.zig) success 9ms
+|     |  +- compile exe compile-object-reduce Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-select-library 10 pass (10 total) 16ms MaxRSS:1M
+|  +- compile test object-reduce-select-library Debug native success 2s MaxRSS:266M
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-nested-source 10 pass (10 total) 6ms MaxRSS:1M
+|  +- compile test object-reduce-nested-source Debug native success 2s MaxRSS:262M
+|     +- run exe compile-object-reduce (source.zig) success 15ms
+|     |  +- compile exe compile-object-reduce Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-nested-library 10 pass (10 total) 8ms MaxRSS:1M
+|  +- compile test object-reduce-nested-library Debug native success 3s MaxRSS:268M
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-field_call-source 10 pass (10 total) 9ms MaxRSS:1M
+|  +- compile test object-reduce-field_call-source Debug native success 2s MaxRSS:281M
+|     +- run exe compile-object-reduce (source.zig) success 24ms
+|     |  +- compile exe compile-object-reduce Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-field_call-library 10 pass (10 total) 8ms MaxRSS:1M
+|  +- compile test object-reduce-field_call-library Debug native success 3s MaxRSS:274M
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-escape_call-source 8 pass (8 total) 13ms MaxRSS:1M
+|  +- compile test object-reduce-escape_call-source Debug native success 3s MaxRSS:272M
+|     +- run exe compile-object-reduce (source.zig) success 13ms
+|     |  +- compile exe compile-object-reduce Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-escape_call-library 8 pass (8 total) 8ms MaxRSS:1M
+|  +- compile test object-reduce-escape_call-library Debug native success 2s MaxRSS:274M
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-root_call-source 8 pass (8 total) 12ms MaxRSS:1M
+|  +- compile test object-reduce-root_call-source Debug native success 2s MaxRSS:273M
+|     +- run exe compile-object-reduce (source.zig) success 11ms
+|     |  +- compile exe compile-object-reduce Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-root_call-library 8 pass (8 total) 14ms MaxRSS:1M
+|  +- compile test object-reduce-root_call-library Debug native success 3s MaxRSS:277M
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-nested_object-source 8 pass (8 total) 7ms MaxRSS:1M
+|  +- compile test object-reduce-nested_object-source Debug native success 2s MaxRSS:273M
+|     +- run exe compile-object-reduce (source.zig) success 36ms
+|     |  +- compile exe compile-object-reduce Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-nested_object-library 8 pass (8 total) 15ms MaxRSS:1M
+|  +- compile test object-reduce-nested_object-library Debug native success 3s MaxRSS:275M
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-checked-source 12 pass (12 total) 5ms MaxRSS:1M
+|  +- compile test object-reduce-checked-source Debug native success 2s MaxRSS:268M
+|     +- run exe compile-object-reduce (source.zig) success 23ms
+|     |  +- compile exe compile-object-reduce Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-checked-library 12 pass (12 total) 10ms MaxRSS:1M
+|  +- compile test object-reduce-checked-library Debug native success 3s MaxRSS:278M
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-initial_call-source 10 pass (10 total) 8ms MaxRSS:1M
+|  +- compile test object-reduce-initial_call-source Debug native success 2s MaxRSS:272M
+|     +- run exe compile-object-reduce (source.zig) success 20ms
+|     |  +- compile exe compile-object-reduce Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
++- run test object-reduce-initial_call-library 10 pass (10 total) 12ms MaxRSS:1M
+   +- compile test object-reduce-initial_call-library Debug native success 3s MaxRSS:269M
+      +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-object-reduce (source.zig) (+1 more reused dependencies)
+test-object-append success
++- run test object-append-push-source 13 pass (13 total) 11ms MaxRSS:1M
+|  +- compile test object-append-push-source Debug native success 2s MaxRSS:270M
+|     +- run exe compile-object-append (source.zig) success 21ms
+|     |  +- compile exe compile-object-append Debug native success 4s MaxRSS:498M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-push-library 13 pass (13 total) 24ms MaxRSS:1M
+|  +- compile test object-append-push-library Debug native success 3s MaxRSS:274M
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-concat-source 13 pass (13 total) 18ms MaxRSS:2M
+|  +- compile test object-append-concat-source Debug native success 2s MaxRSS:273M
+|     +- run exe compile-object-append (source.zig) success 25ms
+|     |  +- compile exe compile-object-append Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-concat-library 13 pass (13 total) 23ms MaxRSS:2M
+|  +- compile test object-append-concat-library Debug native success 3s MaxRSS:273M
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-select-source 13 pass (13 total) 12ms MaxRSS:1M
+|  +- compile test object-append-select-source Debug native success 2s MaxRSS:278M
+|     +- run exe compile-object-append (source.zig) success 27ms
+|     |  +- compile exe compile-object-append Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-select-library 13 pass (13 total) 17ms MaxRSS:1M
+|  +- compile test object-append-select-library Debug native success 3s MaxRSS:276M
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-field_select-source 13 pass (13 total) 25ms MaxRSS:1M
+|  +- compile test object-append-field_select-source Debug native success 3s MaxRSS:272M
+|     +- run exe compile-object-append (source.zig) success 41ms
+|     |  +- compile exe compile-object-append Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-field_select-library 13 pass (13 total) 11ms MaxRSS:1M
+|  +- compile test object-append-field_select-library Debug native success 2s MaxRSS:267M
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-index_read-source 10 pass (10 total) 10ms MaxRSS:1M
+|  +- compile test object-append-index_read-source Debug native success 3s MaxRSS:274M
+|     +- run exe compile-object-append (source.zig) success 27ms
+|     |  +- compile exe compile-object-append Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-index_read-library 10 pass (10 total) 8ms MaxRSS:1M
+|  +- compile test object-append-index_read-library Debug native success 2s MaxRSS:279M
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-overwritten-source 8 pass (8 total) 12ms MaxRSS:1M
+|  +- compile test object-append-overwritten-source Debug native success 3s MaxRSS:273M
+|     +- run exe compile-object-append (source.zig) success 38ms
+|     |  +- compile exe compile-object-append Debug native (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
++- run test object-append-overwritten-library 8 pass (8 total) 9ms MaxRSS:1M
+   +- compile test object-append-overwritten-library Debug native success 2s MaxRSS:279M
+      +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-object-append (source.zig) (+1 more reused dependencies)
+test-owned-input success
++- run test 22 pass (22 total) 65ms MaxRSS:2M
+|  +- compile test Debug native success 3s MaxRSS:394M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 9 pass (9 total) 236ms MaxRSS:3M
+|  +- compile test Debug native success 3s MaxRSS:448M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 6 pass (6 total) 1s MaxRSS:3M
+|  +- compile test Debug native success 4s MaxRSS:485M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test owned-input-source 10 pass (10 total) 21ms MaxRSS:1M
+|  +- compile test owned-input-source Debug native success 3s MaxRSS:268M
+|     +- run exe compile-owned-input (source.zig) success 21ms
+|     |  +- compile exe compile-owned-input Debug native success 4s MaxRSS:491M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-linked 10 pass (10 total) 22ms MaxRSS:1M
+|  +- compile test owned-input-linked Debug native success 3s MaxRSS:273M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-library 10 pass (10 total) 19ms MaxRSS:1M
+|  +- compile test owned-input-library Debug native success 3s MaxRSS:271M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-republished 10 pass (10 total) 21ms MaxRSS:1M
+|  +- compile test owned-input-republished Debug native success 3s MaxRSS:279M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-owned 10 pass (10 total) 15ms MaxRSS:1M
+|  +- compile test owned-input-owned Debug native success 3s MaxRSS:275M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-mutating 10 pass (10 total) 6ms MaxRSS:1M
+   +- compile test owned-input-mutating Debug native success 3s MaxRSS:268M
+      +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)

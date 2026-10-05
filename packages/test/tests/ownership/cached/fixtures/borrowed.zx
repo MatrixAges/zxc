@@ -1,0 +1,9 @@
+export type Input = { first: u64[], second: u64[], choice: bool }
+
+export type Output = { first: u64[], second: u64[] }
+
+export default function (in: Input): Output {
+  const source: Output = { first: in.first, second: in.second }
+
+  return {...source}
+}
