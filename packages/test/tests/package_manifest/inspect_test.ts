@@ -6,19 +6,24 @@ import { join, resolve } from 'node:path'
 import { test } from 'node:test'
 import cases from './inspect_cases.ts'
 import native_cases from './native_cases.ts'
+import native_flags_cases from './native_flags_cases.ts'
 import module_scope_cases from './module_scope_cases.ts'
 import export_cases from './export_cases.ts'
 
 const executable = resolve(process.argv[2])
 
-for (const entry of [...cases, ...native_cases, ...module_scope_cases, ...export_cases]) {
+for (const entry of [...cases, ...native_cases, ...native_flags_cases, ...module_scope_cases, ...export_cases]) {
 	test(`package manifest / ${entry.name}`, () => {
 		const directory = mkdtempSync(join(tmpdir(), 'zxc-manifest-'))
 
 		try {
 			writeFileSync(join(directory, 'pkg.yaml'), entry.source)
 
-			const result = spawnSync(executable, ['pkg', 'inspect'], { cwd: directory, encoding: 'utf8', timeout: 10_000 })
+			const result = spawnSync(executable, ['pkg', 'inspect'], {
+				cwd: directory,
+				encoding: 'utf8',
+				timeout: 10_000
+			})
 
 			assert.ifError(result.error)
 			assert.equal(result.signal, null)

@@ -673,6 +673,7 @@ pub fn build(b: *std.Build) void {
 
         if (std.mem.eql(u8, name, "inspect")) {
             manifest.addFileInput(b.path("tests/package_manifest/native_cases.ts"));
+            manifest.addFileInput(b.path("tests/package_manifest/native_flags_cases.ts"));
             manifest.addFileInput(b.path("tests/package_manifest/module_scope_cases.ts"));
             manifest.addFileInput(b.path("tests/package_manifest/export_cases.ts"));
         }
