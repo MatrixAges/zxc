@@ -1,0 +1,11 @@
+import { Phase } from "./phase.zx"
+
+export type State = { phase: Phase, saved: Phase?, count: u64 }
+
+export type Input = { state: State, item: bool }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return {phase: in.item ? (in.state.phase == Phase.On ? Phase.Off : Phase.On) : in.state.phase, saved: in.state.saved ?? in.state.phase, count: in.state.count + 1}
+}
