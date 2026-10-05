@@ -49,11 +49,13 @@ pub fn createCached(allocator: std.mem.Allocator, analysis: *const Analysis, cac
     const type_names = try typeNames(owned, program, identities);
     const native_modules = try nativeModules(owned, program);
 
-    return .{ .arena = arena, .entry = entry, .types = type_source, .modules = modules, .type_names = type_names, .native_modules = native_modules, .signature = .{
+    const signature = Signature{
         .types = try @import("frontend").type_table.copy(owned, program.types),
         .input = program.input_type,
         .output = program.output_type,
-    } };
+    };
+
+    return .{ .arena = arena, .entry = entry, .types = type_source, .modules = modules, .type_names = type_names, .native_modules = native_modules, .signature = signature };
 }
 
 pub fn emit(allocator: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, unit: fingerprint.Unit, cache: ?*Cache) Error![]const u8 {
