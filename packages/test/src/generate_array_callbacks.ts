@@ -37,6 +37,26 @@ writeSuite({
 	rows: mapping.map(row => ({ ...row, expected: { value: row.input.map(item => item > 10) } }))
 })
 
+const filtering = [
+	{ name: 'original_single_parameter', input: [12], value: [12] },
+	{ name: 'empty', input: [], value: [] },
+	{ name: 'all_rejected', input: [-1, 0, 9, 10], value: [] },
+	{ name: 'all_retained', input: [12, 11, 13], value: [12, 11, 13] },
+	{ name: 'threshold', input: [10, 11], value: [11] },
+	{ name: 'mixed_order', input: [12, 9, 11, 10, 13], value: [12, 11, 13] },
+	{ name: 'reverse_order', input: [13, 10, 11, 9, 12], value: [13, 11, 12] },
+	{ name: 'repeated', input: [11, 9, 11, 12, 11], value: [11, 11, 12, 11] },
+	{ name: 'negative_boundary', input: [-11, -10, 10, 11], value: [11] }
+]
+
+writeSuite({
+	name: 'filter/predicate',
+	input: 'i64[]',
+	output: 'i64[]',
+	expression: 'in.filter(val => val > 10)',
+	rows: filtering.map(({ name, input, value }) => ({ name, input, expected: { value } }))
+})
+
 const empty = [
 	{ name: 'original_no_callback', items: [], seed: 3 },
 	{ name: 'original_seed', items: [], seed: 1 },
