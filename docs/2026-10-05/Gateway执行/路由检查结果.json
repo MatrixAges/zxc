@@ -1,0 +1,38 @@
+[
+	{
+		"name": "valid",
+		"source": "<Gateway name=\"api\" protocol=\"http\" listen=\"127.0.0.1:8080\">\n  <Group prefix=\"/api/\">\n    <Route method=\"GET\" path=\"/echo\" service=\"echo\" />\n    <Group prefix=\"/v1\">\n      <Route method=\"POST\" path=\"/echo\" service=\"echo\" />\n    </Group>\n  </Group>\n</Gateway>\n",
+		"exit_code": 0,
+		"stderr": ""
+	},
+	{
+		"name": "same_method",
+		"source": "<Gateway name=\"x\"><Group prefix=\"/api\"><Route path=\"/echo\" method=\"GET\" service=\"echo\" /></Group><Route path=\"/api/echo\" method=\"GET\" service=\"echo\" /></Gateway>",
+		"exit_code": 1,
+		"stderr": "docs/2026-10-05/Gateway执行/应用/main.gateway.rx:1:111: context: Gateway routes overlap after Group prefix expansion\n"
+	},
+	{
+		"name": "any_method",
+		"source": "<Gateway name=\"x\"><Route path=\"/echo\" service=\"echo\" /><Route path=\"/echo\" method=\"POST\" service=\"echo\" /></Gateway>",
+		"exit_code": 1,
+		"stderr": "docs/2026-10-05/Gateway执行/应用/main.gateway.rx:1:69: context: Gateway routes overlap after Group prefix expansion\n"
+	},
+	{
+		"name": "distinct_methods",
+		"source": "<Gateway name=\"x\"><Route path=\"/echo\" method=\"GET\" service=\"echo\" /><Route path=\"/echo\" method=\"POST\" service=\"echo\" /></Gateway>",
+		"exit_code": 0,
+		"stderr": ""
+	},
+	{
+		"name": "pattern",
+		"source": "<Gateway name=\"x\"><Route path=\"/:id\" service=\"echo\" /></Gateway>",
+		"exit_code": 1,
+		"stderr": "docs/2026-10-05/Gateway执行/应用/main.gateway.rx:1:32: context: Gateway paths must be absolute literal paths without query, fragment, parameters or wildcards\n"
+	},
+	{
+		"name": "percent",
+		"source": "<Gateway name=\"x\"><Route path=\"/%q0\" service=\"echo\" /></Gateway>",
+		"exit_code": 1,
+		"stderr": "docs/2026-10-05/Gateway执行/应用/main.gateway.rx:1:32: context: Gateway paths must be absolute literal paths without query, fragment, parameters or wildcards\n"
+	}
+]

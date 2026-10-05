@@ -89,25 +89,25 @@ module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶
 
 属性默认必填，`?` 表示可以省略。
 
-| 标签       | 属性                                               | 直属子标签                                                     |
-| ---------- | -------------------------------------------------- | -------------------------------------------------------------- |
-| Module     | `in?`、`out?`                                      | Import、Store 引用、Task、Call、Parallel、Switch、Emit、Return |
-| Import     | `from`                                             | 无                                                             |
-| Call       | `fn?` / `service?` 二选一、`in`、`out?`、`setter?` | 无                                                             |
-| Return     | `value`                                            | 无                                                             |
-| Task       | `name`、`out?`（仅直属 Parallel）                  | Call、Parallel、Switch、Emit、Return                           |
-| Parallel   | 无                                                 | Task、Call                                                     |
-| Switch     | `on`                                               | Case、Default                                                  |
-| Case       | `value`                                            | Task、Call、Parallel、Switch、Emit、Return                     |
-| Default    | 无                                                 | Task、Call、Parallel、Switch、Emit、Return                     |
-| Emit       | `event`、`value`                                   | 无                                                             |
-| Store 引用 | `from`、`as?`                                      | 无                                                             |
-| Gateway    | `name`、`protocol?`、`listen?`                     | Group、Route                                                   |
-| Group      | `prefix`                                           | Group、Route                                                   |
-| Route      | `path`、`service`、`method?`                       | 无                                                             |
-| Store 定义 | `name`、`version`                                  | Object                                                         |
-| Object     | `name`                                             | Field                                                          |
-| Field      | `name`、`type`、`value`                            | 无                                                             |
+| 标签       | 属性                                                                   | 直属子标签                                                     |
+| ---------- | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Module     | `in?`、`out?`                                                          | Import、Store 引用、Task、Call、Parallel、Switch、Emit、Return |
+| Import     | `from`                                                                 | 无                                                             |
+| Call       | `fn?` / `service?` 二选一、`in`、`out?`、`setter?`                     | 无                                                             |
+| Return     | `value`                                                                | 无                                                             |
+| Task       | `name`、`out?`（仅直属 Parallel）                                      | Call、Parallel、Switch、Emit、Return                           |
+| Parallel   | 无                                                                     | Task、Call                                                     |
+| Switch     | `on`                                                                   | Case、Default                                                  |
+| Case       | `value`                                                                | Task、Call、Parallel、Switch、Emit、Return                     |
+| Default    | 无                                                                     | Task、Call、Parallel、Switch、Emit、Return                     |
+| Emit       | `event`、`value`                                                       | 无                                                             |
+| Store 引用 | `from`、`as?`                                                          | 无                                                             |
+| Gateway    | `name`、`protocol?`、`listen?`、`max_header_bytes?`、`max_body_bytes?` | Group、Route                                                   |
+| Group      | `prefix`                                                               | Group、Route                                                   |
+| Route      | `path`、`service`、`method?`                                           | 无                                                             |
+| Store 定义 | `name`、`version`                                                      | Object                                                         |
+| Object     | `name`                                                                 | Field                                                          |
+| Field      | `name`、`type`、`value`                                                | 无                                                             |
 
 共 **16 个不同标签名**，Store 在两种文件上下文中具有不同 Schema。Store 引用中的 as 只沿用原设计的 Store 数据命名空间，不是模块别名；Gateway/Store 的 name 是领域配置名称，也不充当模块注册标识。
 
@@ -321,7 +321,7 @@ getter 仅在 Call.in 可见，允许读取完整 Object 或字段。每次 Call
 
 setter 必须列出一个完整 Object；不能列出整个 Store、字段、未声明对象或多个对象。目标 ZX 必须声明 `export default function (in: Input, { store }): Output`，通过 `store.jobs.counter = next` 替换整个对象。该能力只写，不允许读取当前 Store；读取值从 in 获得。普通 ZX import 不继承能力，Call.service 的授权由被调模块自己声明。
 
-成功调用独立提交；后续调用失败不回滚先前提交。编排函数自身不创建覆盖全流程的事务。`zxc module.rx --out flow.zig` 支持生成带显式宿主的源码；宿主提供稳定槽位指针与 commit(pending)，必须保证当前状态及旧快照的内存存活期；如提供 begin(comptime slots)，生成代码会在 Call 输入读取前调用它。Store 的正确生命周期是应用启动时初始化一次，跨调用和请求共享，应用结束后释放，重启使用初值。当前原生 State 中的 JSON 快照、文件锁、磁盘版本、恢复及目录同步均为待撤回的实现偏差；Store 不要求可序列化，也不依赖状态目录。
+成功调用独立提交；后续调用失败不回滚先前提交。编排函数自身不创建覆盖全流程的事务。`zxc module.rx --out flow.zig` 支持生成带显式宿主的源码；宿主提供稳定槽位指针与 commit(pending)，必须保证当前状态及旧快照的内存存活期；如提供 begin(comptime slots)，生成代码会在 Call 输入读取前调用它。Store 的正确生命周期是应用启动时初始化一次，跨调用和请求共享，应用结束后释放，重启使用初值。此前误加的 JSON 快照、文件锁、磁盘版本、恢复及目录同步已移除；Store 不要求可序列化，也不依赖状态目录。
 
 真实 XML、ZX、初始化与宿主执行材料见 [Store 声明示例](../../../../docs/2026-10-04/RX状态联结/真实声明/main.rx)。
 
@@ -329,7 +329,11 @@ setter 必须列出一个完整 Object；不能列出整个 Store、字段、未
 
 未知/重复属性、必填项、非空白文本和非法嵌套均报错。除 Field.value 外，显式属性不能是空白字符串。
 
-Gateway 入口已验证 Route 目标文件及其普通模块依赖图，模块 Store 引用已读取并校验定义文件；这些专用流程尚未实现多个 Gateway 的合并、Group 展开冲突、路由输入输出兼容或 Gateway 执行。普通顺序模块的表达式、函数类型联结与 Return 推导见上节。路由 service 相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。结构检查成功不代表业务执行已经验证。
+HTTP Gateway 已接通 `zxc build main.gateway.rx --out server`。编译时展开 Group、拒绝重叠路由，并将去重后的服务统一链接；每条路由使用自身的 Input/Output 类型，输入为 JSON 请求体，输出为 JSON。void 输入要求空请求体，void 输出为 null。多路由共享一个应用级 Store，每个请求独立管理输入输出内存。服务相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。
+
+省略 protocol 表示 HTTP，listen 默认 `127.0.0.1:8080`，只接受数字 IP 与端口。max_header_bytes 默认 8192、范围 1 至 16777216；max_body_bytes 默认 1048576。当前路由只匹配完整字面路径，query 不参与匹配，不解码百分号；省略 method 表示任意方法，GET 不隐含 HEAD。未匹配路径返回 404，方法不符返回带 Allow 的 405，JSON 错误返回 400，正文过大返回 413，压缩输入返回 415，未知 Expect 返回 417，业务错误返回 500。
+
+当前 HTTP 宿主顺序处理，每个连接仅处理一个请求；不含超时、TLS 服务端、压缩、参数路由、多个 Gateway 合并及其他协议执行。非 HTTP 的 Schema 检查不代表可构建执行。成功提交的请求 arena 仍保留到应用结束，长期有界回收未完成。Gateway 目前只接受 app 构建，不接受源码输出、verify、fpga 或 `--result discard`。结构检查成功不代表业务执行已经验证。详见 [Gateway 执行参考](../../../../docs/2026-10-05/Gateway执行参考.md)。
 
 结构级测试使用 AST 覆盖标签、路径身份、模块组合、递归结构、循环依赖与分配失败。独立文本及运行验证从真实 XML 开始，覆盖顺序模块的类型推导、原始诊断位置和部分生成代码执行；各组证据不替代尚未接入功能的验证。
 

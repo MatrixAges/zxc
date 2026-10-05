@@ -1,0 +1,46 @@
+[
+	{
+		"application": "empty_app",
+		"requests": [
+			{
+				"name": "empty_404",
+				"response": "HTTP/1.1 404 Not Found\r\nconnection: close\r\ncontent-length: 9\r\n\r\nnot found",
+				"peer_reset_after_response": false
+			},
+			{
+				"name": "head_limit",
+				"response": "HTTP/1.1 431 Request Header Fields Too Large\r\nconnection: close\r\ncontent-length: 0\r\n\r\n",
+				"peer_reset_after_response": true
+			}
+		],
+		"stdout": "",
+		"stderr": ""
+	},
+	{
+		"application": "native_app",
+		"requests": [
+			{
+				"name": "process_env",
+				"response": "HTTP/1.1 200 OK\r\nconnection: close\r\ncontent-length: 27\r\ncontent-type: application/json\r\n\r\n\"shared server environment\"",
+				"peer_reset_after_response": false
+			},
+			{
+				"name": "service_failure",
+				"response": "HTTP/1.1 500 Internal Server Error\r\nconnection: close\r\ncontent-length: 14\r\n\r\nservice failed",
+				"peer_reset_after_response": false
+			},
+			{
+				"name": "read_file",
+				"response": "HTTP/1.1 200 OK\r\nconnection: close\r\ncontent-length: 24\r\ncontent-type: application/json\r\n\r\n\"gateway file content\\n\"",
+				"peer_reset_after_response": false
+			},
+			{
+				"name": "void_output",
+				"response": "HTTP/1.1 200 OK\r\nconnection: close\r\ncontent-length: 4\r\ncontent-type: application/json\r\n\r\nnull",
+				"peer_reset_after_response": false
+			}
+		],
+		"stdout": "hello",
+		"stderr": "error: Gateway service failed: FileNotFound\n"
+	}
+]

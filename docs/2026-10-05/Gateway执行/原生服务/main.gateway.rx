@@ -1,0 +1,5 @@
+<Gateway name="native" listen="127.0.0.1:18184">
+  <Route path="/env" service="environment" />
+  <Route method="POST" path="/file" service="read" />
+  <Route method="POST" path="/write" service="write" />
+</Gateway>
