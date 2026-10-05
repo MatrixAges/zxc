@@ -1,0 +1,154 @@
+✔ loop public library relocation and compiled manifest republication preserve returned aliases (116551.637236ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116554.707922
+Build Summary: 105/105 steps succeeded; 185/185 tests passed
+test-iterate-calls success
++- run test 1 pass (1 total) 367ms MaxRSS:2M
+|  +- compile test safe native success 23s MaxRSS:683M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) success 13ms
+|        +- compile exe generate-lexer safe native success 19s MaxRSS:625M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test iterate-calls-identity-source 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-identity-source safe native success 7s MaxRSS:322M
+|     +- run exe compile-iterate-calls (source.zig) success 3ms
+|     |  +- compile exe compile-iterate-calls safe native success 23s MaxRSS:704M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-identity-library 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-identity-library safe native success 7s MaxRSS:324M
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-child-source 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-child-source safe native success 7s MaxRSS:319M
+|     +- run exe compile-iterate-calls (source.zig) success 3ms
+|     |  +- compile exe compile-iterate-calls safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-child-library 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-child-library safe native success 7s MaxRSS:320M
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-pair-source 8 pass (8 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-pair-source safe native success 7s MaxRSS:389M
+|     +- run exe compile-iterate-calls (source.zig) success 3ms
+|     |  +- compile exe compile-iterate-calls safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-pair-library 8 pass (8 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-pair-library safe native success 7s MaxRSS:400M
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-branch_return-source 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-branch_return-source safe native success 7s MaxRSS:315M
+|     +- run exe compile-iterate-calls (source.zig) success 3ms
+|     |  +- compile exe compile-iterate-calls safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-branch_return-library 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-branch_return-library safe native success 7s MaxRSS:327M
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-tuple_identity-source 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-tuple_identity-source safe native success 7s MaxRSS:318M
+|     +- run exe compile-iterate-calls (source.zig) success 3ms
+|     |  +- compile exe compile-iterate-calls safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-tuple_identity-library 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-tuple_identity-library safe native success 7s MaxRSS:311M
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-list_alias-source 11 pass (11 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-list_alias-source safe native success 7s MaxRSS:314M
+|     +- run exe compile-iterate-calls (source.zig) success 3ms
+|     |  +- compile exe compile-iterate-calls safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- run test iterate-calls-list_alias-library 11 pass (11 total) 2ms MaxRSS:1M
+|  +- compile test iterate-calls-list_alias-library safe native success 7s MaxRSS:299M
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-iterate-calls (source.zig) (+1 more reused dependencies)
++- test-iterate-calls-cli success
+   +- run node success 1m
+      +- compile exe zxc safe native success 1m MaxRSS:2G
+         +- WriteFile cached
+         +- compile lib yaml safe native cached 50ms MaxRSS:20M
+         +- compile lib yaml safe native (reused)
+         +- translate-c cached 40ms MaxRSS:20M
+         +- options success
+         +- run exe bundle-zig (bundle) cached
+         |  +- compile exe bundle-zig fast native cached 46ms MaxRSS:21M
+         |  +- WriteFile bundle_manifest.json cached
+         +- WriteFile interfaces/0.d.zx (reused)
+         +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+test-iterate-buffer success
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:327M
+|     +- run exe zxc (program.zig) success 3ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:313M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:309M
+|     +- run exe zxc (program.zig) success 3ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:388M
+|     +- run exe zxc (program.zig) success 7ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:2M
+|  +- compile test safe native success 7s MaxRSS:317M
+|     +- run exe zxc (program.zig) success 5ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 3ms MaxRSS:2M
+|  +- compile test safe native success 7s MaxRSS:312M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:323M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:320M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 4ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:336M
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:401M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+   +- compile test safe native success 7s MaxRSS:316M
+      +- run exe zxc (program.zig) success 4ms
+      |  +- compile exe zxc safe native (+8 more reused dependencies)
+      +- options cached

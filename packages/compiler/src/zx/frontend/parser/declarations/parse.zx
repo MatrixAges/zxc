@@ -1,0 +1,20 @@
+import initial from "./initial"
+import step from "./step"
+
+import type { Token } from "../../lexer/token_model"
+import type { State } from "./model"
+
+export type Input = { tokens: Token[], start: u64, depth: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return in.tokens.reduce((state, token) => step({
+    state: state,
+    token: {
+      kind: token.kind, word: token.word, symbol: token.symbol,
+      span: { start: token.span.start, end: token.span.end },
+      line_break: token.line_break, dollar: token.dollar
+    }
+  }), initial({ start: in.start, depth: in.depth }))
+}

@@ -1,0 +1,20 @@
+import { Phase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const declaration = {
+    name: { start: in.control.name.start, end: in.control.name.end },
+    span: { start: in.control.opening, end: in.control.last_end },
+    enumeration: in.control.enumeration, value: in.types.control.result,
+    first: in.control.first, count: in.control.count
+  }
+
+  const declarations = in.declarations.push(declaration)[0]
+
+  return { declarations: declarations, members: in.members, types: in.types, control: { ...in.control, phase: Phase.Start } }
+}

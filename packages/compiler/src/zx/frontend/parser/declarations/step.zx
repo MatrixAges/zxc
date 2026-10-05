@@ -1,0 +1,37 @@
+import begin from "./begin"
+import enumeration from "./enumeration"
+import header from "./header"
+import { Phase } from "./model"
+import typed from "./typed"
+
+import type { Token } from "../../lexer/token_model"
+import type { State } from "./model"
+
+export type Input = { state: State, token: Token }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.state.control.phase == Phase.Done) {
+    return in.state
+  }
+
+  if (in.state.control.index < in.state.control.start) {
+    const index = in.state.control.index + 1
+
+    return { declarations: in.state.declarations, members: in.state.members, types: in.state.types, control: { ...in.state.control, index: index } }
+  }
+
+  const state = { declarations: in.state.declarations, members: in.state.members, types: in.state.types, control: { ...in.state.control, token: in.token } }
+
+  switch (state.control.phase) {
+    case Phase.Start: return begin(state)
+    case Phase.Kind: return header(state)
+    case Phase.Name: return header(state)
+    case Phase.Open: return header(state)
+    case Phase.Value: return typed(state)
+    case Phase.Member: return enumeration(state)
+    case Phase.Separator: return enumeration(state)
+    default: return state
+  }
+}

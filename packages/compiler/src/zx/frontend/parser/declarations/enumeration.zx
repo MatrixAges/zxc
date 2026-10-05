@@ -1,0 +1,35 @@
+import { Kind, Symbol } from "../../lexer/token_model"
+import consume from "./consume"
+import fail from "./fail"
+import { Phase } from "./model"
+import publish from "./publish"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.token.symbol == Symbol.CloseBrace) {
+    return publish(consume({ state: in, phase: Phase.Start }))
+  }
+
+  if (in.control.phase == Phase.Separator) {
+    if (in.control.token.symbol != Symbol.Comma) {
+      return fail({ state: in, message: "expected }" })
+    }
+
+    return consume({ state: in, phase: Phase.Member })
+  }
+
+  if (in.control.token.kind != Kind.Identifier) {
+    return fail({ state: in, message: "expected an identifier" })
+  }
+
+  const name = { start: in.control.token.span.start, end: in.control.token.span.end }
+  const count = in.control.count + 1
+  const members = in.members.push(name)[0]
+
+  return consume({ state: { declarations: in.declarations, members: members, types: in.types, control: { ...in.control, count: count } }, phase: Phase.Separator })
+}

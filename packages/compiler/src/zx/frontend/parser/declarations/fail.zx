@@ -1,0 +1,16 @@
+import { Phase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = { state: State, message: string }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const diagnostic = { code: "syntax", start: in.state.control.token.span.start, end: in.state.control.token.span.end, message: in.message }
+
+  return {
+    declarations: in.state.declarations, members: in.state.members, types: in.state.types,
+    control: { ...in.state.control, phase: Phase.Done, diagnostic: diagnostic }
+  }
+}

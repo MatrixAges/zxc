@@ -1,0 +1,17 @@
+import { Phase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = { state: State, phase: Phase }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const index = in.state.control.index + 1
+  const last_end = in.state.control.token.span.end
+
+  return {
+    declarations: in.state.declarations, members: in.state.members, types: in.state.types,
+    control: { ...in.state.control, phase: in.phase, index: index, last_end: last_end }
+  }
+}
