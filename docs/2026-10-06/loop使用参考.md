@@ -6,7 +6,7 @@
 
 ## Data：可用证据
 
-ZX 与 RX 内联表达式均已接入。已有示例覆盖先判断、后判断、分支更新、列表索引、嵌套对象、可选对象以及模块调用。[执行记录](状态迭代/执行记录.json)保存实际输入输出与生成证据。
+`loop` 仅用于 ZX；RX 通过 Call 节点调用对应 ZX 模块，不允许在值中内联调用。已有示例覆盖先判断、后判断、分支更新、列表索引、嵌套对象、可选对象以及模块调用。[执行记录](状态迭代/执行记录.json)保存实际输入输出与生成证据。
 
 自举表达式解析器已用 `loop` 替换三个调度列表。三份已有语法模块、2166 个解析位置与 Zig 参考解析器比较，AST、索引与诊断零差异，见[解析器驱动核对](状态迭代/解析器驱动核对.json)。这不是完整前端回归或完整自举完成证明。
 
@@ -65,18 +65,15 @@ const result = loop(initial, {
 })
 ```
 
-### RX 内联调用
+### RX 调用 ZX 模块
 
-同一操作可放在 RX 的 ZX 表达式中，仍然显式传入回调所需数据。
+将上面的计数逻辑保存为 `count.zx`，RX 只连接输入和结果，不在属性值中执行 loop 或其他函数/方法调用。
 
 ```xml
 <Module>
-  <Return value={loop({remaining: $in.remaining}, {
-    while: state => state.remaining > 0,
-    next: state => {
-      state.remaining -= 1
-    }
-  })} />
+  <Call fn="count" in={$in} out="ctx.counted" />
+
+  <Return value={ctx.counted} />
 </Module>
 ```
 

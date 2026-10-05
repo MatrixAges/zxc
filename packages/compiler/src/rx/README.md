@@ -47,6 +47,8 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 属性使用引号或花括号区分值的语义：`value="hello"` 是字符串，`value={expression}` 使用 ZX 表达式。`value="$in"` 返回字符串 `$in`；读取输入应写 `value={$in}`。对象表达式外面仍需属性花括号，例如 `in={{user: $in.user}}`。
 
+RX 属性值只负责数据引用、组装和简单运算，不执行函数或方法调用，也不定义 lambda 或状态更新块；嵌套对象、模板插值和分支中的调用同样禁止。将 loop、集合处理和其他计算放在 ZX 模块中，用 `<Call fn="calculate" in={$in} out="ctx.result" />` 编排，再通过 `ctx.result` 连接后续步骤。模块组合使用 Call.service。
+
 花括号内部直接使用 ZX 源码，支持对象、列表、比较、逻辑运算、注释和模板，不进行 XML 实体解码或空白归一化；`<`、`&&` 无需写成 XML 实体。引号字符串仍使用标签转义，例如 `&amp;`、`&quot;`。
 
 `Call.in`、`Return.value`、`Switch.on`、`Case.value`、`Emit.value` 和 Store `Field.value` 都使用这一规则。`setter` 写作 `{[store.alias.object]}`，仍只授权一个完整 Store Object。路径、名称、`out` 绑定及 `Field.type` 保持静态引号字符串，不接受动态表达式。Store.version 和 Gateway 字节上限是静态整数配置，使用 `{1}`、`{8192}` 等整数字面量，保留各自范围检查。

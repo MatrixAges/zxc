@@ -1,0 +1,29 @@
+{
+	"rejections": [
+		{
+			"source": "previous adjust.rx: nested inline loop",
+			"exit_code": 1,
+			"diagnostic": "previous adjust.rx:4:15: unsupported: RX values cannot contain calls or callbacks; move logic to ZX and use Call.fn or Call.service",
+			"output_created": false
+		},
+		{
+			"source": "packages/test/tests/rx/runtime/fixtures/owned_pop.rx",
+			"exit_code": 1,
+			"diagnostic": "packages/test/tests/rx/runtime/fixtures/owned_pop.rx:3:18: unsupported: RX values cannot contain calls or callbacks; move logic to ZX and use Call.fn or Call.service",
+			"output_created": false
+		}
+	],
+	"orchestrated_example": {
+		"source": "docs/2026-10-06/状态迭代/示例/adjust.rx",
+		"input": {
+			"values": [2, 4],
+			"increment": 1
+		},
+		"output": {
+			"original": [2, 4],
+			"total": 8,
+			"values": [3, 5]
+		}
+	},
+	"self_host_expression_rx": "Zig generation succeeded"
+}

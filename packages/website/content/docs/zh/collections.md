@@ -29,7 +29,7 @@ const result = loop(initial, {
 
 将 `next` 换成 `do`，则至少执行一次步骤，再判断更新后的状态。两者不能同时出现。条件返回 `bool`，步骤必须使用更新块；更新块可包含局部 `const`、`if` 和 `switch`，不能 `return` 或写入 Store。
 
-回调不能捕获外层变量，需要的数据放进初始状态。已有初值绑定仍可读取，状态更新不直接改写它。结果由外层新的 `const` 接收。`loop` 也可用于 RX 的 ZX 内联表达式；不提供 `forEach`。
+回调不能捕获外层变量，需要的数据放进初始状态。已有初值绑定仍可读取，状态更新不直接改写它。结果由外层新的 `const` 接收。RX 必须通过 `Call.fn` 调用包含 `loop` 的 ZX 模块，属性值中不允许函数或方法调用；不提供 `forEach`。
 
 生成的程序使用普通 Zig 循环，是否复用对象或列表存储由编译器的所有权与别名分析决定。完整语法及已验证边界见 [loop 使用参考](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-06/loop使用参考.md)。
 

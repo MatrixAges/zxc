@@ -10,8 +10,6 @@ graph: *Graph,
 input: Graph.Id,
 input_used: bool = false,
 bindings: std.ArrayList(Binding) = .empty,
-floor: usize = 0,
-callback_depth: usize = 0,
 attribute: rx.ast.Attribute,
 span_offset: usize = 0,
 pub fn infer(self: *Self, expression: *const zx.ast.Expression, expected: ?Graph.Id) zx.Error!Graph.Id {
@@ -26,11 +24,8 @@ pub fn infer(self: *Self, expression: *const zx.ast.Expression, expected: ?Graph
     const hint = try self.payload(expected);
 
     const value = switch (expression.value) {
-        .state_block => return self.graph.reporter.fail(.unsupported, span, "state update blocks are only allowed in loop"),
         .identifier => |name| block: {
             if (std.mem.eql(u8, name.text, "$in")) {
-                if (self.callback_depth != 0) return self.graph.reporter.fail(.ownership, span, "callbacks cannot capture the module input");
-
                 self.input_used = true;
 
                 break :block self.input;
@@ -87,8 +82,7 @@ pub fn infer(self: *Self, expression: *const zx.ast.Expression, expected: ?Graph
 
             break :block result;
         },
-        .call => try @import("calls.zig").infer(self, expression, hint),
-        .lambda => return self.graph.reporter.fail(.unsupported, span, "callbacks require a collection operation"),
+        .call, .lambda, .state_block => return self.graph.reporter.fail(.unsupported, span, @import("../value_rules.zig").message),
     };
 
     if (expected) |target| try self.graph.expect(value, target, span);
@@ -112,13 +106,13 @@ pub fn payload(self: *Self, expected: ?Graph.Id) zx.Error!?Graph.Id {
             const value = self.graph.types.get(shape.known);
 
             if (value == .optional) {
-                id = try self.graph.known(value.optional, self.graph.nodes.items[@intFromEnum(self.graph.root(id))].span);
+                id = try self.graph.known(value.optional, self.graph.nodes.items[@backingInt(self.graph.root(id))].span);
 
                 continue;
             }
         }
 
-        if (shape == .unknown and self.graph.nodes.items[@intFromEnum(self.graph.root(id))].allowed == null) return null;
+        if (shape == .unknown and self.graph.nodes.items[@backingInt(self.graph.root(id))].allowed == null) return null;
 
         return id;
     }
@@ -133,7 +127,7 @@ pub fn sourceSpan(self: *const Self, value: zx.Span) zx.Span {
 fn lookup(self: *const Self, expression: *const zx.ast.Expression) ?Graph.Id {
     var index = self.bindings.items.len;
 
-    while (index > self.floor) {
+    while (index > 0) {
         index -= 1;
         const binding = self.bindings.items[index];
 
