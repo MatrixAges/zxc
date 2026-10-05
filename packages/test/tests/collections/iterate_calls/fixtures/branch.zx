@@ -1,0 +1,9 @@
+import type { BranchState, Leaf } from "./types"
+
+export type Input = BranchState
+
+export type Output = Leaf
+
+export default function (in: Input): Output {
+  return in.index % 2 == 0 ? in.left : in.right
+}

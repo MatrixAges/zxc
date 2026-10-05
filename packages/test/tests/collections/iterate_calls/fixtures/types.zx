@@ -1,0 +1,17 @@
+export type DataInput = { count: u64, start: i64, values: i64[] }
+
+export type DataOutput = { initial: i64, total: i64, previous: i64, steps: u64, other: i64, values: i64[] }
+
+export type Leaf = { total: i64, previous: i64 }
+
+export type State = { leaf: Leaf, index: u64, limit: u64 }
+
+export type Pair = [Leaf, u64]
+
+export type BranchState = { left: Leaf, right: Leaf, index: u64, limit: u64, previous: i64 }
+
+export type TupleState = { pair: Pair, limit: u64 }
+
+export type ListBox = { values: i64[], total: i64, previous: i64 }
+
+export type ListState = { box: ListBox, index: u64, limit: u64 }

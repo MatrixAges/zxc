@@ -1,0 +1,24 @@
+import readOld from "./tuple_identity"
+
+import type { DataInput, DataOutput, TupleState } from "./types"
+
+export type Input = DataInput
+
+export type Output = DataOutput
+
+export default function (in: Input): Output {
+  const initial: TupleState = { pair: [{ total: in.start, previous: in.start }, 0], limit: in.count }
+
+  const result = loop(initial, {
+    while: state => state.pair[1] < state.limit,
+    next: state => {
+      const old = readOld(state)
+
+      state.pair[0].total += 1
+      state.pair[0].previous = old.pair[0].total
+      state.pair[1] += 1
+    }
+  })
+
+  return { initial: initial.pair[0].total, total: result.pair[0].total, previous: result.pair[0].previous, steps: result.pair[1], other: 0, values: in.values }
+}

@@ -1,0 +1,9 @@
+import type { State, Leaf } from "./types"
+
+export type Input = State
+
+export type Output = Leaf
+
+export default function (in: Input): Output {
+  return in.leaf
+}

@@ -1,0 +1,24 @@
+import readOld from "./child"
+
+import type { DataInput, DataOutput, State } from "./types"
+
+export type Input = DataInput
+
+export type Output = DataOutput
+
+export default function (in: Input): Output {
+  const initial: State = { leaf: { total: in.start, previous: in.start }, index: 0, limit: in.count }
+
+  const result = loop(initial, {
+    while: state => state.index < state.limit,
+    next: state => {
+      const old = readOld(state)
+
+      state.leaf.total += 1
+      state.leaf.previous = old.total
+      state.index += 1
+    }
+  })
+
+  return { initial: initial.leaf.total, total: result.leaf.total, previous: result.leaf.previous, steps: result.index, other: 0, values: in.values }
+}

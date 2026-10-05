@@ -1,0 +1,9 @@
+import type { State, Pair } from "./types"
+
+export type Input = State
+
+export type Output = Pair
+
+export default function (in: Input): Output {
+  return [in.leaf, in.index]
+}

@@ -1,0 +1,25 @@
+import readOld from "./list_child"
+
+import type { DataInput, ListState, DataOutput } from "./types"
+
+export type Input = DataInput
+
+export type Output = DataOutput
+
+export default function (in: Input): Output {
+  const initial: ListState = { box: { values: in.values, total: in.start, previous: in.start }, index: 0, limit: in.count }
+
+  const result = loop(initial, {
+    while: state => state.index < state.limit,
+    next: state => {
+      const old = readOld(state)
+
+      state.box.values[0] += 1
+      state.box.total += old.values[0]
+      state.box.previous = old.total
+      state.index += 1
+    }
+  })
+
+  return { initial: initial.box.total, total: result.box.total, previous: result.box.previous, steps: result.index, other: 0, values: result.box.values }
+}

@@ -1,0 +1,9 @@
+import type { ListState, ListBox } from "./types"
+
+export type Input = ListState
+
+export type Output = ListBox
+
+export default function (in: Input): Output {
+  return in.box
+}
