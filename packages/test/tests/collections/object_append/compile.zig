@@ -6,12 +6,13 @@ pub fn main(init: std.process.Init) !void {
     const args = try init.minimal.args.toSlice(allocator);
     const mode = args[1];
 
-    const text = inline for (.{ "push", "concat", "select", "field_select", "index_read", "overwritten", "call_push", "call_concat", "call_chain", "call_foreign", "call_dual" }) |name| {
+    const text = inline for (.{ "push", "concat", "select", "field_select", "index_read", "overwritten", "call_push", "call_concat", "call_chain", "call_foreign", "call_dual", "call_mixed" }) |name| {
         if (std.mem.eql(u8, mode, name)) break @embedFile("fixtures/" ++ name ++ ".zx");
     } else return error.InvalidMode;
 
     var analysis = try compiler.project.analyze(allocator, &.{
         .{ .path = "main.zx", .source = text },
+        .{ .path = "mixed_step.zx", .source = @embedFile("fixtures/mixed_step.zx") },
         .{ .path = "dual_step.zx", .source = @embedFile("fixtures/dual_step.zx") },
         .{ .path = "push_step.zx", .source = @embedFile("fixtures/push_step.zx") },
         .{ .path = "concat_step.zx", .source = @embedFile("fixtures/concat_step.zx") },
