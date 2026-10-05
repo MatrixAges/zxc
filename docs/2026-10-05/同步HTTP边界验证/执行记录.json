@@ -1,0 +1,36 @@
+{
+	"part": 392,
+	"recorded_at": "2026-10-05T02:43:18.850385+00:00",
+	"head_at_recording": "63915630dc8b05589560e50dc231e785f51d1f8e",
+	"production_status_at_recording": [],
+	"new_checks": 157,
+	"direct_test_declarations": 87,
+	"application_scenarios": 70,
+	"production_fix": "a166b59a",
+	"executions": [
+		{
+			"command": "zig build test-http -j4 --summary all",
+			"cwd": "packages/test",
+			"exit_code": 0,
+			"direct_tests_passed": 87,
+			"app_checks_passed": 70,
+			"steps": "21/21",
+			"log": "Debug检查.txt"
+		},
+		{
+			"command": "zig build test-http -Doptimize=ReleaseSafe -j4 --summary all",
+			"cwd": "packages/test",
+			"exit_code": 0,
+			"direct_tests_passed": 87,
+			"app_checks_passed": 70,
+			"steps": "21/21",
+			"log": "ReleaseSafe检查.txt"
+		}
+	],
+	"boundaries": [
+		"Plain HTTP on loopback only",
+		"No TLS trust-chain verification in this stage",
+		"No published-library route in this stage",
+		"Shared checkout recording snapshot is not a whole-run static clean commit claim"
+	]
+}

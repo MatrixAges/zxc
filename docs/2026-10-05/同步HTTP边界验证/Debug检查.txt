@@ -1,0 +1,97 @@
+ok 1: request.zx sends Get method body and literal path
+ok 2: request.zx sends Head method body and literal path
+ok 3: request.zx sends Post method body and literal path
+ok 4: request.zx sends Put method body and literal path
+ok 5: request.zx sends Patch method body and literal path
+ok 6: request.zx sends Delete method body and literal path
+ok 7: request.zx sends Options method body and literal path
+ok 8: request.zx sends large POST body across client write buffer
+ok 9: request.zx preserves request headers and raw duplicate response headers
+ok 10: request.zx returns 302 as normal response without retry or redirect
+ok 11: request.zx returns 404 as normal response without retry or redirect
+ok 12: request.zx returns 503 as normal response without retry or redirect
+ok 13: request.zx accepts empty zero limit
+ok 14: request.zx accepts exact binary limit
+ok 15: request.zx accepts large body
+ok 16: request.zx accepts close delimited
+ok 17: request.zx accepts chunked trailers
+ok 18: request.zx accepts compressed bytes
+ok 19: request.zx status 204 returns no body with zero limit
+ok 20: request.zx status 304 returns no body with zero limit
+ok 21: request.zx interim responses fit aggregate exact header limit
+ok 22: request.zx rejects one byte over body limit
+ok 23: request.zx rejects one byte over zero limit
+ok 24: request.zx rejects cumulative header overflow
+ok 25: request.zx rejects single head overflow
+ok 26: request.zx rejects upgrade
+ok 27: request.zx rejects truncated content length
+ok 28: request.zx rejects missing terminal chunk
+ok 29: request.zx rejects truncated chunk data
+ok 30: request.zx rejects truncated final terminator
+ok 31: request.zx rejects conflicting lengths
+ok 32: request.zx rejects InvalidHeaderLimit before network
+ok 33: request.zx rejects UnsupportedRequestBody before network
+ok 34: request.zx rejects ManagedHttpHeader before network
+ok 35: request.zx rejects InvalidHttpHeader before network
+ok 36: workflow.rx sends Get method body and literal path
+ok 37: workflow.rx sends Head method body and literal path
+ok 38: workflow.rx sends Post method body and literal path
+ok 39: workflow.rx sends Put method body and literal path
+ok 40: workflow.rx sends Patch method body and literal path
+ok 41: workflow.rx sends Delete method body and literal path
+ok 42: workflow.rx sends Options method body and literal path
+ok 43: workflow.rx sends large POST body across client write buffer
+ok 44: workflow.rx preserves request headers and raw duplicate response headers
+ok 45: workflow.rx returns 302 as normal response without retry or redirect
+ok 46: workflow.rx returns 404 as normal response without retry or redirect
+ok 47: workflow.rx returns 503 as normal response without retry or redirect
+ok 48: workflow.rx accepts empty zero limit
+ok 49: workflow.rx accepts exact binary limit
+ok 50: workflow.rx accepts large body
+ok 51: workflow.rx accepts close delimited
+ok 52: workflow.rx accepts chunked trailers
+ok 53: workflow.rx accepts compressed bytes
+ok 54: workflow.rx status 204 returns no body with zero limit
+ok 55: workflow.rx status 304 returns no body with zero limit
+ok 56: workflow.rx interim responses fit aggregate exact header limit
+ok 57: workflow.rx rejects one byte over body limit
+ok 58: workflow.rx rejects one byte over zero limit
+ok 59: workflow.rx rejects cumulative header overflow
+ok 60: workflow.rx rejects single head overflow
+ok 61: workflow.rx rejects upgrade
+ok 62: workflow.rx rejects truncated content length
+ok 63: workflow.rx rejects missing terminal chunk
+ok 64: workflow.rx rejects truncated chunk data
+ok 65: workflow.rx rejects truncated final terminator
+ok 66: workflow.rx rejects conflicting lengths
+ok 67: workflow.rx rejects InvalidHeaderLimit before network
+ok 68: workflow.rx rejects UnsupportedRequestBody before network
+ok 69: workflow.rx rejects ManagedHttpHeader before network
+ok 70: workflow.rx rejects InvalidHttpHeader before network
+HTTP applications: 70 checks passed
+Build Summary: 21/21 steps succeeded; 87/87 tests passed
+test-http success
++- run test 22 pass (22 total) 3ms MaxRSS:1M
+|  +- compile test Debug native cached 48ms MaxRSS:21M
+|     +- run exe standard-types (standard_abi.zig) cached
+|        +- compile exe standard-types Debug native cached 45ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 15 pass (15 total) 6ms MaxRSS:1M
+|  +- compile test Debug native success 3s MaxRSS:580M
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run test 36 pass (36 total) 15ms MaxRSS:18M
+|  +- compile test Debug native cached 48ms MaxRSS:21M
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run test 14 pass (14 total) 14ms MaxRSS:1M
+|  +- compile test Debug native cached 46ms MaxRSS:21M
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run node success 9s
+   +- compile exe zxc Debug native cached 55ms MaxRSS:21M
+      +- WriteFile cached
+      +- compile lib yaml Debug native cached 42ms MaxRSS:20M
+      +- compile lib yaml Debug native (reused)
+      +- options cached
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig ReleaseFast native cached 45ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- WriteFile interfaces/0.d.zx cached
