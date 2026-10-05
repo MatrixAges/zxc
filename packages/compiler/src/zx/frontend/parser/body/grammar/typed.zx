@@ -1,0 +1,24 @@
+import typeDone from "../../types/done"
+import typeStep from "../../types/step"
+import { Phase } from "../model"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const token = { kind: in.expression.control.token.kind, word: in.expression.control.token.word, symbol: in.expression.control.token.symbol, span: { start: in.expression.control.token.span.start, end: in.expression.control.token.span.end }, line_break: in.expression.control.token.line_break, dollar: in.expression.control.token.dollar }
+  const types = typeStep({ state: in.expression.types, token: token })
+  const index = types.control.index
+  const root_index = in.expression.control.stream == 0 ? index : in.expression.control.root_index
+  const last_end = index == in.expression.control.index ? in.expression.control.last_end : in.expression.control.token.span.end
+  const failed = types.control.diagnostic.message != ""
+  const done = typeDone(types.control.phase)
+  const annotation = types.control.result + 1
+  const expression = { prepared: in.expression.prepared, tree: in.expression.tree, types: types, frames: in.expression.frames, control: { ...in.expression.control, index: index, root_index: root_index, last_end: last_end, type_diagnostic: failed } }
+  const phase = failed ? Phase.Done : done ? Phase.ConstAssign : Phase.Type
+
+  return { expression: expression, tree: in.tree, frames: in.frames, frame: { ...in.frame, annotation: annotation }, control: { ...in.control, phase: phase, expression_diagnostic: failed } }
+}

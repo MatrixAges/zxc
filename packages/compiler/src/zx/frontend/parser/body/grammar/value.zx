@@ -1,0 +1,25 @@
+import { ExprKind } from "../../expressions/state/model"
+import { StatementKind, Phase } from "../model"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const result = in.expression.control.result
+  const kind = in.frame.statement
+
+  if (kind == StatementKind.Evaluate && in.expression.tree.nodes[result].kind != ExprKind.Call) {
+    const start = in.expression.tree.nodes[result].span.start
+    const end = in.expression.tree.nodes[result].span.end
+    const diagnostic = { code: "syntax", start: start, end: end, message: "only calls can be used as standalone expressions" }
+
+    return { expression: in.expression, tree: in.tree, frames: in.frames, frame: in.frame, control: { ...in.control, phase: Phase.Done, diagnostic: diagnostic } }
+  }
+
+  const next = kind == StatementKind.StoreSet || kind == StatementKind.StateUpdate ? { ...in.frame, second: result } : { ...in.frame, first: kind == StatementKind.Result ? result + 1 : result }
+
+  return { expression: in.expression, tree: in.tree, frames: in.frames, frame: next, control: { ...in.control, phase: Phase.EndStatement } }
+}

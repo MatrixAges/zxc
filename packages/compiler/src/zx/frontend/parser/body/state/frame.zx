@@ -1,0 +1,12 @@
+import { Operator } from "../../expressions/prepare/model"
+import { FrameKind, StatementKind, Phase } from "../model"
+
+import type { Frame } from "../model"
+
+export type Input = { kind: FrameKind, start: u64, depth: u64 }
+
+export type Output = Frame
+
+export default function (in: Input): Output {
+  return { kind: in.kind, statement: StatementKind.Result, start: in.start, depth: in.depth, phase: Phase.Done, name: { start: 0, end: 0 }, annotation: 0, first: 0, second: 0, third: 0, head: 0, count: 0, operator: Operator.None }
+}

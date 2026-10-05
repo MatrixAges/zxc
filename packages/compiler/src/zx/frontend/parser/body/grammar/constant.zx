@@ -1,0 +1,72 @@
+import { Kind, Symbol } from "../../../lexer/token_model"
+import typeInitial from "../../types/initial"
+import { StatementKind, Phase } from "../model"
+import consume from "../state/consume"
+import expect from "../state/expect"
+import fail from "../state/fail"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const symbol = in.expression.control.token.symbol
+
+  if (in.control.phase == Phase.ConstAssign) {
+    if (symbol != Symbol.Assign) {
+      return fail({ state: in, code: "syntax", message: "expected =" })
+    }
+
+    return consume({ state: in, phase: Phase.BeginValue })
+  }
+
+  if (in.control.phase == Phase.ConstAfterName) {
+    if (symbol != Symbol.Colon) {
+      return expect({ state: in, symbol: Symbol.Assign, phase: Phase.BeginValue, message: "expected =" })
+    }
+
+    const index = in.expression.control.index + 1
+    const initial = typeInitial({ start: index, depth: in.frame.depth })
+    const types = { tree: in.expression.types.tree, frames: initial.frames, control: { ...initial.control, index: index } }
+    const state = { expression: { prepared: in.expression.prepared, tree: in.expression.tree, types: types, frames: in.expression.frames, control: in.expression.control }, tree: in.tree, frames: in.frames, frame: in.frame, control: in.control }
+
+    return consume({ state: state, phase: Phase.Type })
+  }
+
+  if (in.control.phase == Phase.ConstName && symbol == Symbol.OpenBracket) {
+    const state = { expression: in.expression, tree: in.tree, frames: in.frames, frame: { ...in.frame, statement: StatementKind.Destructure }, control: in.control }
+
+    return consume({ state: state, phase: Phase.PatternName })
+  }
+
+  if (in.control.phase == Phase.PatternSeparator) {
+    if (symbol == Symbol.CloseBracket) {
+      return consume({ state: in, phase: Phase.ConstAssign })
+    }
+
+    return expect({ state: in, symbol: Symbol.Comma, phase: Phase.PatternName, message: "expected ]" })
+  }
+
+  if (in.control.phase == Phase.PatternName && symbol == Symbol.CloseBracket) {
+    return consume({ state: in, phase: Phase.ConstAssign })
+  }
+
+  if (in.expression.control.token.kind != Kind.Identifier) {
+    return fail({ state: in, code: "syntax", message: "expected an identifier" })
+  }
+
+  const name = { start: in.expression.control.token.span.start, end: in.expression.control.token.span.end }
+
+  if (in.control.phase == Phase.ConstName) {
+    return consume({ state: { expression: in.expression, tree: in.tree, frames: in.frames, frame: { ...in.frame, name: name }, control: in.control }, phase: Phase.ConstAfterName })
+  }
+
+  const head = in.tree.names.length + 1
+  const count = in.frame.count + 1
+  const names = in.tree.names.push({ span: name, previous: in.frame.head })[0]
+  const tree = { statements: in.tree.statements, blocks: in.tree.blocks, items: in.tree.items, names: names, cases: in.tree.cases }
+
+  return consume({ state: { expression: in.expression, tree: tree, frames: in.frames, frame: { ...in.frame, head: head, count: count }, control: in.control }, phase: Phase.PatternSeparator })
+}

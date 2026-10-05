@@ -1,0 +1,21 @@
+import { Keyword } from "../../../lexer/keyword_model"
+import { Kind, Symbol } from "../../../lexer/token_model"
+import { Phase } from "../model"
+import expression from "../state/expression"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const word = in.expression.control.token.word
+  const next = in.expression.control.token.line_break && (word == Keyword.Const || word == Keyword.Return || word == Keyword.If || word == Keyword.Switch || word == Keyword.Store)
+
+  if (next || in.expression.control.token.symbol == Symbol.CloseBrace || in.expression.control.token.kind == Kind.Eof) {
+    return { expression: in.expression, tree: in.tree, frames: in.frames, frame: in.frame, control: { ...in.control, phase: Phase.EndStatement } }
+  }
+
+  return expression({ state: in, resume: Phase.Value, minimum: 0 })
+}

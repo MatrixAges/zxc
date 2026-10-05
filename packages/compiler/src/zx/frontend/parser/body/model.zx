@@ -1,0 +1,29 @@
+import { Operator } from "../expressions/prepare/model"
+
+import type { Diagnostic } from "../../lexer/model"
+import type { Span } from "../../lexer/token_model"
+import type { ExprState } from "../expressions/state/model"
+
+export enum StatementKind { Constant, Destructure, Result, Branch, Switch, StoreSet, Evaluate, StateUpdate }
+
+export enum FrameKind { Root, Block, Statement, Case }
+
+export enum Phase { BlockOpen, BlockNext, Statement, ConstName, ConstAfterName, PatternName, PatternSeparator, ConstAssign, ReturnValue, IfOpen, IfClose, IfElse, IfAlternative, SwitchOpen, SwitchClose, SwitchBrace, SwitchCase, CaseColon, CaseBody, CaseNext, StoreAssign, UpdateOperator, UpdateAssign, BeginValue, BeginCondition, BeginSwitch, BeginCase, Value, Expression, Type, EndStatement, Publish, Done }
+
+export type Statement = { kind: StatementKind, span: Span, name: Span, annotation: u64, first: u64, second: u64, third: u64, head: u64, count: u64, operator: Operator }
+
+export type Block = { span: Span, head: u64, count: u64 }
+
+export type Item = { value: u64, previous: u64 }
+
+export type Name = { span: Span, previous: u64 }
+
+export type Case = { span: Span, value: u64, body: u64, previous: u64 }
+
+export type Tree = { statements: Statement[], blocks: Block[], items: Item[], names: Name[], cases: Case[] }
+
+export type Frame = { kind: FrameKind, statement: StatementKind, start: u64, depth: u64, phase: Phase, name: Span, annotation: u64, first: u64, second: u64, third: u64, head: u64, count: u64, operator: Operator }
+
+export type Control = { phase: Phase, resume: Phase, state_block: bool, result: u64, expression_diagnostic: bool, diagnostic: Diagnostic }
+
+export type State = { expression: ExprState, tree: Tree, frames: Frame[], frame: Frame, control: Control }

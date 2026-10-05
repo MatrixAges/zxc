@@ -1,0 +1,43 @@
+import { Keyword } from "../../../lexer/keyword_model"
+import { Kind, Symbol } from "../../../lexer/token_model"
+import { StatementKind, Phase } from "../model"
+import consume from "../state/consume"
+import expression from "../state/expression"
+import fail from "../state/fail"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const word = in.expression.control.token.word
+  const symbol = in.expression.control.token.symbol
+  const kind = word == Keyword.Const ? StatementKind.Constant : word == Keyword.Return ? StatementKind.Result : word == Keyword.If ? StatementKind.Branch : word == Keyword.Switch ? StatementKind.Switch : StatementKind.Evaluate
+  const state = { expression: in.expression, tree: in.tree, frames: in.frames, frame: { ...in.frame, statement: kind }, control: in.control }
+
+  if (word == Keyword.Const) {
+    return consume({ state: state, phase: Phase.ConstName })
+  }
+
+  if (word == Keyword.Return) {
+    return consume({ state: state, phase: Phase.ReturnValue })
+  }
+
+  if (word == Keyword.If || word == Keyword.Switch) {
+    return consume({ state: state, phase: word == Keyword.If ? Phase.IfOpen : Phase.SwitchOpen })
+  }
+
+  if (word == Keyword.Store || state.expression.control.token.dollar) {
+    return expression({ state: { expression: state.expression, tree: state.tree, frames: state.frames, frame: { ...state.frame, statement: StatementKind.StoreSet }, control: state.control }, resume: Phase.StoreAssign, minimum: 0 })
+  }
+
+  if (state.expression.control.token.kind == Kind.Identifier || symbol == Symbol.OpenParen || symbol == Symbol.OpenBracket) {
+    const updating = state.control.state_block
+
+    return expression({ state: state, resume: updating ? Phase.UpdateOperator : Phase.Value, minimum: updating ? 8 : 0 })
+  }
+
+  return fail({ state: state, code: "syntax", message: "expected const, if, switch, return or a Store setter; ordinary mutation is forbidden" })
+}

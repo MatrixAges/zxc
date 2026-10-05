@@ -1,0 +1,83 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Symbol } from "../../lexer/token_model"
+import current from "../expressions/state/current"
+import block from "./grammar/block"
+import branch from "./grammar/branch"
+import caseEnd from "./grammar/case_end"
+import constant from "./grammar/constant"
+import end from "./grammar/end"
+import advanceExpression from "./grammar/expression"
+import result from "./grammar/result"
+import selection from "./grammar/selection"
+import statement from "./grammar/statement"
+import typed from "./grammar/typed"
+import update from "./grammar/update"
+import value from "./grammar/value"
+import { FrameKind, Phase } from "./model"
+import expression from "./state/expression"
+import publish from "./state/publish"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.Done || in.control.expression_diagnostic) {
+    return { expression: in.expression, tree: in.tree, frames: in.frames, frame: in.frame, control: { ...in.control, phase: Phase.Done } }
+  }
+
+  if (in.control.phase == Phase.Expression) {
+    return advanceExpression(in)
+  }
+
+  const at = current(in.expression)
+  const state = { expression: { prepared: in.expression.prepared, tree: in.expression.tree, types: in.expression.types, frames: in.expression.frames, control: { ...in.expression.control, token: at.token, hint: at.hint, template: at.template } }, tree: in.tree, frames: in.frames, frame: in.frame, control: in.control }
+
+  switch (state.control.phase) {
+    case Phase.BlockOpen: return state.frame.kind == FrameKind.Statement ? branch(state) : block(state)
+    case Phase.BlockNext: return block(state)
+    case Phase.Statement: return statement(state)
+    case Phase.ConstName: return constant(state)
+    case Phase.ConstAfterName: return constant(state)
+    case Phase.PatternName: return constant(state)
+    case Phase.PatternSeparator: return constant(state)
+    case Phase.ConstAssign: return constant(state)
+    case Phase.Type: return typed(state)
+    case Phase.ReturnValue: return result(state)
+    case Phase.IfOpen: return branch(state)
+    case Phase.IfClose: return branch(state)
+    case Phase.IfElse: return branch(state)
+    case Phase.IfAlternative: return branch(state)
+    case Phase.BeginCondition: return expression({ state: state, resume: Phase.IfClose, minimum: 0 })
+    case Phase.BeginSwitch: return expression({ state: state, resume: Phase.SwitchClose, minimum: 0 })
+    case Phase.BeginCase: return expression({ state: state, resume: Phase.CaseColon, minimum: 0 })
+    case Phase.BeginValue: return expression({ state: state, resume: Phase.Value, minimum: 0 })
+    case Phase.SwitchOpen: return selection(state)
+    case Phase.SwitchClose: return selection(state)
+    case Phase.SwitchBrace: return selection(state)
+    case Phase.SwitchCase: return selection(state)
+    case Phase.CaseColon:
+      const named = state.frame.third != 0
+      const first = named ? state.expression.control.result + 1 : 0
+
+      return selection({ expression: state.expression, tree: state.tree, frames: state.frames, frame: { ...state.frame, first: first }, control: state.control })
+    case Phase.CaseBody:
+      const start = state.expression.control.token.span.start
+
+      return { expression: state.expression, tree: state.tree, frames: state.frames, frame: { ...state.frame, name: { start: start, end: start } }, control: { ...state.control, phase: Phase.CaseNext } }
+    case Phase.CaseNext:
+      const word = state.expression.control.token.word
+      const closing = word == Keyword.Case || word == Keyword.Default || state.expression.control.token.symbol == Symbol.CloseBrace
+
+      return closing ? caseEnd(state) : selection(state)
+    case Phase.StoreAssign: return update(state)
+    case Phase.UpdateOperator: return update(state)
+    case Phase.UpdateAssign: return update(state)
+    case Phase.Value: return value(state)
+    case Phase.EndStatement: return end(state)
+    case Phase.Publish: return publish(state)
+    default: return state
+  }
+}

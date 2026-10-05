@@ -1,0 +1,16 @@
+import { Phase } from "../../expressions/state/model"
+import step from "../../expressions/step"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const expression = step(in.expression)
+  const failed = expression.control.diagnostic.message != "" || expression.control.lexical_diagnostic != 0 || expression.control.type_diagnostic
+  const phase = expression.control.phase == Phase.Done ? in.control.resume : in.control.phase
+
+  return { expression: expression, tree: in.tree, frames: in.frames, frame: in.frame, control: { ...in.control, phase: phase, expression_diagnostic: failed } }
+}

@@ -1,0 +1,54 @@
+import { Keyword } from "../../../lexer/keyword_model"
+import { Symbol } from "../../../lexer/token_model"
+import { FrameKind, Phase } from "../model"
+import consume from "../state/consume"
+import enter from "../state/enter"
+import expect from "../state/expect"
+import fail from "../state/fail"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.SwitchOpen) {
+    return expect({ state: in, symbol: Symbol.OpenParen, phase: Phase.BeginSwitch, message: "(" })
+  }
+
+  if (in.control.phase == Phase.SwitchClose) {
+    const result = in.expression.control.result
+    const state = { expression: in.expression, tree: in.tree, frames: in.frames, frame: { ...in.frame, first: result }, control: in.control }
+
+    return expect({ state: state, symbol: Symbol.CloseParen, phase: Phase.SwitchBrace, message: ")" })
+  }
+
+  if (in.control.phase == Phase.SwitchBrace) {
+    return expect({ state: in, symbol: Symbol.OpenBrace, phase: Phase.SwitchCase, message: "{" })
+  }
+
+  if (in.control.phase == Phase.SwitchCase) {
+    if (in.expression.control.token.symbol == Symbol.CloseBrace) {
+      return consume({ state: in, phase: Phase.Publish })
+    }
+
+    const named = in.expression.control.token.word == Keyword.Case
+
+    if (!named && in.expression.control.token.word != Keyword.Default) {
+      return fail({ state: in, code: "syntax", message: "default" })
+    }
+
+    const state = enter({ state: in, kind: FrameKind.Case, phase: Phase.SwitchCase, resume: Phase.SwitchCase, nested: false })
+
+    return consume({ state: { expression: state.expression, tree: state.tree, frames: state.frames, frame: { ...state.frame, third: named ? 1 : 0 }, control: state.control }, phase: named ? Phase.BeginCase : Phase.CaseColon })
+  }
+
+  if (in.control.phase == Phase.CaseColon) {
+    const state = expect({ state: in, symbol: Symbol.Colon, phase: Phase.CaseBody, message: ":" })
+
+    return state
+  }
+
+  return enter({ state: in, kind: FrameKind.Statement, phase: Phase.Statement, resume: Phase.CaseNext, nested: true })
+}

@@ -1,0 +1,29 @@
+import { Symbol } from "../../../lexer/token_model"
+import { FrameKind, Phase } from "../model"
+import consume from "../state/consume"
+import enter from "../state/enter"
+import expect from "../state/expect"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.BlockOpen) {
+    const state = enter({ state: in, kind: FrameKind.Block, phase: Phase.BlockOpen, resume: Phase.Done, nested: true })
+
+    if (state.control.phase == Phase.Done) {
+      return state
+    }
+
+    return expect({ state: state, symbol: Symbol.OpenBrace, phase: Phase.BlockNext, message: "{" })
+  }
+
+  if (in.expression.control.token.symbol == Symbol.CloseBrace) {
+    return consume({ state: in, phase: Phase.Publish })
+  }
+
+  return enter({ state: in, kind: FrameKind.Statement, phase: Phase.Statement, resume: Phase.BlockNext, nested: true })
+}

@@ -1,0 +1,17 @@
+import consume from "./consume"
+import fail from "./fail"
+
+import type { Symbol } from "../../../lexer/token_model"
+import type { State, Phase } from "../model"
+
+export type Input = { state: State, symbol: Symbol, phase: Phase, message: string }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.state.expression.control.token.symbol != in.symbol) {
+    return fail({ state: in.state, code: "syntax", message: in.message })
+  }
+
+  return consume({ state: in.state, phase: in.phase })
+}

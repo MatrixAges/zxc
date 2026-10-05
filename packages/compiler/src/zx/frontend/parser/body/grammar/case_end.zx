@@ -1,0 +1,21 @@
+import { FrameKind, Phase } from "../model"
+import frame from "../state/frame"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const popped = in.frames.pop()
+  const parent = popped[1] ?? frame({ kind: FrameKind.Root, start: 0, depth: 0 })
+  const body = in.tree.blocks.length
+  const blocks = in.tree.blocks.push({ span: { start: in.frame.name.start, end: in.expression.control.token.span.start }, head: in.frame.head, count: in.frame.count })[0]
+  const head = in.tree.cases.length + 1
+  const count = parent.count + 1
+  const cases = in.tree.cases.push({ span: { start: in.frame.start, end: in.expression.control.last_end }, value: in.frame.first, body: body, previous: parent.head })[0]
+  const tree = { statements: in.tree.statements, blocks: blocks, items: in.tree.items, names: in.tree.names, cases: cases }
+
+  return { expression: in.expression, tree: tree, frames: popped[0], frame: { ...parent, head: head, count: count }, control: { ...in.control, phase: Phase.SwitchCase } }
+}

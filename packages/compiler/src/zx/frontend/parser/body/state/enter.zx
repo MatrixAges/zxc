@@ -1,0 +1,21 @@
+import fail from "./fail"
+import frame from "./frame"
+
+import type { State, FrameKind, Phase } from "../model"
+
+export type Input = { state: State, kind: FrameKind, phase: Phase, resume: Phase, nested: bool }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const depth = in.state.frame.depth
+
+  if (in.nested && depth >= 256) {
+    return fail({ state: in.state, code: "unsupported", message: "syntax nesting exceeds 256 levels" })
+  }
+
+  const next = frame({ kind: in.kind, start: in.state.expression.control.token.span.start, depth: depth + (in.nested ? 1 : 0) })
+  const frames = in.state.frames.push({ ...in.state.frame, phase: in.resume })[0]
+
+  return { expression: in.state.expression, tree: in.state.tree, frames: frames, frame: next, control: { ...in.state.control, phase: in.phase } }
+}

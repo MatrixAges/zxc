@@ -1,0 +1,22 @@
+import { Kind, Symbol } from "../../../lexer/token_model"
+import { Phase } from "../model"
+import fail from "../state/fail"
+import publish from "../state/publish"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.expression.control.token.symbol == Symbol.Semicolon) {
+    return fail({ state: in, code: "syntax", message: "semicolons are not allowed in ZX" })
+  }
+
+  if (in.expression.control.token.kind != Kind.Eof && in.expression.control.token.symbol != Symbol.CloseBrace && !in.expression.control.token.line_break) {
+    return fail({ state: in, code: "syntax", message: "expected a newline, closing block or end of source" })
+  }
+
+  return publish(in)
+}

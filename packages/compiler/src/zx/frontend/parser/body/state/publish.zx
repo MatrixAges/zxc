@@ -1,0 +1,43 @@
+import { FrameKind, Phase } from "../model"
+import frame from "./frame"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const popped = in.frames.pop()
+  const parent = popped[1] ?? frame({ kind: FrameKind.Root, start: 0, depth: 0 })
+  const phase = parent.phase
+  const span = { start: in.frame.start, end: in.expression.control.last_end }
+
+  if (in.frame.kind == FrameKind.Block) {
+    const result = in.tree.blocks.length
+    const blocks = in.tree.blocks.push({ span: span, head: in.frame.head, count: in.frame.count })[0]
+    const next = parent.kind == FrameKind.Root ? parent : parent.phase == Phase.IfElse ? { ...parent, second: result } : { ...parent, third: result + 1 }
+    const tree = { statements: in.tree.statements, blocks: blocks, items: in.tree.items, names: in.tree.names, cases: in.tree.cases }
+
+    return { expression: in.expression, tree: tree, frames: popped[0], frame: next, control: { ...in.control, phase: phase, result: result } }
+  }
+
+  const result = in.tree.statements.length
+  const statements = in.tree.statements.push({ kind: in.frame.statement, span: { start: span.start, end: span.end }, name: in.frame.name, annotation: in.frame.annotation, first: in.frame.first, second: in.frame.second, third: in.frame.third, head: in.frame.head, count: in.frame.count, operator: in.frame.operator })[0]
+  const head = in.tree.items.length + 1
+  const items = in.tree.items.push({ value: result, previous: parent.kind == FrameKind.Statement ? 0 : parent.head })[0]
+
+  if (parent.kind == FrameKind.Statement) {
+    const block = in.tree.blocks.length + 1
+    const blocks = in.tree.blocks.push({ span: span, head: head, count: 1 })[0]
+    const tree = { statements: statements, blocks: blocks, items: items, names: in.tree.names, cases: in.tree.cases }
+
+    return { expression: in.expression, tree: tree, frames: popped[0], frame: { ...parent, third: block }, control: { ...in.control, phase: Phase.Publish } }
+  }
+
+  const count = parent.count + 1
+  const next = { ...parent, head: head, count: count }
+  const tree = { statements: statements, blocks: in.tree.blocks, items: items, names: in.tree.names, cases: in.tree.cases }
+
+  return { expression: in.expression, tree: tree, frames: popped[0], frame: next, control: { ...in.control, phase: phase } }
+}

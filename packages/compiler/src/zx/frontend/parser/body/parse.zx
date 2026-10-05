@@ -1,0 +1,20 @@
+import expression from "../expressions/state/initial"
+import { Phase } from "./model"
+import initial from "./state/initial"
+import step from "./step"
+
+import type { PreparedInput } from "../expressions/prepare/model"
+import type { State } from "./model"
+
+export type Input = { prepared: PreparedInput, start: u64, depth: u64, state_block: bool }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  return loop(initial({ expression: expression({ prepared: in.prepared, start: in.start, depth: in.depth, minimum: 0, allow_lambda: true }), state_block: in.state_block }), {
+    while: state => state.control.phase != Phase.Done,
+    next: state => {
+      state = step(state)
+    }
+  })
+}
