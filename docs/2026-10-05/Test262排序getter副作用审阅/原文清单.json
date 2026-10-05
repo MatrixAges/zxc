@@ -1,0 +1,50 @@
+[
+	{
+		"path": "test/built-ins/Array/prototype/sort/precise-getter-deletes-successor.js",
+		"sha256": "8efdf8b4a041cebd3c9766797ee57fa53be0d93a51a70d099d5fe913e9a1d111",
+		"original_assertions": 15,
+		"observation": "getter删除尚未收集的索引3，原b不进入排序；排序后再读索引2再次删除索引3，原文还检查其自有属性缺失、foo和长度8。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/sort/precise-getter-sets-successor.js",
+		"sha256": "240ce7b1f30d02fed7fe11cb9e97d8d12ac3e62f1a3eaaeb783a6b5f2335da82",
+		"original_assertions": 12,
+		"observation": "getter先把尚未收集的索引3改为foobar，使该值参与排序；setter写回foo=d，后读索引2再次将索引3改为foobar，原文检查两阶段值及属性存在性。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/sort/precise-getter-sets-predecessor.js",
+		"sha256": "5d0044fbefe87dc340503254e475ed9a01d821e2e3343994a5e999083c0ce67d",
+		"original_assertions": 12,
+		"observation": "getter把已收集的索引1改为foobar，排序仍保留此前收集的c；排序后索引1先为b，再读索引2才变为foobar，foo=c。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/sort/precise-getter-decreases-length.js",
+		"sha256": "9df5bff0f4856d0a38a972bfc93e1bcaa623f7245f6134adc15d6f314c51e7f5",
+		"original_assertions": 10,
+		"observation": "getter使数组长度先由8降至6，移除尚未读取的末两项；排序后再读索引2使长度降至4，原文同时区分值与空洞存在性。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/sort/precise-getter-increases-length.js",
+		"sha256": "8846860bc9dc6faea2b4f92b62ec39de944fa07b7c476915827de802941fedc0",
+		"original_assertions": 20,
+		"observation": "getter先使长度8变10；新增末尾空洞不参与原长度范围排序，后读索引2再变12，原文检查7至11的属性缺失和foo=c。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/sort/precise-getter-pops-elements.js",
+		"sha256": "6f05314d9fee9b1b8bf21eab48fa8a8b48eb9191d7acb84ba051844aba85cb53",
+		"original_assertions": 10,
+		"observation": "getter连续pop两次使数组先缩至6，末尾a/d未被收集；后读索引2再次pop两次缩至4，原文检查值、空洞及foo。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/sort/precise-getter-appends-elements.js",
+		"sha256": "0f61c3153c82a40e3ea04d6a505adfa03775287e35d951cf8b8d7f30802e159b",
+		"original_assertions": 19,
+		"observation": "getter在原8项范围外push foo/bar，使长度10；它们留在索引8/9，后读索引2再次追加到10/11使长度12，原文逐项检查这些值。"
+	},
+	{
+		"path": "test/built-ins/Array/prototype/sort/precise-getter-deletes-predecessor.js",
+		"sha256": "2ef3873fe693a318928a1285770c981cca6e4a4973172717c78711f2c215cde1",
+		"original_assertions": 14,
+		"observation": "getter删除已收集的索引1，不撤回其已收集的c；排序后索引1先为b，再读索引2删除该自有属性，foo=c且长度仍8。"
+	}
+]
