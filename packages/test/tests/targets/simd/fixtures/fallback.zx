@@ -1,0 +1,12 @@
+export type Input = i32[]
+
+export type Output = { incremented: i32[], positive: i32[], total: i32, nested: i32[][] }
+
+export default function (in: Input): Output {
+  return {
+    incremented: in.map(value => value + 1),
+    positive: in.filter(value => value > 0),
+    total: in.reduce((total, value) => total + value, 0),
+    nested: in.map(value => [value, -value].map(item => item * 2))
+  }
+}

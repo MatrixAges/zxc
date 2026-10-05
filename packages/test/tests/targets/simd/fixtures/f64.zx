@@ -1,0 +1,31 @@
+export type Input = f64[]
+
+export type Output = {
+  identity: f64[],
+  negative: f64[],
+  broadcast: f64[],
+  add: f64[],
+  subtract: f64[],
+  multiply: f64[],
+  divide: f64[],
+  chain: f64[],
+  grouped: f64[],
+  cancellation: f64[],
+  conditional: f64[]
+}
+
+export default function (in: Input): Output {
+  return {
+    identity: in.map(value => value),
+    negative: in.map(value => -value),
+    broadcast: in.map(value => 1.5),
+    add: in.map(value => value + 1.5),
+    subtract: in.map(value => 1.5 - value),
+    multiply: in.map(value => value * value),
+    divide: in.map(value => value / 2.0),
+    chain: in.map(value => value * value + value),
+    grouped: in.map(value => (value + 1.5) * (value - 1.5)),
+    cancellation: in.map(value => (value + 16777216.0) - 16777216.0),
+    conditional: in.map(value => value < 0.0 ? -value : value)
+  }
+}
