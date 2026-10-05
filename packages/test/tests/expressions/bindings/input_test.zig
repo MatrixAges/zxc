@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "expression analyze plain" {
@@ -74,11 +75,11 @@ test "expression analyze bool_expected" {
 }
 
 test "expression analyze success allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{ false, h.Case{ .source = "$input.value", .bindings = &.{.{ .name = "$input.value", .type_id = h.number }}, .expected = h.number } });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{ false, h.Case{ .source = "$input.value", .bindings = &.{.{ .name = "$input.value", .type_id = h.number }}, .expected = h.number } });
 }
 
 test "expression analyze reject allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{ false, h.Case{ .source = "$input.value", .bindings = &.{.{ .name = "$input.value", .type_id = h.number }}, .expected = h.boolean, .code = .type_mismatch } });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{ false, h.Case{ .source = "$input.value", .bindings = &.{.{ .name = "$input.value", .type_id = h.number }}, .expected = h.boolean, .code = .type_mismatch } });
 }
 
 test "expression compile plain" {
@@ -154,9 +155,9 @@ test "expression compile bool_expected" {
 }
 
 test "expression compile success allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{ true, h.Case{ .source = "$input.value", .bindings = &.{.{ .name = "$input.value", .type_id = h.number }}, .expected = h.number } });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{ true, h.Case{ .source = "$input.value", .bindings = &.{.{ .name = "$input.value", .type_id = h.number }}, .expected = h.number } });
 }
 
 test "expression compile reject allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{ true, h.Case{ .source = "$input.value", .bindings = &.{.{ .name = "$input.value", .type_id = h.number }}, .expected = h.boolean, .code = .type_mismatch } });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{ true, h.Case{ .source = "$input.value", .bindings = &.{.{ .name = "$input.value", .type_id = h.number }}, .expected = h.boolean, .code = .type_mismatch } });
 }

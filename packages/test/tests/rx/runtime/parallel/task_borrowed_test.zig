@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 
 fn check(allocator: std.mem.Allocator, input: []const u64) !void {
@@ -49,7 +50,7 @@ test "RX Task captured owned list retains u64 boundary after join" {
 }
 
 test "RX Task captured owned list cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{@as([]const u64, &.{ 2, 7, 11 })});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{@as([]const u64, &.{ 2, 7, 11 })});
 }
 
 test "RX Task prior captured output remains alive across another request" {

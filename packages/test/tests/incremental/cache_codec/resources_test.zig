@@ -1,12 +1,13 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 test "cache encoding cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, encode, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, encode, .{});
 }
 
 test "cache decoding cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, decode, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, decode, .{});
 }
 
 fn encode(allocator: std.mem.Allocator) !void {

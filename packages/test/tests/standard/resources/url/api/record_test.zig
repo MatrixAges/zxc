@@ -1,16 +1,17 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const api = @import("implementation").url_api;
-const Url = @typeInfo(@typeInfo(@TypeOf(api.stringify)).@"fn".params[1].type.?).pointer.child;
+const Url = @typeInfo(@typeInfo(@TypeOf(api.stringify)).@"fn".param_types[1].?).pointer.child;
 
 fn freeRecord(allocator: std.mem.Allocator, value: *const Url) void {
-    inline for (std.meta.fields(Url)) |field| {
-        const item = @field(value, field.name);
+    inline for (@typeInfo(Url).@"struct".field_names) |field| {
+        const item = @field(value, field);
 
-        if (field.type == []const u8) {
+        if (@FieldType(Url, field) == []const u8) {
             allocator.free(item);
-        } else if (field.type == ?[]const u8) {
+        } else if (@FieldType(Url, field) == ?[]const u8) {
             if (item) |text| allocator.free(text);
-        } else if (field.type == []const []const u8) {
+        } else if (@FieldType(Url, field) == []const []const u8) {
             for (item) |text| allocator.free(text);
 
             allocator.free(item);
@@ -72,26 +73,26 @@ fn checkDomain(allocator: std.mem.Allocator, valid: bool) !void {
 test "public parse owns hierarchical and opaque records across allocation failures" {
     for ([_]bool{ false, true }) |is_opaque| {
         try checkParse(std.testing.allocator, is_opaque);
-        try std.testing.checkAllAllocationFailures(std.testing.allocator, checkParse, .{is_opaque});
+        try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkParse, .{is_opaque});
     }
 }
 
 test "public resolve owns copied base fields across allocation failures" {
     try checkResolve(std.testing.allocator);
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkResolve, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkResolve, .{});
 }
 
 test "public optional parsing propagates allocation failure on success and rejection" {
     for ([_]bool{ false, true }) |valid| {
         try checkTry(std.testing.allocator, valid);
-        try std.testing.checkAllAllocationFailures(std.testing.allocator, checkTry, .{valid});
+        try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkTry, .{valid});
     }
 }
 
 test "public domain conversions own success and empty rejection strings" {
     for ([_]bool{ false, true }) |valid| {
         try checkDomain(std.testing.allocator, valid);
-        try std.testing.checkAllAllocationFailures(std.testing.allocator, checkDomain, .{valid});
+        try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkDomain, .{valid});
     }
 }
 

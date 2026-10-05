@@ -1,22 +1,23 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const Fixture = @import("fixture.zig").Fixture;
 const Mode = enum { valid, missing, cycle, interface };
 
 test "successful link cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{Mode.valid});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{Mode.valid});
 }
 
 test "missing dependency cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{Mode.missing});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{Mode.missing});
 }
 
 test "cyclic dependency cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{Mode.cycle});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{Mode.cycle});
 }
 
 test "conflicting interface cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{Mode.interface});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{Mode.interface});
 }
 
 fn run(allocator: std.mem.Allocator, mode: Mode) !void {

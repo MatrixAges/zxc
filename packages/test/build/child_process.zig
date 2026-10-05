@@ -22,6 +22,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             .imports = &.{.{ .name = "standard", .module = compiler.module("standard") }},
         });
 
+        module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         module.addOptions("options", options);
 
         const tests = b.addTest(.{ .root_module = module });
@@ -60,6 +61,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         .imports = &.{ .{ .name = "program", .module = program }, .{ .name = "standard", .module = standard } },
     });
 
+    module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
     module.addOptions("options", options);
 
     const tests = b.addTest(.{ .root_module = module });

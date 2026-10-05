@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const State = @import("zxc_state");
 const f = @import("fixture");
 const execute = @import("execute.zig");
@@ -38,11 +39,11 @@ fn failureRecovery(allocator: std.mem.Allocator, after_commit: bool) !void {
 }
 
 test "Store IO failure before commit and recovery clean every allocation failure" {
-    try std.testing.checkAllAllocationFailures(f.allocator, failureRecovery, .{false});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, failureRecovery, .{false});
 }
 
 test "Store IO failure after commit and recovery clean every allocation failure" {
-    try std.testing.checkAllAllocationFailures(f.allocator, failureRecovery, .{true});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, failureRecovery, .{true});
 }
 
 fn memory(after_commit: bool) !void {

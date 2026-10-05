@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 
 const Case = struct {
@@ -54,5 +55,5 @@ test "RX service owned lists preserve boundary values" {
 }
 
 test "RX service owned lists allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .input = &.{ 1, 3, 8 }, .left = &.{ 2, 4 }, .left_popped = 9, .right = &.{ 9, 4, 2 } }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .input = &.{ 1, 3, 8 }, .left = &.{ 2, 4 }, .left_popped = 9, .right = &.{ 9, 4, 2 } }});
 }

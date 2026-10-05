@@ -1,13 +1,14 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const f = @import("fixture.zig");
 
 test "cache insert hit replacement rejection and repair clean allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, cacheTrace, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, cacheTrace, .{});
 }
 
 test "cached project analysis and dependency change clean allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, projectTrace, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, projectTrace, .{});
 }
 
 fn cacheTrace(allocator: std.mem.Allocator) !void {

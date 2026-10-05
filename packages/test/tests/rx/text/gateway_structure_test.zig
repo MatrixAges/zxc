@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const rx = @import("rx");
 const h = @import("gateway_check.zig");
 
@@ -55,18 +56,20 @@ test "Gateway text rejects Store in gateway file" {
 }
 
 test "Gateway text successful validation releases every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
 }
 
 test "Gateway text schema failure releases every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
 }
 
 fn checkAllocation(allocator: std.mem.Allocator, invalid: bool) !void {
     const input = if (invalid)
         "<Gateway name='api'><Group prefix='/api'><Route path='/' service='home'/><Route path='/bad' service='/absolute'/></Group></Gateway>"
+
     else
         source;
+
     var parsed = try rx.parseXml(allocator, input);
 
     defer parsed.deinit();

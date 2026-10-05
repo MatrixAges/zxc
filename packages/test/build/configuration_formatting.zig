@@ -23,6 +23,7 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
     }
 
     const lint = compiler.builder.dependency("lint", .{ .target = target, .optimize = optimize });
+
     const tests = b.addTest(.{ .root_module = b.createModule(.{
         .root_source_file = b.path("tests/formatting/configuration/json_test.zig"),
         .target = target,
@@ -30,6 +31,7 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
         .imports = &.{.{ .name = "lint", .module = lint.module("lint") }},
     }) });
 
+    tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
     step.dependOn(&b.addRunArtifact(tests).step);
 
     return step;

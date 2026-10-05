@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 const pure_message = "require pure functions without Store capabilities or native external calls";
 
@@ -86,11 +87,11 @@ test "RX parallel rejects Store write performed inside service" {
 }
 
 test "RX parallel native capability diagnostic cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{native_case});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{native_case});
 }
 
 test "RX parallel Store capability diagnostic cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{setter_case});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{setter_case});
 }
 
 test "RX parallel rejects native external through two service levels" {

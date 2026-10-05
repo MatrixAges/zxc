@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 fn link(allocator: std.mem.Allocator, mode: f.Mode) !void {
@@ -44,11 +45,11 @@ test "explicit host libraries may omit Store initialization" {
 }
 
 test "initializer link cleans every partial allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, link, .{f.Mode.single});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, link, .{f.Mode.single});
 }
 
 test "initializer deduplication cleans every partial allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, link, .{f.Mode.duplicate});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, link, .{f.Mode.duplicate});
 }
 
 fn reject(allocator: std.mem.Allocator, mode: f.Mode) !void {
@@ -67,9 +68,9 @@ fn reject(allocator: std.mem.Allocator, mode: f.Mode) !void {
 }
 
 test "initializer version conflict cleans allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, reject, .{f.Mode.version_conflict});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, reject, .{f.Mode.version_conflict});
 }
 
 test "initializer value conflict cleans allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, reject, .{f.Mode.value_conflict});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, reject, .{f.Mode.value_conflict});
 }

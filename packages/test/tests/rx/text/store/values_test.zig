@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const rx = @import("rx");
 
 const fragments =
@@ -66,11 +67,11 @@ fn checkVersion(version: []const u8, expected: u32) !void {
 }
 
 test "Store text successful fragments release every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
 }
 
 test "Store text duplicate fragments release every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
 }
 
 fn checkAllocation(allocator: std.mem.Allocator, invalid: bool) !void {

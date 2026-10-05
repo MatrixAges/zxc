@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const Index = @import("pkgs").Index;
 const digest = "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1";
 const release = "{\"version\":\"1.2.3\",\"archive\":\"archives/sample.tar.gz\",\"sha256\":\"" ++ digest ++ "\"}";
@@ -8,27 +9,27 @@ const source = "{\"format_version\":1,\"packages\":[" ++ package ++ ",{\"name\":
 const Failure = enum { format, duplicate, digest, truncated, unknown };
 
 test "package index owns strings and releases every partial allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{});
 }
 
 test "package index cleans parsed data after format validation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.format});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.format});
 }
 
 test "package index cleans parsed data after duplicate package failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.duplicate});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.duplicate});
 }
 
 test "package index cleans parsed data after digest validation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.digest});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.digest});
 }
 
 test "package index cleans nested values after truncated JSON" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.truncated});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.truncated});
 }
 
 test "package index cleans parsed data after unknown field" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.unknown});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{Failure.unknown});
 }
 
 fn checkSuccess(allocator: std.mem.Allocator) !void {

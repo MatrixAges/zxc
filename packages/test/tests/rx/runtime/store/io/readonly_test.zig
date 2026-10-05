@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const State = @import("zxc_state");
 const f = @import("fixture");
 
@@ -36,7 +37,7 @@ test "readonly Store IO Request combines file bytes and unchanged Store snapshot
 }
 
 test "readonly Store IO Request releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{});
 }
 
 test "readonly Store IO repeated requests release all file buffers after each request" {

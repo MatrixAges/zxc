@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 fn check(allocator: std.mem.Allocator) !void {
@@ -53,5 +54,5 @@ test "process cwd matches real host current directory" {
 }
 
 test "process cwd releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{});
 }

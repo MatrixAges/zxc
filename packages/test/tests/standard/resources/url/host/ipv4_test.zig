@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const impl = @import("implementation");
 
 fn check(input: []const u8, expected: []const u8) !void {
@@ -272,5 +273,5 @@ test "IPv4 nonnumeric suffix foo.１" {
 }
 
 test "IPv4 serialization allocation cleanup" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});
 }

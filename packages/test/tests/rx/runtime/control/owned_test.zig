@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 
 const Case = struct {
@@ -18,6 +19,7 @@ fn check(allocator: std.mem.Allocator, case: Case) !void {
     defer arena.deinit();
 
     const input: std.meta.Child(program.Input) = .{ .enabled = case.enabled, .values = values };
+
     const output = program.execute(&arena, &input) catch |err| {
         try std.testing.expectEqualSlices(u64, case.values, values);
 
@@ -27,7 +29,6 @@ fn check(allocator: std.mem.Allocator, case: Case) !void {
     try std.testing.expectEqualSlices(u64, case.remaining, output.@"0");
     try std.testing.expectEqual(case.popped, output.@"1");
     try std.testing.expectEqualSlices(u64, case.values, values);
-
     if (output.@"0".len != 0) try std.testing.expect(output.@"0".ptr != values.ptr);
 }
 
@@ -48,7 +49,7 @@ test "RX Case owned boundary result" {
 }
 
 test "RX Case owned return allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .enabled = true, .values = &.{ 1, 3, 8 }, .remaining = &.{ 2, 4 }, .popped = 9 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .enabled = true, .values = &.{ 1, 3, 8 }, .remaining = &.{ 2, 4 }, .popped = 9 }});
 }
 
 test "RX Default owned empty result" {
@@ -68,5 +69,5 @@ test "RX Default owned boundary result" {
 }
 
 test "RX Default owned return allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .enabled = false, .values = &.{ 1, 3, 8 }, .remaining = &.{ 3, 5 }, .popped = 10 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .enabled = false, .values = &.{ 1, 3, 8 }, .remaining = &.{ 3, 5 }, .popped = 10 }});
 }

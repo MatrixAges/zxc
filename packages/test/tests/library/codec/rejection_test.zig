@@ -1,17 +1,25 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 const Mode = enum { version, program_version, empty_exports, duplicate, function, path, input_type, origins, nominal_index };
 
 fn corrupt(mode: Mode) ![]u8 {
     const bytes = try f.encoded();
+
     defer std.testing.allocator.free(bytes);
+
     var document = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, f.payload(bytes), .{});
+
     defer document.deinit();
+
     const root = &document.value.object;
     const exports = root.getPtr("exports").?;
     const first = &exports.array.items[0].object;
+
     try std.testing.expect(first.get("function").? == .integer);
+
     const input = &first.getPtr("types").?.array.items[0].object;
+
     try std.testing.expectEqualStrings("Input", input.get("name").?.string);
     try std.testing.expect(input.get("type_id").? == .integer);
     try std.testing.expect(root.getPtr("nominal_types").?.array.items[0].object.get("type_id").? == .integer);
@@ -29,6 +37,7 @@ fn corrupt(mode: Mode) ![]u8 {
     }
 
     const payload = try std.json.Stringify.valueAlloc(std.testing.allocator, document.value, .{});
+
     defer std.testing.allocator.free(payload);
 
     return f.envelope(payload);
@@ -36,8 +45,11 @@ fn corrupt(mode: Mode) ![]u8 {
 
 fn check(mode: Mode) !void {
     const bytes = try corrupt(mode);
+
     defer std.testing.allocator.free(bytes);
+
     const expected = if (mode == .version or mode == .program_version) error.IncompatibleLibraryVersion else error.InvalidLibrary;
+
     try std.testing.expectError(expected, f.codec.decode(std.testing.allocator, bytes));
 }
 
@@ -79,9 +91,12 @@ test "library rejects out of range nominal origin type" {
 
 fn rejectedAllocation(allocator: std.mem.Allocator, bytes: []const u8) !void {
     const result = f.codec.decode(allocator, bytes);
+
     if (result) |value| {
         var unexpected = value;
+
         unexpected.deinit();
+
         return error.ExpectedInvalidLibrary;
     } else |err| {
         if (err == error.OutOfMemory) return err;
@@ -91,21 +106,29 @@ fn rejectedAllocation(allocator: std.mem.Allocator, bytes: []const u8) !void {
 
 test "library semantic rejection cleans allocations after complete JSON parse" {
     const bytes = try corrupt(.duplicate);
+
     defer std.testing.allocator.free(bytes);
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, rejectedAllocation, .{bytes});
+
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, rejectedAllocation, .{bytes});
 }
 
 test "library rejects malformed JSON and excessive depth despite valid digest" {
     for ([_][]const u8{ "{", "{}", "[]", "null" }) |payload| {
         const bytes = try f.envelope(payload);
+
         defer std.testing.allocator.free(bytes);
+
         try std.testing.expectError(error.InvalidLibrary, f.codec.decode(std.testing.allocator, bytes));
     }
 
     var payload: [4100]u8 = undefined;
+
     @memset(payload[0..2050], '[');
     @memset(payload[2050..], ']');
+
     const bytes = try f.envelope(&payload);
+
     defer std.testing.allocator.free(bytes);
+
     try std.testing.expectError(error.InvalidLibrary, f.codec.decode(std.testing.allocator, bytes));
 }

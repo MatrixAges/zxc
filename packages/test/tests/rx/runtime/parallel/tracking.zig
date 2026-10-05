@@ -10,7 +10,7 @@ pub fn allocator(self: *Self) std.mem.Allocator {
 }
 
 fn record(self: *Self) void {
-    std.Io.Threaded.mutexLock(&self.mutex);
+    std.Io.Threaded.mutexLockUncancelable(&self.mutex);
     defer std.Io.Threaded.mutexUnlock(&self.mutex);
 
     const id = std.Thread.getCurrentId();

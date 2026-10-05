@@ -42,6 +42,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    expression_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
     expression_step.dependOn(&b.addRunArtifact(expression_tests).step);
     test_step.dependOn(expression_step);
     test_step.dependOn(@import("build/rx_runtime.zig").add(b, compiler, target, optimize));
@@ -61,6 +62,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        contracts.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         contracts_step.dependOn(&b.addRunArtifact(contracts).step);
     }
 
@@ -80,6 +82,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        type_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         type_merge_step.dependOn(&b.addRunArtifact(type_tests).step);
     }
 
@@ -99,6 +102,7 @@ pub fn build(b: *std.Build) void {
             },
         }) });
 
+        library_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         library_step.dependOn(&b.addRunArtifact(library_tests).step);
     }
 
@@ -125,6 +129,7 @@ pub fn build(b: *std.Build) void {
             },
         }) });
 
+        codec_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         library_codec_step.dependOn(&b.addRunArtifact(codec_tests).step);
     }
 
@@ -143,6 +148,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        native_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         native_link_step.dependOn(&b.addRunArtifact(native_tests).step);
     }
 
@@ -160,6 +166,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        slots_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         slots_step.dependOn(&b.addRunArtifact(slots_tests).step);
     }
 
@@ -187,6 +194,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        generation_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         generation_step.dependOn(&b.addRunArtifact(generation_tests).step);
     }
 
@@ -204,6 +212,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        codec_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         codec_step.dependOn(&b.addRunArtifact(codec_tests).step);
     }
 
@@ -227,6 +236,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        backend_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         backend_step.dependOn(&b.addRunArtifact(backend_tests).step);
     }
 
@@ -234,12 +244,8 @@ pub fn build(b: *std.Build) void {
 
     const publish_step = b.step("test-backend-publish", "Validate real artifact publication gates and preserved outputs");
     const observed_sources = b.addWriteFiles();
-
-    for ([_][]const u8{ "cli/build/observed.zig", "cli/options.zig", "cli/configuration/kind.zig", "cli/watch/inputs.zig", "cli/watch/snapshot.zig", "cli/watch/directory.zig", "cli/watch/output.zig", "cli/backend/protocol.zig", "cli/backend/error_bundle.zig", "cli/backend/process.zig", "cli/toolchain/cache.zig", "package/workspace/directory.zig" }) |path| {
-        _ = observed_sources.addCopyFile(cli_dependency.path(b.fmt("src/{s}", .{path})), path);
-    }
-
-    const observed_root = observed_sources.add("root.zig", "pub const Output = @import(\"cli/watch/output.zig\");\npub const Backend = @import(\"cli/backend/process.zig\");\npub const Observed = @import(\"cli/build/observed.zig\");\npub const Inputs = @import(\"cli/watch/inputs.zig\");\npub const Options = @import(\"cli/options.zig\").Options;\n");
+    _ = observed_sources.addCopyDirectory(cli_dependency.path("src"), "source", .{});
+    const observed_root = observed_sources.add("root.zig", "pub const Output = @import(\"source/cli/watch/output.zig\");\npub const Backend = @import(\"source/cli/backend/process.zig\");\npub const Observed = @import(\"source/cli/build/observed.zig\");\npub const Inputs = @import(\"source/cli/watch/inputs.zig\");\npub const Options = @import(\"source/cli/options.zig\").Options;\n");
 
     const observed = b.createModule(.{
         .root_source_file = observed_root,
@@ -257,6 +263,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        publish_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         publish_step.dependOn(&b.addRunArtifact(publish_tests).step);
     }
 
@@ -328,6 +335,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        semantic_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         semantic_step.dependOn(&b.addRunArtifact(semantic_tests).step);
     }
 
@@ -343,6 +351,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        link_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         link_boundaries_step.dependOn(&b.addRunArtifact(link_tests).step);
     }
 
@@ -358,6 +367,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        artifact_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         artifact_step.dependOn(&b.addRunArtifact(artifact_tests).step);
     }
 
@@ -375,6 +385,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        nominal_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         nominal_step.dependOn(&b.addRunArtifact(nominal_tests).step);
     }
 
@@ -392,6 +403,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        records_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         records_step.dependOn(&b.addRunArtifact(records_tests).step);
     }
 
@@ -409,6 +421,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        cache_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         cache_step.dependOn(&b.addRunArtifact(cache_tests).step);
     }
 
@@ -426,6 +439,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        native_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         native_step.dependOn(&b.addRunArtifact(native_tests).step);
     }
 
@@ -500,6 +514,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    resources.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
     resources_step.dependOn(&b.addRunArtifact(resources).step);
     test_step.dependOn(resources_step);
 
@@ -507,6 +522,8 @@ pub fn build(b: *std.Build) void {
     const modes = b.addSystemCommand(&.{"node"});
 
     modes.addFileArg(b.path("tests/build_modes/build_test.ts"));
+    modes.addFileInput(b.path("tests/build_modes/native_declaration_test.ts"));
+    modes.addFileInput(b.path("tests/support/allocation_testing.zig"));
     modes.addDirectoryArg(cli_dependency.path("."));
     modes_step.dependOn(&modes.step);
     test_step.dependOn(modes_step);
@@ -530,6 +547,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        hardware_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         hardware_step.dependOn(&b.addRunArtifact(hardware_tests).step);
     }
 
@@ -551,6 +569,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    rx_inference_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
     rx_inference_step.dependOn(&b.addRunArtifact(rx_inference_tests).step);
     test_step.dependOn(rx_inference_step);
 
@@ -569,6 +588,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    xml_expression_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
     xml_expression_step.dependOn(&b.addRunArtifact(xml_expression_tests).step);
     test_step.dependOn(xml_expression_step);
 
@@ -583,6 +603,8 @@ pub fn build(b: *std.Build) void {
                 .imports = &.{.{ .name = "rx", .module = rx.module("rx") }},
             }),
         });
+
+        tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
 
         const run = b.addRunArtifact(tests);
 
@@ -687,6 +709,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        archive_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         archive_step.dependOn(&b.addRunArtifact(archive_tests).step);
     }
 
@@ -779,6 +802,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        store_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         store_step.dependOn(&b.addRunArtifact(store_tests).step);
     }
 
@@ -823,6 +847,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        lock_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         lock_graph_step.dependOn(&b.addRunArtifact(lock_tests).step);
     }
 
@@ -840,6 +865,7 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        lock_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         lock_parse_step.dependOn(&b.addRunArtifact(lock_tests).step);
     }
 
@@ -856,6 +882,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    index_resources.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
     index_resources_step.dependOn(&b.addRunArtifact(index_resources).step);
     test_step.dependOn(index_resources_step);
 
@@ -938,6 +965,8 @@ pub fn build(b: *std.Build) void {
                 .imports = &.{.{ .name = "standard", .module = compiler.module("standard") }},
             }),
         });
+
+        standard_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
 
         const standard_run = b.addRunArtifact(standard_tests);
 

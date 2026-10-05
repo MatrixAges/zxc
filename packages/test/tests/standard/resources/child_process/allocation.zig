@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 fn run(allocator: std.mem.Allocator, environment: bool) !void {
@@ -15,11 +16,11 @@ fn run(allocator: std.mem.Allocator, environment: bool) !void {
 }
 
 test "child process releases every failed allocation without environment" {
-    try std.testing.checkAllAllocationFailures(f.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, run, .{false});
 }
 
 test "child process releases every failed allocation with duplicate environment keys" {
-    try std.testing.checkAllAllocationFailures(f.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, run, .{true});
 }
 
 fn invalid(allocator: std.mem.Allocator) !void {
@@ -40,7 +41,7 @@ fn invalid(allocator: std.mem.Allocator) !void {
 }
 
 test "child process frees partial environment map on validation and allocation failures" {
-    try std.testing.checkAllAllocationFailures(f.allocator, invalid, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, invalid, .{});
 }
 
 fn overflow(allocator: std.mem.Allocator) !void {
@@ -62,5 +63,5 @@ fn overflow(allocator: std.mem.Allocator) !void {
 }
 
 test "child process output overflow releases every partial allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, overflow, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, overflow, .{});
 }

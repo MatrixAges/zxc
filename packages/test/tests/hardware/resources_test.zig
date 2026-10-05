@@ -1,14 +1,15 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const supported = "export type Input = { value: u8\n enabled: bool }\n export type Output = { value: u8\n enabled: bool }\n export default function (in: Input): Output { return { value: in.enabled ? in.value + 1 : in.value, enabled: !in.enabled } }";
 const unsupported = "export type Input = f64\n export type Output = f64\n export default function (in: Input): Output { return in }";
 
 test "hardware generation and both RTL emitters release failed allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ supported, false });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ supported, false });
 }
 
 test "unsupported hardware input reports diagnostic and releases allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ unsupported, true });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ unsupported, true });
 }
 
 fn checkAllocation(allocator: std.mem.Allocator, source: []const u8, rejected: bool) !void {

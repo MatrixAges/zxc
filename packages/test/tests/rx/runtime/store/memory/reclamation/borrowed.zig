@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const State = @import("zxc_state");
 const Fixture = @import("fixture.zig");
 
@@ -40,7 +41,7 @@ test "borrowed setter disables automatic reclamation eligibility" {
 }
 
 test "borrowed setter fallback allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{});
 }
 
 test "borrowed setter retained regions are freed on State destruction" {

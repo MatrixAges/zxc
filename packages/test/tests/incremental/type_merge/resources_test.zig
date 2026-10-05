@@ -1,12 +1,13 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 test "successful type merge cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
 }
 
 test "nominal conflict cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
 }
 
 fn run(allocator: std.mem.Allocator, conflict: bool) !void {

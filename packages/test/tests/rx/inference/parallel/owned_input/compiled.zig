@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const h = @import("../check.zig");
 
@@ -58,5 +59,5 @@ test "RX compiled owned ZX export rejects duplicate parallel transfer" {
 }
 
 test "RX compiled owned ZX transfer releases library and inference allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, allocated, .{fresh});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, allocated, .{fresh});
 }

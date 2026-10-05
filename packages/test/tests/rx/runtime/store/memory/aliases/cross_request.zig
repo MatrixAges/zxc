@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const Fixture = @import("fixture.zig");
 const Case = struct { count: usize = 17, start: usize = 0, end: usize = 17, replacements: usize = 1 };
 
@@ -75,7 +76,7 @@ test "cross Store large slice survives repeated unrelated writes" {
 }
 
 test "cross Store shared history releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{Case{ .start = 3, .end = 13, .replacements = 3 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{Case{ .start = 3, .end = 13, .replacements = 3 }});
 }
 
 test "cross Store final destruction releases all live and historical slices" {

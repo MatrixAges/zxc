@@ -49,6 +49,7 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency) *std.Build.Step {
         } else if (std.mem.eql(u8, name, "store")) {
             run.addDirectoryArg(b.path("tests/library_publish/fixtures/store"));
             run.addFileInput(b.path("tests/library_publish/store_consume.ts"));
+            run.addFileInput(b.path("tests/support/allocation_testing.zig"));
             store_step.dependOn(&run.step);
         } else if (std.mem.eql(u8, name, "rx_compiled")) {
             run.addDirectoryArg(b.path("tests/library_publish/fixtures/rx_compiled"));

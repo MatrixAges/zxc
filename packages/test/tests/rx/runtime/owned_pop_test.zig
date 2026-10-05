@@ -1,6 +1,6 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
-
 const Case = struct { input: []const u64, remaining: []const u64, popped: ?u64 };
 
 fn check(allocator: std.mem.Allocator, case: Case) !void {
@@ -36,5 +36,5 @@ test "RX consumes owned multivalue call result" {
 }
 
 test "RX owned call result consumption allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .input = &.{ 1, 3, 8 }, .remaining = &.{ 2, 4 }, .popped = 9 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .input = &.{ 1, 3, 8 }, .remaining = &.{ 2, 4 }, .popped = 9 }});
 }

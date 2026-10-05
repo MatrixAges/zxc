@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const rx = @import("rx");
 const leaf = "<Module><Return value={$in}/></Module>";
 
@@ -36,8 +37,8 @@ test "RX text cycle diagnostic retains source and attribute position" {
 }
 
 test "RX text allocation failures release earlier parsed documents" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
 }
 
 fn checkAllocation(allocator: std.mem.Allocator, malformed: bool) !void {

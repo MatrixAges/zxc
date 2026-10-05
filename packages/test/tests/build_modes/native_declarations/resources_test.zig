@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const library = @import("library");
 
 fn checkSuccess(allocator: std.mem.Allocator) !void {
@@ -48,9 +49,9 @@ fn checkFailure(allocator: std.mem.Allocator) !void {
 }
 
 test "native aggregate references preserve borrowed storage and release arena allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{});
 }
 
 test "native error releases all arena allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{});
 }

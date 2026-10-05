@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const left = @import("left");
 const right = @import("right");
@@ -68,11 +69,11 @@ test "RX Store refresh merges duplicate getters and setter requirements per Call
 }
 
 test "RX Store refresh merged slots success allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{}});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{}});
 }
 
 test "RX Store refresh setter only failure allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .fail_at = 5, .commits = 2, .right_value = 405 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .fail_at = 5, .commits = 2, .right_value = 405 }});
 }
 
 test "RX merged Store refresh failure at Call 1 preserves prior effects" {

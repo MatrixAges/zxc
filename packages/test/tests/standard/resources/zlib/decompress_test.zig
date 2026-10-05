@@ -1,47 +1,48 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const zlib = @import("standard").zlib;
 const fixtures = @import("fixtures.zig");
 const Format = enum { gzip, zlib, raw };
 const Failure = enum { limit, checksum, length, truncated };
 
 test "zlib gunzip releases all output allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Format.gzip});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Format.gzip});
 }
 
 test "zlib inflate releases all output allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Format.zlib});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Format.zlib});
 }
 
 test "zlib inflateRaw releases all output allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Format.raw});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Format.raw});
 }
 
 test "zlib gunzip releases output when limit is exceeded" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.gzip, Failure.limit });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.gzip, Failure.limit });
 }
 
 test "zlib inflate releases output when limit is exceeded" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.zlib, Failure.limit });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.zlib, Failure.limit });
 }
 
 test "zlib inflateRaw releases output when limit is exceeded" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.raw, Failure.limit });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.raw, Failure.limit });
 }
 
 test "zlib gunzip releases decoded output on checksum failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.gzip, Failure.checksum });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.gzip, Failure.checksum });
 }
 
 test "zlib inflate releases decoded output on checksum failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.zlib, Failure.checksum });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.zlib, Failure.checksum });
 }
 
 test "zlib gunzip releases decoded output on length failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.gzip, Failure.length });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.gzip, Failure.length });
 }
 
 test "zlib gunzip releases decoded output on truncated footer" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.gzip, Failure.truncated });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkFailure, .{ Format.gzip, Failure.truncated });
 }
 
 fn input(format: Format) []const u8 {

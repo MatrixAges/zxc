@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const check = @import("check.zig").check;
 
 test "lock workspace resolves or rejects plain name" {
@@ -70,9 +71,9 @@ test "lock workspace resolves or rejects archive owner" {
 }
 
 test "lock relative target lookup releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{@import("check.zig").Case{ .owner = 1, .name = "alias", .requirement = "workspace:../../libs/b", .target = 2 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{@import("check.zig").Case{ .owner = 1, .name = "alias", .requirement = "workspace:../../libs/b", .target = 2 }});
 }
 
 test "lock missing relative target releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{@import("check.zig").Case{ .requirement = "workspace:./absent", .failure = error.InvalidLockWorkspaceTarget }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{@import("check.zig").Case{ .requirement = "workspace:./absent", .failure = error.InvalidLockWorkspaceTarget }});
 }

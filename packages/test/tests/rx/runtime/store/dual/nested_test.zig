@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const left = @import("left");
 const right = @import("right");
@@ -57,11 +58,11 @@ test "RX nested Store refresh permutes both read and write slots" {
 }
 
 test "RX nested Store refresh permutation success allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{}});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{}});
 }
 
 test "RX nested Store refresh permutation failure allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .fail_at = 3, .commits = 0, .left_value = 203, .right_value = 200 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .fail_at = 3, .commits = 0, .left_value = 203, .right_value = 200 }});
 }
 
 test "RX nested Store first refresh failure prevents service entry" {

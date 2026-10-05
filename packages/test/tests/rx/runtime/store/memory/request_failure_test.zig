@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const application = @import("application");
 const State = @import("zxc_state");
 
@@ -49,11 +50,11 @@ test "generated Request later failing setter preserves earlier publication" {
 }
 
 test "generated Request first failure and recovery allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{true});
 }
 
 test "generated Request later failure and recovery allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{false});
 }
 
 fn executeRequest(state: *State, input: application.Input) !application.Output {

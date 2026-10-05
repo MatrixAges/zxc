@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const Fixture = @import("fixture.zig");
 
 fn run(allocator: std.mem.Allocator, reverse_end: bool) !void {
@@ -61,11 +62,11 @@ test "overlapping requests retain intermediate commit with consumer ending first
 }
 
 test "overlapping producer first lifecycle allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
 }
 
 test "overlapping consumer first lifecycle allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
 }
 
 test "overlapping requests release all regions on State destruction" {

@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 
 fn check(allocator: std.mem.Allocator, input: []const u64) !void {
@@ -70,5 +71,5 @@ test "RX owned request results survive later requests" {
 }
 
 test "RX owned parallel allocation failures release request and branch storage" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{@as([]const u64, &.{ 1, 0, 7 })});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{@as([]const u64, &.{ 1, 0, 7 })});
 }

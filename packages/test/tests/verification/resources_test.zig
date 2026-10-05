@@ -1,14 +1,15 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const supported = "export type Input = u8\n export type Output = u8\n export default function (in: Input): Output requires(in < 255) ensures(out > in) { return in + 1 }";
 const unsupported = "export type Input = f64\n export type Output = f64\n export default function (in: Input): Output { return in }";
 
 test "verification query generation releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ supported, false });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ supported, false });
 }
 
 test "unsupported verification releases earlier allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ unsupported, true });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{ unsupported, true });
 }
 
 fn checkAllocation(allocator: std.mem.Allocator, source: []const u8, rejected: bool) !void {

@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const url = @import("implementation").url;
 
 const Case = struct {
@@ -16,7 +17,7 @@ pub fn check(source: []const u8) !void {
     defer document.deinit();
 
     try verify(std.testing.allocator, document.value);
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, verify, .{document.value});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, verify, .{document.value});
 }
 
 fn verify(allocator: std.mem.Allocator, case: Case) !void {

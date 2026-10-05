@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
 const compiler = @import("compiler");
@@ -36,13 +37,13 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
 }
 
 test "RX control success allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.success});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.success});
 }
 
 test "RX control scope allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.scope});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.scope});
 }
 
 test "RX control duplicate allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.duplicate});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.duplicate});
 }

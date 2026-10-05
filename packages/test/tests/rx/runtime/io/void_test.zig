@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const f = @import("fixture");
 const options = @import("options");
@@ -33,7 +34,7 @@ test "generated RX void flow executes all discarded side effects" {
 }
 
 test "generated RX void flow cleans every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{});
 }
 
 test "generated RX void flow error stops caller completion and later operations" {

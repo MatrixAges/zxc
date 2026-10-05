@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 const imported = @import("import_fixture.zig");
 
@@ -48,5 +49,5 @@ test "imported initialization metadata never grants Store calling capability" {
 }
 
 test "compiled Store initialization import and republication clean partial allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{true});
 }

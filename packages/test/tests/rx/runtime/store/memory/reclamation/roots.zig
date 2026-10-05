@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const Fixture = @import("fixture.zig");
 const State = @import("zxc_state");
 
@@ -101,9 +102,9 @@ test "one remaining Store root keeps its shared request region alive" {
 }
 
 test "independent region roots and empty or rejected direct commits allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
 }
 
 test "shared request root lifetime allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
 }

@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 const rx = @import("rx");
 
@@ -11,7 +12,7 @@ test "XML literal mapped position decimal_first" {
 }
 
 test "XML literal mapped position decimal_first allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .source = "<Call in=\"&#109;issing\"/>", .marker = "&#109;issing", .valid = true, .eof = false }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .source = "<Call in=\"&#109;issing\"/>", .marker = "&#109;issing", .valid = true, .eof = false }});
 }
 
 test "XML literal mapped position hex_last" {
@@ -51,7 +52,7 @@ test "XML expression mapped position numeric_ir" {
 }
 
 test "XML expression mapped position numeric_ir allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .source = "<Call in={1 + 2}/>", .marker = "1 + 2", .valid = true, .eof = false }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .source = "<Call in={1 + 2}/>", .marker = "1 + 2", .valid = true, .eof = false }});
 }
 
 test "XML expression mapped position string_ir" {

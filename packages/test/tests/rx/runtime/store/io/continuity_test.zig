@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const State = @import("zxc_state");
 const application = @import("application");
 const f = @import("fixture");
@@ -66,7 +67,7 @@ test "Store IO Request retains file strings and outputs after request destructio
 }
 
 test "Store IO Request continuity cleans every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, continuity, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, continuity, .{});
 }
 
 test "Store IO State releases all retained file buffers on destruction" {

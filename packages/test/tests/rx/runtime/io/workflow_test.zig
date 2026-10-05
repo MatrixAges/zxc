@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const f = @import("fixture");
 
@@ -169,7 +170,7 @@ test "generated RX IO final UTF8 failure occurs after byte truncation" {
 }
 
 test "generated RX IO releases every failed arena allocation without hiding IO errors" {
-    try std.testing.checkAllAllocationFailures(f.allocator, success, .{ @as([]const u8, "abcdef"), @as([]const u8, "abc") });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, success, .{ @as([]const u8, "abcdef"), @as([]const u8, "abc") });
 }
 
 fn denyOpen(_: ?*anyopaque, _: std.Io.Dir, _: []const u8, _: std.Io.Dir.OpenFileOptions) std.Io.File.OpenError!std.Io.File {

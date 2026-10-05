@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const initial = @import("initial");
 const Host = @import("host.zig");
@@ -30,7 +31,6 @@ fn check(allocator: std.mem.Allocator, case: Case) !void {
     try std.testing.expect(host.commits <= 2);
     try std.testing.expectEqual(@as(u64, 3) + case.increment * @as(u64, @intCast(host.commits)), state.value);
     try std.testing.expectEqualSlices(u64, &.{8 + @as(u64, @intCast(host.commits))}, state.history);
-
     if (host.commits != 0) try std.testing.expect(state.history.ptr != original.history.ptr);
 
     if (actual) |_| {} else |err| {
@@ -79,11 +79,11 @@ test "RX declared Store later conflict preserves earlier commit" {
 }
 
 test "RX declared Store successful execution allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .increment = 7, .state = 17, .commits = 2, .result = .{ .values = .{ .first = 10, .second = 17 } } }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .increment = 7, .state = 17, .commits = 2, .result = .{ .values = .{ .first = 10, .second = 17 } } }});
 }
 
 test "RX declared Store later conflict allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .increment = 7, .state = 10, .commits = 1, .conflict_at = 2, .result = .conflict }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .increment = 7, .state = 10, .commits = 1, .conflict_at = 2, .result = .conflict }});
 }
 
 test "RX declared Store repeated calls do not reinitialize state" {

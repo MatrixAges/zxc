@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 fn read(allocator: std.mem.Allocator, input: []const u8, max_bytes: u64, text: bool) !void {
@@ -139,11 +140,11 @@ test "stdio canceled read fails" {
 test "stdio bytes releases every failed allocation" {
     const input = @as([9000]u8, @splat('q'));
 
-    try std.testing.checkAllAllocationFailures(f.allocator, read, .{ &input, 9000, false });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, read, .{ &input, 9000, false });
 }
 
 test "stdio text releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, read, .{ "中文 🌿", 100, true });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, read, .{ "中文 🌿", 100, true });
 }
 
 fn invalidAllocation(allocator: std.mem.Allocator) !void {
@@ -178,11 +179,11 @@ fn overflowAllocation(allocator: std.mem.Allocator) !void {
 }
 
 test "stdio invalid text releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, invalidAllocation, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, invalidAllocation, .{});
 }
 
 test "stdio overflow releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, overflowAllocation, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, overflowAllocation, .{});
 }
 
 test "stdio text code point spans internal buffer boundary" {

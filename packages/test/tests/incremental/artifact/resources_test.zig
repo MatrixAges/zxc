@@ -1,13 +1,14 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const f = @import("record_fixture");
 
 test "entry artifact extraction cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 3)});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 3)});
 }
 
 test "type artifact extraction cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 0)});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 0)});
 }
 
 fn run(allocator: std.mem.Allocator, index: usize) !void {

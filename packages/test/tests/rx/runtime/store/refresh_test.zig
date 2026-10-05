@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const initial = @import("initial");
 const Host = @import("refresh_host.zig");
@@ -66,9 +67,9 @@ test "RX Store read refresh failure preserves both earlier commits" {
 }
 
 test "RX Store refresh successful execution allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{}});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{}});
 }
 
 test "RX Store later refresh failure allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .fail_at = 2, .begins = 2, .commits = 1, .state = 11 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .fail_at = 2, .begins = 2, .commits = 1, .state = 11 }});
 }

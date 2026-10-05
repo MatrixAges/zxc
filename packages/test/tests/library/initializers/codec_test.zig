@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 const corrupt = @import("corrupt.zig");
 const codec = f.compiler.library.codec;
@@ -134,7 +135,7 @@ test "initializer decode cleans every partial allocation" {
 
     defer std.testing.allocator.free(bytes);
 
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, decode, .{bytes});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, decode, .{bytes});
 }
 
 fn rejectedDecode(allocator: std.mem.Allocator, bytes: []const u8) !void {
@@ -157,5 +158,5 @@ test "initializer semantic rejection cleans every partial allocation" {
 
     defer std.testing.allocator.free(bytes);
 
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, rejectedDecode, .{bytes});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, rejectedDecode, .{bytes});
 }

@@ -1,42 +1,43 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const query = @import("standard").querystring;
 const Operation = enum { escape, unescape, parse, parse_with, stringify, stringify_with };
 const Invalid = enum { escape, key, value };
 
 test "querystring escape releases allocations at every failure point" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.escape});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.escape});
 }
 
 test "querystring unescape replaces invalid UTF8 and releases allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.unescape});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.unescape});
 }
 
 test "querystring parse releases all partially built entries" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.parse});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.parse});
 }
 
 test "querystring parseWith releases all partially built entries" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.parse_with});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.parse_with});
 }
 
 test "querystring stringify releases temporary encoded fields" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.stringify});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.stringify});
 }
 
 test "querystring stringifyWith releases temporary encoded fields" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.stringify_with});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{Operation.stringify_with});
 }
 
 test "querystring escape rejects invalid UTF8" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.escape});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.escape});
 }
 
 test "querystring stringify rejects invalid key after prior output" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.key});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.key});
 }
 
 test "querystring stringify rejects invalid value after key allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.value});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.value});
 }
 
 fn checkSuccess(allocator: std.mem.Allocator, operation: Operation) !void {

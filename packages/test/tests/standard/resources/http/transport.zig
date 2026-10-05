@@ -18,8 +18,7 @@ pub fn io(self: *Transport) std.Io {
     self.vtable = std.Io.failing.vtable.*;
     self.vtable.netLookup = lookup;
     self.vtable.netConnectIp = connect;
-    self.vtable.netRead = read;
-    self.vtable.netWrite = write;
+    self.vtable.operate = operate;
     self.vtable.netClose = close;
 
     return .{ .userdata = self, .vtable = &self.vtable };
@@ -49,15 +48,23 @@ fn connect(data: ?*anyopaque, address: *const std.Io.net.IpAddress, _: std.Io.ne
     return .{ .handle = 42, .address = address.* };
 }
 
-fn read(data: ?*anyopaque, _: std.Io.net.Socket.Handle, buffers: [][]u8) std.Io.net.Stream.Reader.Error!usize {
+fn operate(data: ?*anyopaque, operation: std.Io.Operation) std.Io.Cancelable!std.Io.Operation.Result {
     const self: *Transport = @ptrCast(@alignCast(data.?));
 
+    return switch (operation) {
+        .net_read => |args| .{ .net_read = self.read(args) },
+        .net_write => |args| .{ .net_write = self.write(args) },
+        else => @panic("unexpected HTTP transport operation"),
+    };
+}
+
+fn read(self: *Transport, args: std.Io.Operation.NetRead) std.Io.Operation.NetRead.Result {
     if (self.read_failure) return error.ConnectionResetByPeer;
     if (self.read_fail_after) |limit| if (self.position >= limit) return error.ConnectionResetByPeer;
 
     var count: usize = 0;
 
-    for (buffers) |buffer| {
+    for (args.data) |buffer| {
         const length = @min(buffer.len, self.chunk - count, self.response.len - self.position);
 
         @memcpy(buffer[0..length], self.response[self.position..][0..length]);
@@ -68,18 +75,16 @@ fn read(data: ?*anyopaque, _: std.Io.net.Socket.Handle, buffers: [][]u8) std.Io.
         if (count == self.chunk or self.position == self.response.len) break;
     }
 
-    return count;
+    return .{ .data_len = count };
 }
 
-fn write(data: ?*anyopaque, _: std.Io.net.Socket.Handle, header: []const u8, buffers: []const []const u8, splat: usize) std.Io.net.Stream.Writer.Error!usize {
-    const self: *Transport = @ptrCast(@alignCast(data.?));
-
+fn write(self: *Transport, args: std.Io.Operation.NetWrite) std.Io.Operation.NetWrite.Result {
     if (self.write_failure) return error.ConnectionResetByPeer;
 
-    var count = self.append(header, 0);
+    var count = self.append(args.header, 0);
 
-    for (buffers, 0..) |bytes, index| {
-        const repetitions = if (index + 1 == buffers.len) splat else 1;
+    for (args.data, 0..) |bytes, index| {
+        const repetitions = if (index + 1 == args.data.len) args.splat else 1;
 
         for (0..repetitions) |_| {
             count += self.append(bytes, count);
@@ -101,8 +106,8 @@ fn append(self: *Transport, bytes: []const u8, written: usize) usize {
     return length;
 }
 
-fn close(data: ?*anyopaque, handles: []const std.Io.net.Socket.Handle) void {
+fn close(data: ?*anyopaque, sockets: []const std.Io.net.Socket) void {
     const self: *Transport = @ptrCast(@alignCast(data.?));
 
-    self.closed += handles.len;
+    self.closed += sockets.len;
 }

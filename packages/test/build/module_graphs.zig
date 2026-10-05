@@ -19,6 +19,8 @@ pub fn add(b: *std.Build, rx: *std.Build.Dependency, target: std.Build.ResolvedT
         .imports = &.{.{ .name = "rx", .module = rx.module("rx") }},
     });
 
+    support.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
+
     const tests = b.addTest(.{
         .name = "conformance-module-graphs",
         .root_module = b.createModule(.{

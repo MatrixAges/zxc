@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 fn run(allocator: std.mem.Allocator, overflow: bool) !void {
@@ -24,11 +25,11 @@ fn run(allocator: std.mem.Allocator, overflow: bool) !void {
 }
 
 test "child input success releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, run, .{false});
 }
 
 test "child input limit failure releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, run, .{true});
 }
 
 test "child input success frees all result allocations" {

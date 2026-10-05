@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 const sibling = h.Case{
@@ -111,13 +112,13 @@ test "RX parallel rejects output under Store namespace" {
 }
 
 test "RX parallel sibling diagnostic cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{sibling});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{sibling});
 }
 
 test "RX parallel overlap diagnostic cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{duplicate});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{duplicate});
 }
 
 test "RX parallel independent success cleans allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .source = "<Module><Parallel><Call fn='number' in={1} out='ctx.left'/><Call fn='number' in={2} out='ctx.right'/></Parallel><Return value={ctx.left + ctx.right}/></Module>" }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{ .source = "<Module><Parallel><Call fn='number' in={1} out='ctx.left'/><Call fn='number' in={2} out='ctx.right'/></Parallel><Return value={ctx.left + ctx.right}/></Module>" }});
 }

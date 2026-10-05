@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const left = @import("left");
 const right = @import("right");
@@ -59,11 +60,11 @@ test "RX dual Store refresh maps local zero to the selected physical Object" {
 }
 
 test "RX dual Store refresh success allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{}});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{}});
 }
 
 test "RX dual Store mapped refresh failure allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .fail_at = 5, .begins = 5, .commits = 1, .left_value = 204, .right_value = 300 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .fail_at = 5, .begins = 5, .commits = 1, .left_value = 204, .right_value = 300 }});
 }
 
 test "RX dual Store refresh failure at Call 1 preserves prior effects" {

@@ -42,6 +42,8 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             .imports = &.{.{ .name = "program", .module = program }},
         });
 
+        support.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
+
         const tests = b.addTest(.{
             .name = "store-transactions",
             .root_module = b.createModule(.{

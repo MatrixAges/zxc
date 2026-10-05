@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const application = @import("application");
 const State = @import("zxc_state");
 
@@ -50,7 +51,7 @@ test "generated Request retains published values and outputs after request destr
 }
 
 test "generated Request continuity releases all failed allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, continuity, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, continuity, .{});
 }
 
 test "generated Request empty commit releases its independent arena" {

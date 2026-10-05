@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const f = @import("fixture");
 
@@ -49,9 +50,9 @@ test "generated RX Switch unselected service performs no IO or path validation" 
 }
 
 test "generated RX selected IO branch frees every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{true});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{true});
 }
 
 test "generated RX unselected IO branch frees every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{false});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{false});
 }

@@ -1,12 +1,13 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 test "semantic cache populate reuse and replace clean every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
 }
 
 test "semantic cache signature rejection cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
 }
 
 fn run(allocator: std.mem.Allocator, invalid: bool) !void {

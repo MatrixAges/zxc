@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 const Operation = enum { binary, text, directory, stat, lstat, realpath, readlink };
 
@@ -52,7 +53,7 @@ fn failures(operation: Operation) !void {
         else => try fixture.path("link"),
     };
 
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{ operation, path });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{ operation, path });
 }
 
 test "fs readFile releases every failed allocation" {
@@ -103,5 +104,5 @@ test "fs invalid readText frees bytes allocated before UTF8 validation fails" {
     defer fixture.deinit();
 
     try fixture.write("invalid", "valid-prefix\xff");
-    try std.testing.checkAllAllocationFailures(f.allocator, invalidText, .{try fixture.path("invalid")});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, invalidText, .{try fixture.path("invalid")});
 }

@@ -10,7 +10,7 @@ def quote(value):
 def test(name, body):
     return f'\ntest {quote(name)} {{\n    {body}\n}}\n'
 
-prefix = 'const std = @import("std");\nconst impl = @import("implementation");\n'
+prefix = 'const std = @import("std");\nconst allocation_testing = @import("allocation_testing");\nconst impl = @import("implementation");\n'
 printable = ''.join(chr(value) for value in range(32, 127))
 sets = {
     'control': '',
@@ -94,11 +94,11 @@ test "percent controls and high bytes encode for every set" {
 }
 
 test "percent encode releases partial allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
 }
 
 test "percent decode releases partial allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
 }
 '''
 (target / 'percent_test.zig').write_text(percent)
@@ -140,7 +140,7 @@ for value in ['example.1', 'example.09', 'example.0x', 'example.0XFF.', '1', '0x
     ipv4 += test('IPv4 numeric suffix ' + value, f'try std.testing.expect(impl.endsInNumber({quote(value)}));')
 for value in ['', 'foo.', 'foo..', 'foo.0xg', 'foo.1e2', 'foo.0b1', 'foo.+1', 'foo.１']:
     ipv4 += test('IPv4 nonnumeric suffix ' + (value or 'empty'), f'try std.testing.expect(!impl.endsInNumber({quote(value)}));')
-ipv4 += test('IPv4 serialization allocation cleanup', 'try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});')
+ipv4 += test('IPv4 serialization allocation cleanup', 'try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});')
 (target / 'host/ipv4_test.zig').write_text(ipv4)
 
 ipv6_valid = [
@@ -179,7 +179,7 @@ for value, expected in ipv6_valid:
     ipv6 += test('IPv6 parses ' + value, f'try check({quote(value)}, {quote(expected)});')
 for value in ipv6_invalid:
     ipv6 += test('IPv6 rejects ' + (value or 'empty'), f'try std.testing.expectError(error.InvalidIpv6, impl.parse({quote(value)}));')
-ipv6 += test('IPv6 serialization allocation cleanup', 'try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});')
+ipv6 += test('IPv6 serialization allocation cleanup', 'try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});')
 ipv6 += test('IPv6 every zero placement agrees with independent URL oracle', 'for (@import("ipv6_masks.zig").cases) |entry| try check(entry.input, entry.expected);')
 (target / 'host/ipv6_test.zig').write_text(ipv6)
 Path(__file__).with_name('IP预期.json').write_text(json.dumps({'ipv4': ipv4_valid, 'ipv4_invalid': ipv4_invalid, 'ipv6': ipv6_valid, 'ipv6_invalid': ipv6_invalid}, ensure_ascii=False, indent=2) + '\n')

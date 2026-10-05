@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
 const compiler = @import("compiler");
@@ -64,13 +65,13 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
 }
 
 test "RX project successful chain allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.success});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.success});
 }
 
 test "RX project shared service conflict allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.conflict});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.conflict});
 }
 
 test "RX project circular dependency allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.cycle});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.cycle});
 }

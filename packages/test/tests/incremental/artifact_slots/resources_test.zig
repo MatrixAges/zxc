@@ -1,13 +1,14 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const h = @import("check.zig");
 
 test "entry capabilities artifact cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 1)});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 1)});
 }
 
 test "helper extraction with entry capabilities cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 0)});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 0)});
 }
 
 fn run(allocator: std.mem.Allocator, index: usize) !void {

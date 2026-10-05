@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 fn check(allocator: std.mem.Allocator) !void {
@@ -81,9 +82,9 @@ test "process getEnv rejects invalid UTF8 environment value" {
 }
 
 test "process getEnv releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{});
 }
 
 test "process getEnv invalid value releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, invalid, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, invalid, .{});
 }

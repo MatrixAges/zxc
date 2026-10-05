@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 
 fn valid(allocator: std.mem.Allocator) !void {
@@ -43,9 +44,9 @@ fn invalid(allocator: std.mem.Allocator) !void {
 }
 
 test "RX formatter owns valid output and releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, valid, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, valid, .{});
 }
 
 test "RX formatter owns XML diagnostics and releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, invalid, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, invalid, .{});
 }

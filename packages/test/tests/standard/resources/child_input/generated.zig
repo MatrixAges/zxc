@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const f = @import("fixture.zig");
 
@@ -39,7 +40,7 @@ test "generated input process exceeds all pipe capacities" {
 }
 
 test "generated input process releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, run, .{@as(usize, 32)});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, run, .{@as(usize, 32)});
 }
 
 fn deny(_: ?*anyopaque, _: std.process.SpawnOptions) std.process.SpawnError!std.process.Child {

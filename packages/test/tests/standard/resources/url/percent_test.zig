@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const impl = @import("implementation");
 
 fn checkEncode(set: impl.Set, expected: []const u8) !void {
@@ -129,9 +130,9 @@ test "percent controls and high bytes encode for every set" {
 }
 
 test "percent encode releases partial allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{false});
 }
 
 test "percent decode releases partial allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{true});
 }

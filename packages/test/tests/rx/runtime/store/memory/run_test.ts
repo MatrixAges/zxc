@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 
 type Module = { name: string; imports: Array<string> }
@@ -37,6 +38,8 @@ test(`generated Store memory consumer ${source} (${optimize})`, () => {
 		'application',
 		'--dep',
 		'zxc_state',
+		'--dep',
+		'allocation_testing',
 		...(fixture_source ? ['--dep', 'fixture'] : []),
 		`-Mroot=${resolve(source)}`
 	]
@@ -62,6 +65,10 @@ test(`generated Store memory consumer ${source} (${optimize})`, () => {
 	}
 
 	argv.push(`-O${optimize}`, `-Mzxc_abi=${join(directory, 'types.zig')}`)
+	argv.push(
+		`-O${optimize}`,
+		`-Mallocation_testing=${fileURLToPath(new URL('../../../../support/allocation_testing.zig', import.meta.url))}`
+	)
 
 	const result = spawnSync(zig, argv, { cwd: directory, encoding: 'utf8', timeout: 180_000 })
 

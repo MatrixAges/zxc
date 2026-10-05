@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const application = @import("application");
 const State = @import("zxc_state");
 
@@ -22,6 +23,7 @@ fn check(allocator: std.mem.Allocator, fail_first: bool) !void {
     try std.testing.expectError(error.IndexOutOfBounds, actual);
     try std.testing.expectEqual(@as(u64, if (fail_first) 3 else 10), state.value_0.value);
     try std.testing.expectEqual(original_right, state.value_1);
+
     const after_failure = state.value_0;
     const result = try application.execute(&arena, &.{ .increment = 2, .left_index = 0, .right_index = 0 }, &state);
 
@@ -46,9 +48,9 @@ test "generated State later failing setter preserves earlier publication" {
 }
 
 test "generated State first failure and recovery allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{true});
 }
 
 test "generated State later failure and recovery allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{false});
 }

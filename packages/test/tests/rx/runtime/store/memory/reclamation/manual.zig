@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const Fixture = @import("fixture.zig");
 const application = @import("application");
 
@@ -48,9 +49,9 @@ test "direct State commit disables unproven region reclamation" {
 }
 
 test "legacy retained output allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
 }
 
 test "direct State commit fallback allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
 }

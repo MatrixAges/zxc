@@ -25,6 +25,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             .imports = &.{ .{ .name = "implementation", .module = implementation }, .{ .name = "idna_data", .module = data } },
         }) });
 
+        tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         step.dependOn(&b.addRunArtifact(tests).step);
     }
 

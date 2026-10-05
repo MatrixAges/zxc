@@ -1,10 +1,11 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const crypto = @import("standard").crypto;
 const Cipher = enum { aes128, aes256, chacha };
 
 test "crypto AEAD operations release allocations on success authentication failure and OOM" {
     inline for (.{ Cipher.aes128, Cipher.aes256, Cipher.chacha }) |cipher| {
-        try std.testing.checkAllAllocationFailures(std.testing.allocator, CipherCheck(cipher).run, .{});
+        try allocation_testing.checkAllAllocationFailures(std.testing.allocator, CipherCheck(cipher).run, .{});
     }
 }
 
@@ -63,7 +64,7 @@ fn CipherCheck(comptime cipher: Cipher) type {
 
 test "crypto HMAC and derivation operations release every failed allocation" {
     inline for (.{ 256, 512 }) |bits| {
-        try std.testing.checkAllAllocationFailures(std.testing.allocator, DerivationCheck(bits).run, .{});
+        try allocation_testing.checkAllAllocationFailures(std.testing.allocator, DerivationCheck(bits).run, .{});
     }
 }
 

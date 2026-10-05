@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const params = @import("standard").url_search_params;
 const Invalid = enum { key, value, sort_key };
 
@@ -35,12 +36,13 @@ fn checkStringify(allocator: std.mem.Allocator) !void {
 }
 
 fn checkInvalid(allocator: std.mem.Allocator, invalid: Invalid) !void {
-    const Entries = @typeInfo(@TypeOf(params.stringify)).@"fn".params[1].type.?;
+    const Entries = @typeInfo(@TypeOf(params.stringify)).@"fn".param_types[1].?;
     const input: Entries = &.{ &.{ .key = "first", .value = "valid" }, &.{ .key = if (invalid == .value) " +" else "\xff", .value = if (invalid == .value) "\xff" else "ok" } };
 
     if (invalid == .sort_key) {
         const output = params.sort(allocator, input) catch |err| {
             if (err == error.OutOfMemory) return err;
+
             try std.testing.expectEqual(error.InvalidUtf8, err);
 
             return;
@@ -53,6 +55,7 @@ fn checkInvalid(allocator: std.mem.Allocator, invalid: Invalid) !void {
 
     const output = params.stringify(allocator, input) catch |err| {
         if (err == error.OutOfMemory) return err;
+
         try std.testing.expectEqual(error.InvalidUtf8, err);
 
         return;
@@ -64,25 +67,25 @@ fn checkInvalid(allocator: std.mem.Allocator, invalid: Invalid) !void {
 }
 
 test "URL parse releases partial entries at every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkParse, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkParse, .{false});
 }
 
 test "URL parse replaces raw and escaped invalid UTF8 with failure cleanup" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkParse, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkParse, .{true});
 }
 
 test "URL stringify releases partial form encoded output" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkStringify, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkStringify, .{});
 }
 
 test "URL stringify invalid key releases preceding output" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.key});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.key});
 }
 
 test "URL stringify invalid value releases encoded key and preceding output" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.value});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.value});
 }
 
 test "URL sort invalid key releases earlier UTF16 keys" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.sort_key});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkInvalid, .{Invalid.sort_key});
 }

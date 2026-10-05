@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const State = @import("zxc_state");
 const Fixture = @import("fixture.zig");
 
@@ -35,5 +36,5 @@ test "readonly State release is safe and request storage is freed" {
 }
 
 test "readonly State release lifecycle allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{});
 }

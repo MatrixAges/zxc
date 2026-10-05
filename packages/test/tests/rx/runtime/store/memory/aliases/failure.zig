@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const Fixture = @import("fixture.zig");
 
 fn run(allocator: std.mem.Allocator, committed: bool) !void {
@@ -60,9 +61,9 @@ test "rejected alias commit preserves earlier successful commit in same request"
 }
 
 test "rejected alias commit then recovery allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
 }
 
 test "committed alias then rejection allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
 }

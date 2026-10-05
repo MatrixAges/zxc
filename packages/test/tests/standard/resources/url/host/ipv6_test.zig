@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const impl = @import("implementation");
 
 fn check(input: []const u8, expected: []const u8) !void {
@@ -204,7 +205,7 @@ test "IPv6 rejects  ::1" {
 }
 
 test "IPv6 serialization allocation cleanup" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});
 }
 
 test "IPv6 every zero placement agrees with independent URL oracle" {

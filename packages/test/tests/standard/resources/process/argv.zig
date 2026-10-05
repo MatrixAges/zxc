@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 
 fn check(allocator: std.mem.Allocator) !void {
@@ -55,9 +56,9 @@ test "process argv rejects invalid bytes after an already copied argument" {
 }
 
 test "process argv releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{});
 }
 
 test "process argv invalid UTF8 cleanup survives every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, invalid, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, invalid, .{});
 }

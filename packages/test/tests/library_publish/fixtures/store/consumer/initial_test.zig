@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const counter = @import("counter_initial");
 const settings = @import("settings_initial");
 const types = @import("bindings.zig");
@@ -59,5 +60,5 @@ test "separate initializer calls allocate independent owned nonempty graphs" {
 }
 
 test "generated initialization releases every failed partial allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, values, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, values, .{});
 }

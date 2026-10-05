@@ -1,41 +1,42 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const zlib = @import("standard").zlib;
 const Operation = enum { gzip, deflate, raw, gzip_with, deflate_with, raw_with };
 
 test "zlib gzip releases all compression allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.gzip, -1 });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.gzip, -1 });
 }
 
 test "zlib deflate releases all compression allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.deflate, -1 });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.deflate, -1 });
 }
 
 test "zlib deflateRaw releases all compression allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.raw, -1 });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.raw, -1 });
 }
 
 test "zlib gzipWith releases level nine allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.gzip_with, 9 });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.gzip_with, 9 });
 }
 
 test "zlib deflateWith releases level nine allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.deflate_with, 9 });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.deflate_with, 9 });
 }
 
 test "zlib deflateRawWith releases level nine allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.raw_with, 9 });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.raw_with, 9 });
 }
 
 test "zlib gzipWith releases stored block allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.gzip_with, 0 });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.gzip_with, 0 });
 }
 
 test "zlib deflateWith releases stored block allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.deflate_with, 0 });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.deflate_with, 0 });
 }
 
 test "zlib deflateRawWith releases stored block allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.raw_with, 0 });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkSuccess, .{ Operation.raw_with, 0 });
 }
 
 test "zlib gzipWith rejects invalid levels before allocations" {

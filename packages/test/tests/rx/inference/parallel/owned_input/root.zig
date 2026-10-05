@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "fresh RX result transfers to owned ZX" {
@@ -123,20 +124,20 @@ test "owned new result can be published to Store" {
 }
 
 test "parallel independent transfer allocation failures release analysis" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .source = "<Module><Call fn='list' in={$in} out='saved'/><Call fn='list' in={$in} out='other'/><Parallel><Call fn='consume' in={saved} out='left'/><Call fn='consume' in={other} out='right'/></Parallel><Return value={left.length + right.length}/></Module>",
     }});
 }
 
 test "parallel duplicate rejection allocation failures release analysis" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .source = "<Module><Call fn='list' in={$in} out='saved'/><Parallel><Call fn='consume' in={saved} out='left'/><Call fn='consume' in={saved} out='right'/></Parallel><Return value={left.length + right.length}/></Module>",
         .expected = .{ .code = "ownership", .marker = "saved", .last = true },
     }});
 }
 
 test "Task local transfer allocation failures release analysis" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.allocated, .{h.Case{
         .source = "<Module><Parallel><Task name='work' out='result'><Call fn='list' in={$in} out='local'/><Call fn='consume' in={local} out='next'/><Return value={next.length}/></Task></Parallel><Return value={result}/></Module>",
     }});
 }

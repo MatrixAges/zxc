@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { cpSync, existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { stringify } from 'yaml'
 
 type Run = (args: { command: string; argv: Array<string>; cwd: string; failure?: string }) => string
@@ -68,6 +69,8 @@ export default function checkNativeDeclaration(args: { directory: string; execut
 			'test',
 			'--dep',
 			'library',
+			'--dep',
+			'allocation_testing',
 			'-Mroot=resources_test.zig',
 			'--dep',
 			'bridge',
@@ -77,7 +80,8 @@ export default function checkNativeDeclaration(args: { directory: string; execut
 			'--dep',
 			'zxc_abi',
 			'-Mbridge=native/bridge/source/bridge.zig',
-			'-Mzxc_abi=abi.zig'
+			'-Mzxc_abi=abi.zig',
+			`-Mallocation_testing=${fileURLToPath(new URL('../support/allocation_testing.zig', import.meta.url))}`
 		],
 		cwd: library
 	})

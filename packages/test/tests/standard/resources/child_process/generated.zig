@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const f = @import("fixture.zig");
 
@@ -26,7 +27,7 @@ test "generated child process entry preserves binary output" {
 }
 
 test "generated child process entry releases every allocation failure" {
-    try std.testing.checkAllAllocationFailures(f.allocator, run, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, run, .{});
 }
 
 fn deny(_: ?*anyopaque, _: std.process.SpawnOptions) std.process.SpawnError!std.process.Child {

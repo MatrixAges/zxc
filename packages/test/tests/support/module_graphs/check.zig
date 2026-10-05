@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const rx = @import("rx");
 const fixtures = @import("fixtures.zig");
 pub const checkPaths = @import("paths.zig").check;
@@ -20,7 +21,7 @@ pub fn checkAllocationFailures(size: usize, shape: fixtures.Shape, edges: []cons
 
     const sources = try fixtures.sources(arena.allocator(), size, shape, edges);
 
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, validate, .{ sources, size, shape, cyclic_edges });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, validate, .{ sources, size, shape, cyclic_edges });
 }
 
 pub fn checkBoundedStack(size: usize, shape: fixtures.Shape, edges: []const usize, cyclic_edges: []const usize) !void {

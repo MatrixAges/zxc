@@ -1,12 +1,13 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "native enum metadata cleans allocation failures across repeated imports" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, nativeTrace, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, nativeTrace, .{});
 }
 
 test "legacy enum metadata cleans allocation failures across members and bindings" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, legacyTrace, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, legacyTrace, .{});
 }
 
 fn nativeTrace(allocator: std.mem.Allocator) !void {

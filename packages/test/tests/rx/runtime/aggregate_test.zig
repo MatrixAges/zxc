@@ -1,6 +1,6 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
-
 const Case = struct { input: []const u64, items: []const u64, total: u64 };
 
 fn check(allocator: std.mem.Allocator, case: Case) !void {
@@ -21,7 +21,6 @@ fn check(allocator: std.mem.Allocator, case: Case) !void {
     try std.testing.expectEqualSlices(u64, case.items, output.items);
     try std.testing.expectEqual(case.total, output.total);
     try std.testing.expectEqualSlices(u64, case.input, input);
-
     if (input.len != 0) try std.testing.expect(output.items.ptr != input.ptr);
 }
 
@@ -42,5 +41,5 @@ test "RX owned list zero values pipeline" {
 }
 
 test "RX owned list runtime allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .input = &.{ 1, 3, 8 }, .items = &.{ 2, 4, 9 }, .total = 15 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .input = &.{ 1, 3, 8 }, .items = &.{ 2, 4, 9 }, .total = 15 }});
 }

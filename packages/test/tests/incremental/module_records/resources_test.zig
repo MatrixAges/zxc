@@ -1,9 +1,10 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const f = @import("fixture.zig");
 
 test "module records success cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
 }
 
 test "partial module loading failure returns no records or nominal origins" {
@@ -11,7 +12,7 @@ test "partial module loading failure returns no records or nominal origins" {
 }
 
 test "partial module loading failure cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
 }
 
 fn run(allocator: std.mem.Allocator, missing: bool) !void {

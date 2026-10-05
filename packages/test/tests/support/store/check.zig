@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 
 pub const Case = struct {
@@ -52,7 +53,7 @@ pub fn check(value: Case) !void {
 }
 
 pub fn checkAllocationFailures(value: Case) !void {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{value});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{value});
 }
 
 fn run(allocator: std.mem.Allocator, value: Case) !void {

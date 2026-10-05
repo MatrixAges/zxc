@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const left = @import("left");
 const right = @import("right");
@@ -90,11 +91,11 @@ test "RX second Store conflict preserves first Store commit" {
 }
 
 test "RX two Store successful execution allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .increment = 7 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .increment = 7 }});
 }
 
 test "RX two Store later conflict allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .increment = 7, .conflict_at = 2 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Case{ .increment = 7, .conflict_at = 2 }});
 }
 
 test "RX two Store repeated requests retain independent states and snapshots" {

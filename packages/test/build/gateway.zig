@@ -11,6 +11,7 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
             .imports = &.{ .{ .name = "rx", .module = compiler.module("rx") }, .{ .name = "rx_analysis", .module = compiler.module("rx_analysis") } },
         }) });
 
+        tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         step.dependOn(&b.addRunArtifact(tests).step);
     }
 

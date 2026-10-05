@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const prefix = "export type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output ";
 const suffix = " {\n  return in\n}\n";
@@ -62,7 +63,7 @@ test "contract predicates reject invalid scope type and order" {
 }
 
 test "contract analysis cleans up every failed allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkAllocation, .{});
 }
 
 fn checkAllocation(allocator: std.mem.Allocator) !void {

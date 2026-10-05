@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const State = @import("zxc_state");
 const Fixture = @import("fixture.zig");
 
@@ -64,7 +65,7 @@ test "independent Store many requests have bounded live allocation" {
 }
 
 test "independent Store release and update allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 8)});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{@as(usize, 8)});
 }
 
 test "independent Store deinitialization releases current roots" {

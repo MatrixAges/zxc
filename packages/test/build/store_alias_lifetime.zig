@@ -24,6 +24,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
     const run = b.addSystemCommand(&.{"node"});
 
     run.addFileArg(b.path("tests/rx/runtime/store/memory/run_test.ts"));
+    run.addFileInput(b.path("tests/support/allocation_testing.zig"));
     run.addArg(b.graph.zig_exe);
     run.addDirectoryArg(directory);
     run.addFileArg(b.path("tests/rx/runtime/store/memory/aliases/root.zig"));

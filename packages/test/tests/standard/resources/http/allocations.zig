@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 const Transport = @import("transport.zig");
 
@@ -59,33 +60,33 @@ fn invalidHeaders(gpa: std.mem.Allocator) !void {
 }
 
 test "http successful response releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, execute, .{ "HTTP/1.1 200 OK\r\nX-First: a\r\nX-First: b\xff\r\nContent-Length: 4\r\n\r\nbody", "body" });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, execute, .{ "HTTP/1.1 200 OK\r\nX-First: a\r\nX-First: b\xff\r\nContent-Length: 4\r\n\r\nbody", "body" });
 }
 
 test "http large response releases every failed allocation" {
     const body = &@as([9000:0]u8, @splat('q'));
 
-    try std.testing.checkAllAllocationFailures(f.allocator, execute, .{ "HTTP/1.1 200 OK\r\nX-Value: v\r\nContent-Length: 9000\r\n\r\n" ++ body, body });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, execute, .{ "HTTP/1.1 200 OK\r\nX-Value: v\r\nContent-Length: 9000\r\n\r\n" ++ body, body });
 }
 
 test "http chunked response releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, execute, .{ "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nX-Value: v\r\n\r\n4\r\nbody\r\n0\r\n\r\n", "body" });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, execute, .{ "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nX-Value: v\r\n\r\n4\r\nbody\r\n0\r\n\r\n", "body" });
 }
 
 test "http body overflow releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nX-Value: v\r\nContent-Length: 4\r\n\r\nbody", error.StreamTooLong });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nX-Value: v\r\nContent-Length: 4\r\n\r\nbody", error.StreamTooLong });
 }
 
 test "http invalid response header releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nX-First: v\r\nBad Name: v\r\nContent-Length: 0\r\n\r\n", error.InvalidHttpHeader });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nX-First: v\r\nBad Name: v\r\nContent-Length: 0\r\n\r\n", error.InvalidHttpHeader });
 }
 
 test "http malformed chunk releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nX-Value: v\r\n\r\nNO\r\n", error.ReadFailed });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nX-Value: v\r\n\r\nNO\r\n", error.ReadFailed });
 }
 
 test "http invalid request header releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, invalidHeaders, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, invalidHeaders, .{});
 }
 
 test "http connection refusal does not create a connection to close" {
@@ -122,15 +123,15 @@ test "http body read failure releases copied headers and closes connection" {
 }
 
 test "http truncated content length releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nX-Value: v\r\nContent-Length: 10\r\n\r\nabc", error.ReadFailed });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nX-Value: v\r\nContent-Length: 10\r\n\r\nabc", error.ReadFailed });
 }
 
 test "http missing terminal chunk releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nX-Value: v\r\n\r\n3\r\nabc\r\n", error.ReadFailed });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, failure, .{ "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nX-Value: v\r\n\r\n3\r\nabc\r\n", error.ReadFailed });
 }
 
 test "http oversized response head releases every failed allocation" {
     const wire = "HTTP/1.1 200 OK\r\nX-Large: " ++ (&@as([8192:0]u8, @splat('q'))) ++ "\r\nContent-Length: 0\r\n\r\n";
 
-    try std.testing.checkAllAllocationFailures(f.allocator, failure, .{ wire, error.HttpHeadersOversize });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, failure, .{ wire, error.HttpHeadersOversize });
 }

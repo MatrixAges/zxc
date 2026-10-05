@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const options = @import("options");
 const f = @import("fixture.zig");
@@ -54,7 +55,7 @@ test "generated getEnv preserves a missing value" {
 }
 
 test "generated capability chain releases allocation failures" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{ @as([]const u8, "KEY"), @as(?[]const u8, "first") });
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{ @as([]const u8, "KEY"), @as(?[]const u8, "first") });
 }
 
 test "generated IO failures remain scoped to IO dependent entries" {

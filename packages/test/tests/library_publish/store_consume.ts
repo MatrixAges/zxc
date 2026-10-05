@@ -2,6 +2,7 @@ import type createFixture from './fixture.ts'
 import assert from 'node:assert/strict'
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { zig } from './fixture.ts'
 
 type Module = { name: string; path: string; dependencies: Array<string> }
@@ -68,7 +69,16 @@ export default function consume(args: {
 		const result = fixture.run({
 			command: zig,
 			cwd: directory,
-			argv: ['test', ...dependencies, `-Mroot=${file}`, ...mappings, `-Mzxc_abi=${join(library, 'abi.zig')}`]
+			argv: [
+				'test',
+				...dependencies,
+				'--dep',
+				'allocation_testing',
+				`-Mroot=${file}`,
+				...mappings,
+				`-Mzxc_abi=${join(library, 'abi.zig')}`,
+				`-Mallocation_testing=${fileURLToPath(new URL('../support/allocation_testing.zig', import.meta.url))}`
+			]
 		})
 		assert.equal(result.status, 0, result.stderr)
 		assert.match(result.stderr, /All 3 tests passed/)

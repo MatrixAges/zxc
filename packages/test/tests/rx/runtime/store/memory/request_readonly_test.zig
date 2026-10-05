@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const State = @import("zxc_state");
 
 fn check(allocator: std.mem.Allocator) !void {
@@ -29,7 +30,7 @@ test "generated readonly Request executes using its own arena" {
 }
 
 test "generated readonly Request cleans every allocation failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{});
 }
 
 test "generated readonly Request releases output storage after each request" {

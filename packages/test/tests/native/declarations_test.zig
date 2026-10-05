@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const compiler = @import("compiler");
 const main = "import native from \"zig:sample\"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return native.apply(in)\n}\n";
 const valid = "export declare function apply(allocator, input: u64): u64 throws\n";
@@ -52,13 +53,13 @@ test "native declaration diagnostics retain source and reject malformed contract
 }
 
 test "native declaration success releases every failed allocation" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, analyze, .{ valid, @as(?Code, null) });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, analyze, .{ valid, @as(?Code, null) });
 }
 
 test "native declaration diagnostic releases every failed allocation" {
     const source = "export type Item = { value: u64 }\n export declare function apply(input: Item[]): Missing\n";
 
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, analyze, .{ source, @as(?Code, .name) });
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, analyze, .{ source, @as(?Code, .name) });
 }
 
 test "native declaration arity and namespace retain invocation attributes" {

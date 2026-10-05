@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 const f = @import("fixture");
 
@@ -28,7 +29,7 @@ test "generated RX discarded nonvoid IO result executes before subsequent write"
 }
 
 test "generated RX discarded nonvoid IO result releases all failed allocations" {
-    try std.testing.checkAllAllocationFailures(f.allocator, check, .{});
+    try allocation_testing.checkAllAllocationFailures(f.allocator, check, .{});
 }
 
 test "generated RX discarded nonvoid IO failure prevents the marker write" {

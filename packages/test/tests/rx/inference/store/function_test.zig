@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
 const compiler = @import("compiler");
@@ -87,9 +88,9 @@ test "RX Store function permission incomplete_object" {
 }
 
 test "RX Store function permission pure allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.pure});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.pure});
 }
 
 test "RX Store function permission helper_write allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.helper_write});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.helper_write});
 }

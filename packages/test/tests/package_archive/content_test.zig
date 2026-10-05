@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const archive = @import("package_archive");
 const fixture = @import("fixture.zig");
 const io = std.testing.io;
@@ -6,7 +7,7 @@ const allocator = std.testing.allocator;
 const long_name = "nested/" ++ "segment_segment_segment_segment_segment_segment_segment_segment_segment_segment_segment_segment_segment_segment_segment_segment_segment_segment_" ++ ".zx";
 
 test "package archive extracts normalized ustar GNU binary empty and executable files" {
-    try std.testing.checkAllAllocationFailures(allocator, checkContent, .{});
+    try allocation_testing.checkAllAllocationFailures(allocator, checkContent, .{});
 }
 
 test "package archive accepts empty tar with two end blocks" {
@@ -45,15 +46,15 @@ test "package archive never overwrites existing files" {
 }
 
 test "package archive duplicate rejection cleans every partial allocation" {
-    try std.testing.checkAllAllocationFailures(allocator, fixture.expectFailure, .{ @embedFile("fixtures/duplicate.tgz"), error.DuplicatePackageArchivePath });
+    try allocation_testing.checkAllAllocationFailures(allocator, fixture.expectFailure, .{ @embedFile("fixtures/duplicate.tgz"), error.DuplicatePackageArchivePath });
 }
 
 test "package archive gzip rejection cleans every partial allocation" {
-    try std.testing.checkAllAllocationFailures(allocator, fixture.expectFailure, .{ @embedFile("fixtures/gzip_crc.tgz"), error.InvalidPackageGzipChecksum });
+    try allocation_testing.checkAllAllocationFailures(allocator, fixture.expectFailure, .{ @embedFile("fixtures/gzip_crc.tgz"), error.InvalidPackageGzipChecksum });
 }
 
 test "package archive path rejection cleans every partial allocation" {
-    try std.testing.checkAllAllocationFailures(allocator, fixture.expectFailure, .{ @embedFile("fixtures/nested_parent.tgz"), error.InvalidPackageArchivePath });
+    try allocation_testing.checkAllAllocationFailures(allocator, fixture.expectFailure, .{ @embedFile("fixtures/nested_parent.tgz"), error.InvalidPackageArchivePath });
 }
 
 fn checkContent(gpa: std.mem.Allocator) !void {

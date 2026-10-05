@@ -1,10 +1,12 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const params = @import("standard").url_search_params;
-const Entries = @typeInfo(@TypeOf(params.stringify)).@"fn".params[1].type.?;
+const Entries = @typeInfo(@TypeOf(params.stringify)).@"fn".param_types[1].?;
 const Operation = enum { keys, values, get_all };
 
 fn check(allocator: std.mem.Allocator, operation: Operation) !void {
     const input: Entries = &.{ &.{ .key = "a", .value = "one" }, &.{ .key = "b", .value = "two" }, &.{ .key = "a", .value = "three" } };
+
     const output = switch (operation) {
         .keys => try params.keys(allocator, input),
         .values => try params.values(allocator, input),
@@ -49,17 +51,17 @@ fn checkEmpty(allocator: std.mem.Allocator) !void {
 }
 
 test "URL keys allocates list and borrows key strings" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Operation.keys});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Operation.keys});
 }
 
 test "URL values allocates list and borrows value strings" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Operation.values});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Operation.values});
 }
 
 test "URL getAll owns only selected outer list" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Operation.get_all});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Operation.get_all});
 }
 
 test "URL empty results release their zero length allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, checkEmpty, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, checkEmpty, .{});
 }

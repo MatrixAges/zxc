@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
 const compiler = @import("compiler");
@@ -98,13 +99,13 @@ test "RX duplicate Store diagnostic survives released input arenas" {
 }
 
 test "RX Store detached contract allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.success});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.success});
 }
 
 test "RX Store detached setter diagnostic allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.setter});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.setter});
 }
 
 test "RX Store detached duplicate diagnostic allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.duplicate});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Mode.duplicate});
 }

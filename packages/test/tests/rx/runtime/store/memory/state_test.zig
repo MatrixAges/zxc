@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const application = @import("application");
 const State = @import("zxc_state");
 const Scenario = enum { continuity, isolation, multiple, empty };
@@ -42,7 +43,9 @@ fn check(allocator: std.mem.Allocator, scenario: Scenario) !void {
             var other = State{ .arena = &other_arena };
 
             try other.initialize();
+
             _ = try application.execute(&arena, 7, &state);
+
             const result = try application.execute(&other_arena, 1, &other);
 
             try std.testing.expectEqual(@as(u64, 3), result.before_left.value);
@@ -55,12 +58,13 @@ fn check(allocator: std.mem.Allocator, scenario: Scenario) !void {
         .multiple => {
             var candidate_left = state.value_0.*;
             var candidate_right = state.value_1.*;
-
             candidate_left.value = 77;
             candidate_right.value = 88;
+
             try std.testing.expectError(error.MultipleStoreObjects, state.commit(.{ .store_0 = &candidate_left, .store_1 = &candidate_right }));
             try std.testing.expectEqual(original_left, state.value_0);
             try std.testing.expectEqual(original_right, state.value_1);
+
             const result = try application.execute(&arena, 1, &state);
 
             try std.testing.expectEqual(@as(u64, 4), result.first);
@@ -98,5 +102,5 @@ test "generated State accepts an empty pending update without replacing values" 
 }
 
 test "generated State initialization and repeated calls release failed allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{Scenario.continuity});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{Scenario.continuity});
 }

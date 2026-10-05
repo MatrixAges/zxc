@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const State = @import("zxc_state");
 const Fixture = @import("fixture.zig");
 
@@ -57,9 +58,9 @@ test "failed later setter retains prior success and releases historical regions"
 }
 
 test "first setter failure reclamation allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{true});
 }
 
 test "later setter failure reclamation allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{false});
 }
