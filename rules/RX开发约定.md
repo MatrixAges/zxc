@@ -22,7 +22,7 @@
 
 ## 不可放宽的约束
 
-Call 参数属性为 args；Call/Task 不接受 out。Call.name 可选，缺省取调用目标最后路径段并去掉源码后缀，结果固定为 ctx.<name>；Parallel Task 使用 ctx.task.<name>。Call 的 name 不得为保留名 task；两类结果可同名，同一作用域同类结果不得重名，void 调用保留执行但不产生值绑定。Module.in/out 仍是类型契约。
+Call 参数属性为 in；Call 不接受 out；Task.out 为可选花括号表达式，在子步骤结束后聚合结果，不能与同一任务的 Return 并用。Call.name 可选，缺省取调用目标最后路径段并去掉源码后缀，结果固定为 ctx.<name>；Task 使用 ctx.task.<name>，包括带 out 的顺序 Task。Call 的 name 不得为保留名 task；两类结果可同名，同一作用域同类结果不得重名，void 调用保留执行但不产生值绑定。Module.in/out 仍是类型契约。
 
 RX 属性值仅负责数据引用、组装和简单运算；禁止函数/方法调用、lambda 和状态更新块，包括嵌套对象、分支或模板中的调用。loop、集合处理及其他计算在 ZX 中实现，由 Call.fn 或 Call.service 编排。普通属性编译、项目类型推导和 Store 初值必须共用这一边界。
 

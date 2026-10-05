@@ -1,7 +1,7 @@
 <Module>
-  <Call service="../lexical" args={$in} />
+  <Call service="../lexical" in={$in} />
 
-  <Call fn="expressions/prepare/all" args={ctx.lexical} name="prepared" />
+  <Call fn="expressions/prepare/all" in={ctx.lexical} name="prepared" />
 
   <Return value={ctx.prepared} />
 </Module>

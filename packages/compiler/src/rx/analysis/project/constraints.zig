@@ -124,12 +124,18 @@ const Walker = struct {
                 _ = try expression.infer(parsed, self.output);
                 self.returned = true;
             },
-            .task => |body| {
+            .task => |task| {
                 const count = expression.bindings.items.len;
 
-                try self.steps(body);
+                try self.steps(task.body);
+
+                const output = if (target.optionalAttribute(task.node, "out")) |attribute|
+                    try expression.infer(try parse(expression, self.module.source.path, attribute), null)
+                else
+                    null;
 
                 expression.bindings.shrinkRetainingCapacity(count);
+                if (output) |value| try self.bindResult(task.node, value, .task);
             },
             .selection => |selection| {
                 const subject = try expression.infer(try parse(expression, self.module.source.path, selection.subject), null);
@@ -151,7 +157,7 @@ const Walker = struct {
     fn call(self: *Walker, invocation: Prepared.Call) zx.Error!void {
         const expression = self.expression;
         const graph = expression.graph;
-        const attribute = target.optionalAttribute(invocation.node, "args");
+        const attribute = target.optionalAttribute(invocation.node, "in");
         const offset = if (attribute) |value| value.value_location.offset else invocation.node.location.offset;
         const span = zx.Span{ .start = expression.span_offset + offset, .end = expression.span_offset + offset };
 

@@ -1,5 +1,7 @@
 <Module>
-  <Call fn="adjust" args={$in} />
+  <Task name="adjusted" out={{original: ctx.adjust.original, values: ctx.adjust.values, total: ctx.adjust.total}}>
+    <Call fn="adjust" in={$in} />
+  </Task>
 
-  <Return value={ctx.adjust} />
+  <Return value={ctx.task.adjusted} />
 </Module>

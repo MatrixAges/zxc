@@ -56,11 +56,11 @@ fn linkIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Erro
 
     var callee = loaded.value.function.program;
 
-    if (target.optionalAttribute(config.call, "args") == null) {
+    if (target.optionalAttribute(config.call, "in") == null) {
         const void_type: zx.ir.TypeId = @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void)));
 
         if (callee.input_type != void_type) {
-            const failed = try target.failure(allocator, .{ .path = config.owner, .location = config.call.location, .code = "type_mismatch", .message = "Call.module requires args when its Input is not void" });
+            const failed = try target.failure(allocator, .{ .path = config.owner, .location = config.call.location, .code = "type_mismatch", .message = "Call.module requires in when its Input is not void" });
 
             return .{ .diagnostic = failed.diagnostic };
         }
@@ -70,7 +70,7 @@ fn linkIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Erro
         return .{ .invocation = .{ .callee = callee, .argument = argument, .nominal_types = loaded.value.function.nominal_types, .store_initializers = loaded.value.function.store_initializers } };
     }
 
-    const compiled = try expression.compile(allocator, config.owner, target.attribute(config.call, "args"), .{ .types = callee.types, .bindings = options.bindings, .expected = callee.input_type });
+    const compiled = try expression.compile(allocator, config.owner, target.attribute(config.call, "in"), .{ .types = callee.types, .bindings = options.bindings, .expected = callee.input_type });
 
     if (compiled.value == .diagnostic) {
         const issue = compiled.value.diagnostic;

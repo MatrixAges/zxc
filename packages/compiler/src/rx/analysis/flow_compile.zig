@@ -63,13 +63,26 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
                 break :parallel .{ .parallel = calls };
             },
             .result => |attribute| .{ .result = try self.value(attribute, self.output_type) },
-            .task => |body| task: {
+            .task => |task| scope: {
                 const count = self.bindings.items.len;
-                const nested = try self.steps(body);
+                const nested = try self.steps(task.body);
+                var compiled: @FieldType(Flow.Step, "task") = .{ .body = nested };
+                var published: ?Module.Binding = null;
+
+                if (target.optionalAttribute(task.node, "out")) |attribute| {
+                    const binding = self.results[self.next_binding];
+                    self.next_binding += 1;
+                    const has_value = binding.type_id != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))));
+                    compiled.output = .{ .value = try self.value(attribute, binding.type_id), .name = if (has_value) binding.name else null };
+
+                    if (has_value) published = binding;
+                }
 
                 self.bindings.shrinkRetainingCapacity(count);
 
-                break :task .{ .task = nested };
+                if (published) |binding| try self.bindings.append(self.allocator, .{ .name = binding.name, .type_id = binding.type_id });
+
+                break :scope .{ .task = compiled };
             },
             .selection => |selection| selection: {
                 const subject = try self.value(selection.subject, null);
@@ -120,7 +133,7 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 
     for (loaded.getters) |getter| try self.bindings.append(self.allocator, .{ .name = getter.name, .type_id = getter.slot.type_id });
 
-    const argument = if (target.optionalAttribute(loaded.node, "args")) |attribute| try self.value(attribute, loaded.function.program.input_type) else try @import("call/unit.zig").create(self.allocator, self.owner, self.types, loaded.node.location);
+    const argument = if (target.optionalAttribute(loaded.node, "in")) |attribute| try self.value(attribute, loaded.function.program.input_type) else try @import("call/unit.zig").create(self.allocator, self.owner, self.types, loaded.node.location);
 
     self.bindings.shrinkRetainingCapacity(count);
 
@@ -137,7 +150,7 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 
     const index = self.calls.items.len;
 
-    try self.calls.append(self.allocator, .{ .callee = loaded.function.program, .store_initializers = loaded.function.store_initializers, .argument = argument, .input_omitted = target.optionalAttribute(loaded.node, "args") == null, .out = out, .getters = loaded.getters });
+    try self.calls.append(self.allocator, .{ .callee = loaded.function.program, .store_initializers = loaded.function.store_initializers, .argument = argument, .input_omitted = target.optionalAttribute(loaded.node, "in") == null, .out = out, .getters = loaded.getters });
 
     return index;
 }

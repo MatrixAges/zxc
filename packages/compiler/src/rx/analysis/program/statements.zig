@@ -18,7 +18,7 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
 
                 for (indices, invocations) |index, *invocation| {
                     const value = try invoke(builder, calls[index]);
-                    const expression = builder.expressions.items[@intFromEnum(value)];
+                    const expression = builder.expressions.items[@backingInt(value)];
                     const symbol = if (calls[index].out) |name| try builder.symbol(name, expression.type_id, expression.span) else null;
                     invocation.* = .{ .symbol = symbol, .value = value };
 
@@ -29,17 +29,33 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
                 try builder.bindings.appendSlice(builder.allocator, bindings.items);
             },
             .result => |program| try builder.body.append(builder.allocator, .{ .result = try inlineValue(builder, program) }),
-            .task => |body| {
+            .task => |task| {
                 const count = builder.bindings.items.len;
 
-                try lower(builder, body, calls);
+                try lower(builder, task.body, calls);
+
+                var result: ?ir.SymbolId = null;
+
+                if (task.output) |output| {
+                    const value = try inlineValue(builder, output.value);
+
+                    if (output.name) |name| {
+                        const expression = builder.expressions.items[@backingInt(value)];
+                        const symbol = try builder.symbol(name, expression.type_id, expression.span);
+
+                        try builder.body.append(builder.allocator, .{ .constant = .{ .symbol = symbol, .value = value } });
+
+                        result = symbol;
+                    } else try builder.body.append(builder.allocator, .{ .evaluate = value });
+                }
 
                 builder.bindings.shrinkRetainingCapacity(count);
+                if (result) |symbol| try builder.bindings.append(builder.allocator, symbol);
             },
             .selection => |selection| {
                 const subject = try inlineValue(builder, selection.subject);
-                const type_id = builder.expressions.items[@intFromEnum(subject)].type_id;
-                const target = builder.types[@intFromEnum(type_id)];
+                const type_id = builder.expressions.items[@backingInt(subject)].type_id;
+                const target = builder.types[@backingInt(type_id)];
                 const cases = try builder.allocator.alloc(ir.SwitchCase, selection.cases.len);
                 var has_default = false;
 
@@ -51,7 +67,7 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
                     item.* = .{ .value = value, .body = try block(builder, source.body, calls) };
                 }
 
-                const exhaustive = has_default or (target == .enumeration and cases.len == target.enumeration.members.len) or (type_id == @as(ir.TypeId, @enumFromInt(@intFromEnum(ir.Scalar.bool))) and cases.len == 2);
+                const exhaustive = has_default or (target == .enumeration and cases.len == target.enumeration.members.len) or (type_id == @as(ir.TypeId, @fromBackingInt(@intCast(@backingInt(ir.Scalar.bool)))) and cases.len == 2);
 
                 try builder.body.append(builder.allocator, .{ .switch_stmt = .{ .subject = subject, .cases = cases, .exhaustive = exhaustive } });
             },
@@ -77,7 +93,7 @@ fn block(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.C
 
 fn call(builder: *Builder, invocation: Module.Call) Builder.Error!void {
     const value = try invoke(builder, invocation);
-    const span = builder.expressions.items[@intFromEnum(value)].span;
+    const span = builder.expressions.items[@backingInt(value)].span;
 
     const name = invocation.out orelse {
         try builder.body.append(builder.allocator, .{ .evaluate = value });
@@ -104,7 +120,7 @@ fn invoke(builder: *Builder, invocation: Module.Call) Builder.Error!ir.ExprId {
         try builder.bindings.append(builder.allocator, symbol);
     }
 
-    const argument = if (invocation.input_omitted) try builder.expression(.{ .type_id = @enumFromInt(@intFromEnum(ir.Scalar.void)), .span = location, .value = .unit }) else try inlineValue(builder, invocation.argument);
+    const argument = if (invocation.input_omitted) try builder.expression(.{ .type_id = @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))), .span = location, .value = .unit }) else try inlineValue(builder, invocation.argument);
 
     builder.bindings.shrinkRetainingCapacity(count);
 
@@ -112,7 +128,7 @@ fn invoke(builder: *Builder, invocation: Module.Call) Builder.Error!ir.ExprId {
 
     for (invocation.callee.stores, stores) |slot, *mapped| mapped.* = try builder.store(slot);
 
-    const span = builder.expressions.items[@intFromEnum(argument)].span;
+    const span = builder.expressions.items[@backingInt(argument)].span;
     const function = try builder.importFunction(invocation.callee, invocation.store_initializers);
 
     return builder.expression(.{ .type_id = invocation.callee.output_type, .span = span, .value = .{ .call = .{ .function = function, .argument = argument, .stores = stores } } });

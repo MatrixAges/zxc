@@ -21,7 +21,7 @@
 <Module>
   <Import from="shared/validate" />
 
-  <Call service="orders/create" args={$in} name="order" />
+  <Call service="orders/create" in={$in} name="order" />
 
   <Return value={ctx.order} />
 </Module>

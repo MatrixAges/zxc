@@ -62,7 +62,7 @@ const Loader = struct {
             else if (std.mem.eql(u8, node.name, "Call"))
                 .{ .call = try self.call(node) }
             else if (std.mem.eql(u8, node.name, "Task"))
-                .{ .task = try self.steps(node.children) }
+                .{ .task = .{ .node = node, .body = try self.taskBody(node, false) } }
             else if (std.mem.eql(u8, node.name, "Parallel")) parallel: {
                 const branches = try self.allocator.alloc(Flow.Branch, node.children.len);
 
@@ -75,13 +75,12 @@ const Loader = struct {
 
                         self.task_count += 1;
 
-                        break :task .{ .task = .{ .id = id, .node = child, .body = try self.steps(child.children) } };
+                        break :task .{ .task = .{ .id = id, .node = child, .body = try self.taskBody(child, true) } };
                     };
                 }
 
                 break :parallel .{ .parallel = branches };
-            }
-            else if (std.mem.eql(u8, node.name, "Switch")) selection: {
+            } else if (std.mem.eql(u8, node.name, "Switch")) selection: {
                 const cases = try self.allocator.alloc(Flow.Case, node.children.len);
 
                 for (node.children, cases) |child, *case| {
@@ -97,6 +96,21 @@ const Loader = struct {
         }
 
         return result.items;
+    }
+    fn taskBody(self: *Loader, node: rx.ast.Node, parallel: bool) Error![]const Flow.Step {
+        const body = try self.steps(node.children);
+        const output = target.optionalAttribute(node, "out") orelse return body;
+
+        if (Flow.returns(body)) return self.fail(output.value_location, "return_path", "Task.out and Return cannot both define the same task output");
+        if (!parallel) return body;
+
+        const result = try self.allocator.alloc(Flow.Step, body.len + 1);
+
+        @memcpy(result[0..body.len], body);
+
+        result[body.len] = .{ .value = .{ .result = output } };
+
+        return result;
     }
     fn call(self: *Loader, node: rx.ast.Node) Error!usize {
         const index = self.calls.items.len;

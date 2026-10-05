@@ -1,6 +1,6 @@
 ### XML을 선택한 이유
 
-RX는 비즈니스 단위의 조합과 경계를 넘는 데이터 흐름을 표현합니다. XML 태그는 노드의 책임을, 부모·자식 중첩은 계층을, 속성은 호출 대상과 입출력을 나타냅니다. 예를 들어 `Call`은 호출, `service`는 대상, `args`와 `ctx.<name>`은 인수와 결과 연결을 보여주므로 계산 구현을 읽기 전에 관계를 확인할 수 있습니다.
+RX는 비즈니스 단위의 조합과 경계를 넘는 데이터 흐름을 표현합니다. XML 태그는 노드의 책임을, 부모·자식 중첩은 계층을, 속성은 호출 대상과 입출력을 나타냅니다. 예를 들어 `Call`은 호출, `service`는 대상, `in`와 `ctx.<name>`은 인수와 결과 연결을 보여주므로 계산 구현을 읽기 전에 관계를 확인할 수 있습니다.
 
 명시적인 시작·종료 태그 덕분에 경계가 들여쓰기에 의존하지 않습니다. 사람과 AI는 부분 트리별로 읽고 생성하고 수정할 수 있고, 도구는 허용된 태그, 속성, 중첩을 검사할 수 있습니다. 계층마다 같은 규칙을 적용하여 단계별 조합과 프랙털 확장을 일관되게 표현합니다.
 
@@ -22,11 +22,11 @@ orders/create.rx
 
 ```xml
 <Module>
-  <Call service="users/load" args={$in.user_id} name="user" />
+  <Call service="users/load" in={$in.user_id} name="user" />
 
   <Call
     service="orders/create"
-    args={{user:ctx.user,items:$in.items}}
+    in={{user:ctx.user,items:$in.items}}
     name="order"
   />
 

@@ -24,11 +24,11 @@ fn reads(program: ir.Program, name: []const u8) bool {
         const symbol = statement.constant.symbol;
         const value = program.expression(statement.constant.value);
 
-        if (value.value != .tuple_field or !std.mem.eql(u8, program.symbols[@intFromEnum(symbol)].name, name)) continue;
+        if (value.value != .tuple_field or !std.mem.eql(u8, program.symbols[@backingInt(symbol)].name, name)) continue;
 
         const environment = program.expression(value.value.tuple_field.target);
 
-        if (environment.value != .reference or @intFromEnum(environment.value.reference) != 0) continue;
+        if (environment.value != .reference or @backingInt(environment.value.reference) != 0) continue;
 
         for (program.expressions) |expression| {
             if (expression.value == .reference and expression.value.reference == symbol) return true;
@@ -41,7 +41,10 @@ fn reads(program: ir.Program, name: []const u8) bool {
 fn steps(body: []const Flow.Step, name: []const u8) bool {
     for (body) |step| switch (step) {
         .result => |program| if (reads(program, name)) return true,
-        .task => |nested| if (steps(nested, name)) return true,
+        .task => |task| {
+            if (steps(task.body, name)) return true;
+            if (task.output) |output| if (reads(output.value, name)) return true;
+        },
         .selection => |selection| {
             if (reads(selection.subject, name)) return true;
 

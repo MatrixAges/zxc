@@ -5,8 +5,8 @@ RX は処理をまとめ、選択します。その中の型付き計算は ZX �
 ```xml
 <Module>
   <Task name="prepare">
-    <Call service="users/load" args={$in.user_id} name="user" />
-    <Call fn="quote" args={$in} name="quote" />
+    <Call service="users/load" in={$in.user_id} name="user" />
+    <Call fn="quote" in={$in} name="quote" />
   </Task>
 
   <Return value={ctx.quote} />
@@ -19,8 +19,8 @@ RX は処理をまとめ、選択します。その中の型付き計算は ZX �
 
 ```xml
 <Parallel>
-  <Call service="users/load" args={$in.user_id} name="user" />
-  <Call service="catalog/load" args={$in.item_id} name="item" />
+  <Call service="users/load" in={$in.user_id} name="user" />
+  <Call service="catalog/load" in={$in.item_id} name="item" />
 </Parallel>
 ```
 
@@ -31,11 +31,11 @@ RX は処理をまとめ、選択します。その中の型付き計算は ZX �
 ```xml
 <Switch on={$in.kind}>
   <Case value={priority}>
-    <Call service="orders/priority" args={$in} name="order" />
+    <Call service="orders/priority" in={$in} name="order" />
   </Case>
 
   <Default>
-    <Call service="orders/standard" args={$in} name="order" />
+    <Call service="orders/standard" in={$in} name="order" />
   </Default>
 </Switch>
 ```

@@ -1,6 +1,6 @@
 ### XML を選ぶ理由
 
-RX は業務単位の組み合わせと、境界を越えるデータの流れを表します。XML のタグはノードの責務を、親子の入れ子は階層を、属性は呼び出し先と入出力を示します。たとえば `Call` が呼び出し、`service` が対象、`args` と `ctx.<name>` が引数と結果の接続を表し、計算の実装を読む前に関係を確認できます。
+RX は業務単位の組み合わせと、境界を越えるデータの流れを表します。XML のタグはノードの責務を、親子の入れ子は階層を、属性は呼び出し先と入出力を示します。たとえば `Call` が呼び出し、`service` が対象、`in` と `ctx.<name>` が引数と結果の接続を表し、計算の実装を読む前に関係を確認できます。
 
 開始・終了タグによって境界はインデントに依存しません。人と AI は部分木ごとに読み、生成し、変更でき、ツールはタグ、属性、入れ子の規則を検査できます。各階層で同じ規則を使うことで、段階的な構成とフラクタルな拡張を一貫して表現できます。
 
@@ -22,11 +22,11 @@ orders/create.rx
 
 ```xml
 <Module>
-  <Call service="users/load" args={$in.user_id} name="user" />
+  <Call service="users/load" in={$in.user_id} name="user" />
 
   <Call
     service="orders/create"
-    args={{user:ctx.user,items:$in.items}}
+    in={{user:ctx.user,items:$in.items}}
     name="order"
   />
 

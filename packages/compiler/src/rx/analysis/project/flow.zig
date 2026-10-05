@@ -5,7 +5,7 @@ pub const Step = struct {
         call: usize,
         parallel: []const Branch,
         result: rx.ast.Attribute,
-        task: []const Step,
+        task: struct { node: rx.ast.Node, body: []const Step },
         selection: struct { subject: rx.ast.Attribute, cases: []const Case },
     },
 };
@@ -15,7 +15,7 @@ pub const Case = struct { value: ?rx.ast.Attribute, body: []const Step };
 pub fn terminates(sequence: []const Step) bool {
     for (sequence) |step| switch (step.value) {
         .result => return true,
-        .task => |body| if (terminates(body)) return true,
+        .task => |task| if (terminates(task.body)) return true,
         .selection => |selection| {
             var has_default = false;
             var all_return = true;
@@ -35,3 +35,16 @@ pub fn terminates(sequence: []const Step) bool {
 
 pub const Task = struct { id: usize, node: rx.ast.Node, body: []const Step };
 pub const Branch = union(enum) { call: usize, task: Task };
+
+pub fn returns(sequence: []const Step) bool {
+    for (sequence) |step| switch (step.value) {
+        .result => return true,
+        .task => |task| if (returns(task.body)) return true,
+        .selection => |selection| {
+            for (selection.cases) |case| if (returns(case.body)) return true;
+        },
+        .call, .parallel => {},
+    };
+
+    return false;
+}
