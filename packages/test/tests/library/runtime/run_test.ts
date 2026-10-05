@@ -8,10 +8,10 @@ type Native = { import_name: string; identity: string | null }
 
 type Module = { name: string; path?: string; imports: Array<string> }
 
-const [zig, output_dir, source, native_host] = process.argv.slice(2)
+const [zig, output_dir, source, optimize, native_host] = process.argv.slice(2)
 const directory = resolve(output_dir)
 
-test(`unified library runtime consumer ${source}`, () => {
+test(`unified library runtime consumer ${source} (${optimize})`, () => {
 	const modules = JSON.parse(readFileSync(join(directory, 'modules.json'), 'utf8')) as Array<Module>
 	const native_modules = native_host
 		? (JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8')) as Array<Native>)
@@ -37,6 +37,7 @@ test(`unified library runtime consumer ${source}`, () => {
 
 	const argv = [
 		'test',
+		`-O${optimize}`,
 		...(native_host ? ['--dep', `host=${native_modules[0].import_name}`] : []),
 		'--dep',
 		'alpha',

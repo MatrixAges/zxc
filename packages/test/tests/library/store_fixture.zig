@@ -5,7 +5,7 @@ const analysis = @import("rx_analysis");
 
 pub fn infer(path: []const u8, kind: []const u8) !analysis.module.Result {
     const allocator = std.testing.allocator;
-    const text = try std.fmt.allocPrint(allocator, "<Module><Store from='{s}' as='jobs'/><Call fn='read' in={{store.jobs.counter}} out='ctx.result'/><Return value={{ctx.result}}/></Module>", .{path});
+    const text = try std.fmt.allocPrint(allocator, "<Module><Store from='{s}' as='jobs'/><Call fn='read' in={{store.jobs.counter}}/><Return value={{$ctx.read}}/></Module>", .{path});
 
     defer allocator.free(text);
 

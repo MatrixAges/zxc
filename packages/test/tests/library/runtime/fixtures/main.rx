@@ -1,4 +1,4 @@
 <Module>
-  <Call service="select" in={$in} out="ctx.result" />
-  <Return value={ctx.result} />
+  <Call module="select" in={$in} />
+  <Return value={$ctx.select} />
 </Module>
