@@ -1,0 +1,27 @@
+import type { Binary } from "./model.zx"
+import { Symbol } from "../../../lexer/token_model.zx"
+import { Operator, Family } from "./model.zx"
+
+export type Input = Symbol
+
+export type Output = Binary
+
+export default function (in: Input): Output {
+  return match in {
+    Symbol.Coalesce => { operator: Operator.Coalesce, precedence: 1, family: Family.Coalesce },
+    Symbol.Or => { operator: Operator.Or, precedence: 2, family: Family.Logical },
+    Symbol.And => { operator: Operator.And, precedence: 3, family: Family.Logical },
+    Symbol.Equal => { operator: Operator.Equal, precedence: 4, family: Family.None },
+    Symbol.NotEqual => { operator: Operator.NotEqual, precedence: 4, family: Family.None },
+    Symbol.Less => { operator: Operator.Less, precedence: 5, family: Family.None },
+    Symbol.LessEqual => { operator: Operator.LessEqual, precedence: 5, family: Family.None },
+    Symbol.Greater => { operator: Operator.Greater, precedence: 5, family: Family.None },
+    Symbol.GreaterEqual => { operator: Operator.GreaterEqual, precedence: 5, family: Family.None },
+    Symbol.Plus => { operator: Operator.Add, precedence: 6, family: Family.None },
+    Symbol.Minus => { operator: Operator.Subtract, precedence: 6, family: Family.None },
+    Symbol.Star => { operator: Operator.Multiply, precedence: 7, family: Family.None },
+    Symbol.Slash => { operator: Operator.Divide, precedence: 7, family: Family.None },
+    Symbol.Percent => { operator: Operator.Remainder, precedence: 7, family: Family.None },
+    _ => { operator: Operator.None, precedence: 0, family: Family.None }
+  }
+}

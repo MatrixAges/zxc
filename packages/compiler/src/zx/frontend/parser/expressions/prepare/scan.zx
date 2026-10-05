@@ -1,0 +1,15 @@
+import type { Token } from "../../../lexer/token_model.zx"
+import type { Hint } from "./model.zx"
+import step from "./step.zx"
+
+export type Input = Token[]
+
+export type Output = Hint[]
+
+export default function (in: Input): Output {
+  const reversed = in.map(token => { kind: token.kind, symbol: token.symbol, word: token.word }).reverse()[0]
+  const hints: Hint[] = []
+  const result = reversed.reduce((state, token) => step({ state: state, kind: token.kind, symbol: token.symbol, word: token.word }), { arrow: false, parameter_start: false, after_identifier: false, hints: hints })
+
+  return result.hints.reverse()[0]
+}

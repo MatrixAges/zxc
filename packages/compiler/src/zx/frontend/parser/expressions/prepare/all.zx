@@ -1,0 +1,14 @@
+import type { Prepared } from "../../templates/model.zx"
+import type { Hint } from "./model.zx"
+import scan from "./scan.zx"
+
+export type Input = Prepared
+
+export type Output = { lexical: Prepared, hints: Hint[], interpolation_hints: Hint[][] }
+
+export default function (in: owned Input): Output {
+  const hints = scan(in.lexed.tokens)
+  const interpolation_hints = in.interpolations.map(item => scan(item.lexed.tokens))
+
+  return { lexical: in, hints: hints, interpolation_hints: interpolation_hints }
+}

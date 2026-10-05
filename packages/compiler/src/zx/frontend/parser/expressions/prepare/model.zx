@@ -1,0 +1,9 @@
+export enum Operator { None, Coalesce, Add, Subtract, Multiply, Divide, Remainder, Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual, And, Or }
+
+export enum Family { None, Coalesce, Logical }
+
+export type Binary = { operator: Operator, precedence: u8, family: Family }
+
+export type Hint = { lambda: bool, generic: bool, binary: Binary }
+
+export type State = { arrow: bool, parameter_start: bool, after_identifier: bool, hints: Hint[] }

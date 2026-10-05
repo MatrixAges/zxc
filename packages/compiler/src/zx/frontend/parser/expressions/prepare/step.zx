@@ -1,0 +1,19 @@
+import type { State } from "./model.zx"
+import { Kind, Symbol } from "../../../lexer/token_model.zx"
+import { Keyword } from "../../../lexer/keyword_model.zx"
+import operator from "./operator.zx"
+
+export type Input = { state: State, kind: Kind, symbol: Symbol, word: Keyword }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const ending = in.symbol == Symbol.CloseParen && in.state.arrow
+  const parameter_start = ending || (in.kind == Kind.Identifier && in.state.after_identifier)
+  const after_identifier = ending || (in.symbol == Symbol.Comma && in.state.parameter_start)
+  const lambda = (in.kind == Kind.Identifier && in.state.arrow) || (in.symbol == Symbol.OpenParen && in.state.parameter_start)
+  const generic = in.word == Keyword.QueryOne || in.word == Keyword.QueryMany || in.word == Keyword.Insert || in.word == Keyword.Update || in.word == Keyword.Delete || in.word == Keyword.Transaction
+  const hint = { lambda: lambda, generic: generic, binary: operator(in.symbol) }
+
+  return { arrow: in.symbol == Symbol.Arrow, parameter_start: parameter_start, after_identifier: after_identifier, hints: in.state.hints.push(hint)[0] }
+}

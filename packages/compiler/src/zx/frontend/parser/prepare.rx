@@ -1,0 +1,7 @@
+<Module>
+  <Call service="../lexical" in={$in} out="ctx.lexical" />
+
+  <Call fn="expressions/prepare/all" in={ctx.lexical} out="ctx.prepared" />
+
+  <Return value={ctx.prepared} />
+</Module>
