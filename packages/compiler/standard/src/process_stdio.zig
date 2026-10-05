@@ -4,7 +4,7 @@ pub fn readStdin(allocator: std.mem.Allocator, io: std.Io, max_bytes: u64) ![]co
     var buffer: [4096]u8 = undefined;
     var reader = std.Io.File.stdin().readerStreaming(io, &buffer);
 
-    return reader.interface.allocRemaining(allocator, .limited64(max_bytes +| 1));
+    return reader.interface.allocRemaining(allocator, .limited64(max_bytes));
 }
 
 pub fn readStdinText(allocator: std.mem.Allocator, io: std.Io, max_bytes: u64) ![]const u8 {
