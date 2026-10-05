@@ -1,0 +1,13 @@
+import consume from "./consume.zx"
+
+export type Input = u64[]
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+  const values = in.map(item => item)
+  const next = consume(values)
+  const final = consume(next)
+
+  return final.reverse()[0]
+}

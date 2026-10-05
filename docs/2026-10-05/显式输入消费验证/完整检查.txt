@@ -1,0 +1,38 @@
+Build Summary: 25/25 steps succeeded; 87/87 tests passed
+test-owned-input success
++- run test 22 pass (22 total) 38ms MaxRSS:2M
+|  +- compile test Debug native success 2s MaxRSS:455M
+|     +- WriteFile interfaces/0.d.zx cached
++- run test 9 pass (9 total) 157ms MaxRSS:3M
+|  +- compile test Debug native cached 48ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 6 pass (6 total) 249ms MaxRSS:3M
+|  +- compile test Debug native cached 49ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test owned-input-source 10 pass (10 total) 6ms MaxRSS:1M
+|  +- compile test owned-input-source Debug native cached 61ms MaxRSS:21M
+|     +- run exe compile-owned-input (source.zig) cached
+|     |  +- compile exe compile-owned-input Debug native cached 48ms MaxRSS:21M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-linked 10 pass (10 total) 5ms MaxRSS:1M
+|  +- compile test owned-input-linked Debug native cached 66ms MaxRSS:21M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-library 10 pass (10 total) 7ms MaxRSS:1M
+|  +- compile test owned-input-library Debug native cached 58ms MaxRSS:21M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-republished 10 pass (10 total) 5ms MaxRSS:1M
+|  +- compile test owned-input-republished Debug native cached 67ms MaxRSS:21M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-owned 10 pass (10 total) 5ms MaxRSS:1M
+   +- compile test owned-input-owned Debug native cached 57ms MaxRSS:21M
+      +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)

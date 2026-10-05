@@ -1,0 +1,38 @@
+Build Summary: 25/25 steps succeeded; 87/87 tests passed
+test-owned-input success
++- run test 22 pass (22 total) 13ms MaxRSS:1M
+|  +- compile test ReleaseSafe native success 13s MaxRSS:468M
+|     +- WriteFile interfaces/0.d.zx cached
++- run test 9 pass (9 total) 43ms MaxRSS:1M
+|  +- compile test ReleaseSafe native success 16s MaxRSS:530M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 6 pass (6 total) 68ms MaxRSS:1M
+|  +- compile test ReleaseSafe native success 17s MaxRSS:601M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test owned-input-source 10 pass (10 total) 3ms MaxRSS:1M
+|  +- compile test owned-input-source ReleaseSafe native success 6s MaxRSS:336M
+|     +- run exe compile-owned-input (source.zig) success 5ms
+|     |  +- compile exe compile-owned-input ReleaseSafe native success 18s MaxRSS:574M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-linked 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test owned-input-linked ReleaseSafe native success 6s MaxRSS:317M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-library 10 pass (10 total) 3ms MaxRSS:1M
+|  +- compile test owned-input-library ReleaseSafe native success 6s MaxRSS:335M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-republished 10 pass (10 total) 3ms MaxRSS:1M
+|  +- compile test owned-input-republished ReleaseSafe native success 6s MaxRSS:314M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-owned 10 pass (10 total) 3ms MaxRSS:1M
+   +- compile test owned-input-owned ReleaseSafe native success 6s MaxRSS:311M
+      +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
