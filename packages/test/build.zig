@@ -10,6 +10,7 @@ pub fn build(b: *std.Build) void {
 
     test_step.dependOn(@import("build/reduce_runtime.zig").add(b, cli_dependency, target, optimize));
     test_step.dependOn(@import("build/multiple_append.zig").add(b, compiler, target, optimize));
+    test_step.dependOn(@import("build/store_ownership_proof.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/store_reclamation.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/store_alias_lifetime.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/cached_ownership.zig").add(b, compiler, target, optimize));
