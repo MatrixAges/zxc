@@ -1,0 +1,282 @@
+[
+	{
+		"input": "https://User:pa:ss@EXAMPLE.com:443/a/../b?x='a'#片段",
+		"base": null,
+		"result": "https://User:pa%3Ass@example.com/b?x=%27a%27#%E7%89%87%E6%AE%B5",
+		"node": "https://User:pa%3Ass@example.com/b?x=%27a%27#%E7%89%87%E6%AE%B5",
+		"error": null
+	},
+	{
+		"input": "http:example.com",
+		"base": null,
+		"result": "http://example.com/",
+		"node": "http://example.com/",
+		"error": null
+	},
+	{
+		"input": "custom:/a//b",
+		"base": null,
+		"result": "custom:/a//b",
+		"node": "custom:/a//b",
+		"error": null
+	},
+	{
+		"input": "custom:/.//a",
+		"base": null,
+		"result": "custom:/.//a",
+		"node": "custom:/.//a",
+		"error": null
+	},
+	{
+		"input": "custom:a  ?q",
+		"base": null,
+		"result": "custom:a %20?q",
+		"node": "custom:a %20?q",
+		"error": null
+	},
+	{
+		"input": "custom://",
+		"base": null,
+		"result": "custom://",
+		"node": "custom://",
+		"error": null
+	},
+	{
+		"input": "custom://a",
+		"base": null,
+		"result": "custom://a",
+		"node": "custom://a",
+		"error": null
+	},
+	{
+		"input": "custom://a:0/",
+		"base": null,
+		"result": "custom://a:0/",
+		"node": "custom://a:0/",
+		"error": null
+	},
+	{
+		"input": "http://u@v:p@host/",
+		"base": null,
+		"result": "http://u%40v:p@host/",
+		"node": "http://u%40v:p@host/",
+		"error": null
+	},
+	{
+		"input": "http://[::ffff:192.0.2.128]:80",
+		"base": null,
+		"result": "http://[::ffff:c000:280]/",
+		"node": "http://[::ffff:c000:280]/",
+		"error": null
+	},
+	{
+		"input": " http://a/b\n c ",
+		"base": null,
+		"result": "http://a/b%20c",
+		"node": "http://a/b%20c",
+		"error": null
+	},
+	{
+		"input": "http://a:65536",
+		"base": null,
+		"result": "ERROR",
+		"node": "ERROR",
+		"error": "error: InvalidUrl"
+	},
+	{
+		"input": "http://a:+80",
+		"base": null,
+		"result": "ERROR",
+		"node": "ERROR",
+		"error": "error: InvalidUrl"
+	},
+	{
+		"input": "http://a:00080",
+		"base": null,
+		"result": "http://a/",
+		"node": "http://a/",
+		"error": null
+	},
+	{
+		"input": "file:///C|/a/../../b",
+		"base": null,
+		"result": "file:///C:/b",
+		"node": "file:///C:/b",
+		"error": null
+	},
+	{
+		"input": "file://localhost/a",
+		"base": null,
+		"result": "file:///a",
+		"node": "file:///a",
+		"error": null
+	},
+	{
+		"input": "file://C:/a",
+		"base": null,
+		"result": "file:///C:/a",
+		"node": "file:///C:/a",
+		"error": null
+	},
+	{
+		"input": "file://server/share/a",
+		"base": null,
+		"result": "file://server/share/a",
+		"node": "file://server/share/a",
+		"error": null
+	},
+	{
+		"input": "file:",
+		"base": null,
+		"result": "file:///",
+		"node": "file:///",
+		"error": null
+	},
+	{
+		"input": "file:/",
+		"base": null,
+		"result": "file:///",
+		"node": "file:///",
+		"error": null
+	},
+	{
+		"input": "file:////x",
+		"base": null,
+		"result": "file:////x",
+		"node": "file:////x",
+		"error": null
+	},
+	{
+		"input": "../d?x#y",
+		"base": "https://a/b/c?q#f",
+		"result": "https://a/d?x#y",
+		"node": "https://a/d?x#y",
+		"error": null
+	},
+	{
+		"input": "https:d",
+		"base": "https://a/b/c",
+		"result": "https://a/b/d",
+		"node": "https://a/b/d",
+		"error": null
+	},
+	{
+		"input": "https:/d",
+		"base": "https://a/b/c",
+		"result": "https://a/d",
+		"node": "https://a/d",
+		"error": null
+	},
+	{
+		"input": "https:\\d",
+		"base": "https://a/b/c",
+		"result": "https://a/d",
+		"node": "https://a/d",
+		"error": null
+	},
+	{
+		"input": "//b/d",
+		"base": "https://a/b/c",
+		"result": "https://b/d",
+		"node": "https://b/d",
+		"error": null
+	},
+	{
+		"input": "",
+		"base": "https://a/b/c?q#f",
+		"result": "https://a/b/c?q",
+		"node": "https://a/b/c?q",
+		"error": null
+	},
+	{
+		"input": "?",
+		"base": "https://a/b/c?q#f",
+		"result": "https://a/b/c?",
+		"node": "https://a/b/c?",
+		"error": null
+	},
+	{
+		"input": "#",
+		"base": "https://a/b/c?q#f",
+		"result": "https://a/b/c?q#",
+		"node": "https://a/b/c?q#",
+		"error": null
+	},
+	{
+		"input": "#f",
+		"base": "mailto:a?x",
+		"result": "mailto:a?x#f",
+		"node": "mailto:a?x#f",
+		"error": null
+	},
+	{
+		"input": "",
+		"base": "mailto:a?x",
+		"result": "ERROR",
+		"node": "ERROR",
+		"error": "error: InvalidUrl"
+	},
+	{
+		"input": "../d",
+		"base": "custom:/a/b",
+		"result": "custom:/d",
+		"node": "custom:/d",
+		"error": null
+	},
+	{
+		"input": "/d",
+		"base": "file:///C:/a/b",
+		"result": "file:///C:/d",
+		"node": "file:///C:/d",
+		"error": null
+	},
+	{
+		"input": "../d",
+		"base": "file:///C:/a/b",
+		"result": "file:///C:/d",
+		"node": "file:///C:/d",
+		"error": null
+	},
+	{
+		"input": "D|/x",
+		"base": "file:///C:/a/b",
+		"result": "file:///D:/x",
+		"node": "file:///D:/x",
+		"error": null
+	},
+	{
+		"input": "file:D|/x",
+		"base": "file:///C:/a/b",
+		"result": "file:///D:/x",
+		"node": "file:///D:/x",
+		"error": null
+	},
+	{
+		"input": "//localhost/x",
+		"base": "file://server/a",
+		"result": "file:///x",
+		"node": "file:///x",
+		"error": null
+	},
+	{
+		"input": "file:?q",
+		"base": "file:///C:/a/b",
+		"result": "file:///C:/a/b?q",
+		"node": "file:///C:/a/b?q",
+		"error": null
+	},
+	{
+		"input": "file:#f",
+		"base": "file:///C:/a/b",
+		"result": "file:///C:/a/b#f",
+		"node": "file:///C:/a/b#f",
+		"error": null
+	},
+	{
+		"input": "/D:/x",
+		"base": "file:///C:/a/b",
+		"result": "file:///D:/x",
+		"node": "file:///D:/x",
+		"error": null
+	}
+]

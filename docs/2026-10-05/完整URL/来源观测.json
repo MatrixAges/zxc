@@ -1,0 +1,67 @@
+[
+	{
+		"input": "https://u:p@EXAMPLE.com:443/a",
+		"result": "https://example.com",
+		"node": "https://example.com"
+	},
+	{
+		"input": "http://[::1]:8080/",
+		"result": "http://[::1]:8080",
+		"node": "http://[::1]:8080"
+	},
+	{
+		"input": "ftp://host/a",
+		"result": "ftp://host",
+		"node": "ftp://host"
+	},
+	{
+		"input": "ws://host:80",
+		"result": "ws://host",
+		"node": "ws://host"
+	},
+	{
+		"input": "wss://host:443",
+		"result": "wss://host",
+		"node": "wss://host"
+	},
+	{
+		"input": "file:///a",
+		"result": "null",
+		"node": "null"
+	},
+	{
+		"input": "custom://host/a",
+		"result": "null",
+		"node": "null"
+	},
+	{
+		"input": "blob:https://EXAMPLE.com:443/id",
+		"result": "https://example.com",
+		"node": "https://example.com"
+	},
+	{
+		"input": "blob:http://host:8080/id",
+		"result": "http://host:8080",
+		"node": "http://host:8080"
+	},
+	{
+		"input": "blob:ftp://host/id",
+		"result": "null",
+		"node": "null"
+	},
+	{
+		"input": "blob:blob:https://host/id",
+		"result": "null",
+		"node": "null"
+	},
+	{
+		"input": "blob:bad",
+		"result": "null",
+		"node": "null"
+	},
+	{
+		"input": "blob:file:///a",
+		"result": "null",
+		"node": "null"
+	}
+]

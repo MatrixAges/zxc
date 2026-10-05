@@ -127,3 +127,42 @@ zig build-exe --dep url \
 局部编译通过。[32 次主机观测](完整URL/主机观测.json)中 30 次与本机 Node 相符；纯 ASCII 的 xn-- 和 xn--8i7caa 在生产实现中按当前规范保留，Node 拒绝，差异已保留在原始记录中。没有执行全量测试。IDNA 生成器重新运行后，两份静态表 SHA-256 均与已提交版本一致。
 
 自我批判：上述差异说明宿主对照不是规范证明；当前入口不返回非致命 validation error 诊断，也没有提供 strict 域名有效性 API。完整 URL 状态机、序列化、origin、file 与公开接口仍需实施，主机层的局部成功不能替代最终消费证据。
+
+## URL 解析、序列化与 origin 阶段
+
+Intent：把已有主机和编码层接成绝对地址、相对地址及 file URL 的原生解析链，并提供稳定序列化和来源字符串。Data：WHATWG basic URL parser 的 scheme、relative、authority、file、path、opaque path、query、fragment 状态及序列化、origin 算法。Edges：当前为内部 UTF-8 字符串接口；不模拟 HTML 文档编码、浏览器 blob 注册表或 URL setter 的 state override。Answer：Parsed 持有 arena 与 Url 记录，调用方 deinit 释放；序列化与 origin 返回调用方 allocator 持有的独立字节串。
+
+实现按 parser/root（入口及相对地址）、authority（凭据、主机、端口）、path（路径段归一）、file（file 和盘符分支）分工。仅 ASCII 分隔符控制分支，非 ASCII 原始 UTF-8 字节交给对应编码或域名层。解析入口清除首尾 C0/空格及全串 TAB/CR/LF，保持可空 query/fragment 与空值的差别。基础 URL 与目标 URL 使用同一结果 arena，继承的切片不会悬空。
+
+序列化直接使用已标准化的组件；无 host 且路径以空段开始时添加 /.，避免输出被重解析成 authority。origin 返回网络协议的 scheme/host/port 元组字符串；file 和非网络协议返回 null；blob 只从有效内嵌 http/https 地址提取元组来源，未引入浏览器资源注册表。
+
+```mermaid
+flowchart TD
+  Input[输入与可选base] --> Clean[清理与scheme识别]
+  Clean --> Relative[相对地址继承]
+  Clean --> Authority[凭据 主机 端口]
+  Clean --> File[file与盘符]
+  Clean --> Opaque[不透明路径]
+  Relative --> Path[点段归一与路径编码]
+  Authority --> Path
+  File --> Path
+  Path --> Tail[查询与片段]
+  Opaque --> Tail
+  Tail --> Record[Parsed持有Url与arena]
+  Record --> Serialize[URL与路径序列化]
+  Record --> Origin[来源字符串]
+```
+
+```sh
+zig build-exe --dep url \
+  -Mroot=docs/2026-10-05/完整URL/观察工具/url.zig \
+  -Murl=packages/compiler/standard/src/url/root.zig \
+  -femit-bin=/tmp/zxc_url
+
+/tmp/zxc_url '../d?x#y' 'https://a/b/c?q#f'
+/tmp/zxc_url --origin 'blob:https://example.com/id'
+```
+
+局部编译通过；[40 次解析观测](完整URL/解析观测.json)和[13 次来源观测](完整URL/来源观测.json)与本机 Node 相符。观测包含默认端口、无效端口、重复 @、相对地址继承、file localhost/盘符/UNC、空查询和片段、不透明基地址限制以及 blob 来源。未新建测试套件，未执行全量测试。
+
+自我批判：这是内部解析入口的阶段证据，不是全规范一致性证明。尚未开放 ZX 接口、URL 字段修改、文件路径转换及应用/库消费。前述 ASCII ACE 与宿主 Node 的规范版本差异仍成立；后续公开语义要明确区分严格 IDNA 转换与 URL 域名兼容处理。完整功能与自举仍未完成。
