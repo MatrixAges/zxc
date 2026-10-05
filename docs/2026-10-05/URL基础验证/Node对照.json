@@ -1,0 +1,666 @@
+{
+	"node": "v25.8.1",
+	"compared": 83,
+	"outside_scope": 11,
+	"ipv6_masks": 256,
+	"results": [
+		{
+			"kind": "ipv4",
+			"input": "0",
+			"expected": "0.0.0.0",
+			"observed": "0.0.0.0",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "0x",
+			"expected": "0.0.0.0",
+			"observed": "0.0.0.0",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "0X",
+			"expected": "0.0.0.0",
+			"observed": "0.0.0.0",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "00",
+			"expected": "0.0.0.0",
+			"observed": "0.0.0.0",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "1",
+			"expected": "0.0.0.1",
+			"observed": "0.0.0.1",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "256",
+			"expected": "0.0.1.0",
+			"observed": "0.0.1.0",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "65536",
+			"expected": "0.1.0.0",
+			"observed": "0.1.0.0",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "16777216",
+			"expected": "1.0.0.0",
+			"observed": "1.0.0.0",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "4294967295",
+			"expected": "255.255.255.255",
+			"observed": "255.255.255.255",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "0xffffffff",
+			"expected": "255.255.255.255",
+			"observed": "255.255.255.255",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "037777777777",
+			"expected": "255.255.255.255",
+			"observed": "255.255.255.255",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "127.1",
+			"expected": "127.0.0.1",
+			"observed": "127.0.0.1",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.2.3",
+			"expected": "1.2.0.3",
+			"observed": "1.2.0.3",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.2.65535",
+			"expected": "1.2.255.255",
+			"observed": "1.2.255.255",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.16777215",
+			"expected": "1.255.255.255",
+			"observed": "1.255.255.255",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "127.0.0.1.",
+			"expected": "127.0.0.1",
+			"observed": "127.0.0.1",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "0177.0.0.1",
+			"expected": "127.0.0.1",
+			"observed": "127.0.0.1",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "0x7f.0X0.0x0.0X1",
+			"expected": "127.0.0.1",
+			"observed": "127.0.0.1",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "255.255.255.255",
+			"expected": "255.255.255.255",
+			"observed": "255.255.255.255",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "000000000000000000000000001",
+			"expected": "0.0.0.1",
+			"observed": "0.0.0.1",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.0x",
+			"expected": "1.0.0.0",
+			"observed": "1.0.0.0",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "000.000.000.000",
+			"expected": "0.0.0.0",
+			"observed": "0.0.0.0",
+			"compared": true
+		},
+		{
+			"kind": "ipv4",
+			"input": "",
+			"observed": null,
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": ".",
+			"observed": ".",
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "..",
+			"observed": "..",
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1..2",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.2.3.4.5",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.2.3.4..",
+			"observed": "1.2.3.4..",
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "256.0.0.1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.256.0.1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.2.256.1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.2.3.256",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.2.65536",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.16777216",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "4294967296",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "0x100000000",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "040000000000",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "18446744073709551616",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "0xFFFFFFFFFFFFFFFFF",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "09",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "078",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "0xg",
+			"observed": "0xg",
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.2.3.-1",
+			"observed": "1.2.3.-1",
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "+1",
+			"observed": "+1",
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1_0",
+			"observed": "1_0",
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "１",
+			"observed": "0.0.0.1",
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "0b10",
+			"observed": "0b10",
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv4",
+			"input": "1.2.3. 4",
+			"observed": null,
+			"compared": false,
+			"reason": "domain or IDNA processing lies outside the direct ASCII IPv4 parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+			"expected": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+			"observed": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255",
+			"expected": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+			"observed": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "::",
+			"expected": "::",
+			"observed": "::",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "::1",
+			"expected": "::1",
+			"observed": "::1",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "1::",
+			"expected": "1::",
+			"observed": "1::",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3:4:5:6:7:8",
+			"expected": "1:2:3:4:5:6:7:8",
+			"observed": "1:2:3:4:5:6:7:8",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "0001:0002:0003:0004:0005:0006:0007:0008",
+			"expected": "1:2:3:4:5:6:7:8",
+			"observed": "1:2:3:4:5:6:7:8",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "FFFF:ABCD:0:0:0:0:0:1",
+			"expected": "ffff:abcd::1",
+			"observed": "ffff:abcd::1",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:0:0:2:0:0:3:4",
+			"expected": "1::2:0:0:3:4",
+			"observed": "1::2:0:0:3:4",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:0:0:2:0:0:0:3",
+			"expected": "1:0:0:2::3",
+			"observed": "1:0:0:2::3",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "0:0:1:2:3:4:5:6",
+			"expected": "::1:2:3:4:5:6",
+			"observed": "::1:2:3:4:5:6",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3:4:5:6:0:0",
+			"expected": "1:2:3:4:5:6::",
+			"observed": "1:2:3:4:5:6::",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3:0:4:5:6:7",
+			"expected": "1:2:3:0:4:5:6:7",
+			"observed": "1:2:3:0:4:5:6:7",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3::4:5:6:7",
+			"expected": "1:2:3:0:4:5:6:7",
+			"observed": "1:2:3:0:4:5:6:7",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "::ffff:192.0.2.128",
+			"expected": "::ffff:c000:280",
+			"observed": "::ffff:c000:280",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3:4:5:6:192.0.2.1",
+			"expected": "1:2:3:4:5:6:c000:201",
+			"observed": "1:2:3:4:5:6:c000:201",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "::0.0.0.0",
+			"expected": "::",
+			"observed": "::",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "::255.255.255.255",
+			"expected": "::ffff:ffff",
+			"observed": "::ffff:ffff",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "::ffff:0:192.0.2.1",
+			"expected": "::ffff:0:c000:201",
+			"observed": "::ffff:0:c000:201",
+			"compared": true
+		},
+		{
+			"kind": "ipv6",
+			"input": "",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": ":",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": ":::",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "1::2::3",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3:4:5:6:7",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3:4:5:6:7:8:9",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3:4:5:6:7:8::",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::1:2:3:4:5:6:7:8",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "12345::",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "gggg::",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": ":1:2:3:4:5:6:7",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3:4:5:6:7:",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "[::1]",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "fe80::1%eth0",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::192.168.00.1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::192.168.0.256",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::192.168.1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::192.168.1.1.1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::0x7f.0.0.1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::+1.0.0.1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "192.0.2.1::",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "1:2:3:4:5:6:7:192.0.2.1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::192.0.2.1:1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::1.2..4",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::1.2.3.-1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": "::１",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		},
+		{
+			"kind": "ipv6",
+			"input": " ::1",
+			"observed": null,
+			"compared": true,
+			"reason": "numeric host parser"
+		}
+	]
+}
