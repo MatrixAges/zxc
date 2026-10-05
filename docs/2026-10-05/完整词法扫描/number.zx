@@ -1,0 +1,27 @@
+import type { AdvanceInput, LexerState } from "./model.zx"
+import { Phase } from "../自举词法扫描/number_state.zx"
+import isDigit from "../自举词法扫描/is_digit.zx"
+import step from "../自举词法扫描/number_step.zx"
+import endNumber from "./end_number.zx"
+import begin from "./begin.zx"
+
+export type Input = AdvanceInput
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  const decimal_boundary = in.state.number.phase == Phase.Integer && in.byte == 46 && (!in.has_next || !isDigit(in.next))
+  const number = step({ byte: in.byte, state: in.state.number })
+
+  if (decimal_boundary || number.phase == Phase.Done) {
+    const ended = endNumber(in.state)
+
+    if (ended.diagnostic.message != "") {
+      return ended
+    }
+
+    return begin({ byte: in.byte, next: in.next, after: in.after, has_next: in.has_next, has_after: in.has_after, state: ended })
+  }
+
+  return { ...in.state, number: number }
+}

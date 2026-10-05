@@ -11,7 +11,7 @@ export type Output = State
 
 export default function (in: Input): Output {
   if (in.state.phase == Phase.Done) {
-    return in.state
+    return { end: in.state.end, phase: in.state.phase, last_byte: in.state.last_byte, separators_valid: in.state.separators_valid }
   }
 
   if (in.state.phase == Phase.FractionStart) {

@@ -1,0 +1,15 @@
+export type Input = { byte: u8, next: u8, after: u8, has_next: bool, has_after: bool }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  if (in.byte == 46 && in.has_after && in.next == 46 && in.after == 46) {
+    return 3
+  }
+
+  if (in.has_next && ((in.byte == 61 && in.next == 62) || (in.next == 61 && (in.byte == 61 || in.byte == 33 || in.byte == 60 || in.byte == 62)) || (in.byte == in.next && (in.byte == 63 || in.byte == 38 || in.byte == 124)))) {
+    return 2
+  }
+
+  return 1
+}

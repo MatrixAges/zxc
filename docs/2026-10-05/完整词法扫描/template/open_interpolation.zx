@@ -1,0 +1,26 @@
+import type { LexerState } from "../model.zx"
+import { Mode } from "../model.zx"
+
+export type Input = LexerState
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  const frame = { mode: in.mode, start: in.start, braces: in.braces, depth: in.depth }
+  const frames = in.frames.push(frame)[0]
+
+  return {
+      source_length: in.source_length, warmed: in.warmed, ahead_one: in.ahead_one, ahead_two: in.ahead_two, keyword: in.keyword,
+      offset: in.offset,
+      skip_until: in.offset + 2,
+      mode: Mode.Interpolation,
+      start: in.offset + 2,
+      braces: 0,
+      depth: in.depth + 1,
+      frames: frames,
+      number: in.number,
+      tokens: in.tokens,
+      comments: in.comments,
+      diagnostic: in.diagnostic
+    }
+}

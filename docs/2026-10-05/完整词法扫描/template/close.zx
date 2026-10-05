@@ -1,0 +1,35 @@
+import type { LexerState } from "../model.zx"
+import { Mode } from "../model.zx"
+import emit from "../emit.zx"
+
+export type Input = LexerState
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  if (in.frames.length == 0) {
+    return emit({ kind: "template", start: in.start, end: in.offset + 1, comment: false, state: { ...in, mode: Mode.Idle } })
+  }
+
+  const last = in.frames.length - 1
+  const mode = in.frames[last].mode
+  const start = in.frames[last].start
+  const braces = in.frames[last].braces
+  const depth = in.frames[last].depth
+  const frames = in.frames.pop()[0]
+
+  return {
+      source_length: in.source_length, warmed: in.warmed, ahead_one: in.ahead_one, ahead_two: in.ahead_two, keyword: in.keyword,
+      offset: in.offset,
+      skip_until: in.skip_until,
+      mode: mode,
+      start: start,
+      braces: braces,
+      depth: depth,
+      frames: frames,
+      number: in.number,
+      tokens: in.tokens,
+      comments: in.comments,
+      diagnostic: in.diagnostic
+    }
+}

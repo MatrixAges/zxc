@@ -1,0 +1,33 @@
+import type { Utf8State } from "./model.zx"
+
+export type Input = { byte: u8, state: Utf8State }
+
+export type Output = Utf8State
+
+export default function (in: Input): Output {
+  if (!in.state.valid) {
+    return in.state
+  }
+
+  if (in.state.remaining > 0) {
+    return { valid: in.byte >= in.state.low && in.byte <= in.state.high, remaining: in.state.remaining - 1, low: 128, high: 191 }
+  }
+
+  if (in.byte < 128) {
+    return in.state
+  }
+
+  if (in.byte >= 194 && in.byte <= 223) {
+    return { valid: true, remaining: 1, low: 128, high: 191 }
+  }
+
+  if (in.byte >= 224 && in.byte <= 239) {
+    return { valid: true, remaining: 2, low: in.byte == 224 ? 160 : 128, high: in.byte == 237 ? 159 : 191 }
+  }
+
+  if (in.byte >= 240 && in.byte <= 244) {
+    return { valid: true, remaining: 3, low: in.byte == 240 ? 144 : 128, high: in.byte == 244 ? 143 : 191 }
+  }
+
+  return { ...in.state, valid: false }
+}

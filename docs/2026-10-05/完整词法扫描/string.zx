@@ -1,0 +1,28 @@
+import type { AdvanceInput, LexerState } from "./model.zx"
+import { Mode } from "./model.zx"
+import emit from "./emit.zx"
+import fail from "./fail.zx"
+
+export type Input = AdvanceInput
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  if (in.state.mode == Mode.StringEscape) {
+    if (in.byte != 34 && in.byte != 92 && in.byte != 110 && in.byte != 114 && in.byte != 116) {
+      return fail({ code: "lexical", start: in.state.offset - 1, end: in.state.offset + 1, message: "unsupported string escape", state: in.state })
+    }
+
+    return { ...in.state, mode: Mode.String }
+  }
+
+  if (in.byte == 34) {
+    return emit({ kind: "string", start: in.state.start, end: in.state.offset + 1, comment: false, state: { ...in.state, mode: Mode.Idle } })
+  }
+
+  if (in.byte < 32) {
+    return fail({ code: "lexical", start: in.state.start, end: in.state.offset + 1, message: "control characters must be escaped in strings", state: in.state })
+  }
+
+  return { ...in.state, mode: in.byte == 92 ? Mode.StringEscape : Mode.String }
+}

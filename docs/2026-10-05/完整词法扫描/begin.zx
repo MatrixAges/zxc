@@ -1,0 +1,60 @@
+import type { AdvanceInput, LexerState } from "./model.zx"
+import { Mode } from "./model.zx"
+import { Phase } from "../自举词法扫描/number_state.zx"
+import { Keyword } from "./keyword_model.zx"
+import keywordTransition from "./keyword_transition.zx"
+import isDigit from "../自举词法扫描/is_digit.zx"
+import isLetter from "./is_letter.zx"
+import isPunctuation from "./is_punctuation.zx"
+import operatorLength from "./operator_length.zx"
+import emit from "./emit.zx"
+import fail from "./fail.zx"
+import openTemplate from "./template/open_template.zx"
+
+export type Input = AdvanceInput
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  const offset = in.state.offset
+
+  if (in.byte == 32 || (in.byte >= 9 && in.byte <= 13)) {
+    return in.state
+  }
+
+  if (in.byte == 47 && in.has_next) {
+    const next = in.next
+
+    if (next == 47 || next == 42) {
+      const next_skip_until = offset + 2
+
+      return { ...in.state, skip_until: next_skip_until, mode: next == 47 ? Mode.LineComment : Mode.BlockComment, start: offset }
+    }
+  }
+
+  if (isLetter(in.byte) || in.byte == 95 || in.byte == 36) {
+    return { ...in.state, keyword: keywordTransition({ keyword: Keyword.Root, byte: in.byte }), mode: Mode.Identifier, start: offset }
+  }
+
+  if (isDigit(in.byte)) {
+    return { ...in.state, mode: Mode.Number, start: offset, number: { end: 1, phase: Phase.Integer, last_byte: in.byte, separators_valid: true } }
+  }
+
+  if (in.byte == 34) {
+    return { ...in.state, mode: Mode.String, start: offset }
+  }
+
+  if (in.byte == 96) {
+    return openTemplate(in.state)
+  }
+
+  if (!isPunctuation(in.byte)) {
+    return fail({ code: "lexical", start: offset, end: offset + 1, message: "unexpected character", state: in.state })
+  }
+
+  const length = operatorLength({ byte: in.byte, next: in.next, after: in.after, has_next: in.has_next, has_after: in.has_after })
+
+  const next_skip_until = offset + length
+
+  return emit({ kind: "punctuation", start: offset, end: offset + length, comment: false, state: { ...in.state, skip_until: next_skip_until } })
+}

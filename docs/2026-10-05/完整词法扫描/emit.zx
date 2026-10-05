@@ -1,0 +1,41 @@
+import type { LexerState } from "./model.zx"
+
+export type Input = { kind: string, start: u64, end: u64, comment: bool, state: LexerState }
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  const span = { start: in.start, end: in.end }
+
+  if (in.comment) {
+    return {
+      source_length: in.state.source_length, warmed: in.state.warmed, ahead_one: in.state.ahead_one, ahead_two: in.state.ahead_two, keyword: in.state.keyword,
+      offset: in.state.offset,
+      skip_until: in.state.skip_until,
+      mode: in.state.mode,
+      start: in.state.start,
+      braces: in.state.braces,
+      depth: in.state.depth,
+      frames: in.state.frames,
+      number: in.state.number,
+      tokens: in.state.tokens,
+      comments: in.state.comments.push(span)[0],
+      diagnostic: in.state.diagnostic
+    }
+  }
+
+  return {
+      source_length: in.state.source_length, warmed: in.state.warmed, ahead_one: in.state.ahead_one, ahead_two: in.state.ahead_two, keyword: in.state.keyword,
+      offset: in.state.offset,
+      skip_until: in.state.skip_until,
+      mode: in.state.mode,
+      start: in.state.start,
+      braces: in.state.braces,
+      depth: in.state.depth,
+      frames: in.state.frames,
+      number: in.state.number,
+      tokens: in.state.tokens.push({ kind: in.kind, span: span })[0],
+      comments: in.state.comments,
+      diagnostic: in.state.diagnostic
+    }
+}

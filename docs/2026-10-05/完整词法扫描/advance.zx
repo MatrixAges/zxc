@@ -1,0 +1,51 @@
+import type { AdvanceInput, LexerState } from "./model.zx"
+import { Mode } from "./model.zx"
+import keywordTransition from "./keyword_transition.zx"
+import isDigit from "../自举词法扫描/is_digit.zx"
+import isLetter from "./is_letter.zx"
+import endIdentifier from "./end_identifier.zx"
+import begin from "./begin.zx"
+import number from "./number.zx"
+import string from "./string.zx"
+import comment from "./comment.zx"
+import template from "./template/advance.zx"
+
+export type Input = AdvanceInput
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  if (in.state.offset < in.state.skip_until) {
+    return in.state
+  }
+
+  if (in.state.mode == Mode.Idle) {
+    return begin(in)
+  }
+
+  if (in.state.mode == Mode.Identifier) {
+    if (isLetter(in.byte) || isDigit(in.byte) || in.byte == 95) {
+      const next_keyword = keywordTransition({ keyword: in.state.keyword, byte: in.byte })
+
+      return { ...in.state, keyword: next_keyword }
+    }
+
+    const ended = endIdentifier(in.state)
+
+    return begin({ byte: in.byte, next: in.next, after: in.after, has_next: in.has_next, has_after: in.has_after, state: ended })
+  }
+
+  if (in.state.mode == Mode.Number) {
+    return number(in)
+  }
+
+  if (in.state.mode == Mode.String || in.state.mode == Mode.StringEscape) {
+    return string(in)
+  }
+
+  if (in.state.mode == Mode.LineComment || in.state.mode == Mode.BlockComment) {
+    return comment(in)
+  }
+
+  return template(in)
+}
