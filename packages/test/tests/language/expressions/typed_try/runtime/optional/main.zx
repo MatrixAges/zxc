@@ -1,0 +1,15 @@
+import native from "zig:host"
+
+export type Input = u64
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+  const [err, res] = try native.optional(in)
+
+  if (err != null) {
+    return 0
+  }
+
+  return res
+}

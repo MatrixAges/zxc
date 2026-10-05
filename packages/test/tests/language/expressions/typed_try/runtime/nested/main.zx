@@ -1,0 +1,17 @@
+import native from "zig:host"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const [outerErr, pair] = try (try native.value(in))
+
+  if (outerErr != null) {
+    return outerErr == error.OutOfMemory ? 999 : 998
+  }
+
+  const [err, res] = pair
+
+  return res ?? 0
+}

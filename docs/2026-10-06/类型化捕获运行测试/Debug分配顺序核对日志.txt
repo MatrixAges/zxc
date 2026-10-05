@@ -1,0 +1,72 @@
+test-typed-try-runtime
++- run test typed-try-nested 3 pass, 1 fail (4 total)
+error: 'execution_test.test.outer capture handles inner tuple allocation failure' failed:
+       expected 1, found 0
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x105cbd7d9 in expectEqualInner__func_1004 (typed-try-nested)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x105cbda92 in expectEqual (typed-try-nested)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/language/expressions/typed_try/runtime/nested/execution_test.zig:26:5: 0x105cbdb4c in test.outer capture handles inner tuple allocation failure (typed-try-nested)
+           try std.testing.expectEqual(@as(usize, 1), host.calls);
+           ^
+failed command: ./.zig-cache/o/6db729bbfcdb7bc738c001d87424dbc1/typed-try-nested --cache-dir=./.zig-cache --seed=0xd73a8466 --listen=-
+
+Build Summary: 34/36 steps succeeded (1 failed); 29/30 tests passed (1 failed)
+test-typed-try-runtime transitive failure
++- run test typed-try-scalar 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-scalar debug native success 1s MaxRSS:262M
+|     +- run exe compile-typed-try-runtime (program.zig) success 5ms
+|     |  +- compile exe compile-typed-try-runtime debug native success 4s MaxRSS:510M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     +- run exe generate-lexer (lexer.zig) cached
+|     |        +- compile exe generate-lexer debug native cached 43ms MaxRSS:21M
+|     |           +- WriteFile interfaces/0.d.zx cached
+|     +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
++- run test typed-try-optional 3 pass (3 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-optional debug native success 1s MaxRSS:259M
+|     +- run exe compile-typed-try-runtime (program.zig) success 3ms
+|     |  +- compile exe compile-typed-try-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
++- run test typed-try-void 2 pass (2 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-void debug native success 1s MaxRSS:256M
+|     +- run exe compile-typed-try-runtime (program.zig) success 3ms
+|     |  +- compile exe compile-typed-try-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
++- run test typed-try-infallible 2 pass (2 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-infallible debug native success 1s MaxRSS:261M
+|     +- run exe compile-typed-try-runtime (program.zig) success 3ms
+|     |  +- compile exe compile-typed-try-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
++- run test typed-try-empty 2 pass (2 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-empty debug native success 1s MaxRSS:265M
+|     +- run exe compile-typed-try-runtime (program.zig) success 3ms
+|     |  +- compile exe compile-typed-try-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
++- run test typed-try-before 3 pass (3 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-before debug native success 1s MaxRSS:266M
+|     +- run exe compile-typed-try-runtime (program.zig) success 4ms
+|     |  +- compile exe compile-typed-try-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
++- run test typed-try-after 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-after debug native success 1s MaxRSS:263M
+|     +- run exe compile-typed-try-runtime (program.zig) success 3ms
+|     |  +- compile exe compile-typed-try-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
++- run test typed-try-nested 3 pass, 1 fail (4 total)
+|  +- compile test typed-try-nested debug native success 1s MaxRSS:255M
+|     +- run exe compile-typed-try-runtime (program.zig) success 3ms
+|     |  +- compile exe compile-typed-try-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
++- run test typed-try-index 3 pass (3 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-index debug native success 1s MaxRSS:257M
+|     +- run exe compile-typed-try-runtime (program.zig) success 3ms
+|     |  +- compile exe compile-typed-try-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
++- run test typed-try-compound 3 pass (3 total) 2ms MaxRSS:1M
+   +- compile test typed-try-compound debug native success 1s MaxRSS:265M
+      +- run exe compile-typed-try-runtime (program.zig) success 6ms
+      |  +- compile exe compile-typed-try-runtime debug native (+2 more reused dependencies)
+      +- run exe compile-typed-try-runtime (program.zig) (+1 more reused dependencies)
+

@@ -1,0 +1,15 @@
+import native from "zig:host"
+
+export type Input = u64[]
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const [err, res] = try in[0]
+
+  if (err != null) {
+    return err == error.IndexOutOfBounds ? 133 : 0
+  }
+
+  return res
+}
