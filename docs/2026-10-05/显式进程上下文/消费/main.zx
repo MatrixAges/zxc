@@ -1,0 +1,9 @@
+import run from "library"
+
+export type Input = void
+
+export type Output = { args: string[], value: string?, directory: string }
+
+export default function (in: Input): Output {
+  return run(in)
+}

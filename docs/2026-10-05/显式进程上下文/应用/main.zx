@@ -1,0 +1,9 @@
+import process from "std:process"
+
+export type Input = void
+
+export type Output = { args: string[], value: string?, directory: string }
+
+export default function (in: Input): Output {
+  return { args: process.argv(), value: process.getEnv("ZXC_PROCESS_PROBE"), directory: process.cwd() }
+}
