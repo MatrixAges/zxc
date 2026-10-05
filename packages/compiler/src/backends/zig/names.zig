@@ -13,7 +13,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: []cons
     @memset(nominal, null);
 
     for (origins) |item| {
-        const index = @intFromEnum(item.type_id);
+        const index = @backingInt(item.type_id);
 
         if (index >= nominal.len or nominal[index] != null or program.types[index] != .enumeration) return error.InvalidNominalOrigin;
         if (!std.mem.eql(u8, item.name, program.types[index].enumeration.name)) return error.InvalidNominalOrigin;
@@ -29,14 +29,15 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: []cons
 
         switch (value) {
             .scalar => |scalar| field(&hash, @tagName(scalar)),
-            .optional, .list => |child| field(&hash, &digests[@intFromEnum(child)]),
+            .optional, .list => |child| field(&hash, &digests[@backingInt(child)]),
             .tuple => |children| for (children) |child| {
-                field(&hash, &digests[@intFromEnum(child)]);
+                field(&hash, &digests[@backingInt(child)]);
             },
             .object => |fields| for (fields) |item| {
                 field(&hash, item.name);
-                field(&hash, &digests[@intFromEnum(item.type_id)]);
+                field(&hash, &digests[@backingInt(item.type_id)]);
             },
+            .error_set => |members| for (members) |member| field(&hash, member),
             .enumeration => |enumeration| {
                 const origin = nominal[index] orelse return error.MissingNominalOrigin;
 
@@ -81,7 +82,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: []cons
         if (function.consumes_input) field(&hash, "owned Input");
 
         if (function.external) |external| {
-            const module = program.native_modules[@intFromEnum(external.module)];
+            const module = program.native_modules[@backingInt(external.module)];
 
             field(&hash, "native");
             field(&hash, module.specifier);

@@ -19,7 +19,7 @@ pub fn flat(program: ir.Program, id: ir.TypeId) bool {
 
 pub fn leaf(program: ir.Program, id: ir.TypeId) bool {
     return switch (program.typeOf(id)) {
-        .scalar, .enumeration => true,
+        .scalar, .enumeration, .error_set => true,
         .optional, .list => |child| leaf(program, child),
         else => false,
     };
@@ -77,9 +77,9 @@ fn analyze(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iter
         }
 
         safe[index] = switch (expression.value) {
-            .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .reference => true,
-            .store_get => false,
-            .some, .length => |child| safe[@backingInt(child)],
+            .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value, .reference => true,
+            .store_get, .capture => false,
+            .some, .optional_value, .length => |child| safe[@backingInt(child)],
             .field, .tuple_field => |field| safe[@backingInt(field.target)],
             .index => |item| safe[@backingInt(item.target)] and safe[@backingInt(item.index)],
             .list, .tuple, .template => |items| all(safe, items),

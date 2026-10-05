@@ -28,7 +28,7 @@ pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: []const ir.
     @memset(origins, null);
 
     for (nominal_types) |item| {
-        const index = @intFromEnum(item.type_id);
+        const index = @backingInt(item.type_id);
 
         if (index >= values.len or origins[index] != null) return error.InvalidModule;
         if (values[index] != .enumeration or !std.mem.eql(u8, values[index].enumeration.name, item.name)) return error.InvalidModule;
@@ -43,7 +43,7 @@ pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: []const ir.
     for (values[0..first], self.items.items[0..first], 0..) |value, existing, index| {
         if (!sameType(value, existing)) return error.InvalidModule;
 
-        mapping[index] = @enumFromInt(index);
+        mapping[index] = @fromBackingInt(@intCast(index));
     }
 
     for (values[first..], first..) |value, index| {
@@ -61,7 +61,7 @@ pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: []const ir.
 
 fn structural(self: *Self, value: ir.Type) Error!ir.TypeId {
     for (self.items.items, 0..) |existing, index| {
-        if (sameType(existing, value)) return @enumFromInt(index);
+        if (sameType(existing, value)) return @fromBackingInt(@intCast(index));
     }
 
     return self.insert(value);
@@ -70,14 +70,14 @@ fn structural(self: *Self, value: ir.Type) Error!ir.TypeId {
 fn enumeration(self: *Self, value: ir.Type, origin: Origins.Origin) Error!ir.TypeId {
     for (self.origins.items.items) |item| {
         if (!std.mem.eql(u8, item.name, value.enumeration.name) or !Origins.same(item.origin, origin)) continue;
-        if (!sameType(self.items.items[@intFromEnum(item.type_id)], value)) return error.ConflictingNominalType;
+        if (!sameType(self.items.items[@backingInt(item.type_id)], value)) return error.ConflictingNominalType;
 
         return item.type_id;
     }
 
     const id = try self.insert(value);
 
-    try self.origins.append(self.items.items, @intFromEnum(id), origin);
+    try self.origins.append(self.items.items, @backingInt(id), origin);
 
     return id;
 }
@@ -93,6 +93,13 @@ fn insert(self: *Self, value: ir.Type) Error!ir.TypeId {
 
             break :blk .{ .object = copied };
         },
+        .error_set => |names| blk: {
+            const members = try self.allocator.alloc([]const u8, names.len);
+
+            for (names, members) |member, *owned| owned.* = try self.allocator.dupe(u8, member);
+
+            break :blk .{ .error_set = members };
+        },
         .enumeration => |entry| blk: {
             const members = try self.allocator.alloc([]const u8, entry.members.len);
 
@@ -102,7 +109,7 @@ fn insert(self: *Self, value: ir.Type) Error!ir.TypeId {
         },
     };
 
-    const id: ir.TypeId = @enumFromInt(self.items.items.len);
+    const id: ir.TypeId = @fromBackingInt(@intCast(self.items.items.len));
 
     try self.items.append(self.allocator, owned);
 
@@ -111,20 +118,20 @@ fn insert(self: *Self, value: ir.Type) Error!ir.TypeId {
 
 fn remap(allocator: std.mem.Allocator, value: ir.Type, mapping: []const ir.TypeId) Error!ir.Type {
     return switch (value) {
-        .scalar, .enumeration => value,
-        .optional => |child| .{ .optional = mapping[@intFromEnum(child)] },
-        .list => |child| .{ .list = mapping[@intFromEnum(child)] },
+        .scalar, .enumeration, .error_set => value,
+        .optional => |child| .{ .optional = mapping[@backingInt(child)] },
+        .list => |child| .{ .list = mapping[@backingInt(child)] },
         .tuple => |children| blk: {
             const mapped = try allocator.alloc(ir.TypeId, children.len);
 
-            for (children, mapped) |child, *item| item.* = mapping[@intFromEnum(child)];
+            for (children, mapped) |child, *item| item.* = mapping[@backingInt(child)];
 
             break :blk .{ .tuple = mapped };
         },
         .object => |fields| blk: {
             const mapped = try allocator.dupe(ir.TypeField, fields);
 
-            for (mapped) |*field| field.type_id = mapping[@intFromEnum(field.type_id)];
+            for (mapped) |*field| field.type_id = mapping[@backingInt(field.type_id)];
 
             break :blk .{ .object = mapped };
         },
@@ -136,6 +143,15 @@ fn sameType(left: ir.Type, right: ir.Type) bool {
 
     return switch (left) {
         .scalar => |value| value == right.scalar,
+        .error_set => |members| blk: {
+            if (members.len != right.error_set.len) break :blk false;
+
+            for (members, right.error_set) |left_name, right_name| {
+                if (!std.mem.eql(u8, left_name, right_name)) break :blk false;
+            }
+
+            break :blk true;
+        },
         .optional => |child| child == right.optional,
         .list => |child| child == right.list,
         .tuple => |children| std.mem.eql(ir.TypeId, children, right.tuple),

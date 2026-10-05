@@ -44,7 +44,7 @@ pub fn lower(self: *Lower, invocations: []const ir.ParallelCall) Lower.Error![]c
 
     for (invocations, workers) |invocation, worker| {
         const value = try self.builder.expression(.{ .try_value = try self.field(try self.builder.identifier(worker), "result") });
-        const name = if (invocation.symbol) |symbol| if (self.used[@intFromEnum(symbol)]) self.names[@intFromEnum(symbol)] else null else null;
+        const name = if (invocation.symbol) |symbol| if (self.used[@backingInt(symbol)]) self.names[@backingInt(symbol)] else null else null;
 
         try output.append(self.allocator, if (name) |used| .{ .constant = .{ .name = used, .value = value } } else .{ .discard = value });
     }
@@ -53,13 +53,13 @@ pub fn lower(self: *Lower, invocations: []const ir.ParallelCall) Lower.Error![]c
 }
 
 fn workerType(self: *Lower, id: ir.FunctionId) Lower.Error!*const node.Expression {
-    const function = self.program.functions[@intFromEnum(id)];
+    const function = self.program.functions[@backingInt(id)];
     const instance = try self.builder.identifier("self");
 
     const fields = try self.allocator.dupe(node.Field, &.{
         .{ .name = "allocator", .value = try standardField(self, &.{ "mem", "Allocator" }) },
-        .{ .name = "input", .value = self.types[@intFromEnum(function.input_type)] },
-        .{ .name = "result", .value = try self.builder.expression(.{ .error_union = self.types[@intFromEnum(function.output_type)] }) },
+        .{ .name = "input", .value = self.types[@backingInt(function.input_type)] },
+        .{ .name = "result", .value = try self.builder.expression(.{ .error_union = .{ .payload = self.types[@backingInt(function.output_type)] } }) },
     });
 
     const parameters = try self.allocator.dupe(node.Field, &.{.{ .name = "self", .value = try self.builder.expression(.{ .pointer = try self.builtin(.This, &.{}) }) }});

@@ -1,6 +1,11 @@
-export declare function encodeBase64(allocator, in: u8[]): string throws
-export declare function decodeBase64(allocator, in: string): u8[] throws
-export declare function encodeHex(allocator, in: u8[]): string throws
-export declare function decodeHex(allocator, in: string): u8[] throws
-export declare function encodeUtf8(in: string): u8[] throws
-export declare function decodeUtf8(in: u8[]): string throws
+export declare function encodeBase64(allocator, in: u8[]): string throws { OutOfMemory }
+
+export declare function decodeBase64(allocator, in: string): u8[] throws { InvalidCharacter, InvalidPadding, NoSpaceLeft, OutOfMemory }
+
+export declare function encodeHex(allocator, in: u8[]): string throws { OutOfMemory, Overflow }
+
+export declare function decodeHex(allocator, in: string): u8[] throws { InvalidCharacter, InvalidHex, InvalidLength, NoSpaceLeft, OutOfMemory }
+
+export declare function encodeUtf8(in: string): u8[] throws { InvalidUtf8 }
+
+export declare function decodeUtf8(in: u8[]): string throws { InvalidUtf8 }

@@ -15,6 +15,17 @@ pub fn read(comptime T: type, comptime shape: anytype, allocator: std.mem.Alloca
         },
         .int, .float => value_api.number(T, env, value),
         .@"enum" => std.meta.stringToEnum(T, try value_api.string(allocator, env, value)) orelse error.InvalidEnumMember,
+        .error_set => |info| result: {
+            const name = try value_api.string(allocator, env, value);
+
+            defer allocator.free(name);
+
+            inline for (info.error_names orelse @compileError("Node input requires a finite error set")) |member| {
+                if (std.mem.eql(u8, name, member)) break :result @field(T, member);
+            }
+
+            return error.InvalidErrorMember;
+        },
         .optional => |info| if (switch (try value_api.kind(env, value)) {
             .null, .undefined => true,
             else => false,

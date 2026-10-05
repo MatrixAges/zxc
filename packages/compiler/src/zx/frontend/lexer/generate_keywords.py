@@ -21,7 +21,7 @@ members = ["Root", "Dead"] + [symbol(prefix) for prefix in prefixes]
 (root / "keyword_model.zx").write_text("export enum Keyword {\n  " + ",\n  ".join(members) + "\n}\n")
 
 source = [
-    'import { Keyword } from "./keyword_model.zx"',
+    'import { Keyword } from "./keyword_model"',
     "",
     "export type Input = { keyword: Keyword, byte: u8 }",
     "",
@@ -48,7 +48,7 @@ source.extend(["    default: return Keyword.Dead", "  }", "}", ""])
 (root / "keyword_transition.zx").write_text("\n".join(source))
 
 predicate = " ||\n    ".join(f"in == Keyword.{symbol(word)}" for word in keywords)
-header = '''import { Keyword } from "./keyword_model.zx"
+header = '''import { Keyword } from "./keyword_model"
 
 export type Input = Keyword
 

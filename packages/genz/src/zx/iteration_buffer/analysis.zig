@@ -89,6 +89,11 @@ fn expression(self: *Self, id: ir.ExprId) Error!Value {
     if (self.cached[@backingInt(id)]) |value| return value;
 
     return switch (self.program.expression(id).value) {
+        .capture, .optional_value => blk: {
+            self.valid = false;
+
+            break :blk .none;
+        },
         .reference => |symbol| self.symbols[@backingInt(symbol)],
         .field, .tuple_field => |field| facts.field(try self.expression(field.target), field.index),
         .length => |child| blk: {
@@ -265,7 +270,7 @@ fn expression(self: *Self, id: ir.ExprId) Error!Value {
 
             break :blk .none;
         },
-        .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value => .none,
+        .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value => .none,
     };
 }
 

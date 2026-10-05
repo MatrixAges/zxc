@@ -20,9 +20,9 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
     for (record.type_imports) |item| try self.mark(item.type_id);
 
     for (record.function_imports) |binding| {
-        if (@intFromEnum(binding.id) >= program.functions.len) return error.InvalidModule;
+        if (@backingInt(binding.id) >= program.functions.len) return error.InvalidModule;
 
-        const function = program.functions[@intFromEnum(binding.id)];
+        const function = program.functions[@backingInt(binding.id)];
 
         try self.mark(binding.input_type);
         try self.mark(binding.output_type);
@@ -40,7 +40,7 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
         if (dependency.target != .native) continue;
 
         for (program.native_modules, 0..) |module, index| {
-            if (std.mem.eql(u8, dependency.specifier, module.specifier)) try self.nativeModule(@enumFromInt(index));
+            if (std.mem.eql(u8, dependency.specifier, module.specifier)) try self.nativeModule(@fromBackingInt(@intCast(index)));
         }
     }
 
@@ -53,9 +53,9 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
             for (program.stores) |slot| try self.mark(slot.type_id);
         },
         .function => |id| {
-            if (@intFromEnum(id) >= program.functions.len) return error.InvalidModule;
+            if (@backingInt(id) >= program.functions.len) return error.InvalidModule;
 
-            const function = program.functions[@intFromEnum(id)];
+            const function = program.functions[@backingInt(id)];
 
             try self.mark(function.input_type);
             try self.mark(function.output_type);
@@ -75,7 +75,7 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
             .optional, .list => |child| try self.mark(child),
             .tuple => |children| for (children) |child| try self.mark(child),
             .object => |fields| for (fields) |field| try self.mark(field.type_id),
-            .scalar, .enumeration => {},
+            .scalar, .enumeration, .error_set => {},
         }
     }
 
@@ -83,14 +83,14 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
 }
 
 fn mark(self: *Self, id: ir.TypeId) Error!void {
-    if (@intFromEnum(id) >= self.needed.len) return error.InvalidModule;
+    if (@backingInt(id) >= self.needed.len) return error.InvalidModule;
 
-    self.needed[@intFromEnum(id)] = true;
+    self.needed[@backingInt(id)] = true;
 }
 
 fn nativeModule(self: *Self, id: ir.NativeModuleId) Error!void {
-    if (@intFromEnum(id) >= self.program.native_modules.len) return error.InvalidModule;
-    for (self.program.native_modules[@intFromEnum(id)].types) |item| try self.mark(item.type_id);
+    if (@backingInt(id) >= self.program.native_modules.len) return error.InvalidModule;
+    for (self.program.native_modules[@backingInt(id)].types) |item| try self.mark(item.type_id);
 }
 
 fn nodes(self: *Self, symbols: []const ir.Symbol, expressions: []const ir.Expression, contracts: []const ir.Contract) Error!void {

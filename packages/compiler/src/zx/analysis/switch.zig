@@ -10,8 +10,8 @@ pub fn analyze(self: *Analyzer, subject: *const zx.ast.Expression, source_cases:
     const type_id = self.node(value).type_id;
     const value_type = self.types.get(type_id);
 
-    if (value_type != .enumeration and !numbers.isInteger(type_id) and type_id != Types.scalarId(.bool) and type_id != Types.scalarId(.string)) {
-        return self.reporter.fail(.type_mismatch, subject.span, "switch requires an enum, integer, bool or string");
+    if (value_type != .enumeration and value_type != .error_set and !numbers.isInteger(type_id) and type_id != Types.scalarId(.bool) and type_id != Types.scalarId(.string)) {
+        return self.reporter.fail(.type_mismatch, subject.span, "switch requires an enum, finite error, integer, bool or string");
     }
 
     var cases: std.ArrayList(ir.SwitchCase) = .empty;
@@ -23,7 +23,7 @@ pub fn analyze(self: *Analyzer, subject: *const zx.ast.Expression, source_cases:
         if (source_case.value) |source_label| {
             label = try self.expression(source_label, type_id);
 
-            if (!isConstant(self.node(label.?).value)) return self.reporter.fail(.type_mismatch, source_label.span, "case labels must be literals or enum members");
+            if (!isConstant(self.node(label.?).value)) return self.reporter.fail(.type_mismatch, source_label.span, "case labels must be literals, enum members or finite errors");
 
             for (cases.items) |previous| {
                 if (previous.value) |previous_label| {
@@ -39,14 +39,14 @@ pub fn analyze(self: *Analyzer, subject: *const zx.ast.Expression, source_cases:
         try cases.append(self.allocator, .{ .value = label, .body = try self.block(source_case.body) });
     }
 
-    const exhaustive = has_default or (value_type == .enumeration and cases.items.len == value_type.enumeration.members.len) or (type_id == Types.scalarId(.bool) and cases.items.len == 2);
+    const exhaustive = has_default or (value_type == .enumeration and cases.items.len == value_type.enumeration.members.len) or (value_type == .error_set and cases.items.len == value_type.error_set.len) or (type_id == Types.scalarId(.bool) and cases.items.len == 2);
 
     return .{ .switch_stmt = .{ .subject = value, .cases = try cases.toOwnedSlice(self.allocator), .exhaustive = exhaustive } };
 }
 
 pub fn isConstant(value: @FieldType(ir.Expression, "value")) bool {
     return switch (value) {
-        .integer, .negative_integer, .boolean, .string, .enum_value => true,
+        .integer, .negative_integer, .boolean, .string, .enum_value, .error_value => true,
         else => false,
     };
 }
@@ -62,6 +62,7 @@ pub fn equal(left: @FieldType(ir.Expression, "value"), right: @FieldType(ir.Expr
         .negative_integer => |value| value == right.negative_integer,
         .boolean => |value| value == right.boolean,
         .enum_value => |value| value == right.enum_value,
+        .error_value => |value| value == right.error_value,
         .string => |value| std.mem.eql(u8, value, right.string),
         else => false,
     };

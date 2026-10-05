@@ -13,6 +13,7 @@ declared: []bool,
 declaration_owner: []?ir.ExprId,
 pure_functions: ?[]const bool = null,
 callback_depth: usize = 0,
+refinement: zx.Refinement = .{},
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
     const active = try allocator.alloc(bool, program.symbols.len);
 
@@ -35,6 +36,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
     var self = Self{ .allocator = allocator, .program = program, .active = active, .declared = declared, .declaration_owner = declaration_owner };
 
     defer if (self.pure_functions) |pure| allocator.free(pure);
+    defer self.refinement.deinit(allocator);
 
     if (!try self.block(program.body, 0)) return false;
 
@@ -58,6 +60,10 @@ fn declare(self: *Self, symbol: ir.SymbolId, type_id: ir.TypeId) bool {
 
 fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Allocator.Error!bool {
     if (depth > 256) return false;
+
+    const facts = self.refinement.mark();
+
+    defer self.refinement.restore(facts);
 
     const saved = try self.allocator.dupe(bool, self.active);
 
@@ -100,6 +106,8 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
                         return false;
                     };
                 }
+
+                try self.refinement.bind(self.allocator, self.program.expression(binding.value), binding.symbols);
             },
             .result => |value| {
                 if (value) |id| {
@@ -108,7 +116,20 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
             },
             .branch => |branch| {
                 if (!try self.expression(branch.condition, 0) or self.program.expression(branch.condition).type_id != Types.scalarId(.bool)) return false;
-                if (!try self.block(branch.yes, depth + 1) or !try self.block(branch.no, depth + 1)) return false;
+
+                const before = self.refinement.mark();
+
+                try self.refinement.assume(self.allocator, self.program.expressions, branch.condition, true);
+
+                if (!try self.block(branch.yes, depth + 1)) return false;
+
+                self.refinement.restore(before);
+                try self.refinement.assume(self.allocator, self.program.expressions, branch.condition, false);
+                if (!try self.block(branch.no, depth + 1)) return false;
+
+                self.refinement.restore(before);
+                if (Analyzer.returns(branch.yes)) try self.refinement.assume(self.allocator, self.program.expressions, branch.condition, false);
+                if (Analyzer.returns(branch.no)) try self.refinement.assume(self.allocator, self.program.expressions, branch.condition, true);
             },
             .switch_stmt => |selection| {
                 if (!try self.expression(selection.subject, 0) or !self.switchCases(selection)) return false;
@@ -166,6 +187,12 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
             break :blk true;
         },
         .scope => |scope| blk: {
+            const facts = self.refinement.mark();
+
+            defer self.refinement.restore(facts);
+
+            try self.refinement.scope(self.allocator, self.program.expressions, scope.bindings);
+
             const saved = try self.allocator.dupe(bool, self.active);
 
             defer self.allocator.free(saved);
@@ -193,9 +220,40 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
         .field, .tuple_field => |field| self.expression(field.target, depth + 1),
         .index => |item| try self.expression(item.target, depth + 1) and try self.expression(item.index, depth + 1),
         .length, .some => |child| self.expression(child, depth + 1),
+        .capture => |child| self.expression(child, depth + 1),
+        .optional_value => |child| blk: {
+            const value = self.program.expression(child).value;
+
+            break :blk value == .reference and self.refinement.contains(value.reference) and try self.expression(child, depth + 1);
+        },
         .unary => |unary| self.expression(unary.operand, depth + 1),
-        .binary => |binary| try self.expression(binary.left, depth + 1) and try self.expression(binary.right, depth + 1),
-        .conditional => |value| try self.expression(value.condition, depth + 1) and try self.expression(value.yes, depth + 1) and try self.expression(value.no, depth + 1),
+        .binary => |binary| blk: {
+            if (!try self.expression(binary.left, depth + 1)) break :blk false;
+
+            const facts = self.refinement.mark();
+
+            defer self.refinement.restore(facts);
+
+            if (binary.operator == .logical_and or binary.operator == .logical_or) try self.refinement.assume(self.allocator, self.program.expressions, binary.left, binary.operator == .logical_and);
+
+            break :blk try self.expression(binary.right, depth + 1);
+        },
+        .conditional => |value| blk: {
+            if (!try self.expression(value.condition, depth + 1)) break :blk false;
+
+            const facts = self.refinement.mark();
+
+            defer self.refinement.restore(facts);
+
+            try self.refinement.assume(self.allocator, self.program.expressions, value.condition, true);
+            if (!try self.expression(value.yes, depth + 1)) break :blk false;
+
+            self.refinement.restore(facts);
+
+            try self.refinement.assume(self.allocator, self.program.expressions, value.condition, false);
+
+            break :blk try self.expression(value.no, depth + 1);
+        },
         .match_expr => |selection| blk: {
             if (selection.subject) |subject| if (!try self.expression(subject, depth + 1)) {
                 break :blk false;
@@ -264,7 +322,7 @@ fn switchCases(self: *Self, selection: @FieldType(ir.Statement, "switch_stmt")) 
     const type_id = self.program.expression(selection.subject).type_id;
     const target = self.program.typeOf(type_id);
 
-    if (target != .enumeration and !numbers.isInteger(type_id) and type_id != Types.scalarId(.bool) and type_id != Types.scalarId(.string)) return false;
+    if (target != .enumeration and target != .error_set and !numbers.isInteger(type_id) and type_id != Types.scalarId(.bool) and type_id != Types.scalarId(.string)) return false;
 
     var has_default = false;
 
@@ -275,7 +333,7 @@ fn switchCases(self: *Self, selection: @FieldType(ir.Statement, "switch_stmt")) 
             const value = self.program.expression(id).value;
 
             switch (value) {
-                .integer, .negative_integer, .string, .boolean, .enum_value => {},
+                .integer, .negative_integer, .string, .boolean, .enum_value, .error_value => {},
                 else => return false,
             }
 
@@ -291,7 +349,7 @@ fn switchCases(self: *Self, selection: @FieldType(ir.Statement, "switch_stmt")) 
         }
     }
 
-    const exhaustive = has_default or (target == .enumeration and selection.cases.len == target.enumeration.members.len) or (type_id == Types.scalarId(.bool) and selection.cases.len == 2);
+    const exhaustive = has_default or (target == .enumeration and selection.cases.len == target.enumeration.members.len) or (target == .error_set and selection.cases.len == target.error_set.len) or (type_id == Types.scalarId(.bool) and selection.cases.len == 2);
 
     return selection.exhaustive == exhaustive;
 }
@@ -307,6 +365,7 @@ fn same(left: @FieldType(ir.Expression, "value"), right: @FieldType(ir.Expressio
         .boolean => |value| value == right.boolean,
         .string => |value| std.mem.eql(u8, value, right.string),
         .enum_value => |value| value == right.enum_value,
+        .error_value => |value| value == right.error_value,
         else => false,
     };
 }

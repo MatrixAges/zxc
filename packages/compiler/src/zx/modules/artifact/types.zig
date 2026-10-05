@@ -21,13 +21,13 @@ pub fn init(allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: 
     @memset(mapping, null);
 
     try self.items.appendSlice(allocator, source[0..count]);
-    for (0..count) |index| mapping[index] = @enumFromInt(index);
+    for (0..count) |index| mapping[index] = @fromBackingInt(@intCast(index));
 
     return self;
 }
 
 pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
-    const index = @intFromEnum(id);
+    const index = @backingInt(id);
 
     if (index >= self.source.len) return error.InvalidModule;
     if (self.mapping[index]) |mapped| return mapped;
@@ -40,7 +40,7 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
     try pending.append(self.temporary, .{ .id = id });
 
     while (pending.pop()) |step| {
-        const current = @intFromEnum(step.id);
+        const current = @backingInt(step.id);
 
         if (self.mapping[current] != null) continue;
 
@@ -69,13 +69,13 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
                         try pending.append(self.temporary, .{ .id = fields[remaining].type_id });
                     }
                 },
-                .scalar, .enumeration => {},
+                .scalar, .enumeration, .error_set => {},
             }
 
             continue;
         }
 
-        const mapped: ir.TypeId = @enumFromInt(self.items.items.len);
+        const mapped: ir.TypeId = @fromBackingInt(@intCast(self.items.items.len));
 
         try self.items.append(self.allocator, try self.copy(value));
 
@@ -91,7 +91,7 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
                 origin = item.origin;
             }
 
-            try self.nominal_origins.append(self.items.items, @intFromEnum(mapped), origin orelse return error.MissingNominalOrigin);
+            try self.nominal_origins.append(self.items.items, @backingInt(mapped), origin orelse return error.MissingNominalOrigin);
         }
     }
 
@@ -101,21 +101,28 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
 fn copy(self: *Self, value: ir.Type) Error!ir.Type {
     return switch (value) {
         .scalar => value,
-        .optional => |child| .{ .optional = self.mapping[@intFromEnum(child)].? },
-        .list => |child| .{ .list = self.mapping[@intFromEnum(child)].? },
+        .optional => |child| .{ .optional = self.mapping[@backingInt(child)].? },
+        .list => |child| .{ .list = self.mapping[@backingInt(child)].? },
         .tuple => |children| blk: {
             const result = try self.allocator.alloc(ir.TypeId, children.len);
 
-            for (children, result) |child, *mapped| mapped.* = self.mapping[@intFromEnum(child)].?;
+            for (children, result) |child, *mapped| mapped.* = self.mapping[@backingInt(child)].?;
 
             break :blk .{ .tuple = result };
         },
         .object => |fields| blk: {
             const result = try self.allocator.alloc(ir.TypeField, fields.len);
 
-            for (fields, result) |field, *mapped| mapped.* = .{ .name = try self.allocator.dupe(u8, field.name), .type_id = self.mapping[@intFromEnum(field.type_id)].? };
+            for (fields, result) |field, *mapped| mapped.* = .{ .name = try self.allocator.dupe(u8, field.name), .type_id = self.mapping[@backingInt(field.type_id)].? };
 
             break :blk .{ .object = result };
+        },
+        .error_set => |names| blk: {
+            const members = try self.allocator.alloc([]const u8, names.len);
+
+            for (names, members) |member, *owned| owned.* = try self.allocator.dupe(u8, member);
+
+            break :blk .{ .error_set = members };
         },
         .enumeration => |value_enum| blk: {
             const members = try self.allocator.alloc([]const u8, value_enum.members.len);

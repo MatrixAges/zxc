@@ -12,10 +12,10 @@ pub fn validate(program: ir.Program) bool {
 
         const parameter_count: usize = if (contract.kind == .requires) 1 else 2;
 
-        if (contract.symbols.len != parameter_count or @intFromEnum(contract.predicate) >= contract.expressions.len) return false;
+        if (contract.symbols.len != parameter_count or @backingInt(contract.predicate) >= contract.expressions.len) return false;
         if (!std.mem.eql(u8, contract.symbols[0].name, "in") or contract.symbols[0].type_id != program.input_type) return false;
         if (parameter_count == 2 and (!std.mem.eql(u8, contract.symbols[1].name, "out") or contract.symbols[1].type_id != program.output_type)) return false;
-        if (contract.expressions[@intFromEnum(contract.predicate)].type_id != Types.scalarId(.bool)) return false;
+        if (contract.expressions[@backingInt(contract.predicate)].type_id != Types.scalarId(.bool)) return false;
 
         var view = program;
 
@@ -26,7 +26,7 @@ pub fn validate(program: ir.Program) bool {
 
         for (contract.expressions, 0..) |expression, index| {
             switch (expression.value) {
-                .call, .store_get, .list_operation, .transform, .scope, .iteration, .list_update => return false,
+                .call, .store_get, .list_operation, .transform, .scope, .iteration, .list_update, .capture, .optional_value => return false,
                 else => {},
             }
 

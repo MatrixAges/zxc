@@ -19,7 +19,7 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
     }
 
     switch (trace.program.typeOf(selected)) {
-        .scalar, .enumeration => return false,
+        .scalar, .enumeration, .error_set => return false,
         else => {},
     }
 
@@ -59,7 +59,8 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
         },
         .tuple => |items| if (path.len != 0) contains(trace, items[path[0]], path[1..], origin) else any(trace, items, origin),
         .list => |items| any(trace, items, origin),
-        .some => |child| contains(trace, child, path, origin),
+        .some, .optional_value => |child| contains(trace, child, path, origin),
+        .capture => |child| if (path.len == 0 or path[0] == 1) contains(trace, child, if (path.len == 0) &.{} else path[1..], origin) else false,
         .binary => |value| try contains(trace, value.left, path, origin) or try contains(trace, value.right, path, origin),
         .index => |value| contains(trace, value.target, &.{}, origin),
         .list_operation => |operation| try contains(trace, operation.target, &.{}, origin) or try any(trace, operation.arguments, origin),

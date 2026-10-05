@@ -45,6 +45,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?*const node.Expressio
             }
         },
         .field => |field| return try lowering.field(try lowering.expr(field.target), lowering.program.typeOf(lowering.program.expression(field.target).type_id).object[field.index].name),
+        .optional_value => |child| return try lowering.builder.expression(.{ .optional_unwrap = try lowering.expr(child) }),
         .tuple_field => |field| return try lowering.field(try lowering.expr(field.target), try std.fmt.allocPrint(lowering.allocator, "{d}", .{field.index})),
         .scope => |scope| return try @import("scope.zig").lower(self, scope),
         .call => |call| {

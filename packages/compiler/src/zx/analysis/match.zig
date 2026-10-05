@@ -12,7 +12,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
     if (subject != null) {
         const target = self.types.get(condition_type);
 
-        if ((target != .scalar and target != .enumeration) or condition_type == Types.scalarId(.void)) return self.reporter.fail(.type_mismatch, expression.span, "match subject must be a scalar or enum");
+        if ((target != .scalar and target != .enumeration and target != .error_set) or condition_type == Types.scalarId(.void)) return self.reporter.fail(.type_mismatch, expression.span, "match subject must be a scalar, enum or finite error");
     }
 
     var result_type = expected orelse hint(self, selection);

@@ -30,7 +30,7 @@ pub fn expression(self: *const Self, value: ir.Expression) Error!ir.Expression {
     var result = value;
 
     result.value = switch (value.value) {
-        .integer, .negative_integer, .float, .boolean, .none, .unit, .enum_value => value.value,
+        .integer, .negative_integer, .float, .boolean, .none, .unit, .enum_value, .error_value => value.value,
         .string => |text| .{ .string = try self.allocator.dupe(u8, text) },
         .reference => |source| .{ .reference = try self.symbol(source) },
         .some => |child| .{ .some = try self.id(child) },
@@ -61,6 +61,8 @@ pub fn expression(self: *const Self, value: ir.Expression) Error!ir.Expression {
 
             break :block .{ .scope = .{ .bindings = bindings, .result = try self.id(scope.result) } };
         },
+        .optional_value => |child| .{ .optional_value = try self.id(child) },
+        .capture => |child| .{ .capture = try self.id(child) },
         .unary => |item| .{ .unary = .{ .operator = item.operator, .operand = try self.id(item.operand) } },
         .binary => |item| .{ .binary = .{ .operator = item.operator, .left = try self.id(item.left), .right = try self.id(item.right) } },
         .conditional => |item| .{ .conditional = .{ .condition = try self.id(item.condition), .yes = try self.id(item.yes), .no = try self.id(item.no) } },

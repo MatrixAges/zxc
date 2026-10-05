@@ -23,6 +23,7 @@ buffer_functions: []const []const @import("buffer_call/root.zig").Lane = &.{},
 buffered_type: ?*const node.Expression = null,
 uses_buffers: bool = false,
 serial: usize = 0,
+capture: ?@import("capture.zig").Boundary = null,
 uses_allocator: bool = false,
 uses_io: bool = false,
 uses_process: bool = false,
@@ -171,7 +172,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
     if (self.buffered_type) |buffered_type| parameters[parameters.len - 1] = .{ .name = "buffers", .value = buffered_type };
 
-    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = if (self.value_output) self.layouts[@backingInt(self.program.output_type)] else self.types[@backingInt(self.program.output_type)] }), .body = try body.toOwnedSlice(self.allocator), .exported = exported } };
+    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.value_output) self.layouts[@backingInt(self.program.output_type)] else self.types[@backingInt(self.program.output_type)], .errors = try @import("zx").error_effects.program(self.allocator, self.program) } }), .body = try body.toOwnedSlice(self.allocator), .exported = exported } };
 }
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!*const node.Expression {
@@ -194,6 +195,8 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
     const value_type = self.types[@backingInt(value.type_id)];
 
     return switch (value.value) {
+        .capture => |child| @import("capture.zig").lower(self, value.type_id, child),
+        .optional_value => |child| self.builder.expression(.{ .optional_unwrap = try self.expr(child) }),
         .integer => |integer| self.cast(value_type, try self.builder.integer(integer)),
         .negative_integer => |integer| self.cast(value_type, try self.builder.expression(.{ .unary = .{ .operator = .negate, .operand = try self.builder.integer(integer) } })),
         .float => |float| self.cast(value_type, try self.builder.expression(.{ .float = float })),
@@ -203,6 +206,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
         .none => self.cast(value_type, try self.builder.expression(.null_value)),
         .some => |child| self.cast(value_type, try self.expr(child)),
         .enum_value => |member| self.cast(value_type, try self.builder.expression(.{ .enum_literal = self.program.typeOf(value.type_id).enumeration.members[member] })),
+        .error_value => |member| self.cast(value_type, try self.builder.expression(.{ .error_value = self.program.typeOf(value.type_id).error_set[member] })),
         .store_get => |slot| blk: {
             self.uses_context = true;
 
@@ -308,7 +312,10 @@ pub fn call(self: *Self, callee: *const node.Expression, arguments: []const *con
 
     const result = try self.builder.expression(.{ .call = .{ .callee = callee, .arguments = try self.allocator.dupe(*const node.Expression, arguments) } });
 
-    return if (fallible) self.builder.expression(.{ .try_value = result }) else result;
+    if (!fallible) return result;
+    if (self.capture) |boundary| return self.builder.expression(.{ .catch_value = .{ .value = result, .capture = boundary.name, .label = boundary.label, .result = boundary.failure } });
+
+    return self.builder.expression(.{ .try_value = result });
 }
 
 pub fn builtin(self: *Self, name: @FieldType(@FieldType(node.Expression, "builtin"), "name"), arguments: []const *const node.Expression) Error!*const node.Expression {

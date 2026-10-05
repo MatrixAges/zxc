@@ -30,7 +30,7 @@ pub fn analyze(owner: *Analyzer, source: []const zx.ast.Contract, input_type: ir
 
         for (analyzer.nodes.items) |expression| {
             switch (expression.value) {
-                .call, .store_get, .list_operation, .transform, .scope, .iteration, .list_update => return owner.reporter.fail(.contract, expression.span, "contracts cannot call functions, transform collections or access injected capabilities"),
+                .call, .store_get, .list_operation, .transform, .scope, .iteration, .list_update, .capture, .optional_value => return owner.reporter.fail(.contract, expression.span, "contracts cannot call functions, transform collections, capture errors, unwrap optionals or access injected capabilities"),
                 else => {},
             }
         }

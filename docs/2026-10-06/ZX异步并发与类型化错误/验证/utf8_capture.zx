@@ -1,0 +1,15 @@
+import encoding from "std:encoding"
+
+export type Input = u8[]
+
+export type Output = string
+
+export default function (in: Input): Output {
+  const [err, res] = try encoding.decodeUtf8(in)
+
+  if (err != null) {
+    return err == error.InvalidUtf8 ? "invalid" : "unexpected"
+  }
+
+  return res
+}

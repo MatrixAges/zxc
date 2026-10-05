@@ -44,7 +44,7 @@ pub fn initialize(self: *Self) zx.Error!void {
 }
 
 pub fn scalarId(scalar: ir.Scalar) ir.TypeId {
-    return @enumFromInt(@intFromEnum(scalar));
+    return @fromBackingInt(@intCast(@backingInt(scalar)));
 }
 
 pub fn named(self: *Self, name: zx.ast.Name) zx.Error!ir.TypeId {
@@ -115,11 +115,11 @@ pub fn wrap(self: *Self, kind: enum { optional, list }, child: ir.TypeId) zx.Err
     if (kind == .list and child == scalarId(.void)) return self.reporter.fail(.type_mismatch, .{ .start = 0, .end = 0 }, "lists cannot contain void");
 
     for (self.items.items, 0..) |item, index| {
-        if (kind == .optional and item == .optional and item.optional == child) return @enumFromInt(index);
-        if (kind == .list and item == .list and item.list == child) return @enumFromInt(index);
+        if (kind == .optional and item == .optional and item.optional == child) return @fromBackingInt(@intCast(index));
+        if (kind == .list and item == .list and item.list == child) return @fromBackingInt(@intCast(index));
     }
 
-    const id: ir.TypeId = @enumFromInt(self.items.items.len);
+    const id: ir.TypeId = @fromBackingInt(@intCast(self.items.items.len));
 
     try self.items.append(self.allocator, if (kind == .optional) .{ .optional = child } else .{ .list = child });
 
@@ -128,12 +128,42 @@ pub fn wrap(self: *Self, kind: enum { optional, list }, child: ir.TypeId) zx.Err
 
 pub fn tuple(self: *Self, children: []const ir.TypeId) zx.Error!ir.TypeId {
     for (self.items.items, 0..) |item, index| {
-        if (item == .tuple and std.mem.eql(ir.TypeId, item.tuple, children)) return @enumFromInt(index);
+        if (item == .tuple and std.mem.eql(ir.TypeId, item.tuple, children)) return @fromBackingInt(@intCast(index));
     }
 
-    const id: ir.TypeId = @enumFromInt(self.items.items.len);
+    const id: ir.TypeId = @fromBackingInt(@intCast(self.items.items.len));
 
     try self.items.append(self.allocator, .{ .tuple = try self.allocator.dupe(ir.TypeId, children) });
+
+    return id;
+}
+
+pub fn errorSet(self: *Self, members: []const []const u8) zx.Error!ir.TypeId {
+    const names = try self.allocator.dupe([]const u8, members);
+
+    std.mem.sort([]const u8, names, {}, struct {
+        fn less(_: void, left: []const u8, right: []const u8) bool {
+            return std.mem.lessThan(u8, left, right);
+        }
+    }.less);
+
+    for (self.items.items, 0..) |item, index| {
+        if (item != .error_set or item.error_set.len != names.len) continue;
+
+        for (item.error_set, names) |left, right| {
+            if (!std.mem.eql(u8, left, right)) break;
+        } else {
+            self.allocator.free(names);
+
+            return @fromBackingInt(@intCast(index));
+        }
+    }
+
+    for (names) |*name| name.* = try self.allocator.dupe(u8, name.*);
+
+    const id: ir.TypeId = @fromBackingInt(@intCast(self.items.items.len));
+
+    try self.items.append(self.allocator, .{ .error_set = names });
 
     return id;
 }
@@ -151,7 +181,7 @@ fn enumeration(self: *Self, name: zx.ast.Name, members: []const zx.ast.Name) zx.
         names[index] = try self.allocator.dupe(u8, member.text);
     }
 
-    const id: ir.TypeId = @enumFromInt(self.items.items.len);
+    const id: ir.TypeId = @fromBackingInt(@intCast(self.items.items.len));
 
     try self.items.append(self.allocator, .{ .enumeration = .{ .name = try self.allocator.dupe(u8, name.text), .members = names } });
 
@@ -159,7 +189,7 @@ fn enumeration(self: *Self, name: zx.ast.Name, members: []const zx.ast.Name) zx.
 }
 
 pub fn get(self: *const Self, id: ir.TypeId) ir.Type {
-    return self.items.items[@intFromEnum(id)];
+    return self.items.items[@backingInt(id)];
 }
 
 pub fn containsList(self: *const Self, id: ir.TypeId) bool {
@@ -200,10 +230,10 @@ pub fn object(self: *Self, fields: []ir.TypeField) zx.Error!ir.TypeId {
             }
         }
 
-        if (equal) return @enumFromInt(index);
+        if (equal) return @fromBackingInt(@intCast(index));
     }
 
-    const id: ir.TypeId = @enumFromInt(self.items.items.len);
+    const id: ir.TypeId = @fromBackingInt(@intCast(self.items.items.len));
 
     try self.items.append(self.allocator, .{ .object = fields });
 

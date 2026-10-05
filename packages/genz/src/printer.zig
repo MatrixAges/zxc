@@ -49,6 +49,17 @@ fn plainIdentifier(name: []const u8) bool {
     return true;
 }
 
+fn errorSet(self: *Self, members: []const []const u8) Error!void {
+    try self.write("error{ ");
+
+    for (members) |member| {
+        try self.identifier(member);
+        try self.write(", ");
+    }
+
+    try self.write("}");
+}
+
 pub fn expression(self: *Self, value: *const node.Expression) Error!void {
     switch (value.*) {
         .unit => try self.write("{}"),
@@ -58,9 +69,22 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.write("?");
             try self.expression(child);
         },
-        .error_union => |child| {
-            try self.write("anyerror!");
-            try self.expression(child);
+        .error_set => |members| try self.errorSet(members),
+        .error_union => |error_union| {
+            if (error_union.errors) |members| try self.errorSet(members) else try self.write("anyerror");
+            try self.write("!");
+            try self.expression(error_union.payload);
+        },
+        .catch_value => |item| {
+            try self.write("(");
+            try self.expression(item.value);
+            try self.write(" catch |");
+            try self.identifier(item.capture);
+            try self.write("| break :");
+            try self.identifier(item.label);
+            try self.write(" ");
+            try self.expression(item.result);
+            try self.write(")");
         },
         .try_value => |child| {
             try self.write("(try ");

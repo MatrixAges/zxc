@@ -13,6 +13,13 @@ pub fn copy(allocator: std.mem.Allocator, values: []const ir.Type) std.mem.Alloc
             value.* = .{ .object = owned };
         },
         .tuple => |children| value.* = .{ .tuple = try allocator.dupe(ir.TypeId, children) },
+        .error_set => |names| {
+            const members = try allocator.alloc([]const u8, names.len);
+
+            for (names, members) |member, *owned| owned.* = try allocator.dupe(u8, member);
+
+            value.* = .{ .error_set = members };
+        },
         .enumeration => |enumeration| {
             const members = try allocator.alloc([]const u8, enumeration.members.len);
 

@@ -14,7 +14,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
     if (@import("expression_binding.zig").lookup(self, expression)) |binding| {
         const symbol = try self.resolveValue(.{ .text = self.symbols.items[@backingInt(binding)].name, .span = span });
 
-        return self.append(.{ .span = span, .type_id = self.symbols.items[@backingInt(symbol)].type_id, .value = .{ .reference = symbol } });
+        return @import("refinement.zig").reference(self, symbol, span);
     }
 
     switch (expression.value) {
@@ -24,7 +24,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
         .identifier => |name| {
             const symbol = try self.resolveValue(name);
 
-            return self.append(.{ .span = span, .type_id = self.symbols.items[@backingInt(symbol)].type_id, .value = .{ .reference = symbol } });
+            return @import("refinement.zig").reference(self, symbol, span);
         },
         .field => |field| {
             if (field.target.value == .identifier and std.mem.startsWith(u8, field.target.value.identifier.text, "$") and @import("expression_binding.zig").lookup(self, field.target) == null and !@import("expression_binding.zig").unit(self, field.target)) {
@@ -33,6 +33,8 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
 
             if (field.target.value == .identifier) {
                 const name = field.target.value.identifier.text;
+
+                if (std.mem.eql(u8, name, "error") and self.lookup(name) == null) return @import("capture.zig").member(self, field.name, span, aggregates.payload(self, expected));
 
                 if (self.types.resolved.get(name) orelse aliasType(self, name)) |type_id| {
                     const named_type = self.types.get(type_id);
@@ -66,6 +68,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
 
             return self.reporter.fail(.name, field.name.span, "unknown object field");
         },
+        .capture => |child| return @import("capture.zig").analyze(self, child, span),
         .unary => |unary| {
             if (unary.operator == .negate and unary.operand.value == .number) return numbers.literal(self, unary.operand.value.number, span, aggregates.payload(self, expected), true);
 
@@ -98,12 +101,19 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
             const hint = if (logical) Types.scalarId(.bool) else knownType(self, binary.left) orelse knownType(self, binary.right) orelse (if (comparison) null else aggregates.payload(self, expected)) orelse literalHint(binary.left, binary.right);
             const left = try self.expression(binary.left, hint);
             const operand_type = self.node(left).type_id;
+            const facts = self.refinement.mark();
+
+            if (logical) try self.refinement.assume(self.allocator, self.nodes.items, left, binary.operator == .logical_and);
+
             const right = try self.expression(binary.right, operand_type);
+
+            self.refinement.restore(facts);
+
             const numeric = numbers.isInteger(operand_type) or numbers.isFloat(operand_type);
             const equality = binary.operator == .equal or binary.operator == .not_equal;
 
             if (equality and self.types.get(operand_type) == .optional and !comparable(self, operand_type) and self.node(left).value != .none and self.node(right).value != .none) return self.reporter.fail(.type_mismatch, span, "optional aggregates can only be compared with null");
-            if (!logical and !numeric and !(equality and (operand_type == Types.scalarId(.bool) or operand_type == Types.scalarId(.string) or self.types.get(operand_type) == .enumeration or self.types.get(operand_type) == .optional))) return self.reporter.fail(.type_mismatch, span, "operator is not supported for these operand types");
+            if (!logical and !numeric and !(equality and (operand_type == Types.scalarId(.bool) or operand_type == Types.scalarId(.string) or self.types.get(operand_type) == .enumeration or self.types.get(operand_type) == .error_set or self.types.get(operand_type) == .optional))) return self.reporter.fail(.type_mismatch, span, "operator is not supported for these operand types");
 
             return self.append(.{
                 .span = span,
@@ -114,9 +124,20 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
         .conditional => |conditional| {
             const condition = try self.expression(conditional.condition, Types.scalarId(.bool));
             const hint = expected orelse knownType(self, conditional.yes) orelse knownType(self, conditional.no) orelse literalHint(conditional.yes, conditional.no);
+            const facts = self.refinement.mark();
+
+            try self.refinement.assume(self.allocator, self.nodes.items, condition, true);
+
             const yes = try self.expression(conditional.yes, hint);
             const type_id = self.node(yes).type_id;
+
+            self.refinement.restore(facts);
+
+            try self.refinement.assume(self.allocator, self.nodes.items, condition, false);
+
             const no = try self.expression(conditional.no, type_id);
+
+            self.refinement.restore(facts);
 
             return self.append(.{ .span = span, .type_id = type_id, .value = .{ .conditional = .{ .condition = condition, .yes = yes, .no = no } } });
         },
@@ -158,10 +179,10 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
 
 pub fn knownType(self: *const Analyzer, value: *const zx.ast.Expression) ?ir.TypeId {
     if (@import("expression_binding.zig").unit(self, value)) return Types.scalarId(.void);
-    if (@import("expression_binding.zig").lookup(self, value)) |binding| return self.symbols.items[@backingInt(binding)].type_id;
+    if (@import("expression_binding.zig").lookup(self, value)) |binding| return @import("refinement.zig").typeOf(self, binding);
 
     return switch (value.value) {
-        .identifier => |name| if (self.lookup(name.text)) |id| self.symbols.items[@backingInt(id)].type_id else null,
+        .identifier => |name| if (self.lookup(name.text)) |id| @import("refinement.zig").typeOf(self, id) else null,
         .field => |field| blk: {
             if (field.target.value == .identifier and std.mem.startsWith(u8, field.target.value.identifier.text, "$")) {
                 for (self.stores) |slot| {
@@ -261,7 +282,7 @@ fn aliasType(self: *const Analyzer, name: []const u8) ?ir.TypeId {
 fn comparable(self: *const Analyzer, id: ir.TypeId) bool {
     return switch (self.types.get(id)) {
         .scalar => |scalar| scalar != .void,
-        .enumeration => true,
+        .enumeration, .error_set => true,
         .optional => |child| comparable(self, child),
         else => false,
     };

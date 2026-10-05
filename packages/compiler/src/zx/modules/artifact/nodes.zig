@@ -10,7 +10,7 @@ pub const TypeMap = union(enum) {
     pub fn include(self: TypeMap, id: ir.TypeId) Error!ir.TypeId {
         return switch (self) {
             .collect => |types| types.include(id),
-            .mapped => |mapping| if (@intFromEnum(id) < mapping.len) mapping[@intFromEnum(id)] else error.InvalidModule,
+            .mapped => |mapping| if (@backingInt(id) < mapping.len) mapping[@backingInt(id)] else error.InvalidModule,
         };
     }
 };
@@ -20,7 +20,7 @@ types: TypeMap,
 functions: []const ?ir.FunctionId,
 native_modules: []const ?ir.NativeModuleId,
 pub fn functionId(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
-    const index = @intFromEnum(id);
+    const index = @backingInt(id);
 
     if (index >= self.functions.len) return error.InvalidModule;
 
@@ -92,7 +92,7 @@ fn expressions(self: *Self, values: []const ir.Expression) Error![]const ir.Expr
             .match_expr => |selection| .{ .match_expr = .{ .subject = selection.subject, .arms = try self.allocator.dupe(ir.MatchArm, selection.arms), .fallback = selection.fallback } },
             .object => |object| .{ .object = .{ .fields = try self.allocator.dupe(ir.ObjectField, object.fields), .evaluation = try self.allocator.dupe(ir.ExprId, object.evaluation) } },
             .call => |call| .{ .call = .{ .function = try self.functionId(call.function), .argument = call.argument, .stores = try self.allocator.dupe(u32, call.stores) } },
-            .integer, .negative_integer, .float, .boolean, .none, .unit, .some, .enum_value, .reference, .store_get, .field, .index, .length, .tuple_field, .unary, .binary, .conditional, .iteration, .list_update => item.value,
+            .integer, .negative_integer, .float, .boolean, .none, .unit, .some, .capture, .optional_value, .enum_value, .error_value, .reference, .store_get, .field, .index, .length, .tuple_field, .unary, .binary, .conditional, .iteration, .list_update => item.value,
         };
     }
 
@@ -122,7 +122,7 @@ fn statements(self: *Self, values: []const ir.Statement, depth: usize) Error![]c
 }
 
 pub fn external(self: *Self, value: ir.External) Error!ir.External {
-    const index = @intFromEnum(value.module);
+    const index = @backingInt(value.module);
 
     if (index >= self.native_modules.len) return error.InvalidModule;
 
@@ -130,6 +130,7 @@ pub fn external(self: *Self, value: ir.External) Error!ir.External {
 
     result.module = self.native_modules[index] orelse return error.InvalidModule;
     result.member = try self.strings(value.member);
+    result.errors = if (value.errors) |errors| try self.strings(errors) else null;
     result.export_name = if (value.export_name) |name| try self.allocator.dupe(u8, name) else null;
     result.input = if (value.input) |input| try self.nativeType(input, 0) else null;
 

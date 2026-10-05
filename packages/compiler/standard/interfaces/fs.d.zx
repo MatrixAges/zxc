@@ -2,18 +2,128 @@ export enum Kind { File, Directory, SymbolicLink, BlockDevice, CharacterDevice, 
 
 export type Stat = { kind: Kind, size: u64, mtime_ms: i64, ctime_ms: i64, atime_ms: i64? }
 
-export declare function readFile(allocator, io, in: { path: string, max_bytes: u64 }): u8[] throws
-export declare function readText(allocator, io, in: { path: string, max_bytes: u64 }): string throws
-export declare function writeFile(io, in: { path: string, data: u8[] }): void throws
-export declare function writeText(io, in: { path: string, text: string }): void throws
-export declare function truncate(io, in: { path: string, length: u64 }): void throws
-export declare function mkdir(io, in: { path: string, recursive: bool }): void throws
-export declare function readdir(allocator, io, in: string): string[] throws
-export declare function rmdir(io, in: string): void throws
-export declare function unlink(io, in: string): void throws
-export declare function rename(io, in: { from: string, to: string }): void throws
-export declare function copyFile(io, in: { from: string, to: string, exclusive: bool }): void throws
-export declare function realpath(allocator, io, in: string): string throws
-export declare function readlink(allocator, io, in: string): string throws
-export declare function stat(allocator, io, in: string): Stat throws
-export declare function lstat(allocator, io, in: string): Stat throws
+export declare function readFile(allocator, io, in: { path: string, max_bytes: u64 }): u8[] throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, ConnectionResetByPeer,
+  DeviceBusy, FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput,
+  InvalidPath, InvalidUtf8, IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice,
+  NoSpaceLeft, NotDir, NotOpenForReading, OutOfMemory, PathAlreadyExists,
+  PermissionDenied, PipeBusy, ProcessFdQuotaExceeded, ReadOnlyFileSystem,
+  SocketUnconnected, StreamTooLong, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
+  Unexpected, WouldBlock
+}
+
+export declare function readText(allocator, io, in: { path: string, max_bytes: u64 }): string throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, ConnectionResetByPeer,
+  DeviceBusy, FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput,
+  InvalidPath, InvalidUtf8, IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice,
+  NoSpaceLeft, NotDir, NotOpenForReading, OutOfMemory, PathAlreadyExists,
+  PermissionDenied, PipeBusy, ProcessFdQuotaExceeded, ReadOnlyFileSystem,
+  SocketUnconnected, StreamTooLong, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
+  Unexpected, WouldBlock
+}
+
+export declare function writeFile(io, in: { path: string, data: u8[] }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled, DeviceBusy,
+  DiskQuota, FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput,
+  InvalidPath, InvalidUtf8, IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice,
+  NoSpaceLeft, NotDir, NotOpenForWriting, PathAlreadyExists, PermissionDenied, PipeBusy,
+  ProcessFdQuotaExceeded, ReadOnlyFileSystem, SymLinkLoop, SystemFdQuotaExceeded,
+  SystemResources, Unexpected, WouldBlock
+}
+
+export declare function writeText(io, in: { path: string, text: string }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled, DeviceBusy,
+  DiskQuota, FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput,
+  InvalidPath, InvalidUtf8, IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice,
+  NoSpaceLeft, NotDir, NotOpenForWriting, PathAlreadyExists, PermissionDenied, PipeBusy,
+  ProcessFdQuotaExceeded, ReadOnlyFileSystem, SymLinkLoop, SystemFdQuotaExceeded,
+  SystemResources, Unexpected, WouldBlock
+}
+
+export declare function truncate(io, in: { path: string, length: u64 }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
+  FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput, InvalidPath, InvalidUtf8,
+  IsDir, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NonResizable, NotDir,
+  PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
+  ReadOnlyFileSystem, SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected,
+  WouldBlock
+}
+
+export declare function mkdir(io, in: { path: string, recursive: bool }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, DiskQuota,
+  FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InvalidPath, InvalidUtf8,
+  IsDir, LinkQuotaExceeded, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir,
+  PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
+  ReadOnlyFileSystem, Streaming, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
+  Unexpected, WouldBlock
+}
+
+export declare function readdir(allocator, io, in: string): string[] throws {
+  AccessDenied, BadPathName, Canceled, FileNotFound, InvalidPath, InvalidUtf8,
+  NameTooLong, NetworkNotFound, NoDevice, NotDir, OutOfMemory, PermissionDenied,
+  ProcessFdQuotaExceeded, SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected
+}
+
+export declare function rmdir(io, in: string): void throws {
+  AccessDenied, BadPathName, Canceled, DirNotEmpty, FileBusy, FileNotFound, FileSystem,
+  InvalidPath, InvalidUtf8, NameTooLong, NetworkNotFound, NotDir, PermissionDenied,
+  ReadOnlyFileSystem, SymLinkLoop, SystemResources, Unexpected
+}
+
+export declare function unlink(io, in: string): void throws {
+  AccessDenied, BadPathName, Canceled, FileBusy, FileNotFound, FileSystem, InvalidPath,
+  InvalidUtf8, IsDir, NameTooLong, NetworkNotFound, NotDir, PermissionDenied,
+  ReadOnlyFileSystem, SymLinkLoop, SystemResources, Unexpected
+}
+
+export declare function rename(io, in: { from: string, to: string }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, CrossDevice, DirNotEmpty,
+  DiskQuota, FileBusy, FileNotFound, HardwareFailure, InvalidPath, InvalidUtf8, IsDir,
+  LinkQuotaExceeded, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir,
+  PermissionDenied, PipeBusy, ReadOnlyFileSystem, SymLinkLoop, SystemResources,
+  Unexpected
+}
+
+export declare function copyFile(io, in: { from: string, to: string, exclusive: bool }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled,
+  ConnectionResetByPeer, CrossDevice, DeviceBusy, DirNotEmpty, DiskQuota, FileBusy,
+  FileLocksUnsupported, FileNotFound, FileTooBig, HardwareFailure, InputOutput,
+  InvalidFileName, InvalidPath, InvalidUtf8, IsDir, LinkQuotaExceeded, LockViolation,
+  NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir, NotOpenForReading,
+  NotOpenForWriting, OperationUnsupported, PathAlreadyExists, PermissionDenied, PipeBusy,
+  ProcessFdQuotaExceeded, ReadOnlyFileSystem, SocketUnconnected, Streaming, SymLinkLoop,
+  SystemFdQuotaExceeded, SystemResources, Unexpected, WouldBlock
+}
+
+export declare function realpath(allocator, io, in: string): string throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
+  FileNotFound, FileSystem, FileTooBig, InputOutput, InvalidPath, InvalidUtf8, IsDir,
+  NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir, OperationUnsupported,
+  OutOfMemory, PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
+  SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected, UnrecognizedVolume
+}
+
+export declare function readlink(allocator, io, in: string): string throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, FileBusy, FileNotFound,
+  FileSystem, InvalidPath, InvalidUtf8, NameTooLong, NetworkNotFound, NotDir, NotLink,
+  OutOfMemory, PermissionDenied, SymLinkLoop, SystemResources, Unexpected,
+  UnsupportedReparsePointType
+}
+
+export declare function stat(allocator, io, in: string): Stat throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
+  FileLocksUnsupported, FileNotFound, FileTooBig, InvalidPath, InvalidUtf8, IsDir,
+  NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir, OutOfMemory,
+  PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
+  ReadOnlyFileSystem, Streaming, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
+  TimestampOutOfRange, Unexpected, WouldBlock
+}
+
+export declare function lstat(allocator, io, in: string): Stat throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
+  FileLocksUnsupported, FileNotFound, FileTooBig, InvalidPath, InvalidUtf8, IsDir,
+  NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir, OutOfMemory,
+  PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
+  ReadOnlyFileSystem, Streaming, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
+  TimestampOutOfRange, Unexpected, WouldBlock
+}

@@ -6,7 +6,7 @@ pub fn analyze(allocator: std.mem.Allocator, expressions: []const ir.Expression,
 
     for (expressions, 0..) |expression, index| {
         result[index] = switch (expression.value) {
-            .iteration => |value| result[@intFromEnum(value.initial)] or result[@intFromEnum(value.condition)] or result[@intFromEnum(value.body)],
+            .iteration => |value| result[@backingInt(value.initial)] or result[@backingInt(value.condition)] or result[@backingInt(value.body)],
             .list_update => |value| result[@backingInt(value.target)] or result[@backingInt(value.index)] or result[@backingInt(value.value)],
             .scope => |scope| blk: {
                 for (scope.bindings) |binding| if (result[@backingInt(binding.value)]) break :blk true;
@@ -14,8 +14,8 @@ pub fn analyze(allocator: std.mem.Allocator, expressions: []const ir.Expression,
                 break :blk result[@backingInt(scope.result)];
             },
             .reference => |value| value == symbol,
-            .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .store_get => false,
-            .some, .length => |value| result[@backingInt(value)],
+            .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value, .store_get => false,
+            .some, .optional_value, .length, .capture => |value| result[@backingInt(value)],
             .field, .tuple_field => |value| result[@backingInt(value.target)],
             .index => |value| result[@backingInt(value.target)] or result[@backingInt(value.index)],
             .list, .tuple, .template => |values| any(result, values),

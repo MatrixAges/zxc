@@ -28,6 +28,13 @@ export default function (in: owned Input): Output {
     return consume({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: { ...in.state.control, depth: depth, primary_start: start } }, phase: Phase.Postfix })
   }
 
+  if (in.frame.kind == FrameKind.Capture) {
+    const value = { ...node({ kind: ExprKind.Capture, start: start, end: end, depth: child_depth + 1 }), first: result }
+    const control = { ...in.state.control, depth: in.frame.depth - 1, phase: Phase.Returning }
+
+    return emit({ state: { prepared: in.state.prepared, tree: in.state.tree, types: in.state.types, frames: in.state.frames, control: control }, node: value })
+  }
+
   if (in.frame.kind == FrameKind.Unary || in.frame.kind == FrameKind.Lambda) {
     const lambda = in.frame.kind == FrameKind.Lambda
     const depth = in.frame.depth - 1

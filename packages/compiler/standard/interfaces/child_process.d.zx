@@ -8,6 +8,30 @@ export type InputOptions = { options: Options, input: u8[] }
 
 export type Result = { stdout: u8[], stderr: u8[], kind: TerminationKind, code: u32 }
 
-export declare function spawnSync(allocator, io, in: Options): Result throws
+export declare function spawnSync(allocator, io, in: Options): Result throws {
+  AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled,
+  ConcurrencyUnavailable, ConnectionResetByPeer, DeviceBusy, DiskQuota, EmptyCommand,
+  FileBusy, FileLocksUnsupported, FileNotFound, FileSystem, FileTooBig, InputOutput,
+  InvalidBatchScriptArg, InvalidEnvironmentName, InvalidExe, InvalidName,
+  InvalidProcessArgument, InvalidProcessGroupId, InvalidUserId, InvalidUtf8, InvalidWtf8,
+  IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir,
+  NotOpenForReading, NotOpenForWriting, OperationUnsupported, OutOfMemory, Overflow,
+  PathAlreadyExists, PermissionDenied, PipeBusy, ProcessAlreadyExec,
+  ProcessFdQuotaExceeded, ReadOnlyFileSystem, ResourceLimitReached, SocketUnconnected,
+  StreamTooLong, SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Timeout, Unexpected,
+  UnrecognizedVolume, WouldBlock
+}
 
-export declare function spawnSyncWithInput(allocator, io, in: InputOptions): Result throws
+export declare function spawnSyncWithInput(allocator, io, in: InputOptions): Result throws {
+  AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled,
+  ConcurrencyUnavailable, ConnectionResetByPeer, DeviceBusy, DiskQuota, EmptyCommand,
+  FileBusy, FileLocksUnsupported, FileNotFound, FileSystem, FileTooBig, InputOutput,
+  InvalidBatchScriptArg, InvalidEnvironmentName, InvalidExe, InvalidName,
+  InvalidProcessArgument, InvalidProcessGroupId, InvalidUserId, InvalidUtf8, InvalidWtf8,
+  IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir,
+  NotOpenForReading, NotOpenForWriting, OperationUnsupported, OutOfMemory, Overflow,
+  PathAlreadyExists, PermissionDenied, PipeBusy, ProcessAlreadyExec,
+  ProcessFdQuotaExceeded, ReadOnlyFileSystem, ResourceLimitReached, SocketUnconnected,
+  StreamTooLong, SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Timeout, Unexpected,
+  UnrecognizedVolume, WouldBlock
+}

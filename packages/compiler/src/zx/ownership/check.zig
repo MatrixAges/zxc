@@ -245,7 +245,7 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
 
             break :blk source;
         },
-        .some => |child| try self.value(child, mode),
+        .some, .optional_value => |child| try self.value(child, mode),
         .length => |child| blk: {
             _ = try self.value(child, .read);
 
@@ -404,6 +404,7 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
 
             break :blk if (left == .borrowed or right == .borrowed) .borrowed else .owned;
         },
+        .capture => |child| try self.value(child, mode),
         .unary => |unary| blk: {
             _ = try self.value(unary.operand, .read);
 
@@ -496,7 +497,7 @@ fn borrow(self: *Self, id: ir.ExprId, permanent: bool) void {
         .iteration => |iteration| self.borrow(iteration.initial, permanent),
         .field, .tuple_field => |field| self.borrow(field.target, permanent),
         .index => |item| self.borrow(item.target, permanent),
-        .some => |child| self.borrow(child, permanent),
+        .some, .capture, .optional_value => |child| self.borrow(child, permanent),
         .match_expr => |selection| {
             for (selection.arms) |arm| self.borrow(arm.result, permanent);
 

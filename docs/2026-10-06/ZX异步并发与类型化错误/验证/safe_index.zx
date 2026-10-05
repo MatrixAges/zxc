@@ -1,0 +1,15 @@
+export type Input = { values: i32[], index: u64 }
+
+export type Output = i32?
+
+export default function (in: Input): Output {
+  const [err, res] = try in.values[in.index]
+
+  if (err != null) {
+    switch (err) {
+      case error.IndexOutOfBounds: return null
+    }
+  }
+
+  return res
+}

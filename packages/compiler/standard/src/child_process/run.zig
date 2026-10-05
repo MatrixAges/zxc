@@ -18,7 +18,11 @@ pub fn run(allocator: std.mem.Allocator, io: std.Io, options: std.process.RunOpt
     reader.init(allocator, io, buffer.toStreams(), &.{ child.stdout.?, child.stderr.? });
     defer reader.deinit();
 
-    const Completion = union(enum) { written: anyerror!void, collected: anyerror!void };
+    const Completion = union(enum) {
+        written: @typeInfo(@TypeOf(writeInput)).@"fn".return_type.?,
+        collected: @typeInfo(@TypeOf(collectOutput)).@"fn".return_type.?,
+    };
+
     var completions: [2]Completion = undefined;
     var tasks = std.Io.Select(Completion).init(io, &completions);
 
@@ -47,13 +51,13 @@ pub fn run(allocator: std.mem.Allocator, io: std.Io, options: std.process.RunOpt
     return .{ .term = term, .stdout = stdout, .stderr = stderr };
 }
 
-fn writeInput(io: std.Io, file: std.Io.File, input: []const u8) anyerror!void {
+fn writeInput(io: std.Io, file: std.Io.File, input: []const u8) !void {
     defer file.close(io);
 
     try file.writeStreamingAll(io, input);
 }
 
-fn collectOutput(reader: *std.Io.File.MultiReader, options: std.process.RunOptions) anyerror!void {
+fn collectOutput(reader: *std.Io.File.MultiReader, options: std.process.RunOptions) !void {
     while (reader.fill(options.reserve_amount, options.timeout)) |_| {
         try checkLimits(reader, options);
     } else |err| switch (err) {

@@ -14,7 +14,14 @@ pub fn index(self: *Lower, values: *const node.Expression, position: *const node
 }
 
 pub fn failIf(self: *Lower, body: *std.ArrayList(node.Statement), condition: *const node.Expression, name: []const u8) Lower.Error!void {
-    try body.append(self.allocator, .{ .branch = .{ .condition = condition, .yes = try self.allocator.dupe(node.Statement, &.{.{ .result = try self.builder.expression(.{ .error_value = name }) }}), .no = &.{} } });
+    const value = try self.builder.expression(.{ .error_value = name });
+
+    const failure = if (self.capture) |boundary|
+        try self.allocator.dupe(node.Statement, &.{ .{ .constant = .{ .name = boundary.name, .value = value } }, .{ .break_value = .{ .label = boundary.label, .value = boundary.failure } } })
+
+    else
+        try self.allocator.dupe(node.Statement, &.{.{ .result = value }});
+    try body.append(self.allocator, .{ .branch = .{ .condition = condition, .yes = failure, .no = &.{} } });
 }
 
 pub fn binary(self: *Lower, operator: node.BinaryOperator, left: *const node.Expression, right: *const node.Expression) Lower.Error!*const node.Expression {

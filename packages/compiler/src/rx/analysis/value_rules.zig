@@ -5,7 +5,7 @@ pub const message = "RX values cannot contain calls or callbacks; move logic to 
 
 pub fn validate(expression: *const ast.Expression) ?zx.Diagnostic {
     switch (expression.value) {
-        .call, .lambda, .state_block => return .{ .code = .unsupported, .span = expression.span, .message = message },
+        .call, .lambda, .state_block, .capture => return .{ .code = .unsupported, .span = expression.span, .message = message },
         .field => |field| return validate(field.target),
         .index => |item| return validate(item.target) orelse validate(item.index),
         .unary => |unary| return validate(unary.operand),

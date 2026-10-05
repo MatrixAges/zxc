@@ -137,8 +137,8 @@ export default function (in: Input): Output {
       _ => Keyword.Dead
     }
     case Keyword.D: return match {
-      in.byte == 111 => Keyword.Do,
       in.byte == 101 => Keyword.De,
+      in.byte == 111 => Keyword.Do,
       _ => Keyword.Dead
     }
     case Keyword.De: return match {
@@ -323,8 +323,12 @@ export default function (in: Input): Output {
       _ => Keyword.Dead
     }
     case Keyword.L: return match {
-      in.byte == 111 => Keyword.Lo,
       in.byte == 101 => Keyword.Le,
+      in.byte == 111 => Keyword.Lo,
+      _ => Keyword.Dead
+    }
+    case Keyword.Le: return match {
+      in.byte == 116 => Keyword.Let,
       _ => Keyword.Dead
     }
     case Keyword.Lo: return match {
@@ -333,14 +337,6 @@ export default function (in: Input): Output {
     }
     case Keyword.Loo: return match {
       in.byte == 112 => Keyword.Loop,
-      _ => Keyword.Dead
-    }
-    case Keyword.Nex: return match {
-      in.byte == 116 => Keyword.Next,
-      _ => Keyword.Dead
-    }
-    case Keyword.Le: return match {
-      in.byte == 116 => Keyword.Let,
       _ => Keyword.Dead
     }
     case Keyword.M: return match {
@@ -365,8 +361,12 @@ export default function (in: Input): Output {
       _ => Keyword.Dead
     }
     case Keyword.Ne: return match {
-      in.byte == 120 => Keyword.Nex,
       in.byte == 119 => Keyword.New,
+      in.byte == 120 => Keyword.Nex,
+      _ => Keyword.Dead
+    }
+    case Keyword.Nex: return match {
+      in.byte == 116 => Keyword.Next,
       _ => Keyword.Dead
     }
     case Keyword.Nu: return match {
@@ -529,6 +529,7 @@ export default function (in: Input): Output {
     case Keyword.Tr: return match {
       in.byte == 97 => Keyword.Tra,
       in.byte == 117 => Keyword.Tru,
+      in.byte == 121 => Keyword.Try,
       _ => Keyword.Dead
     }
     case Keyword.Tra: return match {

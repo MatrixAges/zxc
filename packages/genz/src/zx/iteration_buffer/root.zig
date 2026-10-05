@@ -84,7 +84,7 @@ pub fn restore(self: *Self) void {
 
 fn element(program: ir.Program, id: ir.TypeId) bool {
     return switch (program.typeOf(id)) {
-        .scalar, .enumeration => true,
+        .scalar, .enumeration, .error_set => true,
         .optional => |child| element(program, child),
         else => false,
     };

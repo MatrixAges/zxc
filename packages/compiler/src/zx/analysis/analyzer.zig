@@ -23,6 +23,7 @@ expression_units: std.ArrayList([]const u8) = .empty,
 allow_store: bool = false,
 lambda_depth: usize = 0,
 scope_floor: usize = 0,
+refinement: zx.Refinement = .{},
 pub const FunctionImport = @import("../modules/function_import.zig");
 
 pub fn run(self: *Self, program: zx.ast.Program, file_name: []const u8) zx.Error!ir.Program {
@@ -93,7 +94,7 @@ pub fn coerce(self: *Self, id: ir.ExprId, expected: ir.TypeId, span: zx.Span) zx
 }
 
 pub fn append(self: *Self, value: ir.Expression) zx.Error!ir.ExprId {
-    const id: ir.ExprId = @enumFromInt(self.nodes.items.len);
+    const id: ir.ExprId = @fromBackingInt(@intCast(self.nodes.items.len));
 
     try self.nodes.append(self.allocator, value);
 
@@ -101,7 +102,7 @@ pub fn append(self: *Self, value: ir.Expression) zx.Error!ir.ExprId {
 }
 
 pub fn node(self: *const Self, id: ir.ExprId) ir.Expression {
-    return self.nodes.items[@intFromEnum(id)];
+    return self.nodes.items[@backingInt(id)];
 }
 
 pub fn lookup(self: *const Self, name: []const u8) ?ir.SymbolId {
@@ -111,7 +112,7 @@ pub fn lookup(self: *const Self, name: []const u8) ?ir.SymbolId {
         index -= 1;
         const id = self.active.items[index];
 
-        if (std.mem.eql(u8, self.symbols.items[@intFromEnum(id)].name, name)) return id;
+        if (std.mem.eql(u8, self.symbols.items[@backingInt(id)].name, name)) return id;
     }
 
     return null;
@@ -121,7 +122,7 @@ pub fn resolveValue(self: *Self, name: zx.ast.Name) zx.Error!ir.SymbolId {
     if (self.lookup(name.text)) |id| return id;
 
     for (self.active.items[0..self.scope_floor]) |id| {
-        if (std.mem.eql(u8, self.symbols.items[@intFromEnum(id)].name, name.text)) {
+        if (std.mem.eql(u8, self.symbols.items[@backingInt(id)].name, name.text)) {
             return self.reporter.fail(.ownership, name.span, "ZX callbacks cannot capture outer bindings; use explicit callback parameters");
         }
     }
@@ -133,10 +134,10 @@ pub fn bind(self: *Self, name: zx.ast.Name, type_id: ir.TypeId, scope_start: usi
     if (std.mem.startsWith(u8, name.text, "$")) return self.reporter.fail(.capability, name.span, "$ names are reserved for Call-injected handles");
 
     for (self.active.items[scope_start..]) |id| {
-        if (std.mem.eql(u8, self.symbols.items[@intFromEnum(id)].name, name.text)) return self.reporter.fail(.name, name.span, "duplicate binding in the same scope");
+        if (std.mem.eql(u8, self.symbols.items[@backingInt(id)].name, name.text)) return self.reporter.fail(.name, name.span, "duplicate binding in the same scope");
     }
 
-    const id: ir.SymbolId = @enumFromInt(self.symbols.items.len);
+    const id: ir.SymbolId = @fromBackingInt(@intCast(self.symbols.items.len));
 
     try self.symbols.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name.text), .type_id = type_id, .span = name.span });
     try self.active.append(self.allocator, id);

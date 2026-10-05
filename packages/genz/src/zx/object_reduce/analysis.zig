@@ -15,10 +15,10 @@ pub fn accepts(allocator: std.mem.Allocator, program: ir.Program, transform: ir.
 
     for (program.expressions, 0..) |expression, index| {
         safe[index] = switch (expression.value) {
-            .scope, .iteration, .list_update => false,
+            .scope, .iteration, .list_update, .capture => false,
             .reference => |symbol| symbol != transform.parameters[0],
-            .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .store_get => true,
-            .some, .length => |id| safe[@backingInt(id)],
+            .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value, .store_get => true,
+            .some, .optional_value, .length => |id| safe[@backingInt(id)],
             .field => |field| direct(program, field.target, transform.parameters[0]) or safe[@backingInt(field.target)],
             .tuple_field => |field| safe[@backingInt(field.target)],
             .index => |value| safe[@backingInt(value.target)] and safe[@backingInt(value.index)],

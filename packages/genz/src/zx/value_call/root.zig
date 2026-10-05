@@ -11,6 +11,7 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expressio
     if (self.buffer_calls.contains(id)) return @import("../buffer_call/root.zig").invocation(self, id);
 
     return switch (self.program.expression(id).value) {
+        .capture => |child| @import("../capture.zig").lowerValue(self, self.program.expression(id).type_id, child),
         .object => aggregate.objectValue(self, id),
         .tuple => |items| aggregate.tupleValue(self, self.program.expression(id), items),
         .list_operation => |operation| @import("../collections.zig").lowerValue(self, self.program.expression(id).type_id, operation, self.layouts[@backingInt(self.program.expression(id).type_id)]),

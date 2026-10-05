@@ -10,7 +10,7 @@ pub fn declaration(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower
 
     for (self.program.stores, 0..) |slot, index| fields[index] = .{
         .name = try slotName(self, index),
-        .value = try self.builder.expression(.{ .optional_type = self.types[@intFromEnum(slot.type_id)] }),
+        .value = try self.builder.expression(.{ .optional_type = self.types[@backingInt(slot.type_id)] }),
     };
 
     try output.append(self.allocator, .{ .constant = .{ .name = self.pending_name, .value = try self.builder.expression(.{ .struct_type = fields }), .exported = true } });
@@ -19,7 +19,7 @@ pub fn declaration(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower
 pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.Expression, "value"), "call")) Lower.Error!*const node.Expression {
     self.uses_context = true;
     const mapping = invocation.stores;
-    const slots = self.program.functions[@intFromEnum(invocation.function)].stores;
+    const slots = self.program.functions[@backingInt(invocation.function)].stores;
     var readable: usize = 0;
 
     for (slots) |slot| if (slot.readable) {
@@ -60,10 +60,10 @@ pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.Expression, "v
         .{ .name = "changes", .value = try self.builder.expression(.{ .primitive = .@"anytype" }) },
     });
 
-    const declarations = try self.allocator.dupe(node.Declaration, &.{.{ .function = .{
+    const declarations = try self.allocator.dupe(node.Declaration, &.{ .{ .function = .{
         .name = "commit",
         .parameters = parameters,
-        .return_type = try self.builder.expression(.{ .error_union = try self.builder.expression(.{ .primitive = .void }) }),
+        .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.builder.expression(.{ .primitive = .void }) } }),
         .body = try self.allocator.dupe(node.Statement, &.{.{ .result = commit }}),
         .exported = true,
     } }, try @import("store/begin_adapter.zig").declaration(self, mapping) });

@@ -2,7 +2,8 @@ const std = @import("std");
 const zx = @import("zx");
 const Parser = @import("../frontend/parser.zig");
 const naming = @import("lint");
-pub const Function = struct { name: zx.ast.Name, parameters: []const *const zx.ast.Type, output: *const zx.ast.Type, allocator_argument: bool, io_argument: bool, process_argument: bool, fallible: bool };
+
+pub const Function = struct { name: zx.ast.Name, parameters: []const *const zx.ast.Type, output: *const zx.ast.Type, allocator_argument: bool, io_argument: bool, process_argument: bool, fallible: bool, errors: ?[]const []const u8 };
 pub const Program = struct { types: []const zx.ast.Declaration, functions: []const Function };
 
 pub fn parse(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Reporter) zx.Error!Program {
@@ -69,9 +70,10 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Rep
 
         const output = try parser.typeNode();
         const fallible = parser.take("throws");
+        const errors = if (fallible and parser.take("{")) try errorSet(&parser) else null;
 
         try parser.endStatement();
-        try functions.append(allocator, .{ .name = name, .parameters = parameters.items, .output = output, .allocator_argument = allocating, .io_argument = uses_io, .process_argument = uses_process, .fallible = fallible });
+        try functions.append(allocator, .{ .name = name, .parameters = parameters.items, .output = output, .allocator_argument = allocating, .io_argument = uses_io, .process_argument = uses_process, .fallible = fallible, .errors = errors });
     }
 
     if (types.items.len == 0 and functions.items.len == 0) return reporter.fail(.contract, .{ .start = 0, .end = 0 }, "native interfaces must export types or functions");
@@ -89,4 +91,25 @@ fn injected(parser: *Parser, name: []const u8) bool {
     parser.index += 1;
 
     return true;
+}
+
+fn errorSet(parser: *Parser) zx.Error![]const []const u8 {
+    var errors: std.ArrayList([]const u8) = .empty;
+
+    while (!parser.at("}")) {
+        const name = try parser.name();
+
+        if (!naming.checkName(name.text, .type_decl)) return parser.reporter.fail(.naming, name.span, "error names must use PascalCase");
+
+        for (errors.items) |previous| {
+            if (std.mem.eql(u8, previous, name.text)) return parser.reporter.fail(.name, name.span, "duplicate native error name");
+        }
+
+        try errors.append(parser.allocator, name.text);
+        if (!parser.take(",")) break;
+    }
+
+    try parser.expect("}");
+
+    return errors.items;
 }

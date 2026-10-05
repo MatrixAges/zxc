@@ -23,6 +23,24 @@ pub fn load(allocator: std.mem.Allocator, entry: External, module: ir.NativeModu
 
     if (implementation.expand_tuple and types.get(input_type) != .tuple) return reporter.fail(.module, span, "positional external signatures require tuple Input");
 
+    const errors = if (implementation.errors) |names| blk: {
+        if (!implementation.fallible) return reporter.fail(.module, span, "native error sets require a fallible implementation");
+
+        const owned = try allocator.alloc([]const u8, names.len);
+
+        for (names, 0..) |name, index| {
+            if (!@import("lint").checkName(name, .type_decl)) return reporter.fail(.naming, span, "error names must use PascalCase");
+
+            for (names[0..index]) |previous| {
+                if (std.mem.eql(u8, previous, name)) return reporter.fail(.name, span, "duplicate native error name");
+            }
+
+            owned[index] = try allocator.dupe(u8, name);
+        }
+
+        break :blk owned;
+    } else null;
+
     var members: std.ArrayList([]const u8) = .empty;
     var parts = std.mem.splitScalar(u8, implementation.member, '.');
 
@@ -47,6 +65,7 @@ pub fn load(allocator: std.mem.Allocator, entry: External, module: ir.NativeModu
             .process_argument = implementation.process_argument,
             .expand_tuple = implementation.expand_tuple,
             .fallible = implementation.fallible,
+            .errors = errors,
         },
     } };
 }

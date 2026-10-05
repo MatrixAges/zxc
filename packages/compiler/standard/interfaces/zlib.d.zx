@@ -6,13 +6,53 @@ export type ZstdDecompressOptions = { data: u8[]
 export type CompressOptions = { data: u8[]
  level: i32 }
 
-export declare function gzip(allocator, in: u8[]): u8[] throws
-export declare function deflate(allocator, in: u8[]): u8[] throws
-export declare function deflateRaw(allocator, in: u8[]): u8[] throws
-export declare function gzipWith(allocator, in: CompressOptions): u8[] throws
-export declare function deflateWith(allocator, in: CompressOptions): u8[] throws
-export declare function deflateRawWith(allocator, in: CompressOptions): u8[] throws
-export declare function gunzip(allocator, in: DecompressOptions): u8[] throws
-export declare function inflate(allocator, in: DecompressOptions): u8[] throws
-export declare function inflateRaw(allocator, in: DecompressOptions): u8[] throws
-export declare function zstdDecompress(allocator, in: ZstdDecompressOptions): u8[] throws
+export declare function gzip(allocator, in: u8[]): u8[] throws { InvalidCompressionLevel, OutOfMemory }
+
+export declare function deflate(allocator, in: u8[]): u8[] throws { InvalidCompressionLevel, OutOfMemory }
+
+export declare function deflateRaw(allocator, in: u8[]): u8[] throws { InvalidCompressionLevel, OutOfMemory }
+
+export declare function gzipWith(allocator, in: CompressOptions): u8[] throws { InvalidCompressionLevel, OutOfMemory }
+
+export declare function deflateWith(allocator, in: CompressOptions): u8[] throws { InvalidCompressionLevel, OutOfMemory }
+
+export declare function deflateRawWith(allocator, in: CompressOptions): u8[] throws { InvalidCompressionLevel, OutOfMemory }
+
+export declare function gunzip(allocator, in: DecompressOptions): u8[] throws {
+  BadGzipHeader, BadZlibHeader, EndOfStream, IncompleteHuffmanTree, InvalidBlockType,
+  InvalidChecksum, InvalidCode, InvalidCompressedData, InvalidDynamicBlockHeader,
+  InvalidHeader, InvalidHeaderChecksum, InvalidLength, InvalidMatch,
+  MissingEndOfBlockCode, OutOfMemory, OutputTooLarge, OversubscribedHuffmanTree,
+  ReadFailed, StreamTooLong, TrailingData, TruncatedInput, UnsupportedDictionary,
+  WrongGzipChecksum, WrongGzipSize, WrongStoredBlockNlen, WrongZlibChecksum
+}
+
+export declare function inflate(allocator, in: DecompressOptions): u8[] throws {
+  BadGzipHeader, BadZlibHeader, EndOfStream, IncompleteHuffmanTree, InvalidBlockType,
+  InvalidChecksum, InvalidCode, InvalidCompressedData, InvalidDynamicBlockHeader,
+  InvalidHeader, InvalidHeaderChecksum, InvalidLength, InvalidMatch,
+  MissingEndOfBlockCode, OutOfMemory, OutputTooLarge, OversubscribedHuffmanTree,
+  ReadFailed, StreamTooLong, TrailingData, TruncatedInput, UnsupportedDictionary,
+  WrongGzipChecksum, WrongGzipSize, WrongStoredBlockNlen, WrongZlibChecksum
+}
+
+export declare function inflateRaw(allocator, in: DecompressOptions): u8[] throws {
+  BadGzipHeader, BadZlibHeader, EndOfStream, IncompleteHuffmanTree, InvalidBlockType,
+  InvalidChecksum, InvalidCode, InvalidCompressedData, InvalidDynamicBlockHeader,
+  InvalidHeader, InvalidHeaderChecksum, InvalidLength, InvalidMatch,
+  MissingEndOfBlockCode, OutOfMemory, OutputTooLarge, OversubscribedHuffmanTree,
+  ReadFailed, StreamTooLong, TrailingData, TruncatedInput, UnsupportedDictionary,
+  WrongGzipChecksum, WrongGzipSize, WrongStoredBlockNlen, WrongZlibChecksum
+}
+
+export declare function zstdDecompress(allocator, in: ZstdDecompressOptions): u8[] throws {
+  BadMagic, BlockOversize, ChecksumFailure, ContentOversize, DictionaryIdFlagUnsupported,
+  EndOfStream, HuffmanTreeIncomplete, InputBufferUndersize, InvalidBitStream,
+  InvalidChecksum, InvalidCompressedData, MalformedAccuracyLog, MalformedBlock,
+  MalformedCompressedBlock, MalformedFrame, MalformedFseBits, MalformedFseTable,
+  MalformedHuffmanTree, MalformedLiteralsHeader, MalformedLiteralsLength,
+  MalformedLiteralsSection, MalformedSequence, MissingStartBit, OutOfMemory,
+  OutputBufferUndersize, OutputTooLarge, ReadFailed, RepeatModeFirst, ReservedBitSet,
+  ReservedBlock, SequenceBufferUndersize, StreamTooLong, TreelessLiteralsFirst,
+  UnexpectedEndOfLiteralStream, WindowOversize, WindowSizeUnknown
+}

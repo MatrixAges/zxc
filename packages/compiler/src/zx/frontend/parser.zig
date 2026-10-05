@@ -104,6 +104,7 @@ pub fn make(self: *Self, start: usize, value: @FieldType(ast.Expression, "value"
     switch (value) {
         .field => |field| child_depth = field.target.depth,
         .index => |item| child_depth = @max(item.target.depth, item.index.depth),
+        .capture => |child| child_depth = child.depth,
         .unary => |unary| child_depth = unary.operand.depth,
         .binary => |binary| child_depth = @max(binary.left.depth, binary.right.depth),
         .conditional => |conditional| child_depth = @max(conditional.condition.depth, conditional.yes.depth, conditional.no.depth),

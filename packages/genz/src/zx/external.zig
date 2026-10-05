@@ -7,7 +7,7 @@ pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node
     const implementation = function.external.?;
     self.uses_allocator = false;
 
-    var callee = try self.builder.identifier(self.native_names[@intFromEnum(implementation.module)]);
+    var callee = try self.builder.identifier(self.native_names[@backingInt(implementation.module)]);
 
     for (implementation.member) |part| callee = try self.field(callee, part);
 
@@ -49,10 +49,10 @@ pub fn lower(self: *Lower, function: ir.Function, index: usize) Lower.Error!node
     const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(implementation.io_argument)) + @as(usize, @intFromBool(implementation.process_argument)));
 
     parameters[0] = .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
-    parameters[1] = .{ .name = "in", .value = self.types[@intFromEnum(function.input_type)] };
+    parameters[1] = .{ .name = "in", .value = self.types[@backingInt(function.input_type)] };
 
     if (implementation.io_argument) parameters[2] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (implementation.process_argument) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
 
-    return .{ .function = .{ .name = try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = self.types[@intFromEnum(function.output_type)] }), .body = try body.toOwnedSlice(self.allocator) } };
+    return .{ .function = .{ .name = try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = self.types[@backingInt(function.output_type)], .errors = if (implementation.fallible) implementation.errors else &.{} } }), .body = try body.toOwnedSlice(self.allocator) } };
 }

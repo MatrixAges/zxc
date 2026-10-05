@@ -13,8 +13,10 @@ scope_start: usize,
 bindings: std.ArrayList(ir.ScopeBinding) = .empty,
 pub fn analyze(analyzer: *Analyzer, source: zx.ast.Block, parameter: ir.SymbolId) zx.Error!ir.ExprId {
     const start = analyzer.active.items.len;
+    const facts = analyzer.refinement.mark();
 
     defer analyzer.active.shrinkRetainingCapacity(start);
+    defer analyzer.refinement.restore(facts);
 
     var self = Self{ .analyzer = analyzer, .state = parameter, .scope_start = start };
 
@@ -47,6 +49,9 @@ fn statement(self: *Self, source: zx.ast.Statement) zx.Error!void {
             if (target != .tuple or target.tuple.len != binding.names.len) return analyzer.reporter.fail(.type_mismatch, source.span, "tuple destructuring must match every result slot");
 
             const saved = try self.temporary(value);
+            const symbols = try analyzer.allocator.alloc(?ir.SymbolId, binding.names.len);
+
+            @memset(symbols, null);
 
             for (binding.names, target.tuple, 0..) |name, type_id, index| {
                 if (std.mem.eql(u8, name.text, "_")) continue;
@@ -54,8 +59,10 @@ fn statement(self: *Self, source: zx.ast.Statement) zx.Error!void {
 
                 const item = try analyzer.append(.{ .span = name.span, .type_id = type_id, .value = .{ .tuple_field = .{ .target = saved, .index = @intCast(index) } } });
 
-                _ = try self.bind(name, item, self.scope_start);
+                symbols[index] = try self.bind(name, item, self.scope_start);
             }
+
+            try analyzer.refinement.bind(analyzer.allocator, analyzer.node(value), symbols);
         },
         .state_update => |update| {
             const location = try analyzer.expression(update.target, null);
@@ -84,8 +91,20 @@ fn statement(self: *Self, source: zx.ast.Statement) zx.Error!void {
         },
         .branch => |branch| {
             const condition = try analyzer.expression(branch.condition, Types.scalarId(.bool));
+            const facts = analyzer.refinement.mark();
+
+            try analyzer.refinement.assume(analyzer.allocator, analyzer.nodes.items, condition, true);
+
             const yes = try analyze(analyzer, branch.yes, self.state);
+
+            analyzer.refinement.restore(facts);
+
+            try analyzer.refinement.assume(analyzer.allocator, analyzer.nodes.items, condition, false);
+
             const no = if (branch.no) |body| try analyze(analyzer, body, self.state) else try self.reference(self.state, source.span);
+
+            analyzer.refinement.restore(facts);
+
             const value = try analyzer.append(.{ .span = source.span, .type_id = analyzer.node(yes).type_id, .value = .{ .conditional = .{ .condition = condition, .yes = yes, .no = no } } });
 
             try self.advance(value, source.span);
@@ -102,7 +121,7 @@ fn switchStatement(self: *Self, source: @FieldType(@FieldType(zx.ast.Statement, 
     const type_id = analyzer.node(subject).type_id;
     const target = analyzer.types.get(type_id);
 
-    if (target != .enumeration and !numbers.isInteger(type_id) and type_id != Types.scalarId(.bool) and type_id != Types.scalarId(.string)) return analyzer.reporter.fail(.type_mismatch, source.subject.span, "switch requires an enum, integer, bool or string");
+    if (target != .enumeration and target != .error_set and !numbers.isInteger(type_id) and type_id != Types.scalarId(.bool) and type_id != Types.scalarId(.string)) return analyzer.reporter.fail(.type_mismatch, source.subject.span, "switch requires an enum, finite error, integer, bool or string");
 
     var arms: std.ArrayList(ir.MatchArm) = .empty;
     var fallback: ?ir.ExprId = null;
@@ -111,7 +130,7 @@ fn switchStatement(self: *Self, source: @FieldType(@FieldType(zx.ast.Statement, 
         if (case.value) |label_source| {
             const label = try analyzer.expression(label_source, type_id);
 
-            if (!selection.isConstant(analyzer.node(label).value)) return analyzer.reporter.fail(.type_mismatch, label_source.span, "case labels must be literals or enum members");
+            if (!selection.isConstant(analyzer.node(label).value)) return analyzer.reporter.fail(.type_mismatch, label_source.span, "case labels must be literals, enum members or finite errors");
             for (arms.items) |arm| if (selection.equal(analyzer.node(arm.condition).value, analyzer.node(label).value)) return analyzer.reporter.fail(.name, label_source.span, "duplicate switch case");
             try arms.append(analyzer.allocator, .{ .condition = label, .result = try analyze(analyzer, case.body, self.state) });
         } else {
@@ -144,7 +163,7 @@ fn bind(self: *Self, name: zx.ast.Name, value: ir.ExprId, scope_start: usize) zx
     const symbol = try analyzer.bind(name, type_id, scope_start);
 
     const borrow = switch (analyzer.node(value).value) {
-        .reference, .field, .tuple_field, .index => true,
+        .reference, .field, .tuple_field, .index, .optional_value => true,
         else => false,
     };
 

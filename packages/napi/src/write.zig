@@ -18,6 +18,11 @@ pub fn write(comptime shape: anytype, env: api.Env, value: anytype) anyerror!api
 
             try check(api.napi_create_string_utf8(env, name.ptr, name.len, &result));
         },
+        .error_set => {
+            const name = @errorName(value);
+
+            try check(api.napi_create_string_utf8(env, name.ptr, name.len, &result));
+        },
         .optional => if (value) |child| return write(shape.child, env, child) else try check(api.napi_get_null(env, &result)),
         .pointer => |info| switch (info.size) {
             .one => return write(shape, env, value.*),

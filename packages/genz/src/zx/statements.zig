@@ -26,23 +26,25 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
             .parallel => |invocations| try output.appendSlice(self.allocator, try @import("parallel/root.zig").lower(self, invocations)),
             .constant => |binding| {
                 const value = if (self.stack_symbols.contains(binding.symbol)) try @import("value_call/root.zig").expression(self, binding.value) else try self.expr(binding.value);
-                const index = @intFromEnum(binding.symbol);
+                const index = @backingInt(binding.symbol);
 
-                if (self.used[index]) try output.append(self.allocator, .{ .constant = .{ .name = self.names[index], .type_expr = if (self.stack_symbols.contains(binding.symbol)) self.layouts[@intFromEnum(self.program.symbols[index].type_id)] else self.types[@intFromEnum(self.program.symbols[index].type_id)], .value = value } }) else try output.append(self.allocator, .{ .discard = value });
+                if (self.used[index]) try output.append(self.allocator, .{ .constant = .{ .name = self.names[index], .type_expr = if (self.stack_symbols.contains(binding.symbol)) self.layouts[@backingInt(self.program.symbols[index].type_id)] else self.types[@backingInt(self.program.symbols[index].type_id)], .value = value } }) else try output.append(self.allocator, .{ .discard = value });
             },
             .destructure => |binding| {
                 const name = try self.fresh("tuple");
+                const value = self.program.expression(binding.value);
+                const tuple = if (value.value == .capture) try @import("capture.zig").lowerValue(self, value.type_id, value.value.capture) else try self.expr(binding.value);
 
-                try output.append(self.allocator, .{ .constant = .{ .name = name, .value = try self.expr(binding.value) } });
+                try output.append(self.allocator, .{ .constant = .{ .name = name, .value = tuple } });
 
                 var used = false;
 
                 for (binding.symbols, 0..) |symbol, index| {
                     if (symbol) |id| {
-                        if (self.used[@intFromEnum(id)]) {
+                        if (self.used[@backingInt(id)]) {
                             used = true;
 
-                            try output.append(self.allocator, .{ .constant = .{ .name = self.names[@intFromEnum(id)], .value = try self.field(try self.builder.identifier(name), try std.fmt.allocPrint(self.allocator, "{d}", .{index})) } });
+                            try output.append(self.allocator, .{ .constant = .{ .name = self.names[@backingInt(id)], .value = try self.field(try self.builder.identifier(name), try std.fmt.allocPrint(self.allocator, "{d}", .{index})) } });
                         }
                     }
                 }

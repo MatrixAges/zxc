@@ -40,7 +40,26 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
         .unit => type_id == void_type,
         .none => target == .optional,
         .some => |child| target == .optional and check.typed(child, target.optional),
+        .optional_value => |child| blk: {
+            if (!check.earlier(child)) break :blk false;
+
+            const optional = program.typeOf(program.expression(child).type_id);
+
+            break :blk optional == .optional and optional.optional == type_id;
+        },
+        .capture => |child| blk: {
+            if (!check.earlier(child) or target != .tuple or target.tuple.len != 2) break :blk false;
+
+            const errors = program.typeOf(target.tuple[0]);
+            const result = program.typeOf(target.tuple[1]);
+
+            if (errors != .optional or program.typeOf(errors.optional) != .error_set) break :blk false;
+            if (program.expression(child).type_id == void_type) break :blk target.tuple[1] == void_type;
+
+            break :blk result == .optional and check.typed(child, result.optional);
+        },
         .enum_value => |member| target == .enumeration and member < target.enumeration.members.len,
+        .error_value => |member| target == .error_set and member < target.error_set.len,
         .store_get => |slot| slot < program.stores.len and program.stores[slot].readable and program.stores[slot].type_id == type_id,
         .reference => |symbol| @backingInt(symbol) < program.symbols.len and program.symbols[@backingInt(symbol)].type_id == type_id,
         .field, .tuple_field => |field| blk: {
@@ -120,7 +139,7 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
                 condition_type = program.expression(subject).type_id;
                 const subject_type = program.typeOf(condition_type);
 
-                if ((subject_type != .scalar and subject_type != .enumeration) or condition_type == void_type) break :blk false;
+                if ((subject_type != .scalar and subject_type != .enumeration and subject_type != .error_set) or condition_type == void_type) break :blk false;
             }
 
             for (selection.arms) |arm| {
@@ -177,7 +196,7 @@ const Check = struct {
 
         return switch (value.operator) {
             .logical_and, .logical_or => left == bool_type and result == bool_type,
-            .equal, .not_equal => (numeric or left == bool_type or left == string_type or target == .enumeration or target == .optional) and result == bool_type,
+            .equal, .not_equal => (numeric or left == bool_type or left == string_type or target == .enumeration or target == .error_set or target == .optional) and result == bool_type,
             .less, .less_equal, .greater, .greater_equal => numeric and result == bool_type,
             else => numeric and result == left,
         };
@@ -245,7 +264,7 @@ const Check = struct {
 fn comparable(program: ir.Program, id: ir.TypeId) bool {
     return switch (program.typeOf(id)) {
         .scalar => |scalar| scalar != .void,
-        .enumeration => true,
+        .enumeration, .error_set => true,
         .optional => |child| comparable(program, child),
         else => false,
     };

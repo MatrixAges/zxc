@@ -31,13 +31,13 @@ fn write(writer: *std.Io.Writer, types: []const ir.Type, input: ir.TypeId, outpu
         try writer.writeByte('\n');
     }
 
-    try writer.print("export type Input = InputType{d};\nexport type Output = OutputType{d};\n\n", .{ @intFromEnum(input), @intFromEnum(output) });
-    try writer.writeAll(if (types[@intFromEnum(input)] == .scalar and types[@intFromEnum(input)].scalar == .void) "export function execute(): Output;\n" else "export function execute(input: Input): Output;\n");
-    try writer.writeAll(if (types[@intFromEnum(input)] == .scalar and types[@intFromEnum(input)].scalar == .void) "export function executeAsync(): Promise<Output>;\n" else "export function executeAsync(input: Input): Promise<Output>;\n");
+    try writer.print("export type Input = InputType{d};\nexport type Output = OutputType{d};\n\n", .{ @backingInt(input), @backingInt(output) });
+    try writer.writeAll(if (types[@backingInt(input)] == .scalar and types[@backingInt(input)].scalar == .void) "export function execute(): Output;\n" else "export function execute(input: Input): Output;\n");
+    try writer.writeAll(if (types[@backingInt(input)] == .scalar and types[@backingInt(input)].scalar == .void) "export function executeAsync(): Promise<Output>;\n" else "export function executeAsync(input: Input): Promise<Output>;\n");
 }
 
 fn mark(types: []const ir.Type, id: ir.TypeId, seen: []bool) void {
-    const index = @intFromEnum(id);
+    const index = @backingInt(id);
 
     if (seen[index]) return;
 
@@ -62,18 +62,18 @@ fn definition(writer: *std.Io.Writer, types: []const ir.Type, value: ir.Type, in
             .string => "string",
             else => "number",
         }),
-        .optional => |child| try writer.print("{s}{d} | null{s}", .{ name, @intFromEnum(child), if (incoming) " | undefined" else "" }),
+        .optional => |child| try writer.print("{s}{d} | null{s}", .{ name, @backingInt(child), if (incoming) " | undefined" else "" }),
         .list => |child| {
-            if (types[@intFromEnum(child)] == .scalar and types[@intFromEnum(child)].scalar == .u8) {
+            if (types[@backingInt(child)] == .scalar and types[@backingInt(child)].scalar == .u8) {
                 try writer.writeAll(if (incoming) "Uint8Array | Uint8ClampedArray | ReadonlyArray<number>" else "Buffer");
-            } else try writer.print("{s}<{s}{d}>", .{ if (incoming) "ReadonlyArray" else "Array", name, @intFromEnum(child) });
+            } else try writer.print("{s}<{s}{d}>", .{ if (incoming) "ReadonlyArray" else "Array", name, @backingInt(child) });
         },
         .tuple => |children| {
             try writer.writeAll(if (incoming) "readonly [" else "[");
 
             for (children, 0..) |child, index| {
                 if (index != 0) try writer.writeAll(", ");
-                try writer.print("{s}{d}", .{ name, @intFromEnum(child) });
+                try writer.print("{s}{d}", .{ name, @backingInt(child) });
             }
 
             try writer.writeByte(']');
@@ -84,7 +84,7 @@ fn definition(writer: *std.Io.Writer, types: []const ir.Type, value: ir.Type, in
             for (fields) |field| {
                 try writer.writeAll("  ");
                 try std.json.Stringify.value(field.name, .{}, writer);
-                try writer.print("{s}: {s}{d};\n", .{ if (incoming and types[@intFromEnum(field.type_id)] == .optional) "?" else "", name, @intFromEnum(field.type_id) });
+                try writer.print("{s}: {s}{d};\n", .{ if (incoming and types[@backingInt(field.type_id)] == .optional) "?" else "", name, @backingInt(field.type_id) });
             }
 
             try writer.writeByte('}');
@@ -92,6 +92,14 @@ fn definition(writer: *std.Io.Writer, types: []const ir.Type, value: ir.Type, in
         .enumeration => |enumeration| for (enumeration.members, 0..) |member, index| {
             if (index != 0) try writer.writeAll(" | ");
             try std.json.Stringify.value(member, .{}, writer);
+        },
+        .error_set => |members| {
+            if (members.len == 0) try writer.writeAll("never");
+
+            for (members, 0..) |member, index| {
+                if (index != 0) try writer.writeAll(" | ");
+                try std.json.Stringify.value(member, .{}, writer);
+            }
         },
     }
 }

@@ -27,10 +27,10 @@ fn read(self: Self, value: @FieldType(ir.Expression, "value")) bool {
     const safe = self.safe;
 
     return switch (value) {
-        .scope, .iteration, .list_update => false,
+        .scope, .iteration, .list_update, .capture => false,
         .reference => |symbol| symbol != self.accumulator,
-        .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .store_get => true,
-        .some => |id| safe[@backingInt(id)],
+        .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value, .store_get => true,
+        .some, .optional_value => |id| safe[@backingInt(id)],
         .length => |id| self.field(id) or safe[@backingInt(id)],
         .field => |item| if (self.direct(item.target)) item.index != self.field_index else safe[@backingInt(item.target)],
         .tuple_field => |item| safe[@backingInt(item.target)],

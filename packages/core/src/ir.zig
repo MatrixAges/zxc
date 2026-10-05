@@ -14,6 +14,7 @@ pub const Type = union(enum) {
     optional: TypeId,
     list: TypeId,
     tuple: []const TypeId,
+    error_set: []const []const u8,
     enumeration: struct { name: []const u8, members: []const []const u8 },
 };
 
@@ -50,7 +51,10 @@ pub const Expression = struct {
         none,
         unit,
         some: ExprId,
+        capture: ExprId,
+        optional_value: ExprId,
         enum_value: u32,
+        error_value: u32,
         reference: SymbolId,
         store_get: u32,
         field: Projection,
@@ -115,6 +119,7 @@ pub const External = struct {
     process_argument: bool = false,
     expand_tuple: bool = false,
     fallible: bool = false,
+    errors: ?[]const []const u8 = null,
     pub fn exportName(self: External) []const u8 {
         return self.export_name orelse self.member[self.member.len - 1];
     }
@@ -146,7 +151,7 @@ pub const Function = struct {
 pub const Program = struct {
     consumes_input: bool = false,
     output_ownership: Ownership = .borrowed,
-    version: u32 = 16,
+    version: u32 = 18,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,

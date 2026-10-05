@@ -9,7 +9,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error
 
         const kind: []const u8 = switch (value) {
             .scalar => |scalar| if (scalar == .string) "string" else "scalar",
-            .enumeration => "scalar",
+            .enumeration, .error_set => "scalar",
             .optional => "optional",
             .list => "list",
             .object, .tuple => "object",
@@ -48,5 +48,5 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error
 }
 
 fn reference(self: *Lower, id: ir.TypeId) Lower.Error!*const node.Expression {
-    return self.builder.identifier(try std.fmt.allocPrint(self.allocator, "zx_shape_{d}", .{@intFromEnum(id)}));
+    return self.builder.identifier(try std.fmt.allocPrint(self.allocator, "zx_shape_{d}", .{@backingInt(id)}));
 }

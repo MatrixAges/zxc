@@ -145,6 +145,8 @@ fn external(decoder: *Decoder, value: *const c.yaml_node_t) Error!compiler.proje
                     result.implementation.process_argument = try decoder.boolean(field_value);
                 } else if (std.mem.eql(u8, name, "expand_tuple")) {
                     result.implementation.expand_tuple = try decoder.boolean(field_value);
+                } else if (std.mem.eql(u8, name, "errors")) {
+                    result.implementation.errors = try decoder.strings(field_value);
                 } else if (std.mem.eql(u8, name, "fallible")) {
                     result.implementation.fallible = try decoder.boolean(field_value);
                 } else return decoder.fail(decoder.node(part.key), "unknown external implementation field");

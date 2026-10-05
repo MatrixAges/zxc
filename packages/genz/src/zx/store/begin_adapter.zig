@@ -30,7 +30,7 @@ pub fn declaration(self: *Lower, mapping: []const u32) Lower.Error!node.Declarat
     return .{ .function = .{
         .name = "begin",
         .parameters = parameters,
-        .return_type = try self.builder.expression(.{ .error_union = try self.builder.expression(.{ .primitive = .void }) }),
+        .return_type = try self.builder.expression(.{ .error_union = .{ .payload = try self.builder.expression(.{ .primitive = .void }) } }),
         .body = try self.allocator.dupe(node.Statement, &.{try begin.invoke(self, parent, try self.builder.expression(.{ .comptime_value = mapped }))}),
         .exported = true,
     } };

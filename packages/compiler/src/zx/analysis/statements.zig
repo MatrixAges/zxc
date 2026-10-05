@@ -6,8 +6,10 @@ const Types = @import("types.zig");
 
 pub fn block(self: *Analyzer, value: zx.ast.Block) zx.Error![]const ir.Statement {
     const scope_start = self.active.items.len;
+    const facts = self.refinement.mark();
 
     defer self.active.shrinkRetainingCapacity(scope_start);
+    defer self.refinement.restore(facts);
 
     var result: std.ArrayList(ir.Statement) = .empty;
 
@@ -53,6 +55,7 @@ pub fn block(self: *Analyzer, value: zx.ast.Block) zx.Error![]const ir.Statement
                 }
 
                 try result.append(self.allocator, .{ .destructure = .{ .symbols = symbols, .value = initializer } });
+                try self.refinement.bind(self.allocator, self.node(initializer), symbols);
             },
             .result => |source| {
                 const id = if (source) |expression| try self.expression(expression, self.output_type) else null;
@@ -62,9 +65,22 @@ pub fn block(self: *Analyzer, value: zx.ast.Block) zx.Error![]const ir.Statement
             },
             .branch => |branch| {
                 const condition = try self.expression(branch.condition, Types.scalarId(.bool));
+                const before = self.refinement.mark();
+
+                try self.refinement.assume(self.allocator, self.nodes.items, condition, true);
+
                 const yes = try block(self, branch.yes);
+
+                self.refinement.restore(before);
+
+                try self.refinement.assume(self.allocator, self.nodes.items, condition, false);
+
                 const no = if (branch.no) |body| try block(self, body) else &.{};
 
+                self.refinement.restore(before);
+
+                if (Analyzer.returns(yes)) try self.refinement.assume(self.allocator, self.nodes.items, condition, false);
+                if (Analyzer.returns(no)) try self.refinement.assume(self.allocator, self.nodes.items, condition, true);
                 try result.append(self.allocator, .{ .branch = .{ .condition = condition, .yes = yes, .no = no } });
             },
             .switch_stmt => |selection| try result.append(self.allocator, try @import("switch.zig").analyze(self, selection.subject, selection.cases)),
