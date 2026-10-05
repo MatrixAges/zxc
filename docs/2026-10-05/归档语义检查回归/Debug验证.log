@@ -1,0 +1,127 @@
+✔ semantic lint / valid main.zx ignores unreachable invalid source (14.389368ms)
+✔ semantic lint / valid pkg.yaml ignores unreachable invalid source (8.275666ms)
+✔ semantic lint / type failure and selection / nested/increment.zx (16.227574ms)
+✔ semantic lint / type failure and selection / extra.zx (16.649935ms)
+✔ semantic lint / entry fallback (7.040337ms)
+✔ semantic lint / no public modules (5.9316ms)
+✔ semantic lint / missing import (5.913304ms)
+✔ semantic lint / reachable formatting (5.730107ms)
+✔ semantic lint / import cycle (6.029396ms)
+✔ semantic lint / explicit project path / pkg.yaml (6.587459ms)
+✔ semantic lint / explicit project path / ./pkg.yaml (6.453139ms)
+✔ semantic lint / explicit project path / nested/../pkg.yaml (6.447297ms)
+✔ semantic lint / explicit project path / absolute (6.95064ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.308865
+✔ compiled semantic lint / no original sources / lint main.zx --semantic (14.792052ms)
+✔ compiled semantic lint / no original sources / lint main.rx --semantic (8.333426ms)
+✔ compiled semantic lint / no original sources / lint pkg.yaml --semantic (7.474934ms)
+✔ compiled semantic lint / no original sources / lint pkgs/bundle/pkg.yaml --semantic (7.396596ms)
+✔ compiled semantic lint / no original sources / lint pkg.yaml --workspace (9.161226ms)
+✔ compiled semantic lint / dependency input type / main.zx (7.343563ms)
+✔ compiled semantic lint / dependency input type / pkg.yaml (6.737414ms)
+✔ compiled semantic lint / damaged digest / main.zx (6.52034ms)
+✔ compiled semantic lint / damaged digest / pkgs/bundle/pkg.yaml (7.103631ms)
+✔ compiled semantic lint / damaged digest / workspace (7.451847ms)
+✔ compiled semantic lint / missing public module / main.zx (11.214426ms)
+✔ compiled semantic lint / missing public module / pkgs/bundle/pkg.yaml (7.136951ms)
+✔ compiled semantic lint / missing public module / workspace (8.284548ms)
+✔ compiled semantic lint / explicit source has independent status / true (13.306861ms)
+✔ compiled semantic lint / explicit source has independent status / false (13.271391ms)
+✔ compiled semantic lint / explicit source does not consume its package archive (13.31025ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.644735
+✔ workspace lint / declared scope / explicit semantic false (19.004596ms)
+✔ workspace lint / declared scope / explicit semantic true (11.187627ms)
+✔ workspace lint / independent member errors accumulate (11.02553ms)
+✔ workspace lint / rejects duplicate package name (7.892696ms)
+✔ workspace lint / rejects missing workspace dependency (7.637725ms)
+✔ workspace lint / rejects dependency cycle (7.59224ms)
+✔ workspace lint / rejects missing entry (10.134964ms)
+✔ workspace lint / rejects uninstalled external (7.452751ms)
+✔ workspace lint / rejects organization formatting (10.638945ms)
+✔ workspace lint / root manifest directory symlink (27.98003ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --workspace (7.196929ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --project pkg.yaml (6.31498ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --kind manifest (6.20723ms)
+✔ workspace lint / invalid options / fmt pkg.yaml --workspace (6.214193ms)
+✔ workspace lint / source input rejected (6.253592ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.446109
+✔ semantic lint / RX valid / main.gateway.rx (15.494611ms)
+✔ semantic lint / RX valid / empty.gateway.rx (7.42659ms)
+✔ semantic lint / RX valid / state.store.rx (6.577255ms)
+✔ semantic lint / RX valid / read.rx (7.195701ms)
+✔ semantic lint / RX valid / pkg.yaml (7.643241ms)
+✔ semantic lint / Store initial type / state.store.rx (11.144449ms)
+✔ semantic lint / Store initial type / read.rx (11.335186ms)
+✔ semantic lint / Store initial type / main.gateway.rx (11.508158ms)
+✔ semantic lint / Store initial type / pkg.yaml (11.527538ms)
+✔ semantic lint / Gateway rejects missing service (6.219954ms)
+✔ semantic lint / Gateway rejects duplicate route (6.07632ms)
+✔ semantic lint / Gateway rejects service type (7.184395ms)
+✔ semantic lint / reachable Store formatting / state.store.rx (5.943354ms)
+✔ semantic lint / reachable Store formatting / read.rx (6.778275ms)
+✔ semantic lint / reachable Store formatting / main.gateway.rx (6.872408ms)
+✔ semantic lint / reachable Store formatting / pkg.yaml (7.18508ms)
+✔ semantic lint / dedicated manifest entry / state.store.rx (6.844886ms)
+✔ semantic lint / dedicated manifest entry / empty.gateway.rx (6.48432ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 153.317528
+✔ semantic lint / invalid options / lint main.zx --semantic --semantic (13.104876ms)
+✔ semantic lint / invalid options / lint main.zx --project pkg.yaml (5.971538ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --kind manifest (5.282651ms)
+✔ semantic lint / invalid options / fmt main.zx --semantic (4.712806ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --out output (5.056903ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.705536
+Build Summary: 14/14 steps succeeded
+test-semantic-lint success
++- run node success 176ms
+|  +- compile exe zxc Debug native cached 42ms MaxRSS:21M
+|     +- WriteFile cached
+|     +- compile lib yaml Debug native cached 40ms MaxRSS:20M
+|     +- compile lib yaml Debug native (reused)
+|     +- options cached
+|     +- run exe bundle-zig (bundle) cached
+|     |  +- compile exe bundle-zig ReleaseFast native cached 44ms MaxRSS:21M
+|     |  +- WriteFile bundle_manifest.json cached
+|     +- WriteFile interfaces/0.d.zx cached
++- run node success 99ms
+|  +- compile exe zxc Debug native (+6 more reused dependencies)
++- run node success 213ms
+|  +- compile exe zxc Debug native (+6 more reused dependencies)
++- run node success 217ms
+|  +- compile exe zxc Debug native (+6 more reused dependencies)
++- run node success 11s
+   +- compile exe zxc Debug native (+6 more reused dependencies)

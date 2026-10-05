@@ -1,0 +1,264 @@
+✔ semantic lint / valid main.zx ignores unreachable invalid source (14.42215ms)
+✔ semantic lint / valid pkg.yaml ignores unreachable invalid source (7.675406ms)
+✔ semantic lint / type failure and selection / nested/increment.zx (16.317909ms)
+✔ semantic lint / type failure and selection / extra.zx (16.453402ms)
+✔ semantic lint / entry fallback (6.822042ms)
+✔ semantic lint / no public modules (5.766951ms)
+✔ semantic lint / missing import (5.66671ms)
+✔ semantic lint / reachable formatting (5.858449ms)
+✔ semantic lint / import cycle (5.8572ms)
+✔ semantic lint / explicit project path / pkg.yaml (6.491693ms)
+✔ semantic lint / explicit project path / ./pkg.yaml (6.357324ms)
+✔ semantic lint / explicit project path / nested/../pkg.yaml (6.365735ms)
+✔ semantic lint / explicit project path / absolute (6.579029ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 114.329513
+✔ semantic lint / invalid options / lint main.zx --semantic --semantic (14.651553ms)
+✔ semantic lint / invalid options / lint main.zx --project pkg.yaml (5.346184ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --kind manifest (4.777746ms)
+✔ semantic lint / invalid options / fmt main.zx --semantic (5.045593ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --out output (4.511123ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.822274
+✔ compiled semantic lint / no original sources / lint main.zx --semantic (16.84423ms)
+✔ compiled semantic lint / no original sources / lint main.rx --semantic (7.896001ms)
+✔ compiled semantic lint / no original sources / lint pkg.yaml --semantic (7.131597ms)
+✖ compiled semantic lint / no original sources / lint pkgs/bundle/pkg.yaml --semantic (5.996106ms)
+✖ compiled semantic lint / no original sources / lint pkg.yaml --workspace (7.711488ms)
+✔ compiled semantic lint / dependency input type / main.zx (7.029881ms)
+✔ compiled semantic lint / dependency input type / pkg.yaml (6.572029ms)
+✔ compiled semantic lint / damaged digest / main.zx (6.118283ms)
+✖ compiled semantic lint / damaged digest / pkgs/bundle/pkg.yaml (5.644984ms)
+✔ compiled semantic lint / missing public module / main.zx (10.898009ms)
+✖ compiled semantic lint / missing public module / pkgs/bundle/pkg.yaml (6.389925ms)
+✖ compiled semantic lint / explicit source has independent status / true (5.647958ms)
+✖ compiled semantic lint / explicit source has independent status / false (5.448847ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 7
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 102.897073
+
+✖ failing tests:
+
+test at tests/semantic_lint/compiled_test.ts:36:2
+✖ compiled semantic lint / no original sources / lint pkgs/bundle/pkg.yaml --semantic (5.996106ms)
+  AssertionError [ERR_ASSERTION]: pkgs/bundle/pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/compiled_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:36:2
+✖ compiled semantic lint / no original sources / lint pkg.yaml --workspace (7.711488ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint ape8IE/pkgs/bundle/pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/compiled_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:65:3
+✖ compiled semantic lint / damaged digest / pkgs/bundle/pkg.yaml (5.644984ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /InvalidLibrary/. Input:
+
+  'pkgs/bundle/pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection\n'
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/compiled_test.ts:84:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pkgs/bundle/pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection\n',
+    expected: /InvalidLibrary/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:65:3
+✖ compiled semantic lint / missing public module / pkgs/bundle/pkg.yaml (6.389925ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /MissingPublicModule|not found|missing/. Input:
+
+  'pkgs/bundle/pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection\n'
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/compiled_test.ts:84:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pkgs/bundle/pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection\n',
+    expected: /MissingPublicModule|not found|missing/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:93:2
+✖ compiled semantic lint / explicit source has independent status / true (5.647958ms)
+  AssertionError [ERR_ASSERTION]: pkgs/bundle/pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/compiled_test.ts:101:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:93:2
+✖ compiled semantic lint / explicit source has independent status / false (5.448847ms)
+  AssertionError [ERR_ASSERTION]: pkgs/bundle/pkg.yaml: configuration formatting required; run zxc fmt with the same --kind selection
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/compiled_test.ts:101:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+✔ workspace lint / declared scope / explicit semantic false (18.737161ms)
+✔ workspace lint / declared scope / explicit semantic true (11.158718ms)
+✔ workspace lint / independent member errors accumulate (10.345078ms)
+✔ workspace lint / rejects duplicate package name (7.206458ms)
+✔ workspace lint / rejects missing workspace dependency (7.157464ms)
+✔ workspace lint / rejects dependency cycle (7.336097ms)
+✔ workspace lint / rejects missing entry (10.095744ms)
+✔ workspace lint / rejects uninstalled external (7.215982ms)
+✔ workspace lint / rejects organization formatting (10.244656ms)
+✔ workspace lint / root manifest directory symlink (27.947358ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --workspace (6.483418ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --project pkg.yaml (6.135806ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --kind manifest (6.112681ms)
+✔ workspace lint / invalid options / fmt pkg.yaml --workspace (6.911997ms)
+✔ workspace lint / source input rejected (6.020885ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.789365
+✔ semantic lint / RX valid / main.gateway.rx (16.256784ms)
+✔ semantic lint / RX valid / empty.gateway.rx (7.399683ms)
+✔ semantic lint / RX valid / state.store.rx (6.641479ms)
+✔ semantic lint / RX valid / read.rx (6.963615ms)
+✔ semantic lint / RX valid / pkg.yaml (7.288012ms)
+✔ semantic lint / Store initial type / state.store.rx (10.948547ms)
+✔ semantic lint / Store initial type / read.rx (11.31336ms)
+✔ semantic lint / Store initial type / main.gateway.rx (11.471038ms)
+✔ semantic lint / Store initial type / pkg.yaml (11.781234ms)
+✔ semantic lint / Gateway rejects missing service (6.186639ms)
+✔ semantic lint / Gateway rejects duplicate route (5.545055ms)
+✔ semantic lint / Gateway rejects service type (6.748573ms)
+✔ semantic lint / reachable Store formatting / state.store.rx (5.744448ms)
+✔ semantic lint / reachable Store formatting / read.rx (6.692428ms)
+✔ semantic lint / reachable Store formatting / main.gateway.rx (6.668395ms)
+✔ semantic lint / reachable Store formatting / pkg.yaml (6.958524ms)
+✔ semantic lint / dedicated manifest entry / state.store.rx (6.515365ms)
+✔ semantic lint / dedicated manifest entry / empty.gateway.rx (6.192926ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 151.114914
+test-semantic-lint
++- run node failure
+error: process exited with error code 1
+failed command: node /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/compiled_test.ts ./.zig-cache/o/8511a6f125fee49e4746f5425cec2af8/zxc
+
+Build Summary: 12/14 steps succeeded (1 failed)
+test-semantic-lint transitive failure
++- run node success 176ms
+|  +- compile exe zxc Debug native success 10s MaxRSS:1G
+|     +- WriteFile cached
+|     +- compile lib yaml Debug native cached 41ms MaxRSS:20M
+|     +- compile lib yaml Debug native (reused)
+|     +- options cached
+|     +- run exe bundle-zig (bundle) success 7s
+|     |  +- compile exe bundle-zig ReleaseFast native cached 46ms MaxRSS:21M
+|     |  +- WriteFile bundle_manifest.json cached
+|     +- WriteFile interfaces/0.d.zx cached
++- run node success 95ms
+|  +- compile exe zxc Debug native (+6 more reused dependencies)
++- run node success 212ms
+|  +- compile exe zxc Debug native (+6 more reused dependencies)
++- run node success 216ms
+|  +- compile exe zxc Debug native (+6 more reused dependencies)
++- run node failure
+   +- compile exe zxc Debug native (+6 more reused dependencies)
+
+error: the following build command failed with exit code 1:
+.zig-cache/o/bbc93d2d861115388ed40840a4e80e6c/build /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib /Users/xiewendao/Documents/MatrixAges/zxc/packages/test .zig-cache /Users/xiewendao/.cache/zig --seed 0xe1a70d33 -Zc7f8ec8fc5b309a4 test-semantic-lint --summary all

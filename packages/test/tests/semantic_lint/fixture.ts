@@ -6,7 +6,7 @@ import { dirname, join, resolve } from 'node:path'
 
 const executable = resolve(process.argv[2])
 
-export default function createFixture(files: Record<string, string>) {
+export default function createFixture(files: Record<string, string | Uint8Array>) {
 	const root = mkdtempSync(join(tmpdir(), 'zxc semantic lint '))
 
 	for (const [name, source] of Object.entries(files)) {
