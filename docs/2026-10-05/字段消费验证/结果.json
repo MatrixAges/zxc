@@ -1,0 +1,33 @@
+{
+	"stage": 396,
+	"head_at_recording": "fa09571f3e879b20ed55feb4ac7bca973355b1a9",
+	"production_changes_at_recording": " M packages/compiler/src/zx/ownership/check.zig\n M packages/compiler/src/zx/ownership/places.zig\n?? packages/compiler/src/zx/ownership/places/\n",
+	"new_tests": 147,
+	"analysis_tests": 35,
+	"runtime_tests": 112,
+	"debug": {
+		"exit_code": 0,
+		"steps": "34/34"
+	},
+	"release_safe": {
+		"exit_code": 0,
+		"steps": "34/34"
+	},
+	"regressions": {
+		"object_reduce_object_append_owned_input": {
+			"exit_code": 0,
+			"tests": 429,
+			"steps": "144/144"
+		},
+		"frontend_ownership": {
+			"exit_code": 0,
+			"tests": 412,
+			"steps": "5/5"
+		}
+	},
+	"runtime_modes": ["plain", "select", "independent", "reordered"],
+	"routes": ["source", "library_codec"],
+	"capacity_lengths": [128, 2048, 8192],
+	"zero_sequence_length": 8192,
+	"skipped_capacity_limit": 4096
+}

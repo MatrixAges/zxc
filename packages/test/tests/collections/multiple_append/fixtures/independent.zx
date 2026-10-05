@@ -1,0 +1,13 @@
+export type Input = { first: u64[], second: u64[], steps: u64[] }
+
+export type State = { primary: u64[], secondary: u64[], total: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const primary = in.first.map((item) => item)
+  const secondary = in.second.map((item) => item)
+  const initial: State = { primary: primary, secondary: secondary, total: 7 }
+
+  return in.steps.reduce((state, item) => ({ total: state.total + state.primary.length + state.secondary.length, primary: item % 2 == 0 ? state.primary : state.primary.push(item)[0], secondary: item % 3 == 0 ? state.secondary : state.secondary.concat([item, item + 10])[0] }), initial)
+}
