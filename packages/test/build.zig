@@ -27,6 +27,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(@import("build/simd_semantics.zig").add(b, cli_dependency, optimize));
     test_step.dependOn(@import("build/gateway.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/frontend.zig").add(b, compiler, target, optimize, suites.frontend));
+    test_step.dependOn(@import("build/scanner_metadata.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/runtime.zig").add(b, compiler, target, optimize, suites.runtime));
     test_step.dependOn(@import("build/safety.zig").add(b, compiler, target, optimize, suites.safety));
     test_step.dependOn(@import("build/stores.zig").add(b, compiler, target, optimize, suites.stores));
