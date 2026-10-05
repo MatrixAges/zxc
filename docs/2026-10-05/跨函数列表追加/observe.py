@@ -21,7 +21,7 @@ with (folder / "来源观测.jsonl").open("w") as output:
 record = {
     "entry": str(entry),
     "sources": [{"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()} for path in sources],
-    "code_generation_enabled": False,
+    "observation_kind": "static_list_flow",
 }
 
 (folder / "观测输入.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n")

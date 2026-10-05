@@ -9,20 +9,27 @@ hash: Hash = .init(.{}),
 program: ir.Program,
 names: Names,
 value_functions: []const bool,
+buffer_functions: []const []const @import("genz").zx.buffer_call.Lane,
 pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit) std.mem.Allocator.Error![32]u8 {
     const value_functions = try @import("genz").zx.value_call.functions(allocator, program);
 
     defer allocator.free(value_functions);
 
-    var self = Self{ .program = program, .names = names, .value_functions = value_functions };
+    var arena = std.heap.ArenaAllocator.init(allocator);
 
-    self.bytes("zxc.zig.input.v4");
+    defer arena.deinit();
+
+    const buffer_functions = try @import("genz").zx.buffer_call.analysis.functions(arena.allocator(), program, value_functions);
+    var self = Self{ .program = program, .names = names, .value_functions = value_functions, .buffer_functions = buffer_functions };
+
+    self.bytes("zxc.zig.input.v5");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
     switch (unit) {
         .function => |id| {
             self.write(value_functions[@intFromEnum(id)]);
+            self.write(buffer_functions[@intFromEnum(id)]);
             self.write(program.functions[@intFromEnum(id)]);
         },
         .entry => self.write(.{
@@ -75,6 +82,7 @@ fn write(self: *Self, value: anytype) void {
         self.bytes(self.names.functions[@intFromEnum(value)]);
         self.write(self.program.functions[@intFromEnum(value)].stores);
         self.write(self.value_functions[@intFromEnum(value)]);
+        self.write(self.buffer_functions[@intFromEnum(value)]);
 
         const function = self.program.functions[@intFromEnum(value)];
 

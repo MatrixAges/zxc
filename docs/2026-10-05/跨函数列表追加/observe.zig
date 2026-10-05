@@ -1,6 +1,6 @@
 const std = @import("std");
 const compiler = @import("compiler");
-const flow = @import("flow.zig");
+const flow = @import("genz").zx.buffer_call.analysis;
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();

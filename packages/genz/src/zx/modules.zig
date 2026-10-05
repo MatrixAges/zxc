@@ -89,6 +89,14 @@ pub fn function(allocator: std.mem.Allocator, program: ir.Program, id: ir.Functi
         try output.append(temporary, value_declaration);
     }
 
+    if (@import("buffer_call/root.zig").available(lower.buffer_functions[@intFromEnum(id)])) {
+        var buffered_declaration = try @import("buffer_call/root.zig").declaration(&lower, "callBuffered", lower.buffer_functions[@intFromEnum(id)]);
+
+        buffered_declaration.function.exported = true;
+
+        try output.append(temporary, buffered_declaration);
+    }
+
     if (lower.uses_parallel) try output.append(temporary, .{ .source = @import("parallel/allocator.zig").source });
     for (comparisons.items) |type_id| try output.append(temporary, try @import("comparison.zig").ordering(&lower, type_id));
 

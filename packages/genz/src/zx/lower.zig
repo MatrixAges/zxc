@@ -17,6 +17,10 @@ used: []bool,
 cache_reads: []usize,
 cache: std.AutoHashMapUnmanaged(ir.ExprId, *const node.Expression) = .empty,
 append_overrides: std.AutoHashMapUnmanaged(ir.ExprId, @import("object_reduce/append/builder.zig")) = .empty,
+buffer_calls: std.AutoHashMapUnmanaged(ir.ExprId, []const ?@import("object_reduce/append/builder.zig")) = .empty,
+buffer_functions: []const []const @import("buffer_call/root.zig").Lane = &.{},
+buffered_type: ?*const node.Expression = null,
+uses_buffers: bool = false,
 serial: usize = 0,
 uses_allocator: bool = false,
 uses_io: bool = false,
@@ -81,12 +85,14 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
         helper.used = try self.allocator.alloc(bool, module_function.symbols.len);
         helper.cache = .empty;
         helper.append_overrides = .empty;
+        helper.buffer_calls = .empty;
         helper.stack_symbols = .empty;
         helper.cache_reads = try self.allocator.alloc(usize, module_function.expressions.len);
 
         try @import("store.zig").declaration(&helper, &output);
         try output.append(self.allocator, try helper.function(try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), false));
         if (self.value_functions[index]) try output.append(self.allocator, try helper.functionValue(try std.fmt.allocPrint(self.allocator, "function_{d}_value", .{index})));
+        if (@import("buffer_call/root.zig").available(self.buffer_functions[index])) try output.append(self.allocator, try @import("buffer_call/root.zig").declaration(&helper, try std.fmt.allocPrint(self.allocator, "function_{d}_buffered", .{index}), self.buffer_functions[index]));
 
         self.uses_parallel = self.uses_parallel or helper.uses_parallel;
     };
@@ -111,6 +117,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     self.uses_context = false;
     self.uses_io = false;
     self.uses_process = false;
+    self.uses_buffers = false;
 
     const needs_io = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.io_functions);
     const needs_process = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.process_functions);
@@ -134,6 +141,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_io and !self.uses_io) try body.append(self.allocator, .{ .discard = try self.builder.identifier("io") });
     if (needs_process and !self.uses_process) try body.append(self.allocator, .{ .discard = try self.builder.identifier("process") });
     if (!self.used[0]) try body.append(self.allocator, .{ .discard = try self.builder.identifier("in") });
+    if (self.buffered_type != null and !self.uses_buffers) try body.append(self.allocator, .{ .discard = try self.builder.identifier("buffers") });
 
     if (self.transaction()) {
         const fields = try self.allocator.alloc(node.Field, self.program.stores.len);
@@ -150,7 +158,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (self.transaction() and !ir.terminates(self.program.body)) try body.append(self.allocator, .{ .expression = try self.commit() });
 
     const injected = self.program.stores.len > 0;
-    const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(injected)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
+    const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(injected)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)) + @as(usize, @intFromBool(self.buffered_type != null)));
 
     parameters[0] = if (exported) .{ .name = "arena", .value = try self.builder.expression(.{ .pointer = try @import("intrinsics.zig").standardField(self, &.{ "heap", "ArenaAllocator" }) }) } else .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
     parameters[1] = .{ .name = "in", .value = self.types[@intFromEnum(self.program.input_type)] };
@@ -158,6 +166,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (injected) parameters[2] = .{ .name = "context", .value = try self.builder.expression(.{ .primitive = .@"anytype" }) };
     if (needs_io) parameters[2 + @as(usize, @intFromBool(injected))] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
+    if (self.buffered_type) |buffered_type| parameters[parameters.len - 1] = .{ .name = "buffers", .value = buffered_type };
 
     return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = if (self.value_output) self.layouts[@intFromEnum(self.program.output_type)] else self.types[@intFromEnum(self.program.output_type)] }), .body = try body.toOwnedSlice(self.allocator), .exported = exported } };
 }
@@ -170,6 +179,7 @@ pub fn expr(self: *Self, id: ir.ExprId) Error!*const node.Expression {
     }
 
     if (self.append_overrides.get(id)) |override| return override.lower(self, id);
+    if (self.buffer_calls.contains(id)) return self.construct(self.program.expression(id).type_id, try @import("buffer_call/root.zig").invocation(self, id));
 
     const value = self.program.expression(id);
     const value_type = self.types[@intFromEnum(value.type_id)];

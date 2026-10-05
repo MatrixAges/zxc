@@ -8,7 +8,25 @@ const Self = @This();
 
 buffer: *const node.Expression,
 started: *const node.Expression,
+enabled: ?*const node.Expression = null,
 pub fn lower(self: Self, lowering: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
+    if (self.enabled) |enabled| {
+        lowering.uses_buffers = true;
+
+        var active = self;
+        active.enabled = null;
+
+        const previous = lowering.append_overrides.fetchRemove(id).?;
+
+        defer lowering.append_overrides.put(lowering.allocator, id, previous.value) catch unreachable;
+
+        return lowering.cast(lowering.types[@intFromEnum(lowering.program.expression(id).type_id)], try lowering.builder.expression(.{ .conditional = .{
+            .condition = enabled,
+            .yes = try active.lower(lowering, id),
+            .no = try lowering.expr(id),
+        } }));
+    }
+
     const projection = lowering.program.expression(id).value.tuple_field;
     const operation = lowering.program.expression(projection.target).value.list_operation;
     var body: std.ArrayList(node.Statement) = .empty;

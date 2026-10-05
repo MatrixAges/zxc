@@ -1,5 +1,5 @@
 const std = @import("std");
-const ir = @import("compiler").ir;
+const ir = @import("zx").ir;
 const flow = @import("flow.zig");
 const Trace = @import("trace.zig");
 const may = @import("may.zig");

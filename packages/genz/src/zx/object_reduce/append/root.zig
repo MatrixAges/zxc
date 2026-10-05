@@ -6,10 +6,12 @@ const Builder = @import("builder.zig");
 const Self = @This();
 const Field = struct { name: []const u8, builder: Builder };
 const Saved = struct { id: ir.ExprId, previous: ?Builder };
+const SavedCall = struct { id: ir.ExprId, previous: ?[]const ?Builder };
 
 lowering: *Lower,
 fields: std.ArrayList(Field) = .empty,
 saved: std.ArrayList(Saved) = .empty,
+saved_calls: std.ArrayList(SavedCall) = .empty,
 pub fn init(lowering: *Lower, transform: ir.Transform, body: *std.ArrayList(node.Statement)) Lower.Error!Self {
     var self = Self{ .lowering = lowering };
 
@@ -22,7 +24,11 @@ pub fn init(lowering: *Lower, transform: ir.Transform, body: *std.ArrayList(node
 
         if (field_type != .list) continue;
 
-        const projections = try @import("analysis.zig").analyze(lowering.allocator, lowering.program, transform, @intCast(index)) orelse continue;
+        const projections = try @import("analysis.zig").analyze(lowering.allocator, lowering.program, transform, @intCast(index));
+        const cross = try @import("../../buffer_call/reduce.zig").match(lowering, transform, @intCast(index));
+
+        if (projections == null and cross == null) continue;
+
         const name = try lowering.fresh("field_items");
         const started_name = try lowering.fresh("field_started");
         const buffer_type = try lowering.call(try lowering.field(try lowering.builder.identifier("std"), "ArrayList"), &.{lowering.types[@intFromEnum(field_type.list)]}, false);
@@ -33,9 +39,14 @@ pub fn init(lowering: *Lower, transform: ir.Transform, body: *std.ArrayList(node
         try body.append(lowering.allocator, .{ .defer_expression = try builder.method(lowering, "deinit", &.{}, false) });
         try self.fields.append(lowering.allocator, .{ .name = field.name, .builder = builder });
 
-        for (projections) |id| {
+        for (projections orelse &.{}) |id| {
             try self.saved.append(lowering.allocator, .{ .id = id, .previous = lowering.append_overrides.get(id) });
             try lowering.append_overrides.put(lowering.allocator, id, builder);
+        }
+
+        if (cross) |call| {
+            try self.saved_calls.append(lowering.allocator, .{ .id = call.expression, .previous = lowering.buffer_calls.get(call.expression) });
+            try @import("../../buffer_call/root.zig").bind(lowering, call.expression, call.lane, builder);
         }
     }
 
@@ -43,6 +54,17 @@ pub fn init(lowering: *Lower, transform: ir.Transform, body: *std.ArrayList(node
 }
 
 pub fn restore(self: *Self) void {
+    var index = self.saved_calls.items.len;
+
+    while (index > 0) {
+        index -= 1;
+        const saved = self.saved_calls.items[index];
+
+        if (saved.previous) |previous| self.lowering.buffer_calls.put(self.lowering.allocator, saved.id, previous) catch unreachable else _ = self.lowering.buffer_calls.remove(saved.id);
+    }
+
+    self.saved_calls.clearRetainingCapacity();
+
     for (self.saved.items) |saved| {
         if (saved.previous) |previous| self.lowering.append_overrides.put(self.lowering.allocator, saved.id, previous) catch unreachable else _ = self.lowering.append_overrides.remove(saved.id);
     }

@@ -7,6 +7,7 @@ pub const modules = @import("modules.zig");
 pub const state = @import("state.zig");
 pub const io = @import("io.zig");
 pub const value_call = @import("value_call/root.zig");
+pub const buffer_call = @import("buffer_call/root.zig");
 pub const capabilities = @import("capabilities.zig");
 
 pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error![]u8 {
@@ -45,6 +46,8 @@ pub const Bundle = struct {
 };
 
 pub fn initialize(temporary: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
+    const value_functions = try value_call.functions(temporary, program);
+
     return .{
         .allocator = temporary,
         .program = program,
@@ -56,6 +59,7 @@ pub fn initialize(temporary: std.mem.Allocator, program: zx.ir.Program) std.mem.
         .used = try temporary.alloc(bool, program.symbols.len),
         .io_functions = try io.functions(temporary, program),
         .process_functions = try capabilities.functions(temporary, program, .process),
-        .value_functions = try value_call.functions(temporary, program),
+        .value_functions = value_functions,
+        .buffer_functions = try buffer_call.analysis.functions(temporary, program, value_functions),
     };
 }
