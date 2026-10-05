@@ -1,0 +1,189 @@
+[
+	{
+		"name": "function",
+		"source": "<Module>\n  <Return value={number(1)}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "method",
+		"source": "<Module>\n  <Return value={$in.pop()}/>\n</Module>\n",
+		"marker": "$in.pop()"
+	},
+	{
+		"name": "map_callback",
+		"source": "<Module>\n  <Return value={[1].map(item => item)}/>\n</Module>\n",
+		"marker": "[1].map(item => item)"
+	},
+	{
+		"name": "filter_callback",
+		"source": "<Module>\n  <Return value={[1].filter(item => true)}/>\n</Module>\n",
+		"marker": "[1].filter(item => true)"
+	},
+	{
+		"name": "reduce_callback",
+		"source": "<Module>\n  <Return value={[1].reduce((total, item) => total + item, 0)}/>\n</Module>\n",
+		"marker": "[1].reduce((total, item) => total + item, 0)"
+	},
+	{
+		"name": "loop",
+		"source": "<Module>\n  <Return value={loop(0, { while: state => false, next: state => { state += 1 } })}/>\n</Module>\n",
+		"marker": "loop(0,"
+	},
+	{
+		"name": "lambda",
+		"source": "<Module>\n  <Return value={item => item}/>\n</Module>\n",
+		"marker": "item => item"
+	},
+	{
+		"name": "object",
+		"source": "<Module>\n  <Return value={{ inner: { value: number(1) } }}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "list",
+		"source": "<Module>\n  <Return value={[[number(1)]]}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "conditional_condition",
+		"source": "<Module>\n  <Return value={number(1) > 0 ? 1 : 0}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "conditional_yes",
+		"source": "<Module>\n  <Return value={true ? number(1) : 0}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "conditional_no",
+		"source": "<Module>\n  <Return value={true ? 0 : number(1)}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "binary_left",
+		"source": "<Module>\n  <Return value={number(1) + 1}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "binary_right",
+		"source": "<Module>\n  <Return value={1 + number(1)}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "unary",
+		"source": "<Module>\n  <Return value={!number(1)}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "field_target",
+		"source": "<Module>\n  <Return value={number(1).value}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "index_target",
+		"source": "<Module>\n  <Return value={number(1)[0]}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "index_key",
+		"source": "<Module>\n  <Return value={[1][number(1)]}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "template",
+		"source": "<Module>\n  <Return value={`value=${number(1)}`}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "match_condition",
+		"source": "<Module>\n  <Return value={match { number(1) > 0 => 1, _ => 0 }}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "match_result",
+		"source": "<Module>\n  <Return value={match { true => number(1), _ => 0 }}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "match_fallback",
+		"source": "<Module>\n  <Return value={match { false => 0, _ => number(1) }}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "logical_dead_branch",
+		"source": "<Module>\n  <Return value={false && number(1) > 0}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "call_input",
+		"source": "<Module>\n  <Call fn=\"number\" in={number(1)}/>\n  <Return value={$ctx.number}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "switch_subject",
+		"source": "<Module>\n  <Switch on={number(1)}>\n    <Case value={1}><Return value={1}/></Case>\n    <Default><Return value={0}/></Default>\n  </Switch>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "case_value",
+		"source": "<Module>\n  <Switch on={1}>\n    <Case value={number(1)}><Return value={1}/></Case>\n    <Default><Return value={0}/></Default>\n  </Switch>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "task_result",
+		"source": "<Module>\n  <Task name=\"work\">\n    <Return value={number(1)}/>\n  </Task>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "parallel_result",
+		"source": "<Module>\n  <Parallel>\n    <Task name=\"result\"><Return value={number(1)}/></Task>\n  </Parallel>\n  <Return value={$ctx.task.result}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "crlf",
+		"source": "<Module>\r\n  <Return value={\r\n    /* before */ number(1)\r\n  }/>\r\n</Module>\r\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "utf8",
+		"source": "<!-- 中文 -->\n<Module>\n  <Return value={{ text: \"中文\", result: number(1) }}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "store_call",
+		"source": "<Module>\n  <Store from=\"state\" as=\"jobs\"/>\n  <Call fn=\"number\" in={1}/>\n  <Return value={$ctx.number}/>\n</Module>\n",
+		"marker": "number(1)",
+		"store_source": "<Store name=\"state\" version={1}>\n  <Object name=\"counter\">\n    <Field name=\"value\" type=\"u64\" value={number(1)}/>\n  </Object>\n</Store>\n"
+	},
+	{
+		"name": "store_callback",
+		"source": "<Module>\n  <Store from=\"state\" as=\"jobs\"/>\n  <Call fn=\"number\" in={1}/>\n  <Return value={$ctx.number}/>\n</Module>\n",
+		"marker": "[1].map(item => item)",
+		"store_source": "<Store name=\"state\" version={1}>\n  <Object name=\"counter\">\n    <Field name=\"value\" type=\"u64[]\" value={[1].map(item => item)}/>\n  </Object>\n</Store>\n"
+	},
+	{
+		"name": "task_out_call",
+		"source": "<Module>\n  <Task name=\"result\" out={number(1)}><Call fn=\"number\" in={1}/></Task>\n  <Return value={$ctx.task.result}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "task_out_object",
+		"source": "<Module>\n  <Task name=\"result\" out={{ value: number(1) }}><Call fn=\"number\" in={1}/></Task>\n  <Return value={$ctx.task.result}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "task_out_template",
+		"source": "<Module>\n  <Task name=\"result\" out={`N${number(1)}`}><Call fn=\"number\" in={1}/></Task>\n  <Return value={$ctx.task.result}/>\n</Module>\n",
+		"marker": "number(1)"
+	},
+	{
+		"name": "task_out_lambda",
+		"source": "<Module>\n  <Task name=\"result\" out={item => item}><Call fn=\"number\" in={1}/></Task>\n  <Return value={$ctx.task.result}/>\n</Module>\n",
+		"marker": "item => item"
+	},
+	{
+		"name": "parallel_out_call",
+		"source": "<Module>\n  <Parallel><Task name=\"result\" out={number(1)}><Call fn=\"number\" in={1}/></Task></Parallel>\n  <Return value={$ctx.task.result}/>\n</Module>\n",
+		"marker": "number(1)"
+	}
+]

@@ -1,0 +1,12 @@
+<Module>
+  <Call fn="number" in={$in.value} />
+  <Call fn="map_values" in={$in.values} />
+  <Return value={{
+    text: "number(1)",
+    loopText: "loop(0, { while: state => true })",
+    value: $in.value + 1,
+    first: $in.values[0],
+    selected: $in.flag ? $in.value : 0,
+    label: `N${$in.value}`
+  }} />
+</Module>

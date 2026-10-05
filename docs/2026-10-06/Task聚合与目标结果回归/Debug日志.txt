@@ -1,0 +1,125 @@
+✔ RX call composes ZX loop and preserves original input (1618.922927ms)
+✔ RX module composes ZX loop and preserves original input (1596.012784ms)
+✔ RX simple expressions and literal call text remain valid data (1601.360961ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4819.5146
+✔ RX CLI rejects function without producing an application (11.895556ms)
+✔ RX CLI rejects method without producing an application (6.138295ms)
+✔ RX CLI rejects map_callback without producing an application (6.033511ms)
+✔ RX CLI rejects filter_callback without producing an application (5.736022ms)
+✔ RX CLI rejects reduce_callback without producing an application (5.514747ms)
+✔ RX CLI rejects loop without producing an application (5.788548ms)
+✔ RX CLI rejects lambda without producing an application (5.637967ms)
+✔ RX CLI rejects object without producing an application (5.707551ms)
+✔ RX CLI rejects list without producing an application (5.540193ms)
+✔ RX CLI rejects conditional_condition without producing an application (5.884966ms)
+✔ RX CLI rejects conditional_yes without producing an application (5.457634ms)
+✔ RX CLI rejects conditional_no without producing an application (5.467093ms)
+✔ RX CLI rejects binary_left without producing an application (5.769214ms)
+✔ RX CLI rejects binary_right without producing an application (5.662506ms)
+✔ RX CLI rejects unary without producing an application (5.571917ms)
+✔ RX CLI rejects field_target without producing an application (5.788146ms)
+✔ RX CLI rejects index_target without producing an application (5.279527ms)
+✔ RX CLI rejects index_key without producing an application (5.564766ms)
+✔ RX CLI rejects template without producing an application (5.48605ms)
+✔ RX CLI rejects match_condition without producing an application (5.35997ms)
+✔ RX CLI rejects match_result without producing an application (5.581581ms)
+✔ RX CLI rejects match_fallback without producing an application (5.514078ms)
+✔ RX CLI rejects logical_dead_branch without producing an application (5.525883ms)
+✔ RX CLI rejects call_input without producing an application (5.489874ms)
+✔ RX CLI rejects switch_subject without producing an application (5.423035ms)
+✔ RX CLI rejects case_value without producing an application (5.522649ms)
+✔ RX CLI rejects task_result without producing an application (5.309671ms)
+✔ RX CLI rejects parallel_result without producing an application (5.501111ms)
+✔ RX CLI rejects crlf without producing an application (5.494528ms)
+✔ RX CLI rejects utf8 without producing an application (5.603329ms)
+✔ RX CLI rejects store_call without producing an application (6.021359ms)
+✔ RX CLI rejects store_callback without producing an application (6.497523ms)
+✔ RX CLI rejects task_out_call without producing an application (6.053027ms)
+✔ RX CLI rejects task_out_object without producing an application (6.348241ms)
+✔ RX CLI rejects task_out_template without producing an application (6.070442ms)
+✔ RX CLI rejects task_out_lambda without producing an application (5.932772ms)
+✔ RX CLI rejects parallel_out_call without producing an application (5.994134ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 221.79197
+✔ RX CLI task output sequential_scalar (1547.299748ms)
+✔ RX CLI task output sequential_string (1554.595582ms)
+✔ RX CLI task output sequential_object (1562.778683ms)
+✔ RX CLI task output sequential_siblings (1556.463663ms)
+✔ RX CLI task output parallel_objects (1572.617735ms)
+✔ RX CLI task output parallel_mixed (1556.03602ms)
+✔ RX CLI task output nested_independent_return (1558.91364ms)
+✔ RX CLI task output switch_then_out (1540.110537ms)
+✔ RX CLI task output sequential_return (1535.142399ms)
+✔ RX CLI task output void_task (1549.667446ms)
+✔ RX CLI task output void_parallel_task (1556.098189ms)
+✔ RX CLI task output call_and_task_same_name (1551.32047ms)
+✔ RX CLI task output explicit_source_suffix (1534.265004ms)
+✔ RX CLI task output module_target_name (1546.198113ms)
+✔ RX CLI task output sequential_double_output (5.826368ms)
+✔ RX CLI task output parallel_double_output (5.315265ms)
+✔ RX CLI task output switch_double_output (5.566273ms)
+✔ RX CLI task output nested_sequential_double_output (5.23782ms)
+✔ RX CLI task output task_private_call_escape (5.950263ms)
+✔ RX CLI task output branch_private_call_in_out (5.603845ms)
+✔ RX CLI task output missing_out_name (5.396968ms)
+✔ RX CLI task output quoted_path_out (5.03258ms)
+✔ RX CLI task output quoted_literal_out (4.888004ms)
+✔ RX CLI task output empty_out (4.966448ms)
+✔ RX CLI task output void_task_read (5.439941ms)
+✔ RX CLI task output duplicate_task_name (5.661746ms)
+✔ RX CLI task output removed_call_name (5.11064ms)
+✔ RX CLI task output removed_call_out (4.882019ms)
+✔ RX CLI task output removed_call_args (4.878248ms)
+✔ RX CLI task output duplicate_target_name (5.645541ms)
+✔ RX CLI task output reserved_target_name (5.493415ms)
+✔ RX CLI task output removed_call_service (4.98109ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21821.854031
+Build Summary: 21/21 steps succeeded; 36/36 tests passed
+test-rx-value-policy success
++- run test cached
+|  +- compile test debug native cached 45ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer debug native cached 44ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run node success 281ms
+|  +- compile exe zxc debug native success 11s MaxRSS:1G
+|     +- WriteFile cached
+|     +- compile lib yaml debug native cached 41ms MaxRSS:20M
+|     +- compile lib yaml debug native (reused)
+|     +- translate-c cached 40ms MaxRSS:20M
+|     +- options success
+|     +- run exe bundle-zig (bundle) cached
+|     |  +- compile exe bundle-zig fast native cached 42ms MaxRSS:21M
+|     |  +- WriteFile bundle_manifest.json cached
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run node success 4s
+   +- compile exe zxc debug native (+8 more reused dependencies)
+test-rx-task-output success
++- run test 36 pass (36 total) 233ms MaxRSS:4M
+|  +- compile test debug native success 4s MaxRSS:504M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run node success 21s
+   +- compile exe zxc debug native (+8 more reused dependencies)

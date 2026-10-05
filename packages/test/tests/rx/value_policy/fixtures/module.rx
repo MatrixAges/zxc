@@ -1,0 +1,5 @@
+<Module>
+  <Call module="leaf" in={$in} />
+  <Call fn="map_values" in={$ctx.leaf.result.values} />
+  <Return value={{ original: $ctx.leaf.original, values: $ctx.map_values }} />
+</Module>

@@ -1,0 +1,619 @@
+test-rx-task-output
++- run test 17 pass, 18 fail (35 total)
+error: 'analysis_test.test.RX task output sequential scalar' failed:
+       sequential_scalar: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:4:5: 0x10d15f2ef in test.RX task output sequential scalar (test)
+           try check.run("sequential_scalar");
+           ^
+error: 'analysis_test.test.RX task output sequential string' failed:
+       sequential_string: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:8:5: 0x10d15f28f in test.RX task output sequential string (test)
+           try check.run("sequential_string");
+           ^
+error: 'analysis_test.test.RX task output sequential object' failed:
+       sequential_object: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:12:5: 0x10d15f22f in test.RX task output sequential object (test)
+           try check.run("sequential_object");
+           ^
+error: 'analysis_test.test.RX task output sequential siblings' failed:
+       sequential_siblings: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:16:5: 0x10d15f1cf in test.RX task output sequential siblings (test)
+           try check.run("sequential_siblings");
+           ^
+error: 'analysis_test.test.RX task output parallel objects' failed:
+       parallel_objects: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:20:5: 0x10d15f16f in test.RX task output parallel objects (test)
+           try check.run("parallel_objects");
+           ^
+error: 'analysis_test.test.RX task output parallel mixed' failed:
+       parallel_mixed: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:24:5: 0x10d15f10f in test.RX task output parallel mixed (test)
+           try check.run("parallel_mixed");
+           ^
+error: 'analysis_test.test.RX task output nested independent return' failed:
+       nested_independent_return: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:28:5: 0x10d15f0af in test.RX task output nested independent return (test)
+           try check.run("nested_independent_return");
+           ^
+error: 'analysis_test.test.RX task output switch then out' failed:
+       switch_then_out: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:32:5: 0x10d15f04f in test.RX task output switch then out (test)
+           try check.run("switch_then_out");
+           ^
+error: 'analysis_test.test.RX task output sequential return' failed:
+       sequential_return: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:36:5: 0x10d15efef in test.RX task output sequential return (test)
+           try check.run("sequential_return");
+           ^
+error: 'analysis_test.test.RX task output void task' failed:
+       void_task: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:40:5: 0x10d15ef8f in test.RX task output void task (test)
+           try check.run("void_task");
+           ^
+error: 'analysis_test.test.RX task output void parallel task' failed:
+       void_parallel_task: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:44:5: 0x10d15ef2f in test.RX task output void parallel task (test)
+           try check.run("void_parallel_task");
+           ^
+error: 'analysis_test.test.RX task output call and task same name' failed:
+       call_and_task_same_name: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:48:5: 0x10d15eecf in test.RX task output call and task same name (test)
+           try check.run("call_and_task_same_name");
+           ^
+error: 'analysis_test.test.RX task output explicit source suffix' failed:
+       explicit_source_suffix: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:52:5: 0x10d15ee6f in test.RX task output explicit source suffix (test)
+           try check.run("explicit_source_suffix");
+           ^
+error: 'analysis_test.test.RX task output service target name' failed:
+       service_target_name: unknown_attribute: Attribute is not allowed on this element
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:56:5: 0x10d15ee0f in test.RX task output service target name (test)
+           try check.run("service_target_name");
+           ^
+error: 'analysis_test.test.RX task output task private call escape' failed:
+       expected 95, found 33
+       task_private_call_escape: main.rx:1:34: name: flow value is not defined in this scope
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x10cec4a39 in expectEqualInner__func_1023 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10cec5a92 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:77:9: 0x10cec5bea in verify (test)
+               try std.testing.expectEqual(offset, issue.location.offset);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:17:5: 0x10d15e75b in run (test)
+           try allocated(std.testing.allocator, name);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/analysis_test.zig:76:5: 0x10d15ec2f in test.RX task output task private call escape (test)
+           try check.run("task_private_call_escape");
+           ^
+error: 'resources_test.test.RX sequential object output cleans every allocation failure' failed:
+       sequential_object: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x10cec6f2f in checkAllAllocationFailures__func_1003 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:9:5: 0x10d15e699 in checkAllAllocationFailures__func_2329 (test)
+           try std.testing.checkAllAllocationFailures(allocator, test_fn, extra_args);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/resources_test.zig:6:5: 0x10d15e6fa in test.RX sequential object output cleans every allocation failure (test)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check.allocated, .{"sequential_object"});
+           ^
+error: 'resources_test.test.RX parallel object output cleans every allocation failure' failed:
+       parallel_objects: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x10cec6f2f in checkAllAllocationFailures__func_1003 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:9:5: 0x10d15e519 in checkAllAllocationFailures__func_2328 (test)
+           try std.testing.checkAllAllocationFailures(allocator, test_fn, extra_args);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/resources_test.zig:10:5: 0x10d15e57a in test.RX parallel object output cleans every allocation failure (test)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check.allocated, .{"parallel_objects"});
+           ^
+error: 'resources_test.test.RX nested independent Return cleans every allocation failure' failed:
+       nested_independent_return: name: flow value is not defined in this scope
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:90:9: 0x10cec626e in verify (test)
+               return error.UnexpectedDiagnostic;
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/check.zig:26:47: 0x10cec6d39 in allocated (test)
+               if (std.mem.eql(u8, name, case.name)) return verify(allocator, case);
+                                                     ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x10cec6f2f in checkAllAllocationFailures__func_1003 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:9:5: 0x10d15e299 in checkAllAllocationFailures__func_2327 (test)
+           try std.testing.checkAllAllocationFailures(allocator, test_fn, extra_args);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/resources_test.zig:14:5: 0x10d15e2fa in test.RX nested independent Return cleans every allocation failure (test)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check.allocated, .{"nested_independent_return"});
+           ^
+failed command: ./.zig-cache/o/0e7dc0289cc16c08b295a019f4204860/test --cache-dir=./.zig-cache --seed=0x1d09470 --listen=-
+
+✖ RX CLI task output sequential_scalar (8.866647ms)
+✖ RX CLI task output sequential_string (6.127808ms)
+✖ RX CLI task output sequential_object (5.92264ms)
+✖ RX CLI task output sequential_siblings (5.924774ms)
+✖ RX CLI task output parallel_objects (5.825092ms)
+✖ RX CLI task output parallel_mixed (5.859339ms)
+✖ RX CLI task output nested_independent_return (5.572368ms)
+✖ RX CLI task output switch_then_out (5.783524ms)
+✖ RX CLI task output sequential_return (5.741479ms)
+✔ RX CLI task output void_task (1565.938037ms)
+✔ RX CLI task output void_parallel_task (1558.859583ms)
+✖ RX CLI task output call_and_task_same_name (6.857912ms)
+✖ RX CLI task output explicit_source_suffix (5.802566ms)
+✖ RX CLI task output service_target_name (5.206002ms)
+✔ RX CLI task output sequential_double_output (5.114203ms)
+✔ RX CLI task output parallel_double_output (5.486618ms)
+✔ RX CLI task output switch_double_output (5.27993ms)
+✔ RX CLI task output nested_sequential_double_output (5.267773ms)
+✖ RX CLI task output task_private_call_escape (5.707118ms)
+✔ RX CLI task output branch_private_call_in_out (5.570219ms)
+✔ RX CLI task output missing_out_name (5.623571ms)
+✔ RX CLI task output quoted_path_out (5.088608ms)
+✔ RX CLI task output quoted_literal_out (5.209967ms)
+✔ RX CLI task output empty_out (5.000685ms)
+✔ RX CLI task output void_task_read (5.796117ms)
+✔ RX CLI task output duplicate_task_name (5.909272ms)
+✔ RX CLI task output removed_call_name (5.010987ms)
+✔ RX CLI task output removed_call_out (4.882906ms)
+✔ RX CLI task output removed_call_args (4.832449ms)
+✔ RX CLI task output duplicate_target_name (5.694723ms)
+✔ RX CLI task output reserved_target_name (5.631984ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 18
+ℹ fail 13
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3293.86565
+
+✖ failing tests:
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output sequential_scalar (8.866647ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:33: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output sequential_string (6.127808ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:92: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output sequential_object (5.92264ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:59: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output sequential_siblings (5.924774ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:33: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output parallel_objects (5.825092ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:50: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output parallel_mixed (5.859339ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:42: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output nested_independent_return (5.572368ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:33: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output switch_then_out (5.783524ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:187: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output sequential_return (5.741479ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:70: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output call_and_task_same_name (6.857912ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:62: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output explicit_source_suffix (5.802566ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:57: name: flow value is not defined in this scope
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output service_target_name (5.206002ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:15: unknown_attribute: Attribute is not allowed on this element
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/rx/task_output/cli_test.ts:17:2
+✖ RX CLI task output task_private_call_escape (5.707118ms)
+  AssertionError [ERR_ASSERTION]: main.rx:1:34: name: flow value is not defined in this scope
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/task_output/cli_test.ts:33:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+test-rx-task-output
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/rx/task_output/cli_test.ts ./tests/rx/task_output/fixtures ./.zig-cache/o/b427e236487d09896b64e26eaa3af284/zxc debug
+
+Build Summary: 13/16 steps succeeded (2 failed); 17/35 tests passed (18 failed)
+test-rx-task-output transitive failure
++- run test 17 pass, 18 fail (35 total)
+|  +- compile test debug native success 4s MaxRSS:518M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer debug native cached 45ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run node failure
+   +- compile exe zxc debug native success 11s MaxRSS:1G
+      +- WriteFile cached
+      +- compile lib yaml debug native cached 41ms MaxRSS:20M
+      +- compile lib yaml debug native (reused)
+      +- translate-c cached 37ms MaxRSS:20M
+      +- options success
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig fast native cached 49ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
