@@ -71,7 +71,7 @@ const result = loop(initial, {
 
 ```xml
 <Module>
-  <Call fn="count" in={$in} out="ctx.counted" />
+  <Call fn="count" args={$in} name="counted" />
 
   <Return value={ctx.counted} />
 </Module>

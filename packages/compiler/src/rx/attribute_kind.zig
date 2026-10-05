@@ -2,7 +2,7 @@ const std = @import("std");
 const dsl = @import("dsl");
 
 pub fn value(element: []const u8, attribute: []const u8) bool {
-    if (std.mem.eql(u8, element, "Call")) return std.mem.eql(u8, attribute, "in");
+    if (std.mem.eql(u8, element, "Call")) return std.mem.eql(u8, attribute, "args");
     if (std.mem.eql(u8, element, "Switch")) return std.mem.eql(u8, attribute, "on");
 
     inline for (.{ "Return", "Case", "Emit", "Field" }) |tag| {

@@ -1,6 +1,6 @@
 ### 为什么用 XML
 
-RX 要表达的是业务单元如何组合、数据如何跨越边界。XML 的标签区分节点职责，父子嵌套呈现结构层级，属性标明调用目标与输入输出。例如，`Call` 表达调用，`service` 标明目标，`in` 和 `out` 描述数据连接；无需先读计算实现，就能看清这些关系。
+RX 要表达的是业务单元如何组合、数据如何跨越边界。XML 的标签区分节点职责，父子嵌套呈现结构层级，属性标明调用目标与输入输出。例如，`Call` 表达调用，`service` 标明目标，`args` 传递参数，`ctx.<name>` 连接调用结果；无需先读计算实现，就能看清这些关系。
 
 显式的开始与结束标签让结构边界不依赖缩进，便于人和 AI 按子树阅读、生成与修改，也便于工具检查合法的标签、属性和嵌套。每一层都使用相同的结构规则，为逐层组合和分形扩展提供一致的表达方式。
 
@@ -22,19 +22,19 @@ orders/create.rx
 
 ```xml
 <Module>
-  <Call service="users/load" in={$in.user_id} out="ctx.user" />
+  <Call service="users/load" args={$in.user_id} name="user" />
 
   <Call
     service="orders/create"
-    in={{user:ctx.user,items:$in.items}}
-    out="ctx.order"
+    args={{user:ctx.user,items:$in.items}}
+    name="order"
   />
 
   <Return value={ctx.order} />
 </Module>
 ```
 
-被调用的文件必须真实存在于应用中。`service` 相对调用文件解析，通常省略 `.rx` 后缀。`$in` 是当前模块的输入，`out` 命名结果供后续步骤使用。
+被调用的文件必须真实存在于应用中。`service` 相对调用文件解析，通常省略 `.rx` 后缀。`$in` 是当前模块的输入，通过 `ctx.<name>` 读取结果；name 省略时取目标文件名，同一作用域不得重名。
 
 ### 调用计算逻辑
 

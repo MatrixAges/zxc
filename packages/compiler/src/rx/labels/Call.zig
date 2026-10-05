@@ -6,8 +6,8 @@ const Base = dsl.element("Call", struct {
     @"fn": ?[]const u8 = null,
     service: ?[]const u8 = null,
     module: ?[]const u8 = null,
-    in: ?[]const u8 = null,
-    out: ?[]const u8 = null,
+    name: ?[]const u8 = null,
+    args: ?[]const u8 = null,
     setter: ?[]const u8 = null,
 }, dsl.empty);
 
@@ -20,7 +20,7 @@ fn check(data: Base.Data, node: dsl.ast.Node, _: anytype, reporter: *dsl.Reporte
         return checks.fail(node, "service", "Call requires exactly one of fn, service or module", reporter);
     }
 
-    if (data.attributes.in == null and data.attributes.module == null) return reporter.fail(.{ .code = .missing_attribute, .location = node.location, .element = node.name, .attribute = "in", .message = "Missing required attribute" });
+    if (data.attributes.args == null and data.attributes.module == null) return reporter.fail(.{ .code = .missing_attribute, .location = node.location, .element = node.name, .attribute = "args", .message = "Missing required attribute" });
     if (data.attributes.module != null and data.attributes.setter != null) return checks.fail(node, "setter", "Store authorization belongs inside the published RX module", reporter);
 
     if (data.attributes.service) |service| {

@@ -9,7 +9,7 @@ pub const Value = union(enum) { authorized: Authorization, diagnostic: target.Di
 pub fn analyze(allocator: std.mem.Allocator, owner: []const u8, node: rx.ast.Node, bindings: []const Store.Binding) std.mem.Allocator.Error!Value {
     var reads: std.ArrayList(Store.Binding) = .empty;
 
-    if (target.optionalAttribute(node, "in")) |input| {
+    if (target.optionalAttribute(node, "args")) |input| {
         var parsed = try @import("../attribute.zig").parse(allocator, input, owner);
 
         defer parsed.deinit();

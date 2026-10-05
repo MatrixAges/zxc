@@ -3,7 +3,6 @@ const frontend = @import("frontend");
 const rx = @import("rx");
 const zx = @import("zx");
 const Flow = @import("flow_compile.zig");
-const target = @import("call/target.zig");
 
 pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Error!usize {
     const node = branch.node;
@@ -97,11 +96,11 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     const argument = try @import("program/capture.zig").argument(allocator, parent.owner, parent.types, environment_type, captures, input_type, selected, .{ .start = node.location.offset, .end = node.location.offset });
     var out: ?[]const u8 = null;
+    const binding = parent.results[parent.next_binding];
 
-    if (target.optionalAttribute(node, "out")) |_| {
-        const binding = parent.results[parent.next_binding];
+    parent.next_binding += 1;
 
-        parent.next_binding += 1;
+    if (binding.type_id != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))))) {
         out = binding.name;
 
         try parent.bindings.append(allocator, .{ .name = binding.name, .type_id = binding.type_id });

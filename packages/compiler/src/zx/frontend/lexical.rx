@@ -1,5 +1,5 @@
 <Module>
-  <Call fn="parser/templates/prepare" in={$in} out="ctx.prepared" />
+  <Call fn="parser/templates/prepare" args={$in} name="prepared" />
 
   <Return value={ctx.prepared} />
 </Module>

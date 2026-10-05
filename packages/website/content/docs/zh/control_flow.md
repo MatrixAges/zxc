@@ -5,8 +5,8 @@ RX 负责组织与选择工作，ZX 在其中执行带类型的计算。这里�
 ```xml
 <Module>
   <Task name="prepare">
-    <Call service="users/load" in={$in.user_id} out="ctx.user" />
-    <Call fn="quote" in={$in} out="ctx.quote" />
+    <Call service="users/load" args={$in.user_id} name="user" />
+    <Call fn="quote" args={$in} name="quote" />
   </Task>
 
   <Return value={ctx.quote} />
@@ -19,8 +19,8 @@ RX 负责组织与选择工作，ZX 在其中执行带类型的计算。这里�
 
 ```xml
 <Parallel>
-  <Call service="users/load" in={$in.user_id} out="ctx.user" />
-  <Call service="catalog/load" in={$in.item_id} out="ctx.item" />
+  <Call service="users/load" args={$in.user_id} name="user" />
+  <Call service="catalog/load" args={$in.item_id} name="item" />
 </Parallel>
 ```
 
@@ -31,11 +31,11 @@ RX 负责组织与选择工作，ZX 在其中执行带类型的计算。这里�
 ```xml
 <Switch on={$in.kind}>
   <Case value={priority}>
-    <Call service="orders/priority" in={$in} out="ctx.order" />
+    <Call service="orders/priority" args={$in} name="order" />
   </Case>
 
   <Default>
-    <Call service="orders/standard" in={$in} out="ctx.order" />
+    <Call service="orders/standard" args={$in} name="order" />
   </Default>
 </Switch>
 ```

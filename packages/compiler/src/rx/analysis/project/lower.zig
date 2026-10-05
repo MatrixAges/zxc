@@ -18,12 +18,6 @@ pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const State, or
 
         for (state.bindings, bindings) |binding, *item| item.* = .{ .name = binding.name, .type_id = try graph.resolve(binding.value) };
 
-        for (bindings, state.bindings) |binding, origin| {
-            if (binding.type_id == @as(zx.ir.TypeId, @enumFromInt(@intFromEnum(zx.ir.Scalar.void)))) {
-                return graph.reporter.fail(.type_mismatch, origin.span, "void call or task results cannot be bound");
-            }
-        }
-
         const tasks = try allocator.alloc(@import("../flow_compile.zig").TaskType, state.tasks.len);
 
         for (state.tasks, tasks) |task, *resolved| resolved.* = .{ .id = task.id, .output_type = try graph.resolve(task.output) };

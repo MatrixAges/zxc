@@ -36,7 +36,7 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
         try walker.steps(module.steps);
 
         if (!walker.returned) {
-            const span = graph.nodes.items[@intFromEnum(state.output)].span;
+            const span = graph.nodes.items[@backingInt(state.output)].span;
 
             try graph.unify(state.output, try graph.scalar(.void, span), span);
         }
@@ -57,7 +57,7 @@ pub fn collect(graph: *Graph, modules: []const Prepared.Module, source_map: Sour
 
         if (referenced) continue;
 
-        const span = graph.nodes.items[@intFromEnum(state.input)].span;
+        const span = graph.nodes.items[@backingInt(state.input)].span;
 
         try graph.unify(state.input, try graph.scalar(.void, span), span);
     }
@@ -102,7 +102,7 @@ const Walker = struct {
                             self.returned = parent_returned;
 
                             expression.bindings.shrinkRetainingCapacity(count);
-                            try self.bindOut(task.node, output);
+                            try self.bindResult(task.node, output);
                         },
                     }
 
@@ -151,7 +151,7 @@ const Walker = struct {
     fn call(self: *Walker, invocation: Prepared.Call) zx.Error!void {
         const expression = self.expression;
         const graph = expression.graph;
-        const attribute = target.optionalAttribute(invocation.node, "in");
+        const attribute = target.optionalAttribute(invocation.node, "args");
         const offset = if (attribute) |value| value.value_location.offset else invocation.node.location.offset;
         const span = zx.Span{ .start = expression.span_offset + offset, .end = expression.span_offset + offset };
 
@@ -176,30 +176,28 @@ const Walker = struct {
             .service => |service| self.states[service].output,
         };
 
-        try self.bindOut(invocation.node, output);
+        try self.bindResult(invocation.node, output);
     }
 
-    fn bindOut(self: *Walker, node: rx.ast.Node, output: Graph.Id) zx.Error!void {
+    fn bindResult(self: *Walker, node: rx.ast.Node, output: Graph.Id) zx.Error!void {
         const expression = self.expression;
         const graph = expression.graph;
+        const result = @import("../result_name.zig").resolve(node);
+        expression.attribute = result.attribute;
+        const span = expression.sourceSpan(.{ .start = 0, .end = result.attribute.value.len });
 
-        for (node.attributes) |out| {
-            if (!std.mem.eql(u8, out.name, "out")) continue;
+        if (!paths.valid(result.name) or std.mem.indexOfScalar(u8, result.name, '.') != null) return graph.reporter.fail(.name, span, "result name must be one identifier; specify Call.name explicitly when the target has no valid name");
 
-            expression.attribute = out;
-            const out_span = expression.sourceSpan(.{ .start = 0, .end = out.value.len });
+        const name = try std.fmt.allocPrint(graph.allocator, "ctx.{s}", .{result.name});
 
-            if (!paths.valid(out.value) or paths.overlaps(out.value, "$in") or paths.overlaps(out.value, "store")) return graph.reporter.fail(.name, out_span, "out requires a result binding path distinct from the module input and Store namespace");
-
-            for (expression.bindings.items) |binding| {
-                if (paths.overlaps(binding.name, out.value)) return graph.reporter.fail(.name, out_span, "flow result binding paths must not overlap");
-            }
-
-            const binding = Expression.Binding{ .name = try graph.allocator.dupe(u8, out.value), .value = output, .span = out_span };
-
-            try expression.bindings.append(graph.allocator, binding);
-            try self.bindings.append(graph.allocator, binding);
+        for (expression.bindings.items) |binding| {
+            if (paths.overlaps(binding.name, name)) return graph.reporter.fail(.name, span, "named flow results must not overlap; use a distinct name");
         }
+
+        const binding = Expression.Binding{ .name = name, .value = output, .span = span };
+
+        try expression.bindings.append(graph.allocator, binding);
+        try self.bindings.append(graph.allocator, binding);
     }
 };
 

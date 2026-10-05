@@ -1,6 +1,6 @@
 ### XML을 선택한 이유
 
-RX는 비즈니스 단위의 조합과 경계를 넘는 데이터 흐름을 표현합니다. XML 태그는 노드의 책임을, 부모·자식 중첩은 계층을, 속성은 호출 대상과 입출력을 나타냅니다. 예를 들어 `Call`은 호출, `service`는 대상, `in`과 `out`은 데이터 연결을 보여주므로 계산 구현을 읽기 전에 관계를 확인할 수 있습니다.
+RX는 비즈니스 단위의 조합과 경계를 넘는 데이터 흐름을 표현합니다. XML 태그는 노드의 책임을, 부모·자식 중첩은 계층을, 속성은 호출 대상과 입출력을 나타냅니다. 예를 들어 `Call`은 호출, `service`는 대상, `args`와 `ctx.<name>`은 인수와 결과 연결을 보여주므로 계산 구현을 읽기 전에 관계를 확인할 수 있습니다.
 
 명시적인 시작·종료 태그 덕분에 경계가 들여쓰기에 의존하지 않습니다. 사람과 AI는 부분 트리별로 읽고 생성하고 수정할 수 있고, 도구는 허용된 태그, 속성, 중첩을 검사할 수 있습니다. 계층마다 같은 규칙을 적용하여 단계별 조합과 프랙털 확장을 일관되게 표현합니다.
 
@@ -22,19 +22,19 @@ orders/create.rx
 
 ```xml
 <Module>
-  <Call service="users/load" in={$in.user_id} out="ctx.user" />
+  <Call service="users/load" args={$in.user_id} name="user" />
 
   <Call
     service="orders/create"
-    in={{user:ctx.user,items:$in.items}}
-    out="ctx.order"
+    args={{user:ctx.user,items:$in.items}}
+    name="order"
   />
 
   <Return value={ctx.order} />
 </Module>
 ```
 
-호출 대상 파일은 애플리케이션에 실제로 존재해야 합니다. `service`는 호출 파일을 기준으로 해석되며, 보통 `.rx` 확장자를 생략합니다. `$in`은 현재 모듈의 입력이고, `out`은 이후 단계에서 사용할 결과의 이름을 지정합니다.
+호출 대상 파일은 애플리케이션에 실제로 존재해야 합니다. `service`는 호출 파일을 기준으로 해석되며, 보통 `.rx` 확장자를 생략합니다. `$in`은 현재 모듈의 입력이고, 결과는 `ctx.<name>`으로 읽습니다. name의 기본값은 대상 파일 이름이며 같은 범위에서 중복될 수 없습니다.
 
 ### 계산 호출하기
 

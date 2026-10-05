@@ -1,6 +1,6 @@
 ### Why XML
 
-RX expresses how business units compose and how data crosses their boundaries. XML tags distinguish node responsibilities, nesting shows structural hierarchy, and attributes identify call targets and inputs and outputs. For example, `Call` expresses a call, `service` identifies its target, and `in` and `out` describe data connections. These relationships are visible before reading the computation.
+RX expresses how business units compose and how data crosses their boundaries. XML tags distinguish node responsibilities, nesting shows structural hierarchy, and attributes identify call targets and inputs and outputs. For example, `Call` expresses a call, `service` identifies its target, and `args` supplies the argument and `ctx.<name>` identifies the call result. These relationships are visible before reading the computation.
 
 Explicit opening and closing tags make boundaries independent of indentation. People and AI can read, generate, and change subtrees, while tools check allowed tags, attributes, and nesting. The same structural rules at each level provide a consistent language for composition and fractal growth.
 
@@ -22,19 +22,19 @@ In `checkout.rx`:
 
 ```xml
 <Module>
-  <Call service="users/load" in={$in.user_id} out="ctx.user" />
+  <Call service="users/load" args={$in.user_id} name="user" />
 
   <Call
     service="orders/create"
-    in={{user:ctx.user,items:$in.items}}
-    out="ctx.order"
+    args={{user:ctx.user,items:$in.items}}
+    name="order"
   />
 
   <Return value={ctx.order} />
 </Module>
 ```
 
-The called files must exist in the application. `service` resolves relative to the calling file; the `.rx` suffix is usually omitted. `$in` is the current module input. `out` names the result used by later steps.
+The called files must exist in the application. `service` resolves relative to the calling file; the `.rx` suffix is usually omitted. `$in` is the current module input. Read results through `ctx.<name>`; name defaults to the target filename and must be unique within its scope.
 
 ### Call computation
 

@@ -120,26 +120,24 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 
     for (loaded.getters) |getter| try self.bindings.append(self.allocator, .{ .name = getter.name, .type_id = getter.slot.type_id });
 
-    const argument = if (target.optionalAttribute(loaded.node, "in")) |attribute| try self.value(attribute, loaded.function.program.input_type) else try @import("call/unit.zig").create(self.allocator, self.owner, self.types, loaded.node.location);
+    const argument = if (target.optionalAttribute(loaded.node, "args")) |attribute| try self.value(attribute, loaded.function.program.input_type) else try @import("call/unit.zig").create(self.allocator, self.owner, self.types, loaded.node.location);
 
     self.bindings.shrinkRetainingCapacity(count);
 
     var out: ?[]const u8 = null;
+    const binding = self.results[self.next_binding];
 
-    for (loaded.node.attributes) |attribute| {
-        if (!std.mem.eql(u8, attribute.name, "out")) continue;
+    self.next_binding += 1;
 
-        const binding = self.results[self.next_binding];
-
+    if (binding.type_id != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))))) {
         try self.bindings.append(self.allocator, .{ .name = binding.name, .type_id = binding.type_id });
 
         out = binding.name;
-        self.next_binding += 1;
     }
 
     const index = self.calls.items.len;
 
-    try self.calls.append(self.allocator, .{ .callee = loaded.function.program, .store_initializers = loaded.function.store_initializers, .argument = argument, .input_omitted = target.optionalAttribute(loaded.node, "in") == null, .out = out, .getters = loaded.getters });
+    try self.calls.append(self.allocator, .{ .callee = loaded.function.program, .store_initializers = loaded.function.store_initializers, .argument = argument, .input_omitted = target.optionalAttribute(loaded.node, "args") == null, .out = out, .getters = loaded.getters });
 
     return index;
 }
