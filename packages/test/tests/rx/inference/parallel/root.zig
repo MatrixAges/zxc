@@ -1,4 +1,5 @@
 comptime {
+    _ = @import("owned_input/root.zig");
     _ = @import("scope_test.zig");
     _ = @import("capture_ownership_test.zig");
     _ = @import("schema_test.zig");

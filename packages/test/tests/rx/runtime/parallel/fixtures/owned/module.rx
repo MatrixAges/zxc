@@ -1,0 +1,9 @@
+<Module>
+  <Call fn="copy_values" in="$in" out="first"/>
+  <Call fn="copy_values" in="$in" out="second"/>
+  <Parallel>
+    <Call module="owned/consume" in="first" out="left"/>
+    <Call module="owned/consume" in="second" out="right"/>
+  </Parallel>
+  <Return value="{left, right}"/>
+</Module>
