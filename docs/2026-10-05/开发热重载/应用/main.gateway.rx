@@ -1,0 +1,8 @@
+<Gateway name="api" protocol="http" listen="127.0.0.1:19847">
+  <Group prefix="/api/">
+    <Route method="GET" path="/echo" service="echo" />
+    <Group prefix="/v1">
+      <Route method="POST" path="/echo" service="echo" />
+    </Group>
+  </Group>
+</Gateway>

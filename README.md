@@ -168,6 +168,7 @@ See the [RX Reference](packages/compiler/src/rx/README.md) for attributes and ne
 | ----------------------------------------- | ------------------------------------------------------- |
 | `zxc build <entry> --out <path>`          | Build a native executable from an `.rx` or `.zx` entry  |
 | `zxc build <entry> --watch`               | Rebuild whenever sources or dependencies change         |
+| `zxc build <entry> --watch --run`         | Restart the native app after successful rebuilds        |
 | `zxc build <file.zx> --mode lib`          | Export a Zig module that other Zig projects can consume |
 | `zxc build ... --target --cpu --optimize` | Cross-compile and tune the output                       |
 | `zxc build ... --asm <file>`              | Also write the generated assembly                       |

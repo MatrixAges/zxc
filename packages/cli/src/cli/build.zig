@@ -82,6 +82,8 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     configuration_options.cache = true;
     configuration_options.cache_stats = false;
     configuration_options.watch = false;
+    configuration_options.run = false;
+    configuration_options.run_args = &.{};
     const node = options.host == .node;
     const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = configuration_options, .project = loaded, .node_host_sources = if (node) @as([]const @import("node/resources.zig").File, &@import("node/resources.zig").files) else &.{}, .node_sources = if (node) @as([]const @import("napi_resources").File, &@import("napi_resources").files) else &.{} }, .{});
     const abi = try @import("abi.zig").create(allocator, bundle, loaded);

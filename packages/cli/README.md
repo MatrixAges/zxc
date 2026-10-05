@@ -40,12 +40,13 @@ zxc build workflow.rx --out build/workflow
 | `--project pkg.yaml`                          | 使用既有包解析及原生模块配置                               |
 | `--cache-stats` / `--no-cache`                | 报告或关闭 Zig 代码生成缓存；RX 语义推导当前重新执行       |
 | `--watch`                                     | 观察 RX、ZX 依赖、配置及后端依赖，变化后重新构建并安全发布 |
+| `--watch --run -- [应用参数]`                 | 成功构建后运行或重启本机原生应用；失败时旧实例继续运行     |
 | `--asm` / `--target` / `--cpu` / `--optimize` | 沿用既有应用构建选项                                       |
 | `--solver`                                    | 使用指定证明求解器；包含形式化契约时构建仍必须通过证明     |
 
 service 相对当前模块文件解析；同一个服务文件在所有调用处共享一个输入输出契约。入口递归装载 Import 和 service，先检查完整依赖图无环，再共同推导类型并生成代码。Import 不触发执行。
 
-RX 与直接函数路径受项目根边界约束。已声明依赖包沿既有 package scope 解析；无包配置时导入闭包也检查物理路径。构建不会启动生成的业务程序。
+RX 与直接函数路径受项目根边界约束。已声明依赖包沿既有 package scope 解析；无包配置时导入闭包也检查物理路径。默认构建不启动业务程序；显式 `--watch --run` 提供开发期进程重启，参数、Store 重置和进程清理边界见 [开发热重载 reference](../../docs/2026-10-05/开发热重载参考.md)。
 
 RX 支持独立 verify 与 fpga 命令，使用与 ZX 相同的证明和硬件后端；详见 [RX 证明与硬件 reference](../../docs/2026-10-05/RX证明与硬件参考.md)。RX fmt 尚未接入。源码包现在支持统一 lib 发布，可在同一公开集合中包含 RX 与 ZX 模块；单 entry 或直接文件构建归一为默认公开模块，见 [统一库设计](../../docs/2026-10-05/统一库设计.md)。Store 声明、Call.in 读取视图与单 Object setter 支持源码生成及原生 app；应用启动时初始化共享内存，进程结束后释放，不自动落盘。Parallel、事件和 Gateway 执行仍未接入。语法和公开库接口见 [RX reference](../compiler/src/rx/README.md)。
 

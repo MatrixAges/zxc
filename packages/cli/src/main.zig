@@ -5,8 +5,8 @@ pub fn main(init: std.process.Init) !void {
     const args = try init.minimal.args.toSlice(allocator);
     var stdout_buffer: [4096]u8 = undefined;
     var stderr_buffer: [4096]u8 = undefined;
-    var stdout_file = std.Io.File.Writer.init(.stdout(), init.io, &stdout_buffer);
-    var stderr_file = std.Io.File.Writer.init(.stderr(), init.io, &stderr_buffer);
+    var stdout_file = std.Io.File.Writer.initStreaming(.stdout(), init.io, &stdout_buffer);
+    var stderr_file = std.Io.File.Writer.initStreaming(.stderr(), init.io, &stderr_buffer);
     const stdout = &stdout_file.interface;
     const stderr = &stderr_file.interface;
 
@@ -46,7 +46,9 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     };
 
-    if (options.watch) {
+    if (options.run) {
+        try @import("cli/watch/interrupt.zig").run(init.io, std.heap.page_allocator, options, init.environ_map, stdout, stderr);
+    } else if (options.watch) {
         try @import("cli/watch.zig").run(init.io, std.heap.page_allocator, options, init.environ_map, stdout, stderr);
     } else if (try @import("cli/compile.zig").run(.{ .io = init.io, .allocator = allocator, .options = options, .environment = init.environ_map, .stdout = stdout, .stderr = stderr }) != .success) {
         try stderr.flush();
@@ -63,8 +65,9 @@ fn usage(writer: *std.Io.Writer) std.Io.Writer.Error!void {
     try writer.writeAll("zxc lint <source.zx|source.rx|pkg.yaml> --semantic [--project pkg.yaml]\n");
     try writer.writeAll("zxc lint pkg.yaml --workspace\n");
     try writer.writeAll("Options for compile/build/verify/fpga: --no-cache --cache-stats\n");
+    try writer.writeAll("build --watch --run [-- application arguments]: restart native app after successful builds; stdin closed, stdout/stderr inherited\n");
     try writer.writeAll("zxc verify <pkg.yaml> [--solver z3] [--out query.smt2]: verify all declared public modules\n");
     try writer.writeAll("RX Call/Task/Switch and pure Parallel Call/Task branches: zxc <module.rx> [--out output.zig] or zxc build <module.rx> --out program; app build options apply; lib publishing uses build pkg.yaml --mode lib --out directory or a source entry\n");
     try writer.writeAll("zxc pkg index [index.json]\nzxc pkg resolve <name> <range> [index.json]\n");
-    try writer.writeAll("zxc <source.zx> [--project pkg.yaml] [--out output.zig] [--solver z3]\nzxc build <source.zx> --out program [--mode app|lib] [--host process|node] [--node-lib file] [--result json|discard] [--watch] [--project pkg.yaml] [--asm program.s] [--target triple] [--cpu features] [--optimize mode] [--solver z3]\nzxc fpga <source.zx> --out kernel.sv [--project pkg.yaml] [--solver z3] [--clocked]\nzxc verify <source.zx> [--project pkg.yaml] [--solver z3] [--out query.smt2]\nzxc fmt <source.zx|source.rx|pkg.yaml> [--check | --write] [--kind manifest|index]\nzxc check-rx <module.rx> [module.rx ...]\nzxc check-rx --entry <module.rx|gateway.gateway.rx|state.store.rx> [--project pkg.yaml]\n");
+    try writer.writeAll("zxc <source.zx> [--project pkg.yaml] [--out output.zig] [--solver z3]\nzxc build <source.zx> --out program [--mode app|lib] [--host process|node] [--node-lib file] [--result json|discard] [--watch [--run]] [--project pkg.yaml] [--asm program.s] [--target triple] [--cpu features] [--optimize mode] [--solver z3]\nzxc fpga <source.zx> --out kernel.sv [--project pkg.yaml] [--solver z3] [--clocked]\nzxc verify <source.zx> [--project pkg.yaml] [--solver z3] [--out query.smt2]\nzxc fmt <source.zx|source.rx|pkg.yaml> [--check | --write] [--kind manifest|index]\nzxc check-rx <module.rx> [module.rx ...]\nzxc check-rx --entry <module.rx|gateway.gateway.rx|state.store.rx> [--project pkg.yaml]\n");
 }

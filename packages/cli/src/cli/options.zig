@@ -27,6 +27,8 @@ pub const Options = struct {
     cache: bool = true,
     cache_stats: bool = false,
     watch: bool = false,
+    run: bool = false,
+    run_args: []const []const u8 = &.{},
 };
 
 pub fn parse(args: []const []const u8) error{InvalidArguments}!Options {
@@ -51,7 +53,17 @@ pub fn parse(args: []const []const u8) error{InvalidArguments}!Options {
     while (index < args.len) : (index += 1) {
         const argument = args[index];
 
-        if (std.mem.eql(u8, argument, "--check") or std.mem.eql(u8, argument, "--write")) {
+        if (std.mem.eql(u8, argument, "--")) {
+            if (!options.run) return error.InvalidArguments;
+
+            options.run_args = args[index + 1 ..];
+
+            break;
+        } else if (std.mem.eql(u8, argument, "--run")) {
+            if (!native or options.run) return error.InvalidArguments;
+
+            options.run = true;
+        } else if (std.mem.eql(u8, argument, "--check") or std.mem.eql(u8, argument, "--write")) {
             if (!formatting or options.check or options.write) return error.InvalidArguments;
 
             options.check = std.mem.eql(u8, argument, "--check");
@@ -159,6 +171,7 @@ pub fn parse(args: []const []const u8) error{InvalidArguments}!Options {
     if (options.mode == .lib and (options.assembly != null or options.target != null or options.cpu != null or optimized or selected_result)) return error.InvalidArguments;
     if (options.host == .node and (options.mode != .app or selected_result)) return error.InvalidArguments;
     if (options.node_library != null and options.host != .node) return error.InvalidArguments;
+    if (options.run and (!options.watch or options.mode != .app or options.host != .process or options.target != null)) return error.InvalidArguments;
 
     return options;
 }

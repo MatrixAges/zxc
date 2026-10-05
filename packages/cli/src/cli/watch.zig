@@ -4,8 +4,13 @@ const Options = @import("options.zig").Options;
 const Inputs = @import("watch/inputs.zig");
 const Snapshot = @import("watch/snapshot.zig");
 const Attempt = @import("watch/attempt.zig");
+const Process = @import("watch/process.zig");
 
 pub fn run(io: std.Io, allocator: std.mem.Allocator, options: Options, environment: *const std.process.Environ.Map, stdout: *std.Io.Writer, stderr: *std.Io.Writer) !void {
+    var application = Process{ .allocator = allocator };
+
+    defer application.deinit(io);
+
     var last_success: ?Snapshot = null;
     var baseline: ?Snapshot = null;
     var backend_arena = std.heap.ArenaAllocator.init(allocator);
@@ -22,8 +27,10 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, options: Options, environme
     try stderr.flush();
 
     while (true) {
+        if (options.run and @import("watch/interrupt.zig").requested()) return;
+
         if (baseline) |snapshot| {
-            if (try wait(io, allocator, snapshot, status, stderr)) {
+            if (try wait(io, allocator, snapshot, status, stderr, &application)) {
                 allocator.free(previous_message);
 
                 previous_message = &.{};
@@ -86,6 +93,17 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, options: Options, environme
             last_success = next;
 
             try stderr.print("zxc watch: built {s}\n", .{options.output.?});
+
+            if (options.run) {
+                if (@import("watch/interrupt.zig").requested()) return;
+                try stderr.flush();
+                try stdout.flush();
+
+                application.restart(io, options, environment) catch |err| {
+                    if (err == error.OutOfMemory or err == error.Canceled) return err;
+                    try stderr.print("zxc watch: application start: {s}\n", .{@errorName(err)});
+                };
+            }
         } else if (last_success) |snapshot| {
             for (snapshot.entries) |entry| {
                 (if (entry.directory_entries) inputs.addDirectory(io, entry.path) else inputs.add(io, entry.path)) catch |err| {
@@ -105,7 +123,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, options: Options, environme
     }
 }
 
-fn wait(io: std.Io, allocator: std.mem.Allocator, baseline: Snapshot, status: compile.Status, stderr: *std.Io.Writer) !bool {
+fn wait(io: std.Io, allocator: std.mem.Allocator, baseline: Snapshot, status: compile.Status, stderr: *std.Io.Writer, application: *Process) !bool {
     if (status == .retry) {
         try std.Io.sleep(io, .fromMilliseconds(200), .awake);
 
@@ -117,6 +135,8 @@ fn wait(io: std.Io, allocator: std.mem.Allocator, baseline: Snapshot, status: co
 
     while (true) {
         try std.Io.sleep(io, .fromMilliseconds(500), .awake);
+        if (@import("watch/interrupt.zig").requested()) return error.Canceled;
+        try application.poll(io, stderr);
 
         polls += 1;
 
