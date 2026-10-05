@@ -1,0 +1,6 @@
+<Gateway name="state" listen="127.0.0.1:64794" max_body_bytes="32">
+  <Route method="POST" path="/advance" service="advance" />
+  <Route method="GET" path="/read" service="read" />
+  <Route method="HEAD" path="/read" service="read" />
+  <Route method="GET" path="/both" service="read_all" />
+</Gateway>

@@ -1,0 +1,13 @@
+export type State = { value: u64, history: u64[] }
+
+export type Input = { increment: u64, state: State }
+
+export type Output = State
+
+export default function (in: Input, { store }): Output {
+  const next = { value: in.state.value + in.increment, history: in.state.history }
+
+  store.inner.counter = next
+
+  return next
+}

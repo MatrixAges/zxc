@@ -15,7 +15,7 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 公共标签实现位于 `src/rx/labels/`，每个标签一个同名 `.zig` 文件，例如 `Call.zig`、`Module.zig`。Gateway 专用标签位于 `src/rx/features/gateway/labels/`，Store 专用标签位于 `src/rx/features/store/labels/`；每个文件同时承载该标签的 Schema 和专属校验。
 
-`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。Store 定义支持字段类型、初值表达式与初始化 Program 分析；目标是按实际使用的 Object 生成应用级共享内存状态，无专用运行库；当前已撤除误加的磁盘代码，顺序调用共享 State；独立请求由生成的 Request 管理 arena，成功提交的请求内存保留到应用结束，有界长期回收与并发仍未实现，见 [Store 设计](../../../../docs/2026-10-05/Store设计.md)。
+`flow.zig` 和各 feature 的 `root.zig` 仅聚合导出，公共 API 保持不变。Gateway 的递归子元素适配器位于 `features/gateway/entries.zig`。Store 是专门声明运行时持续存在对象的特殊标签，其定义与引用统一归属 `features/store/labels/`：`Store.zig` 定义 Store 文件根标签，`StoreReference.zig` 定义模块内的 Store 引用。Store 定义支持字段类型、初值表达式与初始化 Program 分析；目标是按实际使用的 Object 生成应用级共享内存状态，无专用运行库；当前已撤除误加的磁盘代码，顺序调用共享 State；独立请求由生成的 Request 管理 arena，成功提交的请求内存由 State 接管，静态独占写入已支持借用结束后的过期区域释放；一般共享值回收与并发仍未实现，见 [Store 设计](../../../../docs/2026-10-05/Store设计.md)。
 
 入口装载模式会读取 Store 引用文件：`from="state"` 相对当前模块目录解析到 `state.store.rx`，`from="state.store.rx"` 使用显式文件名。它验证定义存在、Schema 合法以及字段类型与初值兼容，不按 Store.name 搜索全局对象；`as` 和缺省别名保持既有约定。初值会编译为受检查的初始化 Program；读取定义不执行该程序，也不创建持久对象。
 
@@ -333,7 +333,7 @@ HTTP Gateway 已接通 `zxc build main.gateway.rx --out server`。编译时展�
 
 省略 protocol 表示 HTTP，listen 默认 `127.0.0.1:8080`，只接受数字 IP 与端口。max_header_bytes 默认 8192、范围 1 至 16777216；max_body_bytes 默认 1048576。当前路由只匹配完整字面路径，query 不参与匹配，不解码百分号；省略 method 表示任意方法，GET 不隐含 HEAD。未匹配路径返回 404，方法不符返回带 Allow 的 405，JSON 错误返回 400，正文过大返回 413，压缩输入返回 415，未知 Expect 返回 417，业务错误返回 500。
 
-当前 HTTP 宿主顺序处理，每个连接仅处理一个请求；不含超时、TLS 服务端、压缩、参数路由、多个 Gateway 合并及其他协议执行。非 HTTP 的 Schema 检查不代表可构建执行。成功提交的请求 arena 仍保留到应用结束，长期有界回收未完成。Gateway 目前只接受 app 构建，不接受源码输出、verify、fpga 或 `--result discard`。结构检查成功不代表业务执行已经验证。详见 [Gateway 执行参考](../../../../docs/2026-10-05/Gateway执行参考.md)。
+当前 HTTP 宿主顺序处理，每个连接仅处理一个请求；不含超时、TLS 服务端、压缩、参数路由、多个 Gateway 合并及其他协议执行。非 HTTP 的 Schema 检查不代表可构建执行。所有写入有静态独占证明时，宿主在请求结束后释放已过期区域；存在持久借用的共享写入仍保留到应用结束，一般共享值的有界回收未完成。Gateway 目前只接受 app 构建，不接受源码输出、verify、fpga 或 `--result discard`。结构检查成功不代表业务执行已经验证。详见 [Gateway 执行参考](../../../../docs/2026-10-05/Gateway执行参考.md)。
 
 结构级测试使用 AST 覆盖标签、路径身份、模块组合、递归结构、循环依赖与分配失败。独立文本及运行验证从真实 XML 开始，覆盖顺序模块的类型推导、原始诊断位置和部分生成代码执行；各组证据不替代尚未接入功能的验证。
 
