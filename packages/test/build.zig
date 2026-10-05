@@ -22,6 +22,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(@import("build/url_api_library.zig").add(b, cli_dependency, optimize));
     test_step.dependOn(@import("build/wasm_protocol.zig").add(b, cli_dependency, optimize));
     test_step.dependOn(@import("build/napi_protocol.zig").add(b, cli_dependency, optimize));
+    test_step.dependOn(@import("build/napi_bindings.zig").add(b, cli_dependency, optimize));
     test_step.dependOn(@import("build/simd_semantics.zig").add(b, cli_dependency, optimize));
     test_step.dependOn(@import("build/gateway.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/frontend.zig").add(b, compiler, target, optimize, suites.frontend));

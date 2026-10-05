@@ -1,0 +1,26 @@
+test-napi-bindings
++- run node
+   +- compile exe zxc debug native 2 errors
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/cli/src/cli/native_references.zig:11:56: error: struct 'zig.Ast.ParseOptions' has no member named 'zig'
+    var tree = try std.zig.Ast.parse(allocator, text, .zig);
+                                                      ~^~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/zig/Ast.zig:142:26: note: struct declared here
+pub const ParseOptions = struct {
+                         ^~~~~~
+referenced by:
+    read: /Users/xiewendao/Documents/MatrixAges/zxc/packages/cli/src/cli/native_sources/collect.zig:71:43
+    writeWithInputs: /Users/xiewendao/Documents/MatrixAges/zxc/packages/cli/src/cli/native_sources.zig:44:36
+    10 reference(s) hidden; use '-freference-trace=12' to see all references
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/src/backends/zig/fingerprint.zig:113:42: error: root source file struct 'meta' has no member named 'Int'
+        .float => self.write(@as(std.meta.Int(.unsigned, @bitSizeOf(T)), @bitCast(value))),
+                                 ~~~~~~~~^~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/meta.zig:1:1: note: struct declared here
+const builtin = @import("builtin");
+^~~~~
+error: 2 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe .zig-cache/o/c890d67c2bf1a156fff0034717a3fd32/libyaml.a -Odebug -I .zig-cache/o/99643627a011968f089148bb3544ce0e --dep rx --dep rx_analysis --dep lint --dep pkgs --dep compiler --dep napi_resources --dep napi_declarations --dep zx --dep yaml --dep cache_identity --dep bundle -Mroot=../cli/src/main.zig -Odebug --dep dsl --dep frontend -Mrx=../compiler/src/rx/root.zig -Odebug --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Odebug --dep dsl --dep zx -Mlint=../lint/src/root.zig -Odebug -Mpkgs=../pkgs/src/root.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug -Mnapi_resources=../napi/src/resources.zig -Odebug --dep zx -Mnapi_declarations=../napi/src/declarations.zig -Odebug -Mzx=../core/src/root.zig -Odebug -Myaml=.zig-cache/o/e22b90ba3b063c07f5c82f91d4845573/yaml.zig -Mcache_identity=.zig-cache/o/015a551e6e184284531da25347ba2802/options.zig -Mbundle=.zig-cache/o/920876b0832d7ed497d74b258a8f7c08/bundle/resources.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug --dep zx --dep dsl --dep lint --dep standard_interfaces -Mfrontend=../compiler/src/zx/frontend.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Mstandard_interfaces=.zig-cache/o/7535f465621b95d968beec5c562886c5/catalog.zig -lc --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zxc --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+Build Summary: 8/11 steps succeeded (1 failed)
+test-napi-bindings transitive failure
++- run node transitive failure
+   +- compile exe zxc debug native 2 errors
