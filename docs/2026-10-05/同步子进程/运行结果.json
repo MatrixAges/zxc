@@ -1,0 +1,301 @@
+[
+	{
+		"name": "backend_version",
+		"input": {
+			"command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig",
+			"args": ["version"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 0,
+			"kind": "Exited",
+			"stderr": "",
+			"stdout": "0.16.0\n"
+		}
+	},
+	{
+		"name": "literal_arguments",
+		"input": {
+			"command": "/usr/bin/printf",
+			"args": ["%s", "a b;$ZXC_LITERAL"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 0,
+			"kind": "Exited",
+			"stderr": "",
+			"stdout": "a b;$ZXC_LITERAL"
+		}
+	},
+	{
+		"name": "cwd_environment",
+		"input": {
+			"command": "/usr/bin/python3",
+			"args": [
+				"-c",
+				"import os,json\nprint(json.dumps({\"cwd\":os.getcwd(),\"value\":os.getenv(\"ZXC_DEMO\")}))"
+			],
+			"cwd": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/同步子进程",
+			"env": [
+				{
+					"name": "ZXC_DEMO",
+					"value": "first"
+				},
+				{
+					"name": "ZXC_DEMO",
+					"value": "last"
+				}
+			],
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 0,
+			"kind": "Exited",
+			"stderr": "",
+			"stdout": "{\"cwd\": \"/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/\\u540c\\u6b65\\u5b50\\u8fdb\\u7a0b\", \"value\": \"last\"}\n"
+		}
+	},
+	{
+		"name": "inherit_environment",
+		"input": {
+			"command": "/usr/bin/python3",
+			"args": ["-c", "import os\nprint(os.getenv(\"ZXC_INHERITED_DEMO\"))"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 0,
+			"kind": "Exited",
+			"stderr": "",
+			"stdout": "inherited\n"
+		}
+	},
+	{
+		"name": "empty_environment",
+		"input": {
+			"command": "/usr/bin/env",
+			"args": [],
+			"cwd": null,
+			"env": [],
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 0,
+			"kind": "Exited",
+			"stderr": "",
+			"stdout": ""
+		}
+	},
+	{
+		"name": "binary_streams",
+		"input": {
+			"command": "/usr/bin/python3",
+			"args": ["-c", "import sys\nsys.stdout.buffer.write(bytes([0,255]))\nsys.stderr.write(\"note\")"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 0,
+			"kind": "Exited",
+			"stderr": "note",
+			"stdout": [0, 255]
+		}
+	},
+	{
+		"name": "nonzero_exit",
+		"input": {
+			"command": "/usr/bin/python3",
+			"args": ["-c", "import sys\nsys.stdout.write(\"partial\")\nsys.exit(7)"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 7,
+			"kind": "Exited",
+			"stderr": "",
+			"stdout": "partial"
+		}
+	},
+	{
+		"name": "exact_limit",
+		"input": {
+			"command": "/usr/bin/printf",
+			"args": ["abc"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 3,
+			"max_stderr_bytes": 0
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 0,
+			"kind": "Exited",
+			"stderr": "",
+			"stdout": "abc"
+		}
+	},
+	{
+		"name": "stdout_limit",
+		"input": {
+			"command": "/usr/bin/printf",
+			"args": ["abc"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 2,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 1,
+		"error": "StreamTooLong"
+	},
+	{
+		"name": "stderr_limit",
+		"input": {
+			"command": "/usr/bin/python3",
+			"args": ["-c", "import sys\nsys.stderr.write(\"abc\")"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 2
+		},
+		"exit_code": 1,
+		"error": "StreamTooLong"
+	},
+	{
+		"name": "empty_zero_limit",
+		"input": {
+			"command": "/usr/bin/true",
+			"args": [],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 0,
+			"max_stderr_bytes": 0
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 0,
+			"kind": "Exited",
+			"stderr": "",
+			"stdout": ""
+		}
+	},
+	{
+		"name": "missing_program",
+		"input": {
+			"command": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/同步子进程/missing_executable",
+			"args": [],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 1,
+		"error": "FileNotFound"
+	},
+	{
+		"name": "nul_argument",
+		"input": {
+			"command": "/usr/bin/printf",
+			"args": ["a\u0000b"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 1,
+		"error": "InvalidProcessArgument"
+	},
+	{
+		"name": "invalid_environment",
+		"input": {
+			"command": "/usr/bin/true",
+			"args": [],
+			"cwd": null,
+			"env": [
+				{
+					"name": "a=b",
+					"value": "x"
+				}
+			],
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 1,
+		"error": "InvalidEnvironmentName"
+	},
+	{
+		"name": "empty_command",
+		"input": {
+			"command": "",
+			"args": [],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 1,
+		"error": "EmptyCommand"
+	},
+	{
+		"name": "dual_large",
+		"input": {
+			"command": "/usr/bin/python3",
+			"args": ["-c", "import sys\nsys.stdout.write(\"a\"*262144)\nsys.stderr.write(\"b\"*262144)"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 524288,
+			"max_stderr_bytes": 524288
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 0,
+			"kind": "Exited",
+			"stderr": {
+				"length": 262144,
+				"sha256": "9e240eace59e902546b5c777cec8b8c20017915d2e0ec85580d5cc7b586da7dd"
+			},
+			"stdout": {
+				"length": 262144,
+				"sha256": "dd3dde87623d9a6b354c68c943d189c89c63652d945e7bbdf0986cae91a49521"
+			}
+		}
+	},
+	{
+		"name": "termination_signal",
+		"input": {
+			"command": "/usr/bin/python3",
+			"args": ["-c", "import os,signal\nos.kill(os.getpid(),signal.SIGTERM)"],
+			"cwd": null,
+			"env": null,
+			"max_stdout_bytes": 1024,
+			"max_stderr_bytes": 1024
+		},
+		"exit_code": 0,
+		"output": {
+			"code": 15,
+			"kind": "Signal",
+			"stderr": "",
+			"stdout": ""
+		}
+	}
+]

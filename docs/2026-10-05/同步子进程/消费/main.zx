@@ -1,0 +1,10 @@
+import type { Options, Result } from "std:child_process"
+import process from "library"
+
+export type Input = Options
+
+export type Output = Result
+
+export default function (in: Input): Output {
+  return process(in)
+}

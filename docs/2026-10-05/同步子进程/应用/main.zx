@@ -1,0 +1,10 @@
+import type { Options, Result } from "std:child_process"
+import process from "std:child_process"
+
+export type Input = Options
+
+export type Output = Result
+
+export default function (in: Input): Output {
+  return process.spawnSync(in)
+}

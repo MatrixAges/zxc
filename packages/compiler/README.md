@@ -62,6 +62,8 @@ std:url/search_params 提供查询参数的 form 编解码、重复键查询、�
 
 std:fs 提供 15 个文件读写、目录、路径及元数据接口。I/O 能力沿调用图静态传递，CLI 使用进程 std.Io，生成库由 Zig 宿主显式提供；纯计算入口保持原签名。RX 无 out 的顺序 Call 使用 evaluate 语句保留执行与错误传播，不创建 void 变量。IR 当前版本为 12；原生声明、库和缓存同步携带 io_argument。接口及边界见 [文件标准库与原生 I/O 参考](../../docs/2026-10-05/文件标准库与原生IO参考.md)。
 
+std:child_process.spawnSync 支持显式 I/O 的同步进程执行、工作目录/环境、独立字节输出和逐流上限。非零退出返回终止状态；创建或收集失败抛错。接口、PATH 差异及 Windows 退出码边界见 [同步子进程参考](../../docs/2026-10-05/同步子进程参考.md)。
+
 std:zlib 提供 gzip/deflate/deflateRaw，输入 u8[]；gzipWith/deflateWith/deflateRawWith 接收 `{ data: u8[], level: i32, }`，级别为 -1（默认）、0（不压缩）、1–9。gunzip/inflate/inflateRaw 接收 `{ data: u8[], max_output_length: u32, }`。结果均为新分配字节数组。解压验证容器校验和、gzip 长度及总输出上限，支持连续 gzip 成员，拒绝尾随垃圾。新增 zstdDecompress 接收 `{ data: u8[], max_output_length: u32, max_window_length: u32, }`，支持连续 Zstd 帧、可跳过帧和校验和验证；两个上限分别约束总输出与单帧窗口。当前不提供流、预设字典、其他压缩参数、Brotli 或 Zstd 编码。详见 [Zstd 解压参考](../../docs/2026-10-04/Zstd解压参考.md)。
 
 ## Answer：使用与验证
