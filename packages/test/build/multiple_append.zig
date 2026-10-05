@@ -26,6 +26,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
             const module = b.createModule(.{ .root_source_file = b.path("tests/collections/multiple_append/root.zig"), .target = target, .optimize = optimize, .imports = &.{.{ .name = "program", .module = program }} });
 
+            module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
             module.addOptions("options", options);
             step.dependOn(&b.addRunArtifact(b.addTest(.{ .name = b.fmt("multiple-append-{s}-{s}", .{ mode, route }), .root_module = module })).step);
         }

@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 fn check(gpa: std.mem.Allocator) !void {
@@ -33,5 +34,5 @@ test "object reduce index failure preserves seed and permits recovery" {
 }
 
 test "object reduce error and recovery release all failed allocations" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, check, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, check, .{});
 }

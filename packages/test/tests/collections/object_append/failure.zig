@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const program = @import("program");
 
 fn run(gpa: std.mem.Allocator) !void {
@@ -26,5 +27,5 @@ test "append fallback index failure permits subsequent execution" {
 }
 
 test "append fallback error recovery allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, run, .{});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{});
 }

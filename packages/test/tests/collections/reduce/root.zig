@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "reduce empty source and seed" {
@@ -42,15 +43,15 @@ test "reduce empty append rows" {
 }
 
 test "reduce allocation failures release every arena" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 128 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 128 }});
 }
 
 test "reduce disabled steps and empty rows clean allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 32, .disabled = true, .empty_rows = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 32, .disabled = true, .empty_rows = true }});
 }
 
 test "reduce allocation failure with relocation releases every arena" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 128, .forbid_resize = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 128, .forbid_resize = true }});
 }
 
 comptime {

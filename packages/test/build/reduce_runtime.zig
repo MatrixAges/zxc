@@ -22,6 +22,7 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, target: std.Build.Resolved
             .imports = &.{.{ .name = "program", .module = program }},
         });
 
+        module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         module.addOptions("options", options);
 
         const tests = b.addTest(.{ .name = b.fmt("reduce-{s}", .{mode}), .root_module = module });

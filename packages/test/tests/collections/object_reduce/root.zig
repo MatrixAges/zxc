@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "object reduce empty source preserves initial value" {
@@ -26,11 +27,11 @@ test "object reduce all zero steps preserve conditional initial alias" {
 }
 
 test "object reduce all failed allocations release the arena" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 31 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 31 }});
 }
 
 test "object reduce zero branch allocation failures release the arena" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 32, .zeros = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 32, .zeros = true }});
 }
 
 comptime {

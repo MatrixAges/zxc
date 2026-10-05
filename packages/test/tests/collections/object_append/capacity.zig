@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "append linear allocation across growing input" {
@@ -18,5 +19,5 @@ test "append empty seed and empty reduction" {
 }
 
 test "append empty seed allocation failures" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 37, .empty_seed = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 37, .empty_seed = true }});
 }

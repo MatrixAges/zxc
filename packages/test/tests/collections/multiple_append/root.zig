@@ -1,4 +1,5 @@
 const std = @import("std");
+const allocation_testing = @import("allocation_testing");
 const h = @import("check.zig");
 
 test "multiple append empty reduction preserves copied seed" {
@@ -26,11 +27,11 @@ test "multiple append longer sequence preserves host inputs" {
 }
 
 test "multiple append every allocation failure releases arena" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 37 }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 37 }});
 }
 
 test "multiple append skipped sequence allocation failures release arena" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 32, .zeros = true }});
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.run, .{h.Case{ .count = 32, .zeros = true }});
 }
 
 comptime {
