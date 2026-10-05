@@ -937,6 +937,7 @@ pub fn build(b: *std.Build) void {
         standard_step.dependOn(&standard_run.step);
     }
 
+    standard_step.dependOn(@import("build/url_parser.zig").add(b, compiler, target, optimize));
     standard_step.dependOn(@import("build/url_host.zig").add(b, compiler, target, optimize));
     standard_step.dependOn(@import("build/url_idna.zig").add(b, compiler, target, optimize));
     standard_step.dependOn(@import("build/url_punycode.zig").add(b, compiler, target, optimize));
