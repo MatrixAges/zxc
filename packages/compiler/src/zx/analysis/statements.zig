@@ -15,6 +15,11 @@ pub fn block(self: *Analyzer, value: zx.ast.Block) zx.Error![]const ir.Statement
         if (Analyzer.returns(result.items)) return self.reporter.fail(.return_path, statement.span, "unreachable statement after a terminating branch or return");
 
         switch (statement.value) {
+            .evaluate => |source| {
+                const id = try self.expression(source, Types.scalarId(.void));
+
+                try result.append(self.allocator, .{ .evaluate = id });
+            },
             .constant => |binding| {
                 try bindingName(self, binding.name);
 

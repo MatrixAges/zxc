@@ -21,7 +21,7 @@ pub const TypeField = struct { name: []const u8, type_id: TypeId };
 pub const Symbol = struct { name: []const u8, type_id: TypeId, span: Span, ownership: Ownership = .copy };
 pub const Export = struct { name: []const u8, type_id: TypeId };
 pub const ListOperation = enum { push, pop, sort, reverse, splice, concat };
-pub const Transform = struct { kind: enum { map, filter, reduce }, target: ExprId, parameters: []const SymbolId, body: ExprId, initial: ?ExprId = null };
+pub const Transform = struct { kind: enum { map, filter, reduce, forEach }, target: ExprId, parameters: []const SymbolId, body: ExprId, initial: ?ExprId = null };
 pub const Projection = struct { target: ExprId, index: u32 };
 pub const Match = struct { subject: ?ExprId, arms: []const MatchArm, fallback: ExprId };
 pub const MatchArm = struct { condition: ExprId, result: ExprId };

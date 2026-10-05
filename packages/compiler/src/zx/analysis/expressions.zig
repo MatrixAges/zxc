@@ -150,7 +150,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
             return self.append(.{ .span = span, .type_id = target_type.list, .value = .{ .index = .{ .target = target, .index = index } } });
         },
         .call => return @import("calls.zig").analyze(self, expression, expected),
-        .lambda => return self.reporter.fail(.unsupported, span, "callbacks are only allowed directly in map, filter or reduce"),
+        .lambda => return self.reporter.fail(.unsupported, span, "callbacks are only allowed directly in map, filter, reduce or forEach"),
         .template => return @import("strings.zig").template(self, expression),
     }
 }

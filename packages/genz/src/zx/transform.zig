@@ -36,6 +36,12 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!*cons
             .target = try self.builder.expression(.{ .index = .{ .target = result, .index = try self.builder.identifier(index_capture.?) } }),
             .value = callback,
         } });
+    } else if (value.kind == .forEach) {
+        const callback_type = self.program.typeOf(self.program.expression(value.body).type_id);
+
+        try loop.append(self.allocator, if (callback_type == .scalar and callback_type.scalar == .void) .{ .expression = callback } else .{ .discard = callback });
+
+        result = try self.builder.expression(.unit);
     } else {
         const name = try self.fresh("items");
         const list_type = self.program.typeOf(self.program.expression(id).type_id);

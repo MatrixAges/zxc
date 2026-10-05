@@ -46,6 +46,7 @@ pub const TemplatePart = union(enum) { text: []const u8, expression: *const Expr
 pub const Statement = struct {
     span: Span,
     value: union(enum) {
+        evaluate: *const Expression,
         constant: struct { name: Name, annotation: ?*const Type = null, value: *const Expression },
         destructure: struct { names: []const Name, value: *const Expression },
         branch: struct { condition: *const Expression, yes: Block, no: ?Block },

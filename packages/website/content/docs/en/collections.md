@@ -13,6 +13,16 @@ export default function (in: Input): Output {
 
 `map` and `filter` take a one-argument callback. `reduce` takes a two-argument callback and an explicit initial accumulator. Callbacks have expression bodies and cannot capture outer values or Store handles. They may call imported functions.
 
+### Execute in order without collecting results
+
+```typescript
+items.forEach(item => processItem(item))
+```
+
+`forEach` executes a one-argument, non-capturing expression callback in index order and returns `void`. It discards each callback result without creating a result list. Empty lists make no calls. The compiler emits an ordinary Zig loop with static calls and preserves side-effect order.
+
+Elements remain borrowed: a callback cannot consume a borrowed element or modify the list being traversed. A failure stops the loop immediately; earlier external effects are not rolled back. `forEach` can stand alone as a statement. Other standalone calls must also return `void`.
+
 ### Carry the updated list forward
 
 Consuming operations return a tuple. Bind the resulting list to a new name and discard an unneeded result with `_`.

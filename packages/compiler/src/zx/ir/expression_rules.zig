@@ -184,6 +184,7 @@ const Check = struct {
             .map => value.initial == null and target == .list and self.typed(value.body, target.list),
             .filter => value.initial == null and result == source_id and self.typed(value.body, bool_type),
             .reduce => value.initial != null and self.typed(value.initial.?, result) and self.typed(value.body, result),
+            .forEach => value.initial == null and target == .scalar and target.scalar == .void,
         };
     }
 

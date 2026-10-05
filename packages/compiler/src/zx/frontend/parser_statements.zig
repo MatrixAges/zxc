@@ -27,6 +27,7 @@ const Statement = grammar.choice(.{
     grammar.map(Switch, Value, takeSecond(Switch)),
     grammar.map(Store, Value, takeSecond(Store)),
     InjectedStore,
+    Evaluation,
 });
 
 pub fn parse(parser: *Parser) zx.Error!ast.Statement {
@@ -136,5 +137,20 @@ const InjectedStore = struct {
         if (!std.mem.startsWith(u8, parser.current().text(parser.source), "$")) return .miss;
 
         return .{ .hit = try store(parser) };
+    }
+};
+
+const Evaluation = struct {
+    pub const Value = @FieldType(ast.Statement, "value");
+
+    pub fn parse(parser: *Parser) zx.Error!grammar.Match(@This().Value) {
+        if (parser.current().kind != .identifier and !parser.at("(") and !parser.at("[")) return .miss;
+
+        const value = try parser.expression(0);
+
+        if (value.value != .call) return parser.reporter.fail(.syntax, value.span, "only calls can be used as standalone expressions");
+        try parser.endStatement();
+
+        return .{ .hit = .{ .evaluate = value } };
     }
 };

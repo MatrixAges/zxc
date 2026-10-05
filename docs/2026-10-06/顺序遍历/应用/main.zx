@@ -1,0 +1,11 @@
+import process from "std:process"
+
+export type Input = void
+
+export type Output = void
+
+export default function (in: Input): Output {
+  const items = ["first\n", "second\n", "third\n"]
+
+  items.forEach(item => process.writeStdoutText(item))
+}

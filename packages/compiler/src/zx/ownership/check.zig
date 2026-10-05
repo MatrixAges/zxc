@@ -257,6 +257,8 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
 
             const result = try self.callback(transform, initial_state);
 
+            if (transform.kind == .forEach) break :blk .copy;
+
             if (transform.kind == .reduce and result == .borrowed and initial_state != .borrowed) {
                 @memcpy(self.states, saved);
 

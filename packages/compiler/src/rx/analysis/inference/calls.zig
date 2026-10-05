@@ -61,7 +61,7 @@ fn transform(self: *Expression, expression: *const zx.ast.Expression, target: Gr
     const span = self.sourceSpan(expression.span);
     const reducing = kind == .reduce;
 
-    if (arguments.len != @as(usize, if (reducing) 2 else 1)) return self.graph.reporter.fail(.type_mismatch, span, "map/filter require a callback; reduce requires a callback and initial value");
+    if (arguments.len != @as(usize, if (reducing) 2 else 1)) return self.graph.reporter.fail(.type_mismatch, span, "map/filter/forEach require a callback; reduce requires a callback and initial value");
     if (arguments[0].value != .lambda) return self.graph.reporter.fail(.type_mismatch, self.sourceSpan(arguments[0].span), "collection callback must be an inline lambda");
 
     const lambda = arguments[0].value.lambda;
@@ -73,12 +73,14 @@ fn transform(self: *Expression, expression: *const zx.ast.Expression, target: Gr
     const result = switch (kind) {
         .filter => target,
         .reduce => accumulator.?,
+        .forEach => try self.graph.scalar(.void, span),
         .map => expected orelse try self.graph.add(.{ .list = try self.graph.add(.unknown, span) }, span),
     };
 
-    const body_hint = switch (kind) {
+    const body_hint: ?Graph.Id = switch (kind) {
         .filter => try self.graph.scalar(.bool, span),
         .reduce => accumulator.?,
+        .forEach => null,
         .map => try self.graph.payload(result, .list, span),
     };
 
