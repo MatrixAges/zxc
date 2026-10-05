@@ -1,0 +1,42 @@
+Build Summary: 25/25 steps succeeded; 3/3 tests passed
+test-typed-try-native-abi success
++- compile test typed-try-abi-scalar debug native success 208ms MaxRSS:91M
+|  +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|  |  +- compile exe compile-typed-try-native-abi debug native cached 42ms MaxRSS:21M
+|  |     +- WriteFile interfaces/0.d.zx cached
+|  |     +- run exe generate-lexer (lexer.zig) cached
+|  |        +- compile exe generate-lexer debug native cached 44ms MaxRSS:21M
+|  |           +- WriteFile interfaces/0.d.zx cached
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- compile test typed-try-abi-optional debug native success 210ms MaxRSS:91M
+|  +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|  |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- compile test typed-try-abi-void debug native success 205ms MaxRSS:91M
+|  +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|  |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- compile test typed-try-abi-empty debug native success 201ms MaxRSS:92M
+|  +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|  |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- compile test typed-try-abi-opaque debug native success 213ms MaxRSS:94M
+|  +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|  |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- run test typed-try-abi-exact 1 pass (1 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-abi-exact debug native success 1s MaxRSS:261M
+|     +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|     |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- run test typed-try-abi-subset 1 pass (1 total) 2ms MaxRSS:1M
+|  +- compile test typed-try-abi-subset debug native success 1s MaxRSS:264M
+|     +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|     |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- run test typed-try-abi-infallible 1 pass (1 total) 2ms MaxRSS:1M
+   +- compile test typed-try-abi-infallible debug native success 1s MaxRSS:262M
+      +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+      |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+      +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
+

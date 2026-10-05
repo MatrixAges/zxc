@@ -1,0 +1,152 @@
+test-typed-try-native-abi
++- compile test typed-try-abi-void debug native failure
+error: 
+       ========= should contain: ===============
+       'error.ZetaFailure' not a member of destination error set
+       ========= but not found: ================
+       tests/language/expressions/typed_try/native_abi/execution_test.zig:10:81: error: expected type '*heap.ArenaAllocator', found 'mem.Allocator'
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:1:1: note: struct declared here
+       .zig-cache/o/ac8fe095a22dac66a516b3f17aaf4aa7/program.zig:57:23: note: parameter type declared here
+       
+       =========================================
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host -Mroot=tests/language/expressions/typed_try/native_abi/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/ac8fe095a22dac66a516b3f17aaf4aa7/program.zig -Odebug -Mhost=tests/language/expressions/typed_try/native_abi/void/host.zig -Odebug -Mzxc_abi=.zig-cache/o/ac8fe095a22dac66a516b3f17aaf4aa7/abi.zig -fno-emit-bin --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name typed-try-abi-void --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-typed-try-native-abi
++- compile test typed-try-abi-scalar debug native failure
+error: 
+       ========= should contain: ===============
+       'error.ZetaFailure' not a member of destination error set
+       ========= but not found: ================
+       tests/language/expressions/typed_try/native_abi/execution_test.zig:10:81: error: expected type '*heap.ArenaAllocator', found 'mem.Allocator'
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:1:1: note: struct declared here
+       .zig-cache/o/7ed324aebda4bb7e80970e8d631abee3/program.zig:59:23: note: parameter type declared here
+       
+       =========================================
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host -Mroot=tests/language/expressions/typed_try/native_abi/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/7ed324aebda4bb7e80970e8d631abee3/program.zig -Odebug -Mhost=tests/language/expressions/typed_try/native_abi/scalar/host.zig -Odebug -Mzxc_abi=.zig-cache/o/7ed324aebda4bb7e80970e8d631abee3/abi.zig -fno-emit-bin --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name typed-try-abi-scalar --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-typed-try-native-abi
++- compile test typed-try-abi-optional debug native failure
+error: 
+       ========= should contain: ===============
+       'error.ZetaFailure' not a member of destination error set
+       ========= but not found: ================
+       tests/language/expressions/typed_try/native_abi/execution_test.zig:10:81: error: expected type '*heap.ArenaAllocator', found 'mem.Allocator'
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:1:1: note: struct declared here
+       .zig-cache/o/b9aeed145cac5d5b6d1ffb946a336e6f/program.zig:61:23: note: parameter type declared here
+       
+       =========================================
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host -Mroot=tests/language/expressions/typed_try/native_abi/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/b9aeed145cac5d5b6d1ffb946a336e6f/program.zig -Odebug -Mhost=tests/language/expressions/typed_try/native_abi/optional/host.zig -Odebug -Mzxc_abi=.zig-cache/o/b9aeed145cac5d5b6d1ffb946a336e6f/abi.zig -fno-emit-bin --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name typed-try-abi-optional --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-typed-try-native-abi
++- compile test typed-try-abi-opaque debug native failure
+error: 
+       ========= should contain: ===============
+       global error set cannot cast into a smaller set
+       ========= but not found: ================
+       tests/language/expressions/typed_try/native_abi/execution_test.zig:10:81: error: expected type '*heap.ArenaAllocator', found 'mem.Allocator'
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:1:1: note: struct declared here
+       .zig-cache/o/e9ea17566112ddcee33cfabd0abfec5f/program.zig:59:23: note: parameter type declared here
+       
+       =========================================
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host -Mroot=tests/language/expressions/typed_try/native_abi/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/e9ea17566112ddcee33cfabd0abfec5f/program.zig -Odebug -Mhost=tests/language/expressions/typed_try/native_abi/opaque/host.zig -Odebug -Mzxc_abi=.zig-cache/o/e9ea17566112ddcee33cfabd0abfec5f/abi.zig -fno-emit-bin --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name typed-try-abi-opaque --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-typed-try-native-abi
++- compile test typed-try-abi-empty debug native failure
+error: 
+       ========= should contain: ===============
+       'error.ZetaFailure' not a member of destination error set
+       ========= but not found: ================
+       tests/language/expressions/typed_try/native_abi/execution_test.zig:10:81: error: expected type '*heap.ArenaAllocator', found 'mem.Allocator'
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:1:1: note: struct declared here
+       .zig-cache/o/fd9778bb585a89a0596ddddb2d4fdd3b/program.zig:59:23: note: parameter type declared here
+       
+       =========================================
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host -Mroot=tests/language/expressions/typed_try/native_abi/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/fd9778bb585a89a0596ddddb2d4fdd3b/program.zig -Odebug -Mhost=tests/language/expressions/typed_try/native_abi/empty/host.zig -Odebug -Mzxc_abi=.zig-cache/o/fd9778bb585a89a0596ddddb2d4fdd3b/abi.zig -fno-emit-bin --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name typed-try-abi-empty --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-typed-try-native-abi
++- run test typed-try-abi-subset
+   +- compile test typed-try-abi-subset debug native 1 errors
+tests/language/expressions/typed_try/native_abi/execution_test.zig:10:81: error: expected type '*heap.ArenaAllocator', found 'mem.Allocator'
+    try std.testing.expectEqual(@as(u64, 7), try program.execute(arena.allocator(), 7));
+                                                                 ~~~~~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:1:1: note: struct declared here
+//! The standard memory allocation interface.
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/b8390a929904dff93449d7715c304ba9/program.zig:59:23: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64) error{ }!u64 {
+                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host -Mroot=tests/language/expressions/typed_try/native_abi/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/b8390a929904dff93449d7715c304ba9/program.zig -Odebug -Mhost=tests/language/expressions/typed_try/native_abi/subset/host.zig -Odebug -Mzxc_abi=.zig-cache/o/b8390a929904dff93449d7715c304ba9/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name typed-try-abi-subset --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-typed-try-native-abi
++- run test typed-try-abi-infallible
+   +- compile test typed-try-abi-infallible debug native 1 errors
+tests/language/expressions/typed_try/native_abi/execution_test.zig:10:81: error: expected type '*heap.ArenaAllocator', found 'mem.Allocator'
+    try std.testing.expectEqual(@as(u64, 7), try program.execute(arena.allocator(), 7));
+                                                                 ~~~~~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:1:1: note: struct declared here
+//! The standard memory allocation interface.
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/cbb969d503d173c2fd1b92c8a92b30a5/program.zig:59:23: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64) error{ }!u64 {
+                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host -Mroot=tests/language/expressions/typed_try/native_abi/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/cbb969d503d173c2fd1b92c8a92b30a5/program.zig -Odebug -Mhost=tests/language/expressions/typed_try/native_abi/infallible/host.zig -Odebug -Mzxc_abi=.zig-cache/o/cbb969d503d173c2fd1b92c8a92b30a5/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name typed-try-abi-infallible --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-typed-try-native-abi
++- run test typed-try-abi-exact
+   +- compile test typed-try-abi-exact debug native 1 errors
+tests/language/expressions/typed_try/native_abi/execution_test.zig:10:81: error: expected type '*heap.ArenaAllocator', found 'mem.Allocator'
+    try std.testing.expectEqual(@as(u64, 7), try program.execute(arena.allocator(), 7));
+                                                                 ~~~~~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:1:1: note: struct declared here
+//! The standard memory allocation interface.
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/435a3e5f080a89c777ac938253c15bd0/program.zig:59:23: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64) error{ }!u64 {
+                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host -Mroot=tests/language/expressions/typed_try/native_abi/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/435a3e5f080a89c777ac938253c15bd0/program.zig -Odebug -Mhost=tests/language/expressions/typed_try/native_abi/exact/host.zig -Odebug -Mzxc_abi=.zig-cache/o/435a3e5f080a89c777ac938253c15bd0/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name typed-try-abi-exact --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+Build Summary: 13/25 steps succeeded (8 failed)
+test-typed-try-native-abi transitive failure
++- compile test typed-try-abi-scalar debug native failure
+|  +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|  |  +- compile exe compile-typed-try-native-abi debug native success 3s MaxRSS:483M
+|  |     +- WriteFile interfaces/0.d.zx cached
+|  |     +- run exe generate-lexer (lexer.zig) cached
+|  |        +- compile exe generate-lexer debug native cached 44ms MaxRSS:21M
+|  |           +- WriteFile interfaces/0.d.zx cached
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- compile test typed-try-abi-optional debug native failure
+|  +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|  |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- compile test typed-try-abi-void debug native failure
+|  +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|  |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- compile test typed-try-abi-empty debug native failure
+|  +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|  |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- compile test typed-try-abi-opaque debug native failure
+|  +- run exe compile-typed-try-native-abi (program.zig) success 3ms
+|  |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|  +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- run test typed-try-abi-exact transitive failure
+|  +- compile test typed-try-abi-exact debug native 1 errors
+|     +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+|     |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- run test typed-try-abi-subset transitive failure
+|  +- compile test typed-try-abi-subset debug native 1 errors
+|     +- run exe compile-typed-try-native-abi (program.zig) success 3ms
+|     |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+|     +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
++- run test typed-try-abi-infallible transitive failure
+   +- compile test typed-try-abi-infallible debug native 1 errors
+      +- run exe compile-typed-try-native-abi (program.zig) success 4ms
+      |  +- compile exe compile-typed-try-native-abi debug native (+2 more reused dependencies)
+      +- run exe compile-typed-try-native-abi (program.zig) (+1 more reused dependencies)
+
