@@ -1,0 +1,13 @@
+export type State = { a: u64[], b: u64[], count: u64 }
+
+export type Input = { state: State, item: u64 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.item % 2 == 0) {
+    return {a: in.state.a.push(in.item)[0], b: in.state.b, count: in.state.count + 1}
+  }
+
+  return {a: in.state.a, b: in.state.b.concat([in.item, in.item + 10])[0], count: in.state.count + 1}
+}

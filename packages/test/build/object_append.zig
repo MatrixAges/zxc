@@ -10,7 +10,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         .imports = &.{.{ .name = "compiler", .module = compiler.module("compiler") }},
     }) });
 
-    for ([_][]const u8{ "push", "concat", "select", "field_select", "index_read", "overwritten", "call_push", "call_concat", "call_chain", "call_foreign" }) |mode| {
+    for ([_][]const u8{ "push", "concat", "select", "field_select", "index_read", "overwritten", "call_push", "call_concat", "call_chain", "call_foreign", "call_dual" }) |mode| {
         const compile = b.addRunArtifact(tool);
 
         compile.addArg(mode);
@@ -25,7 +25,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             options.addOption([]const u8, "mode", if (std.mem.eql(u8, mode, "call_concat")) "concat" else mode);
             options.addOption(bool, "bounded", !std.mem.eql(u8, mode, "index_read") and !std.mem.eql(u8, mode, "overwritten"));
 
-            const runner = if (std.mem.eql(u8, mode, "call_foreign")) "foreign" else "root";
+            const runner = if (std.mem.eql(u8, mode, "call_foreign")) "foreign" else if (std.mem.eql(u8, mode, "call_dual")) "dual" else "root";
             const module = b.createModule(.{ .root_source_file = b.path(b.fmt("tests/collections/object_append/{s}.zig", .{runner})), .target = target, .optimize = optimize, .imports = &.{.{ .name = "program", .module = program }} });
 
             module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });

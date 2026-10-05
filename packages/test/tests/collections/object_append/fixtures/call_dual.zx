@@ -1,0 +1,13 @@
+import step from "./dual_step.zx"
+
+export type State = { a: u64[], b: u64[], count: u64 }
+
+export type Input = { a: u64[], b: u64[], steps: u64[] }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const initial: State = {a: in.a, b: in.b, count: 3}
+
+  return in.steps.reduce((state, item) => step({state, item}), initial)
+}
