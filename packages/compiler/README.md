@@ -15,22 +15,22 @@ ZX 源码 → Token → AST → 类型与所有权检查 → IR → genz → Zig
 - 普通函数输入默认借用；`in: owned Input` 显式消费调用者的独占输入，契约贯穿模块、库与缓存。Zig 入口暴露 `consumes_input`，详见 [显式输入消费参考](../../docs/2026-10-05/显式输入消费参考.md)。
 - Call 注入的 `$name.value` Store getter/setter、类型与独立读写权限、暂存与宿主统一提交。
 - 显式注册并审查的 zig:/c: 接口与模块成员，保留旧 lib: 兼容；无前缀 ZX 包入口映射；普通项目函数的 Input/Output 类型连接。
-- 内建 std:encoding、std:crypto、std:path、std:querystring、std:url/search_params、std:zlib 与 std:os 系列纯计算接口，以及显式宿主 I/O 的 std:fs 文件接口；它们不是完整 Node.js 标准库兼容实现。
+- 内建编码、密码、路径、查询参数、URL、压缩与目标信息接口，以及显式宿主能力的 std:fs、std:child_process、std:process、std:http；完整模块清单与边界见 [功能参考索引](../../docs/2026-10-05/功能参考索引.md)，不是完整 Node.js 标准库兼容实现。
 - 原生 build、C 头文件桥接、目标与 CPU 配置，以及真实汇编输出。
 - 原生模块采用静态编译链接；动态插件与懒加载已按用户决定取消。
-- app/lib 构建模式；lib 交付独立 Zig 模块、实际静态源码依赖、ZX 源码与项目配置，不携带 zxc runtime。
+- app/lib 构建模式；lib 按公开模块交付统一 library.zxcir、共享 ABI、公开 Zig 模块、内部生成模块及所需原生资源，不携带专用运行库。
 - requires/ensures 契约、独立契约 IR 与有限整数子集的 SMT 验证。
 - 第三方 IR 的结构、作用域、调用图顺序、所有权与权限检查。
 
-`compiler.library.link` 接收多个已分析模块，合并类型、名义身份、函数及原生依赖，返回独立持有数据的统一模块图与公开导出表。`result.module(index)` 返回其中一个公开模块的借用 IR 视图，类型仍来自同一张表；原分析结果可先释放，视图必须在 result.deinit() 前使用。该接口是统一库编译的内部基础，包级发行协议和完整产物装载仍待接通，见 [统一库设计](../../docs/2026-10-05/统一库设计.md)。
+`compiler.library.link` 接收多个已分析模块，合并类型、名义身份、函数及原生依赖，返回独立持有数据的统一模块图与公开导出表。`result.module(index)` 返回其中一个公开模块的借用 IR 视图，类型仍来自同一张表；原分析结果可先释放，视图必须在 result.deinit() 前使用。该接口是统一库编译的内部基础；CLI 已接通包级发布与装载，见 [统一库发布参考](../../docs/2026-10-05/统一库发布参考.md)。
 
-`compiler.library.codec.encode(allocator, &result)` 返回需由调用方释放的模块产物字节；`decode(allocator, bytes)` 返回独立持有 arena 的 Result，输入 bytes 可先释放。编码和解码均检查统一 IR 与公共接口；解码另检查内容摘要和版本。不兼容 IR 版本返回 IncompatibleLibraryVersion，其他无效产物返回 InvalidLibrary。此接口只承载编译图，包配置、原生资源和初始化闭包仍由后续发行流程接入。
+`compiler.library.codec.encode(allocator, &result)` 返回需由调用方释放的模块产物字节；`decode(allocator, bytes)` 返回独立持有 arena 的 Result，输入 bytes 可先释放。编码和解码均检查统一 IR 与公共接口；解码另检查内容摘要和版本。不兼容 IR 版本返回 IncompatibleLibraryVersion，其他无效产物返回 InvalidLibrary。编码包含统一编译图、公开接口、名义类型及 Store 初值引用；包配置与原生资源由 CLI 发布流程另行装配。
 
-`compiler.zig.emitLibrary(allocator, &result)` 将统一模块图生成一份共享 ABI、多个公开模块和公开依赖并集中的内部函数文件；`emitLibraryCached(allocator, &result, &cache)` 复用既有生成缓存。结果使用 `deinit()` 释放，全部生成文本及依赖名称由结果持有，原始 Result 可提前释放。`public_modules` 保留公开名称与生成文件的映射，文件名由公开名称摘要决定，不直接使用公开路径。未证明契约仍被拒绝；该接口不负责复制原生文件或装配 Store 初始化。
+`compiler.zig.emitLibrary(allocator, &result)` 将统一模块图生成一份共享 ABI、多个公开模块和公开依赖并集中的内部函数文件；`emitLibraryCached(allocator, &result, &cache)` 复用既有生成缓存。结果使用 `deinit()` 释放，全部生成文本及依赖名称由结果持有，原始 Result 可提前释放。`public_modules` 保留公开名称与生成文件的映射，文件名由公开名称摘要决定，不直接使用公开路径。未证明契约仍被拒绝；生成结果包含 Store 初值模块及其元数据，该接口不复制原生文件，也不创建运行中的 State 实例。
 
 前端 `project.Options.compiled_libraries` 接受已装载库的实例身份、产物路径、IR、公开模块表和名义类型。对应 `project.Package.compiled` 指定 `{instance, artifact, name}`，与源码 `entry` 互斥；`resolveTarget` 返回结构化目标，旧 `resolveImport` 仅返回源码路径，对编译目标明确拒绝。调用方负责文件读取与 codec 校验，前端再次检查图有效性，并将每个实例的类型、函数及原生表联结一次。库的默认调用和公开类型通过普通 import 进入分析，不进入 native 接口通道；只有显式公开的类型可导入。
 
-已编译输入不进入 Source 文本集合，也不参与源码 lint。分析结果复制所需 IR 数据，原库图可在分析后释放。同实例共享函数与名义身份，不同实例对来源和 Store 路径作限定；非标准原生模块的链接名亦按实例生成，后续 CLI 资源装配须使用该映射。当前含已编译库的项目跳过语义产物缓存，仍可使用解析缓存与 Zig 生成缓存；旧单模块 artifact 提取拒绝编译库依赖。CLI 的自动文件装载、发布清单协议与完整资源绑定尚未完成，不将这个内部输入 API 当作现有命令已支持发行包消费。
+已编译输入不进入 Source 文本集合，也不参与源码 lint。分析结果复制所需 IR 数据，原库图可在分析后释放。同实例共享函数与名义身份，不同实例对来源和 Store 路径作限定；非标准原生模块的链接名亦按实例生成，CLI 资源装配使用该映射。当前含已编译库的项目跳过语义产物缓存，仍可使用解析缓存与 Zig 生成缓存；旧单模块 artifact 提取拒绝编译库依赖。CLI 已按包配置装载统一库产物并绑定所需原生资源。
 
 同一外部模块的同一公开导出被多次导入时，共享其签名中的枚举身份；导入文件与局部别名不会产生新类型。不同模块或不同导出的独立签名不按形状合并。多个导出需要共享声明时，使用共同的原生声明接口。
 
@@ -42,13 +42,13 @@ ZX 代码不允许显式分号。简单语句与声明通过换行、块结束�
 
 ## Edges：边界
 
-数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 是实验版 12 的内存 API，没有稳定序列化 ABI。
+数据库按用户要求不实现。没有 JavaScript 隐式转换、Python 大整数、一般闭包、任意循环或运行时 capability import。IR 当前版本为 13；编译库与缓存检查版本，不提供跨版本稳定序列化 ABI。
 
-Store 是应用生命周期内的共享内存，由生成代码初始化和发布值，不自动持久化。RX XML 解析、可达模块装载、顺序服务应用及纯内存状态生成已接通；独立请求内存的长期归属与并发调度仍待落实，见 [Store 设计](../../docs/2026-10-05/Store设计.md)。
+Store 是应用生命周期内的共享内存，由生成代码初始化和发布值，不自动持久化。独立 Request 使用自己的 arena；成功提交后由 State 接管仍被 Store 引用的请求内存。静态独占写入支持请求边界回收，一般共享值仍可能长期保留，并发 State 请求不在当前保证内，见 [Store 设计](../../docs/2026-10-05/Store设计.md)。
 
 ZX 不提供指针类型、取地址或解引用语法。参数、返回值和局部绑定始终使用普通 ZX 类型；聚合值的引用传递及具体存储表示由编译器处理。clone 已删除。
 
-以下为 Zig 宿主集成细节：生成入口使用调用方 Arena，聚合列表元素保存引用槽。新构造数据在 Arena 中分配，所有权移动不递归复制数据。push/concat/splice 为自身操作分配结果列表，pop/reverse/sort 可复用独占存储。新建聚合返回值的所有权摘要已进入 IR，输入借用不能直接消费。原生共享 ABI 和 Store 生命周期还在迁移；调用方必须使输入和 Arena 覆盖所有输出及被保留的 Store 引用。
+以下为 Zig 宿主集成细节：生成入口使用调用方 Arena，聚合列表元素保存引用槽。新构造数据在 Arena 中分配，所有权移动不递归复制数据。push/concat/splice 为自身操作分配结果列表，pop/reverse/sort 可复用独占存储。新建聚合返回值的所有权摘要已进入 IR，输入借用不能直接消费。app、库及原生适配共用共享 ABI；宿主仍须遵守输入和借用输出的存活期，带 Store 的生成入口使用独立 Request 管理已提交数据的归属。
 
 std:encoding 的 encodeUtf8/decodeUtf8 验证后返回输入的只读视图，不复制内容。Zig 直接消费方不传 allocator，也不释放这两个借用结果；输入存活期须覆盖视图使用期。
 
@@ -58,11 +58,11 @@ std:crypto 新增 scrypt 密钥派生，显式接收密码与盐字节、N/r/p�
 
 std:querystring 使用有序 Entry 列表保留重复键。parse/stringify 使用默认分隔符，parseWith/stringifyWith 接收显式配置；escape/unescape 提供百分号编解码。该模块不提供 JavaScript 对象隐式转换或完整 URL 解析。
 
-std:url/search_params 提供查询参数的 form 编解码、重复键查询、不可变编辑及 UTF-16 稳定排序，共 12 个静态接口。编辑结果共享已有只读条目与字符串，不修改输入；完整 URL 地址解析仍未实现。类型、语义及 ZX/Zig 消费示例见 [URL 查询参数参考](../../docs/2026-10-05/URL查询参数参考.md)。
+std:url/search_params 提供查询参数的 form 编解码、重复键查询、不可变编辑及 UTF-16 稳定排序，共 12 个静态接口。编辑结果共享已有只读条目与字符串，不修改输入，见 [URL 查询参数参考](../../docs/2026-10-05/URL查询参数参考.md)。URL 地址解析、相对解析、序列化、origin、域名及 file URL 转换由 std:url 提供，支持范围见 [完整 URL 参考](../../docs/2026-10-05/完整URL参考.md)，不据此宣称完整 Node.js 或 WHATWG 兼容。
 
-std:fs 提供 15 个文件读写、目录、路径及元数据接口。I/O 能力沿调用图静态传递，CLI 使用进程 std.Io，生成库由 Zig 宿主显式提供；纯计算入口保持原签名。RX 无 out 的顺序 Call 使用 evaluate 语句保留执行与错误传播，不创建 void 变量。IR 当前版本为 12；原生声明、库和缓存同步携带 io_argument。接口及边界见 [文件标准库与原生 I/O 参考](../../docs/2026-10-05/文件标准库与原生IO参考.md)。
+std:fs 提供 15 个文件读写、目录、路径及元数据接口。I/O 能力沿调用图静态传递，CLI 使用进程 std.Io，生成库由 Zig 宿主显式提供；纯计算入口保持原签名。RX 无 out 的顺序 Call 使用 evaluate 语句保留执行与错误传播，不创建 void 变量。原生声明、库和缓存同步携带 io_argument 与 process_argument；宿主按生成签名提供所需能力。接口及边界见 [文件标准库与原生 I/O 参考](../../docs/2026-10-05/文件标准库与原生IO参考.md)。
 
-std:child_process.spawnSync 支持显式 I/O 的同步进程执行、工作目录/环境、独立字节输出和逐流上限。非零退出返回终止状态；创建或收集失败抛错。接口、PATH 差异及 Windows 退出码边界见 [同步子进程参考](../../docs/2026-10-05/同步子进程参考.md)。
+std:child_process.spawnSync 与 spawnSyncWithInput 支持显式 I/O 的同步进程执行、工作目录/环境、独立字节输出和逐流上限，后者还接收字节标准输入。非零退出返回终止状态；创建或收集失败抛错。接口、PATH 差异及 Windows 退出码边界见 [同步子进程参考](../../docs/2026-10-05/同步子进程参考.md)。
 
 std:zlib 提供 gzip/deflate/deflateRaw，输入 u8[]；gzipWith/deflateWith/deflateRawWith 接收 `{ data: u8[], level: i32, }`，级别为 -1（默认）、0（不压缩）、1–9。gunzip/inflate/inflateRaw 接收 `{ data: u8[], max_output_length: u32, }`。结果均为新分配字节数组。解压验证容器校验和、gzip 长度及总输出上限，支持连续 gzip 成员，拒绝尾随垃圾。新增 zstdDecompress 接收 `{ data: u8[], max_output_length: u32, max_window_length: u32, }`，支持连续 Zstd 帧、可跳过帧和校验和验证；两个上限分别约束总输出与单帧窗口。当前不提供流、预设字典、其他压缩参数、Brotli 或 Zstd 编码。详见 [Zstd 解压参考](../../docs/2026-10-04/Zstd解压参考.md)。
 
@@ -151,9 +151,9 @@ app 构建在 `.zxc/build/` 中按生成源码、ABI、runner 和构建配置的
 
 `zxc build <source.zx> --watch --out program` 持续构建应用；添加 `--mode lib` 则持续导出库。每轮复用磁盘模块缓存，监听实际读取的源码、清单、工作区候选、原生源码与资源，以及后端报告的依赖；可用 `--cache-stats` 查看分析和生成复用计数。当前每 500ms 检查输入内容；后端失败时约每 2 秒重试，以发现首次 C 编译失败后新建的头文件。相同后端错误安静去重，输入变化后允许重新报告。
 
-watch 构建失败时保留上一份产物；发现新后端输入或构建期间输入变化时，重新构建验证后再发布。库先生成暂存目录，通过输入复核后逐文件原子替换，保留输出目录中其他文件；整个库目录并非原子事务，发布途中 I/O 错误可能留下新旧混合文件。输出应放在源码与工作区包发现范围之外，避免生成的文件反过来成为输入。`--watch` 只负责构建，不启动应用，也不迁移运行状态。实现与边界见 [持续构建与输入观测](../../docs/2026-10-04/热重载输入观测方案.md)。
+watch 构建失败时保留上一份产物；发现新后端输入或构建期间输入变化时，重新构建验证后再发布。库先生成暂存目录，通过输入复核后逐文件原子替换，保留输出目录中其他文件；整个库目录并非原子事务，发布途中 I/O 错误可能留下新旧混合文件。输出应放在源码与工作区包发现范围之外，避免生成的文件反过来成为输入。单独 `--watch` 只负责构建；显式 `--watch --run` 可在成功构建后重启本机原生应用，不迁移内存状态，见 [开发热重载参考](../../docs/2026-10-05/开发热重载参考.md)。输入观测机制见 [持续构建与输入观测](../../docs/2026-10-04/热重载输入观测方案.md)。
 
-`--mode app` 是 build 的默认模式。`zxc build <source.zx> --mode lib --out directory` 交付源码模块包：root.zig 导出 Input/Output/execute，build.zig 注册名为 library 的 Zig 模块，native/ 保存引用的静态源码依赖，interfaces/ 保存项目原生声明，source/ 保存重写为内部相对导入的 ZX 源码，pkg.yaml 保存包身份、源码入口及原生配置。无输入清单时使用 library@0.0.0，有清单则保留包名和版本。依赖源码已打包为闭包，不保留原工作区依赖边。包内 ZX 消费方可使用包名自引用；Zig 消费方从本地 build 依赖获取 module("library")。生成的 build.zig 含清单导出的原生构建参数，调整原始配置后应重新导出库。目标和优化由消费方构建选择，lib 模式不接受 app 的汇编、target、cpu、optimize 参数。
+`--mode app` 是 build 的默认模式。`zxc build pkg.yaml --mode lib --out directory` 按 exports 发布统一库；pkg.yaml 指向 library.zxcir，library.json 的 public_modules 描述公开 Zig 模块。公开 facade 位于 public/，内部生成模块位于 modules/，native/ 与 interfaces/ 保存所需原生资源及声明；消费方不需要原 RX/ZX 实现源码。直接文件或单 entry 发布保留 root.zig 和 Zig module("library") 便利接口，多公开模块按完整 exports 键取得 Zig 模块。无输入清单时使用 library@0.0.0，有清单则保留包名和版本。原生参数随生成的 build.zig 发布，调整原始配置后应重新导出库。目标和优化由消费方构建选择，lib 模式不接受 app 的汇编、target、cpu、optimize 参数。用法与边界见 [统一库发布参考](../../docs/2026-10-05/统一库发布参考.md)。
 
 lib 会按真实 Zig AST 复制 native.path 的文件导入与字面量嵌入资源，保留模块内目录布局并使用包内路径；计算资源路径需在 native_modules.bundle_files 声明相对文件或目录，清单会标记其未获静态闭包证明。Zig 模块的资源清单相对入口目录，纯 C header 模块相对所属包根。包含已打包资源的 include 搜索目录须完整覆盖其文件，构建器才将其改写为库内路径；声明目录可递归收集资源，并在 watch 中追踪新增、删除与内容变化。原产物清单拥有且内容未修改的退休资源会被清理，未登记的用户文件保留。未打包的搜索根、系统 SDK 和系统链接库仍是外部构建要求；显式清单不等于 C 预处理器依赖闭包证明。没有独立 C ABI 或动态库导出入口。详见 [C 原生库资源搬迁](../../docs/2026-10-04/C原生库资源搬迁实施计划.md)。详情见 [原生库依赖打包实施](../../docs/2026-10-03/原生库依赖打包实施.md) 与 [库构建实施](../../docs/2026-10-03/应用与库构建实施.md)。
 
@@ -169,7 +169,7 @@ defer arena.deinit();
 const output = try generated.execute(&arena, input);
 ```
 
-完整数值和所有权契约见 [ZX IR 契约](../zx/IR契约.md) 与 [语言设计](../../docs/zx_design_doc.md)。
+完整数值和所有权契约见 [ZX IR 契约](../core/IR契约.md) 与 [语言设计](../../docs/zx_design_doc.md)。
 
 ### FPGA 计算内核
 
@@ -195,7 +195,7 @@ const output = try generated.execute(&arena, input);
 
 `analyzed`、`reused`、`uncacheable` 是累计 ZX 模块计数；`parse_cache.parsed` 是累计源码解析次数。`native.analyzed`、`native.reused` 分别统计原生声明的实际分析和复用次数，不计入 ZX 模块命中数。原生候选覆盖 specifier、声明路径、源码、实现模块与 namespace；恢复时仍执行类型映射与 IR 校验。缺失外部注入枚举来源的产物不缓存，正常分析继续完成并递增 `uncacheable`。缓存不保存形式化证明结论；该对象本身不执行磁盘 IO，CLI 负责持久化。分析结果拥有独立 arena，可在释放缓存之后使用。
 
-CLI 的普通编译、`build`、`verify` 和 `fpga` 默认把模块语义产物存入项目根目录的 `.zxc/cache/semantic/<构建指纹>/`。指纹覆盖编译器源码、构建辅助源码及配置、标准声明清单和接口，以及 zx/dsl/lint/genz 源码及构建配置，并包含 Zig 版本、构建目标和优化模式。源码、编译环境或当前依赖不匹配时重新分析；证明结论不会被缓存命中替代。
+CLI 的普通编译、`build`、`verify` 和 `fpga` 在受支持且不含已编译库输入的 ZX 路径中，默认把模块语义产物存入项目根目录的 `.zxc/cache/semantic/<构建指纹>/`。指纹覆盖编译器源码、构建辅助源码及配置、标准声明清单和接口，以及 zx/dsl/lint/genz 源码及构建配置，并包含 Zig 版本、构建目标和优化模式。源码、编译环境或当前依赖不匹配时重新分析；证明结论不会被缓存命中替代。
 
 使用 `--no-cache` 禁用模块语义缓存及其磁盘读写，`--cache-stats` 在 stderr 显示分析、复用、加载、写入、磁盘格式丢弃和不可缓存计数；`native_analyzed`、`native_reused`、`native_loaded`、`native_written` 单独报告原生接口。原生条目存于同一构建指纹目录下的 `native/`，只加载当前源码导入的已注册接口。缓存只原子写入新建或更新的条目，未变化文件保持时间戳。单条目读取上限为 64 MiB，JSON 嵌套上限为 2048；格式、指纹、摘要、类型或恢复后的 IR 校验不通过时重新分析。磁盘读写故障会报告错误并继续正常编译，内存分配失败仍返回错误。`fmt` 不接受缓存选项。
 
@@ -209,16 +209,16 @@ CLI 的普通编译、`build`、`verify` 和 `fpga` 默认把模块语义产物�
 
 模块提取先收集本模块新增类型及引用的依赖类型，再沿原类型表顺序分配局部编号。保留本模块自身未被表达式引用的声明类型，避免冷热编译只因遍历顺序改变 `zx_type_*` 名称；不会复制无关依赖的整张全局类型表。
 
-`compiler.zig.emitModules(allocator, &analysis)` 从完整项目分析结果生成独立模块 bundle，包含 `entry`、`types`、`modules`，使用 `bundle.deinit()` 释放。每个文件提供 `name`、`source`、`imports`；结果不借用分析 arena。该入口拒绝未证明的契约。`compiler.compileProjectModulesVerified(allocator, options)` 共用正常分析、IR 校验及形式化证明流程，返回 `.bundle` 或 `.diagnostic`，结果使用 `deinit()` 释放；选项类型是 `compiler.CompileOptions`。
+`compiler.zig.emitModules(allocator, &analysis)` 从完整项目分析结果生成独立模块 bundle，包含 `entry`、`types`、`modules` 及入口类型签名，使用 `bundle.deinit()` 释放。每个文件提供 `name`、`source`、`imports`；结果不借用分析 arena。该入口拒绝未证明的契约。`compiler.compileProjectModulesVerified(allocator, options)` 共用正常分析、IR 校验及形式化证明流程，返回 `.bundle` 或 `.diagnostic`，结果使用 `deinit()` 释放；选项类型是 `compiler.CompileOptions`。
 
-`zxc build` 的 app/lib 模式使用分模块生成。入口导出原有 Input/Output/execute，每个可达 ZX 函数和原生适配器导出独立的 `call(allocator, in)`。类型名称根据完整结构生成；枚举还包含来源和声明身份。缺失名义来源会返回错误，不使用临时 TypeId 代替身份。稳定函数 import key 与实现内容分离，外部函数的导出名也是声明身份的一部分。
+`zxc build` 的 app/lib 模式使用分模块生成。入口导出原有 Input/Output/execute，每个可达 ZX 函数和原生适配器导出独立 call，其基础参数为 allocator 和 input，按静态能力追加所需参数。类型名称根据完整结构生成；枚举还包含来源和声明身份。缺失名义来源会返回错误，不使用临时 TypeId 代替身份。稳定函数 import key 与实现内容分离，外部函数的导出名也是声明身份的一部分。
 
-应用的生成函数文件保存于 `.zxc/build/modules/<稳定函数名>/<源码摘要>.zig`，未变化文件保留路径和时间戳。入口构建键包含完整模块源码和导入图。库导出把函数文件写入自身的 `modules/`，`library.json` 的 `generated_modules` 和 `entry_dependencies` 描述注册关系，生成的 build.zig 自动完成注册。手动用 Zig `-M` 消费时也需要依据该清单注册模块；所有消费者共同引用唯一的 zxc_abi，不能各建一份同内容的 ABI 模块。
+应用的生成函数文件保存于 `.zxc/build/modules/<稳定函数名>/<源码摘要>.zig`，未变化文件保留路径和时间戳。入口构建键包含完整模块源码和导入图。库导出把函数文件写入自身的 `modules/`，`library.json` 的 `generated_modules` 和 `public_modules` 描述内部依赖与公开模块，生成的 build.zig 自动完成注册。手动用 Zig `-M` 消费时也需要依据该清单注册模块；所有消费者共同引用唯一的 zxc_abi，不能各建一份同内容的 ABI 模块。
 
 普通源码导出仍使用既有单文件或主源码加 ABI 契约。app/lib 的生成缓存分别保存入口、函数和共享 ABI 的源码，命中时跳过对应 lowering。共享 ABI 变化仍可能触发 Zig 后端失效，不把生成缓存命中等同于机器码无需重编译。
 
 `compiler.zig.GenerationCache.init(allocator)` 创建进程内生成缓存；`initPersistent(allocator, io, directory, compiler_digest)` 可增加持久存储，调用者负责提供覆盖编译器及生成器实现的构建摘要。使用后调用 `deinit()`。通过 `emitModulesCached(allocator, &analysis, &cache)` 使用，或把缓存传给 `CompileOptions.generation_cache` 后调用 `compileProjectModulesVerified`；旧单文件编译接口不使用该选项。缓存返回源码会复制到结果 bundle，释放缓存不影响已有结果。
 
-生成输入摘要逐字段覆盖 IR，将全局类型、函数和原生模块编号转换成稳定身份；函数体变化不会进入调用者的源码生成键。共享 ABI 的键包含类型图和原生签名。内存中每个生成单元只保留最近一次输入对应的源码；磁盘按输入摘要寻址，保留不同输入版本。所有权检查、IR 校验及必要的形式化证明仍在源码缓存查询之前执行。
+生成输入摘要覆盖影响生成结果的 IR 数据，排除源码 Span，将全局类型、函数和原生模块编号转换为稳定身份；函数体变化不会进入调用者的源码生成键。共享 ABI 的键包含类型图和原生签名。内存中每个生成单元只保留最近一次输入对应的源码；磁盘按输入摘要寻址，保留不同输入版本。所有权检查、IR 校验及必要的形式化证明仍在源码缓存查询之前执行。
 
-CLI 将生成缓存保存至 `.zxc/cache/zig/<构建指纹>/`，`--no-cache` 同时禁用语义和生成缓存。`--cache-stats` 的 `zxc generation` 行报告 `generated`、`reused`、`loaded`、`written`、`discarded`、`io_errors`；计数包含入口、函数和共享 ABI 的生成或命中事件。存储核对格式、编译器摘要、输入摘要和输出校验和；源码单条目最多 64 MiB，原子替换发布。普通 IO 故障会报告并退回生成，OOM 继续返回错误。生成源码不依赖 CLI 目标架构设置，目标、CPU 和优化模式仍进入后续 Zig 构建配置与缓存键。
+CLI 将生成缓存保存至 `.zxc/cache/zig/<构建指纹>/`，`--no-cache` 同时禁用语义和生成缓存。`--cache-stats` 的 `zxc generation` 行报告 `generated`、`reused`、`loaded`、`written`、`discarded`、`io_errors`；计数包含当前构建实际查询的入口、函数、共享 ABI、公开 facade、Store 初值及 State 单元的生成或命中事件。存储核对格式、编译器摘要、输入摘要和输出校验和；源码单条目最多 64 MiB，原子替换发布。普通 IO 故障会报告并退回生成，OOM 继续返回错误。生成源码不依赖 CLI 目标架构设置，目标、CPU 和优化模式仍进入后续 Zig 构建配置与缓存键。

@@ -1,0 +1,14 @@
+export type Input = {
+  amount: u64
+  region: string
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return match {
+    in.amount >= 10000 => 0,
+    in.region == "remote" => 1500,
+    _ => 600
+  }
+}

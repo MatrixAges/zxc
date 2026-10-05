@@ -127,7 +127,7 @@ setter 仅可用于 fn 调用；service 目标的 Store 写入能力由目标模
 
 protocol 的语法集合为 `http`、`grpc`、`websocket`、`tcp`、`mqtt`；method 为 `GET`、`HEAD`、`POST`、`PUT`、`DELETE`、`CONNECT`、`OPTIONS`、`TRACE`、`PATCH`。这不代表已经实现这些协议的 Runtime adapter。Route.service 也采用文件路径引用语法。
 
-Store.version 为 u32。同一个 Object 的 Field 名不可重复；同名 Object 可声明不同字段，但同一文件的完整 Object.Field 路径不可重复。Schema 允许空 Field.value，但语义入口要求完整 ZX 表达式；空字符串应写为 `value='""'`。Field.type 使用 ZX 类型表达式，字段初值通过相同类型与所有权检查，不自动提供动态 map 或未声明的类型别名。
+Store.version 为 u32。同一个 Object 的 Field 名不可重复；同名 Object 可声明不同字段，但同一文件的完整 Object.Field 路径不可重复。Field.value 可使用引号字符串或花括号 ZX 表达式；空字符串写作 `value=""`，也可写作 `value={""}`。Field.type 使用 ZX 类型表达式，字段初值通过相同类型与所有权检查，不自动提供动态 map 或未声明的类型别名。
 
 ## API 与校验层级
 
@@ -258,7 +258,7 @@ try output.writeAll(generated);
 </Module>
 ```
 
-Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。Default 可以出现在任意位置；没有 Default 且未匹配时继续 Switch 后的步骤。整数、bool 与字符串使用 ZX 字面量标签；字符串示例为 `value='"ready"'`，不能省略字符串引号。标签必须是字面量，不能用运行中绑定或算术表达式替代常量；解码后相同的标签也拒绝重复。枚举成员名称尚受 RX 表达式类型命名环境限制，不能因底层 IR 支持枚举 switch 就认为已经提供 RX 枚举导入。
+Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。Default 可以出现在任意位置；没有 Default 且未匹配时继续 Switch 后的步骤。整数与 bool 标签使用花括号字面量；字符串标签写作 `value="ready"`，也可写作 `value={"ready"}`。标签必须是字面量，不能用运行中绑定或算术表达式替代常量；解码后相同的标签也拒绝重复。枚举成员名称尚受 RX 表达式类型命名环境限制，不能因底层 IR 支持枚举 switch 就认为已经提供 RX 枚举导入。
 
 所有分支约束同一个模块 Output。非 void 模块必须在全部路径返回；含 true/false 两个标签的 bool Switch 无需额外 Default。Return 结束当前模块，即使位于 Task 或嵌套 Switch 内也不会仅退出分组。Call.service 的 Return 不结束其调用者。
 
@@ -268,7 +268,7 @@ Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。De
 
 Parallel 的直接 Call.fn、Call.service 和编译模块 Call 可以并行执行。直属 Call 的输入和 Task 捕获参数在父线程按声明顺序计算；Task 内部调用参数随其步骤在工作线程求值。分支不能引用兄弟分支的输出；全部线程结束后，直接 Call.out 一起进入外层作用域，输出路径不得互相重叠。无 out 的 Call 仍执行，其错误仍传播。直属 Task 分支已支持独立多步骤纯计算，可用 Task.out 在汇合后公开返回值。Task.name 不产生隐式绑定；Task 内 Return 仅结束该并行分支，普通顺序 Task 仍作为所在执行边界内的分组。未写 Return 的分支输出为 void，不能绑定 out；非 void 分支必须覆盖全部返回路径。见 [并行任务参考](../../../../docs/2026-10-05/RX并行任务参考.md)。
 
-分支函数及其可达调用必须不含 Store 能力或原生 external 调用。Call.in 可以在父线程读取显式授权的 Store 快照，再将不可变值传给纯计算分支；这不允许工作线程更新 Store。所有分支共享父请求分配区，通过生成的互斥 allocator 保护分配操作，输出在父 arena 结束前保持有效。并行输入被借用，不能通过消费操作修改其外层所有者。
+分支函数及其可达调用必须不含 Store 能力或原生 external 调用。Call.in 可以在父线程读取显式授权的 Store 快照，再将不可变值传给纯计算分支；这不允许工作线程更新 Store。所有分支共享父请求分配区，通过生成的互斥 allocator 保护分配操作，输出在父 arena 结束前保持有效。普通参数按借用契约检查；声明 owned Input 的纯函数可以消费独占输入。共享借用、重复消费及分支间非法复用仍会拒绝。
 
 全部线程 join 后按声明顺序报告首个分支错误；部分线程启动失败也会等待已经启动的线程。没有取消、串行降级或专用任务运行库。不支持线程的目标在原生构建时拒绝；证明与 FPGA 后端已支持纯 Parallel 的 bool、枚举、定宽整数及受支持的对象、元组，检查全部分支，包括无 out 的调用；不覆盖操作系统线程启动、锁实现或调度时序。带形式化契约的程序继续经过原有证明门禁，不通过关闭契约来放行。使用方式见 [并行调用参考](../../../../docs/2026-10-05/RX并行调用参考.md)。
 
@@ -337,7 +337,7 @@ setter 必须列出一个完整 Object；不能列出整个 Store、字段、未
 
 ## 当前边界
 
-未知/重复属性、必填项、非空白文本和非法嵌套均报错。除 Field.value 外，显式属性不能是空白字符串。
+未知/重复属性、必填项、非空白文本和非法嵌套均报错。值属性中的引号内容可为空字符串或空白字符串；路径、名称等静态配置仍执行各自非空限制，花括号表达式不得为空。
 
 HTTP Gateway 已接通 `zxc build main.gateway.rx --out server`。编译时展开 Group、拒绝重叠路由，并将去重后的服务统一链接；每条路由使用自身的 Input/Output 类型，输入为 JSON 请求体，输出为 JSON。void 输入要求空请求体，void 输出为 null。多路由共享一个应用级 Store，每个请求独立管理输入输出内存。服务相对 Gateway 文件目录解析，Group.prefix 不影响文件路径。
 

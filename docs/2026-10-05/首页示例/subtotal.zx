@@ -1,0 +1,12 @@
+export type Item = {
+  price: u64
+  quantity: u64
+}
+
+export type Input = Item[]
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return in.reduce((sum, item) => sum + item.price * item.quantity, 0)
+}

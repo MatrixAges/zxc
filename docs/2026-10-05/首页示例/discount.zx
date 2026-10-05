@@ -1,0 +1,14 @@
+export type Input = {
+  subtotal: u64
+  coupon: string
+}
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  if (in.coupon == "SAVE10") {
+    return in.subtotal - in.subtotal / 10
+  }
+
+  return in.subtotal
+}

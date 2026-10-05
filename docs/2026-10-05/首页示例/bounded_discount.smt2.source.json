@@ -1,0 +1,377 @@
+{
+	"sources": [
+		{
+			"path": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/首页示例/bounded_discount.zx",
+			"source": "export type Input = {\n  price: u64\n  discount: u64\n}\n\nexport type Output = u64\n\nexport default function (in: Input): Output\n  requires (in.discount <= in.price)\n  ensures (out <= in.price)\n{\n  return in.price - in.discount\n}\n"
+		}
+	],
+	"entry": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/首页示例/bounded_discount.zx",
+	"ir_version": 13,
+	"types": [
+		{
+			"scalar": "void"
+		},
+		{
+			"scalar": "bool"
+		},
+		{
+			"scalar": "u8"
+		},
+		{
+			"scalar": "u16"
+		},
+		{
+			"scalar": "u32"
+		},
+		{
+			"scalar": "u64"
+		},
+		{
+			"scalar": "i32"
+		},
+		{
+			"scalar": "i64"
+		},
+		{
+			"scalar": "f32"
+		},
+		{
+			"scalar": "f64"
+		},
+		{
+			"scalar": "string"
+		},
+		{
+			"object": [
+				{
+					"name": "discount",
+					"type_id": 5
+				},
+				{
+					"name": "price",
+					"type_id": 5
+				}
+			]
+		}
+	],
+	"inputs": [
+		{
+			"symbol": "input_0",
+			"path": "in.discount",
+			"type_id": 5
+		},
+		{
+			"symbol": "input_1",
+			"path": "in.price",
+			"type_id": 5
+		}
+	],
+	"ir": {
+		"consumes_input": false,
+		"output_ownership": "copy",
+		"version": 13,
+		"store_mode": "transaction",
+		"contracts": [
+			{
+				"kind": "requires",
+				"symbols": [
+					{
+						"name": "in",
+						"type_id": 11,
+						"span": {
+							"start": 126,
+							"end": 160
+						},
+						"ownership": "copy"
+					}
+				],
+				"expressions": [
+					{
+						"type_id": 11,
+						"span": {
+							"start": 136,
+							"end": 138
+						},
+						"value": {
+							"reference": 0
+						}
+					},
+					{
+						"type_id": 5,
+						"span": {
+							"start": 136,
+							"end": 147
+						},
+						"value": {
+							"field": {
+								"target": 0,
+								"index": 0
+							}
+						}
+					},
+					{
+						"type_id": 11,
+						"span": {
+							"start": 151,
+							"end": 153
+						},
+						"value": {
+							"reference": 0
+						}
+					},
+					{
+						"type_id": 5,
+						"span": {
+							"start": 151,
+							"end": 159
+						},
+						"value": {
+							"field": {
+								"target": 2,
+								"index": 1
+							}
+						}
+					},
+					{
+						"type_id": 1,
+						"span": {
+							"start": 136,
+							"end": 159
+						},
+						"value": {
+							"binary": {
+								"operator": "less_equal",
+								"left": 1,
+								"right": 3
+							}
+						}
+					}
+				],
+				"predicate": 4,
+				"span": {
+					"start": 126,
+					"end": 160
+				}
+			},
+			{
+				"kind": "ensures",
+				"symbols": [
+					{
+						"name": "in",
+						"type_id": 11,
+						"span": {
+							"start": 163,
+							"end": 188
+						},
+						"ownership": "copy"
+					},
+					{
+						"name": "out",
+						"type_id": 5,
+						"span": {
+							"start": 163,
+							"end": 188
+						},
+						"ownership": "copy"
+					}
+				],
+				"expressions": [
+					{
+						"type_id": 5,
+						"span": {
+							"start": 172,
+							"end": 175
+						},
+						"value": {
+							"reference": 1
+						}
+					},
+					{
+						"type_id": 11,
+						"span": {
+							"start": 179,
+							"end": 181
+						},
+						"value": {
+							"reference": 0
+						}
+					},
+					{
+						"type_id": 5,
+						"span": {
+							"start": 179,
+							"end": 187
+						},
+						"value": {
+							"field": {
+								"target": 1,
+								"index": 1
+							}
+						}
+					},
+					{
+						"type_id": 1,
+						"span": {
+							"start": 172,
+							"end": 187
+						},
+						"value": {
+							"binary": {
+								"operator": "less_equal",
+								"left": 0,
+								"right": 2
+							}
+						}
+					}
+				],
+				"predicate": 3,
+				"span": {
+					"start": 163,
+					"end": 188
+				}
+			}
+		],
+		"file_name": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-05/首页示例/bounded_discount.zx",
+		"types": [
+			{
+				"scalar": "void"
+			},
+			{
+				"scalar": "bool"
+			},
+			{
+				"scalar": "u8"
+			},
+			{
+				"scalar": "u16"
+			},
+			{
+				"scalar": "u32"
+			},
+			{
+				"scalar": "u64"
+			},
+			{
+				"scalar": "i32"
+			},
+			{
+				"scalar": "i64"
+			},
+			{
+				"scalar": "f32"
+			},
+			{
+				"scalar": "f64"
+			},
+			{
+				"scalar": "string"
+			},
+			{
+				"object": [
+					{
+						"name": "discount",
+						"type_id": 5
+					},
+					{
+						"name": "price",
+						"type_id": 5
+					}
+				]
+			}
+		],
+		"symbols": [
+			{
+				"name": "in",
+				"type_id": 11,
+				"span": {
+					"start": 189,
+					"end": 224
+				},
+				"ownership": "copy"
+			}
+		],
+		"expressions": [
+			{
+				"type_id": 11,
+				"span": {
+					"start": 200,
+					"end": 202
+				},
+				"value": {
+					"reference": 0
+				}
+			},
+			{
+				"type_id": 5,
+				"span": {
+					"start": 200,
+					"end": 208
+				},
+				"value": {
+					"field": {
+						"target": 0,
+						"index": 1
+					}
+				}
+			},
+			{
+				"type_id": 11,
+				"span": {
+					"start": 211,
+					"end": 213
+				},
+				"value": {
+					"reference": 0
+				}
+			},
+			{
+				"type_id": 5,
+				"span": {
+					"start": 211,
+					"end": 222
+				},
+				"value": {
+					"field": {
+						"target": 2,
+						"index": 0
+					}
+				}
+			},
+			{
+				"type_id": 5,
+				"span": {
+					"start": 200,
+					"end": 222
+				},
+				"value": {
+					"binary": {
+						"operator": "subtract",
+						"left": 1,
+						"right": 3
+					}
+				}
+			}
+		],
+		"input_type": 11,
+		"output_type": 5,
+		"body": [
+			{
+				"result": 4
+			}
+		],
+		"exports": [
+			{
+				"name": "Input",
+				"type_id": 11
+			},
+			{
+				"name": "Output",
+				"type_id": 5
+			}
+		],
+		"functions": [],
+		"native_modules": [],
+		"stores": [],
+		"type_only": false
+	}
+}

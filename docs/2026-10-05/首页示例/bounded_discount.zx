@@ -1,0 +1,13 @@
+export type Input = {
+  price: u64
+  discount: u64
+}
+
+export type Output = u64
+
+export default function (in: Input): Output
+  requires (in.discount <= in.price)
+  ensures (out <= in.price)
+{
+  return in.price - in.discount
+}

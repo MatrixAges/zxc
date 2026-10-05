@@ -31,7 +31,7 @@ zxc build workflow.rx --out build/workflow
 ./build/workflow '{"value": 41}'
 ```
 
-输入 JSON 必须符合从 Call.in 与函数 Input 推导出的模块类型；未使用输入的模块不接收命令行参数。程序将返回值写为 JSON，void 输出写为 null。
+输入 JSON 必须符合从 Call.in 与函数 Input 推导出的模块类型；void Input 默认不接收业务参数；若入口依赖显式 process 能力，可接收原始 argv。非 void Input 使用单个 JSON 参数。默认将返回值写为 JSON，void 输出写为 null；--result discard 关闭返回值输出。
 
 | 用法                                          | 行为                                                       |
 | --------------------------------------------- | ---------------------------------------------------------- |
@@ -48,7 +48,7 @@ service 相对当前模块文件解析；同一个服务文件在所有调用处
 
 RX 与直接函数路径受项目根边界约束。已声明依赖包沿既有 package scope 解析；无包配置时导入闭包也检查物理路径。默认构建不启动业务程序；显式 `--watch --run` 提供开发期进程重启，参数、Store 重置和进程清理边界见 [开发热重载 reference](../../docs/2026-10-05/开发热重载参考.md)。
 
-RX 支持独立 verify 与 fpga 命令，使用与 ZX 相同的证明和硬件后端；详见 [RX 证明与硬件 reference](../../docs/2026-10-05/RX证明与硬件参考.md)。RX fmt 尚未接入。源码包现在支持统一 lib 发布，可在同一公开集合中包含 RX 与 ZX 模块；单 entry 或直接文件构建归一为默认公开模块，见 [统一库设计](../../docs/2026-10-05/统一库设计.md)。Store 声明、Call.in 读取视图与单 Object setter 支持源码生成及原生 app；应用启动时初始化共享内存，进程结束后释放，不自动落盘。Parallel、事件和 Gateway 执行仍未接入。语法和公开库接口见 [RX reference](../compiler/src/rx/README.md)。
+RX 支持独立 verify 与 fpga 命令，使用与 ZX 相同的证明和硬件后端；详见 [RX 证明与硬件 reference](../../docs/2026-10-05/RX证明与硬件参考.md)。RX 支持 `zxc fmt file.rx --check/--write`，规则与边界见 [RX 格式化参考](../../docs/2026-10-05/RX格式化参考.md)。源码包现在支持统一 lib 发布，可在同一公开集合中包含 RX 与 ZX 模块；单 entry 或直接文件构建归一为默认公开模块，见 [统一库设计](../../docs/2026-10-05/统一库设计.md)。Store 声明、Call.in 读取视图与单 Object setter 支持源码生成及原生 app；应用启动时初始化共享内存，进程结束后释放，不自动落盘。纯计算 Parallel Call/Task 与 HTTP Gateway 已接通；事件订阅和调度尚未实现。语法和公开库接口见 [RX reference](../compiler/src/rx/README.md)。
 
 `zxc verify path/to/pkg.yaml --solver /path/to/z3 --out build/proof` 加载源码清单的全部 `exports`，统一联结后逐个验证公开可调用模块；纯类型模块仅报告接口校验通过。清单必须声明 exports。`--out` 在此作为文件名前缀，每个模块使用 `前缀.公开名称摘要.smt2` 及配套证据文件，避免多个导出相互覆盖；省略时沿用默认证明缓存路径。任一公开入口存在反例、不支持的证明语义或求解失败，命令退出非零。该命令沿用现有证明范围，不证明任意业务意图，包级发布使用下面的 build 命令。
 
@@ -67,7 +67,7 @@ exports:
 
 消费方在 dependencies 中声明 workflow，再使用 `import choose from "workflow/choose"`。`zxc build main.zx --out app` 自动按依赖作用域读取和校验产物，分析阶段同一实例只解码一次；含原生配置的包还会在配置阶段读取产物绑定身份；库不需要携带原 RX/ZX 实现源码。类型导入仍限于产物明确公开的类型。无效、不兼容或缺少指定公开模块的产物直接报错，不回退到源码。
 
-源码包仍使用 exports 的字符串实现路径；两种目标不能混用，library 必须搭配 exports 且不能使用 entry。当前已编译输入跳过语义产物缓存，`--cache-stats` 会说明这一点；解析及代码生成缓存仍可使用。源码 exports 包已支持多模块发布、原生资源重绑定，以及导入编译包后再次发布。直接对已编译清单执行 build --mode lib 或 verify 尚未接通；Store 状态的完整发布消费仍需单独验证。
+源码包仍使用 exports 的字符串实现路径；两种目标不能混用，library 必须搭配 exports 且不能使用 entry。当前已编译输入跳过语义产物缓存，`--cache-stats` 会说明这一点；解析及代码生成缓存仍可使用。源码 exports 包已支持多模块发布、原生资源重绑定，以及导入编译包后再次发布。已编译清单也可作为公开模块验证与库重新发布输入，沿用产物版本、接口及后端能力检查。编译库保留 Store 初值、身份和授权，消费应用生成共享状态；生命周期边界见统一库发布与 Store 参考。
 
 ## 包的公开模块
 

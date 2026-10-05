@@ -1,0 +1,13 @@
+export type Input = {
+  amount: u64
+  shipping: u64
+}
+
+export type Output = {
+  payable: u64
+  shipping: u64
+}
+
+export default function (in: Input): Output {
+  return {payable: in.amount + in.shipping, shipping: in.shipping}
+}

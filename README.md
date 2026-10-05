@@ -6,7 +6,7 @@
 ![Experimental](https://img.shields.io/badge/status-experimental-orange.svg)
 ![Zig 0.17.0](https://img.shields.io/badge/zig-0.17.0-f7a41d.svg)
 
-[CLI](packages/cli/README.md) · [RX Reference](packages/compiler/src/rx/README.md) · [Compiler](packages/compiler/README.md) · [Design](docs/zxc_deisgn_doc.md)
+[CLI](packages/cli/README.md) · [RX Reference](packages/compiler/src/rx/README.md) · [Compiler](packages/compiler/README.md) · [Feature Reference](docs/2026-10-05/功能参考索引.md) · [Design](docs/zxc_deisgn_doc.md)
 
 ## Example
 
@@ -15,12 +15,12 @@ A checkout flow. **RX** is the map — every step, and what flows between them, 
 ```xml
 <!-- checkout.rx -->
 <Module>
-  <Call fn="subtotal" in="$in.items" out="ctx.subtotal" />
-  <Call fn="discount" in="{subtotal:ctx.subtotal,coupon:$in.coupon}" out="ctx.discounted" />
-  <Call fn="shipping" in="{amount:ctx.discounted,region:$in.region}" out="ctx.shipping" />
-  <Call fn="total" in="{amount:ctx.discounted,shipping:ctx.shipping}" out="ctx.total" />
+  <Call fn="subtotal" in={$in.items} out="ctx.subtotal" />
+  <Call fn="discount" in={{subtotal: ctx.subtotal, coupon: $in.coupon}} out="ctx.discounted" />
+  <Call fn="shipping" in={{amount: ctx.discounted, region: $in.region}} out="ctx.shipping" />
+  <Call fn="total" in={{amount: ctx.discounted, shipping: ctx.shipping}} out="ctx.total" />
 
-  <Return value="ctx.total" />
+  <Return value={ctx.total} />
 </Module>
 ```
 
@@ -44,7 +44,7 @@ export default function (in: Input): Output {
 }
 ```
 
-Build it into a native executable and run it:
+The [complete checkout example](docs/2026-10-05/首页示例) includes every referenced function. From that directory, build and run:
 
 ```sh
 zxc build checkout.rx --out build/checkout
@@ -73,7 +73,7 @@ flowchart LR
   Infer --> IR["IR"] --> Zig["Zig"] --> Bin["Native executable"]
 ```
 
-Every `.rx` and `.zx` file in the entry's closure is loaded, checked and type-inferred together, then lowered to Zig. `zxc` embeds the official Zig toolchain, so building needs nothing else installed.
+Every `.rx` and `.zx` file in the entry's closure is loaded, checked and type-inferred together, then lowered to Zig. `zxc` embeds the official Zig toolchain, so ordinary native builds need no separate Zig installation. Contract verification requires an external SMT solver.
 
 ## Compose Modules
 
@@ -82,15 +82,15 @@ A module is just another unit. Call it with `service` and branch on its result:
 ```xml
 <!-- order.rx -->
 <Module>
-  <Call service="checkout" in="$in" out="ctx.checkout" />
+  <Call service="checkout" in={$in} out="ctx.checkout" />
 
-  <Switch on="ctx.checkout.shipping">
-    <Case value="0">
-      <Return value="{payable:ctx.checkout.payable,free_shipping:true}" />
+  <Switch on={ctx.checkout.shipping}>
+    <Case value={0}>
+      <Return value={{payable: ctx.checkout.payable, free_shipping: true}} />
     </Case>
   </Switch>
 
-  <Return value="{payable:ctx.checkout.payable,free_shipping:false}" />
+  <Return value={{payable: ctx.checkout.payable, free_shipping: false}} />
 </Module>
 ```
 
@@ -101,7 +101,7 @@ Functions form modules, modules form larger modules, and every level follows the
 Add `requires` / `ensures` to a ZX function and prove it with an SMT solver:
 
 ```typescript
-// discount.zx
+// bounded_discount.zx
 export type Input = {
   price: u64
   discount: u64
@@ -118,9 +118,11 @@ export default function (in: Input): Output
 ```
 
 ```sh
-zxc verify discount.zx --solver z3 --out discount.smt2
+zxc verify bounded_discount.zx --solver z3 --out bounded_discount.smt2
 # verified: entry paths satisfy supported safety obligations and reached contracts
 ```
+
+The command assumes Z3 is on `PATH`; otherwise pass its executable path to `--solver`.
 
 Remove the `requires` and verification fails with a concrete counterexample: the subtraction can underflow. Verification covers fixed-width integers, booleans, static objects and branches.
 
@@ -136,12 +138,12 @@ Remove the `requires` and verification fails with a concrete counterexample: the
 | `<Case>`     | A branch of `Switch` matching one value                          |
 | `<Default>`  | The fallback branch of `Switch`                                  |
 | `<Import>`   | Declare a module dependency without calling it                   |
-| `<Parallel>` | Run steps concurrently                                           |
-| `<Emit>`     | Send an event                                                    |
-| `<Store>`    | Define persistent state in `*.store.rx`                          |
+| `<Parallel>` | Run supported pure Call/Task branches concurrently               |
+| `<Emit>`     | Reserved event syntax; execution is not implemented              |
+| `<Store>`    | Define application-lifetime shared memory in `*.store.rx`        |
 | `<Object>`   | A state object inside `Store`                                    |
 | `<Field>`    | A typed field with an initial value inside `Object`              |
-| `<Gateway>`  | Expose modules over HTTP, gRPC and more in `*.gateway.rx`        |
+| `<Gateway>`  | Expose modules over HTTP in `*.gateway.rx`                       |
 | `<Group>`    | A route prefix inside `Gateway`                                  |
 | `<Route>`    | Map a path and method to a module                                |
 
@@ -149,35 +151,35 @@ See the [RX Reference](packages/compiler/src/rx/README.md) for attributes and ne
 
 ## ZX Language
 
-| Area         | What ZX offers                                                                                     |
-| ------------ | -------------------------------------------------------------------------------------------------- |
-| Units        | One default-exported function per file, with typed `Input` and `Output`                            |
-| Types        | `u8`–`u64`, `i32`, `i64`, `f32`, `f64`, `bool`, `string`, objects, enums, optionals, lists, tuples |
-| Bindings     | `const` only, destructuring and spread; no semicolons                                              |
-| Control flow | `if`, `switch` and `match` expressions                                                             |
-| Collections  | Capture-free `map`, `filter`, `reduce`                                                             |
-| Ownership    | No pointers and no `clone`; the compiler decides how values move                                   |
-| Imports      | Relative paths, `@/` project paths and packages; imports must be acyclic                           |
-| Standard lib | `std:encoding`, `std:crypto`, `std:path`, `std:querystring`, `std:zlib`, `std:os`                  |
-| Native code  | Explicitly declared `zig:` and `c:` interfaces                                                     |
-| Contracts    | `requires` / `ensures`, proven with an SMT solver                                                  |
+| Area         | What ZX offers                                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Units        | One default-exported function per file, with typed `Input` and `Output`                                                                     |
+| Types        | `u8`–`u64`, `i32`, `i64`, `f32`, `f64`, `bool`, `string`, objects, enums, optionals, lists, tuples                                          |
+| Bindings     | `const` only, destructuring and spread; no semicolons                                                                                       |
+| Control flow | `if`, `switch` and `match` expressions                                                                                                      |
+| Collections  | Capture-free `map`, `filter`, `reduce`                                                                                                      |
+| Ownership    | No pointers and no `clone`; the compiler decides how values move                                                                            |
+| Imports      | Relative paths, `@/` project paths and packages; imports must be acyclic                                                                    |
+| Standard lib | Encoding, crypto, paths, URLs, compression, target info, files, processes and HTTP; see the [module index](docs/2026-10-05/功能参考索引.md) |
+| Native code  | Explicitly declared `zig:` and `c:` interfaces                                                                                              |
+| Contracts    | `requires` / `ensures`, proven with an SMT solver                                                                                           |
 
 ## CLI
 
-| Command                                   | Description                                             |
-| ----------------------------------------- | ------------------------------------------------------- |
-| `zxc build <entry> --out <path>`          | Build a native executable from an `.rx` or `.zx` entry  |
-| `zxc build <entry> --watch`               | Rebuild whenever sources or dependencies change         |
-| `zxc build <entry> --watch --run`         | Restart the native app after successful rebuilds        |
-| `zxc build <file.zx> --mode lib`          | Export a Zig module that other Zig projects can consume |
-| `zxc build ... --target --cpu --optimize` | Cross-compile and tune the output                       |
-| `zxc build ... --asm <file>`              | Also write the generated assembly                       |
-| `zxc <file.zx> --out <file.zig>`          | Emit Zig source only                                    |
-| `zxc fmt <file.zx>`                       | Format ZX source                                        |
-| `zxc verify <file.zx> --solver <z3>`      | Prove contracts and safety obligations                  |
-| `zxc fpga <file.zx> --out <file.sv>`      | Generate a SystemVerilog kernel                         |
-| `zxc check-rx --entry <file.rx>`          | Check RX structure and call targets                     |
-| `zxc pkg install`                         | Resolve and install dependencies from `pkg.yaml`        |
+| Command                                    | Description                                            |
+| ------------------------------------------ | ------------------------------------------------------ |
+| `zxc build <entry> --out <path>`           | Build a native executable from an `.rx` or `.zx` entry |
+| `zxc build <entry> --watch`                | Rebuild whenever sources or dependencies change        |
+| `zxc build <entry> --watch --run`          | Restart the native app after successful rebuilds       |
+| `zxc build <entry> --mode lib --out <dir>` | Publish a library for zxc and Zig consumers            |
+| `zxc build ... --target --cpu --optimize`  | Cross-compile and tune the output                      |
+| `zxc build ... --asm <file>`               | Also write the generated assembly                      |
+| `zxc <file.zx> --out <file.zig>`           | Emit Zig source only                                   |
+| `zxc fmt <source>`                         | Format ZX, RX or package configuration                 |
+| `zxc verify <file.zx> --solver <z3>`       | Prove contracts and safety obligations                 |
+| `zxc fpga <file.zx> --out <file.sv>`       | Generate a SystemVerilog kernel                        |
+| `zxc check-rx --entry <file.rx>`           | Check RX structure and call targets                    |
+| `zxc pkg install`                          | Resolve and install dependencies from `pkg.yaml`       |
 
 See the [CLI docs](packages/cli/README.md) for every option.
 
