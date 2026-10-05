@@ -166,3 +166,27 @@ zig build-exe --dep url \
 局部编译通过；[40 次解析观测](完整URL/解析观测.json)和[13 次来源观测](完整URL/来源观测.json)与本机 Node 相符。观测包含默认端口、无效端口、重复 @、相对地址继承、file localhost/盘符/UNC、空查询和片段、不透明基地址限制以及 blob 来源。未新建测试套件，未执行全量测试。
 
 自我批判：这是内部解析入口的阶段证据，不是全规范一致性证明。尚未开放 ZX 接口、URL 字段修改、文件路径转换及应用/库消费。前述 ASCII ACE 与宿主 Node 的规范版本差异仍成立；后续公开语义要明确区分严格 IDNA 转换与 URL 域名兼容处理。完整功能与自举仍未完成。
+
+## 文件路径转换阶段
+
+Intent：补齐 POSIX/Windows 文件路径与 file URL 双向转换。Data：[Node URL 文档](https://nodejs.org/api/url.html#urlfileurltopathurl-options)及 v26.10.0 的 lib/internal/url.js、src/node_url.cc 文件路径编码实现。Edges：平台和 cwd 必须显式传入，不读宿主进程当前目录或每盘符环境变量；相对路径解析复用现有 path/resolve，遵循其绝对 cwd 要求。Answer：pathToFileUrl、fileUrlToPath、fileUrlToBytes 内部接口，输出由调用方 allocator 持有。
+
+新增 url/file/from_path 与 to_path 分工实现。Windows 支持普通 UNC、扩展 UNC 前缀、盘符和相对路径；POSIX 保留反斜杠作为文件名字符。文件路径中的百分号、方括号、竖线、波浪号及 URL 控制字符编码后再构造 URL，避免文件名被当成 URL 语法。输入末尾目录分隔符在路径 resolve 后恢复。
+
+反向文本转换严格检查百分号编码及 UTF-8，POSIX 禁止编码后的正斜杠，Windows 还禁止编码后的反斜杠；Windows 无主机路径需要盘符，有主机则生成 UNC，并将可解码域名转为 Unicode。字节转换允许非 UTF-8 和编码后的分隔符，并保留无效百分号字面量；这一分离对应 Node 的 fileURLToPath/fileURLToPathBuffer，不把两者悄悄混成同一语义。
+
+标准库 Zig 根入口已导出内部 url，供跨 URL/path 目录的局部编译复用；modules.json 和 ZX 公共接口仍未注册。
+
+```sh
+zig build-exe --dep standard \
+  -Mroot=docs/2026-10-05/完整URL/观察工具/file_paths.zig \
+  -Mstandard=packages/compiler/standard/src/root.zig \
+  -femit-bin=/tmp/zxc_file_urls
+
+/tmp/zxc_file_urls from posix '../x' '/tmp/base'
+/tmp/zxc_file_urls text windows 'file:///C:/a%20b'
+```
+
+局部编译通过，[45 次文件路径观测](完整URL/文件路径观测.json)与本机 Node 一致。相对路径的 Node 对照显式使用同一 cwd 先 resolve，避免依赖观察进程目录。二进制结果用十六进制记录，覆盖非 UTF-8、NUL、无效转义与编码分隔符。实现过程中发现 POSIX 的 /C|/a 被通用 file 解析误归一为盘符，已依照文件路径编码集合修正为 /C%7C/a。未运行全量测试。
+
+自我批判：公开 ZX 类型与函数、字段修改接口以及应用/库消费仍未接通。本阶段是内部文件路径能力，不代表 URL 全功能已完成；Windows 每盘符当前目录没有被隐式补齐，缺失时仍按现有路径 API 返回错误。编码数据仅用于格式转换，不在此层执行文件系统操作。

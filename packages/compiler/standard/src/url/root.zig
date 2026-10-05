@@ -3,6 +3,9 @@ pub const Url = @import("model.zig").Url;
 pub const serialize = @import("serialize.zig").serialize;
 pub const serializePath = @import("serialize.zig").path;
 pub const origin = @import("origin.zig").origin;
+pub const fileUrlToPath = @import("file/to_path.zig").toPath;
+pub const fileUrlToBytes = @import("file/to_path.zig").toBytes;
+pub const pathToFileUrl = @import("file/from_path.zig").fromPath;
 const std = @import("std");
 const parser = @import("parser/root.zig");
 

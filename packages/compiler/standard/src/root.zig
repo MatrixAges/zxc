@@ -7,6 +7,7 @@ pub const path_win32 = @import("path/root.zig").Module(true, @import("zxc_abi").
 pub const path = @import("path/root.zig").Module(@import("builtin").os.tag == .windows, @import("zxc_abi").native.@"std:path");
 pub const os = @import("os.zig");
 pub const url_search_params = @import("url/search_params/root.zig");
+pub const url = @import("url/root.zig");
 pub const fs = @import("fs/root.zig");
 pub const child_process = @import("child_process/root.zig");
 pub const process = @import("process.zig");

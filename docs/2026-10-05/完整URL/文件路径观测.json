@@ -1,0 +1,330 @@
+[
+	{
+		"operation": "from",
+		"platform": "posix",
+		"input": "/a b/#c?d%20",
+		"cwd": "/tmp/base",
+		"result": "file:///a%20b/%23c%3Fd%2520",
+		"node": "file:///a%20b/%23c%3Fd%2520"
+	},
+	{
+		"operation": "from",
+		"platform": "posix",
+		"input": "/你好/",
+		"cwd": "/tmp/base",
+		"result": "file:///%E4%BD%A0%E5%A5%BD/",
+		"node": "file:///%E4%BD%A0%E5%A5%BD/"
+	},
+	{
+		"operation": "from",
+		"platform": "posix",
+		"input": "/a\\b",
+		"cwd": "/tmp/base",
+		"result": "file:///a%5Cb",
+		"node": "file:///a%5Cb"
+	},
+	{
+		"operation": "from",
+		"platform": "posix",
+		"input": "../x",
+		"cwd": "/tmp/base",
+		"result": "file:///tmp/x",
+		"node": "file:///tmp/x"
+	},
+	{
+		"operation": "from",
+		"platform": "posix",
+		"input": "/C|/a",
+		"cwd": "/tmp/base",
+		"result": "file:///C%7C/a",
+		"node": "file:///C%7C/a"
+	},
+	{
+		"operation": "from",
+		"platform": "posix",
+		"input": "/a/../b",
+		"cwd": "/tmp/base",
+		"result": "file:///b",
+		"node": "file:///b"
+	},
+	{
+		"operation": "from",
+		"platform": "posix",
+		"input": "/a/./b/",
+		"cwd": "/tmp/base",
+		"result": "file:///a/b/",
+		"node": "file:///a/b/"
+	},
+	{
+		"operation": "from",
+		"platform": "windows",
+		"input": "C:\\a b\\x#y%z",
+		"cwd": "C:\\base",
+		"result": "file:///C:/a%20b/x%23y%25z",
+		"node": "file:///C:/a%20b/x%23y%25z"
+	},
+	{
+		"operation": "from",
+		"platform": "windows",
+		"input": "C:\\你好\\",
+		"cwd": "C:\\base",
+		"result": "file:///C:/%E4%BD%A0%E5%A5%BD/",
+		"node": "file:///C:/%E4%BD%A0%E5%A5%BD/"
+	},
+	{
+		"operation": "from",
+		"platform": "windows",
+		"input": "..\\x",
+		"cwd": "C:\\base",
+		"result": "file:///C:/x",
+		"node": "file:///C:/x"
+	},
+	{
+		"operation": "from",
+		"platform": "windows",
+		"input": "\\\\nas\\share\\x",
+		"cwd": "C:\\base",
+		"result": "file://nas/share/x",
+		"node": "file://nas/share/x"
+	},
+	{
+		"operation": "from",
+		"platform": "windows",
+		"input": "\\\\?\\UNC\\nas\\share\\x",
+		"cwd": "C:\\base",
+		"result": "file://nas/share/x",
+		"node": "file://nas/share/x"
+	},
+	{
+		"operation": "from",
+		"platform": "windows",
+		"input": "\\\\nas\\share\\..\\x",
+		"cwd": "C:\\base",
+		"result": "file://nas/x",
+		"node": "file://nas/x"
+	},
+	{
+		"operation": "text",
+		"platform": "posix",
+		"input": "file:///C:/a%20b",
+		"result_hex": "2f433a2f612062",
+		"node_hex": "2f433a2f612062"
+	},
+	{
+		"operation": "text",
+		"platform": "posix",
+		"input": "file:///a%2fb",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "text",
+		"platform": "posix",
+		"input": "file:///a%5Cb",
+		"result_hex": "2f615c62",
+		"node_hex": "2f615c62"
+	},
+	{
+		"operation": "text",
+		"platform": "posix",
+		"input": "file:///a%FF",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "text",
+		"platform": "posix",
+		"input": "file:///a%zz",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "text",
+		"platform": "posix",
+		"input": "file://nas/share/a",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "text",
+		"platform": "posix",
+		"input": "file://xn--bcher-kva/share/a",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "text",
+		"platform": "posix",
+		"input": "file:///C:/a%00b",
+		"result_hex": "2f433a2f610062",
+		"node_hex": "2f433a2f610062"
+	},
+	{
+		"operation": "bytes",
+		"platform": "posix",
+		"input": "file:///C:/a%20b",
+		"result_hex": "2f433a2f612062",
+		"node_hex": "2f433a2f612062"
+	},
+	{
+		"operation": "bytes",
+		"platform": "posix",
+		"input": "file:///a%2fb",
+		"result_hex": "2f612f62",
+		"node_hex": "2f612f62"
+	},
+	{
+		"operation": "bytes",
+		"platform": "posix",
+		"input": "file:///a%5Cb",
+		"result_hex": "2f615c62",
+		"node_hex": "2f615c62"
+	},
+	{
+		"operation": "bytes",
+		"platform": "posix",
+		"input": "file:///a%FF",
+		"result_hex": "2f61ff",
+		"node_hex": "2f61ff"
+	},
+	{
+		"operation": "bytes",
+		"platform": "posix",
+		"input": "file:///a%zz",
+		"result_hex": "2f61257a7a",
+		"node_hex": "2f61257a7a"
+	},
+	{
+		"operation": "bytes",
+		"platform": "posix",
+		"input": "file://nas/share/a",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "bytes",
+		"platform": "posix",
+		"input": "file://xn--bcher-kva/share/a",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "bytes",
+		"platform": "posix",
+		"input": "file:///C:/a%00b",
+		"result_hex": "2f433a2f610062",
+		"node_hex": "2f433a2f610062"
+	},
+	{
+		"operation": "text",
+		"platform": "windows",
+		"input": "file:///C:/a%20b",
+		"result_hex": "433a5c612062",
+		"node_hex": "433a5c612062"
+	},
+	{
+		"operation": "text",
+		"platform": "windows",
+		"input": "file:///a%2fb",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "text",
+		"platform": "windows",
+		"input": "file:///a%5Cb",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "text",
+		"platform": "windows",
+		"input": "file:///a%FF",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "text",
+		"platform": "windows",
+		"input": "file:///a%zz",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "text",
+		"platform": "windows",
+		"input": "file://nas/share/a",
+		"result_hex": "5c5c6e61735c73686172655c61",
+		"node_hex": "5c5c6e61735c73686172655c61"
+	},
+	{
+		"operation": "text",
+		"platform": "windows",
+		"input": "file://xn--bcher-kva/share/a",
+		"result_hex": "5c5c62c3bc636865725c73686172655c61",
+		"node_hex": "5c5c62c3bc636865725c73686172655c61"
+	},
+	{
+		"operation": "text",
+		"platform": "windows",
+		"input": "file:///C:/a%00b",
+		"result_hex": "433a5c610062",
+		"node_hex": "433a5c610062"
+	},
+	{
+		"operation": "bytes",
+		"platform": "windows",
+		"input": "file:///C:/a%20b",
+		"result_hex": "433a5c612062",
+		"node_hex": "433a5c612062"
+	},
+	{
+		"operation": "bytes",
+		"platform": "windows",
+		"input": "file:///a%2fb",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "bytes",
+		"platform": "windows",
+		"input": "file:///a%5Cb",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "bytes",
+		"platform": "windows",
+		"input": "file:///a%FF",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "bytes",
+		"platform": "windows",
+		"input": "file:///a%zz",
+		"result_hex": "ERROR",
+		"node_hex": "ERROR"
+	},
+	{
+		"operation": "bytes",
+		"platform": "windows",
+		"input": "file://nas/share/a",
+		"result_hex": "5c5c6e61735c73686172655c61",
+		"node_hex": "5c5c6e61735c73686172655c61"
+	},
+	{
+		"operation": "bytes",
+		"platform": "windows",
+		"input": "file://xn--bcher-kva/share/a",
+		"result_hex": "5c5c62c3bc636865725c73686172655c61",
+		"node_hex": "5c5c62c3bc636865725c73686172655c61"
+	},
+	{
+		"operation": "bytes",
+		"platform": "windows",
+		"input": "file:///C:/a%00b",
+		"result_hex": "433a5c610062",
+		"node_hex": "433a5c610062"
+	}
+]
