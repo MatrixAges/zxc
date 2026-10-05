@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 
 export default function checkAssembly(args: { assembly: string; type: string; cpu: string }): void {
 	const { assembly, type, cpu } = args
-	const file = assembly.match(/^\s*\.file\s+(\d+)\s+"[^"\n]*"\s+"program\.zig"/m)?.[1]
+	const file = assembly.match(/^\s*\.file\s+(\d+)\s+"[^"\n]*"\s+"(?:[^"\n]*[/\\])?program\.zig"/m)?.[1]
 
 	assert.ok(file, 'Generated program source is missing from WASM debug locations')
 
