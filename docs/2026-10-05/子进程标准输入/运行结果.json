@@ -1,0 +1,160 @@
+[
+	{
+		"name": "binary_echo",
+		"command": "/bin/cat",
+		"args": [],
+		"input_bytes": 6,
+		"limits": [300000, 300000],
+		"returncode": 0,
+		"seconds": 0.007,
+		"kind": "Exited",
+		"code": 0,
+		"stdout": {
+			"bytes": 6,
+			"sha256": "3e1184bc6a8b6e20e85992c10f7f60cb6b5082dc4099d5dea1b744139fb757e7",
+			"tail": "b'\\x00\\xff\\x80\\n\\rA'"
+		},
+		"stderr": {
+			"bytes": 0,
+			"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			"tail": "b''"
+		}
+	},
+	{
+		"name": "empty_eof",
+		"command": "/bin/cat",
+		"args": [],
+		"input_bytes": 0,
+		"limits": [300000, 300000],
+		"returncode": 0,
+		"seconds": 0.006,
+		"kind": "Exited",
+		"code": 0,
+		"stdout": {
+			"bytes": 0,
+			"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			"tail": "b''"
+		},
+		"stderr": {
+			"bytes": 0,
+			"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			"tail": "b''"
+		}
+	},
+	{
+		"name": "duplex_large",
+		"command": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+		"args": [
+			"-c",
+			"import sys;sys.stdout.buffer.write(b'o'*131072);sys.stdout.buffer.flush();sys.stderr.buffer.write(b'e'*131072);sys.stderr.buffer.flush();x=sys.stdin.buffer.read();sys.stdout.buffer.write(x)"
+		],
+		"input_bytes": 98304,
+		"limits": [300000, 300000],
+		"returncode": 0,
+		"seconds": 0.02,
+		"kind": "Exited",
+		"code": 0,
+		"stdout": {
+			"bytes": 229376,
+			"sha256": "2d30d164b46b1450fbb7ea92b4875204d8bf1619ef293e124d55653229b4745b",
+			"tail": "b'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'"
+		},
+		"stderr": {
+			"bytes": 131072,
+			"sha256": "83aafe5a4a91749ac906c249f8a16e84ca30fb1ab597b12c7c9234dbb2b629f9",
+			"tail": "b'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'"
+		}
+	},
+	{
+		"name": "nonzero_exit",
+		"command": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+		"args": ["-c", "import sys;sys.stdout.buffer.write(sys.stdin.buffer.read());sys.exit(7)"],
+		"input_bytes": 7,
+		"limits": [300000, 300000],
+		"returncode": 0,
+		"seconds": 0.018,
+		"kind": "Exited",
+		"code": 7,
+		"stdout": {
+			"bytes": 7,
+			"sha256": "a294469efce3e2bf005427a1180ae291eb19d65b7c3c745b4d185df23eae6235",
+			"tail": "b'nonzero'"
+		},
+		"stderr": {
+			"bytes": 0,
+			"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			"tail": "b''"
+		}
+	},
+	{
+		"name": "closed_stdin",
+		"command": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+		"args": ["-c", "import os;os.close(0)"],
+		"input_bytes": 98304,
+		"limits": [300000, 300000],
+		"returncode": 1,
+		"seconds": 0.018,
+		"error": "error: BrokenPipe\n"
+	},
+	{
+		"name": "closed_stdin_live_child",
+		"command": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+		"args": ["-c", "import os,time;os.close(0);time.sleep(10)"],
+		"input_bytes": 98304,
+		"limits": [300000, 300000],
+		"returncode": 1,
+		"seconds": 0.018,
+		"error": "error: BrokenPipe\n"
+	},
+	{
+		"name": "stdout_limit",
+		"command": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+		"args": ["-c", "import sys,time;sys.stdout.buffer.write(b'o'*131072);sys.stdout.buffer.flush();time.sleep(10)"],
+		"input_bytes": 98304,
+		"limits": [32, 32],
+		"returncode": 1,
+		"seconds": 0.019,
+		"error": "error: StreamTooLong\n"
+	},
+	{
+		"name": "stderr_limit",
+		"command": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+		"args": ["-c", "import sys,time;sys.stderr.buffer.write(b'e'*131072);sys.stderr.buffer.flush();time.sleep(10)"],
+		"input_bytes": 98304,
+		"limits": [32, 32],
+		"returncode": 1,
+		"seconds": 0.019,
+		"error": "error: StreamTooLong\n"
+	},
+	{
+		"name": "exact_limit",
+		"command": "/bin/cat",
+		"args": [],
+		"input_bytes": 4,
+		"limits": [4, 0],
+		"returncode": 0,
+		"seconds": 0.007,
+		"kind": "Exited",
+		"code": 0,
+		"stdout": {
+			"bytes": 4,
+			"sha256": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+			"tail": "b'1234'"
+		},
+		"stderr": {
+			"bytes": 0,
+			"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			"tail": "b''"
+		}
+	},
+	{
+		"name": "over_limit",
+		"command": "/bin/cat",
+		"args": [],
+		"input_bytes": 5,
+		"limits": [4, 0],
+		"returncode": 1,
+		"seconds": 0.006,
+		"error": "error: StreamTooLong\n"
+	}
+]
