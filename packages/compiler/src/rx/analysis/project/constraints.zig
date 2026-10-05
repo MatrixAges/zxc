@@ -102,7 +102,7 @@ const Walker = struct {
                             self.returned = parent_returned;
 
                             expression.bindings.shrinkRetainingCapacity(count);
-                            try self.bindResult(task.node, output);
+                            try self.bindResult(task.node, output, .task);
                         },
                     }
 
@@ -176,10 +176,10 @@ const Walker = struct {
             .service => |service| self.states[service].output,
         };
 
-        try self.bindResult(invocation.node, output);
+        try self.bindResult(invocation.node, output, .call);
     }
 
-    fn bindResult(self: *Walker, node: rx.ast.Node, output: Graph.Id) zx.Error!void {
+    fn bindResult(self: *Walker, node: rx.ast.Node, output: Graph.Id, kind: enum { call, task }) zx.Error!void {
         const expression = self.expression;
         const graph = expression.graph;
         const result = @import("../result_name.zig").resolve(node);
@@ -187,8 +187,10 @@ const Walker = struct {
         const span = expression.sourceSpan(.{ .start = 0, .end = result.attribute.value.len });
 
         if (!paths.valid(result.name) or std.mem.indexOfScalar(u8, result.name, '.') != null) return graph.reporter.fail(.name, span, "result name must be one identifier; specify Call.name explicitly when the target has no valid name");
+        if (kind == .call and std.mem.eql(u8, result.name, "task")) return graph.reporter.fail(.name, span, "Call name task is reserved for Task results; specify a different Call.name");
 
-        const name = try std.fmt.allocPrint(graph.allocator, "ctx.{s}", .{result.name});
+        const prefix: []const u8 = if (kind == .task) "ctx.task" else "ctx";
+        const name = try std.fmt.allocPrint(graph.allocator, "{s}.{s}", .{ prefix, result.name });
 
         for (expression.bindings.items) |binding| {
             if (paths.overlaps(binding.name, name)) return graph.reporter.fail(.name, span, "named flow results must not overlap; use a distinct name");

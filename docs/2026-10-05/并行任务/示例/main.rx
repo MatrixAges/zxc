@@ -1,8 +1,8 @@
 <Module>
-  <Call fn="identity" args={$in.value} name="seed" />
+  <Call fn="identity" args={$in.value} name="number" />
   <Parallel>
     <Task name="number">
-      <Call fn="identity" args={ctx.seed} name="first" />
+      <Call fn="identity" args={ctx.number} name="first" />
       <Call fn="identity" args={ctx.first} name="second" />
       <Return value={ctx.second} />
     </Task>
@@ -14,9 +14,9 @@
               <Call fn="invert" args={$in.enabled} name="value" />
               <Return value={ctx.value} />
             </Task>
-            <Call fn="identity" args={ctx.seed} />
+            <Call fn="identity" args={ctx.number} />
           </Parallel>
-          <Return value={ctx.flag} />
+          <Return value={ctx.task.flag} />
         </Case>
         <Default>
           <Return value={true} />
@@ -24,8 +24,8 @@
       </Switch>
     </Task>
     <Task name="discard">
-      <Call fn="identity" args={ctx.seed} />
+      <Call fn="identity" args={ctx.number} />
     </Task>
   </Parallel>
-  <Return value={{value: ctx.number, enabled: ctx.flag}} />
+  <Return value={{value: ctx.task.number, enabled: ctx.task.flag}} />
 </Module>

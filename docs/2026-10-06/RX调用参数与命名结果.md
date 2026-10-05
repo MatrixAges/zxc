@@ -2,7 +2,7 @@
 
 ## Intent：最终目标
 
-按用户要求将 Call.in 改为 Call.args，移除 Call.out 与 Task.out。调用结果通过 ctx.<name> 访问，不另写结果路径。RX 值中仍禁止内联函数或方法调用。
+按用户要求将 Call.in 改为 Call.args，移除 Call.out 与 Task.out。Call 结果通过 ctx.<name>、Parallel Task 结果通过 ctx.task.<name> 访问，不另写结果路径。RX 值中仍禁止内联函数或方法调用。
 
 ## Data：可用证据
 
@@ -11,9 +11,9 @@
 ## Edges：边界与限制
 
 - Call.name 可显式指定；省略时取目标最后一个路径段，去掉 .zx、.rx 或 .zig 后缀。无法形成合法标识符时要求显式 name，不自动替换字符。
-- 同一作用域结果名不能重复或覆盖已有路径。同一目标调用多次时显式指定不同 name。
+- 同一作用域同类结果名不能重复或覆盖已有路径，Call 与 Task 允许同名。同一目标调用多次时显式指定不同 name。
 - 返回 void 的调用仍执行，不产生可读取的 ctx 值。推导阶段为所有调用保留结果槽，待类型确定后再决定是否生成绑定，避免前置 void service 导致后续结果错位。
-- Parallel Task 使用其 name 暴露结果。顺序 Task 仍是已有局部作用域，不在本次改成独立函数边界。
+- Parallel Task 使用 ctx.task.<name> 暴露结果。顺序 Task 仍是已有局部作用域，不在本次改成独立函数边界。
 - Module.in/out 是模块类型契约；本次修改调用参数属性与结果绑定，不改模块类型契约或 ZX 函数参数名。
 - 不保留 Call.in、Call.out、Task.out 兼容别名。
 
@@ -47,3 +47,38 @@ flowchart LR
 发布构建成功。默认命名 adjust 示例实际返回 original=[2,4]、values=[3,5]、total=8。已有 Parallel main 示例在原有 Z3 契约门禁通过后构建，两个已有业务分支分别返回 {value:12,enabled:false} 与 {value:7,enabled:true}，其中包括嵌套命名 Task、重复目标的显式命名和 void Task。自举 expression.rx 使用 args 与命名结果生成成功。旧版 adjust.rx 因旧属性被拒绝且没有产物，见 [执行记录](RX命名结果迁移/执行记录.json)。
 
 未新增测试用例、未执行全量测试；这些运行证据不覆盖所有前向服务的 void 输出组合，也不等于全仓旧测试已迁移。测试会话正在修改的文件未由本次实现改写。历史日期目录中的旧语法证据保留其原始含义，当前使用文档以本规则为准。
+
+## Call 与 Task 结果来源区分
+
+### Intent：最终目标
+
+Call 结果仍为 `ctx.<name>`，Parallel Task 结果改为 `ctx.task.<name>`，避免同名调用与任务结果混淆；不恢复 out 属性。
+
+### Data：可用证据
+
+当前约束收集将 Call 和 Parallel Task 都送入 bindResult，统一生成 ctx 前缀。后续类型降低、捕获和普通 Zig 生成沿用完整绑定路径，因此应在结果身份建立处区分来源。
+
+### Edges：边界与限制
+
+Call 与 Task 可以使用相同 name；同类结果仍遵守作用域和重名检查。Call 的 name 不得为 task，因为 ctx.task 保留给任务结果；默认目标名为 task 时需显式改名。顺序 Task 仍是局部作用域，不新增独立返回值。没有输出的 Task 不产生可读值。不存在跨类别查找或兼容路径。
+
+### Answer：实施与成功标准
+
+在约束收集的两个调用点显式区分 call/task，更新 Parallel Task 参考、应用指导及已有嵌套并行示例；发布构建并重放已有示例，核对结果。未要求新增测试，不执行全量测试。
+
+```mermaid
+flowchart LR
+  Call[Call 返回值] --> C[编译期绑定 ctx.name]
+  Task[Parallel Task 返回值] --> T[编译期绑定 ctx.task.name]
+  C --> Lookup[静态作用域解析]
+  T --> Lookup
+  Lookup --> Zig[普通 Zig 局部值与静态函数]
+```
+
+### 执行结果与自我复核
+
+正式修改集中在约束收集入口：Call/Task 分别传入结果类别，完整绑定路径供推导、捕获和生成复用。ctx.task 是保留命名空间，防止 Call 返回对象字段与任务结果产生歧义；不添加运行时查找表，不复制业务数据，不恢复 out。
+
+`zig build dist`、Zig 格式检查和本次 diff 检查通过。已有并行 main 示例将外层 Call 与 Task 同时命名 number，分别通过 ctx.number 与 ctx.task.number 引用；嵌套 flag Task 使用 ctx.task.flag。使用既有 Z3 完成应用构建与到达契约检查，两组既有输入实际得到 {value:12,enabled:false} 和 {value:7,enabled:true}，包括无返回值 Task。正式 expression.rx 生成 Zig 成功，Call 访问方式保持可用。
+
+尝试 Grit HTML dry-run 无法解析 RX 表达式属性，未应用修改；实际对已定位的源码与文档做受控替换并逐项复核。未新增测试、未执行全量测试，未改写测试会话文件。保留名拒绝和未知路径诊断仅核对了实现，未将它们宣称为实际运行覆盖。顺序 Task 独立返回值与全仓历史示例迁移不在本次修改范围；本次也不代表自举目标已完成。

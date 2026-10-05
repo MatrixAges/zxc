@@ -9,16 +9,16 @@
 ```xml
 <Module>
   <Parallel>
-    <Task name="number" out="ctx.value">
-      <Call fn="identity" in="$in.value" out="local.value" />
-      <Return value="local.value" />
+    <Task name="number">
+      <Call fn="identity" args={$in.value} />
+      <Return value={ctx.identity} />
     </Task>
-    <Task name="flag" out="ctx.enabled">
-      <Call fn="invert" in="$in.enabled" out="local.value" />
-      <Return value="local.value" />
+    <Task name="flag">
+      <Call fn="invert" args={$in.enabled} />
+      <Return value={ctx.invert} />
     </Task>
   </Parallel>
-  <Return value="{value: ctx.value, enabled: ctx.enabled}" />
+  <Return value={{value: ctx.task.number, enabled: ctx.task.flag}} />
 </Module>
 ```
 
@@ -26,11 +26,11 @@
 
 ## Edges：执行边界
 
-- 只有直属 Parallel 的 Task 接受可选 out。name 是分组名，不隐式建立任何结果变量。
+- Call 和 Task 均无 out 属性。Call 结果通过 ctx.<name> 读取；直属 Parallel 的 Task 结果通过 ctx.task.<name> 读取，两类结果可同名。Call 的 name 不得为保留名 task。
 - 直属 Parallel Task 是独立执行边界，内部 Return 结束该分支；嵌套的普通顺序 Task 仍只是分组，其 Return 结束最近的模块或并行 Task 边界。
 - Task 可以读取进入 Parallel 前的 $in 与结果绑定，不能引用兄弟结果。编译器只捕获实际使用的外层符号，输入按借用处理，不复制所有权。
-- Task 内 Call.out 只在分支内部可见；Task.out 和直属 Call.out 在全部分支结束后一起进入外层作用域，路径不得重叠。
-- 没有 Return 的分支为 void，不能声明 out。非 void 分支必须覆盖全部返回路径。省略 out 不会省略执行或错误传播。
+- Task 内 Call 的结果只在分支内部可见；Task 结果和直属 Call 结果在全部分支结束后一起进入外层作用域，同类结果名不得重叠。
+- 没有 Return 的分支为 void，不产生可读取的结果。非 void 分支必须覆盖全部返回路径；void 分支仍执行并传播错误。
 - Task 中的调用闭包必须为纯计算，不能访问 Store 或执行原生 external。需要共享数据时，在父流程先取得授权快照，再交给纯分支读取；不会把 Task 中的状态访问自动移动到父线程。
 - 全部线程完成后按声明顺序报告首个错误。线程启动失败时等待已启动线程，不取消其他分支、不降级成顺序调用。
 

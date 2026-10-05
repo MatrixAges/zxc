@@ -22,7 +22,7 @@
 
 ## 不可放宽的约束
 
-Call 参数属性为 args；Call/Task 不接受 out。Call.name 可选，缺省取调用目标最后路径段并去掉源码后缀，结果固定为 ctx.<name>；Parallel Task 使用已有 name。同一作用域不得重名，void 调用保留执行但不产生值绑定。Module.in/out 仍是类型契约。
+Call 参数属性为 args；Call/Task 不接受 out。Call.name 可选，缺省取调用目标最后路径段并去掉源码后缀，结果固定为 ctx.<name>；Parallel Task 使用 ctx.task.<name>。Call 的 name 不得为保留名 task；两类结果可同名，同一作用域同类结果不得重名，void 调用保留执行但不产生值绑定。Module.in/out 仍是类型契约。
 
 RX 属性值仅负责数据引用、组装和简单运算；禁止函数/方法调用、lambda 和状态更新块，包括嵌套对象、分支或模板中的调用。loop、集合处理及其他计算在 ZX 中实现，由 Call.fn 或 Call.service 编排。普通属性编译、项目类型推导和 Store 初值必须共用这一边界。
 
@@ -72,7 +72,7 @@ zig build test
 
 ## 能力边界
 
-`zxc check-rx` 支持显式普通模块文件集合，以及 `--entry` 的普通模块/Gateway 可达依赖装载和 Store 定义检查。Gateway 先沿所有嵌套 Route.service 找到普通模块；普通模块沿 Import、所有嵌套 Call.service 和 Store.from 装载。入口装载检查物理身份和项目根边界，普通模块子集最终仍调用完整集合校验；Gateway/Store 只进入各自 Schema 检查，不混入普通调用图。它不扫描不可达文件。`zxc build` 已支持普通模块 Call.fn/Call.service/Return、Task 和 Switch 的项目推导与应用构建；Store 声明与单 Object setter 支持显式授权源码生成；目标为替代隐式全局变量的共享内存，当前已移除 --state-dir 与磁盘保存，顺序调用共享 State，独立请求由生成的 Request 管理 arena。Parallel 已支持直接纯计算 Call 和 Task 的真实线程执行与结果汇合；Task 静态提取为独立函数，通过 ctx.<name> 公开分支返回值。Store 并发及原生副作用仍未实现。HTTP Gateway 已接通静态路由、统一服务链接和共享 State 的顺序请求宿主；独占 Store 写入已生成请求边界回收；其他协议、并发、超时及一般共享 Store 回收仍未实现。事件订阅调度尚未实现。Emit 的语法存在不代表事件处理已经可运行。表达式解析、ZX 类型联结与 Store 初始化执行也不能从结构校验成功推断出来。
+`zxc check-rx` 支持显式普通模块文件集合，以及 `--entry` 的普通模块/Gateway 可达依赖装载和 Store 定义检查。Gateway 先沿所有嵌套 Route.service 找到普通模块；普通模块沿 Import、所有嵌套 Call.service 和 Store.from 装载。入口装载检查物理身份和项目根边界，普通模块子集最终仍调用完整集合校验；Gateway/Store 只进入各自 Schema 检查，不混入普通调用图。它不扫描不可达文件。`zxc build` 已支持普通模块 Call.fn/Call.service/Return、Task 和 Switch 的项目推导与应用构建；Store 声明与单 Object setter 支持显式授权源码生成；目标为替代隐式全局变量的共享内存，当前已移除 --state-dir 与磁盘保存，顺序调用共享 State，独立请求由生成的 Request 管理 arena。Parallel 已支持直接纯计算 Call 和 Task 的真实线程执行与结果汇合；Task 静态提取为独立函数，通过 ctx.task.<name> 公开分支返回值。Store 并发及原生副作用仍未实现。HTTP Gateway 已接通静态路由、统一服务链接和共享 State 的顺序请求宿主；独占 Store 写入已生成请求边界回收；其他协议、并发、超时及一般共享 Store 回收仍未实现。事件订阅调度尚未实现。Emit 的语法存在不代表事件处理已经可运行。表达式解析、ZX 类型联结与 Store 初始化执行也不能从结构校验成功推断出来。
 
 维护公开指导时，用使用者能理解的版本和环境能力描述这些限制，不要求使用者阅读内部 AST、修改编译器或运行 zxc 仓库测试。
 

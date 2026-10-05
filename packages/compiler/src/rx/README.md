@@ -222,7 +222,7 @@ switch (inferred.value) {
 }
 ```
 
-当前 module.infer 接受 `Call.fn`、`Return`、Task 分组与 Switch 分支。`module.infer` 使用项目入口处理单个普通模块；有 service 依赖时应传入完整集合。`Call.args` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；Call 返回值通过 `ctx.<name>` 供后续步骤与 Return 使用。name 省略时取目标文件名（去掉源码后缀）；显式 name 必须是单个标识符。绑定路径不能重叠，也不能覆盖 `$in`；Return 或必然返回的分支之后的步骤拒绝为不可达。输入既未被使用、也没有调用约束时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
+当前 module.infer 接受 `Call.fn`、`Return`、Task 分组与 Switch 分支。`module.infer` 使用项目入口处理单个普通模块；有 service 依赖时应传入完整集合。`Call.args` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；Call 返回值通过 `ctx.<name>` 供后续步骤与 Return 使用。name 省略时取目标文件名（去掉源码后缀）；显式 name 必须是单个标识符，且不得为保留名 task。Task 返回值通过 ctx.task.<name> 读取，可以与 Call 同名。绑定路径不能重叠，也不能覆盖 `$in`；Return 或必然返回的分支之后的步骤拒绝为不可达。输入既未被使用、也没有调用约束时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
 
 数组字面量保留各元素的类型约束，等待目标上下文决定 list 或 tuple；目标仍不明确时才采用同质列表。嵌套数组先默认外层，再将得到的元素类型传回内层，避免把可接受 tuple 上下文的字面量提前固定为 list。空列表没有足够元素类型信息时仍拒绝推导。
 
@@ -268,7 +268,7 @@ Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。De
 
 ## Parallel 调用执行
 
-Parallel 的直接 Call.fn、Call.service 和编译模块 Call 可以并行执行。直属 Call 的输入和 Task 捕获参数在父线程按声明顺序计算；Task 内部调用参数随其步骤在工作线程求值。分支不能引用兄弟分支的输出；全部线程结束后，Call 的命名结果一起进入外层作用域，结果名称不得互相重叠。void 调用仍执行，其错误仍传播。直属 Task 分支支持独立多步骤纯计算，通过 ctx.<Task.name> 在汇合后公开返回值；Task 内 Return 仅结束该并行分支，普通顺序 Task 仍作为所在执行边界内的分组。未写 Return 的分支输出为 void，不产生 ctx 值；非 void 分支必须覆盖全部返回路径。见 [并行任务参考](../../../../docs/2026-10-05/RX并行任务参考.md)。
+Parallel 的直接 Call.fn、Call.service 和编译模块 Call 可以并行执行。直属 Call 的输入和 Task 捕获参数在父线程按声明顺序计算；Task 内部调用参数随其步骤在工作线程求值。分支不能引用兄弟分支的输出；全部线程结束后，Call 的命名结果一起进入外层作用域，结果名称不得互相重叠。void 调用仍执行，其错误仍传播。直属 Task 分支支持独立多步骤纯计算，通过 ctx.task.<Task.name> 在汇合后公开返回值；Task 内 Return 仅结束该并行分支，普通顺序 Task 仍作为所在执行边界内的分组。未写 Return 的分支输出为 void，不产生 ctx 值；非 void 分支必须覆盖全部返回路径。见 [并行任务参考](../../../../docs/2026-10-05/RX并行任务参考.md)。
 
 分支函数及其可达调用必须不含 Store 能力或原生 external 调用。Call.args 可以在父线程读取显式授权的 Store 快照，再将不可变值传给纯计算分支；这不允许工作线程更新 Store。所有分支共享父请求分配区，通过生成的互斥 allocator 保护分配操作，输出在父 arena 结束前保持有效。普通参数按借用契约检查；声明 owned Input 的纯函数可以消费独占输入。共享借用、重复消费及分支间非法复用仍会拒绝。
 
