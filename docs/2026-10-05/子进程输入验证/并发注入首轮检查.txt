@@ -1,0 +1,84 @@
+test-child-input
++- run test 1 pass, 2 fail (3 total)
+error: 'concurrency.test.child input writer dispatch failure kills and reaps child' failed:
+       expected error.ConcurrencyUnavailable, found error.StreamTooLong
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/standard/src/child_process/run.zig:36:36: 0x10f7a37d3 in run (test)
+                   .collected => |result| try result,
+                                          ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/standard/src/child_process/root.zig:36:9: 0x10f7a416d in execute (test)
+               try @import("run.zig").run(allocator, io, options, data)
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/standard/src/child_process/root.zig:15:5: 0x10f7a4669 in spawnSyncWithInput (test)
+           return execute(allocator, io, input.options, input.input);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:72:13: 0x10f7a47b2 in expectError__anon_37157 (test)
+                   return error.TestUnexpectedError;
+                   ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/standard/resources/child_input/concurrency.zig:40:5: 0x10f7b83de in check (test)
+           try std.testing.expectError(error.ConcurrencyUnavailable, f.child.spawnSyncWithInput(f.allocator, io, &.{ .options = &options, .input = bytes }));
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/standard/resources/child_input/concurrency.zig:49:5: 0x10f7bb087 in test.child input writer dispatch failure kills and reaps child (test)
+           try check(0);
+           ^
+error: 'concurrency.test.child input reader dispatch failure cancels blocked writer and reaps child' failed:
+       expected error.ConcurrencyUnavailable, found error.StreamTooLong
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/standard/src/child_process/run.zig:36:36: 0x10f7a37d3 in run (test)
+                   .collected => |result| try result,
+                                          ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/standard/src/child_process/root.zig:36:9: 0x10f7a416d in execute (test)
+               try @import("run.zig").run(allocator, io, options, data)
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/standard/src/child_process/root.zig:15:5: 0x10f7a4669 in spawnSyncWithInput (test)
+           return execute(allocator, io, input.options, input.input);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/testing.zig:72:13: 0x10f7a47b2 in expectError__anon_37157 (test)
+                   return error.TestUnexpectedError;
+                   ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/standard/resources/child_input/concurrency.zig:40:5: 0x10f7b83de in check (test)
+           try std.testing.expectError(error.ConcurrencyUnavailable, f.child.spawnSyncWithInput(f.allocator, io, &.{ .options = &options, .input = bytes }));
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/standard/resources/child_input/concurrency.zig:53:5: 0x10f7b8898 in test.child input reader dispatch failure cancels blocked writer and reaps child (test)
+           try check(1);
+           ^
+failed command: ZXC_CHILD_INPUT_VALUE=inherited-test-value ./.zig-cache/o/0bb635bb941a4b27f6e0092ea44e6d5f/test --cache-dir=./.zig-cache --seed=0x2ac03319 --listen=-
+
+Build Summary: 21/23 steps succeeded (1 failed); 52/54 tests passed (2 failed)
+test-child-input transitive failure
++- run test 10 pass (10 total) 61ms MaxRSS:4M
+|  +- compile test Debug native success 1s MaxRSS:265M
+|     +- options cached
+|     |  +- compile exe child-input-fixture Debug native cached 49ms MaxRSS:21M
+|     +- run exe standard-types (standard_abi.zig) cached
+|        +- compile exe standard-types Debug native cached 51ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 8 pass (8 total) 66ms MaxRSS:5M
+|  +- compile test Debug native cached 53ms MaxRSS:21M
+|     +- options (+1 more reused dependencies)
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run test 4 pass (4 total) 30ms MaxRSS:2M
+|  +- compile test Debug native cached 53ms MaxRSS:21M
+|     +- options (+1 more reused dependencies)
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run test 11 pass (11 total) 5ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:262M
+|     +- options (+1 more reused dependencies)
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run test 1 pass, 2 fail (3 total)
+|  +- compile test Debug native success 1s MaxRSS:253M
+|     +- options (+1 more reused dependencies)
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run test 9 pass (9 total) 37ms MaxRSS:4M
+|  +- compile test Debug native success 1s MaxRSS:260M
+|     +- run exe compile-child-input (source.zig) success 5ms
+|     |  +- compile exe compile-child-input Debug native success 3s MaxRSS:477M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     +- options (+1 more reused dependencies)
+|     +- run exe compile-child-input (source.zig) (+1 more reused dependencies)
++- run test 9 pass (9 total) 36ms MaxRSS:4M
+   +- compile test Debug native success 1s MaxRSS:254M
+      +- run exe compile-child-input (source.zig) (+1 more reused dependencies)
+      +- options (+1 more reused dependencies)
+      +- run exe compile-child-input (source.zig) (+1 more reused dependencies)
+
+error: the following build command failed with exit code 1:
+.zig-cache/o/b90a979fa354a4dd7e43989329bcd451/build /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib /Users/xiewendao/Documents/MatrixAges/zxc/packages/test .zig-cache /Users/xiewendao/.cache/zig --seed 0x2ac03319 -Z26bc685686b7f082 test-child-input --summary all

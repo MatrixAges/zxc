@@ -1,0 +1,56 @@
+test-child-input
++- run test
+   +- compile test Debug native 1 errors
+tests/standard/resources/child_input/fixture.zig:19:31: error: function parameter shadows declaration of 'bytes'
+pub fn expect(input: Options, bytes: []const u8, stdout: []const u8, stderr: []const u8, code: u32) !void {
+                              ^~~~~
+tests/standard/resources/child_input/fixture.zig:30:5: note: declared here
+pub fn bytes(count: usize) ![]u8 {
+~~~~^~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig test -ODebug --dep standard --dep options -Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/standard/resources/child_input/limits.zig -ODebug --dep zxc_abi -Mstandard=/Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/standard/src/root.zig -Moptions=.zig-cache/c/67ba0da46c3e4ac757134f9eb0c7f46a/options.zig -ODebug -Mzxc_abi=.zig-cache/o/f2630ffb418a040c9d31a3e63c7d6a8f/standard_abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --name test --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/ --listen=-
+
+test-child-input
++- run test
+   +- compile test Debug native 1 errors
+tests/standard/resources/child_input/fixture.zig:19:31: error: function parameter shadows declaration of 'bytes'
+pub fn expect(input: Options, bytes: []const u8, stdout: []const u8, stderr: []const u8, code: u32) !void {
+                              ^~~~~
+tests/standard/resources/child_input/fixture.zig:30:5: note: declared here
+pub fn bytes(count: usize) ![]u8 {
+~~~~^~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig test -ODebug --dep standard --dep options -Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/standard/resources/child_input/results.zig -ODebug --dep zxc_abi -Mstandard=/Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/standard/src/root.zig -Moptions=.zig-cache/c/67ba0da46c3e4ac757134f9eb0c7f46a/options.zig -ODebug -Mzxc_abi=.zig-cache/o/f2630ffb418a040c9d31a3e63c7d6a8f/standard_abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --name test --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/ --listen=-
+
+test-child-input
++- run test
+   +- compile test Debug native 1 errors
+tests/standard/resources/child_input/fixture.zig:19:31: error: function parameter shadows declaration of 'bytes'
+pub fn expect(input: Options, bytes: []const u8, stdout: []const u8, stderr: []const u8, code: u32) !void {
+                              ^~~~~
+tests/standard/resources/child_input/fixture.zig:30:5: note: declared here
+pub fn bytes(count: usize) ![]u8 {
+~~~~^~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig test -ODebug --dep standard --dep options -Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/standard/resources/child_input/allocation.zig -ODebug --dep zxc_abi -Mstandard=/Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/standard/src/root.zig -Moptions=.zig-cache/c/67ba0da46c3e4ac757134f9eb0c7f46a/options.zig -ODebug -Mzxc_abi=.zig-cache/o/f2630ffb418a040c9d31a3e63c7d6a8f/standard_abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --name test --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/ --listen=-
+
+Build Summary: 5/12 steps succeeded (3 failed)
+test-child-input transitive failure
++- run test transitive failure
+|  +- compile test Debug native 1 errors
+|     +- options success
+|     |  +- compile exe child-input-fixture Debug native success 1s MaxRSS:245M
+|     +- run exe standard-types (standard_abi.zig) success 7ms
+|        +- compile exe standard-types Debug native success 2s MaxRSS:446M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test transitive failure
+|  +- compile test Debug native 1 errors
+|     +- options (+1 more reused dependencies)
+|     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
++- run test transitive failure
+   +- compile test Debug native 1 errors
+      +- options (+1 more reused dependencies)
+      +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
+
+error: the following build command failed with exit code 1:
+.zig-cache/o/887e08076ad75238edce305d50eb7035/build /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib /Users/xiewendao/Documents/MatrixAges/zxc/packages/test .zig-cache /Users/xiewendao/.cache/zig --seed 0x2b75e66 -Z6ce80ee672929b57 test-child-input --summary all
