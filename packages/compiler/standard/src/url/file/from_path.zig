@@ -14,8 +14,9 @@ pub fn fromPath(allocator: std.mem.Allocator, input: []const u8, windows: bool, 
     defer arena.deinit();
 
     const temporary = arena.allocator();
-    const unc = windows and std.mem.startsWith(u8, input, "\\\\");
-    var resolved = if (unc) input else try resolve.resolve(temporary, windows, cwd, &.{input});
+    const path = if (windows and std.mem.startsWith(u8, input, "\\\\?\\") and syntax.root(true, input[4..]).absolute and syntax.root(true, input[4..]).device_end == 2) input[4..] else input;
+    const unc = windows and std.mem.startsWith(u8, path, "\\\\");
+    var resolved = if (unc) path else try resolve.resolve(temporary, windows, cwd, &.{path});
     var name: []const u8 = "";
 
     if (windows and std.mem.startsWith(u8, resolved, "\\\\")) {

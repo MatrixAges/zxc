@@ -1,0 +1,22 @@
+[
+	{
+		"path": "\\\\?\\C:\\path\\to\\file.txt",
+		"result": "file:///C:/path/to/file.txt",
+		"node": "file:///C:/path/to/file.txt"
+	},
+	{
+		"path": "\\\\?\\D:\\x y\\..\\z%a",
+		"result": "file:///D:/z%25a",
+		"node": "file:///D:/z%25a"
+	},
+	{
+		"path": "\\\\?\\UNC\\nas\\share\\x",
+		"result": "file://nas/share/x",
+		"node": "file://nas/share/x"
+	},
+	{
+		"path": "\\\\nas\\share\\x",
+		"result": "file://nas/share/x",
+		"node": "file://nas/share/x"
+	}
+]
