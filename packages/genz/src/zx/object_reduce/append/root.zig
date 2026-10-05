@@ -4,40 +4,51 @@ const node = @import("../../../node.zig");
 const Lower = @import("../../lower.zig");
 const Builder = @import("builder.zig");
 const Self = @This();
-const Field = struct { name: []const u8, builder: Builder };
+const Field = struct { path: []const u32, builder: Builder };
 const Saved = struct { id: ir.ExprId, previous: ?Builder };
 const SavedCall = struct { id: ir.ExprId, previous: ?[]const ?Builder };
 
 lowering: *Lower,
+type_id: ir.TypeId,
 fields: std.ArrayList(Field) = .empty,
 saved: std.ArrayList(Saved) = .empty,
 saved_calls: std.ArrayList(SavedCall) = .empty,
 pub fn init(lowering: *Lower, transform: ir.Transform, body: *std.ArrayList(node.Statement)) Lower.Error!Self {
-    var self = Self{ .lowering = lowering };
+    const type_id = lowering.program.expression(transform.body).type_id;
+    var self = Self{ .lowering = lowering, .type_id = type_id };
 
     errdefer self.restore();
 
-    const fields = lowering.program.typeOf(lowering.program.expression(transform.body).type_id).object;
+    var paths: std.ArrayList([]const u32) = .empty;
 
-    for (fields, 0..) |field, index| {
-        const field_type = lowering.program.typeOf(field.type_id);
+    defer paths.deinit(lowering.allocator);
 
-        if (field_type != .list) continue;
+    try @import("../../buffer_call/analysis/flow.zig").leaves(lowering.allocator, lowering.program, type_id, &.{}, false, &paths);
 
-        const projections = try @import("analysis.zig").analyze(lowering.allocator, lowering.program, transform, @intCast(index));
-        const cross = try @import("../../buffer_call/reduce.zig").match(lowering, transform, @intCast(index));
+    for (paths.items) |path| {
+        const projections = if (path.len == 1) try @import("analysis.zig").analyze(lowering.allocator, lowering.program, transform, path[0]) else null;
+        const cross = try @import("../../buffer_call/reduce.zig").match(lowering, transform, path);
 
         if (projections == null and cross == null) continue;
 
+        var selected = type_id;
+
+        for (path) |part| selected = switch (lowering.program.typeOf(selected)) {
+            .object => |items| items[part].type_id,
+            .tuple => |items| items[part],
+            else => unreachable,
+        };
+
+        const element = lowering.program.typeOf(selected).list;
         const name = try lowering.fresh("field_items");
         const started_name = try lowering.fresh("field_started");
-        const buffer_type = try lowering.call(try lowering.field(try lowering.builder.identifier("std"), "ArrayList"), &.{lowering.types[@intFromEnum(field_type.list)]}, false);
+        const buffer_type = try lowering.call(try lowering.field(try lowering.builder.identifier("std"), "ArrayList"), &.{lowering.types[@intFromEnum(element)]}, false);
         const builder = Builder{ .buffer = try lowering.builder.identifier(name), .started = try lowering.builder.identifier(started_name) };
 
         try body.append(lowering.allocator, .{ .variable = .{ .name = name, .type_expr = buffer_type, .value = try lowering.builder.expression(.{ .enum_literal = "empty" }) } });
         try body.append(lowering.allocator, .{ .variable = .{ .name = started_name, .value = try lowering.builder.expression(.{ .boolean = false }) } });
         try body.append(lowering.allocator, .{ .defer_expression = try builder.method(lowering, "deinit", &.{}, false) });
-        try self.fields.append(lowering.allocator, .{ .name = field.name, .builder = builder });
+        try self.fields.append(lowering.allocator, .{ .path = path, .builder = builder });
 
         for (projections orelse &.{}) |id| {
             try self.saved.append(lowering.allocator, .{ .id = id, .previous = lowering.append_overrides.get(id) });
@@ -75,8 +86,14 @@ pub fn restore(self: *Self) void {
 pub fn finish(self: Self, body: *std.ArrayList(node.Statement), accumulator: *const node.Expression) Lower.Error!void {
     const lowering = self.lowering;
 
-    for (self.fields.items) |field| try body.append(lowering.allocator, .{ .branch = .{ .condition = field.builder.started, .yes = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{
-        .target = try lowering.field(accumulator, field.name),
-        .value = try field.builder.method(lowering, "toOwnedSlice", &.{}, true),
-    } }}), .no = &.{} } });
+    for (self.fields.items) |field| {
+        const selected = lowering.program.typeOf(self.type_id).object[field.path[0]];
+        const target = try lowering.field(accumulator, selected.name);
+        const value = try @import("writeback.zig").replace(lowering, selected.type_id, target, field.path[1..], try field.builder.method(lowering, "toOwnedSlice", &.{}, true));
+
+        try body.append(lowering.allocator, .{ .branch = .{ .condition = field.builder.started, .yes = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{
+            .target = target,
+            .value = value,
+        } }}), .no = &.{} } });
+    }
 }
