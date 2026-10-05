@@ -43,7 +43,7 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
                 if (!used) try output.append(self.allocator, .{ .discard = try self.builder.identifier(name) });
             },
             .result => |value| {
-                var returned: ?*const node.Expression = if (value) |id| try self.expr(id) else null;
+                var returned: ?*const node.Expression = if (value) |id| if (self.value_output) try @import("value_call/root.zig").expression(self, id) else try self.expr(id) else null;
 
                 if (self.transaction()) {
                     if (returned) |result| {

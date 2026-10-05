@@ -80,6 +80,15 @@ pub fn function(allocator: std.mem.Allocator, program: ir.Program, id: ir.Functi
     declaration.function.exported = true;
 
     try output.append(temporary, declaration);
+
+    if (lower.value_functions[@intFromEnum(id)]) {
+        var value_declaration = try lower.functionValue("callValue");
+
+        value_declaration.function.exported = true;
+
+        try output.append(temporary, value_declaration);
+    }
+
     if (lower.uses_parallel) try output.append(temporary, .{ .source = @import("parallel/allocator.zig").source });
     for (comparisons.items) |type_id| try output.append(temporary, try @import("comparison.zig").ordering(&lower, type_id));
 

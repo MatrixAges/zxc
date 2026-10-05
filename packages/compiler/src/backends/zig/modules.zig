@@ -66,7 +66,7 @@ pub fn emit(allocator: std.mem.Allocator, program: @import("zx").ir.Program, ide
         .entry, .types => try std.fmt.allocPrint(allocator, "{s}:{s}", .{ @tagName(unit), program.file_name }),
     };
 
-    const key = fingerprint.create(program, identities, unit);
+    const key = try fingerprint.create(allocator, program, identities, unit);
 
     if (try store.get(name, key)) |source| return allocator.dupe(u8, source);
 

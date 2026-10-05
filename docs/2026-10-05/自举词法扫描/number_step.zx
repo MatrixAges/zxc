@@ -5,7 +5,6 @@ import isDigit from "./is_digit.zx"
 export type Input = {
   state: State
   byte: u8
-  next_is_digit: bool
 }
 
 export type Output = State
@@ -13,6 +12,20 @@ export type Output = State
 export default function (in: Input): Output {
   if (in.state.phase == Phase.Done) {
     return in.state
+  }
+
+  if (in.state.phase == Phase.FractionStart) {
+    if (isDigit(in.byte)) {
+      return {
+        ...in.state,
+        end: in.state.end + 2,
+        phase: Phase.Fraction,
+        last_byte: in.byte,
+        separators_valid: in.state.separators_valid && in.state.last_byte != 95
+      }
+    }
+
+    return { ...in.state, phase: Phase.Done }
   }
 
   if (isDigit(in.byte)) {
@@ -34,14 +47,8 @@ export default function (in: Input): Output {
     }
   }
 
-  if (in.state.phase == Phase.Integer && in.byte == 46 && in.next_is_digit) {
-    return {
-      ...in.state,
-      end: in.state.end + 1,
-      phase: Phase.Fraction,
-      last_byte: in.byte,
-      separators_valid: in.state.separators_valid && in.state.last_byte != 95
-    }
+  if (in.state.phase == Phase.Integer && in.byte == 46) {
+    return { ...in.state, phase: Phase.FractionStart }
   }
 
   if ((in.state.phase == Phase.Integer || in.state.phase == Phase.Fraction) && (in.byte == 101 || in.byte == 69)) {

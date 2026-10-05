@@ -5,9 +5,10 @@ const Self = @This();
 program: ir.Program,
 accumulator: ir.SymbolId,
 safe: []const bool,
+value_functions: []const bool,
 
 has_object: bool = false,
-pub fn accepts(allocator: std.mem.Allocator, program: ir.Program, transform: ir.Transform) std.mem.Allocator.Error!bool {
+pub fn accepts(allocator: std.mem.Allocator, program: ir.Program, transform: ir.Transform, value_functions: []const bool) std.mem.Allocator.Error!bool {
     const safe = try allocator.alloc(bool, program.expressions.len);
 
     defer allocator.free(safe);
@@ -43,7 +44,7 @@ pub fn accepts(allocator: std.mem.Allocator, program: ir.Program, transform: ir.
         };
     }
 
-    var self = Self{ .program = program, .accumulator = transform.parameters[0], .safe = safe };
+    var self = Self{ .program = program, .accumulator = transform.parameters[0], .safe = safe, .value_functions = value_functions };
 
     return self.result(transform.body) and self.has_object;
 }
@@ -52,6 +53,13 @@ fn result(self: *Self, id: ir.ExprId) bool {
     return switch (self.program.expression(id).value) {
         .reference => |symbol| symbol == self.accumulator,
         .conditional => |value| self.safe[@intFromEnum(value.condition)] and self.result(value.yes) and self.result(value.no),
+        .call => |value| blk: {
+            if (!self.value_functions[@intFromEnum(value.function)] or !self.argument(value.argument)) break :blk false;
+
+            self.has_object = true;
+
+            break :blk true;
+        },
         .object => |value| blk: {
             for (value.evaluation) |item| if (!self.safe[@intFromEnum(item)] and !direct(self.program, item, self.accumulator)) break :blk false;
             for (value.fields) |field| if (!self.safe[@intFromEnum(field.value)]) break :blk false;
@@ -60,6 +68,22 @@ fn result(self: *Self, id: ir.ExprId) bool {
 
             break :blk true;
         },
+        else => false,
+    };
+}
+
+fn argument(self: *const Self, id: ir.ExprId) bool {
+    if (self.safe[@intFromEnum(id)]) return true;
+
+    return switch (self.program.expression(id).value) {
+        .reference => |symbol| symbol == self.accumulator,
+        .object => |value| blk: {
+            for (value.evaluation) |item| if (!self.argument(item)) break :blk false;
+            for (value.fields) |field| if (!self.argument(field.value)) break :blk false;
+
+            break :blk true;
+        },
+        .conditional => |value| self.safe[@intFromEnum(value.condition)] and self.argument(value.yes) and self.argument(value.no),
         else => false,
     };
 }

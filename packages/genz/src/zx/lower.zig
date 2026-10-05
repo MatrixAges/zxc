@@ -23,6 +23,9 @@ uses_io: bool = false,
 uses_process: bool = false,
 io_functions: []const bool = &.{},
 process_functions: []const bool = &.{},
+value_functions: []const bool = &.{},
+value_output: bool = false,
+stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
 uses_context: bool = false,
 uses_parallel: bool = false,
 shared_types: bool = false,
@@ -78,10 +81,12 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
         helper.used = try self.allocator.alloc(bool, module_function.symbols.len);
         helper.cache = .empty;
         helper.append_overrides = .empty;
+        helper.stack_symbols = .empty;
         helper.cache_reads = try self.allocator.alloc(usize, module_function.expressions.len);
 
         try @import("store.zig").declaration(&helper, &output);
         try output.append(self.allocator, try helper.function(try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), false));
+        if (self.value_functions[index]) try output.append(self.allocator, try helper.functionValue(try std.fmt.allocPrint(self.allocator, "function_{d}_value", .{index})));
 
         self.uses_parallel = self.uses_parallel or helper.uses_parallel;
     };
@@ -92,6 +97,13 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     for (comparisons.items) |type_id| try output.append(self.allocator, try @import("comparison.zig").ordering(self, type_id));
 
     return output.toOwnedSlice(self.allocator);
+}
+
+pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {
+    self.value_output = true;
+    defer self.value_output = false;
+
+    return self.function(name, false);
 }
 
 pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declaration {
@@ -147,7 +159,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_io) parameters[2 + @as(usize, @intFromBool(injected))] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
 
-    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = self.types[@intFromEnum(self.program.output_type)] }), .body = try body.toOwnedSlice(self.allocator), .exported = exported } };
+    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = if (self.value_output) self.layouts[@intFromEnum(self.program.output_type)] else self.types[@intFromEnum(self.program.output_type)] }), .body = try body.toOwnedSlice(self.allocator), .exported = exported } };
 }
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!*const node.Expression {
@@ -183,7 +195,9 @@ pub fn expr(self: *Self, id: ir.ExprId) Error!*const node.Expression {
         .reference => |symbol| blk: {
             self.used[@intFromEnum(symbol)] = true;
 
-            break :blk self.builder.identifier(self.names[@intFromEnum(symbol)]);
+            const reference = try self.builder.identifier(self.names[@intFromEnum(symbol)]);
+
+            break :blk if (self.stack_symbols.contains(symbol)) self.builder.expression(.{ .address_of = reference }) else reference;
         },
         .field => |item| self.field(try self.expr(item.target), self.program.typeOf(self.program.expression(item.target).type_id).object[item.index].name),
         .tuple_field => |item| self.field(try self.expr(item.target), try std.fmt.allocPrint(self.allocator, "{d}", .{item.index})),

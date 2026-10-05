@@ -219,6 +219,6 @@ CLI 的普通编译、`build`、`verify` 和 `fpga` 在受支持且不含已编�
 
 `compiler.zig.GenerationCache.init(allocator)` 创建进程内生成缓存；`initPersistent(allocator, io, directory, compiler_digest)` 可增加持久存储，调用者负责提供覆盖编译器及生成器实现的构建摘要。使用后调用 `deinit()`。通过 `emitModulesCached(allocator, &analysis, &cache)` 使用，或把缓存传给 `CompileOptions.generation_cache` 后调用 `compileProjectModulesVerified`；旧单文件编译接口不使用该选项。缓存返回源码会复制到结果 bundle，释放缓存不影响已有结果。
 
-生成输入摘要覆盖影响生成结果的 IR 数据，排除源码 Span，将全局类型、函数和原生模块编号转换为稳定身份；函数体变化不会进入调用者的源码生成键。共享 ABI 的键包含类型图和原生签名。内存中每个生成单元只保留最近一次输入对应的源码；磁盘按输入摘要寻址，保留不同输入版本。所有权检查、IR 校验及必要的形式化证明仍在源码缓存查询之前执行。
+生成输入摘要覆盖影响生成结果的 IR 数据，排除源码 Span，将全局类型、函数和原生模块编号转换为稳定身份；函数体内容不直接进入调用者的源码生成键；[内部状态值返回](../../docs/2026-10-05/内部状态值返回参考.md) 的资格变化进入调用者键，避免复用不再适用的调用入口。共享 ABI 的键包含类型图和原生签名。内存中每个生成单元只保留最近一次输入对应的源码；磁盘按输入摘要寻址，保留不同输入版本。所有权检查、IR 校验及必要的形式化证明仍在源码缓存查询之前执行。
 
 CLI 将生成缓存保存至 `.zxc/cache/zig/<构建指纹>/`，`--no-cache` 同时禁用语义和生成缓存。`--cache-stats` 的 `zxc generation` 行报告 `generated`、`reused`、`loaded`、`written`、`discarded`、`io_errors`；计数包含当前构建实际查询的入口、函数、共享 ABI、公开 facade、Store 初值及 State 单元的生成或命中事件。存储核对格式、编译器摘要、输入摘要和输出校验和；源码单条目最多 64 MiB，原子替换发布。普通 IO 故障会报告并退回生成，OOM 继续返回错误。生成源码不依赖 CLI 目标架构设置，目标、CPU 和优化模式仍进入后续 Zig 构建配置与缓存键。

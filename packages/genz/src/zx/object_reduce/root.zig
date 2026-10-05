@@ -12,7 +12,7 @@ pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?*const node
     const type_id = lowering.program.expression(transform.body).type_id;
 
     if (transform.kind != .reduce or lowering.program.typeOf(type_id) != .object) return null;
-    if (!try @import("analysis.zig").accepts(lowering.allocator, lowering.program, transform)) return null;
+    if (!try @import("analysis.zig").accepts(lowering.allocator, lowering.program, transform, lowering.value_functions)) return null;
 
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(lowering, &body, try lowering.expr(transform.target));
@@ -27,6 +27,15 @@ pub fn lower(lowering: *Lower, transform: ir.Transform) Lower.Error!?*const node
     var appends = try @import("append/root.zig").init(lowering, transform, &body);
 
     defer appends.restore();
+
+    const accumulator_symbol = transform.parameters[0];
+    const already_stacked = lowering.stack_symbols.contains(accumulator_symbol);
+
+    try lowering.stack_symbols.put(lowering.allocator, accumulator_symbol, {});
+
+    defer if (!already_stacked) {
+        _ = lowering.stack_symbols.remove(accumulator_symbol);
+    };
 
     const loop = try self.statements(transform.body);
 
@@ -49,8 +58,8 @@ fn statements(self: Self, id: ir.ExprId) Lower.Error![]const node.Statement {
     switch (lowering.program.expression(id).value) {
         .reference => {},
         .conditional => |value| try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.expr(value.condition), .yes = try self.statements(value.yes), .no = try self.statements(value.no) } }),
-        .object => {
-            const next = try aggregate.objectValue(lowering, id);
+        .object, .call => {
+            const next = try @import("../value_call/root.zig").expression(lowering, id);
 
             try body.append(lowering.allocator, .{ .assignment = .{ .target = self.accumulator, .value = next } });
             try body.append(lowering.allocator, .{ .assignment = .{ .target = self.changed, .value = try lowering.builder.expression(.{ .boolean = true }) } });

@@ -1,4 +1,4 @@
-import type { State, Result, ScanState } from "./number_state.zx"
+import type { State, Result } from "./number_state.zx"
 import { Phase } from "./number_state.zx"
 import encoding from "std:encoding"
 import isDigit from "./is_digit.zx"
@@ -18,16 +18,7 @@ export default function (in: Input): Output {
 
   const initial: State = { end: 0, phase: Phase.Integer, last_byte: 0, separators_valid: true }
 
-  const seed: ScanState = { number: initial, bytes: bytes }
+  const state = bytes.reduce((state, byte) => numberStep({ state: state, byte: byte }), initial)
 
-  const state = bytes.reduce((state, byte) => ({
-    number: numberStep({
-      state: state.number,
-      byte: byte,
-      next_is_digit: state.number.end + 1 < state.bytes.length && isDigit(state.bytes[state.number.end + 1])
-    }),
-    bytes: state.bytes
-  }), seed)
-
-  return numberResult(state.number)
+  return numberResult(state)
 }

@@ -1,4 +1,4 @@
-export enum Phase { Integer, Fraction, ExponentStart, ExponentDigits, Done }
+export enum Phase { Integer, FractionStart, Fraction, ExponentStart, ExponentDigits, Done }
 
 export type State = {
   end: u64
@@ -8,5 +8,3 @@ export type State = {
 }
 
 export type Result = { end: u64, diagnostic: string }
-
-export type ScanState = { number: State, bytes: u8[] }

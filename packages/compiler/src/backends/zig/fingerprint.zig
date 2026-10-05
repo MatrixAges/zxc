@@ -8,15 +8,23 @@ pub const Unit = union(enum) { entry, function: ir.FunctionId, types };
 hash: Hash = .init(.{}),
 program: ir.Program,
 names: Names,
-pub fn create(program: ir.Program, names: Names, unit: Unit) [32]u8 {
-    var self = Self{ .program = program, .names = names };
+value_functions: []const bool,
+pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit) std.mem.Allocator.Error![32]u8 {
+    const value_functions = try @import("genz").zx.value_call.functions(allocator, program);
 
-    self.bytes("zxc.zig.input.v2");
+    defer allocator.free(value_functions);
+
+    var self = Self{ .program = program, .names = names, .value_functions = value_functions };
+
+    self.bytes("zxc.zig.input.v3");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
     switch (unit) {
-        .function => |id| self.write(program.functions[@intFromEnum(id)]),
+        .function => |id| {
+            self.write(value_functions[@intFromEnum(id)]);
+            self.write(program.functions[@intFromEnum(id)]);
+        },
         .entry => self.write(.{
             .consumes_input = program.consumes_input,
             .file_name = program.file_name,
@@ -66,6 +74,7 @@ fn write(self: *Self, value: anytype) void {
     if (T == ir.FunctionId) {
         self.bytes(self.names.functions[@intFromEnum(value)]);
         self.write(self.program.functions[@intFromEnum(value)].stores);
+        self.write(self.value_functions[@intFromEnum(value)]);
 
         return;
     }
