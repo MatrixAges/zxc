@@ -10,7 +10,7 @@ export type Output = Prepared
 export default function (in: Input): Output {
   const boundary = scan(in)
 
-  if (boundary.lexed.diagnostic.message != "") {
+  if (boundary.lexed.diagnostic.message != "" || boundary.templates.length == 0) {
     const interpolations: Interpolation[] = []
 
     return { lexed: boundary.lexed, token_templates: boundary.token_templates, templates: boundary.templates, parts: boundary.parts, interpolations: interpolations }

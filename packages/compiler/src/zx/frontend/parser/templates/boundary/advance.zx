@@ -1,5 +1,4 @@
 import type { Advance, State } from "./model.zx"
-import { Kind } from "../../../lexer/token_model.zx"
 import advance from "../../../lexer/advance.zx"
 import observe from "./observe.zx"
 import appendTokenIds from "./append_token_ids.zx"
@@ -14,11 +13,12 @@ export default function (in: owned Input): Output {
   }
 
   const previous = in.state.lexer.tokens.length
+  const previous_templates = in.state.graph.templates.length
   const graph = observe({ graph: in.state.graph, mode: in.state.lexer.mode, offset: in.state.lexer.offset, braces: in.state.lexer.braces, byte: in.byte, next: in.next, has_next: in.has_next })
   const lexer = advance({ state: in.state.lexer, byte: in.byte, next: in.next, after: in.after, has_next: in.has_next, has_after: in.has_after })
   const count = lexer.tokens.length - previous
-  const template = count != 0 && lexer.tokens[lexer.tokens.length - 1].kind == Kind.Template ? graph.templates.length : 0
-  const token_templates = appendTokenIds({ ids: graph.token_templates, count: count, template: template })
+  const template = count != 0 && graph.templates.length != previous_templates ? graph.templates.length : 0
+  const token_templates = appendTokenIds({ ids: graph.token_templates, count: count, template: template }).ids
 
   return { lexer: lexer, graph: { templates: graph.templates, parts: graph.parts, events: graph.events, frames: graph.frames, interpolations: graph.interpolations, token_templates: token_templates } }
 }

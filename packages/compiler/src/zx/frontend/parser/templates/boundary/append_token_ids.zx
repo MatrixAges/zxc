@@ -1,19 +1,19 @@
 export type Input = { ids: u64[], count: u64, template: u64 }
 
-export type Output = u64[]
+export type Output = { ids: u64[] }
 
 export default function (in: owned Input): Output {
   if (in.count == 0) {
-    return in.ids
+    return { ids: in.ids }
   }
 
   if (in.count == 3) {
-    return in.ids.push(0)[0].push(0)[0].push(in.template)[0]
+    return { ids: in.ids.push(0)[0].push(0)[0].push(in.template)[0] }
   }
 
   if (in.count == 2) {
-    return in.ids.push(0)[0].push(in.template)[0]
+    return { ids: in.ids.push(0)[0].push(in.template)[0] }
   }
 
-  return in.ids.push(in.template)[0]
+  return { ids: in.ids.push(in.template)[0] }
 }

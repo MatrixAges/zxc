@@ -9,7 +9,7 @@ export type Output = State
 export default function (in: owned Input): Output {
   const previous = in.lexer.tokens.length
   const lexer = finish(in.lexer)
-  const token_templates = appendTokenIds({ ids: in.graph.token_templates, count: lexer.tokens.length - previous, template: 0 })
+  const token_templates = appendTokenIds({ ids: in.graph.token_templates, count: lexer.tokens.length - previous, template: 0 }).ids
 
   return { lexer: lexer, graph: { templates: in.graph.templates, parts: in.graph.parts, events: in.graph.events, frames: in.graph.frames, interpolations: in.graph.interpolations, token_templates: token_templates } }
 }

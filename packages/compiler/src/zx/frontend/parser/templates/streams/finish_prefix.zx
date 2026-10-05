@@ -10,7 +10,7 @@ export type Output = Session
 export default function (in: owned Input): Output {
   const previous = in.session.lexer.tokens.length
   const lexer = finish(flush({ ...in.session.lexer, source_length: in.end }))
-  const token_templates = appendTokenIds({ ids: in.session.token_templates, count: lexer.tokens.length - previous, template: 0 })
+  const token_templates = appendTokenIds({ ids: in.session.token_templates, count: lexer.tokens.length - previous, template: 0 }).ids
 
   return { present: in.session.present, start: in.session.start, lexer: lexer, token_templates: token_templates }
 }
