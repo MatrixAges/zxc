@@ -1,0 +1,33 @@
+import type { State, Result, ScanState } from "./number_state.zx"
+import { Phase } from "./number_state.zx"
+import encoding from "std:encoding"
+import isDigit from "./is_digit.zx"
+import numberStep from "./number_step.zx"
+import numberResult from "./number_result.zx"
+
+export type Input = string
+
+export type Output = Result
+
+export default function (in: Input): Output {
+  const bytes = encoding.encodeUtf8(in)
+
+  if (bytes.length == 0 || !isDigit(bytes[0])) {
+    return { end: 0, diagnostic: "expected a digit" }
+  }
+
+  const initial: State = { end: 0, phase: Phase.Integer, last_byte: 0, separators_valid: true }
+
+  const seed: ScanState = { number: initial, bytes: bytes }
+
+  const state = bytes.reduce((state, byte) => ({
+    number: numberStep({
+      state: state.number,
+      byte: byte,
+      next_is_digit: state.number.end + 1 < state.bytes.length && isDigit(state.bytes[state.number.end + 1])
+    }),
+    bytes: state.bytes
+  }), seed)
+
+  return numberResult(state.number)
+}
