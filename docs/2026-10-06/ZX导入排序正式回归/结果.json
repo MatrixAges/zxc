@@ -1,0 +1,87 @@
+{
+	"记录时间": "2026-10-06T00:51:45.817448+08:00",
+	"启动检出": "52420c05",
+	"结果记录检出": "f3ce80b7aa5af5ca558acee52f115dd22689a446",
+	"验证范围": "活动共享检出的 ZX 内置 import 排序；不是整个最新仓库全量回归",
+	"模式": [
+		{
+			"名称": "Debug",
+			"命令": "zig build test-zx-import-order -j2 --summary all",
+			"退出码": 0,
+			"构建步骤": 23,
+			"库测试声明": 10,
+			"库实际执行证据": "状态块集成前阻断日志.txt",
+			"聚合库复用缓存": true,
+			"CLI格式测试": 22,
+			"CLI执行测试": 1,
+			"应用输入验证": 3,
+			"日志": "Debug日志.txt"
+		},
+		{
+			"名称": "ReleaseSafe",
+			"命令": "zig build test-zx-import-order -Doptimize=ReleaseSafe -j2 --summary all",
+			"退出码": 0,
+			"构建步骤": 23,
+			"库测试声明": 10,
+			"库实际执行证据": "ReleaseSafe库层日志.txt",
+			"聚合库复用缓存": true,
+			"CLI格式测试": 22,
+			"CLI执行测试": 1,
+			"应用输入验证": 3,
+			"日志": "ReleaseSafe日志.txt"
+		}
+	],
+	"库验证集合": {
+		"代表类别排列": 5040,
+		"有序类别对": 132,
+		"注释样例": 7,
+		"注释换行模式": 2,
+		"OOM测试声明": 3
+	},
+	"类型检查": {
+		"命令": "npm run typecheck",
+		"退出码": 0,
+		"日志": "类型检查日志.txt"
+	},
+	"源码SHA256": {
+		"packages/test/build.zig": "bf6074cd474466dbff17cbc5c277c3f6c720e19075fd6b57cafd3e4b88c55d6c",
+		"packages/test/build/import_order.zig": "e1d4f8d4f9542f75ef0d87868ed4e9918c38d083edcd1b251f41d1f20574eb77",
+		"packages/test/tests/formatting/zx/imports/cli_cases.ts": "c4ed3cff3ccbba5c69713195852019aa1dbd93de6ea589c60a9a4393174d0902",
+		"packages/test/tests/formatting/zx/imports/cli_fixture.ts": "845f56ef4b0684bbd415d9e925a9f13c78217712f64c382a24b9c2634c2c3cdf",
+		"packages/test/tests/formatting/zx/imports/cli_test.ts": "f1d9bd0d82178d02524f7081a11f1bd3dbf25469ef1cf2b30203b8ec2cd45aed",
+		"packages/test/tests/formatting/zx/imports/comments_test.zig": "6bebec43ef6e320b34ccb68fdcc0b23748240a4e4d90be4dd7a5472c27531626",
+		"packages/test/tests/formatting/zx/imports/fixture.zig": "ec5f54aad78dc64024dc12772fb4e839318941e00b471c6bd4cbf757f694b3f1",
+		"packages/test/tests/formatting/zx/imports/groups_test.zig": "e87fd9901e4514f4968b6db0549a634b814824541b1df98da45f9c1ad7a97aca",
+		"packages/test/tests/formatting/zx/imports/resources_test.zig": "e30a8289e5ef8d75d84ef6a43eb9525afb8630dd1e75cdbd98ea20aac48dee3b",
+		"packages/test/tests/formatting/zx/imports/runtime_test.ts": "e8bad69a8ae455ec980e5f6ab508862979b834a6896466699b921d527d74cb0b"
+	},
+	"ReleaseSafeCLISHA256": "16d50a6070df066615f7508ec78de152168b46f2f07d7ba3f8e5bceee46d00fc",
+	"ReleaseSafeCLI标识依据": "执行期间 ps 观察到 runtime_test.ts 与子进程实际调用该构建产物",
+	"日志SHA256": {
+		"Debug日志.txt": "f44847efc65e464446b102612b4cc8447d08bb9b14ced7d531e71745dbb0a5d5",
+		"ReleaseSafe库层日志.txt": "34dce2669014f7c91dabcaf38cfe33fafe9838bda48bc3f0a0b24fed4d5da0cd",
+		"ReleaseSafe日志.txt": "3dad26757ba40b85ca479b823a590e80dc0637c731b4f7ee89da24d9e6ff32bc",
+		"库层首轮日志.txt": "0510e00206b60ef679a44f4a37147458b7eb3d82e60ca447fda77644259cd047",
+		"状态块集成前阻断日志.txt": "0bbed4dae3cb5afe25fe73b6e1d762e4a7c418c918f7e6a8e6af104bf412b3a6",
+		"类型检查日志.txt": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+	},
+	"首轮测试预期修正": [
+		"导入区段末端原误写 57，源码字节核算为 53。",
+		"未闭合导入字符串原误预期 syntax，按词法契约改为 lexical。"
+	],
+	"生产问题通知": {
+		"会话": "01a1017f-f09f-7001-95ef-8e966ebd6aee",
+		"内容": "RX inference/expression.zig 与 store/getters.zig 缺少新增 state_block 分支，导致 CLI 构建失败",
+		"后续证据": "实现会话补齐分支后 Debug 和 ReleaseSafe CLI 构建通过",
+		"本轮修改生产源码": false
+	},
+	"Test262审阅数": {
+		"目录用例": 80155,
+		"已审阅": 2248,
+		"适配": 690,
+		"等价": 103,
+		"排除": 1455,
+		"未审阅": 51349,
+		"关联": 4933
+	}
+}

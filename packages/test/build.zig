@@ -32,6 +32,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(@import("build/template_preparation.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/expression_preparation.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/import_paths.zig").add(b, cli_dependency, compiler, target, optimize));
+    test_step.dependOn(@import("build/import_order.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/runtime.zig").add(b, compiler, target, optimize, suites.runtime));
     test_step.dependOn(@import("build/safety.zig").add(b, compiler, target, optimize, suites.safety));
     test_step.dependOn(@import("build/stores.zig").add(b, compiler, target, optimize, suites.stores));

@@ -1,0 +1,17 @@
+Build Summary: 11/11 steps succeeded; 10/10 tests passed
+test-zx-import-order-library success
++- run test 5 pass (5 total) 524ms MaxRSS:1M
+|  +- compile test safe native success 20s MaxRSS:615M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) success 13ms
+|        +- compile exe generate-lexer safe native success 18s MaxRSS:572M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 2 pass (2 total) 3ms MaxRSS:1M
+|  +- compile test safe native success 11s MaxRSS:434M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 3 pass (3 total) 3ms MaxRSS:1M
+   +- compile test safe native success 11s MaxRSS:503M
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

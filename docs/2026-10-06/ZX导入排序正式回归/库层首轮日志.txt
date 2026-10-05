@@ -1,0 +1,56 @@
+test-zx-import-order
++- run test 2 pass, 1 fail (3 total)
+error: 'resources_test.test.invalid import diagnostics survive source release and clean every allocation failure' failed:
+       expected .syntax, found .lexical
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x103d3b77d in expectEqualInner__func_1005 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x103d3bb76 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/formatting/zx/imports/resources_test.zig:43:5: 0x103d3bc30 in invalid (test)
+           try std.testing.expectEqual(.syntax, output.diagnostic.code);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x103d3be9b in checkAllAllocationFailures__func_1003 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:9:5: 0x103d3c302 in checkAllAllocationFailures__func_1002 (test)
+           try std.testing.checkAllAllocationFailures(allocator, test_fn, extra_args);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/formatting/zx/imports/resources_test.zig:62:5: 0x103d3c35a in test.invalid import diagnostics survive source release and clean every allocation failure (test)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, invalid, .{});
+           ^
+failed command: ./.zig-cache/o/7e6c623740a38a83e1fc6f2651899526/test --cache-dir=./.zig-cache --seed=0xea72ce63 --listen=-
+
+test-zx-import-order
++- run test 4 pass, 1 fail (5 total)
+error: 'groups_test.test.compiler and project entry points reject import order before module analysis' failed:
+       expected 57, found 53
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1096b9829 in expectEqualInner__func_1005 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1096b9f5d in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/formatting/zx/imports/groups_test.zig:87:5: 0x1096ba012 in test.compiler and project entry points reject import order before module analysis (test)
+           try std.testing.expectEqual(@as(usize, 57), compiled.diagnostic.span.end);
+           ^
+failed command: ./.zig-cache/o/b903932303e831b33f040b23a3531dcb/test --cache-dir=./.zig-cache --seed=0xea72ce63 --listen=-
+
+Build Summary: 8/11 steps succeeded (2 failed); 8/10 tests passed (2 failed)
+test-zx-import-order transitive failure
++- run test 4 pass, 1 fail (5 total)
+|  +- compile test debug native success 3s MaxRSS:491M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) success 52ms
+|        +- compile exe generate-lexer debug native success 3s MaxRSS:450M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 2 pass (2 total) 9ms MaxRSS:2M
+|  +- compile test debug native success 2s MaxRSS:337M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 2 pass, 1 fail (3 total)
+   +- compile test debug native success 2s MaxRSS:347M
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

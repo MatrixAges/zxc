@@ -1,0 +1,72 @@
+✔ ZX import order / compiler gate and static execution preserve call order (13049.190628ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13052.415363
+✔ ZX import order / fixed value and type categories / LF (24.308801ms)
+✔ ZX import order / fixed value and type categories / CRLF (20.620827ms)
+✔ ZX import order / stable same path declarations and named bindings / LF (20.63716ms)
+✔ ZX import order / stable same path declarations and named bindings / CRLF (21.204076ms)
+✔ ZX import order / case sensitive UTF8 and external scoped package / LF (20.666514ms)
+✔ ZX import order / case sensitive UTF8 and external scoped package / CRLF (21.458431ms)
+✔ ZX import order / line comments stay attached / LF (20.274354ms)
+✔ ZX import order / line comments stay attached / CRLF (20.023276ms)
+✔ ZX import order / internal and trailing block comments stay attached / LF (20.726079ms)
+✔ ZX import order / internal and trailing block comments stay attached / CRLF (21.298542ms)
+✔ ZX import order / file header pins first import / LF (19.575245ms)
+✔ ZX import order / file header pins first import / CRLF (20.901253ms)
+✔ ZX import order / independent comment separates sorting sections / LF (20.363153ms)
+✔ ZX import order / independent comment separates sorting sections / CRLF (20.996989ms)
+✔ ZX import order / multiline trailing comment moves as one unit / LF (20.275904ms)
+✔ ZX import order / multiline trailing comment moves as one unit / CRLF (19.662494ms)
+✔ ZX import order / no imports / LF (20.100694ms)
+✔ ZX import order / no imports / CRLF (24.40073ms)
+✔ ZX import order / single import / LF (23.074582ms)
+✔ ZX import order / single import / CRLF (20.953223ms)
+✔ ZX import order / excess internal blank lines / LF (20.446051ms)
+✔ ZX import order / excess internal blank lines / CRLF (20.494091ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 466.512501
+Build Summary: 23/23 steps succeeded
+test-zx-import-order success
++- test-zx-import-order-cli success
+|  +- run node success 531ms
+|  |  +- compile exe zxc safe native success 1m MaxRSS:2G
+|  |     +- WriteFile cached
+|  |     +- compile lib yaml safe native cached 40ms MaxRSS:20M
+|  |     +- compile lib yaml safe native (reused)
+|  |     +- translate-c cached 40ms MaxRSS:20M
+|  |     +- options success
+|  |     +- run exe bundle-zig (bundle) cached
+|  |     |  +- compile exe bundle-zig fast native cached 43ms MaxRSS:21M
+|  |     |  +- WriteFile bundle_manifest.json cached
+|  |     +- WriteFile interfaces/0.d.zx cached
+|  |     +- run exe generate-lexer (lexer.zig) cached
+|  |        +- compile exe generate-lexer safe native cached 44ms MaxRSS:21M
+|  |           +- WriteFile interfaces/0.d.zx cached
+|  +- run node success 13s
+|     +- compile exe zxc safe native (+8 more reused dependencies)
++- test-zx-import-order-library success
+   +- run test cached
+   |  +- compile test safe native cached 46ms MaxRSS:21M
+   |     +- WriteFile interfaces/0.d.zx (reused)
+   |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+   +- run test cached
+   |  +- compile test safe native cached 44ms MaxRSS:21M
+   |     +- WriteFile interfaces/0.d.zx (reused)
+   |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+   +- run test cached
+      +- compile test safe native cached 46ms MaxRSS:21M
+         +- WriteFile interfaces/0.d.zx (reused)
+         +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

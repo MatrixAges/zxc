@@ -1,0 +1,61 @@
+test-zx-import-order
++- test-zx-import-order-cli
+   +- run node
+      +- compile exe zxc debug native 2 errors
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/src/rx/analysis/inference/expression.zig:28:19: error: switch must handle all possibilities
+    const value = switch (expression.value) {
+                  ^~~~~~
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/core/src/ast.zig:34:9: note: unhandled enumeration value: 'state_block'
+        state_block: Block,
+        ^~~~~~~~~~~
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/core/src/ast.zig:23:12: note: enum '@typeInfo(ast.Expression__union_1731).@"union".tag_type.?' declared here
+    value: union(enum) {
+           ^~~~~
+referenced by:
+    steps: /Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/src/rx/analysis/project/constraints.zig:124:41
+    collect: /Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/src/rx/analysis/project/constraints.zig:36:25
+    10 reference(s) hidden; use '-freference-trace=12' to see all references
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/compiler/src/rx/analysis/store/getters.zig:17:12: error: switch must handle all possibilities
+    return switch (expression.value) {
+           ^~~~~~
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/core/src/ast.zig:34:9: note: unhandled enumeration value: 'state_block'
+        state_block: Block,
+        ^~~~~~~~~~~
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/core/src/ast.zig:23:12: note: enum '@typeInfo(ast.Expression__union_1731).@"union".tag_type.?' declared here
+    value: union(enum) {
+           ^~~~~
+error: 2 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe .zig-cache/o/c890d67c2bf1a156fff0034717a3fd32/libyaml.a -Odebug -I .zig-cache/o/99643627a011968f089148bb3544ce0e --dep rx --dep rx_analysis --dep lint --dep pkgs --dep compiler --dep napi_resources --dep napi_declarations --dep zx --dep yaml --dep cache_identity --dep bundle -Mroot=../cli/src/main.zig -Odebug --dep dsl --dep frontend -Mrx=../compiler/src/rx/root.zig -Odebug --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Odebug --dep dsl --dep zx -Mlint=../lint/src/root.zig -Odebug -Mpkgs=../pkgs/src/root.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug -Mnapi_resources=../napi/src/resources.zig -Odebug --dep zx -Mnapi_declarations=../napi/src/declarations.zig -Odebug -Mzx=../core/src/root.zig -Odebug -Myaml=.zig-cache/o/e22b90ba3b063c07f5c82f91d4845573/yaml.zig -Mcache_identity=.zig-cache/o/1bc4c680f638abe44b72c54a1641d792/options.zig -Mbundle=.zig-cache/o/05db516b3b9aa2527ab9b5cb3176adf4/bundle/resources.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces -Mfrontend=../compiler/src/zx/frontend.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Odebug --dep zx --dep generated -Mlexer=../compiler/src/zx/frontend/lex.zig -Mstandard_interfaces=.zig-cache/o/7535f465621b95d968beec5c562886c5/catalog.zig -Odebug -Mgenerated=.zig-cache/o/c826c8b61907bedce00d0cad2851eed6/lexer.zig -lc --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zxc --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+Build Summary: 17/22 steps succeeded (1 failed); 10/10 tests passed
+test-zx-import-order transitive failure
++- run test 5 pass (5 total) 3s MaxRSS:2M
+|  +- compile test debug native success 3s MaxRSS:495M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) success 54ms
+|        +- compile exe generate-lexer debug native success 3s MaxRSS:441M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 2 pass (2 total) 9ms MaxRSS:2M
+|  +- compile test debug native success 2s MaxRSS:340M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 3 pass (3 total) 15ms MaxRSS:2M
+|  +- compile test debug native success 2s MaxRSS:335M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- test-zx-import-order-cli transitive failure
+   +- run node transitive failure
+   |  +- compile exe zxc debug native 2 errors
+   |     +- WriteFile cached
+   |     +- compile lib yaml debug native cached 40ms MaxRSS:20M
+   |     +- compile lib yaml debug native (reused)
+   |     +- translate-c cached 44ms MaxRSS:20M
+   |     +- options success
+   |     +- run exe bundle-zig (bundle) cached
+   |     |  +- compile exe bundle-zig fast native cached 43ms MaxRSS:21M
+   |     |  +- WriteFile bundle_manifest.json cached
+   |     +- WriteFile interfaces/0.d.zx (reused)
+   |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+   +- run node transitive failure
+      +- compile exe zxc debug native (+8 more reused dependencies)
+
