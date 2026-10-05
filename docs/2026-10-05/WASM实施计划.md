@@ -70,3 +70,5 @@ freestanding 记录中的 imports 均为空。`std:stdio` 应用在 freestanding
 不能把 Zig 支持 target 等同于完整宿主支持。WASI 先通过实际执行获得证据，再补 freestanding 生命周期与导出协议。第一次链接只显式保留固定 JSON 导出，动态选出的标量函数被链接器移除；检查真实导出表发现问题后改用 -rdynamic，复核导出与 BigInt 调用，而不是只看构建退出码。
 
 直接标量调用免除 JSON 转换，但仍有 WASM 宿主调用及错误状态协议；复杂数据仍有编解码成本。未验证浏览器 UI、全部标准库的 WASM 可移植性、所有原生依赖或无界 Store 工作负载。释放请求允许分配器复用空间，WASM 线性内存本身不会缩小。此交付不代表 SIMD、N-API 或自举目标已完成。
+
+补充标准库证据：完整 URL 示例的 12 个公开接口已编译至 freestanding WASM 并实际执行，输出逐字段等于此前保存的原生运行结果，宿主 imports 为空。记录见 WASM/URL标准库调用.json。提交后的发行构建再次 13/13 成功。
