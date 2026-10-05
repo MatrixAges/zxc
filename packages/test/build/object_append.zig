@@ -10,7 +10,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         .imports = &.{.{ .name = "compiler", .module = compiler.module("compiler") }},
     }) });
 
-    for ([_][]const u8{ "push", "concat", "select", "field_select", "index_read", "overwritten" }) |mode| {
+    for ([_][]const u8{ "push", "concat", "select", "field_select", "index_read", "overwritten", "call_push", "call_concat", "call_chain" }) |mode| {
         const compile = b.addRunArtifact(tool);
 
         compile.addArg(mode);
@@ -22,7 +22,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             const program = b.createModule(.{ .root_source_file = source, .target = target, .optimize = optimize, .imports = &.{.{ .name = "zxc_abi", .module = abi }} });
             const options = b.addOptions();
 
-            options.addOption([]const u8, "mode", mode);
+            options.addOption([]const u8, "mode", if (std.mem.eql(u8, mode, "call_concat")) "concat" else mode);
             options.addOption(bool, "bounded", !std.mem.eql(u8, mode, "index_read") and !std.mem.eql(u8, mode, "overwritten"));
 
             const module = b.createModule(.{ .root_source_file = b.path("tests/collections/object_append/root.zig"), .target = target, .optimize = optimize, .imports = &.{.{ .name = "program", .module = program }} });
