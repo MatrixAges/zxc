@@ -1,0 +1,9 @@
+export type State = { count: u64, total: u64, last: u64, flag: bool, optional: u64? }
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return {count: in.count + 1, total: in.total + in.count, last: in.count, flag: !in.flag, optional: in.optional ?? in.count}
+}

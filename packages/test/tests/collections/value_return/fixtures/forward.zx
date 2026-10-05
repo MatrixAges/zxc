@@ -1,0 +1,11 @@
+import advance from "./advance.zx"
+
+export type State = { count: u64, total: u64, last: u64, flag: bool, optional: u64? }
+
+export type Input = { state: State, item: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return advance(in)
+}

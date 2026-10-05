@@ -17,6 +17,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(@import("build/field_ownership.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/object_append.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/object_reduce.zig").add(b, compiler, target, optimize));
+    test_step.dependOn(@import("build/value_return.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/owned_input.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/process_entry.zig").add(b, cli_dependency, optimize));
     test_step.dependOn(@import("build/url_api_library.zig").add(b, cli_dependency, optimize));
