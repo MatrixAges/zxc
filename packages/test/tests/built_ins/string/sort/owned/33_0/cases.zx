@@ -1,0 +1,13 @@
+import fromLiteral from "../../../fixtures/sort_literal.zx"
+
+export type Input = { items: u64[], }
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+  const owned: string[] = [fromLiteral(in.items[0]), fromLiteral(in.items[1]), fromLiteral(in.items[2]), fromLiteral(in.items[3]), fromLiteral(in.items[4]), fromLiteral(in.items[5]), fromLiteral(in.items[6]), fromLiteral(in.items[7]), fromLiteral(in.items[8]), fromLiteral(in.items[9]), fromLiteral(in.items[10]), fromLiteral(in.items[11]), fromLiteral(in.items[12]), fromLiteral(in.items[13]), fromLiteral(in.items[14]), fromLiteral(in.items[15]), fromLiteral(in.items[16]), fromLiteral(in.items[17]), fromLiteral(in.items[18]), fromLiteral(in.items[19]), fromLiteral(in.items[20]), fromLiteral(in.items[21]), fromLiteral(in.items[22]), fromLiteral(in.items[23]), fromLiteral(in.items[24]), fromLiteral(in.items[25]), fromLiteral(in.items[26]), fromLiteral(in.items[27]), fromLiteral(in.items[28]), fromLiteral(in.items[29]), fromLiteral(in.items[30]), fromLiteral(in.items[31]), fromLiteral(in.items[32])]
+
+  const [result, _] = owned.sort()
+
+  return result
+}

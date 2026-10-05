@@ -114,7 +114,12 @@ function* cases(name: string): Generator<[Json, Json]> {
 	const arrays = range(4).flatMap(length => product(['', 'a', 'Z', '中'], length))
 
 	if (name === 'sort')
-		arrays.push(Array.from('zyxwvutsrqponMLKJIHGFEDCBA'), ['\u{10000}', '\ue000'], ['é', 'e\u0301', '\0'])
+		arrays.push(
+			Array.from('zyxwvutsrqponMLKJIHGFEDCBA'),
+			['\u{10000}', '\ue000'],
+			['é', 'e\u0301', '\0'],
+			Array.from('ёяюэьыъщшчцхфутсрПОНМЛКЙИЗЖЕДГВБА')
+		)
 
 	for (const items of arrays) {
 		if (name === 'sort')
