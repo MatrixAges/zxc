@@ -1,0 +1,7 @@
+export type Input = f32[]
+
+export type Output = f32[]
+
+export default function (in: Input): Output {
+  return in.map(value => -value / 2.0 + 1.5)
+}

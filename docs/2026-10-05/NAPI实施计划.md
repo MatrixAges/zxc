@@ -69,3 +69,7 @@ Windows 的 node.lib 下载至临时目录，SHA-256 与官方校验清单一致
 只靠 Zig 类型会误把 string 和 u8[] 合并，已从生成源头保留语义形状。实际观察还发现 napi_is_buffer 不足以限定字节类型：宽 TypedArray 曾被接受。现改用 napi_get_typedarray_info 核对 uint8/uint8clamped，Uint16Array 已被明确拒绝，复验记录已更新。
 
 没有用 JSON 中转、BigInt 截断或借用 JS 缓冲区替代类型转换。尚未验证所有原生依赖、异步宿主接口和真实跨平台执行；I/O/process 与 Gateway 是未接入的能力。未声称 GC 和无界 Store 工作负载已有全面内存压力证明。未新增正式测试或运行全量测试。
+
+## 用户追加要求
+
+2026-10-05：自动导出 TypeScript 类型定义文件，像普通模块一样使用 Node 插件。现有 .node 直接加载不是这项要求的完整交付。后续需从真实公开输入输出类型生成声明，提供可由 TypeScript/Node 直接解析的模块入口，并验证类型补全、编译期调用检查和真实加载。与插件二进制共同安全发布，避免声明与二进制不一致。

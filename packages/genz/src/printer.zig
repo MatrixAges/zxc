@@ -227,6 +227,11 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.indent();
             try self.write("}");
         },
+        .range => |range| {
+            try self.expression(range.start);
+            try self.write("..");
+            try self.expression(range.end);
+        },
         .field => |field| {
             try self.write("(");
             try self.expression(field.target);
@@ -368,9 +373,16 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
             .for_loop => |loop| {
                 try self.write("for (");
                 try self.expression(loop.iterable);
+                if (loop.index_capture != null) try self.write(", 0..");
                 try self.write(") |");
                 if (loop.capture_reference) try self.write("*");
                 if (std.mem.eql(u8, loop.capture, "_")) try self.write("_") else try self.identifier(loop.capture);
+
+                if (loop.index_capture) |index_name| {
+                    try self.write(", ");
+                    try self.identifier(index_name);
+                }
+
                 try self.write("| ");
                 try self.block(loop.body);
                 try self.write("\n");

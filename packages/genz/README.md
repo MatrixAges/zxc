@@ -42,3 +42,7 @@ Builder 借用传入名称、字段与参数切片；它们需要存活到 rende
 ## Answer：交付与成功标准
 
 通用 Builder/render 仍可独立构造并打印 Zig 代码。ZX 类型映射、运行时调用、临时变量和共享类型生成统一位于本包的 `src/zx`，目标代码最终由 Zig 编译器检查。compiler 负责校验和调用协调。
+
+## SIMD 数组映射
+
+map 按输入长度一次分配。对于同元素类型的 f32/f64 纯算术回调，zx/simd 生成按目标建议宽度划分的 Zig Vector 运算与标量尾部；其他回调保持普通索引循环。filter/reduce 不重排。类型约束、分配失败边界、构建命令与实际指令证据见 [SIMD reference](../../docs/2026-10-05/SIMD参考.md)。
