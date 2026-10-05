@@ -1,12 +1,13 @@
 const std = @import("std");
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
-pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) Modules {
+pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module) Modules {
     const frontend = b.createModule(.{
         .root_source_file = b.path("src/zx/frontend.zig"),
         .target = target,
         .optimize = optimize,
         .imports = &.{
+            .{ .name = "lexer", .module = lexer },
             .{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") },
             .{ .name = "dsl", .module = b.dependency("dsl", .{ .target = target, .optimize = optimize }).module("dsl") },
             .{ .name = "lint", .module = b.dependency("lint", .{ .target = target, .optimize = optimize }).module("lint") },

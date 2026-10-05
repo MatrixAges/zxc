@@ -8,6 +8,7 @@ import tempfile
 
 baseline = json.loads(Path(sys.argv[1]).read_text())
 reference, generated = sys.argv[2:4]
+file_input = sys.argv[6:] == ["--file-input"]
 cases = {}
 
 for path in Path(sys.argv[4]).rglob("*.jsonl"):
@@ -34,7 +35,7 @@ with tempfile.TemporaryDirectory(prefix="zxc-list-flow-") as temporary:
 
         current.write_bytes(source)
         expected = json.loads(subprocess.check_output([reference, str(current)]))
-        actual = json.loads(subprocess.check_output([generated, json.dumps(list(source))]))
+        actual = json.loads(subprocess.check_output([generated, str(current) if file_input else json.dumps(list(source))]))
         record = {"source": identifier, "sha256": digest, "matched": expected == actual}
 
         if expected != actual:

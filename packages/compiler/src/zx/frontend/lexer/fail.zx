@@ -1,0 +1,9 @@
+import type { LexerState } from "./model.zx"
+
+export type Input = { code: string, start: u64, end: u64, message: string, state: LexerState }
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  return { ...in.state, diagnostic: { code: in.code, start: in.start, end: in.end, message: in.message } }
+}

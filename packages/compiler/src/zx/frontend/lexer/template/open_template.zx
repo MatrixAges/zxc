@@ -1,0 +1,37 @@
+import type { LexerState } from "../model.zx"
+import { Mode } from "../model.zx"
+import fail from "../fail.zx"
+
+export type Input = LexerState
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  if (in.mode == Mode.Idle) {
+    const next_start = in.offset
+
+    return { ...in, mode: Mode.Template, start: next_start, braces: 0, depth: 0 }
+  }
+
+  if (in.depth + 1 > 256) {
+    return fail({ code: "syntax", start: in.offset, end: in.offset + 1, message: "template nesting exceeds 256 levels", state: in })
+  }
+
+  const frame = { mode: in.mode, start: in.start, braces: in.braces, depth: in.depth }
+  const frames = in.frames.push(frame)[0]
+
+  return {
+      source_length: in.source_length, warmed: in.warmed, ahead_one: in.ahead_one, ahead_two: in.ahead_two, keyword: in.keyword,
+      offset: in.offset,
+      skip_until: in.skip_until,
+      mode: Mode.Template,
+      start: in.offset,
+      braces: 0,
+      depth: in.depth + 1,
+      frames: frames,
+      number: in.number,
+      tokens: in.tokens,
+      comments: in.comments,
+      diagnostic: in.diagnostic
+    }
+}

@@ -25,6 +25,11 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.built
         try directory(b, &hash, name, try dependency.builder.root.joinString(b.allocator, "src"));
         try file(b, &hash, b.fmt("{s}/build.zig", .{name}), try dependency.builder.root.joinString(b.allocator, "build.zig"));
         try file(b, &hash, b.fmt("{s}/build.zig.zon", .{name}), try dependency.builder.root.joinString(b.allocator, "build.zig.zon"));
+
+        if (std.mem.eql(u8, name, "compiler")) {
+            try directory(b, &hash, "compiler-build", try dependency.builder.root.joinString(b.allocator, "build"));
+            try directory(b, &hash, "compiler-bootstrap", try dependency.builder.root.joinString(b.allocator, "bootstrap"));
+        }
     }
 
     var digest: [32]u8 = undefined;

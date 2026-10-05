@@ -1,0 +1,38 @@
+import type { LexerState } from "./model.zx"
+import { Mode } from "./model.zx"
+import endIdentifier from "./end_identifier.zx"
+import endNumber from "./end_number.zx"
+import emit from "./emit.zx"
+import fail from "./fail.zx"
+
+export type Input = LexerState
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  if (in.diagnostic.message != "" || in.mode == Mode.Idle) {
+    return in
+  }
+
+  if (in.mode == Mode.Identifier) {
+    return endIdentifier(in)
+  }
+
+  if (in.mode == Mode.Number) {
+    return endNumber(in)
+  }
+
+  if (in.mode == Mode.LineComment) {
+    return emit({ kind: "", start: in.start, end: in.source_length, comment: true, state: { ...in, mode: Mode.Idle } })
+  }
+
+  const message = match {
+    in.mode == Mode.BlockComment => "unterminated block comment",
+    in.mode == Mode.String || in.mode == Mode.StringEscape => "unterminated string",
+    in.mode == Mode.Template || in.mode == Mode.TemplateEscape => "unterminated template string",
+    in.mode == Mode.InterpolationBlockComment => "unterminated comment in template",
+    _ => "unterminated template interpolation"
+  }
+
+  return fail({ code: "lexical", start: in.start, end: in.source_length, message: message, state: in })
+}

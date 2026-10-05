@@ -1,0 +1,74 @@
+import type { State } from "./number_state.zx"
+import { Phase } from "./number_state.zx"
+import isDigit from "./is_digit.zx"
+
+export type Input = {
+  state: State
+  byte: u8
+}
+
+export type Output = State
+
+export default function (in: Input): Output {
+  if (in.state.phase == Phase.Done) {
+    return { end: in.state.end, phase: in.state.phase, last_byte: in.state.last_byte, separators_valid: in.state.separators_valid }
+  }
+
+  if (in.state.phase == Phase.FractionStart) {
+    if (isDigit(in.byte)) {
+      return {
+        ...in.state,
+        end: in.state.end + 2,
+        phase: Phase.Fraction,
+        last_byte: in.byte,
+        separators_valid: in.state.separators_valid && in.state.last_byte != 95
+      }
+    }
+
+    return { ...in.state, phase: Phase.Done }
+  }
+
+  if (isDigit(in.byte)) {
+    return {
+      ...in.state,
+      end: in.state.end + 1,
+      phase: in.state.phase == Phase.ExponentStart ? Phase.ExponentDigits : in.state.phase,
+      last_byte: in.byte
+    }
+  }
+
+  if (in.byte == 95) {
+    return {
+      ...in.state,
+      end: in.state.end + 1,
+      phase: in.state.phase == Phase.ExponentStart ? Phase.ExponentDigits : in.state.phase,
+      last_byte: in.byte,
+      separators_valid: in.state.separators_valid && isDigit(in.state.last_byte)
+    }
+  }
+
+  if (in.state.phase == Phase.Integer && in.byte == 46) {
+    return { ...in.state, phase: Phase.FractionStart }
+  }
+
+  if ((in.state.phase == Phase.Integer || in.state.phase == Phase.Fraction) && (in.byte == 101 || in.byte == 69)) {
+    return {
+      ...in.state,
+      end: in.state.end + 1,
+      phase: Phase.ExponentStart,
+      last_byte: in.byte,
+      separators_valid: in.state.separators_valid && in.state.last_byte != 95
+    }
+  }
+
+  if (in.state.phase == Phase.ExponentStart && (in.byte == 43 || in.byte == 45)) {
+    return {
+      ...in.state,
+      end: in.state.end + 1,
+      phase: Phase.ExponentDigits,
+      last_byte: in.byte
+    }
+  }
+
+  return { ...in.state, phase: Phase.Done }
+}

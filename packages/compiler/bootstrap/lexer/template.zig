@@ -1,6 +1,5 @@
 const std = @import("std");
 const zx = @import("zx");
-const Parser = @import("parser.zig");
 
 pub fn end(source: []const u8, start: usize, reporter: *zx.Reporter, depth: usize) zx.Error!usize {
     if (depth > 256) return reporter.fail(.syntax, .{ .start = start, .end = start + 1 }, "template nesting exceeds 256 levels");
@@ -57,58 +56,4 @@ pub fn interpolationEnd(source: []const u8, start: usize, reporter: *zx.Reporter
     }
 
     return reporter.fail(.lexical, .{ .start = start, .end = source.len }, "unterminated template interpolation");
-}
-
-pub fn parse(parser: *Parser, token: zx.syntax.Token) zx.Error![]const zx.ast.TemplatePart {
-    var parts: std.ArrayList(zx.ast.TemplatePart) = .empty;
-    var offset = token.span.start + 1;
-    var text_start = offset;
-
-    while (offset < token.span.end - 1) {
-        if (parser.source[offset] == '\\') {
-            offset += 2;
-
-            continue;
-        }
-
-        if (!std.mem.startsWith(u8, parser.source[offset..], "${")) {
-            offset += 1;
-
-            continue;
-        }
-
-        try parts.append(parser.allocator, .{ .text = parser.source[text_start..offset] });
-
-        const start = offset + 2;
-        const finish = try interpolationEnd(parser.source, start, parser.reporter, 0);
-
-        const lexed = @import("lexer").lex(parser.allocator, parser.source[start..finish], parser.reporter) catch |err| {
-            if (parser.reporter.diagnostic) |*issue| {
-                issue.span.start += start;
-                issue.span.end += start;
-            }
-
-            return err;
-        };
-
-        const tokens = try parser.allocator.dupe(zx.syntax.Token, lexed.tokens);
-
-        for (tokens) |*item| {
-            item.span.start += start;
-            item.span.end += start;
-        }
-
-        var nested = Parser{ .allocator = parser.allocator, .source = parser.source, .tokens = tokens, .reporter = parser.reporter, .depth = parser.depth + 1 };
-        const expression = try nested.expression(0);
-
-        if (nested.current().kind != .eof) return parser.reporter.fail(.syntax, nested.current().span, "expected end of template interpolation");
-        try parts.append(parser.allocator, .{ .expression = expression });
-
-        offset = finish + 1;
-        text_start = offset;
-    }
-
-    try parts.append(parser.allocator, .{ .text = parser.source[text_start .. token.span.end - 1] });
-
-    return parts.toOwnedSlice(parser.allocator);
 }

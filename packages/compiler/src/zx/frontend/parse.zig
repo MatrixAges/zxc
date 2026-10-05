@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const Parser = @import("parser.zig");
-const lex = @import("lex.zig").lex;
+const lex = @import("lexer").lex;
 
 pub const Parsed = struct {
     source: []const u8,

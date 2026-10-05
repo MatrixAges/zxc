@@ -6,7 +6,7 @@ pub const Function = struct { name: zx.ast.Name, parameters: []const *const zx.a
 pub const Program = struct { types: []const zx.ast.Declaration, functions: []const Function };
 
 pub fn parse(allocator: std.mem.Allocator, source: []const u8, reporter: *zx.Reporter) zx.Error!Program {
-    const lexed = try @import("../frontend/lex.zig").lex(allocator, source, reporter);
+    const lexed = try @import("lexer").lex(allocator, source, reporter);
     var parser = Parser{ .allocator = allocator, .source = source, .tokens = lexed.tokens, .reporter = reporter };
     var types: std.ArrayList(zx.ast.Declaration) = .empty;
     var functions: std.ArrayList(Function) = .empty;

@@ -1,0 +1,88 @@
+import type { AdvanceInput, LexerState } from "../model.zx"
+import { Mode } from "../model.zx"
+import openTemplate from "./open_template.zx"
+import openInterpolation from "./open_interpolation.zx"
+import close from "./close.zx"
+import fail from "../fail.zx"
+
+export type Input = AdvanceInput
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  if (in.state.mode == Mode.TemplateEscape) {
+    if (in.byte != 34 && in.byte != 92 && in.byte != 110 && in.byte != 114 && in.byte != 116 && in.byte != 96 && in.byte != 36) {
+      return fail({ code: "lexical", start: in.state.offset - 1, end: in.state.offset + 1, message: "unsupported template escape", state: in.state })
+    }
+
+    return { ...in.state, mode: Mode.Template }
+  }
+
+  if (in.state.mode == Mode.Template) {
+    if (in.byte == 96) {
+      return close(in.state)
+    }
+
+    if (in.byte == 92) {
+      return { ...in.state, mode: Mode.TemplateEscape }
+    }
+
+    if (in.byte == 36 && in.has_next && in.next == 123) {
+      return openInterpolation(in.state)
+    }
+
+    return in.state
+  }
+
+  if (in.state.mode == Mode.InterpolationStringEscape) {
+    return { ...in.state, mode: Mode.InterpolationString }
+  }
+
+  if (in.state.mode == Mode.InterpolationString) {
+    return { ...in.state, mode: in.byte == 34 ? Mode.Interpolation : in.byte == 92 ? Mode.InterpolationStringEscape : Mode.InterpolationString }
+  }
+
+  if (in.state.mode == Mode.InterpolationLineComment) {
+    return { ...in.state, mode: in.byte == 10 || in.byte == 13 ? Mode.Interpolation : Mode.InterpolationLineComment }
+  }
+
+  if (in.state.mode == Mode.InterpolationBlockComment) {
+    if (in.byte == 42 && in.has_next && in.next == 47) {
+      const next_skip_until = in.state.offset + 2
+
+      return { ...in.state, skip_until: next_skip_until, mode: Mode.Interpolation }
+    }
+
+    return in.state
+  }
+
+  if (in.byte == 125 && in.state.braces == 0) {
+    return close(in.state)
+  }
+
+  if (in.byte == 123 || in.byte == 125) {
+    const next_braces = in.byte == 123 ? in.state.braces + 1 : in.state.braces - 1
+
+    return { ...in.state, braces: next_braces }
+  }
+
+  if (in.byte == 96) {
+    return openTemplate(in.state)
+  }
+
+  if (in.byte == 34) {
+    return { ...in.state, mode: Mode.InterpolationString }
+  }
+
+  if (in.byte == 47 && in.has_next) {
+    const next = in.next
+
+    if (next == 47 || next == 42) {
+      const next_skip_until = in.state.offset + 2
+
+      return { ...in.state, skip_until: next_skip_until, mode: next == 47 ? Mode.InterpolationLineComment : Mode.InterpolationBlockComment }
+    }
+  }
+
+  return in.state
+}

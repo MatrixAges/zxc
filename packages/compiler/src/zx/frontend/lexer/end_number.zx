@@ -1,0 +1,19 @@
+import type { LexerState } from "./model.zx"
+import { Mode } from "./model.zx"
+import result from "./number/number_result.zx"
+import emit from "./emit.zx"
+import fail from "./fail.zx"
+
+export type Input = LexerState
+
+export type Output = LexerState
+
+export default function (in: owned Input): Output {
+  const number = result(in.number)
+
+  if (number.diagnostic != "") {
+    return fail({ code: "lexical", start: in.start, end: in.start + number.end, message: number.diagnostic, state: in })
+  }
+
+  return emit({ kind: "number", start: in.start, end: in.start + number.end, comment: false, state: { ...in, mode: Mode.Idle } })
+}

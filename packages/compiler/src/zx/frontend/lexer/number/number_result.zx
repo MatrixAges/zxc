@@ -1,0 +1,18 @@
+import type { State, Result } from "./number_state.zx"
+import isDigit from "./is_digit.zx"
+
+export type Input = State
+
+export type Output = Result
+
+export default function (in: Input): Output {
+  if (!in.separators_valid || in.last_byte == 95) {
+    return { end: in.end, diagnostic: "digit separators must occur between digits" }
+  }
+
+  if (!isDigit(in.last_byte)) {
+    return { end: in.end, diagnostic: "an exponent requires at least one digit" }
+  }
+
+  return { end: in.end, diagnostic: "" }
+}

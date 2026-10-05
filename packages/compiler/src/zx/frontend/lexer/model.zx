@@ -1,0 +1,35 @@
+import type { State } from "./number/number_state.zx"
+import { Keyword } from "./keyword_model.zx"
+
+export enum Mode { Idle, Identifier, Number, String, StringEscape, LineComment, BlockComment, Template, TemplateEscape, Interpolation, InterpolationString, InterpolationStringEscape, InterpolationLineComment, InterpolationBlockComment }
+
+export type Span = { start: u64, end: u64 }
+
+export type Token = { kind: string, span: Span }
+
+export type Diagnostic = { code: string, start: u64, end: u64, message: string }
+
+export type Frame = { mode: Mode, start: u64, braces: u64, depth: u64 }
+
+export type LexerState = {
+  source_length: u64
+  warmed: u8
+  ahead_one: u8
+  ahead_two: u8
+  keyword: Keyword
+  offset: u64
+  skip_until: u64
+  mode: Mode
+  start: u64
+  braces: u64
+  depth: u64
+  frames: Frame[]
+  number: State
+  tokens: Token[]
+  comments: Span[]
+  diagnostic: Diagnostic
+}
+
+export type AdvanceInput = { byte: u8, next: u8, after: u8, has_next: bool, has_after: bool, state: LexerState }
+
+export type Result = { tokens: Token[], comments: Span[], diagnostic: Diagnostic }
