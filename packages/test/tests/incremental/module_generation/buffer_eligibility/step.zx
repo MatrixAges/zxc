@@ -1,0 +1,11 @@
+import leaf from "./leaf.zx"
+
+export type State = { values: u64[], count: u64 }
+
+export type Input = { state: State, item: u64 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  return leaf(in)
+}
