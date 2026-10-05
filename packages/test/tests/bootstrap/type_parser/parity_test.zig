@@ -1,5 +1,6 @@
 const std = @import("std");
 const comparison = @import("check.zig");
+const insertions = @import("insertions.zig");
 const Case = struct { name: []const u8, source: []const u8, start: u64, depth: u64, sha256: []const u8 };
 
 test "generated ZX type grammar matches native tree index and diagnostics" {
@@ -22,4 +23,12 @@ test "generated ZX type grammar matches native tree index and diagnostics" {
             return err;
         };
     }
+}
+
+test "generated type parser matches insertion mutations from the first token" {
+    try insertions.run("", 0);
+}
+
+test "generated type parser matches insertion mutations after a token prefix" {
+    try insertions.run("prefix ; ", 2);
 }
