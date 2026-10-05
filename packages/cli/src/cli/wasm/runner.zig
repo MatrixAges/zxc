@@ -13,6 +13,7 @@ var state_arena = std.heap.ArenaAllocator.init(std.heap.wasm_allocator);
 var state: State = undefined;
 var initialized = false;
 var request: ?Request = null;
+var input_storage: []u8 = &.{};
 var input: []u8 = &.{};
 var result: []const u8 = &.{};
 var ready = false;
@@ -27,19 +28,29 @@ export fn zxc_alloc(length: u32) u32 {
 
     zxc_reset();
 
+    const classes = @typeInfo(@FieldType(std.heap.BrkAllocator, "big_frees")).array.len;
+    const largest_block = (@as(u64, 1) << (classes - 1)) * std.heap.page_size_max;
+    const overhead = std.heap.page_size_max + 2 * @sizeOf(usize) - 1;
+
+    if (@as(u64, length) + overhead > largest_block) {
+        result = "OutOfMemory";
+
+        return 0;
+    }
+
     prepare() catch |err| {
         result = @errorName(err);
 
         return 0;
     };
 
-    input = request.?.arena.allocator().alloc(u8, @max(length, 1)) catch |err| {
+    input_storage = std.heap.wasm_allocator.alloc(u8, @max(length, 1)) catch |err| {
         result = @errorName(err);
 
         return 0;
     };
 
-    input = input[0..length];
+    input = input_storage[0..length];
     ready = true;
 
     return @intFromPtr(input.ptr);
@@ -80,7 +91,10 @@ export fn zxc_reset() void {
     if (executing) return;
     if (request) |*value| value.deinit();
 
+    std.heap.wasm_allocator.free(input_storage);
+
     request = null;
+    input_storage = &.{};
     input = &.{};
     result = &.{};
     ready = false;
