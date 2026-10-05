@@ -1,0 +1,12 @@
+export type Input = { items: i64[], count: u64 }
+
+export type Output = { removed: i64[], rest: i64[], popped: i64? }
+
+export default function (in: Input): Output {
+  const owned = in.items.map(item => item)
+
+  const [trimmed, removed] = owned.splice(0, in.count, [])
+  const [rest, popped] = trimmed.pop()
+
+  return { removed, rest, popped }
+}
