@@ -1,0 +1,55 @@
+✔ iterate CLI / precondition evaluation order (8128.760673ms)
+✔ iterate CLI / postcondition evaluation order (7959.07908ms)
+✔ iterate CLI / index failure precedes right hand side effects (7859.324915ms)
+✔ iterate RX / dynamic writes preserve initial values (7873.104227ms)
+✔ iterate import shadows the built in without changing its calling convention (7891.353196ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39715.426307
+Build Summary: 33/33 steps succeeded; 26/26 tests passed
+test-iterate success
++- run test 2 pass (2 total) 4ms MaxRSS:1M
+|  +- compile test safe native success 20s MaxRSS:618M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) success 13ms
+|        +- compile exe generate-lexer safe native success 19s MaxRSS:599M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 6 pass (6 total) 2ms MaxRSS:991K
+|  +- compile test safe native success 7s MaxRSS:325M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native success 1m MaxRSS:2G
+|     |     +- WriteFile cached
+|     |     +- compile lib yaml safe native cached 41ms MaxRSS:20M
+|     |     +- compile lib yaml safe native (reused)
+|     |     +- translate-c cached 43ms MaxRSS:20M
+|     |     +- options success
+|     |     +- run exe bundle-zig (bundle) cached
+|     |     |  +- compile exe bundle-zig fast native cached 46ms MaxRSS:21M
+|     |     |  +- WriteFile bundle_manifest.json cached
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:991K
+|  +- compile test safe native success 7s MaxRSS:310M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:313M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:394M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- test-iterate-cli success
+   +- run node success 39s
+      +- compile exe zxc safe native (+8 more reused dependencies)
+

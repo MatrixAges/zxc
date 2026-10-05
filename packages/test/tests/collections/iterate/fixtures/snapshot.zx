@@ -1,0 +1,37 @@
+export type Input = { count: u64, start: u64 }
+
+export type State = { limit: u64, index: u64, total: u64, previous: u64 }
+
+export type Output = { initial: State, result: State }
+
+export default function (in: Input): Output {
+  const initial: State = { limit: in.count, index: 0, total: in.start, previous: in.start }
+
+  const result = iterate(initial, {
+    while: state => state.index < state.limit,
+    next: state => {
+      const old = state
+
+      state.index += 1
+      state.total += state.index
+      state.previous = old.total
+
+      if (state.index % 2 == 0) {
+        state.total += 2
+      } else {
+        state.total += 1
+      }
+
+      switch (state.index % 3) {
+        case 0:
+          state.total += 3
+        case 1:
+          state.total += 4
+        default:
+          state.total += 5
+      }
+    }
+  })
+
+  return { initial: initial, result: result }
+}

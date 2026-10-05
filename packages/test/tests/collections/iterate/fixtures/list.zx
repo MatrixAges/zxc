@@ -1,0 +1,23 @@
+export type Input = { values: i64[], delta: i64, count: u64 }
+
+export type State = { values: i64[], delta: i64, count: u64, index: u64, total: i64, previous: i64 }
+
+export type Output = { original: i64[], values: i64[], total: i64, previous: i64 }
+
+export default function (in: Input): Output {
+  const initial: State = { values: in.values, delta: in.delta, count: in.count, index: 0, total: 0, previous: 0 }
+
+  const result = iterate(initial, {
+    while: state => state.index < state.count,
+    next: state => {
+      const previous = state.values[state.index]
+
+      state.values[state.index] += state.delta
+      state.previous = previous
+      state.total += state.values[state.index]
+      state.index += 1
+    }
+  })
+
+  return { original: initial.values, values: result.values, total: result.total, previous: result.previous }
+}

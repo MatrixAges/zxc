@@ -1,0 +1,71 @@
+test-iterate
++- run test
+   +- compile test debug native 1 errors
+tests/collections/iterate/root.zig:91:50: error: invalid left-hand side to assignment
+    if (comptime isMode("next") or isMode("do")) for ([_]usize{ 4095, 4096, 4097, 8192 }) |count| {
+                                                 ^~~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/iterate/root.zig -Odebug -Mprogram=.zig-cache/o/16ed165aff89200aa5e480b39203d30c/program.zig -Moptions=.zig-cache/o/cb581c664ebae8849b5bc91315568aa9/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name test --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-iterate
++- run test
+   +- compile test debug native 1 errors
+tests/collections/iterate/root.zig:91:50: error: invalid left-hand side to assignment
+    if (comptime isMode("next") or isMode("do")) for ([_]usize{ 4095, 4096, 4097, 8192 }) |count| {
+                                                 ^~~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/iterate/root.zig -Odebug -Mprogram=.zig-cache/o/2c79b76ee3d42f803b01b9c9568ec7a2/program.zig -Moptions=.zig-cache/o/ea4c6645f9f89be26ebc806d7bda76e9/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name test --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-iterate
++- run test
+   +- compile test debug native 1 errors
+tests/collections/iterate/root.zig:91:50: error: invalid left-hand side to assignment
+    if (comptime isMode("next") or isMode("do")) for ([_]usize{ 4095, 4096, 4097, 8192 }) |count| {
+                                                 ^~~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/iterate/root.zig -Odebug -Mprogram=.zig-cache/o/afb72b56c6ddbde2461630bbcc1e89ec/program.zig -Moptions=.zig-cache/o/775b04b927fff9c008ce12565e97ae36/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name test --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-iterate
++- run test
+   +- compile test debug native 1 errors
+tests/collections/iterate/root.zig:91:50: error: invalid left-hand side to assignment
+    if (comptime isMode("next") or isMode("do")) for ([_]usize{ 4095, 4096, 4097, 8192 }) |count| {
+                                                 ^~~
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/iterate/root.zig -Odebug -Mprogram=.zig-cache/o/d16503990f1d246c187f3255973cfcf2/program.zig -Moptions=.zig-cache/o/73cf966d0fcb27cf042c6e997362aced/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name test --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+Build Summary: 20/29 steps succeeded (4 failed)
+test-iterate transitive failure
++- run test transitive failure
+|  +- compile test debug native 1 errors
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc debug native success 11s MaxRSS:1G
+|     |     +- WriteFile cached
+|     |     +- compile lib yaml debug native cached 38ms MaxRSS:20M
+|     |     +- compile lib yaml debug native (reused)
+|     |     +- translate-c cached 40ms MaxRSS:20M
+|     |     +- options success
+|     |     +- run exe bundle-zig (bundle) cached
+|     |     |  +- compile exe bundle-zig fast native cached 41ms MaxRSS:21M
+|     |     |  +- WriteFile bundle_manifest.json cached
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     +- run exe generate-lexer (lexer.zig) success 54ms
+|     |        +- compile exe generate-lexer debug native success 3s MaxRSS:463M
+|     |           +- WriteFile interfaces/0.d.zx cached
+|     +- options success
++- run test transitive failure
+|  +- compile test debug native 1 errors
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options success
++- run test transitive failure
+|  +- compile test debug native 1 errors
+|     +- run exe zxc (program.zig) success 9ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options success
++- run test transitive failure
+   +- compile test debug native 1 errors
+      +- run exe zxc (program.zig) success 7ms
+      |  +- compile exe zxc debug native (+8 more reused dependencies)
+      +- options success
+
