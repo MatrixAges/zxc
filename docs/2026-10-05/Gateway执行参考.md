@@ -20,7 +20,7 @@ zxc build main.gateway.rx --out server
 ./server
 ```
 
-Gateway 默认使用 HTTP；listen 默认 `127.0.0.1:8080`，支持数字 IPv4 或带方括号的 IPv6 地址及端口。它不执行 DNS 解析。`service` 相对 Gateway 所在目录解析，Group 只组织 URL 路径。
+Gateway 默认使用 HTTP；listen 默认 `127.0.0.1:8080`，支持数字 IPv4 或带方括号的 IPv6 地址及显式十进制端口。不接受省略端口的 `127.0.0.1` 或 `[::1]`；显式端口 0 由操作系统分配。它不执行 DNS 解析。`service` 相对 Gateway 所在目录解析，Group 只组织 URL 路径。
 
 每个服务仍是普通 Module，例如：
 
@@ -58,6 +58,8 @@ export default function (in: Input): Output {
 ## Edges：边界与限制
 
 正文按 Content-Length 或 chunked 标记读取；这也适用于明确携带正文的 GET 等方法。两者均无时按空正文处理。支持 `100-continue` 握手；过大的声明长度在发送继续信号前拒绝。请求体不能使用压缩编码。
+
+原始请求头在路由执行前校验：字段名使用非空 ASCII token，冒号前无空白；值允许 HTAB 与非 UTF-8 的 obs-text 字节，拒绝 NUL 等非法控制字节。非法头返回 400，不执行服务或更新 Store。
 
 | 情况                                               | 响应                                    |
 | -------------------------------------------------- | --------------------------------------- |
