@@ -1,0 +1,7 @@
+export type Input = { name: string, values: i32[] }
+
+export type Output = { greeting: string, total: i32 }
+
+export default function (in: Input): Output {
+  return { greeting: `Hello, ${in.name}`, total: in.values.reduce((sum, value) => sum + value, 0) }
+}

@@ -93,3 +93,7 @@ zxc build pkg.yaml --mode lib --out dist/arithmetic
 构建先验证所有公开模块的契约，再从暂存目录发布；`--watch` 沿用输入变化检查，`--cache-stats` 可观察模块级 Zig 生成复用。原生路径与 ABI 别名随包搬迁，外部系统库和外部头文件搜索路径仍是显式构建要求。
 
 详见 [统一库发布 reference](../../docs/2026-10-05/统一库发布参考.md)；完整设计与剩余边界见 [统一库设计](../../docs/2026-10-05/统一库设计.md)。
+
+## WebAssembly
+
+`zxc build main.zx --target wasm32-wasi --out main.wasm` 生成 WASI preview1 命令应用；`--target wasm32-freestanding` 生成可由标准 WebAssembly 宿主实例化的调用模块。ZX 与普通 RX 共用生成管线，RX Store 在实例内跨调用保留。freestanding 提供 JSON 输入输出及标量直接调用，显式管理请求与状态生命周期，不提供 OS I/O、进程或 Gateway。构建命令、导出 ABI、错误与内存边界见 [WASM reference](../../docs/2026-10-05/WASM参考.md)。

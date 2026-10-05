@@ -48,10 +48,20 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     configuration_options.watch = false;
     const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = configuration_options, .project = loaded }, .{});
     const abi = try @import("abi.zig").create(allocator, bundle, loaded);
-    const directory = try artifacts.prepare(io, allocator, bundle, configuration, abi, options.result == .json);
+    const wasm = try @import("wasm/target.zig").freestanding(options.target);
+    var executable_bundle = bundle;
+
+    if (wasm) {
+        if (bundle.runner != null) return error.UnsupportedWasmRunner;
+
+        executable_bundle.runner = @import("wasm/target.zig").runner(bundle.state_module != null);
+    }
+
+    const directory = try artifacts.prepare(io, allocator, executable_bundle, configuration, abi, options.result == .json);
     var arguments: std.ArrayList([]const u8) = .empty;
 
     try arguments.appendSlice(allocator, &.{ toolchain.executable, "build-exe", "--zig-lib-dir", toolchain.library });
+    if (wasm) try arguments.appendSlice(allocator, &.{ "-fno-entry", "--export-memory", "-rdynamic" });
 
     if (emission == .observed) {
         const paths = emission.observed;
