@@ -108,3 +108,22 @@ zig build-exe --dep idna \
 局部编译及 zig fmt 检查通过。[17 次 IDNA 观测](完整URL/IDNA观测.json)与本机 Node domainToASCII 的接受、拒绝和输出一致，包含全角映射、偏差字符、有效连接符、无效连接符、非 NFC ACE、空标签与域名级 Bidi 触发。没有新增测试套件或运行全量测试。
 
 自我批判：这些小范围观测不构成完整 IDNA 一致性证明。Unicode 18 新增字符尚需独立规范数据核验；主机解析、URL 状态机和公开接口仍未完成。本阶段不把内部转换注册成完整 std:url。
+
+## 主机解析整合阶段
+
+Intent：把域名、IPv4、IPv6 和不透明主机接成可供 URL 状态机调用的内部入口。Data：2026-10-05 核对的 WHATWG URL Standard（页面更新日期为 2026-09-10），特别是 host parser、domain parser 与 forbidden host/domain code point 定义。Edges：入口接收 UTF-8 scalar 字节串；URL 层仍需处理整体输入清理、file 空主机及端口。Answer：host.parse 返回已序列化的规范主机字符串，由调用方释放；尚不注册 ZX 公开模块。
+
+方括号主机优先解析 IPv6，并保留序列化括号。特殊主机执行百分号解码、域名转换、禁止字符检查，再依据末段数字语法分流 IPv4。不透明主机保留大小写和百分号串，检查禁止字符后按 C0 集编码。
+
+关键规范差异：当前 [domain parser](https://url.spec.whatwg.org/#concept-domain-parser) 对纯 ASCII 输入直接转小写，不因 Unicode ToASCII 校验错误而拒绝；非 ASCII 输入才使用非 strict IDNA 转换。前阶段严格 IDNA 接口保持原有语义，URL 主机层实现该兼容规则。不可把 Node 的旧行为作为全部规范判定依据。
+
+```sh
+zig build-exe --dep url \
+  -Mroot=docs/2026-10-05/完整URL/观察工具/host.zig \
+  -Murl=packages/compiler/standard/src/url/root.zig \
+  -femit-bin=/tmp/zxc_url_host
+```
+
+局部编译通过。[32 次主机观测](完整URL/主机观测.json)中 30 次与本机 Node 相符；纯 ASCII 的 xn-- 和 xn--8i7caa 在生产实现中按当前规范保留，Node 拒绝，差异已保留在原始记录中。没有执行全量测试。IDNA 生成器重新运行后，两份静态表 SHA-256 均与已提交版本一致。
+
+自我批判：上述差异说明宿主对照不是规范证明；当前入口不返回非致命 validation error 诊断，也没有提供 strict 域名有效性 API。完整 URL 状态机、序列化、origin、file 与公开接口仍需实施，主机层的局部成功不能替代最终消费证据。
