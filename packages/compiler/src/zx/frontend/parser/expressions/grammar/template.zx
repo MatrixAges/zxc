@@ -1,10 +1,11 @@
-import type { ExprState, ExprControl } from "../state/model"
+import { PartKind } from "../../templates/model"
+import emit from "../state/emit"
+import frame from "../state/frame"
 import { Phase, FrameKind, ExprKind } from "../state/model"
 import node from "../state/node"
-import frame from "../state/frame"
-import emit from "../state/emit"
 import takeFrame from "../state/take_frame"
-import { PartKind } from "../../templates/model"
+
+import type { ExprState, ExprControl } from "../state/model"
 
 export type Input = ExprState
 

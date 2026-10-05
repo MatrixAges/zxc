@@ -1,8 +1,9 @@
-import type { ExprState, ExprFrame } from "../state/model"
-import { Phase, ExprKind } from "../state/model"
-import node from "../state/node"
 import consume from "../state/consume"
 import emit from "../state/emit"
+import { Phase, ExprKind } from "../state/model"
+import node from "../state/node"
+
+import type { ExprState, ExprFrame } from "../state/model"
 
 export type Input = { state: ExprState, frame: ExprFrame }
 

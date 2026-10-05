@@ -1,12 +1,13 @@
+import finish from "./finish"
+import flush from "./flush"
+import initial from "./initial"
+import { Keyword } from "./keyword_model"
+import tick from "./tick"
+import { Kind, Symbol } from "./token_model"
+import validateUtf8 from "./utf8/validate"
+
 import type { Result } from "./model"
 import type { Token, Span } from "./token_model"
-import { Kind, Symbol } from "./token_model"
-import { Keyword } from "./keyword_model"
-import flush from "./flush"
-import validateUtf8 from "./utf8/validate"
-import tick from "./tick"
-import finish from "./finish"
-import initial from "./initial"
 
 export type Input = u8[]
 

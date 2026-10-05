@@ -1,7 +1,8 @@
-import type { Session } from "./model"
-import flush from "../../../lexer/flush"
 import finish from "../../../lexer/finish"
+import flush from "../../../lexer/flush"
 import appendTokenIds from "../boundary/append_token_ids"
+
+import type { Session } from "./model"
 
 export type Input = { session: Session, end: u64 }
 

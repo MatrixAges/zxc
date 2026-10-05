@@ -1,11 +1,12 @@
-import type { State } from "./model"
-import { TypeKind, Phase } from "./model"
 import { Symbol } from "../../lexer/token_model"
-import open from "./open"
 import addNode from "./add_node"
 import complete from "./complete"
 import consume from "./consume"
 import fail from "./fail"
+import { TypeKind, Phase } from "./model"
+import open from "./open"
+
+import type { State } from "./model"
 
 export type Input = State
 

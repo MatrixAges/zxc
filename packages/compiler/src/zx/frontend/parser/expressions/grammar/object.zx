@@ -1,13 +1,14 @@
-import type { ExprState, ExprControl } from "../state/model"
-import { Phase, ExprKind } from "../state/model"
 import { Kind, Symbol } from "../../../lexer/token_model"
-import node from "../state/node"
 import consume from "../state/consume"
 import emit from "../state/emit"
 import fail from "../state/fail"
+import { Phase, ExprKind } from "../state/model"
+import node from "../state/node"
 import takeFrame from "../state/take_frame"
 import finish from "./object_finish"
 import complete from "./object_return"
+
+import type { ExprState, ExprControl } from "../state/model"
 
 export type Input = ExprState
 

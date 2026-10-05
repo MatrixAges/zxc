@@ -1,16 +1,17 @@
-import type { AdvanceInput, LexerState } from "./model"
-import { Mode } from "./model"
-import { Phase } from "./number/number_state"
-import { Keyword } from "./keyword_model"
-import keywordTransition from "./keyword_transition"
-import isDigit from "./number/is_digit"
-import isLetter from "./is_letter"
-import isPunctuation from "./is_punctuation"
-import punctuationSymbol from "./punctuation_symbol"
-import operatorLength from "./operator_length"
 import emit from "./emit"
 import fail from "./fail"
+import isLetter from "./is_letter"
+import isPunctuation from "./is_punctuation"
+import { Keyword } from "./keyword_model"
+import keywordTransition from "./keyword_transition"
+import { Mode } from "./model"
+import isDigit from "./number/is_digit"
+import { Phase } from "./number/number_state"
+import operatorLength from "./operator_length"
+import punctuationSymbol from "./punctuation_symbol"
 import openTemplate from "./template/open_template"
+
+import type { AdvanceInput, LexerState } from "./model"
 
 export type Input = AdvanceInput
 

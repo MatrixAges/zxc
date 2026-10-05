@@ -1,7 +1,8 @@
-import type { Session } from "./model"
-import type { LexerState } from "../../../lexer/model"
-import { Mode } from "../../../lexer/model"
 import emit from "../../../lexer/emit"
+import { Mode } from "../../../lexer/model"
+
+import type { LexerState } from "../../../lexer/model"
+import type { Session } from "./model"
 
 export type Input = { session: Session, start: u64, end: u64, template: u64 }
 

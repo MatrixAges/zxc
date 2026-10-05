@@ -1,11 +1,12 @@
-import type { State } from "./model"
-import { Phase } from "./model"
 import { Kind, Symbol } from "../../lexer/token_model"
-import copyFrame from "./copy_frame"
-import replaceFrame from "./replace_frame"
 import close from "./close"
 import consume from "./consume"
+import copyFrame from "./copy_frame"
 import fail from "./fail"
+import { Phase } from "./model"
+import replaceFrame from "./replace_frame"
+
+import type { State } from "./model"
 
 export type Input = State
 

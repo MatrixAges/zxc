@@ -1,8 +1,9 @@
-import type { PreparedInput } from "./prepare/model"
-import type { ExprState } from "./state/model"
+import partSteps from "./part_steps"
 import initial from "./state/initial"
 import tokenSteps from "./token_steps"
-import partSteps from "./part_steps"
+
+import type { PreparedInput } from "./prepare/model"
+import type { ExprState } from "./state/model"
 
 export type Input = { prepared: PreparedInput, start: u64, depth: u64, minimum: u8, allow_lambda: bool }
 

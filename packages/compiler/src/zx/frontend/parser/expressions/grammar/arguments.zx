@@ -1,8 +1,9 @@
-import type { ExprState, ExprControl } from "../state/model"
 import { Symbol } from "../../../lexer/token_model"
 import takeFrame from "../state/take_frame"
-import beginBinary from "./begin_binary"
 import finish from "./arguments_finish"
+import beginBinary from "./begin_binary"
+
+import type { ExprState, ExprControl } from "../state/model"
 
 export type Input = ExprState
 

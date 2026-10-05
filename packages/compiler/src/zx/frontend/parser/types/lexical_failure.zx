@@ -1,7 +1,8 @@
-import type { State } from "./model"
-import type { Diagnostic } from "../../lexer/model"
-import { Phase } from "./model"
 import initial from "./initial"
+import { Phase } from "./model"
+
+import type { Diagnostic } from "../../lexer/model"
+import type { State } from "./model"
 
 export type Input = { start: u64, depth: u64, diagnostic: Diagnostic }
 

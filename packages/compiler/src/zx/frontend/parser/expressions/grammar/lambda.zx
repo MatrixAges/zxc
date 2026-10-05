@@ -1,9 +1,10 @@
-import type { ExprState, ExprControl } from "../state/model"
-import { Phase } from "../state/model"
 import { Kind, Symbol } from "../../../lexer/token_model"
 import consume from "../state/consume"
 import fail from "../state/fail"
+import { Phase } from "../state/model"
 import takeFrame from "../state/take_frame"
+
+import type { ExprState, ExprControl } from "../state/model"
 
 export type Input = ExprState
 

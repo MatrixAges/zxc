@@ -1,7 +1,8 @@
-import type { State } from "./model"
-import type { Span } from "../../lexer/token_model"
-import { TypeKind, Phase } from "./model"
 import consume from "./consume"
+import { TypeKind, Phase } from "./model"
+
+import type { Span } from "../../lexer/token_model"
+import type { State } from "./model"
 
 export type Input = { state: State, kind: TypeKind, name: Span, phase: Phase }
 

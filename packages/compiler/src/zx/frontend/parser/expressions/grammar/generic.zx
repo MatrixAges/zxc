@@ -1,11 +1,12 @@
-import type { ExprState } from "../state/model"
-import { Phase } from "../state/model"
 import { Symbol } from "../../../lexer/token_model"
+import typeStep from "../../types/step"
 import consume from "../state/consume"
 import fail from "../state/fail"
-import typeStep from "../../types/step"
+import { Phase } from "../state/model"
 import startArguments from "./start_arguments"
 import typeDone from "./type_done"
+
+import type { ExprState } from "../state/model"
 
 export type Input = ExprState
 

@@ -1,8 +1,9 @@
-import type { Span, Token } from "../../../lexer/token_model"
-import type { Diagnostic } from "../../../lexer/model"
-import type { PreparedInput, Hint } from "../prepare/model"
-import type { Tree, Frame, Control } from "../../types/model"
 import { Operator, Family } from "../prepare/model"
+
+import type { Diagnostic } from "../../../lexer/model"
+import type { Span, Token } from "../../../lexer/token_model"
+import type { Tree, Frame, Control } from "../../types/model"
+import type { PreparedInput, Hint } from "../prepare/model"
 
 export enum ExprKind { Number, String, Boolean, Null, Identifier, Field, Index, List, Call, Lambda, Template, Unary, Binary, Conditional, Match, Object }
 

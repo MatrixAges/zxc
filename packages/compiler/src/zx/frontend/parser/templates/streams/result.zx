@@ -1,8 +1,9 @@
-import type { Session } from "./model"
-import type { Interpolation } from "../model"
-import type { Token, Span } from "../../../lexer/token_model"
-import { Kind, Symbol } from "../../../lexer/token_model"
 import { Keyword } from "../../../lexer/keyword_model"
+import { Kind, Symbol } from "../../../lexer/token_model"
+
+import type { Token, Span } from "../../../lexer/token_model"
+import type { Interpolation } from "../model"
+import type { Session } from "./model"
 
 export type Input = { session: Session, end: u64 }
 

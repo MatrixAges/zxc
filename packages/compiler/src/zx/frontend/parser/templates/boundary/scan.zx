@@ -1,12 +1,13 @@
-import type { Boundary } from "../model"
-import { Kind, Symbol } from "../../../lexer/token_model"
 import { Keyword } from "../../../lexer/keyword_model"
+import { Kind, Symbol } from "../../../lexer/token_model"
 import validateUtf8 from "../../../lexer/utf8/validate"
+import empty from "./empty"
+import finish from "./finish"
+import flush from "./flush"
 import initial from "./initial"
 import tick from "./tick"
-import flush from "./flush"
-import finish from "./finish"
-import empty from "./empty"
+
+import type { Boundary } from "../model"
 
 export type Input = u8[]
 

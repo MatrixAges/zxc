@@ -1,14 +1,15 @@
-import type { AdvanceInput, LexerState } from "./model"
-import { Mode } from "./model"
-import keywordTransition from "./keyword_transition"
-import isDigit from "./number/is_digit"
-import isLetter from "./is_letter"
-import endIdentifier from "./end_identifier"
 import begin from "./begin"
-import number from "./number"
-import string from "./string"
 import comment from "./comment"
+import endIdentifier from "./end_identifier"
+import isLetter from "./is_letter"
+import keywordTransition from "./keyword_transition"
+import { Mode } from "./model"
+import number from "./number"
+import isDigit from "./number/is_digit"
+import string from "./string"
 import template from "./template/advance"
+
+import type { AdvanceInput, LexerState } from "./model"
 
 export type Input = AdvanceInput
 

@@ -1,9 +1,10 @@
-import type { State } from "./model"
-import type { Token } from "../../lexer/token_model"
+import field from "./field"
 import { Phase } from "./model"
 import primary from "./primary"
 import suffix from "./suffix"
-import field from "./field"
+
+import type { Token } from "../../lexer/token_model"
+import type { State } from "./model"
 
 export type Input = { state: State, token: Token }
 

@@ -1,7 +1,8 @@
-import type { Token, Span } from "./token_model"
-import type { State } from "./number/number_state"
-import { Symbol } from "./token_model"
 import { Keyword } from "./keyword_model"
+import { Symbol } from "./token_model"
+
+import type { State } from "./number/number_state"
+import type { Token, Span } from "./token_model"
 
 export enum Mode { Idle, Identifier, Number, String, StringEscape, LineComment, BlockComment, Template, TemplateEscape, Interpolation, InterpolationString, InterpolationStringEscape, InterpolationLineComment, InterpolationBlockComment }
 

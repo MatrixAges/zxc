@@ -1,9 +1,10 @@
+import { Keyword } from "./keyword_model"
+import { Mode } from "./model"
+import { Phase } from "./number/number_state"
+import { Symbol } from "./token_model"
+
 import type { LexerState, Frame } from "./model"
 import type { Token, Span } from "./token_model"
-import { Mode } from "./model"
-import { Symbol } from "./token_model"
-import { Keyword } from "./keyword_model"
-import { Phase } from "./number/number_state"
 
 export type Input = { start: u64, end: u64 }
 
