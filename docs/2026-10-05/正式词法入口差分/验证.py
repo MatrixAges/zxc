@@ -15,7 +15,7 @@ expected_hash = json.loads((previous / "验证结果.json").read_text())["refere
 assert hashlib.sha256(reference.read_bytes()).hexdigest() == expected_hash
 inventory = previous / "输入清单.jsonl"
 cases = [json.loads(line) for line in inventory.read_text().splitlines()]
-sources = sorted((repo / "packages/compiler/src/zx/frontend/lexer").rglob("*.zx")) + [repo / "packages/compiler/src/zx/frontend/lex.zig", repo / "packages/compiler/build/lexer.zig", repo / "packages/compiler/build/compiler.zig"]
+sources = sorted(path for path in (repo / "packages/compiler/src/zx/frontend/lexer").rglob("*") if path.is_file()) + [repo / "packages/compiler/src/zx/frontend/lex.zig", repo / "packages/compiler/build/lexer.zig", repo / "packages/compiler/build/compiler.zig", repo / "packages/compiler/build/generate_lexer.zig"]
 source_hashes = {str(path.relative_to(repo)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources}
 with (folder / "构建.log").open("w") as output:
     subprocess.run(["zig", "build", "-Doptimize=ReleaseSafe", "--summary", "all"], cwd=folder, stdout=output, stderr=subprocess.STDOUT, check=True)
