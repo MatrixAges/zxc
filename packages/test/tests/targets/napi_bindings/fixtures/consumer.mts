@@ -1,9 +1,9 @@
 import type { Buffer } from 'node:buffer'
 import type { Input, Output } from './addon.cjs'
-import { execute } from './addon.cjs'
-import { execute as noInput } from './void.cjs'
-import { execute as produce } from './no_input.cjs'
-import { execute as discard } from './no_output.cjs'
+import { execute, executeAsync } from './addon.cjs'
+import { execute as noInput, executeAsync as noInputAsync } from './void.cjs'
+import { execute as produce, executeAsync as produceAsync } from './no_input.cjs'
+import { execute as discard, executeAsync as discardAsync } from './no_output.cjs'
 
 const input: Input = {
 	name: 'typed',
@@ -20,6 +20,12 @@ const note: string | null = output.note
 const empty: void = noInput()
 const produced: bigint = produce()
 const discarded: void = discard(1n)
+const pending: Promise<Output> = executeAsync(input)
+const awaited: Output = await pending
+const async_bytes: Buffer = awaited.bytes
+const async_empty: Promise<void> = noInputAsync()
+const async_produced: Promise<bigint> = produceAsync()
+const async_discarded: Promise<void> = discardAsync(1n)
 
 output.values.push(2n)
 output.pair[0] = false
@@ -71,4 +77,27 @@ discard(1)
 // @ts-expect-error Void output must not widen to the input type.
 const wrong_result: bigint = discard(1n)
 
-export { bytes, note, empty, produced, discarded }
+// @ts-expect-error Async calls preserve required inputs.
+executeAsync()
+// @ts-expect-error Async calls reject extra positional arguments.
+executeAsync(input, input)
+// @ts-expect-error Async inputs preserve BigInt requirements.
+executeAsync({ ...input, count: 1 })
+// @ts-expect-error Async inputs preserve tuple arity.
+executeAsync({ ...input, pair: [true] })
+// @ts-expect-error Async inputs preserve byte array restrictions.
+executeAsync({ ...input, bytes: new Uint16Array(2) })
+// @ts-expect-error Async results require awaiting the Promise.
+const synchronous: Output = executeAsync(input)
+// @ts-expect-error Awaited output nullable fields do not contain undefined.
+const async_missing: undefined = awaited.note
+// @ts-expect-error Async void input takes no arguments.
+noInputAsync(undefined)
+// @ts-expect-error Async void input must not introduce an optional argument.
+produceAsync(undefined)
+// @ts-expect-error Async void output retains required input.
+discardAsync()
+// @ts-expect-error Async void output does not return the input.
+const async_wrong: Promise<bigint> = discardAsync(1n)
+
+export { bytes, note, empty, produced, discarded, async_bytes, async_empty, async_produced, async_discarded }

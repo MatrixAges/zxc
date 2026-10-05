@@ -10,6 +10,10 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, optimize: std.builtin.Opti
         run.addFileInput(b.path(b.fmt("tests/targets/napi_bindings/{s}", .{name})));
     }
 
+    for ([_][]const u8{ "load.ts", "input.ts", "protocol.ts", "ownership.ts", "state.ts", "lifecycle.ts", "worker.ts", "errors.ts", "run_test.ts" }) |name| {
+        run.addFileInput(b.path(b.fmt("tests/targets/napi/async/{s}", .{name})));
+    }
+
     run.addArtifactArg(cli.artifact("zxc"));
     run.addDirectoryArg(b.path("tests/targets/napi/fixtures"));
     run.addFileArg(b.path("tests/targets/napi_bindings/fixtures/consumer.mts"));

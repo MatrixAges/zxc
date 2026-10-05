@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { cpSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import checkPublication from './publication.ts'
 import typecheck from './typecheck.ts'
 
@@ -32,10 +33,11 @@ const build: Build = args => {
 
 function execute(args: { module: string; mode: string; body: string }): void {
 	const { module, mode, body } = args
+	const check = `async function check() { ${body} }; check().catch(error => { console.error(error); process.exitCode = 1 });`
 	const source =
 		mode === 'module'
-			? `import assert from 'node:assert/strict'; import { execute } from ${JSON.stringify(module)}; ${body}`
-			: `const assert = require('node:assert/strict'); const { execute } = require(${JSON.stringify(module)}); ${body}`
+			? `import assert from 'node:assert/strict'; import { execute, executeAsync } from ${JSON.stringify(module)}; ${check}`
+			: `const assert = require('node:assert/strict'); const { execute, executeAsync } = require(${JSON.stringify(module)}); ${check}`
 	const result = spawnSync(process.execPath, [`--input-type=${mode}`, '-e', source], {
 		cwd: root,
 		encoding: 'utf8',
@@ -58,6 +60,8 @@ try {
 	build({ source: 'record.zx', output: join(root, 'addon.node') })
 	build({ source: 'scalars/void.zx', output: join(root, 'void.node') })
 	build({ source: 'state/main.rx', output: join(root, 'state.node') })
+	build({ source: 'state/select.zx', output: join(root, 'select.node') })
+	build({ source: 'state/selected.rx', output: join(root, 'selected_state.node') })
 	count += typecheck(join(root, 'consumer.mts'))
 	console.log(`${count} TypeScript declaration checks passed`)
 
@@ -71,20 +75,52 @@ try {
 		execute({ module: './no_input.cjs', mode, body: 'assert.equal(execute(),9n);' })
 		execute({ module: './no_output.cjs', mode, body: 'assert.equal(execute(1n),undefined);' })
 		execute({ module: './state.cjs', mode, body: 'assert.equal(execute(1n),4n); assert.equal(execute(2n),6n);' })
-		count += 5
+		execute({
+			module: './addon.cjs',
+			mode,
+			body: "const result = await executeAsync({name:'async',bytes:[1,2],count:3n,pair:[true,0.5],mode:'Read',values:[1n],nested:[{value:'x'}]}); assert.ok(Buffer.isBuffer(result.bytes)); assert.equal(result.count,3n); assert.equal(result.note,null);"
+		})
+		execute({ module: './void.cjs', mode, body: 'assert.equal(await executeAsync(),undefined);' })
+		execute({ module: './no_input.cjs', mode, body: 'assert.equal(await executeAsync(),9n);' })
+		execute({ module: './no_output.cjs', mode, body: 'assert.equal(await executeAsync(1n),undefined);' })
+		execute({
+			module: './state.cjs',
+			mode,
+			body: 'assert.deepEqual(await Promise.all([executeAsync(1n),executeAsync(2n)]),[4n,6n]);'
+		})
+		count += 10
 	}
+
+	const asynchronous = spawnSync(
+		process.execPath,
+		['--expose-gc', fileURLToPath(new URL('../napi/async/run_test.ts', import.meta.url)), root],
+		{ cwd: root, encoding: 'utf8', timeout: 60_000 }
+	)
+
+	assert.ifError(asynchronous.error)
+	assert.equal(asynchronous.signal, null, asynchronous.stderr)
+	assert.equal(asynchronous.status, 0, asynchronous.stderr)
+	process.stdout.write(asynchronous.stdout)
 
 	count += checkPublication({ build, project, root })
 
 	for (const mode of ['commonjs', 'module']) {
-		execute({ module: './addon.cjs', mode, body: 'assert.equal(execute(),undefined);' })
+		execute({
+			module: './addon.cjs',
+			mode,
+			body: 'assert.equal(execute(),undefined); assert.equal(await executeAsync(),undefined);'
+		})
 		count += 1
 	}
 
 	const unusual = 'quoted "中 name'
 
 	build({ source: 'scalars/void.zx', output: join(root, `${unusual}.node`) })
-	execute({ module: `./${unusual}.cjs`, mode: 'module', body: 'assert.equal(execute(),undefined);' })
+	execute({
+		module: `./${unusual}.cjs`,
+		mode: 'module',
+		body: 'assert.equal(execute(),undefined); assert.equal(await executeAsync(),undefined);'
+	})
 	assert.ok(readFileSync(join(root, `${unusual}.d.cts`), 'utf8').includes('export function execute()'))
 	count += 1
 	console.log(`${count} NAPI module binding cases passed (${optimize})`)
