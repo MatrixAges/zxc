@@ -65,3 +65,25 @@ zig build-exe --dep ipv4 --dep ipv6 --dep percent --dep model \
 ### 自我批判与下一步
 
 这只是完整 URL 所需的内部基础层，没有注册 std:url，也不能代替整个 URL 的应用与库消费验证。下一步是 IDNA、NFC 与 Unicode 校验，再实施 URL 解析状态机。Unicode 官方当前 UTS #46 为 18.0.0，需明确固定数据版本及来源，不使用旧版宿主 Unicode 数据冒充当前标准。Zig 原有 IPv6 解析的嵌入 IPv4 快捷路径不覆盖标准全部形式，因此没有直接复用它。
+
+## Punycode 与 NFC 阶段
+
+[RFC 3492 Punycode](https://www.rfc-editor.org/rfc/rfc3492.html) 编解码已实现内部接口，直接处理 Unicode scalar 列表，保留 ASCII 基本字符，执行偏置调整和整数溢出检查。20 次实际编解码与 Python Punycode 编码器结果一致，包括非拉丁文字、补充平面字符、纯 ASCII、空串、错误数字序列及往返；见 [Punycode 观测](完整URL/Punycode观测.json)。
+
+[NFC](https://www.unicode.org/reports/tr15/) 使用固定 Unicode 18.0.0 官方数据，不使用宿主 Python Unicode 版本生成。生成器先核对原始数据 SHA-256，展开规范分解，生成 422 个组合类区间、2081 个规范分解条目、961 个组合对；排除 Full_Composition_Exclusion，Hangul 使用标准算法分解与组合。非起始组合字符使用稳定排序，保留相同组合类顺序；再执行受阻规则下的规范组合。
+
+官方文件及地址、摘要保存在 [数据来源](完整URL/Unicode数据/来源.json)，附带 Unicode License V3；生成表内也带完整许可说明，避免源表被单独复制时丢失许可。生成器可离线运行，重复生成结果字节一致。源码生成工具与数据在 docs 中，生产只使用已生成常量表，没有启动时下载、解析数据文件或依赖 Python。
+
+19 次 NFC 观测覆盖组合重排、相同组合类阻断、规范等价、Hangul、非组合项和补充平面字符，与宿主 Python 的这些共同字符行为一致。参考 Unicode 版本和生产数据版本均记录在 [NFC 观测](完整URL/NFC观测.json)；该观测不宣称覆盖 Unicode 18 新增字符的全部行为。
+
+```sh
+python3 docs/2026-10-05/完整URL/数据生成/normalization.py
+
+zig build-exe --dep punycode --dep nfc \
+  -Mroot=docs/2026-10-05/完整URL/域名观察/main.zig \
+  -Mpunycode=packages/compiler/standard/src/url/host/idna/punycode.zig \
+  -Mnfc=packages/compiler/standard/src/url/host/idna/nfc.zig \
+  -femit-bin=/tmp/zxc_domain_parts
+```
+
+自我复核：Punycode 和 NFC 仍不是完整 IDNA。映射状态处理、连接字符上下文、双向文字校验、主机整合以及 URL 状态机仍需完成。此阶段不开放 std:url，不修改现有查询参数 API；数据表和算法的小范围观测不能替代完整规范一致性证据。
