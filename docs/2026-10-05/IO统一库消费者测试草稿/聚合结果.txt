@@ -1,0 +1,1408 @@
+test-rx-io
++- test-rx-io-library
+   +- run test
+      +- compile test Debug native
+         +- run exe replay-rx-io-library (program.zig)
+            +- run exe consume-rx-io-library (republished.zxlib)
+               +- run exe consume-rx-io-library (consumer.zxlib) failure
+RX consumer: consumer.rx:2:43: type_mismatch: void call or task results cannot be bound
+error: InvalidConsumer
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/parallel/library/import.zig:51:9: 0x1038cfe75 in link (consume-rx-io-library)
+        return error.InvalidConsumer;
+        ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/parallel/library/consume.zig:28:22: 0x1038d092e in main (consume-rx-io-library)
+        break :block try importer.link(allocator, &library, args[2], language);
+                     ^
+error: process exited with error code 1
+failed command: ./.zig-cache/o/74873eeeca9bfd153e32ee42d2793bdd/consume-rx-io-library ./.zig-cache/o/04656b74aa1d5fde0fe8b305a93b5ea1/workflow.zxlib workflow rx /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/.zig-cache/o/9960b6ce3e90c8b584f10391ee940c34/consumer.zxlib
+
+test-rx-io
++- test-rx-io-library
+   +- run test
+      +- compile test Debug native
+         +- run exe replay-rx-io-library (program.zig)
+            +- run exe consume-rx-io-library (consumer.zxlib) failure
+RX consumer: consumer.rx:2:43: type_mismatch: void call or task results cannot be bound
+error: InvalidConsumer
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/parallel/library/import.zig:51:9: 0x10be7fe75 in link (consume-rx-io-library)
+        return error.InvalidConsumer;
+        ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/parallel/library/consume.zig:28:22: 0x10be8092e in main (consume-rx-io-library)
+        break :block try importer.link(allocator, &library, args[2], language);
+                     ^
+error: process exited with error code 1
+failed command: ./.zig-cache/o/74873eeeca9bfd153e32ee42d2793bdd/consume-rx-io-library ./.zig-cache/o/04656b74aa1d5fde0fe8b305a93b5ea1/workflow.zxlib workflow rx /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/.zig-cache/o/9960b6ce3e90c8b584f10391ee940c34/consumer.zxlib
+
+test-rx-io
++- test-rx-io-library
+   +- run test
+      +- compile test Debug native
+         +- run exe replay-rx-io-library (program.zig)
+            +- run exe consume-rx-io-library (consumer.zxlib) failure
+RX consumer: consumer.rx:2:43: type_mismatch: void call or task results cannot be bound
+error: InvalidConsumer
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/parallel/library/import.zig:51:9: 0x105d6fe75 in link (consume-rx-io-library)
+        return error.InvalidConsumer;
+        ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/parallel/library/consume.zig:28:22: 0x105d7092e in main (consume-rx-io-library)
+        break :block try importer.link(allocator, &library, args[2], language);
+                     ^
+error: process exited with error code 1
+failed command: ./.zig-cache/o/74873eeeca9bfd153e32ee42d2793bdd/consume-rx-io-library ./.zig-cache/o/0dce3fb884e7ebca42bcbb91f0aff542/workflow.zxlib alias rx /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/.zig-cache/o/6cb9fd17b3b046c13896b635163d1a64/consumer.zxlib
+
+test-rx-io
++- test-rx-io-library
+   +- run test
+      +- compile test Debug native
+         +- run exe replay-rx-io-library (program.zig)
+            +- run exe consume-rx-io-library (republished.zxlib)
+               +- run exe consume-rx-io-library (consumer.zxlib) failure
+RX consumer: consumer.rx:2:43: type_mismatch: void call or task results cannot be bound
+error: InvalidConsumer
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/parallel/library/import.zig:51:9: 0x1100e2e75 in link (consume-rx-io-library)
+        return error.InvalidConsumer;
+        ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/runtime/parallel/library/consume.zig:28:22: 0x1100e392e in main (consume-rx-io-library)
+        break :block try importer.link(allocator, &library, args[2], language);
+                     ^
+error: process exited with error code 1
+failed command: ./.zig-cache/o/74873eeeca9bfd153e32ee42d2793bdd/consume-rx-io-library ./.zig-cache/o/0dce3fb884e7ebca42bcbb91f0aff542/workflow.zxlib alias rx /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/.zig-cache/o/6cb9fd17b3b046c13896b635163d1a64/consumer.zxlib
+
+Build Summary: 787/807 steps succeeded (4 failed); 666/666 tests passed
+test-rx-io transitive failure
++- test-rx-io-runtime success
+|  +- run test 13 pass (13 total) 23ms MaxRSS:1M
+|  |  +- compile test Debug native success 2s MaxRSS:291M
+|  |     +- run exe compile-rx-io (program.zig) success 47ms
+|  |     |  +- compile exe compile-rx-io Debug native success 3s MaxRSS:482M
+|  |     |     +- WriteFile interfaces/0.d.zx cached
+|  |     +- options cached
+|  |     +- run exe compile-rx-io (program.zig) (+1 more reused dependencies)
+|  +- run test 13 pass (13 total) 39ms MaxRSS:1M
+|  |  +- compile test Debug native success 2s MaxRSS:290M
+|  |     +- run exe compile-rx-io (program.zig) success 18ms
+|  |     |  +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+|  |     +- options cached
+|  |     +- run exe compile-rx-io (program.zig) (+1 more reused dependencies)
+|  +- run test 13 pass (13 total) 40ms MaxRSS:1M
+|  |  +- compile test Debug native success 2s MaxRSS:288M
+|  |     +- run exe compile-rx-io (program.zig) success 22ms
+|  |     |  +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+|  |     +- options cached
+|  |     +- run exe compile-rx-io (program.zig) (+1 more reused dependencies)
+|  +- run test 4 pass (4 total) 15ms MaxRSS:1M
+|  |  +- compile test Debug native success 2s MaxRSS:289M
+|  |     +- run exe compile-rx-io (program.zig) success 19ms
+|  |     |  +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+|  |     +- options cached
+|  |     +- run exe compile-rx-io (program.zig) (+1 more reused dependencies)
+|  +- run test 3 pass (3 total) 13ms MaxRSS:1M
+|  |  +- compile test Debug native success 2s MaxRSS:282M
+|  |     +- run exe compile-rx-io (program.zig) success 46ms
+|  |     |  +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+|  |     +- options cached
+|  |     +- run exe compile-rx-io (program.zig) (+1 more reused dependencies)
+|  +- run test 3 pass (3 total) 12ms MaxRSS:1M
+|  |  +- compile test Debug native success 2s MaxRSS:283M
+|  |     +- run exe compile-rx-io (program.zig) success 23ms
+|  |     |  +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+|  |     +- options cached
+|  |     +- run exe compile-rx-io (program.zig) (+1 more reused dependencies)
+|  +- run test 3 pass (3 total) 13ms MaxRSS:1M
+|  |  +- compile test Debug native success 2s MaxRSS:290M
+|  |     +- run exe compile-rx-io (program.zig) success 14ms
+|  |     |  +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+|  |     +- options cached
+|  |     +- run exe compile-rx-io (program.zig) (+1 more reused dependencies)
+|  +- run test 2 pass (2 total) 7ms MaxRSS:1M
+|     +- compile test Debug native success 2s MaxRSS:282M
+|        +- run exe compile-rx-io (program.zig) success 21ms
+|        |  +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+|        +- options cached
+|        +- run exe compile-rx-io (program.zig) (+1 more reused dependencies)
++- test-rx-io-library transitive failure
+   +- run test 13 pass (13 total) 32ms MaxRSS:1M
+   |  +- compile test Debug native success 3s MaxRSS:293M
+   |     +- run exe replay-rx-io-library (program.zig) success 26ms
+   |     |  +- compile exe replay-rx-io-library Debug native success 2s MaxRSS:366M
+   |     |  |  +- WriteFile interfaces/0.d.zx (reused)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:276M
+   |     +- run exe replay-rx-io-library (program.zig) success 27ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 33ms MaxRSS:1M
+   |  +- compile test Debug native success 3s MaxRSS:287M
+   |     +- run exe replay-rx-io-library (program.zig) success 20ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:274M
+   |     +- run exe replay-rx-io-library (program.zig) success 30ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 13ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:292M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native success 3s MaxRSS:503M
+   |     |     |  +- WriteFile interfaces/0.d.zx (reused)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 8ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:271M
+   |     +- run exe replay-rx-io-library (program.zig) success 28ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 33ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 25ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:296M
+   |     +- run exe replay-rx-io-library (program.zig) success 21ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:271M
+   |     +- run exe replay-rx-io-library (program.zig) success 30ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 31ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:293M
+   |     +- run exe replay-rx-io-library (program.zig) success 28ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 31ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) success 24ms
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:268M
+   |     +- run exe replay-rx-io-library (program.zig) success 28ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 27ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 12ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:273M
+   |     +- run exe replay-rx-io-library (program.zig) success 18ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 23ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:265M
+   |     +- run exe replay-rx-io-library (program.zig) success 26ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 52ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 13ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:288M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 27ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 36ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:269M
+   |     +- run exe replay-rx-io-library (program.zig) success 24ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 27ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 39ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:290M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 27ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 48ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) success 22ms
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:267M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 33ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 37ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 27ms MaxRSS:1M
+   |  +- compile test Debug native success 3s MaxRSS:287M
+   |     +- run exe replay-rx-io-library (program.zig) success 30ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:272M
+   |     +- run exe replay-rx-io-library (program.zig) success 26ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 28ms MaxRSS:1M
+   |  +- compile test Debug native success 3s MaxRSS:292M
+   |     +- run exe replay-rx-io-library (program.zig) success 26ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) success 21ms
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:272M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 14ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:298M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:274M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) success 23ms
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 18ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:293M
+   |     +- run exe replay-rx-io-library (program.zig) success 19ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:267M
+   |     +- run exe replay-rx-io-library (program.zig) success 39ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 76ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:295M
+   |     +- run exe replay-rx-io-library (program.zig) success 27ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 34ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 10ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:273M
+   |     +- run exe replay-rx-io-library (program.zig) success 28ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 30ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 19ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:289M
+   |     +- run exe replay-rx-io-library (program.zig) success 28ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 39ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:268M
+   |     +- run exe replay-rx-io-library (program.zig) success 34ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 34ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 25ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:294M
+   |     +- run exe replay-rx-io-library (program.zig) success 31ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 38ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 35ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 9ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:267M
+   |     +- run exe replay-rx-io-library (program.zig) success 27ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 31ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 57ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 22ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:293M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 30ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 33ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:278M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 28ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 29ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 27ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:283M
+   |     +- run exe replay-rx-io-library (program.zig) success 39ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:270M
+   |     +- run exe replay-rx-io-library (program.zig) success 17ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 34ms MaxRSS:1M
+   |  +- compile test Debug native success 3s MaxRSS:286M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 10ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:279M
+   |     +- run exe replay-rx-io-library (program.zig) success 26ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 19ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:289M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:264M
+   |     +- run exe replay-rx-io-library (program.zig) success 26ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 17ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:288M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 33ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:274M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 27ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:287M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 53ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:268M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 39ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 39ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:292M
+   |     +- run exe replay-rx-io-library (program.zig) success 27ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 26ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) success 20ms
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:270M
+   |     +- run exe replay-rx-io-library (program.zig) success 26ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 30ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 48ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:285M
+   |     +- run exe replay-rx-io-library (program.zig) success 24ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 32ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 47ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) success 21ms
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:274M
+   |     +- run exe replay-rx-io-library (program.zig) success 21ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 2s
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 31ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 13 pass (13 total) 17ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:288M
+   |     +- run exe replay-rx-io-library (program.zig) success 29ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 41ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:266M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 35ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 30ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 4 pass (4 total) 17ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:281M
+   |     +- run exe replay-rx-io-library (program.zig) success 27ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) success 20ms
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 9ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:270M
+   |     +- run exe replay-rx-io-library (program.zig) success 24ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 4 pass (4 total) 12ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:280M
+   |     +- run exe replay-rx-io-library (program.zig) success 28ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 9ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:271M
+   |     +- run exe replay-rx-io-library (program.zig) success 27ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 4 pass (4 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:291M
+   |     +- run exe replay-rx-io-library (program.zig) success 35ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 33ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 10ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:270M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 32ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 4 pass (4 total) 14ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:284M
+   |     +- run exe replay-rx-io-library (program.zig) success 28ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 53ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:274M
+   |     +- run exe replay-rx-io-library (program.zig) success 24ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 39ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 4 pass (4 total) 8ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:288M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 28ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 1s MaxRSS:253M
+   |     +- run exe replay-rx-io-library (program.zig) success 19ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 26ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 4 pass (4 total) 9ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:283M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 35ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) success 19ms
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:271M
+   |     +- run exe replay-rx-io-library (program.zig) success 30ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 42ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 4 pass (4 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:292M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 29ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 1s MaxRSS:250M
+   |     +- run exe replay-rx-io-library (program.zig) success 19ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 23ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 4 pass (4 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:293M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 29ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 2ms MaxRSS:1M
+   |  +- compile test Debug native success 1s MaxRSS:256M
+   |     +- run exe replay-rx-io-library (program.zig) success 21ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 27ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 12ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:273M
+   |     +- run exe replay-rx-io-library (program.zig) success 17ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:275M
+   |     +- run exe replay-rx-io-library (program.zig) success 16ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) success 18ms
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 17ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:282M
+   |     +- run exe replay-rx-io-library (program.zig) success 14ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) success 21ms
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:272M
+   |     +- run exe replay-rx-io-library (program.zig) success 15ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 10ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:276M
+   |     +- run exe replay-rx-io-library (program.zig) success 30ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 18ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 1s MaxRSS:255M
+   |     +- run exe replay-rx-io-library (program.zig) success 10ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:287M
+   |     +- run exe replay-rx-io-library (program.zig) success 15ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 1s MaxRSS:257M
+   |     +- run exe replay-rx-io-library (program.zig) success 15ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:283M
+   |     +- run exe replay-rx-io-library (program.zig) success 19ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 17ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 8ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:271M
+   |     +- run exe replay-rx-io-library (program.zig) success 16ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 20ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 8ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:282M
+   |     +- run exe replay-rx-io-library (program.zig) success 20ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 26ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 15ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:274M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 15ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 12ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:293M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 22ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 9ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:265M
+   |     +- run exe replay-rx-io-library (program.zig) success 18ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 19ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 25ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:285M
+   |     +- run exe replay-rx-io-library (program.zig) success 24ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 24ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 19ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:271M
+   |     +- run exe replay-rx-io-library (program.zig) success 14ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 22ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 31ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 16ms MaxRSS:1M
+   |  +- compile test Debug native success 3s MaxRSS:282M
+   |     +- run exe replay-rx-io-library (program.zig) success 19ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:269M
+   |     +- run exe replay-rx-io-library (program.zig) success 15ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 15ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:285M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:274M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test transitive failure
+   |  +- compile test Debug native transitive failure
+   |     +- run exe replay-rx-io-library (program.zig) transitive failure
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) failure
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:271M
+   |     +- run exe replay-rx-io-library (program.zig) success 22ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 20ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test transitive failure
+   |  +- compile test Debug native transitive failure
+   |     +- run exe replay-rx-io-library (program.zig) transitive failure
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) failure
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:275M
+   |     +- run exe replay-rx-io-library (program.zig) success 17ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 28ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 10ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:288M
+   |     +- run exe replay-rx-io-library (program.zig) success 33ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 34ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:276M
+   |     +- run exe replay-rx-io-library (program.zig) success 17ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 20ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 13ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:279M
+   |     +- run exe replay-rx-io-library (program.zig) success 18ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 21ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) success 19ms
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:275M
+   |     +- run exe replay-rx-io-library (program.zig) success 20ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 30ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test transitive failure
+   |  +- compile test Debug native transitive failure
+   |     +- run exe replay-rx-io-library (program.zig) transitive failure
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) transitive failure
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) failure
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) success 23ms
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 3ms MaxRSS:1M
+   |  +- compile test Debug native success 1s MaxRSS:252M
+   |     +- run exe replay-rx-io-library (program.zig) success 13ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 14ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test transitive failure
+   |  +- compile test Debug native transitive failure
+   |     +- run exe replay-rx-io-library (program.zig) transitive failure
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) transitive failure
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) failure
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:272M
+   |     +- run exe replay-rx-io-library (program.zig) success 28ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 25ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 21ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:289M
+   |     +- run exe replay-rx-io-library (program.zig) success 16ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:273M
+   |     +- run exe replay-rx-io-library (program.zig) success 19ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 26ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:282M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 9ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:266M
+   |     +- run exe replay-rx-io-library (program.zig) success 23ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:265M
+   |     +- run exe replay-rx-io-library (program.zig) success 16ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:269M
+   |     +- run exe replay-rx-io-library (program.zig) success 18ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 14ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:283M
+   |     +- run exe replay-rx-io-library (program.zig) success 20ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 25ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) success 14ms
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:275M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 23ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 10ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:283M
+   |     +- run exe replay-rx-io-library (program.zig) success 19ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 17ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 11ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:264M
+   |     +- run exe replay-rx-io-library (program.zig) success 18ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 20ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 21ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:288M
+   |     +- run exe replay-rx-io-library (program.zig) success 17ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 25ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:268M
+   |     +- run exe replay-rx-io-library (program.zig) success 17ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 24ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 8ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:283M
+   |     +- run exe replay-rx-io-library (program.zig) success 16ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 21ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 24ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 26ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:260M
+   |     +- run exe replay-rx-io-library (program.zig) success 17ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 19ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 24ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) success 14ms
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 13ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:281M
+   |     +- run exe replay-rx-io-library (program.zig) success 28ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 21ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:275M
+   |     +- run exe replay-rx-io-library (program.zig) success 21ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 19ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 2 pass (2 total) 11ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:293M
+   |     +- run exe replay-rx-io-library (program.zig) success 11ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) success 19ms
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 9ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:276M
+   |     +- run exe replay-rx-io-library (program.zig) success 12ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 2 pass (2 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:282M
+   |     +- run exe replay-rx-io-library (program.zig) success 17ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:276M
+   |     +- run exe replay-rx-io-library (program.zig) success 20ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |     +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 2 pass (2 total) 6ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:280M
+   |     +- run exe replay-rx-io-library (program.zig) success 21ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 17ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 1s MaxRSS:258M
+   |     +- run exe replay-rx-io-library (program.zig) success 11ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 2 pass (2 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:286M
+   |     +- run exe replay-rx-io-library (program.zig) success 14ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:274M
+   |     +- run exe replay-rx-io-library (program.zig) success 14ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 16ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 2 pass (2 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:267M
+   |     +- run exe replay-rx-io-library (program.zig) success 9ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 10ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 4ms MaxRSS:1M
+   |  +- compile test Debug native success 1s MaxRSS:251M
+   |     +- run exe replay-rx-io-library (program.zig) success 9ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 13ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 2 pass (2 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:280M
+   |     +- run exe replay-rx-io-library (program.zig) success 25ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 18ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 9ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:269M
+   |     +- run exe replay-rx-io-library (program.zig) success 27ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (consumer.zxlib) success 21ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |        +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 2 pass (2 total) 7ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:284M
+   |     +- run exe replay-rx-io-library (program.zig) success 12ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 27ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 5ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:266M
+   |     +- run exe replay-rx-io-library (program.zig) success 15ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 47ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 15ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) cached
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 2 pass (2 total) 9ms MaxRSS:1M
+   |  +- compile test Debug native success 2s MaxRSS:274M
+   |     +- run exe replay-rx-io-library (program.zig) success 12ms
+   |     |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+   |     |  +- run exe consume-rx-io-library (republished.zxlib) success 17ms
+   |     |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |     +- run exe consume-rx-io-library (consumer.zxlib) success 12ms
+   |     |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+   |     |        +- run exe compile-rx-io (workflow.zxlib) success 16ms
+   |     |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+   |     +- options cached
+   |     +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+   +- run test 3 pass (3 total) 11ms MaxRSS:1M
+      +- compile test Debug native success 2s MaxRSS:265M
+         +- run exe replay-rx-io-library (program.zig) success 11ms
+         |  +- compile exe replay-rx-io-library Debug native (+1 more reused dependencies)
+         |  +- run exe consume-rx-io-library (republished.zxlib) success 15ms
+         |     +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+         |     +- run exe consume-rx-io-library (consumer.zxlib) cached
+         |        +- compile exe consume-rx-io-library Debug native (+1 more reused dependencies)
+         |        +- run exe compile-rx-io (workflow.zxlib) cached
+         |           +- compile exe compile-rx-io Debug native (+1 more reused dependencies)
+         +- options cached
+         +- run exe replay-rx-io-library (program.zig) (+2 more reused dependencies)
+
+error: the following build command failed with exit code 1:
+.zig-cache/o/138f73bca1dce5c8116c35a8a3a778a4/build /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib /Users/xiewendao/Documents/MatrixAges/zxc/packages/test .zig-cache /Users/xiewendao/.cache/zig --seed 0xef11bb69 -Z4fa62a8f6a71a816 test-rx-io --summary all
