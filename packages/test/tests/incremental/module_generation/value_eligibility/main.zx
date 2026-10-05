@@ -1,0 +1,11 @@
+import step from "./step.zx"
+
+export type State = { count: u64 }
+
+export type Input = { seed: State, items: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return in.items.reduce((state, item) => step({state, item}), in.seed)
+}

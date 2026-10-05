@@ -185,7 +185,7 @@ pub fn build(b: *std.Build) void {
     const link_boundaries_step = b.step("test-link-boundaries", "Validate module link graph interface and allocation failure boundaries");
     const generation_step = b.step("test-module-generation", "Validate split generation cache gates and ownership");
 
-    for ([_][]const u8{ "cache", "gates", "resources" }) |name| {
+    for ([_][]const u8{ "cache", "gates", "resources", "value_eligibility" }) |name| {
         const generation_tests = b.addTest(.{
             .root_module = b.createModule(.{
                 .root_source_file = b.path(b.fmt("tests/incremental/module_generation/{s}_test.zig", .{name})),

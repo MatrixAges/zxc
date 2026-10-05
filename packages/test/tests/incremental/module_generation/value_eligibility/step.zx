@@ -1,0 +1,9 @@
+import predicate from "./predicate.zx"
+
+export type Input = { state: { count: u64 }, item: u64 }
+
+export type Output = { count: u64 }
+
+export default function (in: Input): Output {
+  return { count: in.state.count + (predicate(in.item) ? 1 : 0) }
+}
