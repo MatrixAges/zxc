@@ -60,7 +60,7 @@ const cases: Array<Case> = [
 		name: 'RX and ZX public proofs share collection',
 		exports: { './workflow': 'main.rx', './logic': 'read.zx' },
 		files: {
-			'main.rx': '<Module><Call fn="read" in="$in" out="ctx.value"/><Return value="ctx.value"/></Module>\n',
+			'main.rx': '<Module><Call fn="read" in={$in} out="ctx.value"/><Return value={ctx.value}/></Module>\n',
 			'read.zx': identity
 		},
 		proofs: [

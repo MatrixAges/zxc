@@ -40,3 +40,9 @@ grit 已对 Store 字符串完成一次实际替换，其余七文件 24 处属�
 专项构建覆盖 test-semantic-lint、test-rx-watch、test-rx-store-paths、test-rx-project-cli、test-library-rx-compiled。首轮 21/23 构建步骤成功，唯一失败项目 driver 在补齐其内嵌夹具前已经加载；其最终独立复验 9/9 通过、进程退出 0。其余入口首轮均通过，watch 1/1、Store 路径 16/16、RX semantic lint 18/18、compiled semantic lint 16/16。原六个失败运行器现均有最终夹具的成功执行证据。
 
 本次没有修改生产实现或错误断言。最初只审阅共享夹具导致漏看驱动内的错误恢复片段；已补读两份驱动并修正三处，不能将第一轮构建写为全通过。全量 Debug 进程仍执行中，保留其原失败记录，不以专项结果宣称全量通过。
+
+## 后续：公开模块证明集合
+
+全量继续执行时 public_test.ts 新报 RX and ZX public proofs share collection 输入类型冲突；public_cases.ts 中还存在 in="$in" 与 value="ctx.value"。本步仅迁移两属性，保留 RX/ZX 证明条目、SAT 结果、文件数量与摘要命名断言，以相同 CLI 与指定 Z3 复验八个公开证明场景。
+
+公开证明最终复验退出 0，8/8 场景通过；未改变证明预期或生产源码。
