@@ -1,0 +1,47 @@
+{
+	"platform": "macOS x86_64",
+	"method": "single process per sample; real CLI application; /usr/bin/time -l; wall time includes launch and JSON IO",
+	"results": [
+		{
+			"implementation": "before",
+			"rows": 2000,
+			"elapsed_seconds": 0.015131,
+			"maximum_resident_bytes": 17129472
+		},
+		{
+			"implementation": "after",
+			"rows": 2000,
+			"elapsed_seconds": 0.006937,
+			"maximum_resident_bytes": 1089536
+		},
+		{
+			"implementation": "before",
+			"rows": 4000,
+			"elapsed_seconds": 0.031228,
+			"maximum_resident_bytes": 65343488
+		},
+		{
+			"implementation": "after",
+			"rows": 4000,
+			"elapsed_seconds": 0.007277,
+			"maximum_resident_bytes": 1277952
+		},
+		{
+			"implementation": "before",
+			"rows": 8000,
+			"elapsed_seconds": 0.104525,
+			"maximum_resident_bytes": 257622016
+		},
+		{
+			"implementation": "after",
+			"rows": 8000,
+			"elapsed_seconds": 0.007656,
+			"maximum_resident_bytes": 1499136
+		}
+	],
+	"before_source_commit": "8466323c89b0052cb330dc22e3fd57a093554ad5",
+	"binary_sha256": {
+		"before": "62af868c39362f14b5716d655ba34bb55b549bd0dafb52ce44da28c6581b0b0b",
+		"after": "ea2262e1a14ad19efa5feb7e598294d39f68930228856bfdccb172ef315d9ac2"
+	}
+}

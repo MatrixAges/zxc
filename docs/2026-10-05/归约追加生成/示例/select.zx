@@ -1,0 +1,9 @@
+export type Input = { seed: u64[], steps: { enabled: bool, values: u64[] }[] }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+  const initial = in.seed.map(item => item)
+
+  return in.steps.reduce((items, step) => step.enabled ? items.concat(step.values)[0] : items, initial)
+}
