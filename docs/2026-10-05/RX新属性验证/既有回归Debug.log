@@ -1,0 +1,172 @@
+test-rx-inference
++- run test 131 pass, 7 crash (138 total)
+error: 'project.position_test.test.RX project child UTF8 CRLF entity position' terminated with signal ABRT with stderr:
+       thread 7275151 panic: attempt to use null value
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/project/position_test.zig:43:64: 0x104076d57 in checkOrder (test)
+           const offset = std.mem.indexOf(u8, expected_source, marker).?;
+                                                                      ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/project/position_test.zig:7:58: 0x104077605 in check (test)
+           for ([_]bool{ false, true }) |reverse| try checkOrder(case, reverse);
+                                                                ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/project/position_test.zig:69:14: 0x104077907 in test.RX project child UTF8 CRLF entity position (test)
+           try check(.{ .source = "<!--中文-->\r\n<Module>\r\n  <Return value={missing}/>\r\n</Module>", .marker = "&#109;" });
+                    ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:140:68: 0x103e358e1 in mainServer (test)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:71:26: 0x103e360a5 in main (test)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/start.zig:699:88: 0x103e33cce in callMain (test)
+           if (fn_info.params[0].type.? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+error: 'project.position_test.test.RX project child encoded expression end position' terminated with signal ABRT with stderr:
+       thread 7275156 panic: attempt to use null value
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/project/position_test.zig:43:64: 0x10a861d57 in checkOrder (test)
+           const offset = std.mem.indexOf(u8, expected_source, marker).?;
+                                                                      ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/project/position_test.zig:7:58: 0x10a862605 in check (test)
+           for ([_]bool{ false, true }) |reverse| try checkOrder(case, reverse);
+                                                                ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/project/position_test.zig:77:14: 0x10a862867 in test.RX project child encoded expression end position (test)
+           try check(.{ .source = "<Module><Return value={1 +}/></Module>", .marker = "'/>", .code = "syntax" });
+                    ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:140:68: 0x10a6208e1 in mainServer (test)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:71:26: 0x10a6210a5 in main (test)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/start.zig:699:88: 0x10a61ecce in callMain (test)
+           if (fn_info.params[0].type.? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+error: 'position_test.test.RX inferred diagnostic entity first character' terminated with signal ABRT with stderr:
+       thread 7275160 panic: attempt to use null value
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:25:137: 0x10b87d3de in check (test)
+           const offset = if (case.last) std.mem.lastIndexOf(u8, case.source, case.marker).? else std.mem.indexOf(u8, case.source, case.marker).?;
+                                                                                                                                               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:51:14: 0x10b87e837 in test.RX inferred diagnostic entity first character (test)
+           try check(.{ .source = "<Module><Return value={missing}/></Module>", .marker = "&#109;" });
+                    ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:140:68: 0x10b6498e1 in mainServer (test)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:71:26: 0x10b64a0a5 in main (test)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/start.zig:699:88: 0x10b647cce in callMain (test)
+           if (fn_info.params[0].type.? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+error: 'position_test.test.RX inferred diagnostic Call input entity' terminated with signal ABRT with stderr:
+       thread 7275173 panic: attempt to use null value
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:25:137: 0x1043db3de in check (test)
+           const offset = if (case.last) std.mem.lastIndexOf(u8, case.source, case.marker).? else std.mem.indexOf(u8, case.source, case.marker).?;
+                                                                                                                                               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:63:14: 0x1043dc747 in test.RX inferred diagnostic Call input entity (test)
+           try check(.{ .source = "<Module><Call fn='number' in={missing}/></Module>", .marker = "&#109;" });
+                    ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:140:68: 0x1041a78e1 in mainServer (test)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:71:26: 0x1041a80a5 in main (test)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/start.zig:699:88: 0x1041a5cce in callMain (test)
+           if (fn_info.params[0].type.? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+error: 'position_test.test.RX inferred diagnostic Return parse end' terminated with signal ABRT with stderr:
+       thread 7275182 panic: attempt to use null value
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:25:137: 0x10fddb3de in check (test)
+           const offset = if (case.last) std.mem.lastIndexOf(u8, case.source, case.marker).? else std.mem.indexOf(u8, case.source, case.marker).?;
+                                                                                                                                               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:71:14: 0x10fddc6a7 in test.RX inferred diagnostic Return parse end (test)
+           try check(.{ .source = "<Module><Return value={1 +}/></Module>", .marker = "'/>", .code = "syntax" });
+                    ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:140:68: 0x10fba78e1 in mainServer (test)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:71:26: 0x10fba80a5 in main (test)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/start.zig:699:88: 0x10fba5cce in callMain (test)
+           if (fn_info.params[0].type.? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+error: 'position_test.test.RX inferred diagnostic Call parse entity end' terminated with signal ABRT with stderr:
+       thread 7275193 panic: attempt to use null value
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:25:137: 0x10a4703de in check (test)
+           const offset = if (case.last) std.mem.lastIndexOf(u8, case.source, case.marker).? else std.mem.indexOf(u8, case.source, case.marker).?;
+                                                                                                                                               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:75:14: 0x10a471657 in test.RX inferred diagnostic Call parse entity end (test)
+           try check(.{ .source = "<Module><Call fn='number' in={1 +}/></Module>", .marker = "'/>", .code = "syntax" });
+                    ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:140:68: 0x10a23c8e1 in mainServer (test)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:71:26: 0x10a23d0a5 in main (test)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/start.zig:699:88: 0x10a23acce in callMain (test)
+           if (fn_info.params[0].type.? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+error: 'position_test.test.RX linked ownership diagnostic encoded input' terminated with signal ABRT with stderr:
+       thread 7275206 panic: attempt to use null value
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:25:137: 0x10acc23de in check (test)
+           const offset = if (case.last) std.mem.lastIndexOf(u8, case.source, case.marker).? else std.mem.indexOf(u8, case.source, case.marker).?;
+                                                                                                                                               ^
+       /Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/rx/inference/position_test.zig:83:14: 0x10acc35b7 in test.RX linked ownership diagnostic encoded input (test)
+           try check(.{ .source = "<Module><Call fn='borrow' in={$in}/><Return value={$in.pop()}/></Module>", .marker = "&#36;", .code = "ownership" });
+                    ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:140:68: 0x10aa8e8e1 in mainServer (test)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/compiler/test_runner.zig:71:26: 0x10aa8f0a5 in main (test)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib/std/start.zig:699:88: 0x10aa8ccce in callMain (test)
+           if (fn_info.params[0].type.? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: ./packages/test/.zig-cache/o/6f3390aab871a59554d0b4ca75691d7c/test --cache-dir=./packages/test/.zig-cache --seed=0x7c491b49 --listen=-
+
+Build Summary: 21/23 steps succeeded (1 failed); 251/258 tests passed (7 crashed)
+test-rx-text success
++- run test 4 pass (4 total) 3ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:243M
+|     +- WriteFile interfaces/0.d.zx cached
++- run test 3 pass (3 total) 4ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:269M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 2 pass (2 total) 21ms MaxRSS:3M
+|  +- compile test Debug native success 1s MaxRSS:260M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 30 pass (30 total) 4ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:272M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 14 pass (14 total) 3ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:278M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 26 pass (26 total) 4ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:268M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 6 pass (6 total) 3ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:279M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 29 pass (29 total) 4ms MaxRSS:1M
+|  +- compile test Debug native success 1s MaxRSS:272M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- run test 6 pass (6 total) 4ms MaxRSS:1M
+   +- compile test Debug native success 1s MaxRSS:259M
+      +- WriteFile interfaces/0.d.zx (reused)
+test-rx-inference transitive failure
++- run test 131 pass, 7 crash (138 total)
+   +- compile test Debug native success 3s MaxRSS:521M
+      +- WriteFile interfaces/0.d.zx (reused)
+
+error: the following build command failed with exit code 1:
+packages/test/.zig-cache/o/f0966dbaf70cbeea7bdc3fd2711865ef/build /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/zig /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.16.0/lib packages/test packages/test/.zig-cache /Users/xiewendao/.cache/zig --seed 0x7c491b49 -Z253655dd6827f1c9 test-rx-text test-rx-inference -j2 --summary all

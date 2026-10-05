@@ -40,7 +40,7 @@ fn checkOrder(case: Case, reverse: bool) !void {
     const reverse_entry = reverse and case.reverse_marker != null;
     const expected_source = if (reverse_entry) main_source else case.source;
     const marker = if (reverse_entry) case.reverse_marker.? else case.marker;
-    const offset = std.mem.indexOf(u8, expected_source, marker).?;
+    const offset = std.mem.indexOf(u8, expected_source, marker) orelse return error.MissingDiagnosticMarker;
     var line: usize = 1;
     var column: usize = 1;
     var index: usize = 0;
@@ -65,16 +65,16 @@ test "RX project child unknown name position" {
     try check(.{ .source = "<Module><Return value={missing}/></Module>", .marker = "missing" });
 }
 
-test "RX project child UTF8 CRLF entity position" {
-    try check(.{ .source = "<!--中文-->\r\n<Module>\r\n  <Return value={missing}/>\r\n</Module>", .marker = "&#109;" });
+test "RX project child UTF8 CRLF expression position" {
+    try check(.{ .source = "<!--中文-->\r\n<Module>\r\n  <Return value={missing}/>\r\n</Module>", .marker = "missing" });
 }
 
-test "RX project child normalized attribute line position" {
-    try check(.{ .source = "<Module><Return value={  missing}/></Module>", .marker = "missing" });
+test "RX project child raw expression line position" {
+    try check(.{ .source = "<Module><Return value={ \r\n missing}/></Module>", .marker = "missing" });
 }
 
-test "RX project child encoded expression end position" {
-    try check(.{ .source = "<Module><Return value={1 +}/></Module>", .marker = "'/>", .code = "syntax" });
+test "RX project child braced expression end position" {
+    try check(.{ .source = "<Module><Return value={1 +}/></Module>", .marker = "}/>", .code = "syntax" });
 }
 
 test "RX project child invalid result binding position" {

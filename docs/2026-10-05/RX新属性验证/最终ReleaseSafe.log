@@ -1,0 +1,27 @@
+parsing: 70 cases
+schema: 78 cases
+55 RX attribute executions passed (ReleaseSafe)
+6 RX attribute semantic rejection cases passed
+Build Summary: 18/18 steps succeeded; 148/148 tests passed
+test-rx-attributes success
++- run python3 success 110ms
++- run test 70 pass (70 total) 9ms MaxRSS:1M
+|  +- compile test ReleaseSafe native cached 48ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx cached
++- run test 78 pass (78 total) 13ms MaxRSS:1M
+|  +- compile test ReleaseSafe native cached 49ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (reused)
++- test-rx-attribute-runtime success
+   +- run node success 2m
+   |  +- compile exe zxc ReleaseSafe native success 52s MaxRSS:2G
+   |     +- WriteFile cached
+   |     +- compile lib yaml ReleaseSafe native cached 43ms MaxRSS:20M
+   |     +- compile lib yaml ReleaseSafe native (reused)
+   |     +- options success
+   |     +- run exe bundle-zig (bundle) cached
+   |     |  +- compile exe bundle-zig ReleaseFast native cached 48ms MaxRSS:20M
+   |     |  +- WriteFile bundle_manifest.json cached
+   |     +- WriteFile interfaces/0.d.zx (reused)
+   +- test-rx-attribute-rejections success
+      +- run node success 81ms
+         +- compile exe zxc ReleaseSafe native (+6 more reused dependencies)

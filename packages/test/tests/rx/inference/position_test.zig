@@ -22,7 +22,7 @@ fn check(case: Case) !void {
     try std.testing.expect(result.value == .diagnostic);
 
     const issue = result.value.diagnostic;
-    const offset = if (case.last) std.mem.lastIndexOf(u8, case.source, case.marker).? else std.mem.indexOf(u8, case.source, case.marker).?;
+    const offset = (if (case.last) std.mem.lastIndexOf(u8, case.source, case.marker) else std.mem.indexOf(u8, case.source, case.marker)) orelse return error.MissingDiagnosticMarker;
     var line: usize = 1;
     var column: usize = 1;
     var index: usize = 0;
@@ -47,20 +47,20 @@ test "RX inferred diagnostic plain Return" {
     try check(.{ .source = "<Module><Return value={missing}/></Module>", .marker = "missing" });
 }
 
-test "RX inferred diagnostic entity first character" {
-    try check(.{ .source = "<Module><Return value={missing}/></Module>", .marker = "&#109;" });
+test "RX inferred diagnostic quoted entity string argument" {
+    try check(.{ .source = "<Module><Call fn='number' in='&#109;issing'/></Module>", .marker = "&#109;", .code = "type_mismatch" });
 }
 
 test "RX inferred diagnostic utf8 prefix" {
     try check(.{ .source = "<!--中文--><Module><Return value={missing}/></Module>", .marker = "missing" });
 }
 
-test "RX inferred diagnostic normalized attribute newline" {
-    try check(.{ .source = "<Module><Return value={  missing}/></Module>", .marker = "missing" });
+test "RX inferred diagnostic raw expression newline" {
+    try check(.{ .source = "<Module><Return value={ \r\n missing}/></Module>", .marker = "missing" });
 }
 
-test "RX inferred diagnostic Call input entity" {
-    try check(.{ .source = "<Module><Call fn='number' in={missing}/></Module>", .marker = "&#109;" });
+test "RX inferred diagnostic Call input after comment" {
+    try check(.{ .source = "<Module><Call fn='number' in={/* 中 */ missing}/></Module>", .marker = "missing" });
 }
 
 test "RX inferred diagnostic Call input line" {
@@ -68,19 +68,19 @@ test "RX inferred diagnostic Call input line" {
 }
 
 test "RX inferred diagnostic Return parse end" {
-    try check(.{ .source = "<Module><Return value={1 +}/></Module>", .marker = "'/>", .code = "syntax" });
+    try check(.{ .source = "<Module><Return value={1 +}/></Module>", .marker = "}/>", .code = "syntax" });
 }
 
-test "RX inferred diagnostic Call parse entity end" {
-    try check(.{ .source = "<Module><Call fn='number' in={1 +}/></Module>", .marker = "'/>", .code = "syntax" });
+test "RX inferred diagnostic Call parse braced end" {
+    try check(.{ .source = "<Module><Call fn='number' in={1 +}/></Module>", .marker = "}/>", .code = "syntax" });
 }
 
 test "RX linked ownership diagnostic borrowed input line" {
     try check(.{ .source = "<Module>\n  <Call fn='borrow' in={$in}/>\n  <Return value={$in.pop()}/>\n</Module>", .marker = "$in.pop()", .code = "ownership" });
 }
 
-test "RX linked ownership diagnostic encoded input" {
-    try check(.{ .source = "<Module><Call fn='borrow' in={$in}/><Return value={$in.pop()}/></Module>", .marker = "&#36;", .code = "ownership" });
+test "RX linked ownership diagnostic input after comment" {
+    try check(.{ .source = "<Module><Call fn='borrow' in={$in}/><Return value={/* 中 */ $in.pop()}/></Module>", .marker = "$in.pop()", .code = "ownership" });
 }
 
 test "RX linked ownership diagnostic borrowed output UTF8 CRLF" {

@@ -1,0 +1,7 @@
+<Module>
+  <Call fn="../functions/number" in={$in} out="ctx.value"/>
+  <Switch on={ctx.value < 3 && ctx.value > 0}>
+    <Case value={true}><Return value={{selected: true, text: `前${ctx.value}后`}}/></Case>
+    <Default><Return value={{selected: false, text: `前${ctx.value}后`}}/></Default>
+  </Switch>
+</Module>

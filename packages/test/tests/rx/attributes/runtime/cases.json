@@ -1,0 +1,322 @@
+[
+	{
+		"entry": "literals/empty.rx",
+		"input": null,
+		"expected": ""
+	},
+	{
+		"entry": "literals/input_text.rx",
+		"input": null,
+		"expected": "$in"
+	},
+	{
+		"entry": "literals/object_text.rx",
+		"input": null,
+		"expected": "{x:1}"
+	},
+	{
+		"entry": "literals/entities.rx",
+		"input": null,
+		"expected": "&<>\"'"
+	},
+	{
+		"entry": "literals/unicode_entities.rx",
+		"input": null,
+		"expected": "中🙂"
+	},
+	{
+		"entry": "literals/single_decode.rx",
+		"input": null,
+		"expected": "&lt;"
+	},
+	{
+		"entry": "literals/normalized_space.rx",
+		"input": null,
+		"expected": "a b c d e"
+	},
+	{
+		"entry": "literals/numeric_space.rx",
+		"input": null,
+		"expected": "\n\r\t"
+	},
+	{
+		"entry": "literals/delimiters.rx",
+		"input": null,
+		"expected": "} next={x}"
+	},
+	{
+		"entry": "literals/template_text.rx",
+		"input": null,
+		"expected": "`a${b}`"
+	},
+	{
+		"entry": "expressions/input.rx",
+		"input": 0,
+		"expected": 0
+	},
+	{
+		"entry": "expressions/input.rx",
+		"input": 2,
+		"expected": 2
+	},
+	{
+		"entry": "expressions/input.rx",
+		"input": 7,
+		"expected": 7
+	},
+	{
+		"entry": "expressions/nested_object.rx",
+		"input": 0,
+		"expected": {
+			"a": {
+				"b": 0
+			}
+		}
+	},
+	{
+		"entry": "expressions/nested_object.rx",
+		"input": 2,
+		"expected": {
+			"a": {
+				"b": 2
+			}
+		}
+	},
+	{
+		"entry": "expressions/nested_object.rx",
+		"input": 7,
+		"expected": {
+			"a": {
+				"b": 7
+			}
+		}
+	},
+	{
+		"entry": "expressions/list.rx",
+		"input": 0,
+		"expected": [0, 1]
+	},
+	{
+		"entry": "expressions/list.rx",
+		"input": 2,
+		"expected": [2, 3]
+	},
+	{
+		"entry": "expressions/list.rx",
+		"input": 7,
+		"expected": [7, 8]
+	},
+	{
+		"entry": "expressions/string_delimiter.rx",
+		"input": 0,
+		"expected": "a}b"
+	},
+	{
+		"entry": "expressions/string_delimiter.rx",
+		"input": 2,
+		"expected": "a}b"
+	},
+	{
+		"entry": "expressions/string_delimiter.rx",
+		"input": 7,
+		"expected": "a}b"
+	},
+	{
+		"entry": "expressions/template_nested.rx",
+		"input": 0,
+		"expected": "a}0b"
+	},
+	{
+		"entry": "expressions/template_nested.rx",
+		"input": 2,
+		"expected": "a}2b"
+	},
+	{
+		"entry": "expressions/template_nested.rx",
+		"input": 7,
+		"expected": "a}7b"
+	},
+	{
+		"entry": "expressions/block_comment.rx",
+		"input": 0,
+		"expected": 0
+	},
+	{
+		"entry": "expressions/block_comment.rx",
+		"input": 2,
+		"expected": 2
+	},
+	{
+		"entry": "expressions/block_comment.rx",
+		"input": 7,
+		"expected": 7
+	},
+	{
+		"entry": "expressions/line_comment.rx",
+		"input": 0,
+		"expected": 0
+	},
+	{
+		"entry": "expressions/line_comment.rx",
+		"input": 2,
+		"expected": 2
+	},
+	{
+		"entry": "expressions/line_comment.rx",
+		"input": 7,
+		"expected": 7
+	},
+	{
+		"entry": "expressions/comparison.rx",
+		"input": 0,
+		"expected": false
+	},
+	{
+		"entry": "expressions/comparison.rx",
+		"input": 2,
+		"expected": true
+	},
+	{
+		"entry": "expressions/comparison.rx",
+		"input": 7,
+		"expected": false
+	},
+	{
+		"entry": "expressions/raw_entity_object.rx",
+		"input": 0,
+		"expected": {
+			"text": "&amp;",
+			"less": "<",
+			"value": 0
+		}
+	},
+	{
+		"entry": "expressions/raw_entity_object.rx",
+		"input": 2,
+		"expected": {
+			"text": "&amp;",
+			"less": "<",
+			"value": 2
+		}
+	},
+	{
+		"entry": "expressions/raw_entity_object.rx",
+		"input": 7,
+		"expected": {
+			"text": "&amp;",
+			"less": "<",
+			"value": 7
+		}
+	},
+	{
+		"entry": "flows/implicit.rx",
+		"input": 0,
+		"expected": 1
+	},
+	{
+		"entry": "flows/implicit.rx",
+		"input": 2,
+		"expected": 3
+	},
+	{
+		"entry": "flows/implicit.rx",
+		"input": 7,
+		"expected": 8
+	},
+	{
+		"entry": "flows/explicit.rx",
+		"input": 0,
+		"expected": 1
+	},
+	{
+		"entry": "flows/explicit.rx",
+		"input": 2,
+		"expected": 3
+	},
+	{
+		"entry": "flows/explicit.rx",
+		"input": 7,
+		"expected": 8
+	},
+	{
+		"entry": "literals/call.rx",
+		"input": null,
+		"expected": "$in"
+	},
+	{
+		"entry": "flows/switch.rx",
+		"input": 0,
+		"expected": {
+			"selected": false,
+			"text": "前0后"
+		}
+	},
+	{
+		"entry": "flows/switch.rx",
+		"input": 1,
+		"expected": {
+			"selected": true,
+			"text": "前1后"
+		}
+	},
+	{
+		"entry": "flows/switch.rx",
+		"input": 2,
+		"expected": {
+			"selected": true,
+			"text": "前2后"
+		}
+	},
+	{
+		"entry": "flows/switch.rx",
+		"input": 3,
+		"expected": {
+			"selected": false,
+			"text": "前3后"
+		}
+	},
+	{
+		"entry": "flows/switch.rx",
+		"input": 10,
+		"expected": {
+			"selected": false,
+			"text": "前10后"
+		}
+	},
+	{
+		"entry": "flows/string_switch.rx",
+		"input": "$in",
+		"expected": "literal-input"
+	},
+	{
+		"entry": "flows/string_switch.rx",
+		"input": "hello",
+		"expected": "hello"
+	},
+	{
+		"entry": "flows/string_switch.rx",
+		"input": "$other",
+		"expected": "other"
+	},
+	{
+		"entry": "flows/string_switch.rx",
+		"input": "",
+		"expected": "other"
+	},
+	{
+		"entry": "flows/literal_switch.rx",
+		"input": null,
+		"expected": "matched"
+	},
+	{
+		"entry": "flows/store.rx",
+		"input": null,
+		"expected": {
+			"literal": "$in",
+			"empty": "",
+			"entity": "A&B",
+			"braced": "&amp;",
+			"number": 1
+		}
+	}
+]

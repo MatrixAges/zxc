@@ -585,6 +585,7 @@ pub fn build(b: *std.Build) void {
     }
 
     test_step.dependOn(text_step);
+    test_step.dependOn(@import("build/rx_attributes.zig").add(b, compiler, cli_dependency, target, optimize));
 
     const cli_step = b.step("test-rx-cli", "Validate RX command line file loading and diagnostics");
     const cli = b.addSystemCommand(&.{"node"});
