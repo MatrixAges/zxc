@@ -1,0 +1,14 @@
+{"id":"standard/url/api/domain_to_unicode/cases/domain-0","input":"EXAMPLE.COM","expected":{"value":"example.com"}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-1","input":"b\u00fccher.example","expected":{"value":"b\u00fccher.example"}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-2","input":"fa\u00df.de","expected":{"value":"fa\u00df.de"}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-3","input":"\u4f60\u597d","expected":{"value":"\u4f60\u597d"}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-4","input":"xn--bcher-kva.example","expected":{"value":"b\u00fccher.example"}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-5","input":"\uff45\uff58\uff41\uff4d\uff50\uff4c\uff45\uff0e\uff23\uff2f\uff2d","expected":{"value":"example.com"}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-6","input":"127.1","expected":{"value":"127.0.0.1"}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-7","input":"[0:0:0:0:0:0:0:1]","expected":{"value":"[::1]"}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-8","input":"a b","expected":{"value":""}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-9","input":"%FF","expected":{"value":""}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-10","input":"a/b","expected":{"value":""}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-11","input":"a@b","expected":{"value":""}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-12","input":"xn--","expected":{"value":"xn--"}}
+{"id":"standard/url/api/domain_to_unicode/cases/domain-13","input":"","expected":{"value":""}}

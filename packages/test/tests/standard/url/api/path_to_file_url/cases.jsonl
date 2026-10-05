@@ -1,0 +1,347 @@
+{"id":"standard/url/api/path_to_file_url/cases/reference-0","input":{"path":"","cwd":"/work/project","windows":false},"expected":{"value":"file:///work/project"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-1","input":{"path":".","cwd":"/work/project","windows":false},"expected":{"value":"file:///work/project"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-2","input":{"path":"..","cwd":"/work/project","windows":false},"expected":{"value":"file:///work"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-3","input":{"path":"../leaf","cwd":"/work/project","windows":false},"expected":{"value":"file:///work/leaf"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-4","input":{"path":"child/","cwd":"/work/project","windows":false},"expected":{"value":"file:///work/project/child/"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-5","input":{"path":"child\\","cwd":"/work/project","windows":false},"expected":{"value":"file:///work/project/child%5C"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-6","input":{"path":"/root/../leaf","cwd":"/work/project","windows":false},"expected":{"value":"file:///leaf"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-7","input":{"path":"/data/","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-8","input":{"path":"/data/a/../b/","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/b/"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-9","input":{"path":"/data/a%2Fb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%252Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-10","input":{"path":"/data/\u4f60\u597d\ud83d\ude80","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/%E4%BD%A0%E5%A5%BD%F0%9F%9A%80"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-11","input":{"path":"/data/a?b#c","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%3Fb%23c"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-12","input":{"path":"/data/a[]|~^","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%5B%5D%7C%7E%5E"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-13","input":{"path":"/data/a\u0000b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%00b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-14","input":{"path":"/data/a\u0001b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%01b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-15","input":{"path":"/data/a\u0002b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%02b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-16","input":{"path":"/data/a\u0003b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%03b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-17","input":{"path":"/data/a\u0004b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%04b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-18","input":{"path":"/data/a\u0005b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%05b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-19","input":{"path":"/data/a\u0006b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%06b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-20","input":{"path":"/data/a\u0007b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%07b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-21","input":{"path":"/data/a\bb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%08b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-22","input":{"path":"/data/a\tb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%09b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-23","input":{"path":"/data/a\nb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%0Ab"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-24","input":{"path":"/data/a\u000bb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%0Bb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-25","input":{"path":"/data/a\fb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%0Cb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-26","input":{"path":"/data/a\rb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%0Db"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-27","input":{"path":"/data/a\u000eb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%0Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-28","input":{"path":"/data/a\u000fb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%0Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-29","input":{"path":"/data/a\u0010b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%10b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-30","input":{"path":"/data/a\u0011b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%11b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-31","input":{"path":"/data/a\u0012b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%12b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-32","input":{"path":"/data/a\u0013b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%13b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-33","input":{"path":"/data/a\u0014b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%14b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-34","input":{"path":"/data/a\u0015b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%15b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-35","input":{"path":"/data/a\u0016b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%16b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-36","input":{"path":"/data/a\u0017b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%17b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-37","input":{"path":"/data/a\u0018b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%18b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-38","input":{"path":"/data/a\u0019b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%19b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-39","input":{"path":"/data/a\u001ab","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%1Ab"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-40","input":{"path":"/data/a\u001bb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%1Bb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-41","input":{"path":"/data/a\u001cb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%1Cb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-42","input":{"path":"/data/a\u001db","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%1Db"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-43","input":{"path":"/data/a\u001eb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%1Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-44","input":{"path":"/data/a\u001fb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%1Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-45","input":{"path":"/data/a b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%20b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-46","input":{"path":"/data/a!b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a!b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-47","input":{"path":"/data/a\"b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%22b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-48","input":{"path":"/data/a#b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%23b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-49","input":{"path":"/data/a$b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a$b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-50","input":{"path":"/data/a%b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%25b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-51","input":{"path":"/data/a&b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a&b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-52","input":{"path":"/data/a'b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a'b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-53","input":{"path":"/data/a(b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a(b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-54","input":{"path":"/data/a)b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a)b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-55","input":{"path":"/data/a*b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a*b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-56","input":{"path":"/data/a+b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a+b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-57","input":{"path":"/data/a,b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a,b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-58","input":{"path":"/data/a-b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a-b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-59","input":{"path":"/data/a.b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a.b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-60","input":{"path":"/data/a/b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a/b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-61","input":{"path":"/data/a0b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a0b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-62","input":{"path":"/data/a1b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a1b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-63","input":{"path":"/data/a2b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a2b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-64","input":{"path":"/data/a3b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a3b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-65","input":{"path":"/data/a4b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a4b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-66","input":{"path":"/data/a5b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a5b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-67","input":{"path":"/data/a6b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a6b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-68","input":{"path":"/data/a7b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a7b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-69","input":{"path":"/data/a8b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a8b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-70","input":{"path":"/data/a9b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a9b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-71","input":{"path":"/data/a:b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a:b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-72","input":{"path":"/data/a;b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a;b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-73","input":{"path":"/data/a<b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%3Cb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-74","input":{"path":"/data/a=b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a=b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-75","input":{"path":"/data/a>b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%3Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-76","input":{"path":"/data/a?b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%3Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-77","input":{"path":"/data/a@b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a@b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-78","input":{"path":"/data/aAb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aAb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-79","input":{"path":"/data/aBb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aBb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-80","input":{"path":"/data/aCb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aCb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-81","input":{"path":"/data/aDb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aDb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-82","input":{"path":"/data/aEb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aEb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-83","input":{"path":"/data/aFb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aFb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-84","input":{"path":"/data/aGb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aGb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-85","input":{"path":"/data/aHb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aHb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-86","input":{"path":"/data/aIb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aIb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-87","input":{"path":"/data/aJb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aJb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-88","input":{"path":"/data/aKb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aKb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-89","input":{"path":"/data/aLb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aLb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-90","input":{"path":"/data/aMb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aMb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-91","input":{"path":"/data/aNb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aNb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-92","input":{"path":"/data/aOb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aOb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-93","input":{"path":"/data/aPb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aPb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-94","input":{"path":"/data/aQb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aQb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-95","input":{"path":"/data/aRb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aRb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-96","input":{"path":"/data/aSb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aSb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-97","input":{"path":"/data/aTb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aTb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-98","input":{"path":"/data/aUb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aUb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-99","input":{"path":"/data/aVb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aVb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-100","input":{"path":"/data/aWb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aWb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-101","input":{"path":"/data/aXb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aXb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-102","input":{"path":"/data/aYb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aYb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-103","input":{"path":"/data/aZb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aZb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-104","input":{"path":"/data/a[b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%5Bb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-105","input":{"path":"/data/a\\b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%5Cb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-106","input":{"path":"/data/a]b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%5Db"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-107","input":{"path":"/data/a^b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%5Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-108","input":{"path":"/data/a_b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a_b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-109","input":{"path":"/data/a`b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%60b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-110","input":{"path":"/data/aab","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aab"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-111","input":{"path":"/data/abb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/abb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-112","input":{"path":"/data/acb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/acb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-113","input":{"path":"/data/adb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/adb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-114","input":{"path":"/data/aeb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aeb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-115","input":{"path":"/data/afb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/afb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-116","input":{"path":"/data/agb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/agb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-117","input":{"path":"/data/ahb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/ahb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-118","input":{"path":"/data/aib","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aib"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-119","input":{"path":"/data/ajb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/ajb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-120","input":{"path":"/data/akb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/akb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-121","input":{"path":"/data/alb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/alb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-122","input":{"path":"/data/amb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/amb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-123","input":{"path":"/data/anb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/anb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-124","input":{"path":"/data/aob","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aob"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-125","input":{"path":"/data/apb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/apb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-126","input":{"path":"/data/aqb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aqb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-127","input":{"path":"/data/arb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/arb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-128","input":{"path":"/data/asb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/asb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-129","input":{"path":"/data/atb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/atb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-130","input":{"path":"/data/aub","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/aub"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-131","input":{"path":"/data/avb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/avb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-132","input":{"path":"/data/awb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/awb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-133","input":{"path":"/data/axb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/axb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-134","input":{"path":"/data/ayb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/ayb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-135","input":{"path":"/data/azb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/azb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-136","input":{"path":"/data/a{b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%7Bb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-137","input":{"path":"/data/a|b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%7Cb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-138","input":{"path":"/data/a}b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%7Db"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-139","input":{"path":"/data/a~b","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%7Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-140","input":{"path":"/data/a\u007fb","cwd":"/work/project","windows":false},"expected":{"value":"file:///data/a%7Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-691","input":{"path":"","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/work/project"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-692","input":{"path":".","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/work/project"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-693","input":{"path":"..","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/work"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-694","input":{"path":"../leaf","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/work/leaf"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-695","input":{"path":"child/","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/work/project/child/"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-696","input":{"path":"child\\","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/work/project/child/"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-697","input":{"path":"/root/../leaf","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/leaf"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-698","input":{"path":"C:\\data\\","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-699","input":{"path":"C:\\data\\a/../b/","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/b/"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-700","input":{"path":"C:\\data\\a%2Fb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%252Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-701","input":{"path":"C:\\data\\\u4f60\u597d\ud83d\ude80","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/%E4%BD%A0%E5%A5%BD%F0%9F%9A%80"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-702","input":{"path":"C:\\data\\a?b#c","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%3Fb%23c"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-703","input":{"path":"C:\\data\\a[]|~^","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%5B%5D%7C%7E%5E"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-704","input":{"path":"D:\\folder\\a","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///D:/folder/a"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-705","input":{"path":"c:/folder/a","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///c:/folder/a"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-706","input":{"path":"\\rooted","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/rooted"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-707","input":{"path":"\\\\server\\share\\a","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file://server/share/a"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-708","input":{"path":"\\\\nas\\My Docs\\File.doc","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file://nas/My%20Docs/File.doc"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-709","input":{"path":"\\\\?\\UNC\\server\\share\\a","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file://server/share/a"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-710","input":{"path":"\\\\?\\C:\\path\\to\\file.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/path/to/file.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-711","input":{"path":"\\\\\u4f60\u597d\\share\\a","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file://xn--6qq79v/share/a"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-712","input":{"path":"\\\\host","cwd":"C:\\work\\project","windows":true},"expected":{"error":"InvalidFilePath"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-713","input":{"path":"\\\\\\missing","cwd":"C:\\work\\project","windows":true},"expected":{"error":"InvalidFilePath"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-714","input":{"path":"\\\\?\\a:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///a:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-715","input":{"path":"\\\\?\\b:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///b:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-716","input":{"path":"\\\\?\\c:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///c:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-717","input":{"path":"\\\\?\\d:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///d:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-718","input":{"path":"\\\\?\\e:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///e:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-719","input":{"path":"\\\\?\\f:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///f:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-720","input":{"path":"\\\\?\\g:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///g:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-721","input":{"path":"\\\\?\\h:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///h:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-722","input":{"path":"\\\\?\\i:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///i:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-723","input":{"path":"\\\\?\\j:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///j:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-724","input":{"path":"\\\\?\\k:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///k:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-725","input":{"path":"\\\\?\\l:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///l:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-726","input":{"path":"\\\\?\\m:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///m:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-727","input":{"path":"\\\\?\\n:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///n:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-728","input":{"path":"\\\\?\\o:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///o:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-729","input":{"path":"\\\\?\\p:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///p:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-730","input":{"path":"\\\\?\\q:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///q:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-731","input":{"path":"\\\\?\\r:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///r:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-732","input":{"path":"\\\\?\\s:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///s:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-733","input":{"path":"\\\\?\\t:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///t:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-734","input":{"path":"\\\\?\\u:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///u:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-735","input":{"path":"\\\\?\\v:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///v:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-736","input":{"path":"\\\\?\\w:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///w:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-737","input":{"path":"\\\\?\\x:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///x:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-738","input":{"path":"\\\\?\\y:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///y:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-739","input":{"path":"\\\\?\\z:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///z:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-740","input":{"path":"\\\\?\\A:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///A:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-741","input":{"path":"\\\\?\\B:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///B:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-742","input":{"path":"\\\\?\\C:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-743","input":{"path":"\\\\?\\D:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///D:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-744","input":{"path":"\\\\?\\E:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///E:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-745","input":{"path":"\\\\?\\F:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///F:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-746","input":{"path":"\\\\?\\G:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///G:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-747","input":{"path":"\\\\?\\H:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///H:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-748","input":{"path":"\\\\?\\I:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///I:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-749","input":{"path":"\\\\?\\J:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///J:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-750","input":{"path":"\\\\?\\K:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///K:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-751","input":{"path":"\\\\?\\L:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///L:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-752","input":{"path":"\\\\?\\M:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///M:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-753","input":{"path":"\\\\?\\N:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///N:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-754","input":{"path":"\\\\?\\O:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///O:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-755","input":{"path":"\\\\?\\P:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///P:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-756","input":{"path":"\\\\?\\Q:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///Q:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-757","input":{"path":"\\\\?\\R:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///R:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-758","input":{"path":"\\\\?\\S:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///S:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-759","input":{"path":"\\\\?\\T:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///T:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-760","input":{"path":"\\\\?\\U:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///U:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-761","input":{"path":"\\\\?\\V:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///V:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-762","input":{"path":"\\\\?\\W:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///W:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-763","input":{"path":"\\\\?\\X:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///X:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-764","input":{"path":"\\\\?\\Y:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///Y:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-765","input":{"path":"\\\\?\\Z:\\folder\\..\\leaf #.txt","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///Z:/leaf%20%23.txt"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-766","input":{"path":"\\\\server\\share\\a\\..\\b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file://server/share/b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-767","input":{"path":"\\\\server\\share\\a/../b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file://server/share/b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-768","input":{"path":"C:\\data\\a\u0000b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%00b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-769","input":{"path":"C:\\data\\a\u0001b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%01b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-770","input":{"path":"C:\\data\\a\u0002b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%02b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-771","input":{"path":"C:\\data\\a\u0003b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%03b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-772","input":{"path":"C:\\data\\a\u0004b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%04b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-773","input":{"path":"C:\\data\\a\u0005b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%05b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-774","input":{"path":"C:\\data\\a\u0006b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%06b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-775","input":{"path":"C:\\data\\a\u0007b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%07b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-776","input":{"path":"C:\\data\\a\bb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%08b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-777","input":{"path":"C:\\data\\a\tb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%09b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-778","input":{"path":"C:\\data\\a\nb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%0Ab"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-779","input":{"path":"C:\\data\\a\u000bb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%0Bb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-780","input":{"path":"C:\\data\\a\fb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%0Cb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-781","input":{"path":"C:\\data\\a\rb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%0Db"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-782","input":{"path":"C:\\data\\a\u000eb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%0Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-783","input":{"path":"C:\\data\\a\u000fb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%0Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-784","input":{"path":"C:\\data\\a\u0010b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%10b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-785","input":{"path":"C:\\data\\a\u0011b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%11b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-786","input":{"path":"C:\\data\\a\u0012b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%12b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-787","input":{"path":"C:\\data\\a\u0013b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%13b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-788","input":{"path":"C:\\data\\a\u0014b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%14b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-789","input":{"path":"C:\\data\\a\u0015b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%15b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-790","input":{"path":"C:\\data\\a\u0016b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%16b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-791","input":{"path":"C:\\data\\a\u0017b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%17b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-792","input":{"path":"C:\\data\\a\u0018b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%18b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-793","input":{"path":"C:\\data\\a\u0019b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%19b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-794","input":{"path":"C:\\data\\a\u001ab","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%1Ab"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-795","input":{"path":"C:\\data\\a\u001bb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%1Bb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-796","input":{"path":"C:\\data\\a\u001cb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%1Cb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-797","input":{"path":"C:\\data\\a\u001db","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%1Db"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-798","input":{"path":"C:\\data\\a\u001eb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%1Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-799","input":{"path":"C:\\data\\a\u001fb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%1Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-800","input":{"path":"C:\\data\\a b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%20b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-801","input":{"path":"C:\\data\\a!b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a!b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-802","input":{"path":"C:\\data\\a\"b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%22b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-803","input":{"path":"C:\\data\\a#b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%23b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-804","input":{"path":"C:\\data\\a$b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a$b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-805","input":{"path":"C:\\data\\a%b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%25b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-806","input":{"path":"C:\\data\\a&b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a&b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-807","input":{"path":"C:\\data\\a'b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a'b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-808","input":{"path":"C:\\data\\a(b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a(b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-809","input":{"path":"C:\\data\\a)b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a)b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-810","input":{"path":"C:\\data\\a*b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a*b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-811","input":{"path":"C:\\data\\a+b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a+b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-812","input":{"path":"C:\\data\\a,b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a,b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-813","input":{"path":"C:\\data\\a-b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a-b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-814","input":{"path":"C:\\data\\a.b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a.b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-815","input":{"path":"C:\\data\\a/b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a/b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-816","input":{"path":"C:\\data\\a0b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a0b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-817","input":{"path":"C:\\data\\a1b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a1b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-818","input":{"path":"C:\\data\\a2b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a2b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-819","input":{"path":"C:\\data\\a3b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a3b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-820","input":{"path":"C:\\data\\a4b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a4b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-821","input":{"path":"C:\\data\\a5b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a5b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-822","input":{"path":"C:\\data\\a6b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a6b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-823","input":{"path":"C:\\data\\a7b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a7b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-824","input":{"path":"C:\\data\\a8b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a8b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-825","input":{"path":"C:\\data\\a9b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a9b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-826","input":{"path":"C:\\data\\a:b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a:b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-827","input":{"path":"C:\\data\\a;b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a;b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-828","input":{"path":"C:\\data\\a<b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%3Cb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-829","input":{"path":"C:\\data\\a=b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a=b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-830","input":{"path":"C:\\data\\a>b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%3Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-831","input":{"path":"C:\\data\\a?b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%3Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-832","input":{"path":"C:\\data\\a@b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a@b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-833","input":{"path":"C:\\data\\aAb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aAb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-834","input":{"path":"C:\\data\\aBb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aBb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-835","input":{"path":"C:\\data\\aCb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aCb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-836","input":{"path":"C:\\data\\aDb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aDb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-837","input":{"path":"C:\\data\\aEb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aEb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-838","input":{"path":"C:\\data\\aFb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aFb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-839","input":{"path":"C:\\data\\aGb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aGb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-840","input":{"path":"C:\\data\\aHb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aHb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-841","input":{"path":"C:\\data\\aIb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aIb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-842","input":{"path":"C:\\data\\aJb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aJb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-843","input":{"path":"C:\\data\\aKb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aKb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-844","input":{"path":"C:\\data\\aLb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aLb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-845","input":{"path":"C:\\data\\aMb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aMb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-846","input":{"path":"C:\\data\\aNb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aNb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-847","input":{"path":"C:\\data\\aOb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aOb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-848","input":{"path":"C:\\data\\aPb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aPb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-849","input":{"path":"C:\\data\\aQb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aQb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-850","input":{"path":"C:\\data\\aRb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aRb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-851","input":{"path":"C:\\data\\aSb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aSb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-852","input":{"path":"C:\\data\\aTb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aTb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-853","input":{"path":"C:\\data\\aUb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aUb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-854","input":{"path":"C:\\data\\aVb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aVb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-855","input":{"path":"C:\\data\\aWb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aWb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-856","input":{"path":"C:\\data\\aXb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aXb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-857","input":{"path":"C:\\data\\aYb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aYb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-858","input":{"path":"C:\\data\\aZb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aZb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-859","input":{"path":"C:\\data\\a[b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%5Bb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-860","input":{"path":"C:\\data\\a\\b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a/b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-861","input":{"path":"C:\\data\\a]b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%5Db"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-862","input":{"path":"C:\\data\\a^b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%5Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-863","input":{"path":"C:\\data\\a_b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a_b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-864","input":{"path":"C:\\data\\a`b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%60b"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-865","input":{"path":"C:\\data\\aab","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aab"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-866","input":{"path":"C:\\data\\abb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/abb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-867","input":{"path":"C:\\data\\acb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/acb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-868","input":{"path":"C:\\data\\adb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/adb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-869","input":{"path":"C:\\data\\aeb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aeb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-870","input":{"path":"C:\\data\\afb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/afb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-871","input":{"path":"C:\\data\\agb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/agb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-872","input":{"path":"C:\\data\\ahb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/ahb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-873","input":{"path":"C:\\data\\aib","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aib"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-874","input":{"path":"C:\\data\\ajb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/ajb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-875","input":{"path":"C:\\data\\akb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/akb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-876","input":{"path":"C:\\data\\alb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/alb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-877","input":{"path":"C:\\data\\amb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/amb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-878","input":{"path":"C:\\data\\anb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/anb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-879","input":{"path":"C:\\data\\aob","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aob"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-880","input":{"path":"C:\\data\\apb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/apb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-881","input":{"path":"C:\\data\\aqb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aqb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-882","input":{"path":"C:\\data\\arb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/arb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-883","input":{"path":"C:\\data\\asb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/asb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-884","input":{"path":"C:\\data\\atb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/atb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-885","input":{"path":"C:\\data\\aub","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/aub"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-886","input":{"path":"C:\\data\\avb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/avb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-887","input":{"path":"C:\\data\\awb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/awb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-888","input":{"path":"C:\\data\\axb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/axb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-889","input":{"path":"C:\\data\\ayb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/ayb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-890","input":{"path":"C:\\data\\azb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/azb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-891","input":{"path":"C:\\data\\a{b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%7Bb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-892","input":{"path":"C:\\data\\a|b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%7Cb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-893","input":{"path":"C:\\data\\a}b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%7Db"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-894","input":{"path":"C:\\data\\a~b","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%7Eb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-895","input":{"path":"C:\\data\\a\u007fb","cwd":"C:\\work\\project","windows":true},"expected":{"value":"file:///C:/data/a%7Fb"}}
+{"id":"standard/url/api/path_to_file_url/cases/reference-1448","input":{"path":"\\\\host name\\share\\a","cwd":"C:\\work\\project","windows":true},"expected":{"error":"InvalidHost"}}

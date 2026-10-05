@@ -34,7 +34,13 @@ const errors = new Set([
 	'InvalidLength',
 	'InvalidHeaderChecksum',
 	'UnsupportedDictionary',
-	'TrailingData'
+	'TrailingData',
+	'InvalidUrl',
+	'InvalidHost',
+	'InvalidFilePath',
+	'InvalidFileUrl',
+	'InvalidFileUrlHost',
+	'InvalidFileUrlPath'
 ])
 
 for (const row of readRows<Case>(source)) {

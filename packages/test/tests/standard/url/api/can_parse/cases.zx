@@ -1,0 +1,10 @@
+import url from "std:url"
+import type { Url, Resolve, Platform } from "std:url"
+
+export type Input = Resolve
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  return url.canParse(in)
+}

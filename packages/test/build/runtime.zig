@@ -9,6 +9,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
     const logical_step = b.step("test-logical-binary", "Run logical AND and OR source and short circuit cases");
     const zlib_step = b.step("test-zlib", "Run independent compressed input and decompression boundary cases");
     const url_search_params_step = b.step("test-url-search-params", "Execute immutable URL query list operations and encoding boundaries");
+    const url_api_step = b.step("test-url-api", "Execute all public URL APIs through ZX and shared native ABI");
     const querystring_step = b.step("test-querystring", "Run querystring semantic cases through the shared ABI");
     const relational_whitespace_step = b.step("test-relational-whitespace", "Run original relational whitespace expressions and numeric boundaries");
     const call_object_spread_step = b.step("test-call-object-spread", "Execute object spread arguments across imported functions");
@@ -115,6 +116,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         const run = b.addRunArtifact(tests);
 
         step.dependOn(&run.step);
+
         if (std.mem.startsWith(u8, suite.name, "arrow-bodies-")) arrow_bodies_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "call-object-spread-")) call_object_spread_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "call-arguments-")) call_arguments_step.dependOn(&run.step);
@@ -147,9 +149,9 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         if (std.mem.startsWith(u8, suite.name, "object-construction-")) object_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "array-literal-")) array_literal_step.dependOn(&run.step);
         if (std.mem.eql(u8, suite.name, "comparison-whitespace")) relational_whitespace_step.dependOn(&run.step);
-
         if (std.mem.indexOf(u8, suite.path, "/owned/") != null) owned_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "standard/url/search_params/")) url_search_params_step.dependOn(&run.step);
+        if (std.mem.startsWith(u8, suite.path, "standard/url/api/")) url_api_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "standard/querystring/")) querystring_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "standard/zlib/")) zlib_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "language/expressions/logical_and/") or std.mem.startsWith(u8, suite.path, "language/expressions/logical_or/")) logical_step.dependOn(&run.step);
