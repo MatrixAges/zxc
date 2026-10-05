@@ -1,7 +1,7 @@
 const zx = @import("zx");
 const ast = zx.ast;
 
-pub const message = "RX values cannot contain calls or callbacks; move logic to ZX and use Call.fn or Call.service";
+pub const message = "RX values cannot contain calls or callbacks; move logic to ZX and use Call.fn or Call.module";
 
 pub fn validate(expression: *const ast.Expression) ?zx.Diagnostic {
     switch (expression.value) {

@@ -1,7 +1,7 @@
 <Module>
-  <Call service="prepare" in={$in.source} name="prepared" />
+  <Call module="prepare" in={$in.source} />
 
-  <Call fn="expressions/parse" in={{prepared: ctx.prepared, start: $in.start, depth: $in.depth, minimum: $in.minimum, allow_lambda: $in.allow_lambda}} name="parsed" />
+  <Call fn="expressions/parse" in={{prepared: $ctx.prepare, start: $in.start, depth: $in.depth, minimum: $in.minimum, allow_lambda: $in.allow_lambda}} />
 
-  <Return value={ctx.parsed} />
+  <Return value={$ctx.parse} />
 </Module>

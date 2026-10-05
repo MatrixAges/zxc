@@ -1,8 +1,7 @@
 const std = @import("std");
 const dsl = @import("dsl");
 const modules = @import("modules.zig");
-
-pub const Source = struct { path: []const u8, source: []const u8 };
+pub const Source = struct { path: []const u8, source: []const u8, packages: []const @import("frontend").project.Package = &.{} };
 
 pub const Result = struct {
     arena: std.heap.ArenaAllocator,
@@ -42,7 +41,7 @@ pub fn parseModules(allocator: std.mem.Allocator, sources: []const Source) std.m
 
         switch (item.value) {
             .diagnostic => |issue| return .{ .arena = arena, .parsed = parsed.items, .value = .{ .diagnostic = .{ .source_index = index, .issue = issue } } },
-            .node => |node| inputs[index] = .{ .path = source.path, .node = node },
+            .node => |node| inputs[index] = .{ .path = source.path, .node = node, .packages = source.packages },
         }
     }
 

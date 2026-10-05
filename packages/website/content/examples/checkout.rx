@@ -1,12 +1,11 @@
 <Module>
-  <Call service="carts/load" in={$in.cart_id} name="cart" />
-  <Call fn="quote" in={ctx.cart} name="quote" />
+  <Call module="carts/load" in={$in.cart_id} />
+  <Call fn="quote" in={$ctx.load} />
 
   <Call
-    service="orders/create"
-    in={{cart_id:$in.cart_id,quote:ctx.quote}}
-    name="order"
+    module="orders/create"
+    in={{cart_id:$in.cart_id,quote:$ctx.quote}}
   />
-  <Return value={ctx.order} />
+  <Return value={$ctx.create} />
 
 </Module>

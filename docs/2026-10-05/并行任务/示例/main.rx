@@ -1,20 +1,18 @@
 <Module>
-  <Call fn="identity" in={$in.value} name="number" />
   <Parallel>
-    <Task name="number" out={{value: ctx.second}}>
-      <Call fn="identity" in={ctx.number} name="first" />
-      <Call fn="identity" in={ctx.first} name="second" />
+    <Task name="number" out={{value: $ctx.identity}}>
+      <Call fn="identity" in={$in.value} />
     </Task>
     <Task name="flag">
       <Switch on={$in.enabled}>
         <Case value={true}>
           <Parallel>
-            <Task name="flag" out={ctx.value}>
-              <Call fn="invert" in={$in.enabled} name="value" />
+            <Task name="flag" out={$ctx.invert}>
+              <Call fn="invert" in={$in.enabled} />
             </Task>
-            <Call fn="identity" in={ctx.number} />
+            <Call fn="identity" in={$in.value} />
           </Parallel>
-          <Return value={ctx.task.flag} />
+          <Return value={$ctx.task.flag} />
         </Case>
         <Default>
           <Return value={true} />
@@ -22,8 +20,8 @@
       </Switch>
     </Task>
     <Task name="discard">
-      <Call fn="identity" in={ctx.number} />
+      <Call fn="identity" in={$in.value} />
     </Task>
   </Parallel>
-  <Return value={{value: ctx.task.number.value, enabled: ctx.task.flag}} />
+  <Return value={{value: $ctx.task.number.value, enabled: $ctx.task.flag}} />
 </Module>

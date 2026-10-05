@@ -5,9 +5,13 @@ const target = @import("call/target.zig");
 pub const Result = struct { name: []const u8, attribute: rx.ast.Attribute };
 
 pub fn resolve(node: rx.ast.Node) Result {
-    if (target.optionalAttribute(node, "name")) |attribute| return .{ .name = attribute.value, .attribute = attribute };
+    if (std.mem.eql(u8, node.name, "Task")) {
+        const attribute = target.attribute(node, "name");
 
-    const attribute = target.optionalAttribute(node, "fn") orelse target.optionalAttribute(node, "service") orelse target.attribute(node, "module");
+        return .{ .name = attribute.value, .attribute = attribute };
+    }
+
+    const attribute = target.optionalAttribute(node, "fn") orelse target.attribute(node, "module");
     const separator = std.mem.lastIndexOfAny(u8, attribute.value, "/\\");
     var name = attribute.value[if (separator) |index| index + 1 else 0..];
 

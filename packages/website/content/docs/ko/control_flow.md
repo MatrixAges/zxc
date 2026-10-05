@@ -4,12 +4,12 @@ RX는 작업을 묶고 선택하며, ZX는 그 안에서 타입이 있는 계산
 
 ```xml
 <Module>
-  <Task name="prepare">
-    <Call service="users/load" in={$in.user_id} name="user" />
-    <Call fn="quote" in={$in} name="quote" />
+  <Task name="prepare" out={$ctx.quote}>
+    <Call module="users/load" in={$in.user_id} />
+    <Call fn="quote" in={$in} />
   </Task>
 
-  <Return value={ctx.quote} />
+  <Return value={$ctx.task.prepare} />
 </Module>
 ```
 
@@ -19,8 +19,13 @@ RX는 작업을 묶고 선택하며, ZX는 그 안에서 타입이 있는 계산
 
 ```xml
 <Parallel>
-  <Call service="users/load" in={$in.user_id} name="user" />
-  <Call service="catalog/load" in={$in.item_id} name="item" />
+  <Task name="user" out={$ctx.load}>
+    <Call module="users/load" in={$in.user_id} />
+  </Task>
+
+  <Task name="item" out={$ctx.load}>
+    <Call module="catalog/load" in={$in.item_id} />
+  </Task>
 </Parallel>
 ```
 
@@ -31,11 +36,11 @@ RX는 작업을 묶고 선택하며, ZX는 그 안에서 타입이 있는 계산
 ```xml
 <Switch on={$in.kind}>
   <Case value={priority}>
-    <Call service="orders/priority" in={$in} name="order" />
+    <Call module="orders/priority" in={$in} />
   </Case>
 
   <Default>
-    <Call service="orders/standard" in={$in} name="order" />
+    <Call module="orders/standard" in={$in} />
   </Default>
 </Switch>
 ```

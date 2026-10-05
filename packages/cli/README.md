@@ -23,7 +23,7 @@ zig build test
 
 ## RX 应用构建
 
-普通 RX 模块中的 Call.fn、Call.service、Return、Task 与 Switch 可以直接构建应用：
+普通 RX 模块中的 Call.fn、Call.module、Return、Task 与 Switch 可以直接构建应用：
 
 ```sh
 zxc build workflow.rx --out build/workflow

@@ -2,7 +2,7 @@
 
 ### RX 服务路径
 
-`Call.service` 和 `Import.from` 相对导入方模块解析。省略 `.rx` 后缀时，规范化器会自动补齐：`./load` 与 `load.rx` 指向同一个同级模块。
+`Call.module` 和 `Import.from` 相对导入方模块解析。省略 `.rx` 后缀时，规范化器会自动补齐：`./load` 与 `load.rx` 指向同一个同级模块。
 
 | 形式                                       | RX 行为                          |
 | ------------------------------------------ | -------------------------------- |
@@ -21,9 +21,9 @@
 <Module>
   <Import from="shared/validate" />
 
-  <Call service="orders/create" in={$in} name="order" />
+  <Call module="orders/create" in={$in} />
 
-  <Return value={ctx.order} />
+  <Return value={$ctx.create} />
 </Module>
 ```
 

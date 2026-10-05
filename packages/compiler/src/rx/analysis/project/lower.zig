@@ -38,7 +38,7 @@ pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const State, or
                 .getters = call.getters,
                 .function = switch (call.callee) {
                     .function => |function| function,
-                    .service => |service| .{ .program = contracts[service].?.program, .store_initializers = contracts[service].?.store_initializers, .nominal_types = loaded.project.context.nominal_types },
+                    .module => |module_index| .{ .program = contracts[module_index].?.program, .store_initializers = contracts[module_index].?.store_initializers, .nominal_types = loaded.project.context.nominal_types },
                 },
             };
         }

@@ -163,7 +163,7 @@ const Walker = struct {
 
         const input = switch (invocation.callee) {
             .function => |function| try graph.known(function.program.input_type, span),
-            .service => |service| self.states[service].input,
+            .module => |module_index| self.states[module_index].input,
         };
 
         if (attribute) |value| {
@@ -179,7 +179,7 @@ const Walker = struct {
 
         const output = switch (invocation.callee) {
             .function => |function| try graph.known(function.program.output_type, span),
-            .service => |service| self.states[service].output,
+            .module => |module_index| self.states[module_index].output,
         };
 
         try self.bindResult(invocation.node, output, .call);
@@ -192,14 +192,14 @@ const Walker = struct {
         expression.attribute = result.attribute;
         const span = expression.sourceSpan(.{ .start = 0, .end = result.attribute.value.len });
 
-        if (!paths.valid(result.name) or std.mem.indexOfScalar(u8, result.name, '.') != null) return graph.reporter.fail(.name, span, "result name must be one identifier; specify Call.name explicitly when the target has no valid name");
-        if (kind == .call and std.mem.eql(u8, result.name, "task")) return graph.reporter.fail(.name, span, "Call name task is reserved for Task results; specify a different Call.name");
+        if (!paths.valid(result.name) or std.mem.indexOfScalar(u8, result.name, '.') != null) return graph.reporter.fail(.name, span, "result name must be one identifier; Call targets must have a valid filename");
+        if (kind == .call and std.mem.eql(u8, result.name, "task")) return graph.reporter.fail(.name, span, "Call target name task is reserved for Task results");
 
-        const prefix: []const u8 = if (kind == .task) "ctx.task" else "ctx";
+        const prefix: []const u8 = if (kind == .task) "$ctx.task" else "$ctx";
         const name = try std.fmt.allocPrint(graph.allocator, "{s}.{s}", .{ prefix, result.name });
 
         for (expression.bindings.items) |binding| {
-            if (paths.overlaps(binding.name, name)) return graph.reporter.fail(.name, span, "named flow results must not overlap; use a distinct name");
+            if (paths.overlaps(binding.name, name)) return graph.reporter.fail(.name, span, "flow result paths must not overlap; each visible Call target name must be unique");
         }
 
         const binding = Expression.Binding{ .name = name, .value = output, .span = span };

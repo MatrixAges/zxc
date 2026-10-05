@@ -4,7 +4,7 @@ const rx = @import("rx");
 const target = @import("../call/target.zig");
 const Store = @import("../store.zig");
 const Flow = @import("flow.zig");
-pub const Call = struct { getters: []const Store.Binding = &.{}, node: rx.ast.Node, callee: union(enum) { function: target.Function, service: usize } };
+pub const Call = struct { getters: []const Store.Binding = &.{}, node: rx.ast.Node, callee: union(enum) { function: target.Function, module: usize } };
 pub const Module = struct { source: rx.ModuleSource, calls: []const Call, steps: []const Flow.Step };
 pub const Loaded = struct { modules: []const Module, project: frontend.project.Options };
 pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
@@ -123,22 +123,22 @@ const Loader = struct {
         }
 
         const capability = authorized.authorized;
-        var service: ?rx.ast.Attribute = null;
+        const owner = try std.fs.path.resolve(self.allocator, &.{ self.project.root_dir, self.owner });
+        const packages = rx.module_reference.dependencies(self.project, owner);
+        const reference = target.optionalAttribute(node, "module");
 
-        for (node.attributes) |attribute| {
-            if (std.mem.eql(u8, attribute.name, "service")) service = attribute;
-        }
+        if (reference != null and !rx.module_reference.isPackage(reference.?.value, packages)) {
+            const attribute = reference.?;
 
-        if (service) |attribute| {
             const path = rx.resolveModulePath(self.allocator, self.owner, attribute.value) catch |err| {
                 if (err == error.OutOfMemory) return error.OutOfMemory;
 
-                return self.fail(attribute.value_location, "module", "Call.service must stay within the project root");
+                return self.fail(attribute.value_location, "module", "Call.module must stay within the project root");
             };
 
-            const service_index = find(self.modules, path) orelse return self.fail(attribute.value_location, "module", "Call.service target is not registered");
+            const module_index = find(self.modules, path) orelse return self.fail(attribute.value_location, "module", "Call.module target is not registered");
 
-            try self.calls.append(self.allocator, .{ .node = node, .getters = capability.getters, .callee = .{ .service = service_index } });
+            try self.calls.append(self.allocator, .{ .node = node, .getters = capability.getters, .callee = .{ .module = module_index } });
         } else {
             const result = try target.load(self.allocator, .{ .owner = self.owner, .call = node, .sources = self.sources, .project = self.project, .setter = capability.setter });
 

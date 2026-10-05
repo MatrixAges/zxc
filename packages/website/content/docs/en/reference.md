@@ -40,7 +40,7 @@ Gateway and Store names describe their business boundary. They do not replace th
 | `Emit`               | `event`, `value`                      | Leaf                                    |
 | Module-level `Store` | `from`                                | Optional `as` namespace                 |
 
-Attributes are validated as part of the current structural model. Expression strings such as `$in` and `ctx.result` require host interpretation; the RX package does not currently parse or type-check them against ZX.
+Attributes are validated as part of the current structural model. Expression strings such as `$in` and `$ctx.result` require host interpretation; the RX package does not currently parse or type-check them against ZX.
 
 ### Validation scope
 

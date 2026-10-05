@@ -2,7 +2,7 @@ Paths identify modules. Keep file placement aligned with business responsibiliti
 
 ### RX service paths
 
-`Call.service` and `Import.from` resolve against the importing module. The normalizer adds the `.rx` suffix when omitted: `./load` and `load.rx` identify the same sibling module.
+`Call.module` and `Import.from` resolve against the importing module. The normalizer adds the `.rx` suffix when omitted: `./load` and `load.rx` identify the same sibling module.
 
 | Form                                                   | RX behavior                                        |
 | ------------------------------------------------------ | -------------------------------------------------- |
@@ -21,9 +21,9 @@ Paths identify modules. Keep file placement aligned with business responsibiliti
 <Module>
   <Import from="shared/validate" />
 
-  <Call service="orders/create" in={$in} name="order" />
+  <Call module="orders/create" in={$in} />
 
-  <Return value={ctx.order} />
+  <Return value={$ctx.create} />
 </Module>
 ```
 

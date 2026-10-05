@@ -1,6 +1,6 @@
 ### Why XML
 
-RX expresses how business units compose and how data crosses their boundaries. XML tags distinguish node responsibilities, nesting shows structural hierarchy, and attributes identify call targets and inputs and outputs. For example, `Call` expresses a call, `service` identifies its target, and `in` supplies the argument and `ctx.<name>` identifies the call result. These relationships are visible before reading the computation.
+RX expresses how business units compose and how data crosses their boundaries. XML tags distinguish node responsibilities, nesting shows structural hierarchy, and attributes identify call targets and inputs and outputs. For example, `Call` expresses a call, `module` identifies its target, and `in` supplies the argument and `$ctx.<name>` identifies the call result. These relationships are visible before reading the computation.
 
 Explicit opening and closing tags make boundaries independent of indentation. People and AI can read, generate, and change subtrees, while tools check allowed tags, attributes, and nesting. The same structural rules at each level provide a consistent language for composition and fractal growth.
 
@@ -22,23 +22,22 @@ In `checkout.rx`:
 
 ```xml
 <Module>
-  <Call service="users/load" in={$in.user_id} name="user" />
+  <Call module="users/load" in={$in.user_id} />
 
   <Call
-    service="orders/create"
-    in={{user:ctx.user,items:$in.items}}
-    name="order"
+    module="orders/create"
+    in={{user:$ctx.load,items:$in.items}}
   />
 
-  <Return value={ctx.order} />
+  <Return value={$ctx.create} />
 </Module>
 ```
 
-The called files must exist in the application. `service` resolves relative to the calling file; the `.rx` suffix is usually omitted. `$in` is the current module input. Read results through `ctx.<name>`; name defaults to the target filename and must be unique within its scope.
+The called files must exist in the application. `module` resolves relative to the calling file; the `.rx` suffix is usually omitted. `$in` is the current module input. Read results through `$ctx.<name>`; the result name is the target filename, without its source extension, and must be unique within its scope. Call has no name attribute.
 
 ### Call computation
 
-Use `Call.fn` for a function supplied by the application. `fn` and `service` are mutually exclusive. A direct `Call` does not require a duplicate `Import`.
+Use `Call.fn` for a function supplied by the application. `fn` and `module` are mutually exclusive. A direct `Call` does not require a duplicate `Import`.
 
 Parallel steps must not depend on each other's unfinished results. A child must not call back into its parent to obtain data; the parent supplies that data as input.
 

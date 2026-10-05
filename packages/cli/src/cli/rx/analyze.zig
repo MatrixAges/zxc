@@ -20,7 +20,7 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
 
     if (collection.outside(owner)) return error.RxEntryOutsideProject;
 
-    var loaded = try collection.load(allocator, .{ .io = io, .root = root, .entry = owner, .writer = options.writer, .inputs = options.inputs, .check_initializers = false }) orelse return null;
+    var loaded = try collection.load(allocator, .{ .io = io, .root = root, .entry = owner, .writer = options.writer, .inputs = options.inputs, .check_initializers = false, .project = project }) orelse return null;
 
     defer loaded.deinit();
 

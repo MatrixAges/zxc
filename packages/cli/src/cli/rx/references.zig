@@ -1,7 +1,7 @@
 const std = @import("std");
 const rx = @import("rx");
 
-pub fn collect(allocator: std.mem.Allocator, queue: *std.ArrayList([]const u8), owner: []const u8, root: rx.ast.Node, writer: *std.Io.Writer) !bool {
+pub fn collect(allocator: std.mem.Allocator, queue: *std.ArrayList([]const u8), owner: []const u8, root: rx.ast.Node, packages: []const @import("compiler").project.Package, writer: *std.Io.Writer) !bool {
     var nodes: std.ArrayList(rx.ast.Node) = .empty;
 
     defer nodes.deinit(allocator);
@@ -10,11 +10,11 @@ pub fn collect(allocator: std.mem.Allocator, queue: *std.ArrayList([]const u8), 
 
     while (nodes.pop()) |node| {
         const store = std.mem.eql(u8, node.name, "Store");
-        var key: ?[]const u8 = if (std.mem.eql(u8, node.name, "Import") or store) "from" else if (std.mem.eql(u8, node.name, "Call") or std.mem.eql(u8, node.name, "Route")) "service" else null;
+        var key: ?[]const u8 = if (std.mem.eql(u8, node.name, "Import") or store) "from" else if (std.mem.eql(u8, node.name, "Call")) "module" else if (std.mem.eql(u8, node.name, "Route")) "service" else null;
 
         if (std.mem.eql(u8, node.name, "Call")) for (node.attributes) |attribute| {
             if (std.mem.eql(u8, attribute.name, "fn")) key = "fn";
-            if (std.mem.eql(u8, attribute.name, "module")) key = null;
+            if (std.mem.eql(u8, attribute.name, "module") and rx.module_reference.isPackage(attribute.value, packages)) key = null;
         };
 
         if (key) |name| for (node.attributes) |attribute| {

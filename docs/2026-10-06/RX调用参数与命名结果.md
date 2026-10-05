@@ -2,16 +2,16 @@
 
 ## Intent：最终目标
 
-输入命名保持 in：Call.in 传参、RX 使用 $in、ZX 固定函数参数使用 in。Module.in/out 都保留。仅移除 Call.out：通过目标文件名或显式 name 定位 ctx.<name>。Task 保留可选 out，但其含义是聚合输出表达式，不是绑定路径；结果统一为 ctx.task.<name>。
+输入命名保持 in：Call.in 传参、RX 使用 $in、ZX 固定函数参数使用 in。Module.in/out 都保留。仅移除 Call.out：直接通过目标文件名定位 $ctx.<name>，不提供 Call.name。Task 保留可选 out，但其含义是聚合输出表达式，不是绑定路径；结果统一为 $ctx.task.<name>。
 
 ## Data：可用证据
 
-Call 的 fn、service、module 三选一，默认结果名取目标最后路径段并去掉源码后缀。Parallel Task 原来已经有独立返回值，顺序 Task 原来仅是局部分组。本轮直接复用现有表达式类型推导、作用域和普通 IR 常量/返回，不引入专用运行库或运行时路径查找。
+Call 的 fn、module 二选一，默认结果名取目标最后路径段并去掉源码后缀。Parallel Task 原来已经有独立返回值，顺序 Task 原来仅是局部分组。本轮直接复用现有表达式类型推导、作用域和普通 IR 常量/返回，不引入专用运行库或运行时路径查找。
 
 ## Edges：边界与限制
 
-- Call.name 可选；默认名不是合法标识符时需显式指定，不自动修改字符。task 是保留名，避免 ctx.task 与任务命名空间冲突。同一作用域同类结果不得重名，Call 与 Task 可同名。
-- Task.out 可选，必须用花括号表达式；字符串输出写 out={"hello"}，旧 out="ctx.path" 不再表示路径，也不再接受。
+- Call 不接受 name；目标文件名必须是合法标识符，不自动修改字符。task 是保留名，避免 $ctx.task 与任务命名空间冲突。同一作用域同类结果不得重名，Call 与 Task 可同名。
+- Task.out 可选，必须用花括号表达式；字符串输出写 out={"hello"}，旧 out="$ctx.path" 不再表示路径，也不再接受。
 - out 在内部步骤结束后求值，可引用该 Task 内的 Call、已有外层值及已汇合的 Task 结果。它遵守 RX 值边界：仅引用、组装和简单运算，不允许内联函数调用、lambda 或状态更新。
 - 同一个任务不同时定义 out 与 Return，包括其顺序分组和条件分支中的 Return；嵌套 Parallel Task 的独立 Return 不属于外层任务输出。
 - 未写 out 的顺序 Task 保持局部作用域语义，其 Return 结束所在模块或并行分支；未写 out 的 Parallel Task 保留独立 Return。无返回值的调用或任务仍执行，但不产生可读结果。
@@ -23,23 +23,23 @@ Call 的 fn、service、module 三选一，默认结果名取目标最后路径�
 
 ```xml
 <Module>
-  <Task name="adjusted" out={{values: ctx.adjust.values, total: ctx.adjust.total}}>
+  <Task name="adjusted" out={{values: $ctx.adjust.values, total: $ctx.adjust.total}}>
     <Call fn="adjust" in={$in} />
   </Task>
 
-  <Return value={ctx.task.adjusted} />
+  <Return value={$ctx.task.adjusted} />
 </Module>
 ```
 
 ```mermaid
 flowchart LR
   Call[Call.in] --> Function[ZX / RX / 统一编译模块]
-  Function --> CallResult[ctx.name]
+  Function --> CallResult[$ctx.name]
   CallResult --> Out[Task.out 表达式]
   Out --> Infer[共享类型推导]
   Infer --> Sequential[顺序普通局部常量]
   Infer --> Parallel[并行分支返回]
-  Sequential --> Result[ctx.task.name]
+  Sequential --> Result[$ctx.task.name]
   Parallel --> Result
 ```
 
@@ -65,3 +65,46 @@ Grit 对 RX 表达式属性和 ZX owned 参数不能完整解析；本轮受控�
 发布构建通过。已有顺序 adjust 示例通过 Task.out 组装 original、values、total；输入 values=[2,4]、increment=1，实际返回 original=[2,4]、values=[3,5]、total=8。既有并行 main 示例中 number Task 使用对象 out，嵌套 flag Task 使用标量 out，外层 flag 保留 Return，discard 仍省略 out；两组原有输入分别返回 {value:12,enabled:false} 与 {value:7,enabled:true}，并通过已有 Z3 到达契约门禁。正式 expression.rx 使用 Call.in 成功生成 Zig。
 
 本轮未新增测试用例、未执行全量测试、未改测试会话文件。运行证据覆盖顺序聚合的列表字段、并行对象输出、嵌套输出、未写 out 的 Return 分支与 void 分支；重复输出、旧字符串 out、内联调用等负向分支仅核对实现，未宣称全部实跑。Module.in/out 源码保持原定义；args/$args 大规模中间迁移全部撤回，正式 ZX 源码没有此次改名差异。尚未完成的 header 自举草稿不并入本次提交。
+
+## 删除多余 Call.name
+
+用户明确 service/fn/module 已确定结果名称，不需要 name 别名。本轮移除 Call.name Schema，结果解析仅对 Task 读取 name，对 Call 直接读取目标文件名。正式 RX 和当前文档移除 Call.name 并同步 $ctx 引用；可见结果重名继续拒绝，不新增隐藏别名。多个独立的同名文件调用可各自在 Task 中聚合发布。
+
+此前为了别名而保留的示例 identity 重复调用改回直接取文件名，示例不再用额外属性表达同一个调用身份；不修改业务计算结果。此修正优先于上方历史执行记录中的显式 name 说法。
+
+## 特殊上下文前缀
+
+用户要求上下文明确带 $ 前缀，结果路径统一改为 $ctx.<目标名> 与 $ctx.task.<Task.name>，输入仍为 $in。编译器在建立绑定身份时生成该路径，所有推导、捕获和生成复用同一身份；不新增运行时对象或路径搜索。正式 RX 与当前应用文档同步，旧 ctx 路径不作为兼容别名。
+
+## Module 编排统一使用 module
+
+### Intent：最终目标
+
+Call 只保留 fn 与 module 两种目标；service 仅用于 Route。module 同时承接本地 RX 模块与既有包公开模块，不增加第二个别名字段。
+
+### Data：解析依据
+
+此前 service 固定解析本地 RX，module 固定解析已编译包，因此不能仅替换 Schema。模块图、入口装载和项目推导需要共享同一分类依据：当前文件所属包中已声明的精确模块引用优先作为包目标，否则按现有相对 RX 路径规则解析。本地同名引用可显式写 ./。不以文件是否存在作为回退判断。
+
+### Edges：边界
+
+Route.service 不变；本地 RX 的缺失目标与直接/间接环继续拒绝。图校验接收每个源码所属包的依赖列表；独立文本校验默认空依赖，所有 module 引用均按本地处理。已声明包目标仍由现有公开导出、产物与权限检查验证，不跳过依赖检查。既有 source 包 ZX 引用不冒充已编译 RX 库。
+
+### Answer：实施
+
+增加轻量模块引用分类 helper，复用现有 package_scope 选择所属包；将依赖列表传入文本/AST 图校验、CLI 引用收集和项目准备。当前 RX 与指导将旧 Call.service 迁移为 Call.module，保留 Route.service。分别构建本地模块、自举入口及已有编译库消费材料，确认无别名的 $ctx 路径与 Task.out 继续工作。
+
+### 最新验证与复核
+
+发布构建通过。正式 expression.rx 改用 module 与 $ctx 后生成成功，check-rx 入口检查通过。$ctx 顺序聚合与并行聚合重放均保持既有输出：列表示例 [2,4]+1 返回 original=[2,4]、values=[3,5]、total=8；并行示例分别返回 {value:12,enabled:false} 与 {value:7,enabled:true}。
+
+旧 arithmetic 编译产物的 IR 版本不兼容，因此保留历史产物，用原示例源码重新发布。现有 RX 消费程序改用目标名 $ctx.increment/$ctx.multiply，新发布库构建消费成功，输入 3 输出 40；带 --project 的 check-rx 也通过。修复了入口相对路径必须以真实工作目录为基准、再转为项目内路径的问题。重放材料位于 [RX模块命名](RX模块命名/pkg.yaml)，发布目录作为可再生产物忽略提交：
+
+```sh
+zig-out/bin/zxc build docs/2026-10-05/统一库/公开模块示例/arithmetic/pkg.yaml --mode lib --out docs/2026-10-06/RX模块命名/发布库 --no-cache
+zig-out/bin/zxc build docs/2026-10-06/RX模块命名/消费/main.rx --project docs/2026-10-06/RX模块命名/pkg.yaml --out /tmp/zxc_module_library --no-cache
+/tmp/zxc_module_library '3'
+zig-out/bin/zxc check-rx --entry docs/2026-10-06/RX模块命名/消费/main.rx --project docs/2026-10-06/RX模块命名/pkg.yaml
+```
+
+未新增测试用例，未执行全量测试；上述是既有源码和输入的定向重放。Route.service 的 Schema 与路由解析保持原样；本轮没有启动 HTTP 服务实测。旧别名、重复结果和循环等负例未重新执行，图遍历本体保持原有实现，仅改为读取 module 并区分已声明包目标，不能据此宣称完整回归通过。函数头自举草稿仍未完成，不纳入本次提交。

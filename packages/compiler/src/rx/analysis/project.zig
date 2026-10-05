@@ -27,7 +27,14 @@ pub fn infer(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 }
 
 fn inferIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Module.Value {
-    var checked = try rx.validateModules(allocator, options.modules);
+    const registered = try allocator.dupe(rx.ModuleSource, options.modules);
+
+    for (registered) |*source| {
+        const owner = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, source.path });
+        source.packages = rx.module_reference.dependencies(options.project, owner);
+    }
+
+    var checked = try rx.validateModules(allocator, registered);
 
     defer checked.deinit();
 
@@ -45,7 +52,7 @@ fn inferIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Err
 
     const modules = try allocator.alloc(rx.ModuleSource, options.modules.len);
 
-    for (options.modules, checked.value.data, modules) |source, module, *item| item.* = .{ .path = module.path, .node = source.node };
+    for (registered, checked.value.data, modules) |source, module, *item| item.* = .{ .path = module.path, .node = source.node, .packages = source.packages };
 
     const entry_index = prepare.find(modules, entry) orelse return failure(allocator, .{ .path = entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry is not registered in the module collection" });
     const registry = try @import("store/registry.zig").load(allocator, options.stores, options.project.context);

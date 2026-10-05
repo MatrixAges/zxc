@@ -33,7 +33,7 @@ pub fn run(allocator: std.mem.Allocator, options: Options) !?Result {
     if (collection.outside(owner)) return error.RxEntryOutsideProject;
     if (options.loaded.config.library != null) return error.GatewaySourceRequired;
 
-    var loaded = try collection.load(allocator, .{ .io = options.io, .root = root, .entry = owner, .writer = options.writer, .inputs = options.inputs, .check_initializers = false }) orelse return null;
+    var loaded = try collection.load(allocator, .{ .io = options.io, .root = root, .entry = owner, .writer = options.writer, .inputs = options.inputs, .check_initializers = false, .project = options.loaded.project }) orelse return null;
 
     defer loaded.deinit();
 

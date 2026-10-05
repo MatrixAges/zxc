@@ -1,7 +1,7 @@
 const std = @import("std");
 const rx = @import("rx");
 const Inputs = @import("../watch/inputs.zig");
-pub const Options = struct { io: std.Io, root: []const u8, entry: []const u8, writer: *std.Io.Writer, inputs: ?*Inputs = null, check_initializers: bool = true };
+pub const Options = struct { io: std.Io, root: []const u8, entry: []const u8, writer: *std.Io.Writer, inputs: ?*Inputs = null, check_initializers: bool = true, project: @import("compiler").project.Options = .{ .entry = "" } };
 pub const GatewaySource = struct { path: []const u8, source: []const u8, node: rx.ast.Node };
 pub const Data = struct { gateway: ?GatewaySource = null, modules: []const rx.ModuleSource, stores: []const rx.ModuleSource, sources: []const rx.TextSource, functions: []const rx.TextSource };
 
@@ -150,12 +150,14 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) !?Data {
             }
         }
 
+        const packages = rx.module_reference.dependencies(options.project, absolute);
+
         if (!std.mem.endsWith(u8, path, ".gateway.rx") and !std.mem.endsWith(u8, path, ".store.rx")) {
-            try sources.append(allocator, .{ .path = path, .source = source });
-            try modules.append(allocator, .{ .path = path, .node = parsed.value.node });
+            try sources.append(allocator, .{ .path = path, .source = source, .packages = packages });
+            try modules.append(allocator, .{ .path = path, .node = parsed.value.node, .packages = packages });
         }
 
-        if (!try @import("references.zig").collect(allocator, &queue, path, parsed.value.node, writer)) return null;
+        if (!try @import("references.zig").collect(allocator, &queue, path, parsed.value.node, packages, writer)) return null;
     }
 
     return .{ .gateway = gateway_source, .modules = modules.items, .stores = stores.items, .sources = sources.items, .functions = functions.items };

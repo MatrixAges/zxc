@@ -1,6 +1,6 @@
 # RX
 
-`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；普通 Call.fn/Call.service/Return、Task 和 Switch 已支持生成独立应用；其余流程执行能力见本文边界。
+`.rx` 文件的 Zig 语法定义库，基于 `dsl`。支持 XML 文本解析和带源码位置的 AST 校验，输出为强类型数据或诊断；普通 Call.fn/Call.module/Return、Task 和 Switch 已支持生成独立应用；其余流程执行能力见本文边界。
 
 ## 构建与测试
 
@@ -47,13 +47,13 @@ RX 测试位于 compiler 包的 `tests/rx/`，实现文件不包含内嵌 test�
 
 属性使用引号或花括号区分值的语义：`value="hello"` 是字符串，`value={expression}` 使用 ZX 表达式。`value="$in"` 返回字符串 `$in`；读取输入应写 `value={$in}`。对象表达式外面仍需属性花括号，例如 `in={{user: $in.user}}`。
 
-RX 属性值只负责数据引用、组装和简单运算，不执行函数或方法调用，也不定义 lambda 或状态更新块；嵌套对象、模板插值和分支中的调用同样禁止。将 loop、集合处理和其他计算放在 ZX 模块中，用 `<Call fn="calculate" in={$in} name="result" />` 编排，再通过 `ctx.result` 连接后续步骤。模块组合使用 Call.service。
+RX 属性值只负责数据引用、组装和简单运算，不执行函数或方法调用，也不定义 lambda 或状态更新块；嵌套对象、模板插值和分支中的调用同样禁止。将 loop、集合处理和其他计算放在 ZX 模块中，用 `<Call fn="calculate" in={$in} />` 编排，再通过 `$ctx.calculate` 连接后续步骤。模块组合使用 Call.module。
 
 花括号内部直接使用 ZX 源码，支持对象、列表、比较、逻辑运算、注释和模板，不进行 XML 实体解码或空白归一化；`<`、`&&` 无需写成 XML 实体。引号字符串仍使用标签转义，例如 `&amp;`、`&quot;`。
 
 `Call.in`、`Return.value`、`Switch.on`、`Case.value`、`Emit.value` 和 Store `Field.value` 都使用这一规则。`setter` 写作 `{[store.alias.object]}`，仍只授权一个完整 Store Object。路径、`name` 及 `Field.type` 保持静态引号字符串，不接受动态表达式。Store.version 和 Gateway 字节上限是静态整数配置，使用 `{1}`、`{8192}` 等整数字面量，保留各自范围检查。
 
-Call 使用 in 传参；读取输入写 `in={$in}`，字符串写 `in="$in"`；旧表达式中通过 XML 实体表示的符号需在花括号内恢复为 ZX 符号。无后缀调用保留：`fn="load"` 对应 `load.zx`，`service="orders"` 对应 `orders.rx`，不需要 `.zig`。
+Call 使用 in 传参；读取输入写 `in={$in}`，字符串写 `in="$in"`；旧表达式中通过 XML 实体表示的符号需在花括号内恢复为 ZX 符号。无后缀调用保留：`fn="load"` 对应 `load.zx`，`module="orders"` 对应 `orders.rx`，不需要 `.zig`。
 
 ## 调用与组合
 
@@ -63,31 +63,31 @@ Call 使用 in 传参；读取输入写 `in={$in}`，字符串写 `in="$in"`；�
 
 ```xml
 <Module in="CheckoutInput" out="CheckoutOutput">
-  <Call service="users" in={$in.user} name="user" />
-  <Call service="orders" in={{user:ctx.user,items:$in.items}} name="order" />
-  <Emit event="order.created" value={ctx.order} />
+  <Call module="users" in={$in.user} />
+  <Call module="orders" in={{user:$ctx.users,items:$in.items}} />
+  <Emit event="order.created" value={$ctx.orders} />
 </Module>
 ```
 
-父模块再用 `<Call service="checkout" in={$in} name="result" />` 调用整个组合模块。Call 的 fn 用于本地 ZX 函数，service 用于本地 RX 模块，module 用于依赖包的公开编译模块，三者必须且只能提供一个目标。
+父模块再用 `<Call module="checkout" in={$in} />` 调用整个组合模块。Call 的 fn 用于本地 ZX 函数，module 用于本地 RX 模块或依赖包的公开编译模块，两者必须且只能提供一个目标。
 
 Call.fn 相对当前 RX 文件目录解析，省略后缀时补 `.zx`，目标是该文件的默认导出。例如 `fn="load_user"` 指向 `load_user.zx`，也可写相对目录和显式 `.zx` 后缀。入口检查会读取函数及其 ZX 导入闭包，执行现有命名、类型和依赖检查，并拒绝纯类型文件作为函数目标。可使用 `check-rx --entry <file.rx> --project <pkg.yaml>` 指定包与原生接口配置。
 
-`Call.module="package/public-module"` 按当前 RX 文件所属包的依赖和公开导出解析统一库产物，不读取库原始 ZX/RX 源码。例如：
+Call.module 先匹配当前 RX 文件所属包中已声明的公开模块引用；命中时解析统一库产物，否则按当前文件目录解析本地 RX（可省略 .rx）。本地引用与包引用同名时显式加 ./。`Call.module="package/public-module"` 通过依赖和公开导出解析，不读取库原始 ZX/RX 源码。例如：
 
 ```xml
 <Module>
-  <Call module="shared-counter/advance" in={$in} name="updated" />
-  <Call module="shared-counter/read" name="current" />
-  <Return value={ctx.current} />
+  <Call module="shared-counter/advance" in={$in} />
+  <Call module="shared-counter/read" />
+  <Return value={$ctx.read} />
 </Module>
 ```
 
-module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶段拒绝。fn/service 必须提供 in。模块输入被推导为 void 时，显式 `$in` 表示编译期单位值，可用于 `in={$in}`，不占用运行时环境字段；void 调用不产生 ctx 值。已编译 RX 模块保留模块内部声明的 Store 及逐次 Call 授权，与本地 service 调用相同；module 调用不能附加 setter，也不会给调用者提供库内部 Store 的读写句柄。带 Store 的裸事务函数不能作为 module 调用目标，普通 ZX 仍不能隐式调用 Store 函数。应用从库保存的初值生成共享内存状态，按包实例区分身份；再次发布继续保存初值和权限。
+module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶段拒绝。fn 必须提供 in；本地或编译 module 的输入为 void 时可省略 in。模块输入被推导为 void 时，显式 `$in` 表示编译期单位值，可用于 `in={$in}`，不占用运行时环境字段；void 调用不产生 $ctx 值。已编译 RX 模块保留模块内部声明的 Store 及逐次 Call 授权，与本地 module 调用相同；module 调用不能附加 setter，也不会给调用者提供库内部 Store 的读写句柄。带 Store 的裸事务函数不能作为 module 调用目标，普通 ZX 仍不能隐式调用 Store 函数。应用从库保存的初值生成共享内存状态，按包实例区分身份；再次发布继续保存初值和权限。
 
 上述 check-rx 入口仅做结构与目标检查；`zxc build` 和下述项目推导入口会进一步验证顺序调用的参数、结果及类型兼容性。Store 支持显式授权的源码生成；原生 app 在应用启动时初始化共享内存，以普通 JSON 参数运行；不同进程重新使用初值。
 
-`<Import from="users" />` 是可选的模块组合依赖声明，不接受 as；直接 Call 不必再重复写 Import。Import 本身不表示执行顺序或调用，执行关系由 Call 描述。依赖图同时包含 Import 和 Call service，要求整个注册集合无环；即使 Import 暂未被调用，也不能形成循环依赖。
+`<Import from="users" />` 是可选的模块组合依赖声明，不接受 as；直接 Call 不必再重复写 Import。Import 本身不表示执行顺序或调用，执行关系由 Call 描述。依赖图同时包含 Import 和 Call.module，要求整个注册集合无环；即使 Import 暂未被调用，也不能形成循环依赖。
 
 事件名不属于同步模块依赖图。Emit 只定义事件发送语法，当前没有实现订阅注册、事件调度或事件反馈环检测。
 
@@ -105,7 +105,7 @@ module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶
 | ---------- | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
 | Module     | `in?`、`out?`                                                          | Import、Store 引用、Task、Call、Parallel、Switch、Emit、Return |
 | Import     | `from`                                                                 | 无                                                             |
-| Call       | `fn?` / `service?` / `module?` 三选一、`in?`、`name?`、`setter?`       | 无                                                             |
+| Call       | `fn?` / `module?` 二选一、`in?`、`setter?`                             | 无                                                             |
 | Return     | `value`                                                                | 无                                                             |
 | Task       | `name`、`out?`                                                         | Call、Parallel、Switch、Emit、Return                           |
 | Parallel   | 无                                                                     | Task、Call                                                     |
@@ -125,7 +125,7 @@ module 的 Input 为 void 时可省略 in；非 void 输入省略时在推导阶
 
 Task、Parallel、Switch、Case、Default、Group、Store 定义、Object 均至少有一个子元素。Module 和 Gateway 允许空内容。Task 不能直接嵌套 Task，其他递归嵌套遵循表格。Switch 的 Case 值不能重复，最多一个 Default，不强制 Default 位置。
 
-setter 仅可用于 fn 调用；service 目标的 Store 写入能力由目标模块内部的 fn 调用声明。
+setter 仅可用于 fn 调用；module 目标的 Store 写入能力由目标模块内部的 fn 调用声明。
 
 protocol 的语法集合为 `http`、`grpc`、`websocket`、`tcp`、`mqtt`；method 为 `GET`、`HEAD`、`POST`、`PUT`、`DELETE`、`CONNECT`、`OPTIONS`、`TRACE`、`PATCH`。这不代表已经实现这些协议的 Runtime adapter。Route.service 也采用文件路径引用语法。
 
@@ -141,7 +141,7 @@ XML 输入支持 UTF-8、XML 1.0 声明、注释、CDATA、单双引号属性、
 
 `rx.attributeLocation(attribute, decoded_offset)` 可将属性表达式中解码后的字节位置映射回原 XML，涵盖实体引用及 CRLF、换行、制表符归一化。`rx.attributeEndLocation` 提供实体内部范围终点的右侧映射。它使用文本解析器保留的 raw_value；手工 AST 未提供该数据时返回 null。
 
-官方 CLI 的 `zxc check-rx <module.rx> [module.rx ...]` 读取明确传入的完整普通模块集合，检查 XML、Schema 与模块依赖。`zxc check-rx --entry <module.rx>` 则从入口自动装载 Import、所有嵌套 Call.service 和 Store.from 的文件，以当前工作目录为项目根。入口也可以是 `.gateway.rx`：先验证 Gateway Schema，再读取所有嵌套 Route.service 指向的普通模块和依赖；或 `.store.rx`：校验单个 Store 定义。入口模式不扫描无关文件，也不执行流程。显式集合模式仍只接受普通模块，不装载其 Store 定义。
+官方 CLI 的 `zxc check-rx <module.rx> [module.rx ...]` 读取明确传入的完整普通模块集合，检查 XML、Schema 与模块依赖。`zxc check-rx --entry <module.rx>` 则从入口自动装载 Import、所有嵌套 Call.module 和 Store.from 的文件，以包配置所在目录为项目根，未配置包时使用当前工作目录。入口也可以是 `.gateway.rx`：先验证 Gateway Schema，再读取所有嵌套 Route.service 指向的普通模块和依赖；或 `.store.rx`：校验单个 Store 定义。入口模式不扫描无关文件，也不执行流程。显式集合模式仍只接受普通模块，不装载其 Store 定义。
 
 入口装载会检查真实文件路径：拒绝符号链接越出项目根，以及同一物理文件通过多个逻辑路径重复注册。语法库本身仍不访问文件系统；显式集合模式的调用者仍需保证物理身份一致性。
 
@@ -184,7 +184,7 @@ validateModules 输出按输入顺序排列的 `{ path, data }`，path 是规范
 
 成功结果另提供 `dependency_order`，内容是原输入数组的索引，依赖模块排在引用它的模块之前，每个模块仅出现一次。`value.data` 仍保持输入顺序。`validateModules` 与真实文本入口 `parseModules` 使用同一顺序；失败结果的顺序为空，不暴露部分完成的计划。该结构入口仅检查依赖图；`rx_analysis.project.infer` 进一步共享推导全部模块契约，并按该顺序联结可执行 Program。
 
-跨模块校验包括：重复文件注册、引用越界、目标不存在、自调用、直接/间接循环，以及嵌套控制结构中的 service 调用。共享子模块、菱形依赖和重复调用都允许。诊断包含源文件索引、原始行列位置和具体属性。
+跨模块校验包括：重复文件注册、引用越界、目标不存在、自调用、直接/间接循环，以及嵌套控制结构中的 module 调用。共享子模块、菱形依赖和重复调用都允许。诊断包含源文件索引、原始行列位置和具体属性。
 
 单文件 validate 仅负责语法，不能代替完整模块集合的存在性和循环校验。两种入口均采用首错返回。
 
@@ -222,7 +222,7 @@ switch (inferred.value) {
 }
 ```
 
-当前 module.infer 接受 `Call.fn`、`Return`、Task 分组与 Switch 分支。`module.infer` 使用项目入口处理单个普通模块；有 service 依赖时应传入完整集合。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；Call 返回值通过 `ctx.<name>` 供后续步骤与 Return 使用。name 省略时取目标文件名（去掉源码后缀）；显式 name 必须是单个标识符，且不得为保留名 task。Task 返回值通过 ctx.task.<name> 读取，可以与 Call 同名。绑定路径不能重叠，也不能覆盖 `$in`；Return 或必然返回的分支之后的步骤拒绝为不可达。输入既未被使用、也没有调用约束时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
+当前 module.infer 接受 `Call.fn`、`Return`、Task 分组与 Switch 分支。`module.infer` 使用项目入口处理单个普通模块；有 module 依赖时应传入完整集合。`Call.in` 中的 `$in` 由目标函数的 Input 和字段用途共同约束；Call 返回值通过 `$ctx.<name>` 供后续步骤与 Return 使用。结果名直接取目标文件名（去掉源码后缀）；Call 不接受 name 属性。目标名必须是合法标识符，且不得为保留名 task。Task 返回值通过 $ctx.task.<name> 读取，可以与 Call 同名。绑定路径不能重叠，也不能覆盖 `$in`；Return 或必然返回的分支之后的步骤拒绝为不可达。输入既未被使用、也没有调用约束时推导为 void，无 Return 时输出为 void。使用输入却没有足够约束时报告无法推导，不默认为动态类型。
 
 数组字面量保留各元素的类型约束，等待目标上下文决定 list 或 tuple；目标仍不明确时才采用同质列表。嵌套数组先默认外层，再将得到的元素类型传回内层，避免把可接受 tuple 上下文的字面量提前固定为 list。空列表没有足够元素类型信息时仍拒绝推导。
 
@@ -244,15 +244,15 @@ try output.writeAll(generated);
 
 ## Task 与 Switch 执行
 
-普通顺序 Task 的 name 作为分组名称，不创建额外服务或并行调度。Task 内顺序执行；Task 和每个 Case/Default 内的 Call 的 ctx 命名结果只在当前作用域及其子层可见。它们可读取外部绑定，不能覆盖外部路径；兄弟分支可声明相同结果名。没有隐式分支结果合并，需要返回时在各分支显式 Return。Return 结束所在执行边界：模块，或下文定义的直属 Parallel Task。
+普通顺序 Task 的 name 作为分组名称，不创建额外服务或并行调度。Task 内顺序执行；Task 和每个 Case/Default 内的 Call 的 $ctx 命名结果只在当前作用域及其子层可见。它们可读取外部绑定，不能覆盖外部路径；兄弟分支可声明相同结果名。没有隐式分支结果合并，需要返回时在各分支显式 Return。Return 结束所在执行边界：模块，或下文定义的直属 Parallel Task。
 
 ```xml
 <Module>
   <Task name="choose">
     <Switch on={$in.enabled}>
       <Case value={true}>
-        <Call fn="calculate" in={$in.value} name="result" />
-        <Return value={ctx.result} />
+        <Call fn="calculate" in={$in.value} />
+        <Return value={$ctx.calculate} />
       </Case>
       <Default><Return value={$in.value} /></Default>
     </Switch>
@@ -262,15 +262,15 @@ try output.writeAll(generated);
 
 Switch.on 只计算一次，匹配一个 Case 或 Default，无 fallthrough。Default 可以出现在任意位置；没有 Default 且未匹配时继续 Switch 后的步骤。整数与 bool 标签使用花括号字面量；字符串标签写作 `value="ready"`，也可写作 `value={"ready"}`。标签必须是字面量，不能用运行中绑定或算术表达式替代常量；解码后相同的标签也拒绝重复。枚举成员名称尚受 RX 表达式类型命名环境限制，不能因底层 IR 支持枚举 switch 就认为已经提供 RX 枚举导入。
 
-所有分支约束同一个模块 Output。非 void 模块必须在全部路径返回；含 true/false 两个标签的 bool Switch 无需额外 Default。Return 结束当前模块，即使位于 Task 或嵌套 Switch 内也不会仅退出分组。Call.service 的 Return 不结束其调用者。
+所有分支约束同一个模块 Output。非 void 模块必须在全部路径返回；含 true/false 两个标签的 bool Switch 无需额外 Default。Return 结束当前模块，即使位于 Task 或嵌套 Switch 内也不会仅退出分组。Call.module 的 Return 不结束其调用者。
 
 完整流程仍执行路径敏感所有权及 IR 校验。未选分支不会执行，但其调用目标、类型和依赖仍在编译期检查。可运行材料见 [RX 控制流示例](../../../../docs/2026-10-04/RX控制流/示例/main.rx)。
 
 ## Parallel 调用执行
 
-Parallel 的直接 Call.fn、Call.service 和编译模块 Call 可以并行执行。直属 Call 的输入和 Task 捕获参数在父线程按声明顺序计算；Task 内部调用参数随其步骤在工作线程求值。分支不能引用兄弟分支的输出；全部线程结束后，Call 的命名结果一起进入外层作用域，结果名称不得互相重叠。void 调用仍执行，其错误仍传播。直属 Task 分支支持独立多步骤纯计算，通过 ctx.task.<Task.name> 在汇合后公开返回值；Task 内 Return 仅结束该并行分支，普通顺序 Task 未写 out 时仍作为所在执行边界内的分组。未写 out 和 Return 的分支输出为 void，不产生 ctx 值；非 void 分支必须覆盖全部返回路径。见 [并行任务参考](../../../../docs/2026-10-05/RX并行任务参考.md)。
+Parallel 的直接 Call.fn、Call.module 和编译模块 Call 可以并行执行。直属 Call 的输入和 Task 捕获参数在父线程按声明顺序计算；Task 内部调用参数随其步骤在工作线程求值。分支不能引用兄弟分支的输出；全部线程结束后，Call 的命名结果一起进入外层作用域，结果名称不得互相重叠。void 调用仍执行，其错误仍传播。直属 Task 分支支持独立多步骤纯计算，通过 $ctx.task.<Task.name> 在汇合后公开返回值；Task 内 Return 仅结束该并行分支，普通顺序 Task 未写 out 时仍作为所在执行边界内的分组。未写 out 和 Return 的分支输出为 void，不产生 $ctx 值；非 void 分支必须覆盖全部返回路径。见 [并行任务参考](../../../../docs/2026-10-05/RX并行任务参考.md)。
 
-Task.out 为可选的花括号表达式，在任务内部步骤结束后求值；例如 `out={{user: ctx.user, order: ctx.order}}` 聚合内部调用结果。顺序 Task 在当前流程创建普通局部值，Parallel Task 将其作为分支返回值，均通过 `ctx.task.<name>` 读取。内部调用仍保持局部作用域。out 必须用表达式语法，字符串输出写 `out={"hello"}`；旧字符串绑定路径不再接受。Task.out 与同一执行边界内的 Return 不能并用，嵌套 Parallel Task 的独立 Return 不受此限制。out 同样禁止内联函数调用、lambda 与状态更新。
+Task.out 为可选的花括号表达式，在任务内部步骤结束后求值；例如 `out={{user: $ctx.user, order: $ctx.order}}` 聚合内部调用结果。顺序 Task 在当前流程创建普通局部值，Parallel Task 将其作为分支返回值，均通过 `$ctx.task.<name>` 读取。内部调用仍保持局部作用域。out 必须用表达式语法，字符串输出写 `out={"hello"}`；旧字符串绑定路径不再接受。Task.out 与同一执行边界内的 Return 不能并用，嵌套 Parallel Task 的独立 Return 不受此限制。out 同样禁止内联函数调用、lambda 与状态更新。
 
 分支函数及其可达调用必须不含 Store 能力或原生 external 调用。Call.in 可以在父线程读取显式授权的 Store 快照，再将不可变值传给纯计算分支；这不允许工作线程更新 Store。所有分支共享父请求分配区，通过生成的互斥 allocator 保护分配操作，输出在父 arena 结束前保持有效。普通参数按借用契约检查；声明 owned Input 的纯函数可以消费独占输入。共享借用、重复消费及分支间非法复用仍会拒绝。
 
@@ -288,13 +288,13 @@ Task.out 为可选的花括号表达式，在任务内部步骤结束后求值�
 | `stores`  | 可选的独立 Store 定义集合，每项为路径与真实 XML AST  |
 | `project` | 可选的既有 ZX 项目、包和原生接口配置                 |
 
-入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 service 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.service、Return、Task、Switch 与 Parallel Call/Task 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store 引用独立分析并进入显式调用授权；事件仍明确拒绝。
+入口先对整个集合执行 `validateModules`，包括未使用 Import、所有嵌套 module 引用及循环检查。之后为每个模块登记一个输入输出契约，共同收集 Call.fn、Call.module、Return、Task、Switch 与 Parallel Call/Task 的类型约束，稳定后才生成代码。Import 仅声明依赖，不触发运行。Store 引用独立分析并进入显式调用授权；事件仍明确拒绝。
 
 子模块可以只有 `<Return value={$in} />`，由调用者或下游函数确定其类型。同一个文件在所有调用点共享一个契约，不按调用点生成不同类型的实例；不相容的调用会报错。未读取输入的子模块仍可接收调用者传来的有类型值；无使用、无调用约束的输入才默认为 void。完整集合仍无法确定的类型会报告推导失败。
 
 生成保留顺序调用及跨步骤所有权检查，共享依赖和重复调用均允许。模块的 Return 只结束当前模块。错误位置保留实际来源文件；库不读取文件系统，也不启动生成的程序。使用结束后调用结果的 `deinit()`。
 
-CLI 的 `zxc build workflow.rx --out build/workflow` 从入口递归装载 Import、service 与 ZX 函数依赖，执行项目推导、生成和应用构建，详见 [CLI 使用方式](../../../cli/README.md)。装载保留项目根及物理文件身份检查；`--watch` 同时登记递归依赖。`check-rx --entry` 仍属于结构及目标文件检查，不等同于上述表达式联结和执行验证。
+CLI 的 `zxc build workflow.rx --out build/workflow` 从入口递归装载 Import、module 与 ZX 函数依赖，执行项目推导、生成和应用构建，详见 [CLI 使用方式](../../../cli/README.md)。装载保留项目根及物理文件身份检查；`--watch` 同时登记递归依赖。`check-rx --entry` 仍属于结构及目标文件检查，不等同于上述表达式联结和执行验证。
 
 ## Store 定义与初始化接口
 
@@ -302,7 +302,7 @@ CLI 的 `zxc build workflow.rx --out build/workflow` 从入口递归装载 Impor
 
 Definition 保存规范化 `source_path`、显示 `name`、`version`、共享类型表和 Object 列表。Object 的身份使用定义文件路径与 Object.name 的组合，不能只按显示 Store.name 合并。一个文件内同名 Object 的不同字段片段会合并；重复字段仍拒绝。
 
-每个 Object 的 `initial` 是可交给 Zig 后端的完整 Program：Input 为 void，Output 为完整 Object。Field.type 按 ZX 类型表达式解析，Field.value 按无外部绑定的 ZX 表达式编译。类型属性不能夹带额外声明、导入或函数；value 不能读取 $in、ctx 或其他 Store。类型错误、数值越界和未知名称映射回实际 XML 属性。
+每个 Object 的 `initial` 是可交给 Zig 后端的完整 Program：Input 为 void，Output 为完整 Object。Field.type 按 ZX 类型表达式解析，Field.value 按无外部绑定的 ZX 表达式编译。类型属性不能夹带额外声明、导入或函数；value 不能读取 $in、$ctx 或其他 Store。类型错误、数值越界和未知名称映射回实际 XML 属性。
 
 初始化沿字段声明顺序求值，类型表中的字段顺序不改变求值次序。程序通过所有权和 IR 校验；执行中仍可能返回运算或分配错误。生成后用 `execute(arena, {})` 获取初值，返回引用必须在 arena 存活期内使用。
 
@@ -325,15 +325,14 @@ CLI `check-rx --entry state.store.rx` 以及普通入口装载到的 Store 定�
   <Store from="state" as="jobs" />
   <Call fn="advance"
     in={{increment: $in, state: store.jobs.counter}}
-    setter={[store.jobs.counter]}
-    name="result" />
-  <Return value={ctx.result} />
+    setter={[store.jobs.counter]} />
+  <Return value={$ctx.advance} />
 </Module>
 ```
 
-getter 仅在 Call.in 可见，允许读取完整 Object 或字段。每次 Call 前读取新的不可变快照，作为普通输入值传递；Return、Switch 或回调不能直接捕获 Store getter。Call 结果固定位于 ctx 命名空间。
+getter 仅在 Call.in 可见，允许读取完整 Object 或字段。每次 Call 前读取新的不可变快照，作为普通输入值传递；Return、Switch 或回调不能直接捕获 Store getter。Call 结果固定位于 $ctx 命名空间。
 
-setter 必须列出一个完整 Object；不能列出整个 Store、字段、未声明对象或多个对象。目标 ZX 必须声明 `export default function (in: Input, { store }): Output`，通过 `store.jobs.counter = next` 替换整个对象。该能力只写，不允许读取当前 Store；读取值从 in 获得。普通 ZX import 不继承能力，Call.service 的授权由被调模块自己声明。
+setter 必须列出一个完整 Object；不能列出整个 Store、字段、未声明对象或多个对象。目标 ZX 必须声明 `export default function (in: Input, { store }): Output`，通过 `store.jobs.counter = next` 替换整个对象。该能力只写，不允许读取当前 Store；读取值从 in 获得。普通 ZX import 不继承能力，Call.module 的授权由被调模块自己声明。
 
 成功调用独立提交；后续调用失败不回滚先前提交。编排函数自身不创建覆盖全流程的事务。`zxc module.rx --out flow.zig` 支持生成带显式宿主的源码；宿主提供稳定槽位指针与 commit(pending)，必须保证当前状态及旧快照的内存存活期；如提供 begin(comptime slots)，生成代码会在 Call 输入读取前调用它。Store 的正确生命周期是应用启动时初始化一次，跨调用和请求共享，应用结束后释放，重启使用初值。此前误加的 JSON 快照、文件锁、磁盘版本、恢复及目录同步已移除；Store 不要求可序列化，也不依赖状态目录。
 

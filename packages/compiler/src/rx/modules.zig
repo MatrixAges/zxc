@@ -7,6 +7,7 @@ const graph = @import("module_graph.zig");
 pub const Source = struct {
     path: []const u8,
     node: dsl.ast.Node,
+    packages: []const @import("frontend").project.Package = &.{},
 };
 
 pub const Module = struct {

@@ -70,9 +70,11 @@ const Graph = struct {
     }
 
     fn target(self: *Graph, owner: usize, node: dsl.ast.Node) dsl.Error!?usize {
-        const key: ?[]const u8 = if (std.mem.eql(u8, node.name, "Import")) "from" else if (std.mem.eql(u8, node.name, "Call") and checks.attribute(node, "service") != null) "service" else null;
+        const key: ?[]const u8 = if (std.mem.eql(u8, node.name, "Import")) "from" else if (std.mem.eql(u8, node.name, "Call") and checks.attribute(node, "module") != null) "module" else null;
 
         if (key) |attribute| {
+            if (std.mem.eql(u8, attribute, "module") and @import("module_reference.zig").isPackage(checks.attribute(node, attribute).?, self.sources[owner].packages)) return null;
+
             const path = paths.resolve(self.allocator, self.entries[owner].path, checks.attribute(node, attribute).?) catch |err| {
                 if (err == error.OutOfMemory) return error.OutOfMemory;
 

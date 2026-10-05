@@ -55,9 +55,15 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Erro
 
     const attributes = checked.value.data.attributes;
 
-    if (attributes.service != null) return failure(allocator, .{ .path = options.owner, .location = attribute(options.call, "service").value_location, .code = "unsupported", .message = "service calls require RX module linking" });
     if ((attributes.setter != null) != (options.setter != null) or options.project.context.stores.len != 0) return failure(allocator, .{ .path = options.owner, .location = options.call.location, .code = "capability", .message = "Store calls require explicit per-call authorization from module declarations" });
-    if (attributes.module != null) return @import("compiled.zig").load(allocator, options);
+
+    if (attributes.module) |module| {
+        const owner = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, options.owner });
+
+        if (!rx.module_reference.isPackage(module, rx.module_reference.dependencies(options.project, owner))) return failure(allocator, .{ .path = options.owner, .location = attribute(options.call, "module").value_location, .code = "unsupported", .message = "local module calls require RX module linking" });
+
+        return @import("compiled.zig").load(allocator, options);
+    }
 
     const target = attribute(options.call, "fn");
 

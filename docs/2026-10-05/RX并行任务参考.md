@@ -11,14 +11,14 @@
   <Parallel>
     <Task name="number">
       <Call fn="identity" in={$in.value} />
-      <Return value={ctx.identity} />
+      <Return value={$ctx.identity} />
     </Task>
     <Task name="flag">
       <Call fn="invert" in={$in.enabled} />
-      <Return value={ctx.invert} />
+      <Return value={$ctx.invert} />
     </Task>
   </Parallel>
-  <Return value={{value: ctx.task.number, enabled: ctx.task.flag}} />
+  <Return value={{value: $ctx.task.number, enabled: $ctx.task.flag}} />
 </Module>
 ```
 
@@ -26,7 +26,7 @@
 
 ## Edges：执行边界
 
-- Call 无 out 属性；Task 保留可选 out 表达式，用来聚合分支输出。Call 结果通过 ctx.<name> 读取；直属 Parallel 的 Task 结果通过 ctx.task.<name> 读取，两类结果可同名。Call 的 name 不得为保留名 task。
+- Call 无 out 属性；Task 保留可选 out 表达式，用来聚合分支输出。Call 结果通过 $ctx.<name> 读取；直属 Parallel 的 Task 结果通过 $ctx.task.<name> 读取，两类结果可同名。Call 结果直接取目标文件名，不接受 name 属性；目标名不得为保留名 task。
 - 直属 Parallel Task 是独立执行边界，内部 Return 结束该分支；普通顺序 Task 可通过 out 表达式发布聚合值；未写 out 时仍只是分组，其 Return 结束最近的模块或并行 Task 边界。
 - Task.out 必须用花括号表达式，不能写字符串绑定路径；它在子步骤结束后求值，与同一任务的 Return 不可并用。
 - Task 可以读取进入 Parallel 前的 $in 与结果绑定，不能引用兄弟结果。编译器只捕获实际使用的外层符号，输入按借用处理，不复制所有权。

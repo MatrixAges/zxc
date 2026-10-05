@@ -2,7 +2,7 @@
 
 ### RX のサービスパス
 
-`Call.service` と `Import.from` は、インポートする側のモジュールを基準に解決されます。`.rx` を省略すると正規化時に補われるため、`./load` と `load.rx` は同じ階層の同じモジュールを指します。
+`Call.module` と `Import.from` は、インポートする側のモジュールを基準に解決されます。`.rx` を省略すると正規化時に補われるため、`./load` と `load.rx` は同じ階層の同じモジュールを指します。
 
 | 形式                                              | RX の動作                                      |
 | ------------------------------------------------- | ---------------------------------------------- |
@@ -21,9 +21,9 @@
 <Module>
   <Import from="shared/validate" />
 
-  <Call service="orders/create" in={$in} name="order" />
+  <Call module="orders/create" in={$in} />
 
-  <Return value={ctx.order} />
+  <Return value={$ctx.create} />
 </Module>
 ```
 

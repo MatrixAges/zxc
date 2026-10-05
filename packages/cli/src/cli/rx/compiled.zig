@@ -27,6 +27,7 @@ pub fn collect(allocator: std.mem.Allocator, options: Options) !bool {
         while (nodes.pop()) |node| {
             if (std.mem.eql(u8, node.name, "Call")) for (node.attributes) |attribute| {
                 if (!std.mem.eql(u8, attribute.name, "module")) continue;
+                if (!rx.module_reference.isPackage(attribute.value, rx.module_reference.dependencies(options.project, owner))) continue;
 
                 var reporter: zx.Reporter = .{};
 
@@ -63,14 +64,4 @@ pub fn collect(allocator: std.mem.Allocator, options: Options) !bool {
     }
 
     return true;
-}
-
-pub fn hasReference(node: rx.ast.Node) bool {
-    if (std.mem.eql(u8, node.name, "Call")) for (node.attributes) |attribute| {
-        if (std.mem.eql(u8, attribute.name, "module")) return true;
-    };
-
-    for (node.children) |child| if (hasReference(child)) return true;
-
-    return false;
 }

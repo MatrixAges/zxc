@@ -2,7 +2,7 @@
 
 ### RX 서비스 경로
 
-`Call.service`와 `Import.from`은 가져오는 모듈을 기준으로 해석됩니다. 정규화기는 생략된 `.rx` 확장자를 추가하므로 `./load`와 `load.rx`는 같은 형제 모듈을 가리킵니다.
+`Call.module`와 `Import.from`은 가져오는 모듈을 기준으로 해석됩니다. 정규화기는 생략된 `.rx` 확장자를 추가하므로 `./load`와 `load.rx`는 같은 형제 모듈을 가리킵니다.
 
 | 형태                                               | RX 동작                               |
 | -------------------------------------------------- | ------------------------------------- |
@@ -21,9 +21,9 @@
 <Module>
   <Import from="shared/validate" />
 
-  <Call service="orders/create" in={$in} name="order" />
+  <Call module="orders/create" in={$in} />
 
-  <Return value={ctx.order} />
+  <Return value={$ctx.create} />
 </Module>
 ```
 
