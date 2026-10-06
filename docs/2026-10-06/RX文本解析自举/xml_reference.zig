@@ -17,7 +17,7 @@ pub fn main(init: std.process.Init) !void {
 
     const actual = try generated.execute(init.arena, &.{ .source = source, .expressions = expressions });
     const expected_node: ?dsl.ast.Node = if (expected.value == .node) expected.value.node else null;
-    const actual_node: ?dsl.ast.Node = if (actual.control.message.len == 0) try adapter.convert(allocator, actual) else null;
+    const actual_node: ?dsl.ast.Node = if (actual.control.message.len == 0) try adapter.convert(allocator, allocator, source, actual) else null;
     const expected_issue: Diagnostic = if (expected.value == .diagnostic) .{ .message = expected.value.diagnostic.message, .location = expected.value.diagnostic.location } else .{};
     const actual_issue: Diagnostic = if (actual.control.message.len != 0) .{ .message = actual.control.message, .location = adapter.location(actual.control.issue) } else .{};
     var buffer: [4096]u8 = undefined;
