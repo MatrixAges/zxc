@@ -24,7 +24,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, u
     const state_plan = facts.state;
     var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions, .state_plan = state_plan };
 
-    self.bytes("zxc.zig.input.v11");
+    self.bytes("zxc.zig.input.v12");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
