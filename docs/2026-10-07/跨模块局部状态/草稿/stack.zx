@@ -1,0 +1,20 @@
+import step from "./step"
+
+import type { Frame, State } from "./model"
+
+export type Input = { frames: Frame[], count: u64 }
+
+export type Output = { columns: u64[], total: u64 }
+
+export default function (in: Input): Output {
+    const initial: State = { frames: in.frames, columns: [], count: in.count, index: 0, total: 0 }
+
+    const state = loop(initial, {
+        while: current => current.index < current.count,
+        next: current => {
+            current = step(current)
+        }
+    })
+
+    return { columns: state.columns, total: state.total }
+}

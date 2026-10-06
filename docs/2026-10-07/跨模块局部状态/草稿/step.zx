@@ -1,0 +1,18 @@
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const [appended, _] = in.frames.push({ position: in.index, count: in.total })
+    const [remaining, popped] = appended.pop()
+
+    if (popped == null) {
+        return { ...in, frames: remaining, index: in.index + 1 }
+    }
+
+    const total = in.total + popped.count + 1
+
+    return { ...in, frames: remaining, columns: in.columns.push(total)[0], index: in.index + 1, total: total }
+}

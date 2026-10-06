@@ -3,7 +3,7 @@ const std = @import("std");
 pub fn check(source: []const u8, mode: []const u8) !void {
     const start = std.mem.indexOf(u8, source, "pub fn execute(") orelse return error.MissingExecute;
     const execute = source[start..];
-    const inline_mode = std.mem.eql(u8, mode, "stack") or std.mem.eql(u8, mode, "nested") or std.mem.eql(u8, mode, "two_lanes") or std.mem.eql(u8, mode, "bounds") or std.mem.eql(u8, mode, "consumer");
+    const inline_mode = std.mem.eql(u8, mode, "stack") or std.mem.eql(u8, mode, "nested") or std.mem.eql(u8, mode, "two_lanes") or std.mem.eql(u8, mode, "bounds") or std.mem.eql(u8, mode, "consumer") or std.mem.eql(u8, mode, "call");
     const lanes: usize = if (!inline_mode) 0 else if (std.mem.eql(u8, mode, "two_lanes")) 2 else 1;
 
     if (std.mem.count(u8, execute, ".ArrayList(state_type_") != lanes) return error.InvalidValueBufferCount;

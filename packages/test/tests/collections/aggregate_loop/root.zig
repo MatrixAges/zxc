@@ -116,7 +116,7 @@ test "aggregate loop releases allocation failures before a semantic bounds error
 }
 
 test "aggregate resource observations cover fixed peak buffers and preserved fallback versions" {
-    if (comptime isMode("stack") or isMode("two_lanes") or isMode("bounds")) {
+    if (comptime isMode("stack") or isMode("two_lanes") or isMode("bounds") or isMode("call")) {
         const short = try run(std.testing.allocator, .{ .count = 3, .length = 257 });
         const long = try run(std.testing.allocator, .{ .count = if (comptime isMode("stack")) 16 else 64, .length = 257 });
 
