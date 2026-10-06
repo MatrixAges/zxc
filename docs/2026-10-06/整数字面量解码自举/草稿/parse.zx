@@ -1,0 +1,37 @@
+import digit from "./digit"
+
+export type Input = u8[]
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+  const state = loop({ source: in, offset: 0, value: 0, valid: true, started: false, seen: false, negative: false }, {
+    while: value => value.valid && value.offset < value.source.length,
+    next: value => {
+      const byte = value.source[value.offset]
+
+      if (byte != 95) {
+        if (!value.started && (byte == 43 || byte == 45)) {
+          value.started = true
+          value.negative = byte == 45
+        } else {
+          const decoded = digit(byte)
+
+          value.valid = decoded < 10 && (!value.negative || decoded == 0) &&
+            (value.value < 1844674407370955161 || (value.value == 1844674407370955161 && decoded <= 5))
+
+          if (value.valid) {
+            value.value = value.value * 10 + decoded
+            value.seen = true
+          }
+
+          value.started = true
+        }
+      }
+
+      value.offset += 1
+    }
+  })
+
+  return state.valid && state.seen ? state.value : null
+}

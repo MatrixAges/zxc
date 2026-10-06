@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const ParserModules = struct { program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module };
+pub const ParserModules = struct { program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module };
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules) Modules {
@@ -34,6 +34,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         frontend.addImport("generated_expression", generated.expression);
         frontend.addImport("generated_xml", generated.xml);
         frontend.addImport("generated_specifier", generated.specifier);
+        frontend.addImport("generated_integer", generated.integer);
     }
 
     const module = b.createModule(.{

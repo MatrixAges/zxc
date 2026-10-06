@@ -95,5 +95,10 @@ fn analyzeWithAllocator(allocator: std.mem.Allocator) !void {
 }
 
 test "zx-callback-scope: nested analysis frees allocations on failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, analyzeWithAllocator, .{});
+    var vtable = std.testing.allocator.vtable.*;
+    vtable.resize = std.mem.Allocator.noResize;
+    vtable.remap = std.mem.Allocator.noRemap;
+    const allocator: std.mem.Allocator = .{ .ptr = std.testing.allocator.ptr, .vtable = &vtable };
+
+    try std.testing.checkAllAllocationFailures(allocator, analyzeWithAllocator, .{});
 }

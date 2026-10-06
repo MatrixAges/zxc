@@ -9,7 +9,7 @@ pub fn isFloat(id: ir.TypeId) bool {
 }
 
 pub fn isInteger(id: ir.TypeId) bool {
-    return @intFromEnum(id) >= @intFromEnum(Types.scalarId(.u8)) and @intFromEnum(id) <= @intFromEnum(Types.scalarId(.i64));
+    return @backingInt(id) >= @backingInt(Types.scalarId(.u8)) and @backingInt(id) <= @backingInt(Types.scalarId(.i64));
 }
 
 pub fn isSigned(id: ir.TypeId) bool {
@@ -22,13 +22,13 @@ pub fn literal(analyzer: *Analyzer, text: []const u8, span: zx.Span, expected: ?
 
     if (!isFloat(type_id) and !isInteger(type_id)) return analyzer.reporter.fail(.type_mismatch, span, "a numeric literal requires a numeric type");
 
-    var clean: std.ArrayList(u8) = .empty;
-
-    for (text) |byte| {
-        if (byte != '_') try clean.append(analyzer.allocator, byte);
-    }
-
     if (isFloat(type_id)) {
+        var clean: std.ArrayList(u8) = .empty;
+
+        for (text) |byte| {
+            if (byte != '_') try clean.append(analyzer.allocator, byte);
+        }
+
         var value: f64 = switch (type_id) {
             Types.scalarId(.f32) => std.fmt.parseFloat(f32, clean.items) catch return analyzer.reporter.fail(.type_mismatch, span, "invalid floating-point literal"),
             else => std.fmt.parseFloat(f64, clean.items) catch return analyzer.reporter.fail(.type_mismatch, span, "invalid floating-point literal"),
@@ -50,8 +50,8 @@ pub fn literal(analyzer: *Analyzer, text: []const u8, span: zx.Span, expected: ?
 
     if (floating) return analyzer.reporter.fail(.type_mismatch, span, "floating-point literals cannot be implicitly converted to integers");
 
-    const value = std.fmt.parseInt(u64, clean.items, 10) catch return analyzer.reporter.fail(.type_mismatch, span, "integer literal is outside the supported range");
-    const scalar = analyzer.types.items.items[@intFromEnum(type_id)].scalar;
+    const value = (try @import("integer.zig").parse(analyzer.allocator, text)) orelse return analyzer.reporter.fail(.type_mismatch, span, "integer literal is outside the supported range");
+    const scalar = analyzer.types.items.items[@backingInt(type_id)].scalar;
 
     const maximum: u64 = switch (scalar) {
         .u8 => std.math.maxInt(u8),
