@@ -1,14 +1,14 @@
 import field from "./field"
 
-import type { Field } from "./model"
+import type { Fields } from "./model"
 
-export type Input = Field[]
+export type Input = Fields
 
-export type Output = Field[]
+export type Output = Fields
 
 export default function (in: Input): Output {
-    const names = in.map(value => value.name).sort()[0]
-    const sorted: Field[] = []
+    const names = in.names.sort()[0]
+    const sorted: u32[] = []
 
     const state = loop({ fields: in, names: names, sorted: sorted, index: 0 }, {
         while: value => value.index < value.names.length,
@@ -20,5 +20,5 @@ export default function (in: Input): Output {
         }
     })
 
-    return state.sorted
+    return { names: names, types: state.sorted }
 }

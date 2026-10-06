@@ -23,15 +23,15 @@ export default function (in: Input): Output {
     }
 
     const second = match candidate.kind {
-        Kind.Object => integers.narrow(candidate.fields.length),
+        Kind.Object => integers.narrow(candidate.fields.names.length),
         Kind.Tuple => integers.narrow(candidate.children.length),
         Kind.ErrorSet => integers.narrow(candidate.names.length),
         Kind.Enumeration => integers.narrow(candidate.names.length),
         _ => candidate.second
     }
 
-    const field_names = candidate.fields.map(field => field.name)
-    const field_types = candidate.fields.map(field => field.type_id)
+    const field_names = candidate.fields.names
+    const field_types = candidate.fields.types
 
     return {
         id: id,

@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx_native_0 = @import("integers");
 const zx_abi = @import("zxc_abi");
-pub const Input = *const (zx_abi).zx_type_23;
+pub const Input = *const (zx_abi).zx_type_22;
 pub const Output = *const (zx_abi).zx_type_17;
 pub const requires_io = false;
 pub const requires_process = false;
@@ -23,13 +23,12 @@ const zx_shape_14 = .{ .kind = .list, .child = zx_shape_10, };
 const zx_shape_15 = .{ .kind = .object, .fields = .{ .children = zx_shape_13, .field_names = zx_shape_14, .field_types = zx_shape_13, .first = zx_shape_13, .kinds = zx_shape_12, .labels = zx_shape_14, .names = zx_shape_14, .second = zx_shape_13, }, };
 const zx_shape_16 = .{ .kind = .object, .fields = .{ .base = zx_shape_15, .delta = zx_shape_15, }, };
 const zx_shape_17 = .{ .kind = .object, .fields = .{ .delta = zx_shape_1, .first = zx_shape_4, .kind = zx_shape_11, .label = zx_shape_10, .second = zx_shape_4, }, };
-const zx_shape_18 = .{ .kind = .object, .fields = .{ .name = zx_shape_10, .type_id = zx_shape_4, }, };
-const zx_shape_19 = .{ .kind = .list, .child = zx_shape_18, };
-const zx_shape_20 = .{ .kind = .object, .fields = .{ .children = zx_shape_13, .fields = zx_shape_19, .first = zx_shape_4, .kind = zx_shape_11, .label = zx_shape_10, .names = zx_shape_14, .second = zx_shape_4, }, };
-const zx_shape_21 = .{ .kind = .object, .fields = .{ .found = zx_shape_1, .id = zx_shape_4, }, };
-const zx_shape_22 = .{ .kind = .object, .fields = .{ .delta = zx_shape_15, .id = zx_shape_4, }, };
-const zx_shape_23 = .{ .kind = .object, .fields = .{ .id = zx_shape_4, .tables = zx_shape_16, }, };
-pub const input_shape = zx_shape_23;
+const zx_shape_18 = .{ .kind = .object, .fields = .{ .names = zx_shape_14, .types = zx_shape_13, }, };
+const zx_shape_19 = .{ .kind = .object, .fields = .{ .children = zx_shape_13, .fields = zx_shape_18, .first = zx_shape_4, .kind = zx_shape_11, .label = zx_shape_10, .names = zx_shape_14, .second = zx_shape_4, }, };
+const zx_shape_20 = .{ .kind = .object, .fields = .{ .found = zx_shape_1, .id = zx_shape_4, }, };
+const zx_shape_21 = .{ .kind = .object, .fields = .{ .delta = zx_shape_15, .id = zx_shape_4, }, };
+const zx_shape_22 = .{ .kind = .object, .fields = .{ .id = zx_shape_4, .tables = zx_shape_16, }, };
+pub const input_shape = zx_shape_22;
 pub const output_shape = zx_shape_17;
 
 fn function_0(allocator: ((std).mem).Allocator, in: u32) error{ }!u64 {
@@ -60,7 +59,7 @@ fn function_2(allocator: ((std).mem).Allocator, in: u8) error{ }!(zx_abi).zx_typ
     };
 }
 
-pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_23) error{ IndexOutOfBounds, OutOfMemory, }!*const (zx_abi).zx_type_17 {
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_22) error{ IndexOutOfBounds, OutOfMemory, }!*const (zx_abi).zx_type_17 {
     @setRuntimeSafety(true);
 
     const allocator = (arena).allocator();

@@ -14,7 +14,7 @@ export fn compileStructure(table: *const Table) bool {
 }
 
 export fn compileStorage(storage: *Storage, allocator: *const std.mem.Allocator, delta: *const Table) bool {
-    storage.append(allocator.*, delta.*) catch return false;
+    storage.appendDelta(allocator.*, delta.*) catch return false;
 
     return true;
 }
