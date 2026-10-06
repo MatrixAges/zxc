@@ -1,0 +1,9 @@
+import type { State, Frame } from "./model"
+
+export type Input = { state: State, frame: Frame }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return { ...in.state, frames: in.state.frames.pop()[0].push(in.frame)[0] }
+}

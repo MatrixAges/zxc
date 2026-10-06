@@ -1,0 +1,11 @@
+import type { Source } from "./model"
+
+export type Input = Source
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const native = in.native
+
+    return native != null ? native.declarations.length : in.indexed.declarations.length
+}

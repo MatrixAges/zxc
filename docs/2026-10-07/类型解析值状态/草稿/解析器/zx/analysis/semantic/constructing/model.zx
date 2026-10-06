@@ -1,0 +1,9 @@
+import type { Candidate, Table, Tables } from "../types/model"
+
+export type Diagnostic = { code: string, message: string }
+
+export type ConstructionInput = { table: Table, candidate: Candidate }
+
+export type UpdateInput = { tables: Tables, candidate: Candidate }
+
+export type ConstructionOutput = { delta: Table, id: u32, diagnostic: Diagnostic }

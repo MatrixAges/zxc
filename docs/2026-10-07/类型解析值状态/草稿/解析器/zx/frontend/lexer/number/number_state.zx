@@ -1,0 +1,10 @@
+export enum Phase { Integer, FractionStart, Fraction, ExponentStart, ExponentDigits, Done }
+
+export type State = {
+  end: u64
+  phase: Phase
+  last_byte: u8
+  separators_valid: bool
+}
+
+export type Result = { end: u64, diagnostic: string }

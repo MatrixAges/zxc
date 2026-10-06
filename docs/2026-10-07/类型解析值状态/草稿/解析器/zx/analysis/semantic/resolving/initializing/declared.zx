@@ -1,0 +1,26 @@
+import builtin from "../builtin"
+import fail from "../fail"
+import declaration from "../source/declaration"
+import find from "../source/find"
+
+import type { State } from "../model"
+
+export type Input = { state: State, index: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const selected = declaration({ source: in.state.context.source, index: in.index })
+
+    if (builtin(selected.name.text) != 0 || selected.name.text == "Array") {
+        return fail({ state: in.state, code: "name", message: "a type cannot replace a built-in scalar", name: selected.name })
+    }
+
+    const previous = find({ source: in.state.context.source, name: selected.name.text, limit: in.index })
+
+    if (previous.found) {
+        return fail({ state: in.state, code: "name", message: "duplicate type declaration", name: selected.name })
+    }
+
+    return in.state
+}

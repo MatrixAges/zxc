@@ -1,0 +1,17 @@
+import { Kind } from "../types/model"
+import construct from "./construct"
+import current from "./current"
+import pop from "./pop"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const head = current(in.frames)
+    const result = construct({ state: in, candidate: { kind: head.list ? Kind.List : Kind.Optional, first: in.result, second: 0, label: "", children: [], fields: { names: [], types: [] }, names: [] } })
+
+    return pop(result)
+}

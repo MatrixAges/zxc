@@ -1,0 +1,39 @@
+import current from "./current"
+import fail from "./fail"
+import frame from "./frame"
+import { Operation } from "./model"
+import replace from "./replace"
+import { NodeKind } from "./source/model"
+import node from "./source/node"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const head = current(in.frames)
+    const value = node({ source: in.context.source, reference: head.reference })
+
+    if (value.kind == NodeKind.Named) {
+        return replace({ state: in, frame: { ...head, operation: Operation.Name, name: value.name } })
+    }
+
+    if (value.kind == NodeKind.Optional || value.kind == NodeKind.List || value.kind == NodeKind.Application) {
+        if (value.kind == NodeKind.Application && value.name.text != "Array") {
+            return fail({ state: in, code: "unsupported", message: "generic and database types are not enabled", name: value.name })
+        }
+
+        const state = replace({ state: in, frame: { ...head, operation: Operation.Wrap, list: value.kind != NodeKind.Optional } })
+        const child = frame({ operation: Operation.Node, name: { text: "", start: 0, end: 0 }, reference: value.child })
+
+        return { ...state, frames: state.frames.push(child)[0] }
+    }
+
+    if (value.kind == NodeKind.Tuple || value.kind == NodeKind.Object) {
+        return replace({ state: in, frame: { ...head, operation: value.kind == NodeKind.Tuple ? Operation.Tuple : Operation.Object, count: value.count, position: value.position, children: in.scratch.types.length, fields: in.scratch.names.length } })
+    }
+
+    return fail({ state: in, code: "type_mismatch", message: "enum types require a named declaration", name: { text: "", start: 0, end: 0 } })
+}

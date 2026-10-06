@@ -1,0 +1,41 @@
+import integers from "zig:integers"
+
+import { Kind } from "../types/model"
+import typeRow from "../types/row"
+
+import type { Tables } from "../types/model"
+
+export type Input = { tables: Tables, index: u64, flags: bool[], native_references: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const selected = typeRow({ tables: in.tables, id: integers.narrow(in.index) })
+    const type_kind = selected.kind
+    const target = in.native_references ? Kind.NativeReference : Kind.List
+
+    if (type_kind == target) {
+        return true
+    }
+
+    if (type_kind == Kind.Optional || (in.native_references && (type_kind == Kind.List || type_kind == Kind.Task))) {
+        return in.flags[integers.widen(selected.first)]
+    }
+
+    if (type_kind != Kind.Tuple && type_kind != Kind.Object) {
+        return false
+    }
+
+    const table = selected.delta ? in.tables.delta : in.tables.base
+    const children = type_kind == Kind.Tuple ? table.children : table.field_types
+
+    const state = loop({ flags: in.flags, children: children, offset: integers.widen(selected.first), count: integers.widen(selected.second), index: 0, found: false }, {
+        while: current => !current.found && current.index < current.count,
+        next: current => {
+            current.found = current.flags[integers.widen(current.children[current.offset + current.index])]
+            current.index += 1
+        }
+    })
+
+    return state.found
+}

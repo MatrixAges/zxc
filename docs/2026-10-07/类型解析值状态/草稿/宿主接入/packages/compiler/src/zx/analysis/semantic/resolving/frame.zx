@@ -1,0 +1,10 @@
+import type { Operation, Frame } from "./model"
+import type { Name, Reference } from "./source/model"
+
+export type Input = { operation: Operation, name: Name, reference: Reference }
+
+export type Output = Frame
+
+export default function (in: Input): Output {
+    return { operation: in.operation, reference: in.reference, name: in.name, declaration: { text: "", start: 0, end: 0 }, waiting: false, index: 0, position: 0, count: 0, list: false, children: 0, fields: 0 }
+}

@@ -1,0 +1,19 @@
+import text from "./text"
+
+import type { Source, Entry } from "./model"
+
+export type Input = { source: Source, index: u64 }
+
+export type Output = Entry
+
+export default function (in: Input): Output {
+    const native = in.source.native
+
+    if (native != null) {
+        return native.declarations[in.index]
+    }
+
+    const declaration = in.source.indexed.declarations[in.index]
+
+    return { name: text({ source: in.source.indexed.bytes, span: declaration.name }), value: { enumeration: declaration.enumeration, index: declaration.enumeration ? in.index : declaration.value } }
+}

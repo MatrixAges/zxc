@@ -1,0 +1,25 @@
+import cache from "./cache"
+import current from "./current"
+import { Operation } from "./model"
+import name from "./name"
+import node from "./node"
+import object from "./object"
+import tuple from "./tuple"
+import wrap from "./wrap"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return match current(in.frames).operation {
+        Operation.Name => name(in),
+        Operation.FinishName => cache(in),
+        Operation.Node => node(in),
+        Operation.Wrap => wrap(in),
+        Operation.Tuple => tuple(in),
+        _ => object(in)
+    }
+}

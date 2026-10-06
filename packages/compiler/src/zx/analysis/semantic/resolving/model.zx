@@ -1,0 +1,32 @@
+import type { Table } from "../types/model"
+import type { Source, Name, Reference } from "./source/model"
+
+export enum Operation { Name, FinishName, Node, Wrap, Tuple, Object }
+
+export type Cache = { names: string[], ids: u32[] }
+
+export type Diagnostic = { code: string, message: string, start: u64, end: u64 }
+
+export type Context = { source: Source, base: Table, resolved: Cache, aliases: Cache, visiting: string[], native_interface: bool }
+
+export type Frame = {
+    operation: Operation
+    reference: Reference
+    name: Name
+    declaration: Name
+    waiting: bool
+    index: u64
+    position: u64
+    count: u64
+    list: bool
+    children: u64
+    fields: u64
+}
+
+export type Scratch = { types: u32[], names: string[] }
+
+export type State = { context: Context, delta: Table, cache: Cache, frames: Frame[], scratch: Scratch, active: string[], result: u32, diagnostic: Diagnostic }
+
+export type Request = { context: Context, initialize: bool, named: bool, name: Name, reference: Reference }
+
+export type Result = { delta: Table, cache: Cache, id: u32, diagnostic: Diagnostic }

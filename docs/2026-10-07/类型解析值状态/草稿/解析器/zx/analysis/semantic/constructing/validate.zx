@@ -1,0 +1,37 @@
+import contains from "../querying/contains"
+import container from "../types/container"
+import { Violation } from "../types/container_model"
+import { Kind } from "../types/model"
+import row from "../types/row"
+
+import type { UpdateInput, Diagnostic } from "./model"
+
+export type Input = UpdateInput
+
+export type Output = Diagnostic
+
+export default function (in: Input): Output {
+    const violation = container(in)
+
+    if (violation == Violation.TaskContainer) {
+        return { code: "ownership", message: "tasks cannot be placed in containers" }
+    } else if (violation == Violation.VoidList) {
+        return { code: "type_mismatch", message: "lists cannot contain void" }
+    } else if (violation == Violation.TaskTuple) {
+        return { code: "ownership", message: "tasks cannot be placed in tuples" }
+    } else if (violation == Violation.TaskObject) {
+        return { code: "ownership", message: "tasks cannot be placed in objects" }
+    }
+
+    if (in.candidate.kind == Kind.Task) {
+        if (contains({ tables: in.tables, id: in.candidate.first, native_references: true })) {
+            return { code: "capability", message: "tasks cannot return host references" }
+        }
+
+        if (row({ tables: in.tables, id: in.candidate.first }).kind == Kind.Task) {
+            return { code: "ownership", message: "a task cannot return another task" }
+        }
+    }
+
+    return { code: "", message: "" }
+}

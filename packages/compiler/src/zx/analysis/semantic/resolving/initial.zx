@@ -1,0 +1,18 @@
+import frame from "./frame"
+import { Operation } from "./model"
+
+import type { Table } from "../types/model"
+import type { Request, State, Frame } from "./model"
+
+export type Input = Request
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const empty: Table = { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }
+    const scalars: Table = { kinds: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], first: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], second: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], labels: ["", "", "", "", "", "", "", "", "", "", ""], children: [], field_types: [], field_names: [], names: [] }
+    const operation = in.named ? Operation.Name : Operation.Node
+    const frames: Frame[] = in.initialize ? [] : [frame({ operation: operation, name: in.name, reference: in.reference })]
+
+    return { context: in.context, delta: in.initialize && in.context.base.kinds.length == 0 ? scalars : empty, cache: { names: [], ids: [] }, frames: frames, scratch: { types: [], names: [] }, active: [], result: 0, diagnostic: { code: "", message: "", start: 0, end: 0 } }
+}

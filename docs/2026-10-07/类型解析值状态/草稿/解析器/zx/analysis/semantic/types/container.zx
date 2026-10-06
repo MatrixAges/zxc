@@ -1,0 +1,39 @@
+import { Violation } from "./container_model"
+import { Kind } from "./model"
+import row from "./row"
+
+import type { Candidate, Tables } from "./model"
+
+export type Input = { tables: Tables, candidate: Candidate }
+
+export type Output = Violation
+
+export default function (in: Input): Output {
+    if (in.candidate.kind == Kind.Optional || in.candidate.kind == Kind.List) {
+        if (row({ tables: in.tables, id: in.candidate.first }).kind == Kind.Task) {
+            return Violation.TaskContainer
+        }
+
+        return in.candidate.kind == Kind.List && in.candidate.first == 0 ? Violation.VoidList : Violation.None
+    }
+
+    if (in.candidate.kind != Kind.Tuple && in.candidate.kind != Kind.Object) {
+        return Violation.None
+    }
+
+    const children = in.candidate.kind == Kind.Tuple ? in.candidate.children : in.candidate.fields.types
+
+    const state = loop({ tables: in.tables, children: children, index: 0, found: false }, {
+        while: current => !current.found && current.index < current.children.length,
+        next: current => {
+            current.found = row({ tables: current.tables, id: current.children[current.index] }).kind == Kind.Task
+            current.index += 1
+        }
+    })
+
+    if (!state.found) {
+        return Violation.None
+    }
+
+    return in.candidate.kind == Kind.Tuple ? Violation.TaskTuple : Violation.TaskObject
+}

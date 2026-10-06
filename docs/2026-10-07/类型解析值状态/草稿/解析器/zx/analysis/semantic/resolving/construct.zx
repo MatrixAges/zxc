@@ -1,0 +1,14 @@
+import update from "../constructing/update"
+
+import type { Candidate } from "../types/model"
+import type { State } from "./model"
+
+export type Input = { state: State, candidate: Candidate }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const result = update({ tables: { base: in.state.context.base, delta: in.state.delta }, candidate: in.candidate })
+
+    return { ...in.state, delta: result.delta, result: result.id, diagnostic: { code: result.diagnostic.code, message: result.diagnostic.message, start: 0, end: 0 } }
+}

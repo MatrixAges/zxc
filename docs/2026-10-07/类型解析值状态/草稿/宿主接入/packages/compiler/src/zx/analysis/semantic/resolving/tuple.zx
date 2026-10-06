@@ -1,0 +1,28 @@
+import current from "./current"
+import finish from "./finish"
+import frame from "./frame"
+import { Operation } from "./model"
+import replace from "./replace"
+import item from "./source/item"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const previous = current(in.frames)
+    const state = previous.waiting ? replace({ state: { ...in, scratch: { ...in.scratch, types: in.scratch.types.push(in.result)[0] } }, frame: { ...previous, index: previous.index + 1, waiting: false } }) : in
+    const head = current(state.frames)
+
+    if (head.index == head.count) {
+        return finish(state)
+    }
+
+    const selected = item({ source: state.context.source, position: head.position })
+    const waiting = replace({ state: state, frame: { ...head, position: selected.next, waiting: true } })
+    const child = frame({ operation: Operation.Node, name: { text: "", start: 0, end: 0 }, reference: selected.value })
+
+    return { ...waiting, frames: waiting.frames.push(child)[0] }
+}

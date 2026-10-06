@@ -1,0 +1,35 @@
+import frame from "./frame"
+import initialize from "./initialize"
+import { Operation } from "./model"
+import run from "./run"
+import count from "./source/count"
+import declaration from "./source/declaration"
+
+import type { State, Result } from "./model"
+
+export type Input = { state: State, initialize: bool }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (!in.initialize) {
+        const state = run(in.state)
+
+        return { delta: state.delta, cache: state.cache, id: state.result, diagnostic: state.diagnostic }
+    }
+
+    const checked = initialize(in.state)
+
+    const completed = loop({ state: checked, index: 0, count: count(in.state.context.source) }, {
+        while: current => current.index < current.count && current.state.diagnostic.message == "",
+        next: current => {
+            const selected = declaration({ source: current.state.context.source, index: current.index })
+            const entry = frame({ operation: Operation.Name, name: selected.name, reference: selected.value })
+
+            current.state = run({ ...current.state, frames: current.state.frames.push(entry)[0] })
+            current.index += 1
+        }
+    })
+
+    return { delta: completed.state.delta, cache: completed.state.cache, id: completed.state.result, diagnostic: completed.state.diagnostic }
+}

@@ -1,0 +1,21 @@
+import type { Search } from "../types/model"
+import type { Cache } from "./model"
+
+export type Input = { cache: Cache, name: string }
+
+export type Output = Search
+
+export default function (in: Input): Output {
+    const initial: u32 = 0
+
+    const state = loop({ cache: in.cache, name: in.name, index: 0, found: false, id: initial }, {
+        while: current => !current.found && current.index < current.cache.names.length,
+        next: current => {
+            current.found = current.cache.names[current.index] == current.name
+            current.id = current.cache.ids[current.index]
+            current.index += 1
+        }
+    })
+
+    return { found: state.found, id: state.id }
+}

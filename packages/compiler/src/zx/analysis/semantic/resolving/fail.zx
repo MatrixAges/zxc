@@ -1,0 +1,10 @@
+import type { State } from "./model"
+import type { Name } from "./source/model"
+
+export type Input = { state: State, code: string, message: string, name: Name }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return { ...in.state, diagnostic: { code: in.code, message: in.message, start: in.name.start, end: in.name.end } }
+}

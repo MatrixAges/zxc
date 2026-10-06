@@ -1,0 +1,36 @@
+import builtin from "../builtin"
+import contains from "../contains"
+import fail from "../fail"
+import count from "../source/count"
+import declaration from "../source/declaration"
+import find from "../source/find"
+
+import type { State } from "../model"
+
+export type Input = { state: State, index: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const name = in.state.context.aliases.names[in.index]
+
+    if (builtin(name) != 0 || name == "Array") {
+        return fail({ state: in.state, code: "name", message: "an imported type cannot replace a built-in type", name: { text: name, start: 0, end: 0 } })
+    }
+
+    const previous = in.state.context.aliases.names.splice(0, in.index, [])[1]
+
+    if (contains({ names: previous, name: name })) {
+        return fail({ state: in.state, code: "name", message: "duplicate imported type name", name: { text: name, start: 0, end: 0 } })
+    }
+
+    const found = find({ source: in.state.context.source, name: name, limit: count(in.state.context.source) })
+
+    if (found.found) {
+        const selected = declaration({ source: in.state.context.source, index: found.index })
+
+        return fail({ state: in.state, code: "name", message: "a local type cannot replace an imported type", name: selected.name })
+    }
+
+    return in.state
+}

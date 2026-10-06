@@ -1,0 +1,18 @@
+import current from "./current"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const frame = current(in.frames)
+
+    return {
+        ...in,
+        cache: { names: in.cache.names.push(frame.name.text)[0], ids: in.cache.ids.push(in.result)[0] },
+        active: in.active.pop()[0],
+        frames: in.frames.pop()[0]
+    }
+}

@@ -1,0 +1,14 @@
+import encoding from "std:encoding"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Name } from "./model"
+
+export type Input = { source: u8[], span: Span }
+
+export type Output = Name
+
+export default function (in: Input): Output {
+    const text = encoding.decodeUtf8(in.source.splice(in.span.start, in.span.end - in.span.start, [])[1])
+
+    return { text: text, start: in.span.start, end: in.span.end }
+}

@@ -1,0 +1,41 @@
+import contains from "./contains"
+import current from "./current"
+import fail from "./fail"
+import finish from "./finish"
+import frame from "./frame"
+import { Operation } from "./model"
+import replace from "./replace"
+import field from "./source/field"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const previous = current(in.frames)
+
+    if (previous.waiting && in.result == 0) {
+        return fail({ state: in, code: "type_mismatch", message: "object fields cannot have type void", name: previous.name })
+    }
+
+    const state = previous.waiting ? replace({ state: { ...in, scratch: { types: in.scratch.types.push(in.result)[0], names: in.scratch.names.push(previous.name.text)[0] } }, frame: { ...previous, index: previous.index + 1, waiting: false } }) : in
+    const head = current(state.frames)
+
+    if (head.index == head.count) {
+        return finish(state)
+    }
+
+    const selected = field({ source: state.context.source, position: head.position })
+    const names = state.scratch.names.splice(head.fields, state.scratch.names.length - head.fields, [])[1]
+
+    if (contains({ names: names, name: selected.name.text })) {
+        return fail({ state: state, code: "name", message: "duplicate object field", name: selected.name })
+    }
+
+    const waiting = replace({ state: state, frame: { ...head, name: selected.name, position: selected.next, waiting: true } })
+    const child = frame({ operation: Operation.Node, name: { text: "", start: 0, end: 0 }, reference: selected.value })
+
+    return { ...waiting, frames: waiting.frames.push(child)[0] }
+}

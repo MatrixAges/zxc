@@ -1,0 +1,9 @@
+import type { Frame } from "./model"
+
+export type Input = Frame[]
+
+export type Output = Frame
+
+export default function (in: Input): Output {
+    return in[in.length - 1]
+}

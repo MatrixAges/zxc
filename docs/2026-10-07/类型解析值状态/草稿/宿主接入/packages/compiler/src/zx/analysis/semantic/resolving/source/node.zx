@@ -1,0 +1,42 @@
+import { TypeKind } from "../../../../frontend/parser/types/model"
+import { NodeKind } from "./model"
+import text from "./text"
+
+import type { Source, Reference, Node } from "./model"
+
+export type Input = { source: Source, reference: Reference }
+
+export type Output = Node
+
+export default function (in: Input): Output {
+    const native = in.source.native
+
+    if (in.reference.enumeration) {
+        const count = native != null ? native.enumerations[in.reference.index].count : in.source.indexed.declarations[in.reference.index].count
+
+        return { kind: NodeKind.Enumeration, name: { text: "", start: 0, end: 0 }, child: { enumeration: false, index: 0 }, count: count, position: 0 }
+    }
+
+    if (native != null) {
+        return native.nodes[in.reference.index]
+    }
+
+    const node = in.source.indexed.types.nodes[in.reference.index]
+
+    const kind = match node.kind {
+        TypeKind.Named => NodeKind.Named,
+        TypeKind.Object => NodeKind.Object,
+        TypeKind.Optional => NodeKind.Optional,
+        TypeKind.List => NodeKind.List,
+        TypeKind.Tuple => NodeKind.Tuple,
+        _ => NodeKind.Application
+    }
+
+    return {
+        kind: kind,
+        name: text({ source: in.source.indexed.bytes, span: node.name }),
+        child: { enumeration: false, index: node.child },
+        count: node.count,
+        position: in.source.indexed.order.heads[in.reference.index]
+    }
+}

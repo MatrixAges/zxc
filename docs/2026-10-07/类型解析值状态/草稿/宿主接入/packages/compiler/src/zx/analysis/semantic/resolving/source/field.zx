@@ -1,0 +1,19 @@
+import text from "./text"
+
+import type { Source, Field } from "./model"
+
+export type Input = { source: Source, position: u64 }
+
+export type Output = Field
+
+export default function (in: Input): Output {
+    const native = in.source.native
+
+    if (native != null) {
+        return native.fields[in.position - 1]
+    }
+
+    const field = in.source.indexed.types.fields[in.position - 1]
+
+    return { name: text({ source: in.source.indexed.bytes, span: field.name }), value: { enumeration: false, index: field.value }, next: in.source.indexed.order.fields[in.position - 1] }
+}

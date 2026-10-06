@@ -1,0 +1,20 @@
+export type Input = { left: string, right: string }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const limit = in.left.length < in.right.length ? in.left.length : in.right.length
+
+    const state = loop({ left: in.left, right: in.right, index: 0, limit: limit, equal: true }, {
+        while: current => current.equal && current.index < current.limit,
+        next: current => {
+            current.equal = current.left[current.index] == current.right[current.index]
+
+            if (current.equal) {
+                current.index += 1
+            }
+        }
+    })
+
+    return state.index == state.limit ? state.left.length < state.right.length : state.left[state.index] < state.right[state.index]
+}

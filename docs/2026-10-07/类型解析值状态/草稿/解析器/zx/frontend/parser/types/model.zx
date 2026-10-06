@@ -1,0 +1,33 @@
+import type { Diagnostic } from "../../lexer/model"
+import type { Span, Token } from "../../lexer/token_model"
+
+export enum TypeKind { Named, Object, Optional, List, Tuple, Application }
+
+export enum Phase { Start, Name, Suffix, ListEnd, Field, FieldOptional, FieldColon, TupleItem, Done }
+
+export type Node = { kind: TypeKind, name: Span, child: u64, head: u64, count: u64 }
+
+export type Field = { name: Span, value: u64, previous: u64 }
+
+export type Item = { value: u64, previous: u64 }
+
+export type Order = { heads: u64[], fields: u64[], items: u64[] }
+
+export type Tree = { nodes: Node[], fields: Field[], items: Item[] }
+
+export type Frame = { kind: TypeKind, name: Span, field: Span, optional: bool, head: u64, count: u64 }
+
+export type Control = {
+    phase: Phase
+    index: u64
+    start: u64
+    depth: u64
+    result: u64
+    name: Span
+    token: Token
+    diagnostic: Diagnostic
+}
+
+export type State = { tree: Tree, frames: Frame[], control: Control }
+
+export type TypeTree = Tree

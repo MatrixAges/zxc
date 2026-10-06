@@ -1,0 +1,16 @@
+import step from "./step"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.frames.length != 0 && current.diagnostic.message == "",
+        next: current => {
+            current = step(current)
+        }
+    })
+}

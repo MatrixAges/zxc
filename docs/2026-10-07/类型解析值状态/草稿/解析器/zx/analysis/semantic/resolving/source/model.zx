@@ -1,0 +1,25 @@
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Declaration } from "../../../../frontend/parser/declarations/model"
+import type { Tree, Order } from "../../../../frontend/parser/types/model"
+
+export enum NodeKind { Named, Object, Optional, List, Tuple, Enumeration, Application }
+
+export type Name = { text: string, start: u64, end: u64 }
+
+export type Reference = { enumeration: bool, index: u64 }
+
+export type Node = { kind: NodeKind, name: Name, child: Reference, count: u64, position: u64 }
+
+export type Field = { name: Name, value: Reference, next: u64 }
+
+export type Item = { value: Reference, next: u64 }
+
+export type Entry = { name: Name, value: Reference }
+
+export type Enumeration = { first: u64, count: u64 }
+
+export type Native = { nodes: Node[], fields: Field[], items: Item[], declarations: Entry[], enumerations: Enumeration[], members: Name[] }
+
+export type Indexed = { bytes: u8[], types: Tree, order: Order, declarations: Declaration[], members: Span[] }
+
+export type Source = { indexed: Indexed, native: Native? }

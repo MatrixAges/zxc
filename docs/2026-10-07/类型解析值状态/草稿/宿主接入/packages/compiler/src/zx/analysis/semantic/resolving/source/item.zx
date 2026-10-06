@@ -1,0 +1,15 @@
+import type { Source, Item } from "./model"
+
+export type Input = { source: Source, position: u64 }
+
+export type Output = Item
+
+export default function (in: Input): Output {
+    const native = in.source.native
+
+    if (native != null) {
+        return native.items[in.position - 1]
+    }
+
+    return { value: { enumeration: false, index: in.source.indexed.types.items[in.position - 1].value }, next: in.source.indexed.order.items[in.position - 1] }
+}

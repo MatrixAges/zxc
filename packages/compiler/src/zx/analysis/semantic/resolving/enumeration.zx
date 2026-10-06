@@ -1,0 +1,44 @@
+import { Kind } from "../types/model"
+import construct from "./construct"
+import contains from "./contains"
+import current from "./current"
+import fail from "./fail"
+import member from "./source/member"
+import node from "./source/node"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const head = current(in.frames)
+    const value = node({ source: in.context.source, reference: head.reference })
+
+    if (value.count == 0) {
+        return fail({ state: in, code: "type_mismatch", message: "an enum must have at least one member", name: head.declaration })
+    }
+
+    const names: string[] = []
+
+    const state = loop({ source: in.context.source, enumeration: head.reference.index, index: 0, count: value.count, names: names, diagnostic: in.diagnostic }, {
+        while: current => current.index < current.count && current.diagnostic.message == "",
+        next: current => {
+            const selected = member({ source: current.source, enumeration: current.enumeration, index: current.index })
+
+            if (contains({ names: current.names, name: selected.text })) {
+                current.diagnostic = { code: "name", message: "duplicate enum member", start: selected.start, end: selected.end }
+            } else {
+                current.names = current.names.push(selected.text)[0]
+                current.index += 1
+            }
+        }
+    })
+
+    if (state.diagnostic.message != "") {
+        return { ...in, diagnostic: state.diagnostic }
+    }
+
+    return construct({ state: in, candidate: { kind: Kind.Enumeration, first: 0, second: 0, label: head.declaration.text, children: [], fields: { names: [], types: [] }, names: state.names } })
+}

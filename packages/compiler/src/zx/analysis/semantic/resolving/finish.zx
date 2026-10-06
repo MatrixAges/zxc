@@ -1,0 +1,24 @@
+import { Kind } from "../types/model"
+import construct from "./construct"
+import current from "./current"
+import { Operation } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const head = current(in.frames)
+    const types = in.scratch.types.splice(head.children, in.scratch.types.length - head.children, [])[1]
+    const names = in.scratch.names.splice(head.fields, in.scratch.names.length - head.fields, [])[1]
+    const object = head.operation == Operation.Object
+    const state = construct({ state: in, candidate: { kind: object ? Kind.Object : Kind.Tuple, first: 0, second: 0, label: "", children: object ? [] : types, fields: { names: object ? names : [], types: object ? types : [] }, names: [] } })
+
+    return {
+        ...state,
+        scratch: { types: in.scratch.types.splice(0, head.children, [])[1], names: in.scratch.names.splice(0, head.fields, [])[1] },
+        frames: state.frames.pop()[0]
+    }
+}
