@@ -1,0 +1,101 @@
+diff --git a/packages/test/build/loop_policy.zig b/packages/test/build/loop_policy.zig
+index b7d75ed7..ca76e089 100644
+--- a/packages/test/build/loop_policy.zig
++++ b/packages/test/build/loop_policy.zig
+@@ -3,15 +3,17 @@ const std = @import("std");
+ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step {
+     const step = b.step("test-loop-policy", "Reject retired iteration APIs while preserving loop imports and independent void calls");
+ 
+-    const tests = b.addTest(.{ .root_module = b.createModule(.{
+-        .root_source_file = b.path("tests/language/expressions/loop_policy/analysis_test.zig"),
+-        .target = target,
+-        .optimize = optimize,
+-        .imports = &.{.{ .name = "compiler", .module = compiler.module("compiler") }},
+-    }) });
++    for ([_][]const u8{ "analysis", "standalone" }) |name| {
++        const tests = b.addTest(.{ .root_module = b.createModule(.{
++            .root_source_file = b.path(b.fmt("tests/language/expressions/loop_policy/{s}_test.zig", .{name})),
++            .target = target,
++            .optimize = optimize,
++            .imports = &.{.{ .name = "compiler", .module = compiler.module("compiler") }},
++        }) });
+ 
+-    tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
+-    step.dependOn(&b.addRunArtifact(tests).step);
++        tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
++        step.dependOn(&b.addRunArtifact(tests).step);
++    }
+ 
+     const run = b.addSystemCommand(&.{"node"});
+ 
+diff --git a/packages/test/build/native_runtime.zig b/packages/test/build/native_runtime.zig
+index e3fe3f7a..94745d36 100644
+--- a/packages/test/build/native_runtime.zig
++++ b/packages/test/build/native_runtime.zig
+@@ -13,9 +13,9 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
+         }),
+     });
+ 
+-    for ([_][]const u8{ "basic", "mixed" }) |fixture| {
++    for ([_][]const u8{ "basic", "mixed", "loops" }) |fixture| {
+         const compile = b.addRunArtifact(tool);
+-        const prefix = if (std.mem.eql(u8, fixture, "basic")) "" else "mixed/";
++        const prefix = if (std.mem.eql(u8, fixture, "basic")) "" else b.fmt("{s}/", .{fixture});
+ 
+         compile.addArg(fixture);
+ 
+@@ -48,7 +48,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
+                 }),
+             });
+ 
+-            if (std.mem.eql(u8, fixture, "mixed")) tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
++            if (!std.mem.eql(u8, fixture, "basic")) tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
+ 
+             step.dependOn(&b.addRunArtifact(tests).step);
+         }
+diff --git a/packages/test/tests/incremental/native_runtime/compile.zig b/packages/test/tests/incremental/native_runtime/compile.zig
+index 3b727de8..30fdad71 100644
+--- a/packages/test/tests/incremental/native_runtime/compile.zig
++++ b/packages/test/tests/incremental/native_runtime/compile.zig
+@@ -3,7 +3,7 @@ const compiler = @import("compiler");
+ const cached = @import("cached.zig");
+ const mixed = @import("mixed/analyze.zig");
+ const check = @import("mixed/check.zig");
+-const Fixture = enum { basic, mixed };
++const Fixture = enum { basic, mixed, loops };
+ 
+ fn emit(allocator: std.mem.Allocator, io: std.Io, program: compiler.ir.Program, paths: []const []const u8) !void {
+     const bundle = try compiler.zig.emitBundle(allocator, program);
+@@ -41,7 +41,7 @@ pub fn main(init: std.process.Init) !void {
+ 
+     {
+         const records = extracted: {
+-            var result = if (fixture == .mixed) try mixed.analyze(allocator, @embedFile("helper.zx")) else mixed.Result{
++            var result = if (fixture == .loops) try @import("loops/analyze.zig").analyze(allocator) else if (fixture == .mixed) try mixed.analyze(allocator, @embedFile("helper.zx")) else mixed.Result{
+                 .analysis = try compiler.project.analyze(allocator, &.{
+                     .{ .path = "main.zx", .source = @embedFile("main.zx") },
+                     .{ .path = "helper.zx", .source = @embedFile("helper.zx") },
+@@ -55,6 +55,7 @@ pub fn main(init: std.process.Init) !void {
+ 
+             if (analysis.value == .diagnostic) std.debug.print("analysis diagnostic: {s}\n", .{analysis.value.diagnostic.message});
+             if (analysis.value != .ir) return error.InvalidAnalysis;
++            if (fixture == .loops and try compiler.validateIr(allocator, analysis.value.ir) != null) return error.InvalidLoopIr;
+             if (fixture == .mixed) try check.program(allocator, analysis.value.ir);
+             try emit(allocator, init.io, analysis.value.ir, args[2..4]);
+ 
+@@ -82,6 +83,7 @@ pub fn main(init: std.process.Init) !void {
+ 
+         defer linked.deinit();
+ 
++        if (fixture == .loops and try compiler.validateIr(allocator, linked.program) != null) return error.InvalidLinkedLoopIr;
+         if (fixture == .mixed) try check.program(allocator, linked.program);
+         try emit(allocator, init.io, linked.program, args[4..6]);
+     }
+@@ -94,6 +96,7 @@ pub fn main(init: std.process.Init) !void {
+ 
+     decoded_count = 0;
+ 
++    if (fixture == .loops and try compiler.validateIr(allocator, restored.program) != null) return error.InvalidRestoredLoopIr;
+     if (fixture == .mixed) try check.program(allocator, restored.program);
+     try emit(allocator, init.io, restored.program, args[6..8]);
+ }

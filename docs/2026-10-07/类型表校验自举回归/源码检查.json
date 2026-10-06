@@ -1,0 +1,51 @@
+[
+    {
+        "argv": [
+            "zig",
+            "fmt",
+            "--check",
+            "packages/test/build.zig",
+            "packages/test/tests/ir/types/validation/references_test.zig",
+            "packages/test/tests/ir/types/validation/shape_test.zig",
+            "packages/test/tests/ir/types/validation/allowed_test.zig",
+            "packages/test/tests/ir/types/validation/fixture.zig",
+            "packages/test/tests/ir/types/validation/names_test.zig"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    },
+    {
+        "argv": [
+            "node",
+            "scripts/format.mjs",
+            "--check",
+            "packages/test/build.zig",
+            "packages/test/tests/ir/types/validation/references_test.zig",
+            "packages/test/tests/ir/types/validation/shape_test.zig",
+            "packages/test/tests/ir/types/validation/allowed_test.zig",
+            "packages/test/tests/ir/types/validation/fixture.zig",
+            "packages/test/tests/ir/types/validation/names_test.zig"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    },
+    {
+        "argv": [
+            "git",
+            "diff",
+            "--check",
+            "--",
+            "packages/test/build.zig",
+            "packages/test/tests/ir/types/validation/references_test.zig",
+            "packages/test/tests/ir/types/validation/shape_test.zig",
+            "packages/test/tests/ir/types/validation/allowed_test.zig",
+            "packages/test/tests/ir/types/validation/fixture.zig",
+            "packages/test/tests/ir/types/validation/names_test.zig"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    }
+]
