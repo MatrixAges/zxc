@@ -85,7 +85,12 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     configuration_options.run = false;
     configuration_options.run_args = &.{};
     const node = options.host == .node;
-    const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = configuration_options, .project = loaded, .node_host_sources = if (node) @as([]const @import("node/resources.zig").File, &@import("node/resources.zig").files) else &.{}, .node_sources = if (node) @as([]const @import("napi_resources").File, &@import("napi_resources").files) else &.{} }, .{});
+    const node_signature = if (node) bundle.signature orelse return error.MissingNodeSignature else null;
+    var node_sources = if (node_signature) |signature| try @import("node/resources.zig").create(allocator, bundle.state_module != null, signature.types, signature.input, signature.output) else null;
+
+    defer if (node_sources) |*sources| sources.deinit();
+
+    const configuration = try std.json.Stringify.valueAlloc(allocator, .{ .options = configuration_options, .project = loaded, .node_host_sources = if (node_sources) |*sources| @as([]const @import("node/resources.zig").File, &sources.files) else &.{}, .node_sources = if (node_sources) |*sources| @as([]const @import("node/resources.zig").File, &sources.napi) else &.{} }, .{});
     const abi = try @import("abi.zig").create(allocator, bundle, loaded);
     const wasm = try @import("wasm/target.zig").freestanding(options.target);
     var executable_bundle = bundle;
@@ -93,14 +98,16 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
     if (node) {
         if (wasm or bundle.runner != null) return error.UnsupportedNodeRunner;
 
-        executable_bundle.runner = if (bundle.state_module != null) "pub const stateful = true;\n" ++ @embedFile("node/runner.zig") else "pub const stateful = false;\n" ++ @embedFile("node/runner.zig");
+        executable_bundle.runner = try @import("compiler").zig.host.node.runner(allocator, bundle.state_module != null);
     }
 
     if (wasm) {
         if (bundle.runner != null) return error.UnsupportedWasmRunner;
 
-        executable_bundle.runner = @import("wasm/target.zig").runner(bundle.state_module != null);
+        executable_bundle.runner = try @import("compiler").zig.host.wasm(allocator, bundle.state_module != null);
     }
+
+    defer if (wasm or node) allocator.free(executable_bundle.runner.?);
 
     const directory = try artifacts.prepare(io, allocator, executable_bundle, configuration, abi, options.result == .json);
     var arguments: std.ArrayList([]const u8) = .empty;
@@ -120,8 +127,8 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
             try arguments.append(allocator, try std.fs.path.resolve(allocator, &.{path}));
         } else try arguments.append(allocator, "-fallow-shlib-undefined");
 
-        for (@import("node/resources.zig").files) |file| try artifacts.retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "node", file.path }), file.source);
-        for (@import("napi_resources").files) |file| try artifacts.retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "napi", file.path }), file.source);
+        for (node_sources.?.files) |file| try artifacts.retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "node", file.path }), file.source);
+        for (node_sources.?.napi) |file| try artifacts.retain(io, allocator, try std.fs.path.join(allocator, &.{ directory, "napi", file.path }), file.source);
     }
 
     if (wasm) try arguments.appendSlice(allocator, &.{ "-fno-entry", "--export-memory", "-rdynamic" });
@@ -218,7 +225,12 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
             try arguments.appendSlice(allocator, &.{ "--dep", try std.fmt.allocPrint(allocator, "zxc_c={s}", .{translated_name}), try std.fmt.allocPrint(allocator, "-M{s}={s}", .{ module.name, path }) });
             try settings(allocator, &arguments, options);
             try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-M{s}={s}", .{ translated_name, translated }));
-            try artifacts.retain(io, allocator, path, "pub const c = @import(\"zxc_c\");\n");
+
+            const adapter = try @import("compiler").zig.host.cAdapter(allocator);
+
+            defer allocator.free(adapter);
+
+            try artifacts.retain(io, allocator, path, adapter);
 
             continue;
         };
@@ -236,6 +248,7 @@ fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler")
 
     if (node) {
         try settings(allocator, &arguments, options);
+        try arguments.appendSlice(allocator, &.{ "--dep", "application" });
         try arguments.append(allocator, try std.fmt.allocPrint(allocator, "-Mzxc_napi={s}/napi/root.zig", .{directory}));
     }
 

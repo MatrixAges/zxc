@@ -54,11 +54,11 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, directory: []const u8, li
     try @import("../../package/manifest/write.zig").write(&manifest.writer, config);
     try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "pkg.yaml" }), manifest.written());
 
-    var build_source: std.Io.Writer.Allocating = .init(allocator);
+    const build_source = try config_writer.render(allocator, config, public.items, generated.items, abi.views);
 
-    try build_source.writer.writeAll(@embedFile("../library_build.zig"));
-    try config_writer.writePublic(&build_source.writer, config, public.items, generated.items, abi.views);
-    try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "build.zig" }), build_source.written());
+    defer allocator.free(build_source);
+
+    try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "build.zig" }), build_source);
 
     try artifacts.write(io, try std.fs.path.join(allocator, &.{ directory, "library.json" }), try std.json.Stringify.valueAlloc(allocator, .{
         .format_version = 2,

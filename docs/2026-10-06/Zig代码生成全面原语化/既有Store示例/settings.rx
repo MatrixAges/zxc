@@ -1,0 +1,5 @@
+<Module>
+  <Store from="state" as="reader" />
+  <Call fn="settings" in={store.reader.settings} out="ctx.result" />
+  <Return value={ctx.result} />
+</Module>

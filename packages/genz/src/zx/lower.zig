@@ -106,7 +106,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     try @import("store.zig").declaration(self, &output);
     try output.append(self.allocator, try self.function("execute", true));
     try output.appendSlice(self.allocator, task_declarations.items);
-    if (self.uses_parallel) try output.append(self.allocator, .{ .source = @import("parallel/allocator.zig").source });
+    if (self.uses_parallel) try output.append(self.allocator, try @import("parallel/allocator.zig").declaration(self));
     for (comparisons.items) |type_id| try output.append(self.allocator, try @import("comparison.zig").ordering(self, type_id));
 
     return output.toOwnedSlice(self.allocator);

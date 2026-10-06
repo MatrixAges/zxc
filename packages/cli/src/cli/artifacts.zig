@@ -15,8 +15,14 @@ pub fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compil
 
     state.update("zxc.build.artifacts.v2");
 
-    const result = if (emit_result) "pub const emit = true;\n" else "pub const emit = false;\n";
-    const runner = bundle.runner orelse if (bundle.state_module != null) @embedFile("runner_state.zig") else @embedFile("runner.zig");
+    const result = try @import("compiler").zig.host.result(allocator, emit_result);
+
+    defer allocator.free(result);
+
+    const runner = bundle.runner orelse try @import("compiler").zig.host.cli(allocator, bundle.state_module != null);
+
+    defer if (bundle.runner == null) allocator.free(runner);
+
     const graph = try std.json.Stringify.valueAlloc(allocator, .{ .entry = bundle.entry.imports, .modules = bundle.modules, .abi_views = abi.views, .state_module = bundle.state_module }, .{});
 
     defer allocator.free(graph);

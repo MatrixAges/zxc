@@ -1,72 +1,35 @@
 const std = @import("std");
+const library = @import("compiler").zig.host.library;
 const Config = @import("project.zig").Config;
+pub const GeneratedModule = library.Module;
 
-pub const GeneratedModule = struct { name: []const u8, path: []const u8, dependencies: []const []const u8 };
+pub fn render(allocator: std.mem.Allocator, config: Config, public_modules: []const GeneratedModule, generated: []const GeneratedModule, views: []const @import("abi.zig").File) library.Error![]u8 {
+    const native = try allocator.alloc(library.Native, config.native_modules.len);
 
-pub fn write(output: *std.Io.Writer, config: Config, entry_dependencies: []const []const u8, generated: []const GeneratedModule, views: []const @import("abi.zig").File) std.Io.Writer.Error!void {
-    return writePublic(output, config, &.{.{ .name = "library", .path = "root.zig", .dependencies = entry_dependencies }}, generated, views);
-}
+    defer allocator.free(native);
 
-pub fn writePublic(output: *std.Io.Writer, config: Config, public_modules: []const GeneratedModule, generated: []const GeneratedModule, views: []const @import("abi.zig").File) std.Io.Writer.Error!void {
-    try output.writeAll("\nconst config: Config = .{\n    .native_modules = &.{\n");
-
-    for (config.native_modules) |module| {
-        try output.print("        .{{ .name = \"{f}\", .path = ", .{std.zig.fmtString(module.name)});
-        try optional(output, module.path);
-        try output.writeAll(", .header = ");
-        try optional(output, module.header);
-        try output.writeAll(", .dependencies = ");
-        try strings(output, module.dependencies);
-        try output.writeAll(", .bundle_files = ");
-        try strings(output, module.bundle_files);
-        try output.writeAll(", .include_paths = ");
-        if (module.include_paths) |paths| try strings(output, paths) else try output.writeAll("null");
-        try output.writeAll(", .abi_view = ");
-
+    for (config.native_modules, native) |module, *mapped| {
         var view_path: ?[]const u8 = null;
 
         for (views) |view| {
             if (std.mem.eql(u8, view.module, module.name)) view_path = view.path;
         }
 
-        try optional(output, view_path);
-        try output.writeAll(" },\n");
+        mapped.* = .{
+            .name = module.name,
+            .path = module.path,
+            .header = module.header,
+            .dependencies = module.dependencies,
+            .include_paths = module.include_paths orelse config.include_paths,
+            .abi_view = view_path,
+        };
     }
 
-    try output.writeAll("    },\n    .generated_modules = &.{\n");
-
-    for (generated) |module| {
-        try output.print("        .{{ .name = \"{f}\", .path = \"{f}\", .dependencies = ", .{ std.zig.fmtString(module.name), std.zig.fmtString(module.path) });
-        try strings(output, module.dependencies);
-        try output.writeAll(" },\n");
-    }
-
-    try output.writeAll("    },\n    .public_modules = &.{\n");
-
-    for (public_modules) |module| {
-        try output.print("        .{{ .name = \"{f}\", .path = \"{f}\", .dependencies = ", .{ std.zig.fmtString(module.name), std.zig.fmtString(module.path) });
-        try strings(output, module.dependencies);
-        try output.writeAll(" },\n");
-    }
-
-    try output.writeAll("    },\n    .libraries = ");
-    try strings(output, config.libraries);
-    try output.writeAll(",\n    .include_paths = ");
-    try strings(output, config.include_paths);
-    try output.writeAll(",\n    .library_paths = ");
-    try strings(output, config.library_paths);
-    try output.writeAll(",\n};\n");
-}
-
-fn optional(output: *std.Io.Writer, value: ?[]const u8) std.Io.Writer.Error!void {
-    if (value) |text| {
-        try output.print("\"{f}\"", .{std.zig.fmtString(text)});
-    } else try output.writeAll("null");
-}
-
-fn strings(output: *std.Io.Writer, values: []const []const u8) std.Io.Writer.Error!void {
-    try output.writeAll("&.{");
-    for (values) |value| try output.print(" \"{f}\",", .{std.zig.fmtString(value)});
-
-    try output.writeAll(" }");
+    return library.render(allocator, .{
+        .native = native,
+        .generated = generated,
+        .public = public_modules,
+        .libraries = config.libraries,
+        .library_paths = config.library_paths,
+    });
 }

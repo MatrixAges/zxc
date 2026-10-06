@@ -2,7 +2,11 @@ pub const Expression = union(enum) {
     identifier: []const u8,
     null_value,
     unit,
+    return_value: ?*const Expression,
+    catch_scope: struct { value: *const Expression, capture: ?[]const u8 = null, body: []const Statement },
+    fixed_array_type: struct { length: *const Expression, element: *const Expression },
     undefined_value,
+    unreachable_value,
     optional_type: *const Expression,
     tuple_type: []const *const Expression,
     enum_type: []const []const u8,
@@ -19,12 +23,12 @@ pub const Expression = union(enum) {
     catch_value: struct { value: *const Expression, capture: []const u8, label: []const u8, result: *const Expression },
     comptime_value: *const Expression,
     error_set: []const []const u8,
-    error_union: struct { payload: *const Expression, errors: ?[]const []const u8 = null },
+    error_union: struct { payload: *const Expression, errors: ?[]const []const u8 = null, inferred: bool = false },
     integer: u64,
     float: f64,
     string: []const u8,
     boolean: bool,
-    primitive: enum { @"anytype", anyopaque, void, bool, u8, u16, u32, u64, usize, i32, i33, i64, i65, f32, f64 },
+    primitive: enum { @"anytype", type, anyerror, anyopaque, void, bool, u8, u16, u32, u64, usize, i32, i33, i64, i65, f32, f64 },
     dereference: *const Expression,
     optional_unwrap: *const Expression,
     selection: struct { subject: *const Expression, arms: []const SelectionArm },
@@ -39,14 +43,16 @@ pub const Expression = union(enum) {
     field: struct { target: *const Expression, name: []const u8 },
     unary: struct { operator: enum { negate, not }, operand: *const Expression },
     binary: struct { operator: BinaryOperator, left: *const Expression, right: *const Expression },
-    builtin: struct { name: enum { divTrunc, rem, as, setRuntimeSafety, import, intCast, floatCast, enumFromInt, intFromEnum, TypeOf, This, constCast, ptrCast, alignCast, memcpy, Vector, splat }, arguments: []const *const Expression },
+    builtin: struct { name: enum { divTrunc, rem, as, setRuntimeSafety, import, embedFile, intCast, floatCast, floatFromInt, intFromFloat, trunc, tagName, enumFromInt, intFromEnum, TypeOf, FieldType, typeInfo, sizeOf, max, intFromPtr, Int, @"export", compileError, intFromBool, errorName, This, constCast, ptrCast, alignCast, memcpy, Vector, splat }, arguments: []const *const Expression },
     call: struct { callee: *const Expression, arguments: []const *const Expression },
-    conditional: struct { condition: *const Expression, yes: *const Expression, no: *const Expression },
+    conditional: struct { condition: *const Expression, yes: *const Expression, no: *const Expression, capture: ?[]const u8 = null, error_capture: ?[]const u8 = null },
     object: struct { type_expr: ?*const Expression = null, fields: []const Field },
 };
 
 pub const BinaryOperator = enum {
     add,
+    saturating_add,
+    shift_left,
     subtract,
     multiply,
     divide,
@@ -62,6 +68,8 @@ pub const BinaryOperator = enum {
     pub fn spelling(self: BinaryOperator) []const u8 {
         return switch (self) {
             .add => "+",
+            .saturating_add => "+|",
+            .shift_left => "<<",
             .subtract => "-",
             .multiply => "*",
             .divide => "/",
@@ -78,25 +86,27 @@ pub const BinaryOperator = enum {
     }
 };
 
-pub const SelectionArm = struct { value: *const Expression, result: *const Expression };
-pub const Field = struct { name: []const u8, value: *const Expression, comptime_parameter: bool = false };
+pub const SelectionArm = struct { value: ?*const Expression = null, capture: ?[]const u8 = null, result: *const Expression };
+pub const Field = struct { name: []const u8, value: *const Expression, default_value: ?*const Expression = null, comptime_parameter: bool = false };
 pub const Constant = struct { name: []const u8, type_expr: ?*const Expression = null, value: *const Expression, exported: bool = false };
 
 pub const Statement = union(enum) {
     scope: []const Statement,
     defer_expression: *const Expression,
+    errdefer_expression: *const Expression,
     defer_scope: []const Statement,
     discard_error: *const Expression,
     constant: Constant,
     variable: Constant,
     assignment: struct { target: *const Expression, value: *const Expression },
     for_loop: struct { iterable: *const Expression, capture: []const u8, body: []const Statement, capture_reference: bool = false, index_capture: ?[]const u8 = null },
-    while_loop: struct { condition: *const Expression, body: []const Statement },
+    while_loop: struct { condition: *const Expression, body: []const Statement, capture: ?[]const u8 = null },
     break_loop,
+    continue_loop,
     break_value: struct { label: []const u8, value: *const Expression },
     unreachable_stmt,
     result: ?*const Expression,
-    branch: struct { condition: *const Expression, yes: []const Statement, no: []const Statement },
+    branch: struct { condition: *const Expression, yes: []const Statement, no: []const Statement, capture: ?[]const u8 = null, capture_reference: bool = false, error_capture: ?[]const u8 = null },
     discard: *const Expression,
     expression: *const Expression,
 };
@@ -107,6 +117,8 @@ pub const Function = struct {
     return_type: *const Expression,
     body: []const Statement,
     exported: bool = false,
+    abi_export: bool = false,
+    calling_convention: ?*const Expression = null,
 };
 
-pub const Declaration = union(enum) { constant: Constant, function: Function, source: []const u8 };
+pub const Declaration = union(enum) { constant: Constant, variable: Constant, function: Function, field: Field, comptime_scope: []const Statement };

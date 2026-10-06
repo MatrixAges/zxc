@@ -63,7 +63,9 @@ pub fn run(context: Compile.Context, loaded: Loaded) !Compile.Status {
 
     defer bundle.deinit();
 
-    bundle.runner = @embedFile("../../runner_gateway.zig");
+    bundle.runner = try compiler.zig.host.gateway(allocator);
+
+    defer allocator.free(bundle.runner.?);
 
     try @import("../../generation_cache.zig").report(&cache, options, writer);
 

@@ -98,7 +98,7 @@ pub fn function(allocator: std.mem.Allocator, program: ir.Program, id: ir.Functi
         try output.append(temporary, buffered_declaration);
     }
 
-    if (lower.uses_parallel) try output.append(temporary, .{ .source = @import("parallel/allocator.zig").source });
+    if (lower.uses_parallel) try output.append(temporary, try @import("parallel/allocator.zig").declaration(&lower));
     try output.appendSlice(temporary, task_declarations.items);
     for (comparisons.items) |type_id| try output.append(temporary, try @import("comparison.zig").ordering(&lower, type_id));
 

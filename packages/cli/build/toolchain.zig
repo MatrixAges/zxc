@@ -20,6 +20,7 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, index: std.Build.La
         .root_source_file = b.path("build/toolchain/pack.zig"),
         .target = b.graph.host,
         .optimize = .fast,
+        .imports = &.{.{ .name = "genz", .module = b.dependency("genz", .{ .target = b.graph.host, .optimize = .fast }).module("genz") }},
     }) });
 
     const manifest = model.Manifest{

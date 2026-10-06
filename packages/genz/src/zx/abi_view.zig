@@ -1,25 +1,31 @@
 const std = @import("std");
+const node = @import("../node.zig");
+const Builder = @import("../builder.zig");
 pub const Alias = struct { name: []const u8, identity: []const u8 };
 
 pub fn render(allocator: std.mem.Allocator, type_names: []const []const u8, aliases: []const Alias, imported: bool) std.mem.Allocator.Error![]u8 {
-    var output: std.Io.Writer.Allocating = .init(allocator);
+    var arena = std.heap.ArenaAllocator.init(allocator);
 
-    errdefer output.deinit();
-    write(&output.writer, type_names, aliases, imported) catch return error.OutOfMemory;
+    defer arena.deinit();
 
-    return output.toOwnedSlice();
-}
+    const temporary = arena.allocator();
+    const builder = Builder{ .allocator = temporary };
+    var declarations: std.ArrayList(node.Declaration) = .empty;
+    const canonical = try builder.identifier("canonical");
 
-fn write(writer: *std.Io.Writer, type_names: []const []const u8, aliases: []const Alias, imported: bool) std.Io.Writer.Error!void {
     if (imported) {
-        try writer.writeAll("const canonical = @import(\"zxc_abi_canonical\");\n\n");
-        for (type_names) |name| try writer.print("pub const {f} = canonical.{f};\n", .{ std.zig.fmtId(name), std.zig.fmtId(name) });
-        try writer.writeByte('\n');
+        try declarations.append(temporary, .{ .constant = .{ .name = "canonical", .value = try builder.expression(.{ .builtin = .{ .name = .import, .arguments = try temporary.dupe(*const node.Expression, &.{try builder.string("zxc_abi_canonical")}) } }) } });
+        for (type_names) |name| try declarations.append(temporary, .{ .constant = .{ .name = name, .value = try builder.expression(.{ .field = .{ .target = canonical, .name = name } }), .exported = true } });
     }
 
     for ([_][]const u8{ "native", "layouts" }) |namespace| {
-        try writer.print("pub const {s} = struct {{\n", .{namespace});
-        for (aliases) |alias| try writer.print("    pub const {f} = {s}{s}_by_identity.{f};\n", .{ std.zig.fmtId(alias.name), if (imported) "canonical." else "", namespace, std.zig.fmtId(alias.identity) });
-        try writer.writeAll("};\n\n");
+        const name = try std.fmt.allocPrint(temporary, "{s}_by_identity", .{namespace});
+        const target = if (imported) try builder.expression(.{ .field = .{ .target = canonical, .name = name } }) else try builder.identifier(name);
+        const members = try temporary.alloc(node.Declaration, aliases.len);
+
+        for (aliases, members) |alias, *member| member.* = .{ .constant = .{ .name = alias.name, .value = try builder.expression(.{ .field = .{ .target = target, .name = alias.identity } }), .exported = true } };
+        try declarations.append(temporary, .{ .constant = .{ .name = namespace, .value = try builder.expression(.{ .namespace_type = members }), .exported = true } });
     }
+
+    return @import("../render.zig").render(allocator, declarations.items);
 }

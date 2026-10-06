@@ -1,69 +1,121 @@
 const std = @import("std");
 const model = @import("root.zig");
+const node = @import("../node.zig");
+const Builder = @import("../builder.zig");
+const invoke = @import("invoke.zig");
 
 pub const Options = struct { services: []const model.Service, routes: []const model.Route, listen: []const u8, max_header_bytes: u32, max_body_bytes: u32 };
 
 pub fn render(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error![]u8 {
-    var output: std.Io.Writer.Allocating = .init(allocator);
+    var arena = std.heap.ArenaAllocator.init(allocator);
 
-    errdefer output.deinit();
-    write(&output.writer, options) catch return error.OutOfMemory;
+    defer arena.deinit();
 
-    return output.toOwnedSlice();
-}
+    const builder = Builder{ .allocator = arena.allocator() };
+    var declarations: std.ArrayList(node.Declaration) = .empty;
 
-fn write(writer: *std.Io.Writer, options: Options) std.Io.Writer.Error!void {
-    try writer.writeAll("const std = @import(\"std\");\npub const State = @import(\"zxc_gateway_state\");\n");
-    try writer.print("pub const listen = \"{f}\";\npub const max_header_bytes = {d};\nconst max_body_bytes: usize = {d};\n", .{ std.zig.fmtString(options.listen), options.max_header_bytes, options.max_body_bytes });
-    for (options.services, 0..) |service, index| try writer.print("const service_{d} = @import(\"{f}\");\n", .{ index, std.zig.fmtString(service.module_name) });
-    try writer.writeAll("\npub fn dispatch(scope: *State.Request, io: std.Io, process: std.process.Init.Minimal, request: *std.http.Server.Request) !void {\n");
-    try writer.writeAll("    if (!validHead(request.head_buffer)) return respond(request, .bad_request, \"invalid request headers\", &.{});\n");
+    try declarations.appendSlice(builder.allocator, &.{
+        .{ .constant = .{ .name = "std", .value = try builder.builtin(.import, &.{try builder.string("std")}) } },
+        .{ .constant = .{ .name = "State", .value = try builder.builtin(.import, &.{try builder.string("zxc_gateway_state")}), .exported = true } },
+        .{ .constant = .{ .name = "listen", .value = try builder.string(options.listen), .exported = true } },
+        .{ .constant = .{ .name = "max_header_bytes", .value = try builder.integer(options.max_header_bytes), .exported = true } },
+        .{ .constant = .{ .name = "max_body_bytes", .value = try builder.integer(options.max_body_bytes), .type_expr = try builder.expression(.{ .primitive = .usize }) } },
+    });
 
-    if (options.routes.len == 0) {
-        try writer.writeAll("    _ = scope;\n    _ = io;\n    _ = process;\n");
-    } else {
-        try writer.writeAll("    const target = request.head.target;\n    const path = target[0 .. std.mem.indexOfScalar(u8, target, '?') orelse target.len];\n");
+    for (options.services, 0..) |service, index| {
+        try declarations.append(builder.allocator, .{ .constant = .{
+            .name = try std.fmt.allocPrint(builder.allocator, "service_{d}", .{index}),
+            .value = try builder.builtin(.import, &.{try builder.string(service.module_name)}),
+        } });
     }
 
-    for (options.routes, 0..) |route, index| {
-        const first = for (options.routes[0..index]) |previous| {
+    try declarations.append(builder.allocator, try dispatch(builder, options.routes));
+
+    for (options.services, 0..) |service, index| {
+        if (try model.adapter.lower(builder, service, index)) |declaration| try declarations.append(builder.allocator, declaration);
+        try declarations.append(builder.allocator, try invoke.lower(builder, service, index));
+    }
+
+    try declarations.appendSlice(builder.allocator, &.{
+        try @import("http.zig").readBody(builder),
+        try @import("http.zig").respond(builder),
+        try @import("head.zig").lower(builder),
+    });
+
+    return @import("../render.zig").render(allocator, declarations.items);
+}
+
+fn dispatch(builder: Builder, routes: []const model.Route) std.mem.Allocator.Error!node.Declaration {
+    var body: std.ArrayList(node.Statement) = .empty;
+    const allocator = builder.allocator;
+    const target = try builder.identifier("target");
+    const valid = try builder.call(try builder.identifier("validHead"), &.{try builder.path(&.{ "request", "head_buffer" })});
+
+    try body.append(allocator, try builder.branch(try builder.expression(.{ .unary = .{ .operator = .not, .operand = valid } }), &.{.{ .result = try invoke.response(builder, "bad_request", try builder.string("invalid request headers"), &.{}) }}, &.{}));
+
+    if (routes.len == 0) {
+        for ([_][]const u8{ "scope", "io", "process" }) |name| try body.append(allocator, .{ .discard = try builder.identifier(name) });
+    } else {
+        const query = try builder.call(try builder.path(&.{ "std", "mem", "indexOfScalar" }), &.{ try builder.expression(.{ .primitive = .u8 }), target, try builder.integer('?') });
+
+        try body.appendSlice(allocator, &.{
+            .{ .constant = .{ .name = "target", .value = try builder.path(&.{ "request", "head", "target" }) } },
+            .{ .constant = .{ .name = "path", .value = try builder.expression(.{ .slice = .{ .target = target, .start = try builder.integer(0), .end = try builder.binary(.coalesce, query, try builder.field(target, "len")) } }) } },
+        });
+    }
+
+    for (routes, 0..) |route, index| {
+        const first = for (routes[0..index]) |previous| {
             if (std.mem.eql(u8, previous.path, route.path)) break false;
         } else true;
 
         if (!first) continue;
-        try writer.print("    if (std.mem.eql(u8, path, \"{f}\")) {{\n", .{std.zig.fmtString(route.path)});
+
+        var matching: std.ArrayList(node.Statement) = .empty;
 
         if (route.method == null) {
-            try writer.print("        return invoke_{d}(scope, io, process, request);\n", .{route.service});
+            try matching.append(allocator, .{ .result = try callService(builder, route.service) });
         } else {
-            for (options.routes) |candidate| {
+            var methods: std.ArrayList([]const u8) = .empty;
+
+            for (routes) |candidate| {
                 if (!std.mem.eql(u8, candidate.path, route.path)) continue;
-                try writer.print("        if (request.head.method == .{s}) return invoke_{d}(scope, io, process, request);\n", .{ candidate.method.?, candidate.service });
+
+                const condition = try builder.binary(.equal, try builder.path(&.{ "request", "head", "method" }), try builder.expression(.{ .enum_literal = candidate.method.? }));
+
+                try matching.append(allocator, try builder.branch(condition, &.{.{ .result = try callService(builder, candidate.service) }}, &.{}));
+                try methods.append(allocator, candidate.method.?);
             }
 
-            try writer.writeAll("        return respond(request, .method_not_allowed, \"method not allowed\", &.{.{ .name = \"allow\", .value = \"");
+            const header = try builder.object(&.{
+                .{ .name = "name", .value = try builder.string("allow") },
+                .{ .name = "value", .value = try builder.string(try std.mem.join(allocator, ", ", methods.items)) },
+            });
 
-            var separator: []const u8 = "";
-
-            for (options.routes) |candidate| {
-                if (!std.mem.eql(u8, candidate.path, route.path)) continue;
-                try writer.print("{s}{s}", .{ separator, candidate.method.? });
-
-                separator = ", ";
-            }
-
-            try writer.writeAll("\" }});\n");
+            try matching.append(allocator, .{ .result = try invoke.response(builder, "method_not_allowed", try builder.string("method not allowed"), &.{header}) });
         }
 
-        try writer.writeAll("    }\n");
+        const matches = try builder.call(try builder.path(&.{ "std", "mem", "eql" }), &.{ try builder.expression(.{ .primitive = .u8 }), try builder.identifier("path"), try builder.string(route.path) });
+
+        try body.append(allocator, try builder.branch(matches, matching.items, &.{}));
     }
 
-    try writer.writeAll("    return respond(request, .not_found, \"not found\", &.{});\n}\n\n");
+    try body.append(allocator, .{ .result = try invoke.response(builder, "not_found", try builder.string("not found"), &.{}) });
 
-    for (options.services, 0..) |service, index| {
-        try model.adapter.write(writer, service, index);
-        try @import("invoke.zig").write(writer, service, index);
-    }
+    return .{ .function = .{
+        .name = "dispatch",
+        .parameters = try invoke.parameters(builder),
+        .return_type = try builder.expression(.{ .error_union = .{ .inferred = true, .payload = try builder.expression(.{ .primitive = .void }) } }),
+        .body = try body.toOwnedSlice(allocator),
+        .exported = true,
+    } };
+}
 
-    try writer.writeAll(@embedFile("http.zig"));
+fn callService(builder: Builder, index: usize) std.mem.Allocator.Error!*const node.Expression {
+    return builder.call(try builder.identifier(try std.fmt.allocPrint(builder.allocator, "invoke_{d}", .{index})), &.{
+        try builder.identifier("scope"),
+        try builder.identifier("io"),
+        try builder.identifier("process"),
+        try builder.identifier("request"),
+    });
 }

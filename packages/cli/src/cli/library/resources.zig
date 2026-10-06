@@ -75,7 +75,12 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, directory: []const u8, lo
             const include = try std.json.Stringify.valueAlloc(allocator, header, .{});
 
             try artifacts.write(io, header_path, try std.fmt.allocPrint(allocator, "#include {s}\n", .{include}));
-            try artifacts.write(io, path, "pub const c = @import(\"zxc_c\");\n");
+
+            const adapter = try @import("compiler").zig.host.cAdapter(allocator);
+
+            defer allocator.free(adapter);
+
+            try artifacts.write(io, path, adapter);
         }
     }
 

@@ -62,7 +62,36 @@ fn errorSet(self: *Self, members: []const []const u8) Error!void {
 
 pub fn expression(self: *Self, value: *const node.Expression) Error!void {
     switch (value.*) {
+        .unreachable_value => try self.write("unreachable"),
         .unit => try self.write("{}"),
+        .return_value => |result| {
+            try self.write("return");
+
+            if (result) |item| {
+                try self.write(" ");
+                try self.expression(item);
+            }
+        },
+        .catch_scope => |item| {
+            try self.write("(");
+            try self.expression(item.value);
+            try self.write(" catch ");
+
+            if (item.capture) |name| {
+                try self.write("|");
+                try self.identifier(name);
+                try self.write("| ");
+            }
+
+            try self.block(item.body);
+            try self.write(")");
+        },
+        .fixed_array_type => |array| {
+            try self.write("[");
+            try self.expression(array.length);
+            try self.write("]");
+            try self.expression(array.element);
+        },
         .null_value => try self.write("null"),
         .undefined_value => try self.write("undefined"),
         .optional_type => |child| {
@@ -71,7 +100,7 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
         },
         .error_set => |members| try self.errorSet(members),
         .error_union => |error_union| {
-            if (error_union.errors) |members| try self.errorSet(members) else try self.write("anyerror");
+            if (error_union.errors) |members| try self.errorSet(members) else if (!error_union.inferred) try self.write("anyerror");
             try self.write("!");
             try self.expression(error_union.payload);
         },
@@ -228,6 +257,12 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
                 try self.identifier(field.name);
                 try self.write(": ");
                 try self.expression(field.value);
+
+                if (field.default_value) |initial| {
+                    try self.write(" = ");
+                    try self.expression(initial);
+                }
+
                 try self.write(",\n");
             }
 
@@ -251,6 +286,12 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
                 try self.identifier(field.name);
                 try self.write(": ");
                 try self.expression(field.value);
+
+                if (field.default_value) |initial| {
+                    try self.write(" = ");
+                    try self.expression(initial);
+                }
+
                 try self.write(",\n");
             }
 
@@ -297,8 +338,22 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.write("(if (");
             try self.expression(conditional.condition);
             try self.write(") ");
+
+            if (conditional.capture) |name| {
+                try self.write("|");
+                try self.identifier(name);
+                try self.write("| ");
+            }
+
             try self.expression(conditional.yes);
             try self.write(" else ");
+
+            if (conditional.error_capture) |name| {
+                try self.write("|");
+                try self.identifier(name);
+                try self.write("| ");
+            }
+
             try self.expression(conditional.no);
             try self.write(")");
         },
@@ -312,8 +367,15 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.write(") { ");
 
             for (selection.arms) |arm| {
-                try self.expression(arm.value);
+                if (arm.value) |tag| try self.expression(tag) else try self.write("else");
                 try self.write(" => ");
+
+                if (arm.capture) |name| {
+                    try self.write("|");
+                    try self.identifier(name);
+                    try self.write("| ");
+                }
+
                 try self.expression(arm.result);
                 try self.write(", ");
             }
@@ -363,6 +425,20 @@ fn constant(self: *Self, value: node.Constant) Error!void {
     try self.write(";\n");
 }
 
+fn variable(self: *Self, value: node.Constant) Error!void {
+    try self.write("var ");
+    try self.identifier(value.name);
+
+    if (value.type_expr) |type_expr| {
+        try self.write(": ");
+        try self.expression(type_expr);
+    }
+
+    try self.write(" = ");
+    try self.expression(value.value);
+    try self.write(";\n");
+}
+
 fn block(self: *Self, statements: []const node.Statement) Error!void {
     try self.write("{\n");
 
@@ -377,8 +453,8 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
                 try self.block(body);
                 try self.write("\n");
             },
-            .defer_expression => |value| {
-                try self.write("defer ");
+            .defer_expression, .errdefer_expression => |value| {
+                try self.write(if (statement == .errdefer_expression) "errdefer " else "defer ");
                 try self.expression(value);
                 try self.write(";\n");
             },
@@ -393,19 +469,7 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
                 try self.write(") |_| {} else |_| {}\n");
             },
             .constant => |value| try self.constant(value),
-            .variable => |value| {
-                try self.write("var ");
-                try self.identifier(value.name);
-
-                if (value.type_expr) |type_expr| {
-                    try self.write(": ");
-                    try self.expression(type_expr);
-                }
-
-                try self.write(" = ");
-                try self.expression(value.value);
-                try self.write(";\n");
-            },
+            .variable => |value| try self.variable(value),
             .assignment => |value| {
                 try self.expression(value.target);
                 try self.write(" = ");
@@ -433,10 +497,18 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
                 try self.write("while (");
                 try self.expression(loop.condition);
                 try self.write(") ");
+
+                if (loop.capture) |name| {
+                    try self.write("|");
+                    try self.identifier(name);
+                    try self.write("| ");
+                }
+
                 try self.block(loop.body);
                 try self.write("\n");
             },
             .break_loop => try self.write("break;\n"),
+            .continue_loop => try self.write("continue;\n"),
             .break_value => |value| {
                 try self.write("break :");
                 try self.identifier(value.label);
@@ -459,10 +531,25 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
                 try self.write("if (");
                 try self.expression(branch.condition);
                 try self.write(") ");
+
+                if (branch.capture) |name| {
+                    try self.write("|");
+                    if (branch.capture_reference) try self.write("*");
+                    try self.identifier(name);
+                    try self.write("| ");
+                }
+
                 try self.block(branch.yes);
 
-                if (branch.no.len != 0) {
+                if (branch.no.len != 0 or branch.error_capture != null) {
                     try self.write(" else ");
+
+                    if (branch.error_capture) |name| {
+                        try self.write("|");
+                        try self.identifier(name);
+                        try self.write("| ");
+                    }
+
                     try self.block(branch.no);
                 }
 
@@ -484,10 +571,31 @@ fn block(self: *Self, statements: []const node.Statement) Error!void {
 
 pub fn declaration(self: *Self, value: node.Declaration) Error!void {
     switch (value) {
-        .source => |source| try self.write(source),
         .constant => |item| try self.constant(item),
+        .variable => |item| {
+            if (item.exported) try self.write("pub ");
+            try self.variable(item);
+        },
+        .comptime_scope => |body| {
+            try self.write("comptime ");
+            try self.block(body);
+            try self.write("\n");
+        },
+        .field => |item| {
+            try self.identifier(item.name);
+            try self.write(": ");
+            try self.expression(item.value);
+
+            if (item.default_value) |initial| {
+                try self.write(" = ");
+                try self.expression(initial);
+            }
+
+            try self.write(",\n");
+        },
         .function => |function| {
             if (function.exported) try self.write("pub ");
+            if (function.abi_export) try self.write("export ");
             try self.write("fn ");
             try self.identifier(function.name);
             try self.write("(");
@@ -495,12 +603,19 @@ pub fn declaration(self: *Self, value: node.Declaration) Error!void {
             for (function.parameters, 0..) |parameter, index| {
                 if (index != 0) try self.write(", ");
                 if (parameter.comptime_parameter) try self.write("comptime ");
-                try self.identifier(parameter.name);
+                if (std.mem.eql(u8, parameter.name, "_")) try self.write("_") else try self.identifier(parameter.name);
                 try self.write(": ");
                 try self.expression(parameter.value);
             }
 
             try self.write(") ");
+
+            if (function.calling_convention) |convention| {
+                try self.write("callconv(");
+                try self.expression(convention);
+                try self.write(") ");
+            }
+
             try self.expression(function.return_type);
             try self.write(" ");
             try self.block(function.body);

@@ -12,21 +12,35 @@ fn generate(b: *std.Build) !*std.Build.Module {
     const manifest = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, manifest_path, b.allocator, .limited(1024 * 1024));
     const modules = try std.json.parseFromSliceLeaky([]const Module, b.allocator, manifest, .{});
     const files = b.addWriteFiles();
-    var output: std.Io.Writer.Allocating = .init(b.allocator);
-    const writer = &output.writer;
-
-    try writer.writeAll("pub const Source = struct { specifier: []const u8, path: []const u8, source: []const u8, module: []const u8, namespace: []const []const u8, implementation_path: []const u8 };\npub const modules: []const Source = &.{\n");
+    var entries: std.ArrayList(struct { specifier: []const u8, path: []const u8, source: []const u8, module: []const u8, namespace: []const []const u8, implementation_path: []const u8 }) = .empty;
 
     for (modules, 0..) |module, index| {
         const destination = b.fmt("interfaces/{d}.d.zx", .{index});
         _ = files.addCopyFile(b.path(b.fmt("standard/{s}", .{module.path})), destination);
 
-        try writer.print(".{{ .specifier = \"{f}\", .path = \"standard/{f}\", .source = @embedFile(\"{f}\"), .module = \"{f}\", .namespace = &.{{", .{ std.zig.fmtString(module.specifier), std.zig.fmtString(module.path), std.zig.fmtString(destination), std.zig.fmtString(module.module) });
-        for (module.namespace) |part| try writer.print("\"{f}\",", .{std.zig.fmtString(part)});
-        try writer.print("}}, .implementation_path = \"{f}\" }},\n", .{std.zig.fmtString(module.implementation_path)});
+        try entries.append(b.allocator, .{
+            .specifier = module.specifier,
+            .path = b.fmt("standard/{s}", .{module.path}),
+            .source = destination,
+            .module = module.module,
+            .namespace = module.namespace,
+            .implementation_path = module.implementation_path,
+        });
     }
 
-    try writer.writeAll("};\n");
+    const tool = b.addExecutable(.{ .name = "standard-catalog", .root_module = b.createModule(.{
+        .root_source_file = b.path("build/generate_catalog.zig"),
+        .target = b.graph.host,
+        .optimize = .fast,
+        .imports = &.{.{ .name = "genz", .module = b.dependency("genz", .{ .target = b.graph.host, .optimize = .fast }).module("genz") }},
+    }) });
 
-    return b.createModule(.{ .root_source_file = files.add("catalog.zig", output.written()) });
+    const inputs = b.addWriteFiles();
+    const run = b.addRunArtifact(tool);
+
+    run.addFileArg(inputs.add("catalog.json", try std.json.Stringify.valueAlloc(b.allocator, entries.items, .{})));
+
+    const generated = run.addOutputFileArg("catalog.zig");
+
+    return b.createModule(.{ .root_source_file = files.addCopyFile(generated, "catalog.zig") });
 }

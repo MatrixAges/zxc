@@ -59,19 +59,18 @@ pub fn main(init: std.process.Init) !void {
     const index = try std.Io.Dir.cwd().readFileAlloc(init.io, args[2], allocator, .limited(16 * 1024 * 1024));
 
     try write(init.io, allocator, output_directory, "index.json", index);
-    try write(init.io, allocator, output_directory, "resources.zig", try std.fmt.allocPrint(allocator,
-        \\pub const archive = @embedFile("resources.tar.gz");
-        \\pub const zig_archive = @embedFile("zig.archive");
-        \\pub const index = @embedFile("index.json");
-        \\pub const digest = "{s}";
-        \\pub const resources_digest = "{s}";
-        \\pub const zig_digest = "{s}";
-        \\pub const zig_version = "{s}";
-        \\pub const zig_host = "{s}";
-        \\pub const zig_directory = "{s}";
-        \\pub const zig_format = .{s};
-        \\
-    , .{ digest, resources_digest, release.archive_sha256, official.version, release.host, directory, if (is_zip) "zip" else "xz" }));
+
+    const resources = try @import("genz").host.resources.render(allocator, .{
+        .digest = &digest,
+        .resources_digest = &resources_digest,
+        .zig_digest = release.archive_sha256,
+        .zig_version = official.version,
+        .zig_host = release.host,
+        .zig_directory = directory,
+        .zig_format = if (is_zip) .zip else .xz,
+    });
+
+    try write(init.io, allocator, output_directory, "resources.zig", resources);
 }
 
 fn write(io: std.Io, allocator: std.mem.Allocator, directory: []const u8, name: []const u8, bytes: []const u8) !void {
