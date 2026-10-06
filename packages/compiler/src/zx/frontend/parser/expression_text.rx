@@ -1,0 +1,7 @@
+<Module>
+  <Call module="expression" in={{source: $in, start: 0, depth: 0, minimum: 0, allow_lambda: true}} />
+
+  <Call fn="expressions/finish" in={$ctx.expression} />
+
+  <Return value={$ctx.finish} />
+</Module>

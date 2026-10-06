@@ -1,0 +1,5 @@
+import type { Tree } from "../body/model"
+import type { PreparedInput } from "./prepare/model"
+import type { ExprTree, TypeState, ExprFrame, ExprControl } from "./state/model"
+
+export type Parsed = { prepared: PreparedInput, tree: ExprTree, types: TypeState, frames: ExprFrame[], control: ExprControl, body: Tree }

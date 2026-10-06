@@ -1,8 +1,8 @@
 const zx = @import("zx");
 const Context = @import("context.zig");
 
-pub fn fill(context: Context) !void {
-    const tree = context.program.body.expression.types.tree;
+pub fn fill(context: anytype) !void {
+    const tree = context.body.expression.types.tree;
 
     for (tree.nodes, context.types) |node, *value| {
         value.* = switch (node.kind) {

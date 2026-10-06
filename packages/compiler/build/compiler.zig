@@ -1,7 +1,8 @@
 const std = @import("std");
+pub const ParserModules = struct { program: *std.Build.Module, expression: *std.Build.Module };
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
-pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?*std.Build.Module) Modules {
+pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules) Modules {
     const options = b.addOptions();
 
     options.addOption(bool, "generated_parser", parser != null);
@@ -21,7 +22,10 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     frontend.addOptions("parser_options", options);
 
-    if (parser) |generated| frontend.addImport("generated_parser", generated);
+    if (parser) |generated| {
+        frontend.addImport("generated_parser", generated.program);
+        frontend.addImport("generated_expression", generated.expression);
+    }
 
     const module = b.createModule(.{
         .root_source_file = b.path("src/root.zig"),

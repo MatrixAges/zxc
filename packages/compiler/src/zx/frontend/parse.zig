@@ -52,7 +52,7 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, file_name: []cons
         } } };
 
         const tree = try adapter.convert(arena.allocator(), owned_source, output);
-        const tokens = try adapter.lexed(arena.allocator(), output);
+        const tokens = try adapter.lexed(arena.allocator(), output.program.body.expression.prepared.lexical.lexed);
 
         return .{ .arena = arena, .value = .{ .parsed = .{ .source = owned_source, .file_name = owned_name, .lexed = tokens, .ast = tree } } };
     }

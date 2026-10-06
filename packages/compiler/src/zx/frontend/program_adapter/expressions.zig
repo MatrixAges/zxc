@@ -2,8 +2,8 @@ const zx = @import("zx");
 const Context = @import("context.zig");
 const collections = @import("expression_collections.zig");
 
-pub fn fill(context: Context) !void {
-    const tree = context.program.body.expression.tree;
+pub fn fill(context: anytype) !void {
+    const tree = context.body.expression.tree;
 
     for (tree.nodes, context.expressions) |node, *value| {
         value.* = .{ .span = Context.span(node.span), .depth = @intCast(node.depth), .value = switch (node.kind) {

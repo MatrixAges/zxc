@@ -1,6 +1,7 @@
 const std = @import("std");
+pub const Sources = struct { program: std.Build.LazyPath, expression: std.Build.LazyPath };
 
-pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) std.Build.LazyPath {
+pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const target = b.graph.host;
     const core = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core");
     const dsl = b.dependency("dsl", .{ .target = target, .optimize = optimize }).module("dsl");
@@ -48,7 +49,10 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) std.Build.Laz
     run.addDirectoryArg2(root, .{});
     trackSources(b, run, root) catch @panic("unable to track RX and ZX parser sources");
 
-    return run.addOutputFileArg("parser.zig");
+    const program = run.addOutputFileArg("parser.zig");
+    const expression = run.addOutputFileArg("expression.zig");
+
+    return .{ .program = program, .expression = expression };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {
@@ -80,6 +84,9 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
     return std.mem.lessThan(u8, left, right);
 }
 
-pub fn module(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: std.Build.LazyPath) *std.Build.Module {
-    return b.createModule(.{ .root_source_file = source, .target = target, .optimize = optimize });
+pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources) @import("compiler.zig").ParserModules {
+    return .{
+        .program = b.createModule(.{ .root_source_file = source.program, .target = target, .optimize = optimize }),
+        .expression = b.createModule(.{ .root_source_file = source.expression, .target = target, .optimize = optimize }),
+    };
 }

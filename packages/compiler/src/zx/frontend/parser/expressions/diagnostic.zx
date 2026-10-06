@@ -1,0 +1,32 @@
+import { Kind } from "../../lexer/token_model"
+
+import type { Diagnostic } from "../../lexer/model"
+import type { Parsed } from "./result"
+
+export type Input = Parsed
+
+export type Output = Diagnostic
+
+export default function (in: Input): Output {
+  const lexical_index = in.control.lexical_diagnostic
+
+  if (lexical_index != 0) {
+    return lexical_index == 1 ? in.prepared.lexical.lexed.diagnostic : in.prepared.lexical.interpolations[lexical_index - 2].lexed.diagnostic
+  }
+
+  if (in.control.type_diagnostic) {
+    return in.types.control.diagnostic
+  }
+
+  if (in.control.diagnostic.message != "") {
+    return in.control.diagnostic
+  }
+
+  const token = in.prepared.lexical.lexed.tokens[in.control.root_index]
+
+  if (token.kind != Kind.Eof) {
+    return { code: "syntax", start: token.span.start, end: token.span.end, message: "expected the end of the expression" }
+  }
+
+  return { code: "", start: 0, end: 0, message: "" }
+}

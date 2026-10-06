@@ -53,7 +53,25 @@ pub fn main(init: std.process.Init) !void {
 
     for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
 
-    var analyzed = try analysis.project.infer(allocator, .{ .entry = "parser/program.rx", .modules = inputs, .sources = sources.items });
+    const entries = [_][]const u8{ "parser/program.rx", "parser/expression_text.rx" };
+
+    for (entries, args[2..4]) |entry, output_path| {
+        const output = try generate(allocator, inputs, sources.items, entry);
+
+        try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = output_path, .data = output });
+    }
+}
+
+fn lessSource(_: void, left: compiler.project.Source, right: compiler.project.Source) bool {
+    return std.mem.lessThan(u8, left.path, right.path);
+}
+
+fn lessModule(_: void, left: rx.TextSource, right: rx.TextSource) bool {
+    return std.mem.lessThan(u8, left.path, right.path);
+}
+
+fn generate(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const compiler.project.Source, entry: []const u8) ![]u8 {
+    var analyzed = try analysis.project.infer(allocator, .{ .entry = entry, .modules = modules, .sources = sources });
 
     defer analyzed.deinit();
 
@@ -65,15 +83,5 @@ pub fn main(init: std.process.Init) !void {
         return error.InvalidParserSource;
     }
 
-    const output = try compiler.zig.emit(allocator, analyzed.value.contract.program);
-
-    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[2], .data = output });
-}
-
-fn lessSource(_: void, left: compiler.project.Source, right: compiler.project.Source) bool {
-    return std.mem.lessThan(u8, left.path, right.path);
-}
-
-fn lessModule(_: void, left: rx.TextSource, right: rx.TextSource) bool {
-    return std.mem.lessThan(u8, left.path, right.path);
+    return compiler.zig.emit(allocator, analyzed.value.contract.program);
 }

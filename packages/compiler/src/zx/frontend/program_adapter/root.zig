@@ -1,19 +1,10 @@
 const std = @import("std");
 const zx = @import("zx");
-const generated = @import("generated_parser");
 const Context = @import("context.zig");
 
-pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: generated.Output) !zx.ast.Program {
+pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: anytype) !zx.ast.Program {
     const program = output.program;
-
-    const context = Context{
-        .allocator = allocator,
-        .source = source,
-        .program = program,
-        .types = try allocator.alloc(zx.ast.Type, program.body.expression.types.tree.nodes.len),
-        .expressions = try allocator.alloc(zx.ast.Expression, program.body.expression.tree.nodes.len),
-        .blocks = try allocator.alloc(zx.ast.Block, program.body.tree.blocks.len),
-    };
+    const context = try Context.init(allocator, source, program.body);
 
     try @import("types.zig").fill(context);
     try @import("blocks.zig").fill(context);
@@ -75,8 +66,7 @@ pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: generat
     };
 }
 
-pub fn lexed(allocator: std.mem.Allocator, output: generated.Output) !zx.syntax.Lexed {
-    const input = output.program.body.expression.prepared.lexical.lexed;
+pub fn lexed(allocator: std.mem.Allocator, input: anytype) !zx.syntax.Lexed {
     const tokens = try allocator.alloc(zx.syntax.Token, input.tokens.len);
     const comments = try allocator.alloc(zx.Span, input.comments.len);
 
@@ -96,4 +86,14 @@ pub fn lexed(allocator: std.mem.Allocator, output: generated.Output) !zx.syntax.
     for (input.comments, comments) |span, *item| item.* = Context.span(span);
 
     return .{ .tokens = tokens, .comments = comments };
+}
+
+pub fn expression(allocator: std.mem.Allocator, source: []const u8, output: anytype) !*const zx.ast.Expression {
+    const context = try Context.init(allocator, source, .{ .expression = output, .tree = output.body });
+
+    try @import("types.zig").fill(context);
+    try @import("blocks.zig").fill(context);
+    try @import("expressions.zig").fill(context);
+
+    return context.expression(output.control.result);
 }

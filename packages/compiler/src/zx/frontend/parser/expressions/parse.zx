@@ -3,13 +3,12 @@ import emptyTree from "../body/state/empty_tree"
 import initial from "./state/initial"
 import { Phase } from "./state/model"
 
-import type { Tree } from "../body/model"
 import type { PreparedInput } from "./prepare/model"
-import type { ExprTree, TypeState, ExprFrame, ExprControl } from "./state/model"
+import type { Parsed } from "./result"
 
 export type Input = { prepared: PreparedInput, start: u64, depth: u64, minimum: u8, allow_lambda: bool }
 
-export type Output = { prepared: PreparedInput, tree: ExprTree, types: TypeState, frames: ExprFrame[], control: ExprControl, body: Tree }
+export type Output = Parsed
 
 export default function (in: owned Input): Output {
   const parsed = parse({ expression: initial(in), tree: emptyTree() })

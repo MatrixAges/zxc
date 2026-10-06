@@ -1,8 +1,8 @@
 const zx = @import("zx");
 const Context = @import("context.zig");
 
-pub fn fill(context: Context) !void {
-    const tree = context.program.body.tree;
+pub fn fill(context: anytype) !void {
+    const tree = context.body.tree;
 
     for (tree.blocks, context.blocks) |node, *value| {
         const statements = try context.allocator.alloc(zx.ast.Statement, @intCast(node.count));
@@ -20,8 +20,8 @@ pub fn fill(context: Context) !void {
     }
 }
 
-fn statement(context: Context, index: u64) !zx.ast.Statement {
-    const tree = context.program.body.tree;
+fn statement(context: anytype, index: u64) !zx.ast.Statement {
+    const tree = context.body.tree;
     const node = tree.statements[@intCast(index)];
 
     return .{ .span = Context.span(node.span), .value = switch (node.kind) {
