@@ -10,6 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("before")
 parser.add_argument("after")
 parser.add_argument("--frames", action="store_true")
+parser.add_argument("--prefix", default="")
 args = parser.parse_args()
 directory = Path(__file__).resolve().parent
 root = directory.parents[3]
@@ -25,6 +26,7 @@ else:
     scales = [8, 16, 32, 64]
     prefix = ""
 results = {}
+prefix = args.prefix or prefix
 
 for label, executable in [("修复前", args.before), ("修复后", args.after)]:
     rows = []
