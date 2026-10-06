@@ -39,7 +39,12 @@ fn render(allocator: std.mem.Allocator, options: Options, program: compiler.ir.P
         defer allocator.free(bundle.types);
         errdefer allocator.free(bundle.source);
 
+        const aliases = try @import("backends/zig/source_abi.zig").render(allocator, program.native_modules, options.project);
+
+        defer allocator.free(aliases);
+
         try writer.writeAll(bundle.types);
+        try writer.writeAll(aliases);
 
         return .{ .source = bundle.source };
     }
