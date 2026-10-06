@@ -1,9 +1,9 @@
 pub const Node = @import("zxc_abi").native.@"zig:host".Node;
-pub const HostNode = struct { value: u64, payload: []const u8 = "", children: []const HostNode = &.{} };
+pub const HostNode = struct { value: u64, payload: []const u8 = "", children: []const HostNode = &.{}, references: []const Node = &.{} };
 pub const Event = struct { node: Node, marker: u64 };
 pub var calls: usize = 0;
 pub var fail_at: usize = 0;
-pub var events: [16]Event = undefined;
+pub var events: [1024]Event = undefined;
 
 pub fn reset(failure: usize) void {
     calls = 0;
@@ -60,4 +60,10 @@ pub fn record(node: Node, marker: u64) error{NativeFailure}!Node {
     if (calls == fail_at) return error.NativeFailure;
 
     return node;
+}
+
+pub fn references(node: Node) []const Node {
+    note(node, 5);
+
+    return view(node).references;
 }

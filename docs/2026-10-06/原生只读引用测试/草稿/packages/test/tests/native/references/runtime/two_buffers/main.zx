@@ -1,0 +1,23 @@
+import type { Node } from "zig:host"
+
+export type Input = { values: Node[], left: Node, right: Node, count: u64 }
+
+export type State = { left_values: Node[], right_values: Node[], left: Node, right: Node, index: u64, count: u64 }
+
+export type Output = { original: Node[], values: Node[], other: Node[] }
+
+export default function (in: Input): Output {
+  const original = in.values
+  const initial: State = { left_values: original, right_values: original, left: in.left, right: in.right, index: 0, count: in.count }
+
+  const result = loop(initial, {
+    while: state => state.index < state.count,
+    next: state => {
+      state.left_values[0] = state.left
+      state.right_values[1] = state.right
+      state.index += 1
+    }
+  })
+
+  return { original: original, values: result.left_values, other: result.right_values }
+}

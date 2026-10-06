@@ -13,7 +13,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
     generator.root_module.addAnonymousImport("library_output", .{ .root_source_file = b.path("tests/library/runtime/save.zig"), .target = target, .optimize = optimize });
 
-    for ([_][]const u8{ "identity", "read", "optional", "coalesce", "containers", "order" }) |name| {
+    for ([_][]const u8{ "identity", "read", "optional", "coalesce", "containers", "order", "traversal", "borrowed", "loop_write", "loop_history", "two_buffers" }) |name| {
         for ([_][]const u8{ "source", "library" }) |route| {
             const generate = b.addRunArtifact(generator);
 

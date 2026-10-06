@@ -11,4 +11,6 @@ pub fn expectOwner(expected: host.HostNode, actual: host.HostNode) !void {
     try std.testing.expectEqual(@intFromPtr(expected.payload.ptr), @intFromPtr(actual.payload.ptr));
     try std.testing.expectEqual(@intFromPtr(expected.children.ptr), @intFromPtr(actual.children.ptr));
     try std.testing.expectEqualDeep(expected.children, actual.children);
+    try std.testing.expectEqual(@intFromPtr(expected.references.ptr), @intFromPtr(actual.references.ptr));
+    try std.testing.expectEqualSlices(host.Node, expected.references, actual.references);
 }
