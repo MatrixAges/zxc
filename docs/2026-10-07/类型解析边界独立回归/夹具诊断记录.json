@@ -1,0 +1,25 @@
+{
+    "format": {
+        "argv": ["zig", "fmt", "--check", "packages/test/tests/language/types/resolution/nodes_test.zig"],
+        "terminal_exit_code": 1,
+        "log_file": "首轮夹具格式错误.txt",
+        "log_sha256": "19fbb4f0e5b3efa4646a5b58155d172f521db31ec382ea3cda6e68178ccae711",
+        "note": "新测试局部名 opaque 为 Zig 保留字，改为 opaque_node；未运行测试"
+    },
+    "first_debug": {
+        "argv": ["zig", "build", "test-type-resolution", "--summary", "all"],
+        "terminal_exit_code": 1,
+        "input_manifest": "首次输入清单.json",
+        "log_file": "首轮Debug原始日志.txt",
+        "log_sha256": "7dbe3cb07280290fe2151837c1626f3d39cc72c67ae1a7b90ee8d59eda8110e7",
+        "note": "当时 62 个声明，60 通过、两个 Expression 负例在解析阶段失败；不是正式成功门禁"
+    },
+    "second_debug": {
+        "argv": ["zig", "build", "test-type-resolution", "--summary", "all"],
+        "terminal_exit_code": 0,
+        "input_manifest": "第二轮输入清单.json",
+        "log_file": "第二轮Debug原始日志.txt",
+        "log_sha256": "e455022582335d1997372beeed7ad8f15712d48e3c4a4d7e37ac1955a5a4acfb",
+        "note": "负例语句补齐换行后热缓存运行，仅实际执行修改根 9 个声明；随后新增部分成功缓存观察形成正式 63 个声明"
+    }
+}
