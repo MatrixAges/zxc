@@ -1,0 +1,73 @@
+const check = @import("support").check;
+
+test "language/expressions/arrow/returns/square/empty" {
+    try check(@import("program"), &.{.items = &.{}}, .{ .value = &.{} });
+}
+
+test "language/expressions/arrow/returns/square/value_-1024" {
+    try check(@import("program"), &.{.items = &.{-1024}}, .{ .value = &.{1048576} });
+}
+
+test "language/expressions/arrow/returns/square/value_-99" {
+    try check(@import("program"), &.{.items = &.{-99}}, .{ .value = &.{9801} });
+}
+
+test "language/expressions/arrow/returns/square/value_-7" {
+    try check(@import("program"), &.{.items = &.{-7}}, .{ .value = &.{49} });
+}
+
+test "language/expressions/arrow/returns/square/value_-1" {
+    try check(@import("program"), &.{.items = &.{-1}}, .{ .value = &.{1} });
+}
+
+test "language/expressions/arrow/returns/square/value_0" {
+    try check(@import("program"), &.{.items = &.{0}}, .{ .value = &.{0} });
+}
+
+test "language/expressions/arrow/returns/square/one" {
+    try check(@import("program"), &.{.items = &.{1}}, .{ .value = &.{1} });
+}
+
+test "language/expressions/arrow/returns/square/value_2" {
+    try check(@import("program"), &.{.items = &.{2}}, .{ .value = &.{4} });
+}
+
+test "language/expressions/arrow/returns/square/three" {
+    try check(@import("program"), &.{.items = &.{3}}, .{ .value = &.{9} });
+}
+
+test "language/expressions/arrow/returns/square/value_4" {
+    try check(@import("program"), &.{.items = &.{4}}, .{ .value = &.{16} });
+}
+
+test "language/expressions/arrow/returns/square/value_17" {
+    try check(@import("program"), &.{.items = &.{17}}, .{ .value = &.{289} });
+}
+
+test "language/expressions/arrow/returns/square/value_127" {
+    try check(@import("program"), &.{.items = &.{127}}, .{ .value = &.{16129} });
+}
+
+test "language/expressions/arrow/returns/square/value_257" {
+    try check(@import("program"), &.{.items = &.{257}}, .{ .value = &.{66049} });
+}
+
+test "language/expressions/arrow/returns/square/value_65535" {
+    try check(@import("program"), &.{.items = &.{65535}}, .{ .value = &.{4294836225} });
+}
+
+test "language/expressions/arrow/returns/square/signed" {
+    try check(@import("program"), &.{.items = &.{-7, 0, 43}}, .{ .value = &.{49, 0, 1849} });
+}
+
+test "language/expressions/arrow/returns/square/repeated" {
+    try check(@import("program"), &.{.items = &.{1, 1, 1}}, .{ .value = &.{1, 1, 1} });
+}
+
+test "language/expressions/arrow/returns/square/boundary" {
+    try check(@import("program"), &.{.items = &.{65535, -65535}}, .{ .value = &.{4294836225, 4294836225} });
+}
+
+test "language/expressions/arrow/returns/square/mixed" {
+    try check(@import("program"), &.{.items = &.{-1024, 257, -1, 3}}, .{ .value = &.{1048576, 66049, 1, 9} });
+}

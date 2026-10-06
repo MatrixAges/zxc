@@ -1,0 +1,73 @@
+const check = @import("support").check;
+
+test "language/expressions/arrow/returns/increment/empty" {
+    try check(@import("program"), &.{.items = &.{}}, .{ .value = &.{} });
+}
+
+test "language/expressions/arrow/returns/increment/value_-1024" {
+    try check(@import("program"), &.{.items = &.{-1024}}, .{ .value = &.{-1023} });
+}
+
+test "language/expressions/arrow/returns/increment/value_-99" {
+    try check(@import("program"), &.{.items = &.{-99}}, .{ .value = &.{-98} });
+}
+
+test "language/expressions/arrow/returns/increment/value_-7" {
+    try check(@import("program"), &.{.items = &.{-7}}, .{ .value = &.{-6} });
+}
+
+test "language/expressions/arrow/returns/increment/value_-1" {
+    try check(@import("program"), &.{.items = &.{-1}}, .{ .value = &.{0} });
+}
+
+test "language/expressions/arrow/returns/increment/value_0" {
+    try check(@import("program"), &.{.items = &.{0}}, .{ .value = &.{1} });
+}
+
+test "language/expressions/arrow/returns/increment/one" {
+    try check(@import("program"), &.{.items = &.{1}}, .{ .value = &.{2} });
+}
+
+test "language/expressions/arrow/returns/increment/value_2" {
+    try check(@import("program"), &.{.items = &.{2}}, .{ .value = &.{3} });
+}
+
+test "language/expressions/arrow/returns/increment/three" {
+    try check(@import("program"), &.{.items = &.{3}}, .{ .value = &.{4} });
+}
+
+test "language/expressions/arrow/returns/increment/value_4" {
+    try check(@import("program"), &.{.items = &.{4}}, .{ .value = &.{5} });
+}
+
+test "language/expressions/arrow/returns/increment/value_17" {
+    try check(@import("program"), &.{.items = &.{17}}, .{ .value = &.{18} });
+}
+
+test "language/expressions/arrow/returns/increment/value_127" {
+    try check(@import("program"), &.{.items = &.{127}}, .{ .value = &.{128} });
+}
+
+test "language/expressions/arrow/returns/increment/value_257" {
+    try check(@import("program"), &.{.items = &.{257}}, .{ .value = &.{258} });
+}
+
+test "language/expressions/arrow/returns/increment/value_65535" {
+    try check(@import("program"), &.{.items = &.{65535}}, .{ .value = &.{65536} });
+}
+
+test "language/expressions/arrow/returns/increment/signed" {
+    try check(@import("program"), &.{.items = &.{-7, 0, 43}}, .{ .value = &.{-6, 1, 44} });
+}
+
+test "language/expressions/arrow/returns/increment/repeated" {
+    try check(@import("program"), &.{.items = &.{1, 1, 1}}, .{ .value = &.{2, 2, 2} });
+}
+
+test "language/expressions/arrow/returns/increment/boundary" {
+    try check(@import("program"), &.{.items = &.{65535, -65535}}, .{ .value = &.{65536, -65534} });
+}
+
+test "language/expressions/arrow/returns/increment/mixed" {
+    try check(@import("program"), &.{.items = &.{-1024, 257, -1, 3}}, .{ .value = &.{-1023, 258, 0, 4} });
+}
