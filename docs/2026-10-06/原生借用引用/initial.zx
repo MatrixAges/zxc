@@ -1,0 +1,9 @@
+import type { NodeRoot, State } from "./model"
+
+export type Input = NodeRoot
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return { frames: [], indices: [], node: in, index: 0, count: 1 }
+}

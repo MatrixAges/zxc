@@ -1,0 +1,5 @@
+import type { Node } from "zig:ast"
+
+export type NodeRoot = Node
+
+export type State = { frames: Node[], indices: u64[], node: Node, index: u64, count: u64 }

@@ -1,0 +1,5 @@
+export type Node = opaque
+
+export declare function childCount(node: Node): u64
+
+export declare function childAt(node: Node, index: u64): Node throws { IndexOutOfBounds }

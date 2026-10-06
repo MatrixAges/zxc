@@ -1,0 +1,36 @@
+import ast from "zig:ast"
+
+import initial from "./initial"
+
+import type { Node } from "zig:ast"
+
+export type Root = Node
+
+export type Input = Root
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return loop(initial(in), {
+    while: value => value.frames.length > 0 || value.index < ast.childCount(value.node),
+    next: value => {
+      if (value.index < ast.childCount(value.node)) {
+        const child = ast.childAt(value.node, value.index)
+
+        value = {
+          frames: value.frames.push(value.node)[0], indices: value.indices.push(value.index + 1)[0],
+          node: child, index: 0, count: value.count + 1
+        }
+      } else {
+        const index = value.frames.length - 1
+        const node = value.frames[index]
+        const next_index = value.indices[index]
+
+        value = {
+          frames: value.frames.pop()[0], indices: value.indices.pop()[0],
+          node: node, index: next_index, count: value.count
+        }
+      }
+    }
+  }).count
+}

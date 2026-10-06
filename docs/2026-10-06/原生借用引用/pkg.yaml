@@ -1,0 +1,12 @@
+name: native-reference-draft
+version: 0.0.0
+native_interfaces:
+    - specifier: zig:ast
+      path: ast.d.zx
+      module: ast
+native_modules:
+    - name: ast
+      path: ast.zig
+      dependencies: [dsl]
+    - name: dsl
+      path: ../../../packages/dsl/src/root.zig

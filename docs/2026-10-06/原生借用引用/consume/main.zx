@@ -1,0 +1,11 @@
+import walk from "walker"
+
+import type { Root } from "walker"
+
+export type Input = Root
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return walk(in)
+}
