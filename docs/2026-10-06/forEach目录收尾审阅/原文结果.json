@@ -1,0 +1,374 @@
+{
+	"node_version": "v25.8.1",
+	"files": 11,
+	"harness": [
+		{
+			"name": "sta.js",
+			"sha256": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35"
+		},
+		{
+			"name": "assert.js",
+			"sha256": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48"
+		},
+		{
+			"name": "testTypedArray.js",
+			"sha256": "51eb50e53e6215f31f14d64d249bea2d08ad943c77835f63ba52ec694de2189a"
+		},
+		{
+			"name": "compareArray.js",
+			"sha256": "3330423fe116cd96db70077d194471319ae9767ba1c8e2f73d7c133c5204509d"
+		},
+		{
+			"name": "propertyHelper.js",
+			"sha256": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8"
+		},
+		{
+			"name": "isConstructor.js",
+			"sha256": "68e1a3e4565a8d33ea7fc918627fbbf446bcf14d7a939777616b2b545a5e7d32"
+		},
+		{
+			"name": "resizableArrayBufferUtils.js",
+			"sha256": "029aa552050861eb85fe9d848a52716dfd24747dcaf06f2a8937cb510ab31f50"
+		}
+	],
+	"results": [
+		{
+			"path": "test/built-ins/Array/prototype/forEach/S15.4.4.18_A1.js",
+			"sha256": "ad05dba9ee8badc4b4434c07bdadedc0830fb2ed204b820ca3955fd4e521643e",
+			"strict": false,
+			"harness": ["sta.js", "assert.js"],
+			"constructors": [],
+			"direct_assertion_sites": 0,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/S15.4.4.18_A1.js",
+			"sha256": "ad05dba9ee8badc4b4434c07bdadedc0830fb2ed204b820ca3955fd4e521643e",
+			"strict": true,
+			"harness": ["sta.js", "assert.js"],
+			"constructors": [],
+			"direct_assertion_sites": 0,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/S15.4.4.18_A2.js",
+			"sha256": "d755fceea7d2d3048fcca888409b82a637a0d1179cda36f539813404aaaacc39",
+			"strict": false,
+			"harness": ["sta.js", "assert.js"],
+			"constructors": [],
+			"direct_assertion_sites": 0,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/S15.4.4.18_A2.js",
+			"sha256": "d755fceea7d2d3048fcca888409b82a637a0d1179cda36f539813404aaaacc39",
+			"strict": true,
+			"harness": ["sta.js", "assert.js"],
+			"constructors": [],
+			"direct_assertion_sites": 0,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/call-with-boolean.js",
+			"sha256": "902d49a839134c4defe13075a124155277c27e43c1720ea62bd3c4b9254d25af",
+			"strict": false,
+			"harness": ["sta.js", "assert.js"],
+			"constructors": [],
+			"direct_assertion_sites": 2,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/call-with-boolean.js",
+			"sha256": "902d49a839134c4defe13075a124155277c27e43c1720ea62bd3c4b9254d25af",
+			"strict": true,
+			"harness": ["sta.js", "assert.js"],
+			"constructors": [],
+			"direct_assertion_sites": 2,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/callbackfn-resize-arraybuffer.js",
+			"sha256": "99eca76ddb7fe9c1e714cb0e4665ad83f7100c757398460e379685b7d53cd961",
+			"strict": false,
+			"harness": ["sta.js", "assert.js", "testTypedArray.js", "compareArray.js"],
+			"constructors": [
+				"Float64Array",
+				"Float32Array",
+				"Float16Array",
+				"Int32Array",
+				"Int16Array",
+				"Int8Array",
+				"Uint32Array",
+				"Uint16Array",
+				"Uint8Array",
+				"Uint8ClampedArray"
+			],
+			"direct_assertion_sites": 9,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/callbackfn-resize-arraybuffer.js",
+			"sha256": "99eca76ddb7fe9c1e714cb0e4665ad83f7100c757398460e379685b7d53cd961",
+			"strict": true,
+			"harness": ["sta.js", "assert.js", "testTypedArray.js", "compareArray.js"],
+			"constructors": [
+				"Float64Array",
+				"Float32Array",
+				"Float16Array",
+				"Int32Array",
+				"Int16Array",
+				"Int8Array",
+				"Uint32Array",
+				"Uint16Array",
+				"Uint8Array",
+				"Uint8ClampedArray"
+			],
+			"direct_assertion_sites": 9,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/length.js",
+			"sha256": "907ff59dd671a21c458c86e2745a76e97d2fc3e6430f5477d3e73c10d6689fa9",
+			"strict": false,
+			"harness": ["sta.js", "assert.js", "propertyHelper.js"],
+			"constructors": [],
+			"direct_assertion_sites": 0,
+			"property_helper_sites": 1,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/length.js",
+			"sha256": "907ff59dd671a21c458c86e2745a76e97d2fc3e6430f5477d3e73c10d6689fa9",
+			"strict": true,
+			"harness": ["sta.js", "assert.js", "propertyHelper.js"],
+			"constructors": [],
+			"direct_assertion_sites": 0,
+			"property_helper_sites": 1,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/name.js",
+			"sha256": "abce9af3f67736e01e3ae5cae761681a39ec18915af125d633b8a36eb8e5568f",
+			"strict": false,
+			"harness": ["sta.js", "assert.js", "propertyHelper.js"],
+			"constructors": [],
+			"direct_assertion_sites": 0,
+			"property_helper_sites": 1,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/name.js",
+			"sha256": "abce9af3f67736e01e3ae5cae761681a39ec18915af125d633b8a36eb8e5568f",
+			"strict": true,
+			"harness": ["sta.js", "assert.js", "propertyHelper.js"],
+			"constructors": [],
+			"direct_assertion_sites": 0,
+			"property_helper_sites": 1,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/not-a-constructor.js",
+			"sha256": "181a09867ffd11e3b57bdb1570654eb738ba9397eaabd57e95cac149c8001ba4",
+			"strict": false,
+			"harness": ["sta.js", "assert.js", "isConstructor.js"],
+			"constructors": [],
+			"direct_assertion_sites": 2,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/not-a-constructor.js",
+			"sha256": "181a09867ffd11e3b57bdb1570654eb738ba9397eaabd57e95cac149c8001ba4",
+			"strict": true,
+			"harness": ["sta.js", "assert.js", "isConstructor.js"],
+			"constructors": [],
+			"direct_assertion_sites": 2,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/prop-desc.js",
+			"sha256": "8b63a825ec05d8647f73ab1009e53335f70592862b6b531e4a0f430c5a3635fb",
+			"strict": false,
+			"harness": ["sta.js", "assert.js", "propertyHelper.js"],
+			"constructors": [],
+			"direct_assertion_sites": 1,
+			"property_helper_sites": 1,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/prop-desc.js",
+			"sha256": "8b63a825ec05d8647f73ab1009e53335f70592862b6b531e4a0f430c5a3635fb",
+			"strict": true,
+			"harness": ["sta.js", "assert.js", "propertyHelper.js"],
+			"constructors": [],
+			"direct_assertion_sites": 1,
+			"property_helper_sites": 1,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/resizable-buffer-grow-mid-iteration.js",
+			"sha256": "8712a7fc92ff597612b6f02a4df5a96f5bd41ce149d2fa4f11a6f35297ddfe2d",
+			"strict": false,
+			"harness": ["sta.js", "assert.js", "compareArray.js", "resizableArrayBufferUtils.js"],
+			"constructors": [
+				"Uint8Array",
+				"Int8Array",
+				"Uint16Array",
+				"Int16Array",
+				"Uint32Array",
+				"Int32Array",
+				"Float32Array",
+				"Float64Array",
+				"Uint8ClampedArray",
+				"Float16Array",
+				"BigUint64Array",
+				"BigInt64Array",
+				"MyUint8Array",
+				"MyFloat32Array",
+				"MyBigInt64Array"
+			],
+			"direct_assertion_sites": 4,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/resizable-buffer-grow-mid-iteration.js",
+			"sha256": "8712a7fc92ff597612b6f02a4df5a96f5bd41ce149d2fa4f11a6f35297ddfe2d",
+			"strict": true,
+			"harness": ["sta.js", "assert.js", "compareArray.js", "resizableArrayBufferUtils.js"],
+			"constructors": [
+				"Uint8Array",
+				"Int8Array",
+				"Uint16Array",
+				"Int16Array",
+				"Uint32Array",
+				"Int32Array",
+				"Float32Array",
+				"Float64Array",
+				"Uint8ClampedArray",
+				"Float16Array",
+				"BigUint64Array",
+				"BigInt64Array",
+				"MyUint8Array",
+				"MyFloat32Array",
+				"MyBigInt64Array"
+			],
+			"direct_assertion_sites": 4,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/resizable-buffer-shrink-mid-iteration.js",
+			"sha256": "9644eab7411f5d29e546814cc9fd451717d3e8a0f91ce604879dc0f9b92a08b6",
+			"strict": false,
+			"harness": ["sta.js", "assert.js", "compareArray.js", "resizableArrayBufferUtils.js"],
+			"constructors": [
+				"Uint8Array",
+				"Int8Array",
+				"Uint16Array",
+				"Int16Array",
+				"Uint32Array",
+				"Int32Array",
+				"Float32Array",
+				"Float64Array",
+				"Uint8ClampedArray",
+				"Float16Array",
+				"BigUint64Array",
+				"BigInt64Array",
+				"MyUint8Array",
+				"MyFloat32Array",
+				"MyBigInt64Array"
+			],
+			"direct_assertion_sites": 4,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/resizable-buffer-shrink-mid-iteration.js",
+			"sha256": "9644eab7411f5d29e546814cc9fd451717d3e8a0f91ce604879dc0f9b92a08b6",
+			"strict": true,
+			"harness": ["sta.js", "assert.js", "compareArray.js", "resizableArrayBufferUtils.js"],
+			"constructors": [
+				"Uint8Array",
+				"Int8Array",
+				"Uint16Array",
+				"Int16Array",
+				"Uint32Array",
+				"Int32Array",
+				"Float32Array",
+				"Float64Array",
+				"Uint8ClampedArray",
+				"Float16Array",
+				"BigUint64Array",
+				"BigInt64Array",
+				"MyUint8Array",
+				"MyFloat32Array",
+				"MyBigInt64Array"
+			],
+			"direct_assertion_sites": 4,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/resizable-buffer.js",
+			"sha256": "89ab409e26aa75f40774434207c6b05288fca752842af2eced2f2ea063c95c5e",
+			"strict": false,
+			"harness": ["sta.js", "assert.js", "compareArray.js", "resizableArrayBufferUtils.js"],
+			"constructors": [
+				"Uint8Array",
+				"Int8Array",
+				"Uint16Array",
+				"Int16Array",
+				"Uint32Array",
+				"Int32Array",
+				"Float32Array",
+				"Float64Array",
+				"Uint8ClampedArray",
+				"Float16Array",
+				"BigUint64Array",
+				"BigInt64Array",
+				"MyUint8Array",
+				"MyFloat32Array",
+				"MyBigInt64Array"
+			],
+			"direct_assertion_sites": 19,
+			"property_helper_sites": 0,
+			"passed": true
+		},
+		{
+			"path": "test/built-ins/Array/prototype/forEach/resizable-buffer.js",
+			"sha256": "89ab409e26aa75f40774434207c6b05288fca752842af2eced2f2ea063c95c5e",
+			"strict": true,
+			"harness": ["sta.js", "assert.js", "compareArray.js", "resizableArrayBufferUtils.js"],
+			"constructors": [
+				"Uint8Array",
+				"Int8Array",
+				"Uint16Array",
+				"Int16Array",
+				"Uint32Array",
+				"Int32Array",
+				"Float32Array",
+				"Float64Array",
+				"Uint8ClampedArray",
+				"Float16Array",
+				"BigUint64Array",
+				"BigInt64Array",
+				"MyUint8Array",
+				"MyFloat32Array",
+				"MyBigInt64Array"
+			],
+			"direct_assertion_sites": 19,
+			"property_helper_sites": 0,
+			"passed": true
+		}
+	]
+}
