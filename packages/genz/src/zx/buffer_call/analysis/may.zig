@@ -19,7 +19,7 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
     }
 
     switch (trace.program.typeOf(selected)) {
-        .scalar, .enumeration, .error_set => return false,
+        .scalar, .enumeration, .error_set, .native_reference => return false,
         else => {},
     }
 

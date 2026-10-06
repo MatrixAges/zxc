@@ -14,12 +14,12 @@ allocator: std.mem.Allocator,
 items: std.ArrayList(Item) = .empty,
 pub fn append(self: *Self, types: []const ir.Type, first: usize, origin: Origin) std.mem.Allocator.Error!void {
     for (types[first..], first..) |item, index| {
-        if (item != .enumeration) continue;
+        const name = item.nominalName() orelse continue;
 
         try self.items.append(self.allocator, .{
-            .type_id = @enumFromInt(index),
+            .type_id = @fromBackingInt(@intCast(index)),
             .origin = try self.copy(origin),
-            .name = item.enumeration.name,
+            .name = name,
         });
     }
 }
@@ -47,10 +47,14 @@ pub fn same(left: Origin, right: Origin) bool {
 
 pub fn seed(self: *Self, types: []const ir.Type, values: []const Item) (std.mem.Allocator.Error || error{InvalidNominalTypes})!void {
     for (values, 0..) |item, index| {
-        const id = @intFromEnum(item.type_id);
+        const id = @backingInt(item.type_id);
 
-        if (id >= types.len or types[id] != .enumeration) return error.InvalidNominalTypes;
-        if (!std.mem.eql(u8, types[id].enumeration.name, item.name)) return error.InvalidNominalTypes;
+        if (id >= types.len) return error.InvalidNominalTypes;
+
+        const name = types[id].nominalName() orelse return error.InvalidNominalTypes;
+
+        if (types[id] == .native_reference and item.origin != .native) return error.InvalidNominalTypes;
+        if (!std.mem.eql(u8, name, item.name)) return error.InvalidNominalTypes;
 
         for (values[0..index]) |previous| {
             if (previous.type_id == item.type_id) return error.InvalidNominalTypes;
@@ -61,6 +65,6 @@ pub fn seed(self: *Self, types: []const ir.Type, values: []const Item) (std.mem.
     for (values) |item| try self.items.append(self.allocator, .{
         .type_id = item.type_id,
         .origin = try self.copy(item.origin),
-        .name = types[@intFromEnum(item.type_id)].enumeration.name,
+        .name = types[@backingInt(item.type_id)].nominalName().?,
     });
 }

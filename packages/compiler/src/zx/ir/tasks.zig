@@ -10,6 +10,10 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
     @memset(uses, 0);
 
     for (program.expressions) |expression| switch (expression.value) {
+        .task => |task| {
+            if (try ir.containsNativeReference(allocator, program.types, program.expression(task.body).type_id)) return false;
+            for (task.captures) |symbol| if (try ir.containsNativeReference(allocator, program.types, program.symbols[@backingInt(symbol)].type_id)) return false;
+        },
         .await_task, .cancel_task => |child| {
             const value = program.expression(child).value;
 

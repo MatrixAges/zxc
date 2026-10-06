@@ -22,7 +22,7 @@ pub fn load(allocator: std.mem.Allocator, entry: Native, module: ir.NativeModule
 
 fn analyze(allocator: std.mem.Allocator, entry: Native, module: ir.NativeModuleId, existing: []const ir.Type, origins: ?*@import("nominal_origins.zig"), reporter: *zx.Reporter) zx.Error!Result {
     const parsed = try @import("declarations.zig").parse(allocator, entry.source, reporter);
-    var types = Types{ .allocator = allocator, .reporter = reporter, .declarations = parsed.types, .shared = if (origins) |items| Types.Shared{ .origins = items, .origin = .{ .native = entry.key() } } else null };
+    var types = Types{ .native_interface = true, .allocator = allocator, .reporter = reporter, .declarations = parsed.types, .shared = if (origins) |items| Types.Shared{ .origins = items, .origin = .{ .native = entry.key() } } else null };
 
     try types.items.appendSlice(allocator, existing);
     try types.initialize();
@@ -67,10 +67,15 @@ fn analyze(allocator: std.mem.Allocator, entry: Native, module: ir.NativeModuleI
             break :blk owned;
         } else null;
 
+        const output = try types.resolve(declaration.output);
+
+        if (declaration.concurrent and (try ir.containsNativeReference(allocator, types.items.items, input) or try ir.containsNativeReference(allocator, types.items.items, output))) return reporter.fail(.capability, declaration.name.span, "host reference accessors cannot declare concurrency");
+        if (try ir.containsNativeReference(allocator, types.items.items, output) and !(try ir.containsNativeReference(allocator, types.items.items, input))) return reporter.fail(.ownership, declaration.name.span, "native reference results require a host reference input");
+
         member.* = .{ .name = path[entry.namespace.len], .function = .{
             .file_name = try allocator.dupe(u8, entry.path),
             .input_type = input,
-            .output_type = try types.resolve(declaration.output),
+            .output_type = output,
             .symbols = &.{},
             .expressions = &.{},
             .body = &.{},

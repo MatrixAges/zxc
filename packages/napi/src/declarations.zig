@@ -1,7 +1,9 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 
-pub fn render(allocator: std.mem.Allocator, types: []const ir.Type, input: ir.TypeId, output: ir.TypeId) std.mem.Allocator.Error![]u8 {
+pub fn render(allocator: std.mem.Allocator, types: []const ir.Type, input: ir.TypeId, output: ir.TypeId) (std.mem.Allocator.Error || error{UnsupportedNodeType})![]u8 {
+    if (try ir.containsNativeReference(allocator, types, input) or try ir.containsNativeReference(allocator, types, output)) return error.UnsupportedNodeType;
+
     var text: std.Io.Writer.Allocating = .init(allocator);
 
     errdefer text.deinit();
@@ -55,7 +57,7 @@ fn definition(writer: *std.Io.Writer, types: []const ir.Type, value: ir.Type, in
     const name = prefix(incoming);
 
     switch (value) {
-        .task => unreachable,
+        .task, .native_reference => unreachable,
         .scalar => |scalar| try writer.writeAll(switch (scalar) {
             .void => "void",
             .bool => "boolean",

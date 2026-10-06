@@ -79,7 +79,7 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
             .optional, .list => |child| try self.mark(child),
             .tuple => |children| for (children) |child| try self.mark(child),
             .object => |fields| for (fields) |field| try self.mark(field.type_id),
-            .scalar, .enumeration, .error_set => {},
+            .scalar, .enumeration, .error_set, .native_reference => {},
         }
     }
 

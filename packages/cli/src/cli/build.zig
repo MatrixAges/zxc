@@ -78,6 +78,12 @@ pub fn runObserved(io: std.Io, allocator: std.mem.Allocator, bundle: @import("co
 }
 
 fn prepare(io: std.Io, allocator: std.mem.Allocator, bundle: @import("compiler").zig.ModuleBundle, options: Options, loaded: Loaded, toolchain: @import("toolchain.zig").Paths, emission: Emission, translation: *Translation, environment: *const std.process.Environ.Map) !?[]const []const u8 {
+    if (bundle.signature) |signature| {
+        const ir = @import("compiler").ir;
+
+        if (try ir.containsNativeReference(allocator, signature.types, signature.input) or try ir.containsNativeReference(allocator, signature.types, signature.output)) return error.UnsupportedHostReference;
+    }
+
     var configuration_options = options;
     configuration_options.cache = true;
     configuration_options.cache_stats = false;

@@ -276,6 +276,7 @@ pub fn expression(self: *Self, value: *const node.Expression) Error!void {
             try self.indent();
             try self.write("}");
         },
+        .opaque_type => try self.write("opaque {}"),
         .struct_type => |fields| {
             try self.write("struct {\n");
 

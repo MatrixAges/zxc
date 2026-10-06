@@ -15,8 +15,14 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: []cons
     for (origins) |item| {
         const index = @backingInt(item.type_id);
 
-        if (index >= nominal.len or nominal[index] != null or program.types[index] != .enumeration) return error.InvalidNominalOrigin;
-        if (!std.mem.eql(u8, item.name, program.types[index].enumeration.name)) return error.InvalidNominalOrigin;
+        if (index >= nominal.len or nominal[index] != null) return error.InvalidNominalOrigin;
+        if (!std.mem.eql(u8, item.name, program.types[index].nominalName() orelse return error.InvalidNominalOrigin)) return error.InvalidNominalOrigin;
+
+        if (program.types[index] == .native_reference) {
+            const owner = ir.nativeReferenceOwner(program, item.type_id) orelse return error.InvalidNominalOrigin;
+
+            if (item.origin != .native or !std.mem.eql(u8, owner, item.origin.native)) return error.InvalidNominalOrigin;
+        }
 
         nominal[index] = item;
     }
@@ -42,7 +48,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: []cons
                 field(&hash, &digests[@backingInt(item.type_id)]);
             },
             .error_set => |members| for (members) |member| field(&hash, member),
-            .enumeration => |enumeration| {
+            .enumeration, .native_reference => {
                 const origin = nominal[index] orelse return error.MissingNominalOrigin;
 
                 field(&hash, @tagName(origin.origin));
@@ -55,9 +61,9 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: []cons
                     },
                 }
 
-                field(&hash, enumeration.name);
+                field(&hash, value.nominalName().?);
 
-                for (enumeration.members) |member| field(&hash, member);
+                if (value == .enumeration) for (value.enumeration.members) |member| field(&hash, member);
             },
         }
 

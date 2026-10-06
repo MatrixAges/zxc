@@ -14,6 +14,7 @@ pub fn start(self: *Analyzer, child: *const zx.ast.Expression, span: zx.Span) zx
         switch (node.value) {
             .reference => |symbol| {
                 if (@backingInt(symbol) >= symbol_count) continue;
+                if (try ir.containsNativeReference(self.allocator, self.types.items.items, self.symbols.items[@backingInt(symbol)].type_id)) return self.reporter.fail(.capability, span, "tasks cannot capture host references");
                 if (self.types.get(self.symbols.items[@backingInt(symbol)].type_id) == .task) return self.reporter.fail(.ownership, span, "tasks cannot capture other task handles");
                 if (std.mem.indexOfScalar(ir.SymbolId, captures.items, symbol) == null) try captures.append(self.allocator, symbol);
             },

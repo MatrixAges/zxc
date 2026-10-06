@@ -22,6 +22,8 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 
             if (!@import("native_modules.zig").validateExport(program, function_index)) return invalid();
             if (program.typeOf(item.input_type) == .task or program.typeOf(item.output_type) == .task) return invalid();
+            if (try ir.containsNativeReference(allocator, program.types, item.output_type) and !(try ir.containsNativeReference(allocator, program.types, item.input_type))) return invalid();
+            if (external.concurrent and (try ir.containsNativeReference(allocator, program.types, item.input_type) or try ir.containsNativeReference(allocator, program.types, item.output_type))) return invalid();
             if (external.expand_tuple and program.typeOf(item.input_type) != .tuple) return invalid();
 
             if (external.input) |shape| {
@@ -63,7 +65,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 }
 
 fn function(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
-    if (!@import("stores.zig").validate(program)) return false;
+    if (!try @import("stores.zig").validate(allocator, program)) return false;
     if (@backingInt(program.input_type) >= program.types.len or @backingInt(program.output_type) >= program.types.len) return false;
     if (program.type_only) return !program.consumes_input and @backingInt(program.input_type) == 0 and @backingInt(program.output_type) == 0 and program.symbols.len == 0 and program.expressions.len == 0 and program.body.len == 0 and program.contracts.len == 0;
     if (!@import("contracts.zig").validate(program)) return false;

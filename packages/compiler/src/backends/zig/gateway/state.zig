@@ -5,7 +5,7 @@ const Library = @import("../../../library/root.zig").Result;
 const Bundle = @import("../library.zig").Bundle;
 const names = @import("../names.zig");
 pub const Result = struct { objects: []const generating.zx.state.Object, services: []const generating.gateway.Service };
-pub const Error = names.Error || error{ InvalidModule, ConflictingStore, MissingInitializer, InvalidInitializer };
+pub const Error = names.Error || error{ UnsupportedHostReference, InvalidModule, ConflictingStore, MissingInitializer, InvalidInitializer };
 
 pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bundle) Error!Result {
     if (library.exports.len != bundle.public_modules.len) return error.InvalidModule;
@@ -24,6 +24,9 @@ pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bun
         if (!std.mem.eql(u8, exported.name, facade.name) or exported.function == null) return error.InvalidModule;
 
         const program = try library.module(index);
+
+        if (try ir.containsNativeReference(allocator, program.types, program.input_type) or try ir.containsNativeReference(allocator, program.types, program.output_type)) return error.UnsupportedHostReference;
+
         const bindings = try allocator.alloc(generating.gateway.Slot, program.stores.len);
 
         for (program.stores, bindings) |slot, *binding| {

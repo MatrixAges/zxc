@@ -17,11 +17,12 @@ pub fn resolve(self: *Analyzer, bindings: []const StoreBinding, span: zx.Span) z
         if ((binding.type_name == null) == (binding.type_id == null)) return self.reporter.fail(.capability, span, "Store bindings require exactly one named type or shared type ID");
 
         const type_id = if (binding.type_id) |id| typed: {
-            if (@intFromEnum(id) >= self.store_type_count) return self.reporter.fail(.capability, span, "Store type ID must belong to the supplied shared type table");
+            if (@backingInt(id) >= self.store_type_count) return self.reporter.fail(.capability, span, "Store type ID must belong to the supplied shared type table");
 
             break :typed id;
         } else try self.types.named(.{ .text = binding.type_name.?, .span = span });
 
+        if (try ir.containsNativeReference(self.allocator, self.types.items.items, type_id)) return self.reporter.fail(.capability, span, "Store cannot retain host references");
         if (self.types.get(type_id) != .object) return self.reporter.fail(.capability, span, "a Store handle must refer to a complete Object type");
 
         result[index] = .{ .handle = try self.allocator.dupe(u8, binding.handle), .path = try self.allocator.dupe(u8, binding.path), .type_id = type_id, .readable = binding.readable, .writable = binding.writable };

@@ -1,3 +1,5 @@
+pub const containsNativeReference = @import("native_references.zig").contains;
+pub const nativeReferenceOwner = @import("native_references.zig").owner;
 const Span = @import("source.zig").Span;
 pub const Operator = @import("syntax.zig").Operator;
 pub const TypeId = enum(u32) { _ };
@@ -17,6 +19,14 @@ pub const Type = union(enum) {
     error_set: []const []const u8,
     task: struct { result: TypeId, errors: TypeId },
     enumeration: struct { name: []const u8, members: []const []const u8 },
+    native_reference: []const u8,
+    pub fn nominalName(self: Type) ?[]const u8 {
+        return switch (self) {
+            .enumeration => |value| value.name,
+            .native_reference => |name| name,
+            else => null,
+        };
+    }
 };
 
 pub const TypeField = struct { name: []const u8, type_id: TypeId };
@@ -159,7 +169,7 @@ pub const Function = struct {
 pub const Program = struct {
     consumes_input: bool = false,
     output_ownership: Ownership = .borrowed,
-    version: u32 = 20,
+    version: u32 = 21,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,

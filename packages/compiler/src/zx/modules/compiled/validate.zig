@@ -32,10 +32,18 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
 
     @memset(declared, false);
 
-    for (library.nominal_types) |item| declared[@intFromEnum(item.type_id)] = true;
+    for (library.nominal_types) |item| {
+        declared[@backingInt(item.type_id)] = true;
+
+        if (program.typeOf(item.type_id) == .native_reference) {
+            const owner = ir.nativeReferenceOwner(program, item.type_id) orelse return error.InvalidLibrary;
+
+            if (!std.mem.eql(u8, owner, item.origin.native)) return error.InvalidLibrary;
+        }
+    }
 
     for (program.types, declared) |value, present| {
-        if (value == .enumeration and !present) return error.InvalidLibrary;
+        if (value.nominalName() != null and !present) return error.InvalidLibrary;
     }
 
     try @import("initializers.zig").validate(scratch, library);
@@ -47,9 +55,9 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
         if ((try names.getOrPut(scratch, exported.name)).found_existing) return error.InvalidLibrary;
 
         if (exported.function) |id| {
-            if (@intFromEnum(id) >= program.functions.len) return error.InvalidLibrary;
+            if (@backingInt(id) >= program.functions.len) return error.InvalidLibrary;
 
-            const function = program.functions[@intFromEnum(id)];
+            const function = program.functions[@backingInt(id)];
 
             if (function.external != null or !std.mem.eql(u8, function.file_name, exported.path)) return error.InvalidLibrary;
         }
@@ -57,10 +65,10 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
         var type_names: std.StringHashMapUnmanaged(void) = .empty;
 
         for (exported.types) |item| {
-            if (!text(item.name) or @intFromEnum(item.type_id) >= program.types.len) return error.InvalidLibrary;
+            if (!text(item.name) or @backingInt(item.type_id) >= program.types.len) return error.InvalidLibrary;
 
             if (exported.function) |id| {
-                const function = program.functions[@intFromEnum(id)];
+                const function = program.functions[@backingInt(id)];
 
                 if (std.mem.eql(u8, item.name, "Input") and item.type_id != function.input_type) return error.InvalidLibrary;
                 if (std.mem.eql(u8, item.name, "Output") and item.type_id != function.output_type) return error.InvalidLibrary;

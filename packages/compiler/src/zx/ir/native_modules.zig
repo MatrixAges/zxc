@@ -38,6 +38,10 @@ pub fn validate(program: ir.Program) bool {
         }
     }
 
+    for (program.types, 0..) |value, type_index| {
+        if (value == .native_reference and ir.nativeReferenceOwner(program, @fromBackingInt(@intCast(type_index))) == null) return false;
+    }
+
     return true;
 }
 
@@ -114,6 +118,7 @@ pub fn validateType(program: ir.Program, module_id: ir.NativeModuleId, type_id: 
 
     switch (program.typeOf(type_id)) {
         .task => return false,
+        .native_reference => return shape.name != null and shape.children.len == 0,
         .scalar, .enumeration, .error_set => return shape.children.len == 0,
         .optional, .list => |child| return shape.children.len == 1 and validateType(program, module_id, child, shape.children[0], depth + 1),
         .tuple => |children| {
