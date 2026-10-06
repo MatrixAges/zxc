@@ -1,0 +1,58 @@
+{
+	"验证检出": "1fd8064591bb236e67f930b69d5dbe2895aa5695",
+	"独立Zig源码声明数": 21,
+	"分类": {
+		"shape": 4,
+		"acceptance": 5,
+		"rejection": 9,
+		"allocation": 3
+	},
+	"正式修改文件": [
+		"packages/test/build/tasks.zig",
+		"packages/test/build/tasks_cancel_analysis.zig",
+		"packages/test/tests/language/expressions/tasks/cancel_analysis/acceptance_test.zig",
+		"packages/test/tests/language/expressions/tasks/cancel_analysis/allocation_test.zig",
+		"packages/test/tests/language/expressions/tasks/cancel_analysis/rejection_test.zig",
+		"packages/test/tests/language/expressions/tasks/cancel_analysis/shape_test.zig"
+	],
+	"模式": {
+		"Debug": {
+			"退出码": 0,
+			"成功构建步骤": 19,
+			"实际执行声明": 21,
+			"运行缓存步": 0,
+			"日志": "docs/2026-10-06/ZX取消分析测试/Debug日志.txt"
+		},
+		"ReleaseSafe": {
+			"退出码": 0,
+			"成功构建步骤": 19,
+			"实际执行声明": 21,
+			"运行缓存步": 0,
+			"日志": "docs/2026-10-06/ZX取消分析测试/ReleaseSafe日志.txt"
+		}
+	},
+	"源指纹": {
+		"packages/test/build/tasks.zig": "ef91203cd30600774d49d137ccae69aa6c826c7e1167d36f9b844ddfc5067323",
+		"packages/test/build/tasks_cancel_analysis.zig": "52aa006bb52376c52887660d98b6556a1d206f71d00b8510e0c149ce264c003f",
+		"packages/test/tests/language/expressions/tasks/cancel_analysis/acceptance_test.zig": "cd5ca8c125203604e51a6cf8e72447eb5c16b8a17f5f897fb3d93bd3b6d8bfaf",
+		"packages/test/tests/language/expressions/tasks/cancel_analysis/allocation_test.zig": "546060a6cc2e3271c06c6186ee94b7e592e4d83501666086b7d80791600fcbd2",
+		"packages/test/tests/language/expressions/tasks/cancel_analysis/rejection_test.zig": "2b3c3e6855ed6d4a793641251c869d6e3b2e0882b2e1272c6c3afd8d6459463f",
+		"packages/test/tests/language/expressions/tasks/cancel_analysis/shape_test.zig": "0a7c0fd10273deeb5d7521c6ba851e0c5dc8cb9abd21d0ea627ad56894aa605e",
+		"packages/test/build.zig": "a9210a0d7a40cd167b45fd602c685d2f2c396e658cf831f91b2aca3706bac92a",
+		"packages/test/tests/language/expressions/tasks/analysis/fixture.zig": "3331971bfb45f8c831d4b952f079862fa9c9ef3dcd027e6217a627fcbbc28196",
+		"packages/test/tests/support/allocation_testing.zig": "2445143f3b32c979224d589cfcaeebd24313193b1d561d93a060770474319b4d"
+	},
+	"证据指纹": {
+		"docs/2026-10-06/ZX取消分析测试/Debug日志.txt": "1a19db3cc79d497dbc9ab60236c1582030f19a396933fb99c19fc83501d3bb9b",
+		"docs/2026-10-06/ZX取消分析测试/Debug模块导入修正前日志.txt": "fe80645e868569749a7d8c2940e5f7fadb1bf2d9ff07a88654d116800dae4017",
+		"docs/2026-10-06/ZX取消分析测试/ReleaseSafe日志.txt": "13263ac96c86377c8ca3974b515ae379445bcd3c2050cfee31015124b42172ec",
+		"docs/2026-10-06/ZX取消分析测试/收录结果.py": "1eba347328acb9ce7f6d6856cba763b4c3edd3571bb128c6ad4b57c399bcc589",
+		"docs/2026-10-06/ZX取消分析测试/草稿/packages/test/build/tasks.zig": "ef91203cd30600774d49d137ccae69aa6c826c7e1167d36f9b844ddfc5067323",
+		"docs/2026-10-06/ZX取消分析测试/草稿/packages/test/build/tasks_cancel_analysis.zig": "52aa006bb52376c52887660d98b6556a1d206f71d00b8510e0c149ce264c003f",
+		"docs/2026-10-06/ZX取消分析测试/草稿/packages/test/tests/language/expressions/tasks/cancel_analysis/acceptance_test.zig": "cd5ca8c125203604e51a6cf8e72447eb5c16b8a17f5f897fb3d93bd3b6d8bfaf",
+		"docs/2026-10-06/ZX取消分析测试/草稿/packages/test/tests/language/expressions/tasks/cancel_analysis/allocation_test.zig": "546060a6cc2e3271c06c6186ee94b7e592e4d83501666086b7d80791600fcbd2",
+		"docs/2026-10-06/ZX取消分析测试/草稿/packages/test/tests/language/expressions/tasks/cancel_analysis/rejection_test.zig": "2b3c3e6855ed6d4a793641251c869d6e3b2e0882b2e1272c6c3afd8d6459463f",
+		"docs/2026-10-06/ZX取消分析测试/草稿/packages/test/tests/language/expressions/tasks/cancel_analysis/shape_test.zig": "0a7c0fd10273deeb5d7521c6ba851e0c5dc8cb9abd21d0ea627ad56894aa605e"
+	},
+	"边界": "公开项目分析、实际cancel节点/void类型/任务与调用者错误效果及独立IR校验；不代替真实取消与等待清理运行证据；未新增Test262条目"
+}

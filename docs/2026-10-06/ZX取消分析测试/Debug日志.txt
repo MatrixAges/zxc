@@ -1,0 +1,27 @@
+Build Summary: 19/19 steps succeeded; 21/21 tests passed
+test-zx-cancel-analysis success
++- run test 4 pass (4 total) 6ms MaxRSS:2M
+|  +- compile test debug native success 3s MaxRSS:408M
+|     +- WriteFile interfaces/0.d.zx cached
+|     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     +- compile exe standard-catalog fast native cached 43ms MaxRSS:21M
+|     |     +- WriteFile catalog.json cached
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer debug native cached 44ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
+|              +- run exe standard-catalog (catalog.zig) cached
+|                 +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+|                 +- WriteFile catalog.json cached
++- run test 5 pass (5 total) 6ms MaxRSS:2M
+|  +- compile test debug native success 3s MaxRSS:409M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 9 pass (9 total) 5ms MaxRSS:2M
+|  +- compile test debug native success 3s MaxRSS:419M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 3 pass (3 total) 52ms MaxRSS:2M
+   +- compile test debug native success 3s MaxRSS:417M
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+
