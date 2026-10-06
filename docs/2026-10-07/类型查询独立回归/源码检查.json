@@ -1,0 +1,45 @@
+[
+    {
+        "argv": [
+            "zig",
+            "fmt",
+            "--check",
+            "packages/test/build.zig",
+            "packages/test/build/type_query.zig",
+            "packages/test/tests/ir/types/query/fixture.zig",
+            "packages/test/tests/ir/types/query/graph.zig",
+            "packages/test/tests/ir/types/query/growth.zig",
+            "packages/test/tests/ir/types/query/growth_test.zig",
+            "packages/test/tests/ir/types/query/prefix_test.zig",
+            "packages/test/tests/ir/types/query/propagation_test.zig",
+            "packages/test/tests/ir/types/query/resources_test.zig"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    },
+    {
+        "argv": [
+            "node",
+            "scripts/format.mjs",
+            "--check",
+            "packages/test/build/type_query.zig",
+            "packages/test/tests/ir/types/query/fixture.zig",
+            "packages/test/tests/ir/types/query/graph.zig",
+            "packages/test/tests/ir/types/query/growth.zig",
+            "packages/test/tests/ir/types/query/growth_test.zig",
+            "packages/test/tests/ir/types/query/prefix_test.zig",
+            "packages/test/tests/ir/types/query/propagation_test.zig",
+            "packages/test/tests/ir/types/query/resources_test.zig"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    },
+    {
+        "argv": ["git", "diff", "--check"],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    }
+]
