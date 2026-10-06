@@ -1,0 +1,58 @@
+import head from "./order/head"
+
+import type { Tree, Order } from "./model"
+
+export type Input = Tree
+
+export type Output = Order
+
+export default function (in: Input): Output {
+    const field_links: u64[] = []
+    const item_links: u64[] = []
+
+    const fields = loop({ source: in.fields, links: field_links, index: 0 }, {
+        while: current => current.index < current.source.length,
+        next: current => {
+            current.links = current.links.push(0)[0]
+
+            const previous = current.source[current.index].previous
+
+            if (previous != 0) {
+                current.links[previous - 1] = current.index + 1
+            }
+
+            current.index += 1
+        }
+    })
+
+    const items = loop({ source: in.items, links: item_links, index: 0 }, {
+        while: current => current.index < current.source.length,
+        next: current => {
+            current.links = current.links.push(0)[0]
+
+            const previous = current.source[current.index].previous
+
+            if (previous != 0) {
+                current.links[previous - 1] = current.index + 1
+            }
+
+            current.index += 1
+        }
+    })
+
+    const head_links: u64[] = []
+
+    const heads = loop({ tree: in, links: head_links, index: 0 }, {
+        while: current => current.index < current.tree.nodes.length,
+        next: current => {
+            current.links = current.links.push(head({ tree: current.tree, node: current.tree.nodes[current.index] }))[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        heads: heads.links,
+        fields: fields.links,
+        items: items.links
+    }
+}

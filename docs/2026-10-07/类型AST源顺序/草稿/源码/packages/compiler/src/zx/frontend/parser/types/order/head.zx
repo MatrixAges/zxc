@@ -1,0 +1,24 @@
+import { TypeKind } from "../model"
+
+import type { Tree, Node } from "../model"
+
+export type Input = { tree: Tree, node: Node }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.node.kind != TypeKind.Object && in.node.kind != TypeKind.Tuple) {
+        return 0
+    }
+
+    const result = loop({ tree: in.tree, kind: in.node.kind, current: in.node.head, first: 0, remaining: in.node.count }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            current.first = current.current
+            current.current = current.kind == TypeKind.Object ? current.tree.fields[current.current - 1].previous : current.tree.items[current.current - 1].previous
+            current.remaining -= 1
+        }
+    })
+
+    return result.first
+}
