@@ -15,7 +15,11 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
 pub const Summary = struct { pure: []bool, local: []bool, values: []bool, state: @import("../state_value/analysis.zig") };
 
 pub fn scalarLocals(program: ir.Program, pure: []const bool) bool {
-    switch (program.typeOf(program.output_type)) {
+    var output = program.typeOf(program.output_type);
+
+    while (output == .optional) output = program.typeOf(output.optional);
+
+    switch (output) {
         .scalar, .enumeration, .error_set => {},
         else => return false,
     }
