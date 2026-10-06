@@ -1,0 +1,7 @@
+export type Cell = { value: u64, label: string }
+
+export type State = { index: u64, total: u64, values: Cell[], saved: Cell? }
+
+export type Job = { values: Cell[], ordinal: u64, seed: u64, saved: Cell? }
+
+export type Result = { empty: State, first: State, second: State }

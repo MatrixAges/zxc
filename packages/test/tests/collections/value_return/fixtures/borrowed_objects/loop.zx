@@ -1,0 +1,18 @@
+import type { State } from "./types"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.index < state.values.length,
+        next: state => {
+            const cell = state.values[state.index]
+
+            state.total += cell.value
+            state.saved = cell
+            state.index += 1
+        }
+    })
+}

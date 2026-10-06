@@ -26,8 +26,6 @@ pub fn main(init: std.process.Init) !void {
         .{ .path = "forward.zx", .source = @embedFile("fixtures/forward.zx") },
         .{ .path = "native_scalar/loop.zx", .source = @embedFile("fixtures/native_scalar/loop.zx") },
         .{ .path = "borrowed_objects/loop.zx", .source = @embedFile("fixtures/borrowed_objects/loop.zx") },
-        .{ .path = "borrowed_objects/collect.zx", .source = @embedFile("fixtures/borrowed_objects/collect.zx") },
-        .{ .path = "borrowed_objects/types.zx", .source = @embedFile("fixtures/borrowed_objects/types.zx") },
     }, .{
         .entry = "main.zx",
         .root_dir = "/project",

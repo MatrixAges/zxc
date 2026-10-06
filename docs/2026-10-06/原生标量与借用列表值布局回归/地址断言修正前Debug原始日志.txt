@@ -1,0 +1,442 @@
+test-value-return
++- run test value-return-borrowed_objects-library 0 pass, 3 fail (3 total)
+error: 'root.test.readonly object lists retain every borrowed address across escaped loop results' failed:
+       expected library_abi.zx_type_11@7ff7b865bf38, found library_abi.zx_type_11@107b7ea28
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:102:25: 0x107a18479 in expectEqualInner__func_1025 (value-return-borrowed_objects-library)
+                               return error.TestExpectedEqual;
+                               ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x107a185b7 in expectEqual (value-return-borrowed_objects-library)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:170:21: 0x107a185f5 in expectEqualInner__func_1024 (value-return-borrowed_objects-library)
+                           try expectEqual(expected_payload, actual_payload);
+                           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x107a18d74 in expectEqual (value-return-borrowed_objects-library)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:13:5: 0x107a18df5 in expectState (value-return-borrowed_objects-library)
+           try std.testing.expectEqual(expected.saved, state.saved);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:25:9: 0x107a193c3 in expectResults (value-return-borrowed_objects-library)
+               try expectState(result.first, .{ .index = values.len, .total = initial + sum, .values = values, .saved = saved });
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:114:9: 0x107a1a56f in run (value-return-borrowed_objects-library)
+               try expectResults(result, values, seed, sum);
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:160:48: 0x107a2b430 in test.readonly object lists retain every borrowed address across escaped loop results (value-return-borrowed_objects-library)
+           for ([_]usize{ 0, 1, 2, 31, 128 }) |count| try run(std.testing.allocator, .{ .count = count, .repeat = true });
+                                                      ^
+error: 'root.test.readonly object loop storage grows with returned results rather than inner iterations' failed:
+       expected library_abi.zx_type_11@7ff7b865bf68, found library_abi.zx_type_11@1097923f0
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:102:25: 0x107a18479 in expectEqualInner__func_1025 (value-return-borrowed_objects-library)
+                               return error.TestExpectedEqual;
+                               ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x107a185b7 in expectEqual (value-return-borrowed_objects-library)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:170:21: 0x107a185f5 in expectEqualInner__func_1024 (value-return-borrowed_objects-library)
+                           try expectEqual(expected_payload, actual_payload);
+                           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x107a18d74 in expectEqual (value-return-borrowed_objects-library)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:13:5: 0x107a18df5 in expectState (value-return-borrowed_objects-library)
+           try std.testing.expectEqual(expected.saved, state.saved);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:25:9: 0x107a193c3 in expectResults (value-return-borrowed_objects-library)
+               try expectState(result.first, .{ .index = values.len, .total = initial + sum, .values = values, .saved = saved });
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:114:9: 0x107a1a56f in run (value-return-borrowed_objects-library)
+               try expectResults(result, values, seed, sum);
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:164:42: 0x107a2b340 in test.readonly object loop storage grows with returned results rather than inner iterations (value-return-borrowed_objects-library)
+           for ([_]usize{ 4, 32, 128 }) |count| try run(std.testing.allocator, .{ .count = count, .bounded = true });
+                                                ^
+error: 'root.test.readonly object loops release every failed allocation and preserve all owners' failed:
+       expected library_abi.zx_type_11@7ff7b865b928, found library_abi.zx_type_11@109792438
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:102:25: 0x107a18479 in expectEqualInner__func_1025 (value-return-borrowed_objects-library)
+                               return error.TestExpectedEqual;
+                               ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x107a185b7 in expectEqual (value-return-borrowed_objects-library)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:170:21: 0x107a185f5 in expectEqualInner__func_1024 (value-return-borrowed_objects-library)
+                           try expectEqual(expected_payload, actual_payload);
+                           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x107a18d74 in expectEqual (value-return-borrowed_objects-library)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:13:5: 0x107a18df5 in expectState (value-return-borrowed_objects-library)
+           try std.testing.expectEqual(expected.saved, state.saved);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:25:9: 0x107a193c3 in expectResults (value-return-borrowed_objects-library)
+               try expectState(result.first, .{ .index = values.len, .total = initial + sum, .values = values, .saved = saved });
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:114:9: 0x107a1a56f in run (value-return-borrowed_objects-library)
+               try expectResults(result, values, seed, sum);
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x107a1c701 in run (value-return-borrowed_objects-library)
+                   try @call(.auto, test_fn, .{memory} ++ args);
+                   ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x107a1be43 in checkAllAllocationFailures__func_1032 (value-return-borrowed_objects-library)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x107a1c2e2 in checkAllAllocationFailures__func_1002 (value-return-borrowed_objects-library)
+           try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:168:5: 0x107a1c33a in test.readonly object loops release every failed allocation and preserve all owners (value-return-borrowed_objects-library)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{Case{ .count = 5 }});
+           ^
+failed command: ./.zig-cache/o/092a1a3d5045417e7c4a2ae6d463c205/value-return-borrowed_objects-library --cache-dir=./.zig-cache --seed=0x194fd0e8 --listen=-
+
+test-value-return
++- run test value-return-borrowed_objects-source 0 pass, 3 fail (3 total)
+error: 'root.test.readonly object lists retain every borrowed address across escaped loop results' failed:
+       expected source_abi.zx_type_11@7ff7b3420f38, found source_abi.zx_type_11@10cdb8a28
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:102:25: 0x10cc53479 in expectEqualInner__func_1025 (value-return-borrowed_objects-source)
+                               return error.TestExpectedEqual;
+                               ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10cc535b7 in expectEqual (value-return-borrowed_objects-source)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:170:21: 0x10cc535f5 in expectEqualInner__func_1024 (value-return-borrowed_objects-source)
+                           try expectEqual(expected_payload, actual_payload);
+                           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10cc53d74 in expectEqual (value-return-borrowed_objects-source)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:13:5: 0x10cc53df5 in expectState (value-return-borrowed_objects-source)
+           try std.testing.expectEqual(expected.saved, state.saved);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:25:9: 0x10cc543c3 in expectResults (value-return-borrowed_objects-source)
+               try expectState(result.first, .{ .index = values.len, .total = initial + sum, .values = values, .saved = saved });
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:114:9: 0x10cc5556f in run (value-return-borrowed_objects-source)
+               try expectResults(result, values, seed, sum);
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:160:48: 0x10cc66430 in test.readonly object lists retain every borrowed address across escaped loop results (value-return-borrowed_objects-source)
+           for ([_]usize{ 0, 1, 2, 31, 128 }) |count| try run(std.testing.allocator, .{ .count = count, .repeat = true });
+                                                      ^
+error: 'root.test.readonly object loop storage grows with returned results rather than inner iterations' failed:
+       expected source_abi.zx_type_11@7ff7b3420f68, found source_abi.zx_type_11@10e9cc3f0
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:102:25: 0x10cc53479 in expectEqualInner__func_1025 (value-return-borrowed_objects-source)
+                               return error.TestExpectedEqual;
+                               ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10cc535b7 in expectEqual (value-return-borrowed_objects-source)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:170:21: 0x10cc535f5 in expectEqualInner__func_1024 (value-return-borrowed_objects-source)
+                           try expectEqual(expected_payload, actual_payload);
+                           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10cc53d74 in expectEqual (value-return-borrowed_objects-source)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:13:5: 0x10cc53df5 in expectState (value-return-borrowed_objects-source)
+           try std.testing.expectEqual(expected.saved, state.saved);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:25:9: 0x10cc543c3 in expectResults (value-return-borrowed_objects-source)
+               try expectState(result.first, .{ .index = values.len, .total = initial + sum, .values = values, .saved = saved });
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:114:9: 0x10cc5556f in run (value-return-borrowed_objects-source)
+               try expectResults(result, values, seed, sum);
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:164:42: 0x10cc66340 in test.readonly object loop storage grows with returned results rather than inner iterations (value-return-borrowed_objects-source)
+           for ([_]usize{ 4, 32, 128 }) |count| try run(std.testing.allocator, .{ .count = count, .bounded = true });
+                                                ^
+error: 'root.test.readonly object loops release every failed allocation and preserve all owners' failed:
+       expected source_abi.zx_type_11@7ff7b3420928, found source_abi.zx_type_11@10e9cc438
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:102:25: 0x10cc53479 in expectEqualInner__func_1025 (value-return-borrowed_objects-source)
+                               return error.TestExpectedEqual;
+                               ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10cc535b7 in expectEqual (value-return-borrowed_objects-source)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:170:21: 0x10cc535f5 in expectEqualInner__func_1024 (value-return-borrowed_objects-source)
+                           try expectEqual(expected_payload, actual_payload);
+                           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10cc53d74 in expectEqual (value-return-borrowed_objects-source)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:13:5: 0x10cc53df5 in expectState (value-return-borrowed_objects-source)
+           try std.testing.expectEqual(expected.saved, state.saved);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:25:9: 0x10cc543c3 in expectResults (value-return-borrowed_objects-source)
+               try expectState(result.first, .{ .index = values.len, .total = initial + sum, .values = values, .saved = saved });
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:114:9: 0x10cc5556f in run (value-return-borrowed_objects-source)
+               try expectResults(result, values, seed, sum);
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x10cc57701 in run (value-return-borrowed_objects-source)
+                   try @call(.auto, test_fn, .{memory} ++ args);
+                   ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x10cc56e43 in checkAllAllocationFailures__func_1032 (value-return-borrowed_objects-source)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x10cc572e2 in checkAllAllocationFailures__func_1002 (value-return-borrowed_objects-source)
+           try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/value_return/borrowed_objects/root.zig:168:5: 0x10cc5733a in test.readonly object loops release every failed allocation and preserve all owners (value-return-borrowed_objects-source)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, run, .{Case{ .count = 5 }});
+           ^
+failed command: ./.zig-cache/o/3e4547e5853deb13ffb4ba569a9569d5/value-return-borrowed_objects-source --cache-dir=./.zig-cache --seed=0x194fd0e8 --listen=-
+
+Build Summary: 132/135 steps succeeded (2 failed); 110/116 tests passed (6 failed)
+test-value-return transitive failure
++- run test value-return-direct-source 8 pass (8 total) 4ms MaxRSS:1M
+|  +- compile test value-return-direct-source debug native success 1s MaxRSS:263M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native success 7s MaxRSS:878M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 46ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) cached
+|     |     |  +- compile exe generate-parser debug native cached 48ms MaxRSS:21M
+|     |     |     +- options cached
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native cached 51ms MaxRSS:21M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) cached
+|     |        +- compile exe generate-lexer debug native cached 89ms MaxRSS:21M
+|     |           +- WriteFile interfaces/0.d.zx cached
+|     |           |  +- run exe standard-catalog (catalog.zig) cached
+|     |           |     +- compile exe standard-catalog fast native cached 45ms MaxRSS:21M
+|     |           |     +- WriteFile catalog.json cached
+|     |           +- options cached
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-direct-library 8 pass (8 total) 4ms MaxRSS:1M
+|  +- compile test value-return-direct-library debug native success 1s MaxRSS:269M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-wrapped-source 8 pass (8 total) 4ms MaxRSS:1M
+|  +- compile test value-return-wrapped-source debug native success 1s MaxRSS:256M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-wrapped-library 8 pass (8 total) 4ms MaxRSS:1M
+|  +- compile test value-return-wrapped-library debug native success 1s MaxRSS:261M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-chained-source 8 pass (8 total) 4ms MaxRSS:1M
+|  +- compile test value-return-chained-source debug native success 1s MaxRSS:261M
+|     +- run exe compile-value-return (source.zig) success 7ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-chained-library 8 pass (8 total) 4ms MaxRSS:1M
+|  +- compile test value-return-chained-library debug native success 1s MaxRSS:264M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-conditional-source 8 pass (8 total) 4ms MaxRSS:1M
+|  +- compile test value-return-conditional-source debug native success 1s MaxRSS:270M
+|     +- run exe compile-value-return (source.zig) success 7ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-conditional-library 8 pass (8 total) 4ms MaxRSS:1M
+|  +- compile test value-return-conditional-library debug native success 1s MaxRSS:262M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-fallible-source 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test value-return-fallible-source debug native success 1s MaxRSS:257M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-fallible-library 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test value-return-fallible-library debug native success 1s MaxRSS:264M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-enumeration-source 3 pass (3 total) 3ms MaxRSS:1M
+|  +- compile test value-return-enumeration-source debug native success 1s MaxRSS:262M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-enumeration-library 3 pass (3 total) 3ms MaxRSS:1M
+|  +- compile test value-return-enumeration-library debug native success 1s MaxRSS:259M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-references-source 3 pass (3 total) 2ms MaxRSS:1M
+|  +- compile test value-return-references-source debug native success 1s MaxRSS:260M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-references-library 3 pass (3 total) 3ms MaxRSS:1M
+|  +- compile test value-return-references-library debug native success 1s MaxRSS:265M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escaping-source 2 pass (2 total) 5ms MaxRSS:1M
+|  +- compile test value-return-escaping-source debug native success 1s MaxRSS:255M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escaping-library 2 pass (2 total) 4ms MaxRSS:1M
+|  +- compile test value-return-escaping-library debug native success 1s MaxRSS:263M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_optional-source 2 pass (2 total) 4ms MaxRSS:1M
+|  +- compile test value-return-escape_optional-source debug native success 1s MaxRSS:258M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_optional-library 2 pass (2 total) 4ms MaxRSS:1M
+|  +- compile test value-return-escape_optional-library debug native success 1s MaxRSS:257M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_list-source 2 pass (2 total) 5ms MaxRSS:1M
+|  +- compile test value-return-escape_list-source debug native success 1s MaxRSS:264M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_list-library 2 pass (2 total) 5ms MaxRSS:1M
+|  +- compile test value-return-escape_list-library debug native success 1s MaxRSS:258M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_tuple-source 2 pass (2 total) 5ms MaxRSS:1M
+|  +- compile test value-return-escape_tuple-source debug native success 1s MaxRSS:253M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_tuple-library 2 pass (2 total) 5ms MaxRSS:1M
+|  +- compile test value-return-escape_tuple-library debug native success 1s MaxRSS:257M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_nested-source 2 pass (2 total) 6ms MaxRSS:1M
+|  +- compile test value-return-escape_nested-source debug native success 1s MaxRSS:256M
+|     +- run exe compile-value-return (source.zig) success 6ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_nested-library 2 pass (2 total) 5ms MaxRSS:1M
+|  +- compile test value-return-escape_nested-library debug native success 1s MaxRSS:265M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-native_scalar-source 3 pass (3 total) 3ms MaxRSS:1M
+|  +- compile test value-return-native_scalar-source debug native success 1s MaxRSS:262M
+|     +- run exe compile-value-return (source.zig) success 7ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-native_scalar-library 3 pass (3 total) 3ms MaxRSS:1M
+|  +- compile test value-return-native_scalar-library debug native success 1s MaxRSS:267M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-borrowed_objects-source 0 pass, 3 fail (3 total)
+|  +- compile test value-return-borrowed_objects-source debug native success 1s MaxRSS:273M
+|     +- run exe compile-value-return (source.zig) success 9ms
+|     |  +- compile exe compile-value-return debug native (+9 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-borrowed_objects-library 0 pass, 3 fail (3 total)
+   +- compile test value-return-borrowed_objects-library debug native success 1s MaxRSS:265M
+      +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+test-module-generation success
++- run test cached
+|  +- compile test debug native cached 49ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test cached
+|  +- compile test debug native cached 45ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test cached
+|  +- compile test debug native cached 49ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test cached
+|  +- compile test debug native cached 45ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test cached
+|  +- compile test debug native cached 49ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test cached
+|  +- compile test debug native cached 49ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test cached
+   +- compile test debug native cached 45ms MaxRSS:21M
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

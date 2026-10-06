@@ -1,0 +1,325 @@
+{
+    "production_commit": "6ec98c7148ae03370443e8d49812dbb4222270c3",
+    "cwd": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test",
+    "argv": [
+        "zig",
+        "build",
+        "test-module-generation",
+        "test-value-return",
+        "test-iterate-buffer",
+        "test-typed-try-runtime",
+        "test-native-references",
+        "-Doptimize=ReleaseSafe",
+        "--summary",
+        "all"
+    ],
+    "terminal_exit_code": 0,
+    "summary": "Build Summary: 318/318 steps succeeded; 328/328 tests passed",
+    "actual_managed_test_passes": 328,
+    "actual_managed_test_leaves": [
+        "|  +- run test 13 pass (13 total) 9ms MaxRSS:2M",
+        "|  +- run test 12 pass (12 total) 6ms MaxRSS:2M",
+        "|  +- run test 14 pass (14 total) 7ms MaxRSS:2M",
+        "|  +- run test 2 pass (2 total) 13ms MaxRSS:2M",
+        "|  +- run test 5 pass (5 total) 5ms MaxRSS:2M",
+        "|  +- run test 8 pass (8 total) 5ms MaxRSS:2M",
+        "|  +- run test 2 pass (2 total) 32ms MaxRSS:2M",
+        "|  +- run test 3 pass (3 total) 4ms MaxRSS:2M",
+        "|  +- run test 7 pass (7 total) 5ms MaxRSS:2M",
+        "|  +- run test 5 pass (5 total) 6ms MaxRSS:2M",
+        "|  +- run test 2 pass (2 total) 23ms MaxRSS:2M",
+        "|  +- run test 5 pass (5 total) 7ms MaxRSS:2M",
+        "|  +- run test 5 pass (5 total) 6ms MaxRSS:2M",
+        "|  +- run test 8 pass (8 total) 4ms MaxRSS:1M",
+        "|  +- run test 2 pass (2 total) 595ms MaxRSS:2M",
+        "+- run test typed-try-scalar 4 pass (4 total) 3ms MaxRSS:1M",
+        "+- run test typed-try-optional 3 pass (3 total) 2ms MaxRSS:1M",
+        "+- run test typed-try-void 2 pass (2 total) 3ms MaxRSS:999K",
+        "+- run test typed-try-infallible 2 pass (2 total) 3ms MaxRSS:999K",
+        "+- run test typed-try-empty 2 pass (2 total) 2ms MaxRSS:999K",
+        "+- run test typed-try-before 3 pass (3 total) 3ms MaxRSS:991K",
+        "+- run test typed-try-after 4 pass (4 total) 3ms MaxRSS:995K",
+        "+- run test typed-try-nested 4 pass (4 total) 3ms MaxRSS:1M",
+        "+- run test typed-try-index 3 pass (3 total) 3ms MaxRSS:1M",
+        "+- run test typed-try-compound 3 pass (3 total) 3ms MaxRSS:999K",
+        "+- run test 6 pass (6 total) 2ms MaxRSS:1M",
+        "+- run test 6 pass (6 total) 2ms MaxRSS:1M",
+        "+- run test 6 pass (6 total) 3ms MaxRSS:1M",
+        "+- run test 6 pass (6 total) 2ms MaxRSS:1M",
+        "+- run test 6 pass (6 total) 4ms MaxRSS:2M",
+        "+- run test 6 pass (6 total) 3ms MaxRSS:2M",
+        "+- run test 6 pass (6 total) 2ms MaxRSS:1M",
+        "+- run test 6 pass (6 total) 2ms MaxRSS:1M",
+        "+- run test 6 pass (6 total) 2ms MaxRSS:1M",
+        "+- run test 6 pass (6 total) 3ms MaxRSS:1M",
+        "+- run test 6 pass (6 total) 2ms MaxRSS:1M",
+        "+- run test value-return-direct-source 8 pass (8 total) 2ms MaxRSS:1M",
+        "+- run test value-return-direct-library 8 pass (8 total) 3ms MaxRSS:1M",
+        "+- run test value-return-wrapped-source 8 pass (8 total) 4ms MaxRSS:1M",
+        "+- run test value-return-wrapped-library 8 pass (8 total) 2ms MaxRSS:1M",
+        "+- run test value-return-chained-source 8 pass (8 total) 2ms MaxRSS:1M",
+        "+- run test value-return-chained-library 8 pass (8 total) 3ms MaxRSS:1M",
+        "+- run test value-return-conditional-source 8 pass (8 total) 2ms MaxRSS:1M",
+        "+- run test value-return-conditional-library 8 pass (8 total) 4ms MaxRSS:1M",
+        "+- run test value-return-fallible-source 4 pass (4 total) 2ms MaxRSS:1M",
+        "+- run test value-return-fallible-library 4 pass (4 total) 2ms MaxRSS:1M",
+        "+- run test value-return-enumeration-source 3 pass (3 total) 2ms MaxRSS:1M",
+        "+- run test value-return-enumeration-library 3 pass (3 total) 3ms MaxRSS:1M",
+        "+- run test value-return-references-source 3 pass (3 total) 2ms MaxRSS:1M",
+        "+- run test value-return-references-library 3 pass (3 total) 3ms MaxRSS:1M",
+        "+- run test value-return-escaping-source 2 pass (2 total) 3ms MaxRSS:1M",
+        "+- run test value-return-escaping-library 2 pass (2 total) 6ms MaxRSS:1M",
+        "+- run test value-return-escape_optional-source 2 pass (2 total) 3ms MaxRSS:1M",
+        "+- run test value-return-escape_optional-library 2 pass (2 total) 4ms MaxRSS:1M",
+        "+- run test value-return-escape_list-source 2 pass (2 total) 2ms MaxRSS:1M",
+        "+- run test value-return-escape_list-library 2 pass (2 total) 2ms MaxRSS:1M",
+        "+- run test value-return-escape_tuple-source 2 pass (2 total) 3ms MaxRSS:1M",
+        "+- run test value-return-escape_tuple-library 2 pass (2 total) 3ms MaxRSS:1M",
+        "+- run test value-return-escape_nested-source 2 pass (2 total) 2ms MaxRSS:1M",
+        "+- run test value-return-escape_nested-library 2 pass (2 total) 3ms MaxRSS:1M",
+        "+- run test value-return-native_scalar-source 3 pass (3 total) 2ms MaxRSS:1M",
+        "+- run test value-return-native_scalar-library 3 pass (3 total) 3ms MaxRSS:1M",
+        "+- run test value-return-borrowed_objects-source 3 pass (3 total) 4ms MaxRSS:1M",
+        "+- run test value-return-borrowed_objects-library 3 pass (3 total) 4ms MaxRSS:1M",
+        "+- run test 3 pass (3 total) 5ms MaxRSS:2M",
+        "+- run test 4 pass (4 total) 22ms MaxRSS:2M",
+        "+- run test 2 pass (2 total) 211ms MaxRSS:2M",
+        "+- run test 5 pass (5 total) 11ms MaxRSS:2M",
+        "+- run test 3 pass (3 total) 11ms MaxRSS:3M",
+        "+- run test 3 pass (3 total) 377ms MaxRSS:3M",
+        "+- run test 3 pass (3 total) 230ms MaxRSS:3M"
+    ],
+    "cached_test_steps": [],
+    "new_unique_declarations": 8,
+    "new_runtime_route_executions": 12,
+    "catalog_ids_added": 0,
+    "test_sources": {
+        "packages/test/build/value_return.zig": "b744981b2b93149da3db8e059a54622d1cd43e36acbc098aa5159f3bdac401ea",
+        "packages/test/tests/collections/value_return/borrowed_objects/root.zig": "f0a09d257e5a5017d9b8ba87ecf32b61857e63ff6d59beae99acf5f7568a5a5f",
+        "packages/test/tests/collections/value_return/compile.zig": "908e5226ae1a344df8dbb5699dce3b516a9006ada445915b8bc414f58ad8fda0",
+        "packages/test/tests/collections/value_return/fixtures/borrowed_objects/collect.zx": "5675687a9af86a8cbd207912aa0bfbf7f929df763516761f28a58eff081acfe9",
+        "packages/test/tests/collections/value_return/fixtures/borrowed_objects/loop.zx": "6fbd30baa3cf1e7a1d82aad2d288299ed41859cf17038e4fb941f1c75138445c",
+        "packages/test/tests/collections/value_return/fixtures/borrowed_objects/types.zx": "2f676af267674041d0104fda162d8e6d654fdcda29e02573cfa07dddeada2431",
+        "packages/test/tests/collections/value_return/fixtures/borrowed_objects.zx": "a092ac2807ce918cfc6ca5c3c81f2f6f56e7ab459f80325ba67e35b26cf42eba",
+        "packages/test/tests/collections/value_return/fixtures/native_scalar/interface.d.zx": "84e1575736b80862dec4a1598e0ee3b78c750e34d83ca72b7f9b5c9c54bb8788",
+        "packages/test/tests/collections/value_return/fixtures/native_scalar/loop.zx": "9a9a1823a9b5dc850940854903fb3662b62afe6d8caf1feff7e38ab2c67cfea3",
+        "packages/test/tests/collections/value_return/fixtures/native_scalar.zx": "1ab7d5b375c5bbd8d1a3d7b5a5010591c989c44b2397a70c87a8cddae3720b67",
+        "packages/test/tests/collections/value_return/native_scalar/host.zig": "7162f8da32495b29a25feb3db932535832a57d71166f21e68842dd2106557eeb",
+        "packages/test/tests/collections/value_return/native_scalar/root.zig": "13ef86cc4031acfecad98e5b60474236cf42ed7c460426e7317a555e5896a065",
+        "packages/test/tests/incremental/module_generation/value_eligibility/fixture.zig": "aa68202ab93567119b811614dc90b47fa350de55b333c0e3bc3b6915bbea5426",
+        "packages/test/tests/incremental/module_generation/value_eligibility_test.zig": "64aa1f5bc9baf00584aa19c59e7d4bb3018b17f2bb0e0e5cdbf1dc5256174b69"
+    },
+    "generated_zig": {
+        "native_scalar-source.zig.txt": {
+            "original": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/6dc26fff9d77e8981d574861e2a98e39/source.zig",
+            "sha256": "d316603addece1dab1a7b517209e53ea11837af5d26d8be75d0df76a1ad13516"
+        },
+        "native_scalar-source_abi.zig.txt": {
+            "original": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/6dc26fff9d77e8981d574861e2a98e39/source_abi.zig",
+            "sha256": "3c77733ce5c0db15b0fe5a89829c17293b65edfcd17b926f9825cc1b36b7354e"
+        },
+        "native_scalar-library.zig.txt": {
+            "original": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/6dc26fff9d77e8981d574861e2a98e39/library.zig",
+            "sha256": "9c4ce9db95f8d4db3170ada9922e00a08733eed07edb167b1b72a1750cdcf0ee"
+        },
+        "native_scalar-library_abi.zig.txt": {
+            "original": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/6dc26fff9d77e8981d574861e2a98e39/library_abi.zig",
+            "sha256": "3c77733ce5c0db15b0fe5a89829c17293b65edfcd17b926f9825cc1b36b7354e"
+        },
+        "borrowed_objects-source.zig.txt": {
+            "original": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/c3f7addd6e5548aa7d3609a0751fd503/source.zig",
+            "sha256": "3c1b4578897d0e8afe48eb3b3bc7a8d9d34459df54f658ea766e87727250b5bd"
+        },
+        "borrowed_objects-source_abi.zig.txt": {
+            "original": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/c3f7addd6e5548aa7d3609a0751fd503/source_abi.zig",
+            "sha256": "cb39b2f12a0c2e48303c9778634ffbcaea0298a7f8bdd5a4eb50e6d5e4c087fa"
+        },
+        "borrowed_objects-library.zig.txt": {
+            "original": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/c3f7addd6e5548aa7d3609a0751fd503/library.zig",
+            "sha256": "6bc653479bdcc79d56f907be7e30571e1eb30c4eeee3d9ffb1e8c15671eb064b"
+        },
+        "borrowed_objects-library_abi.zig.txt": {
+            "original": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/c3f7addd6e5548aa7d3609a0751fd503/library_abi.zig",
+            "sha256": "cb39b2f12a0c2e48303c9778634ffbcaea0298a7f8bdd5a4eb50e6d5e4c087fa"
+        }
+    },
+    "native_runtime_reports": [
+        {
+            "raw_report": "原生执行报告-0.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/borrowed/execution_test.zig",
+            "declarations": 4,
+            "sha256": "2fb350ba57a844513a78ea1b282df88d7f3303bb23f7ef7762f44f83d0a347c0"
+        },
+        {
+            "raw_report": "原生执行报告-1.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/two_buffers/execution_test.zig",
+            "declarations": 4,
+            "sha256": "dcd7e074e27283bf1a056c9829eb668e357560f72ab6175af50eb323bd66e143"
+        },
+        {
+            "raw_report": "原生执行报告-2.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/traversal/execution_test.zig",
+            "declarations": 3,
+            "sha256": "867fd7b6ba14e92b2e5f4646e1e50785bc139d40235fa9b01375f071be24066d"
+        },
+        {
+            "raw_report": "原生执行报告-3.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/optional/execution_test.zig",
+            "declarations": 2,
+            "sha256": "8e4c9217411a0c46df4635936129e7796e56b5441d8f37945a3346f7f9e4696f"
+        },
+        {
+            "raw_report": "原生执行报告-4.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/containers/execution_test.zig",
+            "declarations": 3,
+            "sha256": "ff10fb3c0e9c7035f5ecb8b817bba893cc403e52fd48a7b3504885faadacb00b"
+        },
+        {
+            "raw_report": "原生执行报告-5.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/loop_history/execution_test.zig",
+            "declarations": 4,
+            "sha256": "2c98a40adca398dd2fa3d111ae2224e4cb8f815414c389c59fd902c29847b98d"
+        },
+        {
+            "raw_report": "原生执行报告-6.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/borrowed/execution_test.zig",
+            "declarations": 4,
+            "sha256": "0c2b4e0fc734a86cf72d97c92ba6fe1bbc8a7b9176c227e312848173500e24eb"
+        },
+        {
+            "raw_report": "原生执行报告-7.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/traversal/execution_test.zig",
+            "declarations": 3,
+            "sha256": "d3047a611354d0271c9728abca06eae5868a48291a9e922b049149dbcaa0f8fc"
+        },
+        {
+            "raw_report": "原生执行报告-8.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/nested_helpers/execution_test.zig",
+            "declarations": 4,
+            "sha256": "d058474ff9b036e3adbe954302116c51d1d37d47d5fecbae50d5d63e65a86a4f"
+        },
+        {
+            "raw_report": "原生执行报告-9.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/identity/execution_test.zig",
+            "declarations": 2,
+            "sha256": "12236d76bd611b6c591aed3f66f9d71a4956b8b0e50f65d593b1055beab90f6e"
+        },
+        {
+            "raw_report": "原生执行报告-10.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/coalesce/execution_test.zig",
+            "declarations": 2,
+            "sha256": "260ab1a15f035d45b3e4dafc2ca17e49bad3b7c09e7c457e72b95b88b3b9185e"
+        },
+        {
+            "raw_report": "原生执行报告-11.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/two_buffers/execution_test.zig",
+            "declarations": 4,
+            "sha256": "1294d581d4a8ad8f0c6282ecf05ba1fbe3f80208693deb21a5335d47076c9293"
+        },
+        {
+            "raw_report": "原生执行报告-12.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/identity/execution_test.zig",
+            "declarations": 2,
+            "sha256": "3209d0284f94db22af4787c911ece8f4dd18650dc79ef0895b1f8213b69f0b94"
+        },
+        {
+            "raw_report": "原生执行报告-13.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/helper_pop/execution_test.zig",
+            "declarations": 4,
+            "sha256": "37ccf9191959244563f72ec090e527fe67b0789954fcd44df8065c72a14078d3"
+        },
+        {
+            "raw_report": "原生执行报告-14.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/loop_write/execution_test.zig",
+            "declarations": 4,
+            "sha256": "b3a1d3d8f830baa6ab7d8a19357254fce3fb4516892bba1baba70163275c55f1"
+        },
+        {
+            "raw_report": "原生执行报告-15.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/order/execution_test.zig",
+            "declarations": 3,
+            "sha256": "aee0dbe01be52286a42f9ac6f82a1d2acbe5309f8c28909c2da2e6df38f5b441"
+        },
+        {
+            "raw_report": "原生执行报告-16.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/dual_append/execution_test.zig",
+            "declarations": 4,
+            "sha256": "9905b9cf53a6e5ca9c782845f555f53f96dc4139ddd924d1466d12ca3813eb6c"
+        },
+        {
+            "raw_report": "原生执行报告-17.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/read/execution_test.zig",
+            "declarations": 2,
+            "sha256": "fc9016b8b00ce352e470621a092e1360875f8e2a788fa059d3ecc8bbc738ef1b"
+        },
+        {
+            "raw_report": "原生执行报告-18.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/helper_pop/execution_test.zig",
+            "declarations": 4,
+            "sha256": "c323c712f1e3a0a9ae7c611250bd92fcd1e38f795bb05a7c6cc519a1d1987180"
+        },
+        {
+            "raw_report": "原生执行报告-19.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/order/execution_test.zig",
+            "declarations": 3,
+            "sha256": "61554224b749ef9bbc6a0104a9b46615c1f8753ec5b65ef9f9245a9ce546e1d7"
+        },
+        {
+            "raw_report": "原生执行报告-20.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/containers/execution_test.zig",
+            "declarations": 3,
+            "sha256": "c80ca45b210a875d1c9a546d7582fa7df538f867b5a6b777c6f13853a103e5d9"
+        },
+        {
+            "raw_report": "原生执行报告-21.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/loop_history/execution_test.zig",
+            "declarations": 4,
+            "sha256": "96f3d7b36828280178673b3c0909b2a08d6a9feb9923ba69b41a6da2695befdd"
+        },
+        {
+            "raw_report": "原生执行报告-22.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/coalesce/execution_test.zig",
+            "declarations": 2,
+            "sha256": "9b07d36aa76e7aba2e5ad3ebb77fc54a1d6676d204f45169a2c958e09fe0a394"
+        },
+        {
+            "raw_report": "原生执行报告-23.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/loop_write/execution_test.zig",
+            "declarations": 4,
+            "sha256": "f4e3db92e816c2139cf970479124daed8393f2419fd239f3ee7dec9a8327d566"
+        },
+        {
+            "raw_report": "原生执行报告-24.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/optional/execution_test.zig",
+            "declarations": 2,
+            "sha256": "43d644f5039afe829cc8c3f3d09cc753cc1a790f4a0603370ef09b085385c547"
+        },
+        {
+            "raw_report": "原生执行报告-25.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/nested_helpers/execution_test.zig",
+            "declarations": 4,
+            "sha256": "21300b15479f5946646a0f5dd9d5366848784c4f6767344926e77276fd66dda5"
+        },
+        {
+            "raw_report": "原生执行报告-26.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/dual_append/execution_test.zig",
+            "declarations": 4,
+            "sha256": "4e2bc49887b349237e82a778bddefaf40b9e8524271795b9bcfdd74b1bb05699"
+        },
+        {
+            "raw_report": "原生执行报告-27.txt",
+            "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/native/references/runtime/read/execution_test.zig",
+            "declarations": 2,
+            "sha256": "af1c373b6f0debabeeac7c88aee99f260118378c07eb50ce841d392e6248d757"
+        }
+    ],
+    "native_target_reports": [
+        {
+            "original": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/566c115c5bb929c93a832a6181b0454a/application-targets.json",
+            "sha256": "9328b8f2a75c598a3f4929dd34e32f960b5002a69a89e56fc26238574acd4c5b",
+            "passed": 9
+        }
+    ],
+    "raw_log_sha256": "bc6580034674c892ff0bd6cc09fa01d41d0f6463b889dc8b799164d2a3bf8b18",
+    "counting_boundary": "Six new runtime declarations execute through two routes. Two new generation declarations belong to the existing module-generation suite. Build-managed numeric leaves, cached steps, native external tests and target-driver observations remain separate; none create JSONL IDs."
+}
