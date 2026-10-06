@@ -1,0 +1,26 @@
+export type Input = u8[]
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  if (in.length == 0 || in[0] == 47 || in[in.length - 1] == 47) {
+    return in.length
+  }
+
+  const state = loop({ source: in, offset: 0, start: 0, valid: true }, {
+    while: value => value.valid && value.offset < value.source.length,
+    next: value => {
+      const byte = value.source[value.offset]
+
+      value.valid = byte != 0 && byte != 58 && byte != 92
+
+      if (byte == 47) {
+        value.start = value.offset + 1
+      }
+
+      value.offset += 1
+    }
+  })
+
+  return state.valid ? state.start : in.length
+}

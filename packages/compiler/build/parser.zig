@@ -9,6 +9,7 @@ pub const Sources = struct {
     attribute_role: std.Build.LazyPath,
     attribute_content: std.Build.LazyPath,
     call_rule: std.Build.LazyPath,
+    path_kind: std.Build.LazyPath,
 };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
@@ -74,8 +75,9 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const attribute_role = run.addOutputFileArg("attribute_role.zig");
     const attribute_content = run.addOutputFileArg("attribute_content.zig");
     const call_rule = run.addOutputFileArg("call_rule.zig");
+    const path_kind = run.addOutputFileArg("path_kind.zig");
 
-    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule };
+    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {

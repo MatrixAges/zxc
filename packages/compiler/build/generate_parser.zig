@@ -62,6 +62,7 @@ pub fn main(init: std.process.Init) !void {
         "rx/schema/attribute/classify.rx",
         "rx/schema/content/validate.rx",
         "rx/schema/call/validate.rx",
+        "rx/path_kind/validate.rx",
     };
 
     for (entries, args[2 .. 2 + entries.len]) |entry, output_path| {

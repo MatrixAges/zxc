@@ -1,0 +1,48 @@
+import ends from "./ends"
+import equal from "./equal"
+import { Kind } from "./model"
+import moduleFile from "./module_file"
+import name from "./name"
+
+export type Input = { path: u8[], kind: Kind, suffix: u8[] }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  const start = name(in.path)
+
+  if (start == in.path.length) {
+    return false
+  }
+
+  if (in.kind == Kind.SpecialFile) {
+    return in.path.length - start > in.suffix.length && ends({ source: in.path, pattern: in.suffix })
+  }
+
+  if (in.kind == Kind.ModuleFile) {
+    return moduleFile({ source: in.path, start: start })
+  }
+
+  const rx = ends({ source: in.path, pattern: [46, 114, 120] })
+
+  if (in.kind == Kind.ModuleReference && rx) {
+    return moduleFile({ source: in.path, start: start })
+  }
+
+  if (equal({ source: in.path, start: start, pattern: [46] }) || equal({ source: in.path, start: start, pattern: [46, 46] })) {
+    return false
+  }
+
+  switch (in.kind) {
+    case Kind.ModuleReference:
+      return !equal({ source: in.path, start: start, pattern: [97, 112, 112] }) &&
+        !ends({ source: in.path, pattern: [46, 103, 97, 116, 101, 119, 97, 121] }) &&
+        !ends({ source: in.path, pattern: [46, 115, 116, 111, 114, 101] })
+    case Kind.StoreReference:
+      return !rx || ends({ source: in.path, pattern: [46, 115, 116, 111, 114, 101, 46, 114, 120] })
+    case Kind.FunctionReference:
+      return !rx
+    default:
+      return false
+  }
+}
