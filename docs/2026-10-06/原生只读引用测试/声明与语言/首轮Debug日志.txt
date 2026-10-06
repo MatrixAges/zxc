@@ -1,0 +1,199 @@
+test-native-references-analysis
++- run test 1 pass, 7 fail (8 total)
+error: 'declaration_test.test.native reference result cannot be created by a zero argument accessor' failed:
+       expected 26, found 27
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x104fef609 in expectEqualInner__func_2199 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x104ff0288 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/fixture.zig:78:9: 0x104ff0323 in rejected (test)
+               try std.testing.expectEqual(@as(usize, 26), issue.span.end);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/declaration_test.zig:7:5: 0x104ff19e8 in test.native reference result cannot be created by a zero argument accessor (test)
+           try f.rejected(std.testing.allocator, .{ .declaration = prefix ++ "export declare function identity(): Node\n" }, .{ .code = .ownership, .message = "native reference results require a host reference input", .native = true });
+           ^
+error: 'declaration_test.test.native reference result cannot be created from ordinary scalar data' failed:
+       expected 26, found 27
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x104fef609 in expectEqualInner__func_2199 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x104ff0288 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/fixture.zig:78:9: 0x104ff0323 in rejected (test)
+               try std.testing.expectEqual(@as(usize, 26), issue.span.end);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/declaration_test.zig:11:5: 0x104ff1988 in test.native reference result cannot be created from ordinary scalar data (test)
+           try f.rejected(std.testing.allocator, .{ .declaration = prefix ++ "export declare function identity(value: u64): Node\n" }, .{ .code = .ownership, .message = "native reference results require a host reference input", .native = true });
+           ^
+error: 'declaration_test.test.native optional reference result still requires a host reference input' failed:
+       expected 26, found 27
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x104fef609 in expectEqualInner__func_2199 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x104ff0288 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/fixture.zig:78:9: 0x104ff0323 in rejected (test)
+               try std.testing.expectEqual(@as(usize, 26), issue.span.end);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/declaration_test.zig:15:5: 0x104ff1928 in test.native optional reference result still requires a host reference input (test)
+           try f.rejected(std.testing.allocator, .{ .declaration = prefix ++ "export declare function identity(value: u64): Node?\n" }, .{ .code = .ownership, .message = "native reference results require a host reference input", .native = true });
+           ^
+error: 'declaration_test.test.native nested reference result still requires a host reference input' failed:
+       expected 26, found 27
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x104fef609 in expectEqualInner__func_2199 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x104ff0288 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/fixture.zig:78:9: 0x104ff0323 in rejected (test)
+               try std.testing.expectEqual(@as(usize, 26), issue.span.end);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/declaration_test.zig:19:5: 0x104ff18c8 in test.native nested reference result still requires a host reference input (test)
+           try f.rejected(std.testing.allocator, .{ .declaration = prefix ++ "export declare function identity(value: u64): { nodes: Node?[] }\n" }, .{ .code = .ownership, .message = "native reference results require a host reference input", .native = true });
+           ^
+error: 'declaration_test.test.native reference inputs cannot declare concurrent access' failed:
+       expected 26, found 27
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x104fef609 in expectEqualInner__func_2199 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x104ff0288 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/fixture.zig:78:9: 0x104ff0323 in rejected (test)
+               try std.testing.expectEqual(@as(usize, 26), issue.span.end);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/declaration_test.zig:23:5: 0x104ff1868 in test.native reference inputs cannot declare concurrent access (test)
+           try f.rejected(std.testing.allocator, .{ .declaration = prefix ++ "export declare function identity(node: Node): u64 concurrent\n" }, .{ .code = .capability, .message = "host reference accessors cannot declare concurrency", .native = true });
+           ^
+error: 'declaration_test.test.native nested reference inputs cannot declare concurrent access' failed:
+       expected 26, found 27
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x104fef609 in expectEqualInner__func_2199 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x104ff0288 in expectEqual (test)
+           return expectEqualInner(T, expected
+error: 'declaration_test.test.native nested reference outputs cannot declare concurrent access' failed:
+       , actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/fixture.zig:78:9: 0x104ff0323 in rejected (test)
+               try std.testing.expectEqual(@as(usize, 26), issue.span.end);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/declaration_test.zig:27:5: 0x104ff1808 in test.native nested reference inputs cannot declare concurrent access (test)
+           try f.rejected(std.testing.allocator, .{ .declaration = prefix ++ "export declare function identity(input: { nodes: Node?[] }): u64 concurrent\n" }, .{ .code = .capability, .message = "host reference accessors cannot declare concurrency", .native = true });
+           ^
+       expected 26, found 27
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x104fef609 in expectEqualInner__func_2199 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x104ff0288 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/fixture.zig:78:9: 0x104ff0323 in rejected (test)
+               try std.testing.expectEqual(@as(usize, 26), issue.span.end);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/declaration_test.zig:31:5: 0x104ff0628 in test.native nested reference outputs cannot declare concurrent access (test)
+           try f.rejected(std.testing.allocator, .{ .declaration = prefix ++ "export declare function identity(node: Node): [u64, Node?] concurrent\n" }, .{ .code = .capability, .message = "host reference accessors cannot declare concurrency", .native = true });
+           ^
+failed command: ./.zig-cache/o/41ccafe305dd0b0d5f366d6cacab8000/test --cache-dir=./.zig-cache --seed=0x414214d2 --listen=-
+
+test-native-references-analysis
++- run test 1 pass, 1 fail (2 total)
+error: 'allocation_test.test.native reference declaration diagnostics release every failed allocation' failed:
+       expected 26, found 27
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1079c6d49 in expectEqualInner__func_1013 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1079c7c88 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/fixture.zig:78:9: 0x1079c7d23 in rejected (test)
+               try std.testing.expectEqual(@as(usize, 26), issue.span.end);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/allocation_test.zig:10:5: 0x1079c8021 in rejected (test)
+           try f.rejected(allocator, .{ .declaration = "export type Node = opaque\n\nexport declare function identity(value: u64): Node\n" }, .{ .code = .ownership, .message = "native reference results require a host reference input", .native = true });
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x1079c8a4a in run (test)
+                   try @call(.auto, test_fn, .{memory} ++ args);
+                   ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x1079c81b3 in checkAllAllocationFailures__func_1024 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x1079c8652 in checkAllAllocationFailures__func_1002 (test)
+           try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/allocation_test.zig:18:5: 0x1079c86aa in test.native reference declaration diagnostics release every failed allocation (test)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, rejected, .{});
+           ^
+failed command: ./.zig-cache/o/5a1b8589ea89092027498e11a26b83bb/test --cache-dir=./.zig-cache --seed=0x414214d2 --listen=-
+
+test-native-references-analysis
++- run test 9 pass, 1 fail (10 total)
+error: 'acceptance_test.test.native opaque leaf can be copied through local names without owning the host object' failed:
+       unexpected reference diagnostic spacing: import order or blank lines do not match built-in rules; run zxc fmt
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10be6ec0f in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/fixture.zig:45:5: 0x10be6f348 in accepted (test)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/analysis/acceptance_test.zig:9:5: 0x10c1ce8f1 in test.native opaque leaf can be copied through local names without owning the host object (test)
+           try f.accepted(std.testing.allocator, .{ .body = "const node = in\n\n  const copy = node\n\n  return copy" });
+           ^
+failed command: ./.zig-cache/o/a47eed2672dd608e863156dbebdf7ec1/test --cache-dir=./.zig-cache --seed=0x414214d2 --listen=-
+
+Build Summary: 25/29 steps succeeded (3 failed); 22/31 tests passed (9 failed)
+test-native-references-analysis transitive failure
++- run test 9 pass, 1 fail (10 total)
+|  +- compile test debug native success 4s MaxRSS:597M
+|     +- WriteFile interfaces/0.d.zx success
+|     |  +- run exe standard-catalog (catalog.zig) success 2ms
+|     |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|     |     +- WriteFile catalog.json success
+|     +- options success
+|     +- run exe generate-parser (parser.zig) success 32s
+|     |  +- compile exe generate-parser debug native success 4s MaxRSS:587M
+|     |     +- options success
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native success 7s MaxRSS:361M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options success
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) success 85ms
+|        +- compile exe generate-lexer debug native success 4s MaxRSS:502M
+|           +- WriteFile interfaces/0.d.zx cached
+|           |  +- run exe standard-catalog (catalog.zig) cached
+|           |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|           |     +- WriteFile catalog.json cached
+|           +- options cached
++- run test 1 pass, 7 fail (8 total)
+|  +- compile test debug native success 4s MaxRSS:605M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 11 pass (11 total) 13ms MaxRSS:3M
+|  +- compile test debug native success 4s MaxRSS:592M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 1 pass, 1 fail (2 total)
+   +- compile test debug native success 4s MaxRSS:631M
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+
