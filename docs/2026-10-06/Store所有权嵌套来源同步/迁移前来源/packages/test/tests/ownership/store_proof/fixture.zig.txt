@@ -6,7 +6,7 @@ const frontend = @import("frontend");
 pub const Case = struct { value: []const u8, expected: bool, helper: bool = false, service: bool = false, forge_summary: bool = false };
 const types = "export type State = { count: u64, rows: u64[][], labels: string[] }\n\nexport type Input = State\n\n";
 const direct = "<Module><Store from='state' as='jobs'/><Call fn='write' in={store.jobs.snapshot} setter={[store.jobs.snapshot]}/></Module>";
-const outer = "<Module><Call module='leaf' in={0}/></Module>";
+const outer = "<Module><Call service='leaf' in={0}/></Module>";
 const store = "<Store name='proof' version={1}><Object name='snapshot'><Field name='count' type='u64' value={3}/><Field name='rows' type='u64[][]' value={[[1,2]]}/><Field name='labels' type='string[]' value={[\"seed\"]}/></Object></Store>";
 
 pub fn run(case: Case) !void {
