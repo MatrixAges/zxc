@@ -1,0 +1,101 @@
+1/1 存储结束分配核对.test.type storage finish releases transferred columns on every failed allocation...
+fail_index: 6/9
+allocated bytes: 916
+freed bytes: 905
+allocations: 6
+deallocations: 5
+allocation that was made to fail: 
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/array_list.zig:756:52: 0x101e3f55b in toOwnedSlice (root)
+            const new_memory = try gpa.alignedAlloc(T, alignment, self.items.len);
+                                                   ^
+/Users/xiewendao/Documents/MatrixAges/zxc/../../../.codex/worktrees/json-output-conformance/zxc/packages/core/src/type_table/storage.zig:28:67: 0x101e3e85d in finish (root)
+        @field(result, name) = try @field(self, name).toOwnedSlice(allocator);
+                                                                  ^
+/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/统一类型表迁移独立回归/草稿/存储结束分配核对.zig:14:37: 0x101e3705e in finish (root)
+    const table = try storage.finish(allocator);
+                                    ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x101e3aec1 in run (root)
+            try @call(.auto, test_fn, .{memory} ++ args);
+            ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1163:69: 0x101e3a7d0 in checkAllAllocationFailures__func_1014 (root)
+        if (@call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args)) |_| {
+                                                                    ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:16:47: 0x101e3aac0 in checkAllAllocationFailures__func_1002 (root)
+    try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+                                              ^
+/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/统一类型表迁移独立回归/草稿/存储结束分配核对.zig:31:54: 0x101e3ab47 in test.type storage finish releases transferred columns on every failed allocation (root)
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, finish, .{});
+                                                     ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:295:25: 0x101e0f16b in mainTerminal (root)
+        if (test_fn.func()) |_| {
+                        ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:74:28: 0x101e0eadf in main (root)
+        return mainTerminal(init);
+                           ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x101e0c576 in callMain (root)
+    if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                       ^
+???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+FAIL (MemoryLeakDetected)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:325:82: 0x101d0f082 in allocBytesAligned__func_206 (root)
+    const byte_ptr = self.rawAlloc(byte_count, alignment, return_address) orelse return error.OutOfMemory;
+                                                                                 ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:311:5: 0x101e258d3 in allocWithSizeAndAlignment__func_934 (root)
+    return self.allocBytesAligned(alignment, byte_count, return_address);
+    ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:299:55: 0x101e3fc1f in allocAdvancedWithRetAddr (root)
+    const ptr: [*]align(a.toByteUnits()) T = @ptrCast(try self.allocWithSizeAndAlignment(@sizeOf(T), a, n, return_address));
+                                                      ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/mem/Allocator.zig:287:5: 0x101e3fc96 in alignedAlloc__func_1031 (root)
+    return self.allocAdvancedWithRetAddr(T, alignment, n, @returnAddress());
+    ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/array_list.zig:756:32: 0x101e3f6c3 in toOwnedSlice (root)
+            const new_memory = try gpa.alignedAlloc(T, alignment, self.items.len);
+                               ^
+/Users/xiewendao/Documents/MatrixAges/zxc/../../../.codex/worktrees/json-output-conformance/zxc/packages/core/src/type_table/storage.zig:28:32: 0x101e3e9e5 in finish (root)
+        @field(result, name) = try @field(self, name).toOwnedSlice(allocator);
+                               ^
+/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/统一类型表迁移独立回归/草稿/存储结束分配核对.zig:14:19: 0x101e371be in finish (root)
+    const table = try storage.finish(allocator);
+                  ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x101e3af1a in run (root)
+            try @call(.auto, test_fn, .{memory} ++ args);
+            ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1186:21: 0x101e3a9a7 in checkAllAllocationFailures__func_1014 (root)
+                    return error.MemoryLeakDetected;
+                    ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x101e3ab22 in checkAllAllocationFailures__func_1002 (root)
+    try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+    ^
+/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/统一类型表迁移独立回归/草稿/存储结束分配核对.zig:31:5: 0x101e3ab7a in test.type storage finish releases transferred columns on every failed allocation (root)
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, finish, .{});
+    ^
+[SafeAllocator] (err): leaked [addr: 101f92208, len: 11 (0xb) align: 1] allocated at: 
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/array_list.zig:756:52: 0x101e4082b in toOwnedSlice (root)
+            const new_memory = try gpa.alignedAlloc(T, alignment, self.items.len);
+                                                   ^
+/Users/xiewendao/Documents/MatrixAges/zxc/../../../.codex/worktrees/json-output-conformance/zxc/packages/core/src/type_table/storage.zig:28:67: 0x101e3e801 in finish (root)
+        @field(result, name) = try @field(self, name).toOwnedSlice(allocator);
+                                                                  ^
+/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/统一类型表迁移独立回归/草稿/存储结束分配核对.zig:14:37: 0x101e3705e in finish (root)
+    const table = try storage.finish(allocator);
+                                    ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x101e3aec1 in run (root)
+            try @call(.auto, test_fn, .{memory} ++ args);
+            ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1163:69: 0x101e3a7d0 in checkAllAllocationFailures__func_1014 (root)
+        if (@call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args)) |_| {
+                                                                    ^
+/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/allocation_testing.zig:16:47: 0x101e3aac0 in checkAllAllocationFailures__func_1002 (root)
+    try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+                                              ^
+/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/统一类型表迁移独立回归/草稿/存储结束分配核对.zig:31:54: 0x101e3ab47 in test.type storage finish releases transferred columns on every failed allocation (root)
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, finish, .{});
+                                                     ^
+(additional stack frames may have been skipped...)
+
+0 passed; 0 skipped; 1 failed.
+1 errors were logged.
+1 tests leaked memory.
+error: the following test command failed with exit code 1:
+.zig-cache/o/3ac6cbc8561fbec86eacc5de2d4a85f4/root --seed=0x90d069e6

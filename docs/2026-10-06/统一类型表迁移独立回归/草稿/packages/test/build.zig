@@ -93,7 +93,7 @@ pub fn build(b: *std.Build) void {
 
     const type_merge_step = b.step("test-type-merge", "Validate structural and nominal module type merging");
 
-    for ([_][]const u8{ "identity", "invalid", "resources", "storage", "storage_append" }) |name| {
+    for ([_][]const u8{ "identity", "invalid", "resources", "storage" }) |name| {
         const type_tests = b.addTest(.{
             .root_module = b.createModule(.{
                 .root_source_file = b.path(b.fmt("tests/incremental/type_merge/{s}_test.zig", .{name})),
@@ -139,7 +139,7 @@ pub fn build(b: *std.Build) void {
         .imports = &.{.{ .name = "compiler", .module = compiler.module("compiler") }},
     });
 
-    for ([_][]const u8{ "roundtrip", "rejection", "type_columns" }) |name| {
+    for ([_][]const u8{ "roundtrip", "rejection" }) |name| {
         const codec_tests = b.addTest(.{ .root_module = b.createModule(.{
             .root_source_file = b.path(b.fmt("tests/library/codec/{s}_test.zig", .{name})),
             .target = target,
@@ -149,8 +149,6 @@ pub fn build(b: *std.Build) void {
                 .{ .name = "library_fixture", .module = library_fixture },
             },
         }) });
-
-        if (std.mem.eql(u8, name, "type_columns")) codec_tests.root_module.addAnonymousImport("type_column_fixture", .{ .root_source_file = b.path("tests/support/type_column_fixture.zig"), .target = target, .optimize = optimize });
 
         codec_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         library_codec_step.dependOn(&b.addRunArtifact(codec_tests).step);
@@ -225,7 +223,7 @@ pub fn build(b: *std.Build) void {
 
     const codec_step = b.step("test-cache-codec", "Validate persistent semantic artifact encoding integrity and resources");
 
-    for ([_][]const u8{ "roundtrip", "invalid", "resources", "type_columns" }) |name| {
+    for ([_][]const u8{ "roundtrip", "invalid", "resources" }) |name| {
         const codec_tests = b.addTest(.{
             .root_module = b.createModule(.{
                 .root_source_file = b.path(b.fmt("tests/incremental/cache_codec/{s}_test.zig", .{name})),
@@ -234,8 +232,6 @@ pub fn build(b: *std.Build) void {
                 .imports = &.{ .{ .name = "compiler", .module = compiler.module("compiler") }, .{ .name = "record_fixture", .module = record_fixture } },
             }),
         });
-
-        if (std.mem.eql(u8, name, "type_columns")) codec_tests.root_module.addAnonymousImport("type_column_fixture", .{ .root_source_file = b.path("tests/support/type_column_fixture.zig"), .target = target, .optimize = optimize });
 
         codec_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         codec_step.dependOn(&b.addRunArtifact(codec_tests).step);

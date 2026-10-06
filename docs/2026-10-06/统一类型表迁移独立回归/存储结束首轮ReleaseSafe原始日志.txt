@@ -1,0 +1,26 @@
+1/1 storage_finish.test.type storage finish releases transferred columns on every failed allocation...
+fail_index: 6/9
+allocated bytes: 916
+freed bytes: 905
+allocations: 6
+deallocations: 5
+allocation that was made to fail: 
+/Users/xiewendao/Documents/MatrixAges/zxc/../../../.codex/worktrees/json-output-conformance/zxc/packages/core/src/type_table/storage.zig:28:67: 0x10befef9e in finish (root)
+        @field(result, name) = try @field(self, name).toOwnedSlice(allocator);
+                                                                  ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1163:69: 0x10bea0364 in checkAllAllocationFailures__func_14 (root)
+        if (@call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args)) |_| {
+                                                                    ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:295:25: 0x10bf03847 in mainTerminal (root)
+        if (test_fn.func()) |_| {
+                        ^
+???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+FAIL (MemoryLeakDetected)
+[SafeAllocator] (err): leaked [addr: 10bfd7238, len: 11 (0xb) align: 1] allocated at: 
+(empty stack trace)
+
+0 passed; 0 skipped; 1 failed.
+1 errors were logged.
+1 tests leaked memory.
+error: the following test command failed with exit code 1:
+.zig-cache/o/eb73f0c061ab7eddcd7e841a97e53114/root --seed=0x4b1c1773

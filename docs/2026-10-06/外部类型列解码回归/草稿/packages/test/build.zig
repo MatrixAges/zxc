@@ -93,7 +93,7 @@ pub fn build(b: *std.Build) void {
 
     const type_merge_step = b.step("test-type-merge", "Validate structural and nominal module type merging");
 
-    for ([_][]const u8{ "identity", "invalid", "resources", "storage", "storage_append" }) |name| {
+    for ([_][]const u8{ "identity", "invalid", "resources", "storage" }) |name| {
         const type_tests = b.addTest(.{
             .root_module = b.createModule(.{
                 .root_source_file = b.path(b.fmt("tests/incremental/type_merge/{s}_test.zig", .{name})),

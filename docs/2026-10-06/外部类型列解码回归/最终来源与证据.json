@@ -1,0 +1,90 @@
+{
+    "production_commit": "79cc01c8b2abfc9211245cdc5b44c0ec297c613f",
+    "production_sources": {
+        "packages/core/src/type_table/model.zig": "33a3dd7b14d46db3d752114e4f96683a42f988df9f84bb5b5fe51a4684ba2ec6",
+        "packages/core/src/type_table/structure.zig": "58e29f7851f44d6c461b780c2ab2632546fafe4a6d13120b44f5f94b2df0a3f7",
+        "packages/compiler/src/zx/ir/type_rules.zig": "164669fdb74eecf6ac6d553887aa5dc20f8926482437cf480ad179655bfb2dab",
+        "packages/compiler/src/zx/modules/semantic_cache/codec.zig": "71d4dbd504122154b610ac23ed207ef90aa8a536dd33abefa3cfc3c52e730a45",
+        "packages/compiler/src/library/codec.zig": "758e8d334cc09672399c4880a238422d8bdb9add7c62316191e766c959bd28e0"
+    },
+    "formal_sources": {
+        "packages/test/build.zig": "f516c0eea4adfe92b525eb41f8954fff9896e07aa5f792228e13ebc2117b28bf",
+        "packages/test/tests/incremental/cache_codec/type_columns_test.zig": "c88fb93e7a0e81d3b2c61a7a7e63c0df06c72b49fad8223bf97ecc5c47f7de22",
+        "packages/test/tests/library/codec/type_columns_test.zig": "30be2e695fd9fb8f33e05823d9c213403b78ada0c9b4ed05541702690fb87f14",
+        "packages/test/tests/support/type_column_fixture.zig": "00746afcd89ff47ecae8172368efbdf54c19df6ea0961fe80373dafe8604396b"
+    },
+    "new_unique_declarations": 52,
+    "distinct_corruption_contracts": 24,
+    "route_declarations": {
+        "module semantic cache": 26,
+        "unified library": 26
+    },
+    "new_catalog_ids": 0,
+    "results": {
+        "Debug": {
+            "terminal_exit_code": 0,
+            "argv": [
+                "zig",
+                "build",
+                "test-library-codec",
+                "test-cache-codec",
+                "test-nominal-origins",
+                "test-type-merge",
+                "-Doptimize=Debug",
+                "--summary",
+                "all"
+            ],
+            "summary": "Build Summary: 50/50 steps succeeded; 52/52 tests passed",
+            "actual_managed_test_passes": 52,
+            "actual_new_declarations": 52,
+            "cached_test_steps": [
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached"
+            ],
+            "raw_log": "最终Debug原始日志.txt",
+            "raw_log_sha256": "1e9b8757eaf190d640d1bf8a166d6011d3f9cc110cdd07810c4190ce83e2969d"
+        },
+        "ReleaseSafe": {
+            "terminal_exit_code": 0,
+            "argv": [
+                "zig",
+                "build",
+                "test-library-codec",
+                "test-cache-codec",
+                "test-nominal-origins",
+                "test-type-merge",
+                "-Doptimize=ReleaseSafe",
+                "--summary",
+                "all"
+            ],
+            "summary": "Build Summary: 50/50 steps succeeded; 52/52 tests passed",
+            "actual_managed_test_passes": 52,
+            "actual_new_declarations": 52,
+            "cached_test_steps": [
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached",
+                "+- run test cached"
+            ],
+            "raw_log": "最终ReleaseSafe原始日志.txt",
+            "raw_log_sha256": "772ff16e337e2e72f8c2e8f716d66b411149c11682c93388eeb2a7751244d3c8"
+        }
+    },
+    "scope": "Matching digest and parseable JSON column rejection plus allocator failure cleanup. Positive controls use the same envelope helper as corrupted bytes. Native reference/task columns and restored application execution require separate evidence."
+}
