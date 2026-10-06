@@ -9,21 +9,33 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument("before")
 parser.add_argument("after")
+parser.add_argument("--frames", action="store_true")
 args = parser.parse_args()
 directory = Path(__file__).resolve().parent
 root = directory.parents[3]
-fixture = root / "packages/test/tests/runtime/gateway/fixtures/main.gateway.rx"
-source = fixture.read_text()
-start = source.index(">") + 1
-end = source.rindex("</Gateway>")
+if args.frames:
+    fixture = root / "packages/test/tests/rx/text/resources_test.zig"
+    scales = [255, 256, 257, 1024]
+    prefix = "帧栈"
+else:
+    fixture = root / "packages/test/tests/runtime/gateway/fixtures/main.gateway.rx"
+    source = fixture.read_text()
+    start = source.index(">") + 1
+    end = source.rindex("</Gateway>")
+    scales = [8, 16, 32, 64]
+    prefix = ""
 results = {}
 
 for label, executable in [("修复前", args.before), ("修复后", args.after)]:
     rows = []
 
-    for scale in [8, 16, 32, 64]:
-        path = directory / f"gateway_{scale}.rx"
-        path.write_text(source[:start] + source[start:end] * scale + source[end:])
+    for scale in scales:
+        if args.frames:
+            path = directory / f"nested_{scale}.rx"
+            path.write_text("<A>" * scale + "</A>" * scale)
+        else:
+            path = directory / f"gateway_{scale}.rx"
+            path.write_text(source[:start] + source[start:end] * scale + source[end:])
         started = time.perf_counter()
         output = subprocess.run(
             [executable, str(path)], capture_output=True, text=True, check=True
@@ -34,7 +46,7 @@ for label, executable in [("修复前", args.before), ("修复后", args.after)]
         rows.append(row)
 
     results[label] = rows
-    (directory / f"{label}.json").write_text(
+    (directory / f"{prefix}{label}.json").write_text(
         json.dumps(rows, ensure_ascii=False, indent=2) + "\n"
     )
 
@@ -53,7 +65,7 @@ comparison = {
     ],
 }
 
-(directory / "对照.json").write_text(
+(directory / f"{prefix}对照.json").write_text(
     json.dumps(comparison, ensure_ascii=False, indent=2) + "\n"
 )
 print(json.dumps(comparison, ensure_ascii=False, indent=2))
