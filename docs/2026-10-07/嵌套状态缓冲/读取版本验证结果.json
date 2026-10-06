@@ -1,0 +1,40 @@
+{
+    "status": "passed",
+    "base_commit": "99256cbd",
+    "generation_fingerprint": "zxc.zig.input.v19",
+    "source_files": [
+        {
+            "path": "packages/genz/src/zx/buffer_call/analysis/audit.zig",
+            "sha256": "61257c0e32170a130d1f278a4a7f9056c6a1504ad085ee725ca51478af377286"
+        },
+        {
+            "path": "packages/compiler/src/backends/zig/fingerprint.zig",
+            "sha256": "26941d1c96571fd9e9f114af2c489bad1125cc316dfcfd8dae97ea446cc26c75"
+        }
+    ],
+    "observation_input_sha256": "e01170889e8d8091145f37498432e4720e9ccf3b587d79b4f9b3e47a4148e7e3",
+    "observation_sha256": "ca7e06dc4f95922437a9b299dc915e266a1a16996475b629db81f7b43ae3ca22",
+    "frame_rejections": {
+        "object": "accepted",
+        "tuple": "accepted",
+        "enumeration": "duplicate",
+        "name": "unsupported_call",
+        "step": "unsupported_call"
+    },
+    "limits": [
+        "reader admission still requires pure and detached output",
+        "all accepted lanes still pass versions.check",
+        "root resolver buffering remains incomplete"
+    ],
+    "generated": {
+        "raw_sha256": "4e434531a15a23d0a84d2f1549574c46c7655a24fad95b40d9a0df3500410c32",
+        "object_buffered": true,
+        "tuple_buffered": true,
+        "step_buffered": false
+    },
+    "checks": {
+        "release_build": "35/35 steps passed",
+        "self_compile": "passed",
+        "focused_regressions": "258/258 steps succeeded; 499/499 tests passed; library republish check passed"
+    }
+}
