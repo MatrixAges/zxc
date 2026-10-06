@@ -1,0 +1,23 @@
+import append from "./append"
+import find from "./find"
+import { Kind } from "./model"
+import sortFields from "./sort_fields"
+
+import type { Candidate, Result, Tables } from "./model"
+
+export type Input = { tables: Tables, candidate: Candidate }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const fields = in.candidate.kind == Kind.Object ? sortFields(in.candidate.fields) : in.candidate.fields
+    const names = in.candidate.kind == Kind.ErrorSet ? in.candidate.names.sort()[0] : in.candidate.names
+    const candidate = { ...in.candidate, fields: fields, names: names }
+    const existing = find({ tables: in.tables, candidate: candidate })
+
+    if (existing.found) {
+        return { delta: in.tables.delta, id: existing.id }
+    }
+
+    return append({ tables: in.tables, candidate: candidate })
+}

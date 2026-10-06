@@ -1,0 +1,62 @@
+import integers from "zig:integers"
+
+import { Kind } from "./model"
+import row from "./row"
+
+import type { Candidate, Tables } from "./model"
+
+export type Input = { tables: Tables, id: u32, candidate: Candidate }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const value = row({ tables: in.tables, id: in.id })
+    const candidate = in.candidate
+
+    if (value.kind != candidate.kind) {
+        return false
+    }
+
+    if (value.kind == Kind.Scalar || value.kind == Kind.Optional || value.kind == Kind.List) {
+        return value.first == candidate.first
+    }
+
+    if (value.kind == Kind.Task) {
+        return value.first == candidate.first && value.second == candidate.second
+    }
+
+    if (value.kind == Kind.Enumeration || value.kind == Kind.NativeReference) {
+        return false
+    }
+
+    const table = value.delta ? in.tables.delta : in.tables.base
+    const first = integers.widen(value.first)
+    const count = integers.widen(value.second)
+
+    const length = match value.kind {
+        Kind.Object => candidate.fields.length,
+        Kind.Tuple => candidate.children.length,
+        _ => candidate.names.length
+    }
+
+    if (count != length) {
+        return false
+    }
+
+    const state = loop({ table: table, candidate: candidate, first: first, count: count, index: 0, equal: true }, {
+        while: current => current.equal && current.index < current.count,
+        next: current => {
+            const position = current.first + current.index
+            const equal = match current.candidate.kind {
+                Kind.Object => current.table.field_names[position] == current.candidate.fields[current.index].name &&
+                    current.table.field_types[position] == current.candidate.fields[current.index].type_id,
+                Kind.Tuple => current.table.children[position] == current.candidate.children[current.index],
+                _ => current.table.names[position] == current.candidate.names[current.index]
+            }
+
+            current = { ...current, index: current.index + 1, equal: equal }
+        }
+    })
+
+    return state.equal
+}

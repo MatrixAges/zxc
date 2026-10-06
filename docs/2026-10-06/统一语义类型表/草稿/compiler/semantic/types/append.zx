@@ -1,0 +1,49 @@
+import integers from "zig:integers"
+
+import kindCode from "./kind_code"
+import { Kind } from "./model"
+
+import type { Candidate, Result, Tables } from "./model"
+
+export type Input = { tables: Tables, candidate: Candidate }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const delta = in.tables.delta
+    const candidate = in.candidate
+    const id = integers.narrow(in.tables.base.kinds.length + delta.kinds.length)
+
+    const first = match candidate.kind {
+        Kind.Object => integers.narrow(delta.field_types.length),
+        Kind.Tuple => integers.narrow(delta.children.length),
+        Kind.ErrorSet => integers.narrow(delta.names.length),
+        Kind.Enumeration => integers.narrow(delta.names.length),
+        _ => candidate.first
+    }
+
+    const second = match candidate.kind {
+        Kind.Object => integers.narrow(candidate.fields.length),
+        Kind.Tuple => integers.narrow(candidate.children.length),
+        Kind.ErrorSet => integers.narrow(candidate.names.length),
+        Kind.Enumeration => integers.narrow(candidate.names.length),
+        _ => candidate.second
+    }
+
+    const field_names = candidate.fields.map(field => field.name)
+    const field_types = candidate.fields.map(field => field.type_id)
+
+    return {
+        id: id,
+        delta: {
+            kinds: delta.kinds.push(kindCode(candidate.kind))[0],
+            first: delta.first.push(first)[0],
+            second: delta.second.push(second)[0],
+            labels: delta.labels.push(candidate.label)[0],
+            children: delta.children.concat(candidate.children)[0],
+            field_names: delta.field_names.concat(field_names)[0],
+            field_types: delta.field_types.concat(field_types)[0],
+            names: delta.names.concat(candidate.names)[0]
+        }
+    }
+}

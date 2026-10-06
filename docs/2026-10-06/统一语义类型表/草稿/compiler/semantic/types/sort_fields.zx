@@ -1,0 +1,24 @@
+import field from "./field"
+
+import type { Field } from "./model"
+
+export type Input = Field[]
+
+export type Output = Field[]
+
+export default function (in: Input): Output {
+    const names = in.map(value => value.name).sort()[0]
+    const sorted: Field[] = []
+
+    const state = loop({ fields: in, names: names, sorted: sorted, index: 0 }, {
+        while: value => value.index < value.names.length,
+        next: value => {
+            const item = field({ fields: value.fields, name: value.names[value.index] })
+
+            value.sorted = value.sorted.push(item)[0]
+            value.index += 1
+        }
+    })
+
+    return state.sorted
+}

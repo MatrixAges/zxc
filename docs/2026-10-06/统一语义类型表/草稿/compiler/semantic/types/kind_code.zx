@@ -1,0 +1,19 @@
+import { Kind } from "./model"
+
+export type Input = Kind
+
+export type Output = u8
+
+export default function (in: Input): Output {
+    return match in {
+        Kind.Scalar => 0,
+        Kind.Object => 1,
+        Kind.Optional => 2,
+        Kind.List => 3,
+        Kind.Tuple => 4,
+        Kind.ErrorSet => 5,
+        Kind.Task => 6,
+        Kind.Enumeration => 7,
+        _ => 8
+    }
+}

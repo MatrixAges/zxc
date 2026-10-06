@@ -1,0 +1,14 @@
+import type { Field } from "./model"
+
+export type Input = { fields: Field[], name: string }
+
+export type Output = Field
+
+export default function (in: Input): Output {
+    const state = loop({ fields: in.fields, name: in.name, index: 0 }, {
+        while: value => value.fields[value.index].name != value.name,
+        next: value => { value.index += 1 }
+    })
+
+    return state.fields[state.index]
+}
