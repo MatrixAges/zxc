@@ -9,20 +9,20 @@ hash: Hash = .init(.{}),
 program: ir.Program,
 names: Names,
 value_functions: []const bool,
+pure_functions: []const bool,
+local_functions: []const bool,
 buffer_functions: []const []const @import("genz").zx.buffer_call.Lane,
 pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit) std.mem.Allocator.Error![32]u8 {
-    const value_functions = try @import("genz").zx.value_call.functions(allocator, program);
-
-    defer allocator.free(value_functions);
-
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
 
+    const facts = try @import("genz").zx.value_call.analysis.analyze(arena.allocator(), program);
+    const value_functions = facts.values;
     const buffer_functions = try @import("genz").zx.buffer_call.analysis.functions(arena.allocator(), program, value_functions);
-    var self = Self{ .program = program, .names = names, .value_functions = value_functions, .buffer_functions = buffer_functions };
+    var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions };
 
-    self.bytes("zxc.zig.input.v5");
+    self.bytes("zxc.zig.input.v6");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -84,10 +84,13 @@ fn write(self: *Self, value: anytype) void {
         self.bytes(self.names.functions[@backingInt(value)]);
         self.write(self.program.functions[@backingInt(value)].stores);
         self.write(self.value_functions[@backingInt(value)]);
+        self.write(self.pure_functions[@backingInt(value)]);
+        self.write(self.local_functions[@backingInt(value)]);
         self.write(self.buffer_functions[@backingInt(value)]);
 
         const function = self.program.functions[@backingInt(value)];
 
+        self.write(function.consumes_input);
         self.write(!@import("genz").zx.value_call.containsDescendant(self.program, function.output_type, function.input_type));
 
         return;

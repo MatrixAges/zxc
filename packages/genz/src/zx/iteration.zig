@@ -31,7 +31,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
     const initial = if (local) try aggregate.bind(self, &body, initial_expression) else initial_expression;
     const type_id = self.program.expression(id).type_id;
     const changed_name = if (local and !by_value) try self.fresh("state_changed") else "";
-    var buffers = try @import("iteration_buffer/root.zig").init(self, iteration, &body, pure);
+    var buffers = try @import("iteration_buffer/root.zig").init(self, iteration, &body, local_calls, local or self.program.typeOf(type_id) == .list);
 
     defer buffers.restore();
 
@@ -99,6 +99,8 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
         .condition = if (iteration.postcondition) try self.builder.expression(.{ .boolean = true }) else condition,
         .body = try loop.toOwnedSlice(self.allocator),
     } });
+
+    try buffers.finish(&body, state, type_id);
 
     const result = if (by_value) state else if (local) try self.builder.expression(.{ .conditional = .{
         .condition = try self.builder.identifier(changed_name),

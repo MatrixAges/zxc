@@ -61,7 +61,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?*const node.Expressio
         .some => |child| try lowering.cast(try @import("types.zig").get(self, value.type_id), try lowering.expr(child)),
         .binary => try lowering.regular(id),
         .object, .tuple => try @import("aggregate.zig").lower(self, id),
-        .list_operation => |operation| try @import("../collections.zig").lowerValue(lowering, value.type_id, operation, try @import("types.zig").get(self, value.type_id)),
+        .list_operation => |operation| try @import("../collections.zig").lowerValue(lowering, value.type_id, operation, try @import("types.zig").get(self, value.type_id), lowering.collection_buffers.get(id)),
         .conditional => |conditional| try lowering.builder.expression(.{ .conditional = .{
             .condition = try lowering.expr(conditional.condition),
             .yes = try lowering.expr(conditional.yes),

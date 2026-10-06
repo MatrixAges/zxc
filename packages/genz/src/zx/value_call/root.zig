@@ -3,8 +3,9 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
-pub const functions = @import("analysis.zig").functions;
-pub const containsDescendant = @import("analysis.zig").containsDescendant;
+pub const analysis = @import("analysis.zig");
+pub const functions = analysis.functions;
+pub const containsDescendant = analysis.containsDescendant;
 
 pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
     if (self.cache.contains(id)) return dereference(self, id);
@@ -14,7 +15,7 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expressio
         .capture => |child| @import("../capture.zig").lowerValue(self, self.program.expression(id).type_id, child),
         .object => aggregate.objectValue(self, id),
         .tuple => |items| aggregate.tupleValue(self, self.program.expression(id), items),
-        .list_operation => |operation| @import("../collections.zig").lowerValue(self, self.program.expression(id).type_id, operation, self.layouts[@backingInt(self.program.expression(id).type_id)]),
+        .list_operation => |operation| @import("../collections.zig").lowerValue(self, self.program.expression(id).type_id, operation, self.layouts[@backingInt(self.program.expression(id).type_id)], self.collection_buffers.get(id)),
         .scope => |scope| @import("../scope.zig").lowerValue(self, scope),
         .iteration => |iteration| @import("../iteration.zig").lowerValue(self, id, iteration),
         .match_expr => |selection| @import("../match.zig").lowerValue(self, selection),
