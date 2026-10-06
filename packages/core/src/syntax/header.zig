@@ -1,15 +1,16 @@
-const zx = @import("zx");
+const ast = @import("../ast.zig");
+const Span = @import("../source.zig").Span;
 
 pub const Import = struct {
-    kind: @FieldType(zx.ast.Import, "kind"),
+    kind: @FieldType(ast.Import, "kind"),
     path: []const u8,
-    span: zx.Span,
+    span: Span,
 };
 
-pub const Declaration = struct { name: zx.ast.Name, span: zx.Span };
+pub const Declaration = struct { name: ast.Name, span: Span };
 
 pub const Native = struct {
-    program: zx.ast.Program,
+    program: ast.Program,
     pub fn importCount(self: Native) usize {
         return self.program.imports.len;
     }
@@ -21,7 +22,8 @@ pub const Native = struct {
     pub fn importNameCount(self: Native, index: usize) usize {
         return self.program.imports[index].names.len;
     }
-    pub fn importNameAt(self: Native, index: usize, name: usize) zx.ast.Name {
+
+    pub fn importNameAt(self: Native, index: usize, name: usize) ast.Name {
         return self.program.imports[index].names[name];
     }
 
@@ -42,3 +44,7 @@ pub const Native = struct {
         return self.program.body != null;
     }
 };
+
+pub fn span(position: anytype) Span {
+    return .{ .start = @intCast(position.start), .end = @intCast(position.end) };
+}
