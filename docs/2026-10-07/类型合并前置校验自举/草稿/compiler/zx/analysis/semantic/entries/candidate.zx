@@ -1,0 +1,29 @@
+import { Kind } from "../types/model"
+
+import type { Candidate } from "../types/model"
+import type { Entry } from "./model"
+
+export type Input = Candidate
+
+export type Output = Entry
+
+export default function (in: Input): Output {
+    const count = match in.kind {
+        Kind.Object => in.fields.names.length,
+        Kind.Tuple => in.children.length,
+        _ => in.names.length
+    }
+
+    return {
+        kind: in.kind,
+        first: in.first,
+        second: in.second,
+        label: in.label,
+        offset: 0,
+        count: count,
+        children: in.children,
+        field_names: in.fields.names,
+        field_types: in.fields.types,
+        names: in.names
+    }
+}

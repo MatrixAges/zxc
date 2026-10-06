@@ -1,0 +1,26 @@
+import type { Bindings } from "./model"
+
+export type Input = { origins: Bindings, names: string[] }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const count = in.origins.ids.length
+
+    if (in.origins.kinds.length != count || in.origins.owners.length != count ||
+        in.origins.members.length != count || in.names.length != count) {
+        return false
+    }
+
+    const state = loop({ origins: in.origins, count: count, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const kind = current.origins.kinds[current.index]
+
+            current.valid = kind <= 2 && (kind == 2 || current.origins.members[current.index] == "")
+            current.index += 1
+        }
+    })
+
+    return state.valid
+}

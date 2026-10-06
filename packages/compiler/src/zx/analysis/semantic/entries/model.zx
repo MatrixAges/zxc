@@ -1,0 +1,14 @@
+import type { Kind } from "../types/model"
+
+export type Entry = {
+    kind: Kind
+    first: u32
+    second: u32
+    label: string
+    offset: u64
+    count: u64
+    children: u32[]
+    field_names: string[]
+    field_types: u32[]
+    names: string[]
+}

@@ -1,0 +1,65 @@
+import integers from "zig:integers"
+import workspace from "zig:merge_workspace"
+
+import equal from "../entries/equal"
+import row from "../entries/row"
+import shape from "../types/nominal/shape"
+import binding from "../types/nominal/validation/binding"
+
+import type { Workspace } from "zig:merge_workspace"
+import type { Table } from "../types/model"
+import type { Bindings } from "../types/nominal/model"
+
+export type Input = { source: Table, target: Table, origins: Bindings, names: string[], first: u64, workspace: Workspace }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!shape({ origins: in.origins, names: in.names })) {
+        return false
+    }
+
+    workspace.allocateOrigins(in.workspace, in.source.kinds.length)
+
+    const origins = loop({ source: in.source, origins: in.origins, names: in.names, workspace: in.workspace, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.origins.ids.length,
+        next: current => {
+            const id = integers.widen(current.origins.ids[current.index])
+            const valid = id < current.source.kinds.length && !workspace.hasOrigin(current.workspace, id) &&
+                binding({ table: current.source, origins: current.origins, names: current.names, index: current.index })
+
+            if (valid) {
+                workspace.setOrigin(current.workspace, id, current.index)
+            }
+
+            current.valid = valid
+            current.index += 1
+        }
+    })
+
+    if (!origins.valid) {
+        return false
+    }
+
+    if (in.first > in.source.kinds.length || (in.first != 0 && in.first != in.target.kinds.length)) {
+        return false
+    }
+
+    workspace.allocateMapping(in.workspace, in.source.kinds.length)
+
+    const prefix = loop({ source: in.source, target: in.target, first: in.first, workspace: in.workspace, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.first,
+        next: current => {
+            const valid = equal({ left: row({ table: current.source, index: current.index }), right: row({ table: current.target, index: current.index }) })
+
+            if (valid) {
+                workspace.setIdentity(current.workspace, current.index)
+            }
+
+            current.valid = valid
+            current.index += 1
+        }
+    })
+
+    return prefix.valid
+}

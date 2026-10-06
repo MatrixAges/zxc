@@ -1,0 +1,25 @@
+import integers from "zig:integers"
+
+import kind from "../types/kind"
+
+import type { Table } from "../types/model"
+import type { Entry } from "./model"
+
+export type Input = { table: Table, index: u64 }
+
+export type Output = Entry
+
+export default function (in: Input): Output {
+    return {
+        kind: kind(in.table.kinds[in.index]),
+        first: in.table.first[in.index],
+        second: in.table.second[in.index],
+        label: in.table.labels[in.index],
+        offset: integers.widen(in.table.first[in.index]),
+        count: integers.widen(in.table.second[in.index]),
+        children: in.table.children,
+        field_names: in.table.field_names,
+        field_types: in.table.field_types,
+        names: in.table.names
+    }
+}

@@ -1,0 +1,11 @@
+export type Workspace = opaque
+
+export declare function allocateOrigins(workspace: Workspace, count: u64): void throws { OutOfMemory }
+
+export declare function allocateMapping(workspace: Workspace, count: u64): void throws { OutOfMemory }
+
+export declare function hasOrigin(workspace: Workspace, index: u64): bool
+
+export declare function setOrigin(workspace: Workspace, index: u64, origin: u64): void
+
+export declare function setIdentity(workspace: Workspace, index: u64): void

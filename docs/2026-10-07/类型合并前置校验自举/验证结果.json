@@ -1,0 +1,18 @@
+{
+    "发行构建": {
+        "命令": "zig build dist",
+        "退出码": 0
+    },
+    "最终专项": {
+        "命令": "zig build test-type-merge test-nominal-origins test-native-references-library test-module-artifacts test-semantic-cache test-library-link test-library-codec test-zx-await-runtime test-value-return test-native-references-runtime",
+        "退出码": 0
+    },
+    "最终CLI生成": ["preflight.rx → 生成/preflight.zig（退出码0）", "lookup.rx → 生成/lookup.zig（退出码0）"],
+    "修复过程": [
+        "首轮143/155用例因实际lookup临时输入分配失败",
+        "普通输入修复后触发prefix状态输入同类分配",
+        "状态/ABI借用统一并绑定一次后，相关专项与最终发行全部通过"
+    ],
+    "证据边界": "执行arena零容量；仍保留未实例化的boxed辅助函数；不能将文本搜索或发行编译替代运行验证",
+    "范围": "来源索引及共享前缀前置自举，共用相等规则；没有新增用例或全量回归，全部自举仍未完成"
+}

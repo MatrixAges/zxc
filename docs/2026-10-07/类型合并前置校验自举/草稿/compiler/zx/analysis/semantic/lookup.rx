@@ -1,0 +1,5 @@
+<Module>
+  <Call fn="types/find" in={$in} />
+
+  <Return value={$ctx.find.found ? $ctx.find.id : null} />
+</Module>
