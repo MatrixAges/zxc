@@ -1,0 +1,333 @@
+Build Summary: 178/178 steps succeeded; 218/218 tests passed
+test-aggregate-loop success
++- run test aggregate-loop-stack-source 7 pass (7 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-stack-source safe native success 16s MaxRSS:380M
+|     +- run exe compile-aggregate-loop (source.zig) success 6ms
+|     |  +- compile exe compile-aggregate-loop safe native success 59s MaxRSS:1G
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 66ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) cached
+|     |     |  +- compile exe generate-parser safe native cached 61ms MaxRSS:21M
+|     |     |     +- options cached
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native cached 66ms MaxRSS:21M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) cached
+|     |     |  +- compile exe generate-lexer safe native cached 59ms MaxRSS:21M
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native cached 60ms MaxRSS:21M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-stack-library 7 pass (7 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-stack-library safe native success 16s MaxRSS:387M
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-nested-source 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-nested-source safe native success 16s MaxRSS:379M
+|     +- run exe compile-aggregate-loop (source.zig) success 9ms
+|     |  +- compile exe compile-aggregate-loop safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-nested-library 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-nested-library safe native success 16s MaxRSS:389M
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-two_lanes-source 7 pass (7 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-two_lanes-source safe native success 16s MaxRSS:386M
+|     +- run exe compile-aggregate-loop (source.zig) success 5ms
+|     |  +- compile exe compile-aggregate-loop safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-two_lanes-library 7 pass (7 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-two_lanes-library safe native success 16s MaxRSS:389M
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-bounds-source 7 pass (7 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-bounds-source safe native success 16s MaxRSS:383M
+|     +- run exe compile-aggregate-loop (source.zig) success 5ms
+|     |  +- compile exe compile-aggregate-loop safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-bounds-library 7 pass (7 total) 4ms MaxRSS:1M
+|  +- compile test aggregate-loop-bounds-library safe native success 16s MaxRSS:375M
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-old_list-source 7 pass (7 total) 4ms MaxRSS:1M
+|  +- compile test aggregate-loop-old_list-source safe native success 16s MaxRSS:387M
+|     +- run exe compile-aggregate-loop (source.zig) success 5ms
+|     |  +- compile exe compile-aggregate-loop safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-old_list-library 7 pass (7 total) 4ms MaxRSS:1M
+|  +- compile test aggregate-loop-old_list-library safe native success 16s MaxRSS:383M
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-call-source 7 pass (7 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-call-source safe native success 16s MaxRSS:381M
+|     +- run exe compile-aggregate-loop (source.zig) success 6ms
+|     |  +- compile exe compile-aggregate-loop safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-call-library 7 pass (7 total) 4ms MaxRSS:1M
+|  +- compile test aggregate-loop-call-library safe native success 16s MaxRSS:380M
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-escaping-source 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-escaping-source safe native success 16s MaxRSS:376M
+|     +- run exe compile-aggregate-loop (source.zig) success 4ms
+|     |  +- compile exe compile-aggregate-loop safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-escaping-library 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-escaping-library safe native success 16s MaxRSS:396M
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-consumer-source 6 pass (6 total) 3ms MaxRSS:1M
+|  +- compile test aggregate-loop-consumer-source safe native success 16s MaxRSS:377M
+|     +- run exe compile-aggregate-loop (source.zig) success 6ms
+|     |  +- compile exe compile-aggregate-loop safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-consumer-library 6 pass (6 total) 4ms MaxRSS:1M
+   +- compile test aggregate-loop-consumer-library safe native success 16s MaxRSS:380M
+      +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+test-value-return success
++- run test value-return-direct-source 8 pass (8 total) 3ms MaxRSS:1M
+|  +- compile test value-return-direct-source safe native success 16s MaxRSS:382M
+|     +- run exe compile-value-return (source.zig) success 11ms
+|     |  +- compile exe compile-value-return safe native success 59s MaxRSS:1G
+|     |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     |     +- options (reused)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-direct-library 8 pass (8 total) 2ms MaxRSS:1M
+|  +- compile test value-return-direct-library safe native success 12s MaxRSS:367M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-wrapped-source 8 pass (8 total) 2ms MaxRSS:1M
+|  +- compile test value-return-wrapped-source safe native success 12s MaxRSS:363M
+|     +- run exe compile-value-return (source.zig) success 11ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-wrapped-library 8 pass (8 total) 3ms MaxRSS:1M
+|  +- compile test value-return-wrapped-library safe native success 16s MaxRSS:390M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-chained-source 8 pass (8 total) 2ms MaxRSS:1M
+|  +- compile test value-return-chained-source safe native success 12s MaxRSS:377M
+|     +- run exe compile-value-return (source.zig) success 16ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-chained-library 8 pass (8 total) 3ms MaxRSS:1M
+|  +- compile test value-return-chained-library safe native success 16s MaxRSS:382M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-conditional-source 8 pass (8 total) 2ms MaxRSS:1M
+|  +- compile test value-return-conditional-source safe native success 12s MaxRSS:366M
+|     +- run exe compile-value-return (source.zig) success 12ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-conditional-library 8 pass (8 total) 3ms MaxRSS:1M
+|  +- compile test value-return-conditional-library safe native success 16s MaxRSS:384M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-fallible-source 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test value-return-fallible-source safe native success 12s MaxRSS:369M
+|     +- run exe compile-value-return (source.zig) success 13ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-fallible-library 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test value-return-fallible-library safe native success 16s MaxRSS:376M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-enumeration-source 3 pass (3 total) 2ms MaxRSS:1M
+|  +- compile test value-return-enumeration-source safe native success 12s MaxRSS:368M
+|     +- run exe compile-value-return (source.zig) success 13ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-enumeration-library 3 pass (3 total) 3ms MaxRSS:1M
+|  +- compile test value-return-enumeration-library safe native success 16s MaxRSS:388M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-references-source 3 pass (3 total) 3ms MaxRSS:1M
+|  +- compile test value-return-references-source safe native success 12s MaxRSS:359M
+|     +- run exe compile-value-return (source.zig) success 13ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-references-library 3 pass (3 total) 7ms MaxRSS:1M
+|  +- compile test value-return-references-library safe native success 16s MaxRSS:383M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escaping-source 2 pass (2 total) 5ms MaxRSS:1M
+|  +- compile test value-return-escaping-source safe native success 15s MaxRSS:382M
+|     +- run exe compile-value-return (source.zig) success 11ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escaping-library 2 pass (2 total) 3ms MaxRSS:1M
+|  +- compile test value-return-escaping-library safe native success 12s MaxRSS:363M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_optional-source 2 pass (2 total) 9ms MaxRSS:1M
+|  +- compile test value-return-escape_optional-source safe native success 15s MaxRSS:386M
+|     +- run exe compile-value-return (source.zig) success 11ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_optional-library 2 pass (2 total) 2ms MaxRSS:1M
+|  +- compile test value-return-escape_optional-library safe native success 12s MaxRSS:359M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_list-source 2 pass (2 total) 3ms MaxRSS:1M
+|  +- compile test value-return-escape_list-source safe native success 15s MaxRSS:385M
+|     +- run exe compile-value-return (source.zig) success 11ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_list-library 2 pass (2 total) 5ms MaxRSS:1M
+|  +- compile test value-return-escape_list-library safe native success 16s MaxRSS:384M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_tuple-source 2 pass (2 total) 4ms MaxRSS:1M
+|  +- compile test value-return-escape_tuple-source safe native success 15s MaxRSS:380M
+|     +- run exe compile-value-return (source.zig) success 11ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_tuple-library 2 pass (2 total) 3ms MaxRSS:1M
+|  +- compile test value-return-escape_tuple-library safe native success 12s MaxRSS:357M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_nested-source 2 pass (2 total) 3ms MaxRSS:1M
+|  +- compile test value-return-escape_nested-source safe native success 12s MaxRSS:372M
+|     +- run exe compile-value-return (source.zig) success 11ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-escape_nested-library 2 pass (2 total) 4ms MaxRSS:1M
+|  +- compile test value-return-escape_nested-library safe native success 16s MaxRSS:374M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-native_scalar-source 3 pass (3 total) 2ms MaxRSS:1M
+|  +- compile test value-return-native_scalar-source safe native success 12s MaxRSS:366M
+|     +- run exe compile-value-return (source.zig) success 15ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-native_scalar-library 3 pass (3 total) 3ms MaxRSS:1M
+|  +- compile test value-return-native_scalar-library safe native success 16s MaxRSS:381M
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-borrowed_objects-source 3 pass (3 total) 3ms MaxRSS:1M
+|  +- compile test value-return-borrowed_objects-source safe native success 12s MaxRSS:373M
+|     +- run exe compile-value-return (source.zig) success 12ms
+|     |  +- compile exe compile-value-return safe native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
++- run test value-return-borrowed_objects-library 3 pass (3 total) 4ms MaxRSS:1M
+   +- compile test value-return-borrowed_objects-library safe native success 16s MaxRSS:385M
+      +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-value-return (source.zig) (+1 more reused dependencies)
