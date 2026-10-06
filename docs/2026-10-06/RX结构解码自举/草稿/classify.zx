@@ -1,0 +1,14 @@
+import ast from "zig:rx_ast"
+
+import identify from "./identify"
+
+import type { Node } from "zig:rx_ast"
+import type { Role } from "./model"
+
+export type Input = Node
+
+export type Output = Role
+
+export default function (in: Input): Output {
+  return identify(ast.nodeName(in))
+}

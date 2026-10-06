@@ -1,0 +1,65 @@
+import callRule from "./labels/Call"
+import caseRule from "./labels/Case"
+import defaultRule from "./labels/Default"
+import emitRule from "./labels/Emit"
+import fieldRule from "./labels/Field"
+import gatewayRule from "./labels/Gateway"
+import groupRule from "./labels/Group"
+import importRule from "./labels/Import"
+import moduleRule from "./labels/Module"
+import objectRule from "./labels/Object"
+import parallelRule from "./labels/Parallel"
+import returnRule from "./labels/Return"
+import routeRule from "./labels/Route"
+import storeRule from "./labels/Store"
+import storeRefRule from "./labels/StoreRef"
+import switchRule from "./labels/Switch"
+import taskRule from "./labels/Task"
+import { Role, ValueType } from "./model"
+
+import type { Field } from "./model"
+
+export type Input = { role: Role, index: u64 }
+
+export type Output = Field
+
+export default function (in: Input): Output {
+  switch (in.role) {
+    case Role.Module:
+      return moduleRule(in.index)
+    case Role.Import:
+      return importRule(in.index)
+    case Role.Call:
+      return callRule(in.index)
+    case Role.Task:
+      return taskRule(in.index)
+    case Role.Parallel:
+      return parallelRule(in.index)
+    case Role.Switch:
+      return switchRule(in.index)
+    case Role.Case:
+      return caseRule(in.index)
+    case Role.Default:
+      return defaultRule(in.index)
+    case Role.Emit:
+      return emitRule(in.index)
+    case Role.Return:
+      return returnRule(in.index)
+    case Role.Gateway:
+      return gatewayRule(in.index)
+    case Role.Group:
+      return groupRule(in.index)
+    case Role.Route:
+      return routeRule(in.index)
+    case Role.Store:
+      return storeRule(in.index)
+    case Role.StoreRef:
+      return storeRefRule(in.index)
+    case Role.Object:
+      return objectRule(in.index)
+    case Role.Field:
+      return fieldRule(in.index)
+    default:
+      return { count: 0, minimum: 0, empty: true, name: "", kind: ValueType.OptionalString, required: false, fallback: 0 }
+  }
+}

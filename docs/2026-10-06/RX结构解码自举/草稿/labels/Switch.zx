@@ -1,0 +1,16 @@
+import { ValueType } from "../model"
+
+import type { Field } from "../model"
+
+export type Input = u64
+
+export type Output = Field
+
+export default function (in: Input): Output {
+  switch (in) {
+    case 0:
+      return { count: 1, minimum: 1, empty: false, name: "on", kind: ValueType.String, required: true, fallback: 0 }
+    default:
+      return { count: 1, minimum: 1, empty: false, name: "", kind: ValueType.OptionalString, required: false, fallback: 0 }
+  }
+}

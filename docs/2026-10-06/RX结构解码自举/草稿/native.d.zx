@@ -1,0 +1,32 @@
+export type Node = opaque
+export type Attribute = opaque
+export type Text = opaque
+
+export declare function nodeName(node: Node): string
+export declare function nodeOffset(node: Node): u64
+export declare function nodeLine(node: Node): u64
+export declare function nodeColumn(node: Node): u64
+
+export declare function attributeCount(node: Node): u64
+export declare function attributeAt(node: Node, index: u64): Attribute throws { IndexOutOfBounds }
+export declare function childCount(node: Node): u64
+export declare function childAt(node: Node, index: u64): Node throws { IndexOutOfBounds }
+export declare function textCount(node: Node): u64
+export declare function textAt(node: Node, index: u64): Text throws { IndexOutOfBounds }
+
+export declare function attributeName(attribute: Attribute): string
+export declare function attributeValue(attribute: Attribute): string
+export declare function attributeBytes(attribute: Attribute): u8[]
+export declare function attributeExpression(attribute: Attribute): bool
+export declare function attributeSlice(attribute: Attribute, start: u64, end: u64): string throws { IndexOutOfBounds }
+export declare function attributeOffset(attribute: Attribute): u64
+export declare function attributeLine(attribute: Attribute): u64
+export declare function attributeColumn(attribute: Attribute): u64
+export declare function valueOffset(attribute: Attribute): u64
+export declare function valueLine(attribute: Attribute): u64
+export declare function valueColumn(attribute: Attribute): u64
+
+export declare function textBytes(text: Text): u8[]
+export declare function textOffset(text: Text): u64
+export declare function textLine(text: Text): u64
+export declare function textColumn(text: Text): u64

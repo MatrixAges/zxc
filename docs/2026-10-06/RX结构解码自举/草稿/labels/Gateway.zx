@@ -1,0 +1,24 @@
+import { ValueType } from "../model"
+
+import type { Field } from "../model"
+
+export type Input = u64
+
+export type Output = Field
+
+export default function (in: Input): Output {
+  switch (in) {
+    case 0:
+      return { count: 5, minimum: 0, empty: false, name: "name", kind: ValueType.String, required: true, fallback: 0 }
+    case 1:
+      return { count: 5, minimum: 0, empty: false, name: "protocol", kind: ValueType.Protocol, required: false, fallback: 0 }
+    case 2:
+      return { count: 5, minimum: 0, empty: false, name: "listen", kind: ValueType.OptionalString, required: false, fallback: 0 }
+    case 3:
+      return { count: 5, minimum: 0, empty: false, name: "max_header_bytes", kind: ValueType.Unsigned, required: false, fallback: 8192 }
+    case 4:
+      return { count: 5, minimum: 0, empty: false, name: "max_body_bytes", kind: ValueType.Unsigned, required: false, fallback: 1048576 }
+    default:
+      return { count: 5, minimum: 0, empty: false, name: "", kind: ValueType.OptionalString, required: false, fallback: 0 }
+  }
+}

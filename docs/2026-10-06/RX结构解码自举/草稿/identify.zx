@@ -1,0 +1,44 @@
+import { Role } from "./model"
+
+export type Input = string
+
+export type Output = Role
+
+export default function (in: Input): Output {
+  switch (in) {
+    case "Module":
+      return Role.Module
+    case "Import":
+      return Role.Import
+    case "Call":
+      return Role.Call
+    case "Task":
+      return Role.Task
+    case "Parallel":
+      return Role.Parallel
+    case "Switch":
+      return Role.Switch
+    case "Case":
+      return Role.Case
+    case "Default":
+      return Role.Default
+    case "Emit":
+      return Role.Emit
+    case "Return":
+      return Role.Return
+    case "Gateway":
+      return Role.Gateway
+    case "Group":
+      return Role.Group
+    case "Route":
+      return Role.Route
+    case "Store":
+      return Role.Store
+    case "Object":
+      return Role.Object
+    case "Field":
+      return Role.Field
+    default:
+      return Role.Invalid
+  }
+}

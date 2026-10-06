@@ -1,0 +1,44 @@
+import digit from "./digit"
+
+export type Input = { source: u8[], start: u64, end: u64 }
+
+export type Output = u64?
+
+export default function (in: Input): Output {
+  if (in.start == in.end) {
+    return null
+  }
+
+  const negative = in.source[in.start] == 45
+  const signed = negative || in.source[in.start] == 43
+  const start = in.start + (signed ? 1 : 0)
+
+  if (start == in.end || in.source[start] == 95 || in.source[in.end - 1] == 95) {
+    return null
+  }
+
+  const state = loop({ source: in.source, offset: start, end: in.end, negative: negative, number: 0, valid: true }, {
+    while: value => value.valid && value.offset < value.end,
+    next: value => {
+      const byte = value.source[value.offset]
+
+      if (byte != 95) {
+        if (byte < 48 || byte > 57) {
+          value.valid = false
+        } else {
+          const number = digit(byte)
+
+          if ((value.negative && number != 0) || value.number > 429496729 || (value.number == 429496729 && number > 5)) {
+            value.valid = false
+          } else {
+            value.number = value.number * 10 + number
+          }
+        }
+      }
+
+      value.offset += 1
+    }
+  })
+
+  return state.valid ? state.number : null
+}

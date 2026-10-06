@@ -1,0 +1,12 @@
+name: rx-schema-bootstrap-draft
+version: 0.0.0
+native_interfaces:
+    - specifier: zig:rx_ast
+      path: native.d.zx
+      module: rx_ast
+native_modules:
+    - name: rx_ast
+      path: native.zig
+      dependencies: [dsl]
+    - name: dsl
+      path: ../../../../packages/dsl/src/root.zig
