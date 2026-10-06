@@ -1,0 +1,52 @@
+import integers from "zig:integers"
+import flags from "zig:type_flags"
+
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+import row from "./row"
+
+import type { Flags } from "zig:type_flags"
+import type { Table } from "../types/model"
+
+export type Input = { table: Table, id: u32, flags: Flags, native_references: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.id)
+    const target = in.native_references ? Kind.NativeReference : Kind.List
+
+    if (kind(in.table.kinds[index]) == target) {
+        return true
+    }
+
+    const first = loop({ table: in.table, limit: index, target: target, index: 0, found: false }, {
+        while: current => !current.found && current.index < current.limit,
+        next: current => {
+            current.found = kind(current.table.kinds[current.index]) == current.target
+            current.index += 1
+        }
+    })
+
+    if (!first.found) {
+        return false
+    }
+
+    flags.allocate(in.flags, index + 1)
+
+    loop({ table: in.table, index: first.index - 1, limit: index + 1, flags: in.flags, native_references: in.native_references }, {
+        while: current => current.index < current.limit,
+        next: current => {
+            const found = row({ table: current.table, index: current.index, flags: current.flags, native_references: current.native_references })
+
+            flags.set(current.flags, current.index, found)
+            current.index += 1
+        }
+    })
+
+    const found = flags.get(in.flags, index)
+
+    flags.release(in.flags)
+
+    return found
+}

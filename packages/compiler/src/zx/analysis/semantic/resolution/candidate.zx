@@ -1,0 +1,22 @@
+import integers from "zig:integers"
+import workspace from "zig:resolution"
+
+import { Kind } from "../types/model"
+
+import type { Workspace } from "zig:resolution"
+import type { Candidate } from "../types/model"
+
+export type Input = { workspace: Workspace, kind: Kind }
+
+export type Output = Candidate
+
+export default function (in: Input): Output {
+    const unary = in.kind == Kind.Optional || in.kind == Kind.List
+
+    return {
+        kind: in.kind, first: unary ? integers.narrow(workspace.result(in.workspace)) : 0, second: 0, label: "",
+        children: in.kind == Kind.Tuple ? workspace.references(in.workspace) : [],
+        fields: { names: in.kind == Kind.Object ? workspace.fieldNames(in.workspace) : [], types: in.kind == Kind.Object ? workspace.fieldTypes(in.workspace) : [] },
+        names: []
+    }
+}

@@ -1,0 +1,20 @@
+import workspace from "zig:resolution"
+
+import step from "./step"
+
+import type { Workspace } from "zig:resolution"
+
+export type Input = Workspace
+
+export type Output = void
+
+export default function (in: Input): Output {
+    loop({ workspace: in }, {
+        while: current => workspace.frameCount(current.workspace) != 0,
+        next: current => {
+            step(current.workspace)
+        }
+    })
+
+    return
+}
