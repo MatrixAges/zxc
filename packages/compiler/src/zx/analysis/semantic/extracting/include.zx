@@ -1,0 +1,70 @@
+import workspace from "zig:extract_workspace"
+import integers from "zig:integers"
+
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+import remap from "../types/remap"
+import dependencies from "./dependencies"
+import origin from "./origin"
+
+import type { Workspace } from "zig:extract_workspace"
+import type { Buffer } from "zig:references"
+import type { Table } from "../types/model"
+import type { Bindings } from "../types/nominal/model"
+
+export type Input = { table: Table, origins: Bindings, names: string[], index: u64, workspace: Workspace, buffer: Buffer }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.index >= in.table.kinds.length) {
+        return 0
+    }
+
+    if (workspace.hasMapping(in.workspace, in.index)) {
+        return workspace.getMapping(in.workspace, in.index) + 2
+    }
+
+    workspace.push(in.workspace, in.index, false)
+
+    const state = loop({ table: in.table, origins: in.origins, names: in.names, workspace: in.workspace, buffer: in.buffer, status: 2 }, {
+        while: current => current.status == 2 && workspace.length(current.workspace) > 0,
+        next: current => {
+            const index = workspace.lastId(current.workspace)
+            const ready = workspace.lastReady(current.workspace)
+
+            workspace.pop(current.workspace)
+
+            if (!workspace.hasMapping(current.workspace, index)) {
+                if (!ready) {
+                    workspace.push(current.workspace, index, true)
+                    dependencies({ table: current.table, index: index, workspace: current.workspace })
+                } else {
+                    const type_kind = kind(current.table.kinds[index])
+                    const dynamic = type_kind == Kind.Tuple || type_kind == Kind.Object
+                    workspace.prepareReferences(current.workspace, dynamic ? integers.widen(current.table.second[index]) : 0, dynamic)
+
+                    remap({ table: current.table, index: index, buffer: current.buffer })
+
+                    const mapped = workspace.appendType(current.workspace, index)
+
+                    workspace.setMapping(current.workspace, index, mapped)
+
+                    if (type_kind == Kind.Enumeration || type_kind == Kind.NativeReference) {
+                        const selected = origin({ origins: current.origins, names: current.names, index: index, name: current.table.labels[index] })
+
+                        if (selected == 0) {
+                            current.status = 1
+                        } else if (selected == 1) {
+                            current.status = 0
+                        } else {
+                            workspace.appendOrigin(current.workspace, mapped, selected - 2)
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    return state.status == 2 ? workspace.getMapping(in.workspace, in.index) + 2 : state.status
+}

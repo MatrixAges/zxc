@@ -1,0 +1,19 @@
+{
+    "发行构建": {
+        "命令": "zig build dist",
+        "退出码": 0
+    },
+    "专项验证": {
+        "目录": "packages/test",
+        "命令": "zig build test-module-artifacts test-typed-try-library test-library-codec test-semantic-cache test-native-references-library",
+        "退出码": 0
+    },
+    "最终CLI": {
+        "入口": "草稿/packages/compiler/src/zx/analysis/semantic/extract.rx",
+        "输出": "生成/extract.zig",
+        "退出码": 0
+    },
+    "执行分配边界": "生成提取代码使用零容量执行arena；显式栈和临时引用列使用temporary，持久类型与来源使用allocator；不承诺提取过程没有必要的存储分配。",
+    "已核对": "依赖顺序、重复访问、按需来源检查、映射写入后来源错误、源生命周期独立、分配失败清理。",
+    "范围": "归档单个类型可达依赖提取流程完成自举；整批链接驻留与类型解析仍有剩余；未新增测试、未运行全量或UI。"
+}

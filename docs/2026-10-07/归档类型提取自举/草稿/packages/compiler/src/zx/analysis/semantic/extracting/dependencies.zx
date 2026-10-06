@@ -1,0 +1,36 @@
+import workspace from "zig:extract_workspace"
+import integers from "zig:integers"
+
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+
+import type { Workspace } from "zig:extract_workspace"
+import type { Table } from "../types/model"
+
+export type Input = { table: Table, index: u64, workspace: Workspace }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const type_kind = kind(in.table.kinds[in.index])
+
+    if (type_kind == Kind.Task) {
+        workspace.push(in.workspace, integers.widen(in.table.first[in.index]), false)
+        workspace.push(in.workspace, integers.widen(in.table.second[in.index]), false)
+    } else if (type_kind == Kind.Optional || type_kind == Kind.List) {
+        workspace.push(in.workspace, integers.widen(in.table.first[in.index]), false)
+    } else if (type_kind == Kind.Tuple || type_kind == Kind.Object) {
+        const values = type_kind == Kind.Tuple ? in.table.children : in.table.field_types
+
+        loop({ values: values, first: integers.widen(in.table.first[in.index]), remaining: integers.widen(in.table.second[in.index]), workspace: in.workspace }, {
+            while: current => current.remaining > 0,
+            next: current => {
+                current.remaining -= 1
+
+                workspace.push(current.workspace, integers.widen(current.values[current.first + current.remaining]), false)
+            }
+        })
+    }
+
+    return
+}
