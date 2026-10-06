@@ -1,0 +1,157 @@
+{
+    "source_commit": "ebe3d60553c01252fd13341ab6e7304e4737dd2b",
+    "source_tree": "384392a37b5773294830d32e8ace96328c44b502",
+    "cwd": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc",
+    "clean_at_start": true,
+    "recorded_at_utc": "2026-10-06T10:19:13.246374+00:00",
+    "archive": {
+        "path": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive",
+        "sha256": "4f9a1c5269aa17ebda5e6d3c2b89d6cbf36f7d2b22a0306e9ab98f25f95529c6"
+    },
+    "solver": {
+        "path": "/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3",
+        "sha256": "ccc5449c46b7dafcecbda81ae31fc9bb2b498be0c245464d98c321b25887da6c"
+    },
+    "sources": {
+        "build.zig": "88a17cd0a0fbc3b8183d65872a9243a9a0daa26ee59627e0925b5779723e244b",
+        "packages/test/build.zig": "e3cb6586ae0eaf46312c7089d1c3a28d00be0571733ae69528b04b08580f0093",
+        "packages/test/build/runtime.zig": "ad9d57ec053a5b76b7d8697e96a9a00c6d8f664ff185ccb980c127f60cb869db",
+        "packages/test/build/safety.zig": "d112183441a07fecad02ac51160080f1dd7a590839b6f906c84842beef144d28",
+        "packages/test/build/child_process.zig": "7aabe4791960911e01f409f042ce46572751b0663734cd02aad3a0b383a270d6",
+        "packages/test/tests/build_modes/build_test.ts": "4439e2cd059b99cfa820868606573cdcb0b5f5975a3f0a7a38c06a17ffdc715d",
+        "packages/test/src/generate_module_paths.ts": "b871b702c48042001896cc8ce38889df8210e3cc0f7820921f7ee60a8d146abe"
+    },
+    "current_gate": null,
+    "root_test_completed": true,
+    "safe_build_completed": true,
+    "safe_test_completed": true,
+    "dist_completed": true,
+    "debug_build": {
+        "command": "zig build -Doptimize=debug -Dzig-archive=/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive -j2 --summary all",
+        "env": {
+            "ZXC_TEST_SOLVER": "/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3"
+        },
+        "handle": 26557,
+        "log": "/tmp/zxc-root-complete-rerun-debug-build.log",
+        "terminal_exit_code": 0,
+        "build_summary": "35/35 steps succeeded",
+        "log_sha256": "93ecc5025d8f4714b04b47dc4d14d8b86f23bb2fec6b02833904f94af4a0504c"
+    },
+    "typecheck": {
+        "command": "node packages/test/node_modules/typescript/bin/tsc --noEmit --project packages/test/tsconfig.json",
+        "terminal_exit_code": 0,
+        "log": "复跑类型检查日志.txt"
+    },
+    "debug_test": {
+        "command": "zig build test -Doptimize=debug -Dzig-archive=/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive -j2 --summary all",
+        "env": {
+            "ZXC_TEST_SOLVER": "/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3"
+        },
+        "handle": 19999,
+        "log": "/tmp/zxc-root-complete-rerun-debug-test.log",
+        "terminal_exit_code": 0,
+        "build_summary": "5752/5752 steps succeeded; 87545/87545 tests passed",
+        "log_sha256": "d2a1755528f6a10002fb97551fa5240eae5cc6fca6d6374cb9f373d9ef7eb50d",
+        "evidence": "复跑Debug/执行结果.json"
+    },
+    "safe_build_argument_failure": {
+        "handle": 44104,
+        "terminal_exit_code": 1,
+        "wrong_archive_segment": "c16bf5716bbe508e223813805c3f3621",
+        "correct_archive_segment": "c16bf5716bbe508e223213805c3f3621",
+        "log": "首轮Safe参数错误日志.txt",
+        "log_sha256": "f804ef9caac4ac7f467cc1789026c4682992f9fd331b49290408fc2a96c639b5",
+        "classification": "Own command transcription error; explicit local archive FileNotFound, no download or production defect"
+    },
+    "safe_build": {
+        "command": "zig build -Doptimize=safe -Dzig-archive=/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive -j2 --summary all",
+        "env": {
+            "ZXC_TEST_SOLVER": "/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3"
+        },
+        "log": "/tmp/zxc-root-complete-safe-build.log",
+        "terminal_exit_code": 0,
+        "handle": 62638,
+        "build_summary": "35/35 steps succeeded",
+        "log_sha256": "f9b23b37c4e9b0e830bbb8247dbffc519b84797bc8f93b5f3692300be7ab4bbf"
+    },
+    "interrupted_safe_test": {
+        "gate": "test",
+        "mode": "safe",
+        "log": "/tmp/zxc-root-complete-safe-test.log",
+        "terminal_exit_code": null,
+        "handle": 58608,
+        "argv": [
+            "zig",
+            "build",
+            "test",
+            "-Doptimize=safe",
+            "-Dzig-archive=/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive",
+            "-j2",
+            "--summary",
+            "all"
+        ],
+        "command": "zig build test -Doptimize=safe -Dzig-archive=/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive -j2 --summary all",
+        "env": {
+            "ZXC_TEST_SOLVER": "/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3"
+        },
+        "classification": "processes absent after turn interruption; no terminal result"
+    },
+    "safe_test_gate": {
+        "gate": "test",
+        "mode": "safe",
+        "log": "/tmp/zxc-root-complete-safe-resumed-test.log",
+        "terminal_exit_code": 0,
+        "handle": 71717,
+        "argv": [
+            "zig",
+            "build",
+            "test",
+            "-Doptimize=safe",
+            "-Dzig-archive=/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive",
+            "-j2",
+            "--summary",
+            "all"
+        ],
+        "command": "zig build test -Doptimize=safe -Dzig-archive=/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive -j2 --summary all",
+        "env": {
+            "ZXC_TEST_SOLVER": "/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3"
+        },
+        "classification": "completed with actual terminal result",
+        "build_summary": "5752/5752 steps succeeded; 19610/19610 tests passed",
+        "evidence": "复跑ReleaseSafe/执行结果.json"
+    },
+    "safe_dist": {
+        "argv": [
+            "zig",
+            "build",
+            "dist",
+            "-Doptimize=safe",
+            "-Dzig-archive=/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive",
+            "-j2",
+            "--summary",
+            "all"
+        ],
+        "terminal_exit_code": 0,
+        "build_summary": "Build Summary: 34/34 steps succeeded",
+        "raw_log": "复跑ReleaseSafe发行日志.txt",
+        "log_sha256": "d0a991ea62918ee87b622e60d52d8d58a11125d35fb2dac84a49cd9a1b9dd43d"
+    },
+    "dist_artifacts": {
+        "zig-out/bin/zxc": {
+            "bytes": 66396332,
+            "sha256": "ee06d9bfc8dd7dbedb4a994298e68b4b601a3993248f8b3163de72acd77dfa7c"
+        },
+        "zig-out/LICENSE": {
+            "bytes": 1067,
+            "sha256": "ae7eeed85ac264bb4e832fc903cee0044d9d4243282efdb88b6b56fc37c0b334"
+        },
+        "zig-out/share/zxc/licenses/libyaml.txt": {
+            "bytes": 1101,
+            "sha256": "c40112449f254b9753045925248313e9270efa36d226b22d82d4cc6c43c57f29"
+        },
+        "zig-out/share/zxc/licenses/zig.txt": {
+            "bytes": 1080,
+            "sha256": "5c537d6853e005298a285d508cff9ac7192cea23576c840d485b2b586a7ff177"
+        }
+    }
+}

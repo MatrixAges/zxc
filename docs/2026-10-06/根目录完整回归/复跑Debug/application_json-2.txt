@@ -1,0 +1,1190 @@
+{
+  "source": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/built_ins/json/parse/lexical/strings.zx",
+  "catalog": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/built_ins/json/parse/lexical/strings.jsonl",
+  "optimize": "debug",
+  "commands": [
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/.zig-cache/o/d70d37d37b51892624f47c91dd3d5494/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "debug",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/.zig-cache/o/d70d37d37b51892624f47c91dd3d5494/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "debug",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-freestanding.wasm",
+        "--target",
+        "wasm32-freestanding"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/.zig-cache/o/d70d37d37b51892624f47c91dd3d5494/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "debug",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "--target",
+        "wasm32-wasi"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"abc\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"abc\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"abc\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"abc\"\n",
+      "stderr": "(node:68192) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "'abc'"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:1104:29: 0x10b2d0ef5 in peekNextTokenType (root)\n                    else => return error.SyntaxError,\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:467:29: 0x10b2c21df in innerParse__func_910 (root)\n                    switch (try source.peekNextTokenType()) {\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x10b2b8460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x10b2b7d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x10b2aaba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "'abc'"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:68194) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\\u0022abc\\u0022"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:1104:29: 0x107baaef5 in peekNextTokenType (root)\n                    else => return error.SyntaxError,\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:467:29: 0x107b9c1df in innerParse__func_910 (root)\n                    switch (try source.peekNextTokenType()) {\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x107b92460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x107b91d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x107b84ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\\u0022abc\\u0022"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:68196) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"abc'"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: UnexpectedEndOfInput\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:668:43: 0x103de5717 in next (root)\n                if (self.is_end_of_input) return error.UnexpectedEndOfInput;\n                                          ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x103decaa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x103debf3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x103deb861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x103de1460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x103de0d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x103dd3ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"abc'"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:68198) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: UnexpectedEndOfInput\nCannot print stack trace: debug info unavailable for target\n\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\"\n",
+      "stderr": "(node:68200) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\u0058\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"X\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\u0058\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"X\"\n",
+      "stderr": "(node:68202) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\u005\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:792:29: 0x109374bf3 in next (root)\n                    else => return error.SyntaxError,\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x10937aaa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x109379f3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x109379861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x10936f460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x10936ed17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x109361ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\u005\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:68204) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\u0X50\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:754:29: 0x10d2f745d in next (root)\n                    else => return error.SyntaxError,\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x10d2fdaa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x10d2fcf3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x10d2fc861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x10d2f2460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x10d2f1d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x10d2e4ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\u0X50\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:68206) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\/\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"/\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\/\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"/\"\n",
+      "stderr": "(node:68208) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\\\\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\\\\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\\\\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\\\\"\n",
+      "stderr": "(node:68210) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\b\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\b\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\b\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\b\"\n",
+      "stderr": "(node:68212) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\f\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\f\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\f\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\f\"\n",
+      "stderr": "(node:68214) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\n\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\n\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\n\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\n\"\n",
+      "stderr": "(node:68216) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\r\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\r\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\r\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\r\"\n",
+      "stderr": "(node:68218) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\\t\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\t\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\\t\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\t\"\n",
+      "stderr": "(node:68220) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\b\t\n\u000b\f\r\u000e\u000f\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:608:37: 0x1024c1124 in next (root)\n                        0...0x1f => return error.SyntaxError, // Bare ASCII control code in string.\n                                    ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x1024c8aa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x1024c7f3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x1024c7861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x1024bd460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x1024bcd17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x1024afba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\b\t\n\u000b\f\r\u000e\u000f\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:68222) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:608:37: 0x100311124 in next (root)\n                        0...0x1f => return error.SyntaxError, // Bare ASCII control code in string.\n                                    ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x100318aa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x100317f3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x100317861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x10030d460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x10030cd17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x1002ffba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:68224) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "argv": [
+        "\"\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:608:37: 0x106ef9124 in next (root)\n                        0...0x1f => return error.SyntaxError, // Bare ASCII control code in string.\n                                    ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x106f00aa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x106efff3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x106eff861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x106ef5460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x106ef4d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x106ee7ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+        "\"\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:68226) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+    }
+  ],
+  "artifacts": [
+    {
+      "target": "native",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/native",
+      "sha256": "aa7d4b3a708b09d4c5b50efff96e01d16d90cfa612c044706dcc2f6009afc64e"
+    },
+    {
+      "target": "wasm32-freestanding",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-freestanding.wasm",
+      "sha256": "b8d126b3b4e28059c1eb9177ae7d621413d9fb790f5dd937ac39720ebf1adf2c"
+    },
+    {
+      "target": "wasm32-wasi",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/wasm32-wasi.wasm",
+      "sha256": "df79f1062b4af8f817d5f1999b1327a5a800bd166120639ccb9f56f5320fb3b8"
+    }
+  ],
+  "observations": [
+    {
+      "id": "built_ins/json/parse/lexical/g2_1",
+      "target": "native",
+      "input_utf8_hex": "2261626322",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"abc\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_1",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2261626322",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"abc\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_1",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2261626322",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"abc\"\n",
+        "stderr": "(node:68192) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_2",
+      "target": "native",
+      "input_utf8_hex": "2761626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:1104:29: 0x10b2d0ef5 in peekNextTokenType (root)\n                    else => return error.SyntaxError,\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:467:29: 0x10b2c21df in innerParse__func_910 (root)\n                    switch (try source.peekNextTokenType()) {\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x10b2b8460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x10b2b7d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x10b2aaba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_2",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2761626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_2",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2761626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:68194) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_3",
+      "target": "native",
+      "input_utf8_hex": "5c75303032326162635c7530303232",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:1104:29: 0x107baaef5 in peekNextTokenType (root)\n                    else => return error.SyntaxError,\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:467:29: 0x107b9c1df in innerParse__func_910 (root)\n                    switch (try source.peekNextTokenType()) {\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x107b92460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x107b91d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x107b84ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_3",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "5c75303032326162635c7530303232",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_3",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "5c75303032326162635c7530303232",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:68196) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_4",
+      "target": "native",
+      "input_utf8_hex": "2261626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: UnexpectedEndOfInput\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:668:43: 0x103de5717 in next (root)\n                if (self.is_end_of_input) return error.UnexpectedEndOfInput;\n                                          ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x103decaa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x103debf3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x103deb861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x103de1460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x103de0d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x103dd3ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_4",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2261626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "UnexpectedEndOfInput",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_4",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2261626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:68198) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: UnexpectedEndOfInput\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_5",
+      "target": "native",
+      "input_utf8_hex": "2222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_5",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_5",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\"\n",
+        "stderr": "(node:68200) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_1",
+      "target": "native",
+      "input_utf8_hex": "225c753030353822",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"X\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_1",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c753030353822",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"X\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_1",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c753030353822",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"X\"\n",
+        "stderr": "(node:68202) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_2",
+      "target": "native",
+      "input_utf8_hex": "225c7530303522",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:792:29: 0x109374bf3 in next (root)\n                    else => return error.SyntaxError,\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x10937aaa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x109379f3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x109379861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x10936f460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x10936ed17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x109361ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_2",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c7530303522",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_2",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c7530303522",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:68204) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_3",
+      "target": "native",
+      "input_utf8_hex": "225c753058353022",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:754:29: 0x10d2f745d in next (root)\n                    else => return error.SyntaxError,\n                            ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x10d2fdaa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x10d2fcf3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x10d2fc861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x10d2f2460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x10d2f1d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x10d2e4ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_3",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c753058353022",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_3",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c753058353022",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:68206) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_1",
+      "target": "native",
+      "input_utf8_hex": "225c2f22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"/\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_1",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c2f22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"/\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_1",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c2f22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"/\"\n",
+        "stderr": "(node:68208) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_2",
+      "target": "native",
+      "input_utf8_hex": "225c5c22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\\\\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_2",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c5c22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\\\\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_2",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c5c22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\\\\"\n",
+        "stderr": "(node:68210) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_3",
+      "target": "native",
+      "input_utf8_hex": "225c6222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\b\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_3",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c6222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\b\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_3",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c6222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\b\"\n",
+        "stderr": "(node:68212) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_4",
+      "target": "native",
+      "input_utf8_hex": "225c6622",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\f\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_4",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c6622",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\f\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_4",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c6622",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\f\"\n",
+        "stderr": "(node:68214) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_5",
+      "target": "native",
+      "input_utf8_hex": "225c6e22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\n\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_5",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c6e22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\n\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_5",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c6e22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\n\"\n",
+        "stderr": "(node:68216) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_6",
+      "target": "native",
+      "input_utf8_hex": "225c7222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\r\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_6",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c7222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\r\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_6",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c7222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\r\"\n",
+        "stderr": "(node:68218) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_7",
+      "target": "native",
+      "input_utf8_hex": "225c7422",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\t\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_7",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c7422",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\t\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_7",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c7422",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\t\"\n",
+        "stderr": "(node:68220) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_1",
+      "target": "native",
+      "input_utf8_hex": "22000102030405060722",
+      "executed": false,
+      "reason": "argv cannot transport NUL"
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_1",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "22000102030405060722",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_1",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "22000102030405060722",
+      "executed": false,
+      "reason": "argv cannot transport NUL"
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_2",
+      "target": "native",
+      "input_utf8_hex": "2208090a0b0c0d0e0f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:608:37: 0x1024c1124 in next (root)\n                        0...0x1f => return error.SyntaxError, // Bare ASCII control code in string.\n                                    ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x1024c8aa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x1024c7f3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x1024c7861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x1024bd460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x1024bcd17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x1024afba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_2",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2208090a0b0c0d0e0f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_2",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2208090a0b0c0d0e0f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:68222) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_3",
+      "target": "native",
+      "input_utf8_hex": "22101112131415161722",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:608:37: 0x100311124 in next (root)\n                        0...0x1f => return error.SyntaxError, // Bare ASCII control code in string.\n                                    ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x100318aa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x100317f3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x100317861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x10030d460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x10030cd17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x1002ffba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_3",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "22101112131415161722",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_3",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "22101112131415161722",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:68224) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_4",
+      "target": "native",
+      "input_utf8_hex": "2218191a1b1c1d1e1f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:608:37: 0x106ef9124 in next (root)\n                        0...0x1f => return error.SyntaxError, // Bare ASCII control code in string.\n                                    ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:190:23: 0x106f00aa8 in allocNextIntoArrayListMax (root)\n        const token = try self.next();\n                      ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/Scanner.zig:144:31: 0x106efff3a in nextAllocMax (root)\n                else => |err| return err,\n                              ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:503:41: 0x106eff861 in innerParse__func_910 (root)\n                                switch (try source.nextAllocMax(allocator, options.allocate.?, options.max_value_len.?)) {\n                                        ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:150:19: 0x106ef5460 in parseFromTokenSourceLeaky__func_908 (root)\n    const value = try innerParse(T, allocator, scanner_or_reader, resolved_options);\n                  ^\n/Users/xiewendao/Library/Caches/zxc/toolchains/22da693725cc74a91d26caac57540b589e5ab64deb8f6aa0b47d664fed6fefeb/zig/lib/std/json/static.zig:98:5: 0x106ef4d17 in parseFromSliceLeaky__func_858 (root)\n    return parseFromTokenSourceLeaky(T, allocator, &scanner, options);\n    ^\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-FKl2tc/project/.zxc/build/958bbcda8fcaac0dfee82a27c81ff189a52b0b91ab3f22120be10bf2cd063846/main.zig:19:23: 0x106ee7ba8 in main (root)\n        break :input (try ((std).json).parseFromSliceLeaky((application).Input, allocator, (args)[1], .{ .allocate = .alloc_always, }));\n                      ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_4",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2218191a1b1c1d1e1f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_4",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2218191a1b1c1d1e1f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:68226) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    }
+  ]
+}
