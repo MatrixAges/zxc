@@ -1,0 +1,80 @@
+Build Summary: 54/54 steps succeeded; 575/575 tests passed
+test-querystring success
++- run test querystring-escape 155 pass (155 total) 7ms MaxRSS:1M
+|  +- compile test querystring-escape debug native success 1s MaxRSS:274M
+|     +- run node (cases.zig) success 58ms
+|     +- run exe zxc (program.zig) success 7ms
+|     |  +- compile exe zxc debug native success 17s MaxRSS:2G
+|     |     +- WriteFile cached
+|     |     +- compile lib yaml debug native cached 43ms MaxRSS:20M
+|     |     +- compile lib yaml debug native (reused)
+|     |     +- translate-c cached 43ms MaxRSS:20M
+|     |     +- options success
+|     |     +- run exe bundle-zig (bundle) success 54ms
+|     |     |  +- compile exe bundle-zig fast native success 26s MaxRSS:900M
+|     |     |  +- WriteFile bundle_manifest.json cached
+|     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) success 46s
+|     |     |  +- compile exe generate-parser debug native success 5s MaxRSS:634M
+|     |     |     +- options cached
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native success 7s MaxRSS:369M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 56ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) success 88ms
+|     |        +- compile exe generate-lexer debug native success 4s MaxRSS:559M
+|     |           +- WriteFile interfaces/0.d.zx success
+|     |           |  +- run exe standard-catalog (catalog.zig) success 2ms
+|     |           |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|     |           |     +- WriteFile catalog.json cached
+|     |           +- options cached
+|     +- run exe zxc (program.zig) (+1 more reused dependencies)
++- run test querystring-unescape 314 pass (314 total) 13ms MaxRSS:1M
+|  +- compile test querystring-unescape debug native success 1s MaxRSS:274M
+|     +- run node (cases.zig) success 64ms
+|     +- run exe zxc (program.zig) success 9ms
+|     |  +- compile exe zxc debug native (+23 more reused dependencies)
+|     +- run exe zxc (program.zig) (+1 more reused dependencies)
++- run test querystring-parse 23 pass (23 total) 5ms MaxRSS:1M
+|  +- compile test querystring-parse debug native success 1s MaxRSS:334M
+|     +- run node (cases.zig) success 67ms
+|     +- run exe zxc (program.zig) success 8ms
+|     |  +- compile exe zxc debug native (+23 more reused dependencies)
+|     +- run exe zxc (program.zig) (+1 more reused dependencies)
++- run test querystring-parseWith 35 pass (35 total) 9ms MaxRSS:1M
+|  +- compile test querystring-parseWith debug native success 1s MaxRSS:289M
+|     +- run node (cases.zig) success 75ms
+|     +- run exe zxc (program.zig) success 10ms
+|     |  +- compile exe zxc debug native (+23 more reused dependencies)
+|     +- run exe zxc (program.zig) (+1 more reused dependencies)
++- run test querystring-stringify 8 pass (8 total) 2ms MaxRSS:1M
+|  +- compile test querystring-stringify debug native success 1s MaxRSS:265M
+|     +- run node (cases.zig) success 61ms
+|     +- run exe zxc (program.zig) success 7ms
+|     |  +- compile exe zxc debug native (+23 more reused dependencies)
+|     +- run exe zxc (program.zig) (+1 more reused dependencies)
++- run test querystring-stringifyWith 40 pass (40 total) 4ms MaxRSS:1M
+   +- compile test querystring-stringifyWith debug native success 1s MaxRSS:315M
+      +- run node (cases.zig) success 59ms
+      +- run exe zxc (program.zig) success 8ms
+      |  +- compile exe zxc debug native (+23 more reused dependencies)
+      +- run exe zxc (program.zig) (+1 more reused dependencies)
+

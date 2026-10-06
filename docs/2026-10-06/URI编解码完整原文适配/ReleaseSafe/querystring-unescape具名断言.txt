@@ -1,0 +1,1257 @@
+const check = @import("support").check;
+
+test "standard/querystring/unescape/single_byte_0" {
+    try check(@import("program"), "%00", .{ .value = "\x00" });
+}
+
+test "standard/querystring/unescape/single_byte_1" {
+    try check(@import("program"), "%01", .{ .value = "\x01" });
+}
+
+test "standard/querystring/unescape/single_byte_2" {
+    try check(@import("program"), "%02", .{ .value = "\x02" });
+}
+
+test "standard/querystring/unescape/single_byte_3" {
+    try check(@import("program"), "%03", .{ .value = "\x03" });
+}
+
+test "standard/querystring/unescape/single_byte_4" {
+    try check(@import("program"), "%04", .{ .value = "\x04" });
+}
+
+test "standard/querystring/unescape/single_byte_5" {
+    try check(@import("program"), "%05", .{ .value = "\x05" });
+}
+
+test "standard/querystring/unescape/single_byte_6" {
+    try check(@import("program"), "%06", .{ .value = "\x06" });
+}
+
+test "standard/querystring/unescape/single_byte_7" {
+    try check(@import("program"), "%07", .{ .value = "\x07" });
+}
+
+test "standard/querystring/unescape/single_byte_8" {
+    try check(@import("program"), "%08", .{ .value = "\x08" });
+}
+
+test "standard/querystring/unescape/single_byte_9" {
+    try check(@import("program"), "%09", .{ .value = "\t" });
+}
+
+test "standard/querystring/unescape/single_byte_a" {
+    try check(@import("program"), "%0a", .{ .value = "\n" });
+}
+
+test "standard/querystring/unescape/single_byte_b" {
+    try check(@import("program"), "%0b", .{ .value = "\x0b" });
+}
+
+test "standard/querystring/unescape/single_byte_c" {
+    try check(@import("program"), "%0c", .{ .value = "\x0c" });
+}
+
+test "standard/querystring/unescape/single_byte_d" {
+    try check(@import("program"), "%0d", .{ .value = "\r" });
+}
+
+test "standard/querystring/unescape/single_byte_e" {
+    try check(@import("program"), "%0e", .{ .value = "\x0e" });
+}
+
+test "standard/querystring/unescape/single_byte_f" {
+    try check(@import("program"), "%0f", .{ .value = "\x0f" });
+}
+
+test "standard/querystring/unescape/single_byte_10" {
+    try check(@import("program"), "%10", .{ .value = "\x10" });
+}
+
+test "standard/querystring/unescape/single_byte_11" {
+    try check(@import("program"), "%11", .{ .value = "\x11" });
+}
+
+test "standard/querystring/unescape/single_byte_12" {
+    try check(@import("program"), "%12", .{ .value = "\x12" });
+}
+
+test "standard/querystring/unescape/single_byte_13" {
+    try check(@import("program"), "%13", .{ .value = "\x13" });
+}
+
+test "standard/querystring/unescape/single_byte_14" {
+    try check(@import("program"), "%14", .{ .value = "\x14" });
+}
+
+test "standard/querystring/unescape/single_byte_15" {
+    try check(@import("program"), "%15", .{ .value = "\x15" });
+}
+
+test "standard/querystring/unescape/single_byte_16" {
+    try check(@import("program"), "%16", .{ .value = "\x16" });
+}
+
+test "standard/querystring/unescape/single_byte_17" {
+    try check(@import("program"), "%17", .{ .value = "\x17" });
+}
+
+test "standard/querystring/unescape/single_byte_18" {
+    try check(@import("program"), "%18", .{ .value = "\x18" });
+}
+
+test "standard/querystring/unescape/single_byte_19" {
+    try check(@import("program"), "%19", .{ .value = "\x19" });
+}
+
+test "standard/querystring/unescape/single_byte_1a" {
+    try check(@import("program"), "%1a", .{ .value = "\x1a" });
+}
+
+test "standard/querystring/unescape/single_byte_1b" {
+    try check(@import("program"), "%1b", .{ .value = "\x1b" });
+}
+
+test "standard/querystring/unescape/single_byte_1c" {
+    try check(@import("program"), "%1c", .{ .value = "\x1c" });
+}
+
+test "standard/querystring/unescape/single_byte_1d" {
+    try check(@import("program"), "%1d", .{ .value = "\x1d" });
+}
+
+test "standard/querystring/unescape/single_byte_1e" {
+    try check(@import("program"), "%1e", .{ .value = "\x1e" });
+}
+
+test "standard/querystring/unescape/single_byte_1f" {
+    try check(@import("program"), "%1f", .{ .value = "\x1f" });
+}
+
+test "standard/querystring/unescape/single_byte_20" {
+    try check(@import("program"), "%20", .{ .value = " " });
+}
+
+test "standard/querystring/unescape/single_byte_21" {
+    try check(@import("program"), "%21", .{ .value = "!" });
+}
+
+test "standard/querystring/unescape/single_byte_22" {
+    try check(@import("program"), "%22", .{ .value = "\"" });
+}
+
+test "standard/querystring/unescape/single_byte_23" {
+    try check(@import("program"), "%23", .{ .value = "#" });
+}
+
+test "standard/querystring/unescape/single_byte_24" {
+    try check(@import("program"), "%24", .{ .value = "$" });
+}
+
+test "standard/querystring/unescape/single_byte_25" {
+    try check(@import("program"), "%25", .{ .value = "%" });
+}
+
+test "standard/querystring/unescape/single_byte_26" {
+    try check(@import("program"), "%26", .{ .value = "&" });
+}
+
+test "standard/querystring/unescape/single_byte_27" {
+    try check(@import("program"), "%27", .{ .value = "'" });
+}
+
+test "standard/querystring/unescape/single_byte_28" {
+    try check(@import("program"), "%28", .{ .value = "(" });
+}
+
+test "standard/querystring/unescape/single_byte_29" {
+    try check(@import("program"), "%29", .{ .value = ")" });
+}
+
+test "standard/querystring/unescape/single_byte_2a" {
+    try check(@import("program"), "%2a", .{ .value = "*" });
+}
+
+test "standard/querystring/unescape/single_byte_2b" {
+    try check(@import("program"), "%2b", .{ .value = "+" });
+}
+
+test "standard/querystring/unescape/single_byte_2c" {
+    try check(@import("program"), "%2c", .{ .value = "," });
+}
+
+test "standard/querystring/unescape/single_byte_2d" {
+    try check(@import("program"), "%2d", .{ .value = "-" });
+}
+
+test "standard/querystring/unescape/single_byte_2e" {
+    try check(@import("program"), "%2e", .{ .value = "." });
+}
+
+test "standard/querystring/unescape/single_byte_2f" {
+    try check(@import("program"), "%2f", .{ .value = "/" });
+}
+
+test "standard/querystring/unescape/single_byte_30" {
+    try check(@import("program"), "%30", .{ .value = "0" });
+}
+
+test "standard/querystring/unescape/single_byte_31" {
+    try check(@import("program"), "%31", .{ .value = "1" });
+}
+
+test "standard/querystring/unescape/single_byte_32" {
+    try check(@import("program"), "%32", .{ .value = "2" });
+}
+
+test "standard/querystring/unescape/single_byte_33" {
+    try check(@import("program"), "%33", .{ .value = "3" });
+}
+
+test "standard/querystring/unescape/single_byte_34" {
+    try check(@import("program"), "%34", .{ .value = "4" });
+}
+
+test "standard/querystring/unescape/single_byte_35" {
+    try check(@import("program"), "%35", .{ .value = "5" });
+}
+
+test "standard/querystring/unescape/single_byte_36" {
+    try check(@import("program"), "%36", .{ .value = "6" });
+}
+
+test "standard/querystring/unescape/single_byte_37" {
+    try check(@import("program"), "%37", .{ .value = "7" });
+}
+
+test "standard/querystring/unescape/single_byte_38" {
+    try check(@import("program"), "%38", .{ .value = "8" });
+}
+
+test "standard/querystring/unescape/single_byte_39" {
+    try check(@import("program"), "%39", .{ .value = "9" });
+}
+
+test "standard/querystring/unescape/single_byte_3a" {
+    try check(@import("program"), "%3a", .{ .value = ":" });
+}
+
+test "standard/querystring/unescape/single_byte_3b" {
+    try check(@import("program"), "%3b", .{ .value = ";" });
+}
+
+test "standard/querystring/unescape/single_byte_3c" {
+    try check(@import("program"), "%3c", .{ .value = "<" });
+}
+
+test "standard/querystring/unescape/single_byte_3d" {
+    try check(@import("program"), "%3d", .{ .value = "=" });
+}
+
+test "standard/querystring/unescape/single_byte_3e" {
+    try check(@import("program"), "%3e", .{ .value = ">" });
+}
+
+test "standard/querystring/unescape/single_byte_3f" {
+    try check(@import("program"), "%3f", .{ .value = "?" });
+}
+
+test "standard/querystring/unescape/single_byte_40" {
+    try check(@import("program"), "%40", .{ .value = "@" });
+}
+
+test "standard/querystring/unescape/single_byte_41" {
+    try check(@import("program"), "%41", .{ .value = "A" });
+}
+
+test "standard/querystring/unescape/single_byte_42" {
+    try check(@import("program"), "%42", .{ .value = "B" });
+}
+
+test "standard/querystring/unescape/single_byte_43" {
+    try check(@import("program"), "%43", .{ .value = "C" });
+}
+
+test "standard/querystring/unescape/single_byte_44" {
+    try check(@import("program"), "%44", .{ .value = "D" });
+}
+
+test "standard/querystring/unescape/single_byte_45" {
+    try check(@import("program"), "%45", .{ .value = "E" });
+}
+
+test "standard/querystring/unescape/single_byte_46" {
+    try check(@import("program"), "%46", .{ .value = "F" });
+}
+
+test "standard/querystring/unescape/single_byte_47" {
+    try check(@import("program"), "%47", .{ .value = "G" });
+}
+
+test "standard/querystring/unescape/single_byte_48" {
+    try check(@import("program"), "%48", .{ .value = "H" });
+}
+
+test "standard/querystring/unescape/single_byte_49" {
+    try check(@import("program"), "%49", .{ .value = "I" });
+}
+
+test "standard/querystring/unescape/single_byte_4a" {
+    try check(@import("program"), "%4a", .{ .value = "J" });
+}
+
+test "standard/querystring/unescape/single_byte_4b" {
+    try check(@import("program"), "%4b", .{ .value = "K" });
+}
+
+test "standard/querystring/unescape/single_byte_4c" {
+    try check(@import("program"), "%4c", .{ .value = "L" });
+}
+
+test "standard/querystring/unescape/single_byte_4d" {
+    try check(@import("program"), "%4d", .{ .value = "M" });
+}
+
+test "standard/querystring/unescape/single_byte_4e" {
+    try check(@import("program"), "%4e", .{ .value = "N" });
+}
+
+test "standard/querystring/unescape/single_byte_4f" {
+    try check(@import("program"), "%4f", .{ .value = "O" });
+}
+
+test "standard/querystring/unescape/single_byte_50" {
+    try check(@import("program"), "%50", .{ .value = "P" });
+}
+
+test "standard/querystring/unescape/single_byte_51" {
+    try check(@import("program"), "%51", .{ .value = "Q" });
+}
+
+test "standard/querystring/unescape/single_byte_52" {
+    try check(@import("program"), "%52", .{ .value = "R" });
+}
+
+test "standard/querystring/unescape/single_byte_53" {
+    try check(@import("program"), "%53", .{ .value = "S" });
+}
+
+test "standard/querystring/unescape/single_byte_54" {
+    try check(@import("program"), "%54", .{ .value = "T" });
+}
+
+test "standard/querystring/unescape/single_byte_55" {
+    try check(@import("program"), "%55", .{ .value = "U" });
+}
+
+test "standard/querystring/unescape/single_byte_56" {
+    try check(@import("program"), "%56", .{ .value = "V" });
+}
+
+test "standard/querystring/unescape/single_byte_57" {
+    try check(@import("program"), "%57", .{ .value = "W" });
+}
+
+test "standard/querystring/unescape/single_byte_58" {
+    try check(@import("program"), "%58", .{ .value = "X" });
+}
+
+test "standard/querystring/unescape/single_byte_59" {
+    try check(@import("program"), "%59", .{ .value = "Y" });
+}
+
+test "standard/querystring/unescape/single_byte_5a" {
+    try check(@import("program"), "%5a", .{ .value = "Z" });
+}
+
+test "standard/querystring/unescape/single_byte_5b" {
+    try check(@import("program"), "%5b", .{ .value = "[" });
+}
+
+test "standard/querystring/unescape/single_byte_5c" {
+    try check(@import("program"), "%5c", .{ .value = "\\" });
+}
+
+test "standard/querystring/unescape/single_byte_5d" {
+    try check(@import("program"), "%5d", .{ .value = "]" });
+}
+
+test "standard/querystring/unescape/single_byte_5e" {
+    try check(@import("program"), "%5e", .{ .value = "^" });
+}
+
+test "standard/querystring/unescape/single_byte_5f" {
+    try check(@import("program"), "%5f", .{ .value = "_" });
+}
+
+test "standard/querystring/unescape/single_byte_60" {
+    try check(@import("program"), "%60", .{ .value = "`" });
+}
+
+test "standard/querystring/unescape/single_byte_61" {
+    try check(@import("program"), "%61", .{ .value = "a" });
+}
+
+test "standard/querystring/unescape/single_byte_62" {
+    try check(@import("program"), "%62", .{ .value = "b" });
+}
+
+test "standard/querystring/unescape/single_byte_63" {
+    try check(@import("program"), "%63", .{ .value = "c" });
+}
+
+test "standard/querystring/unescape/single_byte_64" {
+    try check(@import("program"), "%64", .{ .value = "d" });
+}
+
+test "standard/querystring/unescape/single_byte_65" {
+    try check(@import("program"), "%65", .{ .value = "e" });
+}
+
+test "standard/querystring/unescape/single_byte_66" {
+    try check(@import("program"), "%66", .{ .value = "f" });
+}
+
+test "standard/querystring/unescape/single_byte_67" {
+    try check(@import("program"), "%67", .{ .value = "g" });
+}
+
+test "standard/querystring/unescape/single_byte_68" {
+    try check(@import("program"), "%68", .{ .value = "h" });
+}
+
+test "standard/querystring/unescape/single_byte_69" {
+    try check(@import("program"), "%69", .{ .value = "i" });
+}
+
+test "standard/querystring/unescape/single_byte_6a" {
+    try check(@import("program"), "%6a", .{ .value = "j" });
+}
+
+test "standard/querystring/unescape/single_byte_6b" {
+    try check(@import("program"), "%6b", .{ .value = "k" });
+}
+
+test "standard/querystring/unescape/single_byte_6c" {
+    try check(@import("program"), "%6c", .{ .value = "l" });
+}
+
+test "standard/querystring/unescape/single_byte_6d" {
+    try check(@import("program"), "%6d", .{ .value = "m" });
+}
+
+test "standard/querystring/unescape/single_byte_6e" {
+    try check(@import("program"), "%6e", .{ .value = "n" });
+}
+
+test "standard/querystring/unescape/single_byte_6f" {
+    try check(@import("program"), "%6f", .{ .value = "o" });
+}
+
+test "standard/querystring/unescape/single_byte_70" {
+    try check(@import("program"), "%70", .{ .value = "p" });
+}
+
+test "standard/querystring/unescape/single_byte_71" {
+    try check(@import("program"), "%71", .{ .value = "q" });
+}
+
+test "standard/querystring/unescape/single_byte_72" {
+    try check(@import("program"), "%72", .{ .value = "r" });
+}
+
+test "standard/querystring/unescape/single_byte_73" {
+    try check(@import("program"), "%73", .{ .value = "s" });
+}
+
+test "standard/querystring/unescape/single_byte_74" {
+    try check(@import("program"), "%74", .{ .value = "t" });
+}
+
+test "standard/querystring/unescape/single_byte_75" {
+    try check(@import("program"), "%75", .{ .value = "u" });
+}
+
+test "standard/querystring/unescape/single_byte_76" {
+    try check(@import("program"), "%76", .{ .value = "v" });
+}
+
+test "standard/querystring/unescape/single_byte_77" {
+    try check(@import("program"), "%77", .{ .value = "w" });
+}
+
+test "standard/querystring/unescape/single_byte_78" {
+    try check(@import("program"), "%78", .{ .value = "x" });
+}
+
+test "standard/querystring/unescape/single_byte_79" {
+    try check(@import("program"), "%79", .{ .value = "y" });
+}
+
+test "standard/querystring/unescape/single_byte_7a" {
+    try check(@import("program"), "%7a", .{ .value = "z" });
+}
+
+test "standard/querystring/unescape/single_byte_7b" {
+    try check(@import("program"), "%7b", .{ .value = "{" });
+}
+
+test "standard/querystring/unescape/single_byte_7c" {
+    try check(@import("program"), "%7c", .{ .value = "|" });
+}
+
+test "standard/querystring/unescape/single_byte_7d" {
+    try check(@import("program"), "%7d", .{ .value = "}" });
+}
+
+test "standard/querystring/unescape/single_byte_7e" {
+    try check(@import("program"), "%7e", .{ .value = "~" });
+}
+
+test "standard/querystring/unescape/single_byte_7f" {
+    try check(@import("program"), "%7f", .{ .value = "\x7f" });
+}
+
+test "standard/querystring/unescape/single_byte_80" {
+    try check(@import("program"), "%80", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_81" {
+    try check(@import("program"), "%81", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_82" {
+    try check(@import("program"), "%82", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_83" {
+    try check(@import("program"), "%83", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_84" {
+    try check(@import("program"), "%84", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_85" {
+    try check(@import("program"), "%85", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_86" {
+    try check(@import("program"), "%86", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_87" {
+    try check(@import("program"), "%87", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_88" {
+    try check(@import("program"), "%88", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_89" {
+    try check(@import("program"), "%89", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_8a" {
+    try check(@import("program"), "%8a", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_8b" {
+    try check(@import("program"), "%8b", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_8c" {
+    try check(@import("program"), "%8c", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_8d" {
+    try check(@import("program"), "%8d", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_8e" {
+    try check(@import("program"), "%8e", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_8f" {
+    try check(@import("program"), "%8f", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_90" {
+    try check(@import("program"), "%90", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_91" {
+    try check(@import("program"), "%91", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_92" {
+    try check(@import("program"), "%92", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_93" {
+    try check(@import("program"), "%93", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_94" {
+    try check(@import("program"), "%94", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_95" {
+    try check(@import("program"), "%95", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_96" {
+    try check(@import("program"), "%96", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_97" {
+    try check(@import("program"), "%97", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_98" {
+    try check(@import("program"), "%98", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_99" {
+    try check(@import("program"), "%99", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_9a" {
+    try check(@import("program"), "%9a", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_9b" {
+    try check(@import("program"), "%9b", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_9c" {
+    try check(@import("program"), "%9c", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_9d" {
+    try check(@import("program"), "%9d", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_9e" {
+    try check(@import("program"), "%9e", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_9f" {
+    try check(@import("program"), "%9f", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a0" {
+    try check(@import("program"), "%a0", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a1" {
+    try check(@import("program"), "%a1", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a2" {
+    try check(@import("program"), "%a2", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a3" {
+    try check(@import("program"), "%a3", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a4" {
+    try check(@import("program"), "%a4", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a5" {
+    try check(@import("program"), "%a5", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a6" {
+    try check(@import("program"), "%a6", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a7" {
+    try check(@import("program"), "%a7", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a8" {
+    try check(@import("program"), "%a8", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_a9" {
+    try check(@import("program"), "%a9", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_aa" {
+    try check(@import("program"), "%aa", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ab" {
+    try check(@import("program"), "%ab", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ac" {
+    try check(@import("program"), "%ac", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ad" {
+    try check(@import("program"), "%ad", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ae" {
+    try check(@import("program"), "%ae", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_af" {
+    try check(@import("program"), "%af", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b0" {
+    try check(@import("program"), "%b0", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b1" {
+    try check(@import("program"), "%b1", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b2" {
+    try check(@import("program"), "%b2", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b3" {
+    try check(@import("program"), "%b3", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b4" {
+    try check(@import("program"), "%b4", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b5" {
+    try check(@import("program"), "%b5", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b6" {
+    try check(@import("program"), "%b6", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b7" {
+    try check(@import("program"), "%b7", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b8" {
+    try check(@import("program"), "%b8", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_b9" {
+    try check(@import("program"), "%b9", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ba" {
+    try check(@import("program"), "%ba", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_bb" {
+    try check(@import("program"), "%bb", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_bc" {
+    try check(@import("program"), "%bc", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_bd" {
+    try check(@import("program"), "%bd", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_be" {
+    try check(@import("program"), "%be", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_bf" {
+    try check(@import("program"), "%bf", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c0" {
+    try check(@import("program"), "%c0", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c1" {
+    try check(@import("program"), "%c1", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c2" {
+    try check(@import("program"), "%c2", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c3" {
+    try check(@import("program"), "%c3", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c4" {
+    try check(@import("program"), "%c4", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c5" {
+    try check(@import("program"), "%c5", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c6" {
+    try check(@import("program"), "%c6", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c7" {
+    try check(@import("program"), "%c7", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c8" {
+    try check(@import("program"), "%c8", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_c9" {
+    try check(@import("program"), "%c9", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ca" {
+    try check(@import("program"), "%ca", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_cb" {
+    try check(@import("program"), "%cb", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_cc" {
+    try check(@import("program"), "%cc", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_cd" {
+    try check(@import("program"), "%cd", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ce" {
+    try check(@import("program"), "%ce", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_cf" {
+    try check(@import("program"), "%cf", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d0" {
+    try check(@import("program"), "%d0", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d1" {
+    try check(@import("program"), "%d1", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d2" {
+    try check(@import("program"), "%d2", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d3" {
+    try check(@import("program"), "%d3", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d4" {
+    try check(@import("program"), "%d4", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d5" {
+    try check(@import("program"), "%d5", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d6" {
+    try check(@import("program"), "%d6", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d7" {
+    try check(@import("program"), "%d7", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d8" {
+    try check(@import("program"), "%d8", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_d9" {
+    try check(@import("program"), "%d9", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_da" {
+    try check(@import("program"), "%da", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_db" {
+    try check(@import("program"), "%db", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_dc" {
+    try check(@import("program"), "%dc", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_dd" {
+    try check(@import("program"), "%dd", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_de" {
+    try check(@import("program"), "%de", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_df" {
+    try check(@import("program"), "%df", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e0" {
+    try check(@import("program"), "%e0", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e1" {
+    try check(@import("program"), "%e1", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e2" {
+    try check(@import("program"), "%e2", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e3" {
+    try check(@import("program"), "%e3", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e4" {
+    try check(@import("program"), "%e4", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e5" {
+    try check(@import("program"), "%e5", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e6" {
+    try check(@import("program"), "%e6", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e7" {
+    try check(@import("program"), "%e7", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e8" {
+    try check(@import("program"), "%e8", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_e9" {
+    try check(@import("program"), "%e9", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ea" {
+    try check(@import("program"), "%ea", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_eb" {
+    try check(@import("program"), "%eb", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ec" {
+    try check(@import("program"), "%ec", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ed" {
+    try check(@import("program"), "%ed", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ee" {
+    try check(@import("program"), "%ee", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ef" {
+    try check(@import("program"), "%ef", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f0" {
+    try check(@import("program"), "%f0", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f1" {
+    try check(@import("program"), "%f1", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f2" {
+    try check(@import("program"), "%f2", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f3" {
+    try check(@import("program"), "%f3", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f4" {
+    try check(@import("program"), "%f4", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f5" {
+    try check(@import("program"), "%f5", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f6" {
+    try check(@import("program"), "%f6", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f7" {
+    try check(@import("program"), "%f7", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f8" {
+    try check(@import("program"), "%f8", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_f9" {
+    try check(@import("program"), "%f9", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_fa" {
+    try check(@import("program"), "%fa", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_fb" {
+    try check(@import("program"), "%fb", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_fc" {
+    try check(@import("program"), "%fc", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_fd" {
+    try check(@import("program"), "%fd", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_fe" {
+    try check(@import("program"), "%fe", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/single_byte_ff" {
+    try check(@import("program"), "%ff", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/empty" {
+    try check(@import("program"), "", .{ .value = "" });
+}
+
+test "standard/querystring/unescape/combining" {
+    try check(@import("program"), "e\xcc\x81", .{ .value = "e\xcc\x81" });
+}
+
+test "standard/querystring/unescape/unicode" {
+    try check(@import("program"), "\xe4\xb8\xad\xe6\x96\x87\xf0\x9f\x8c\xb1", .{ .value = "\xe4\xb8\xad\xe6\x96\x87\xf0\x9f\x8c\xb1" });
+}
+
+test "standard/querystring/unescape/literal_plus" {
+    try check(@import("program"), "+", .{ .value = "+" });
+}
+
+test "standard/querystring/unescape/mixed" {
+    try check(@import("program"), "a +%&=\x00z", .{ .value = "a +%&=\x00z" });
+}
+
+test "standard/querystring/unescape/safe_punctuation" {
+    try check(@import("program"), "-_.!~*'()", .{ .value = "-_.!~*'()" });
+}
+
+test "standard/querystring/unescape/sequence_25" {
+    try check(@import("program"), "%", .{ .value = "%" });
+}
+
+test "standard/querystring/unescape/sequence_2530" {
+    try check(@import("program"), "%0", .{ .value = "%0" });
+}
+
+test "standard/querystring/unescape/sequence_256767" {
+    try check(@import("program"), "%gg", .{ .value = "%gg" });
+}
+
+test "standard/querystring/unescape/sequence_253067" {
+    try check(@import("program"), "%0g", .{ .value = "%0g" });
+}
+
+test "standard/querystring/unescape/sequence_256730" {
+    try check(@import("program"), "%g0", .{ .value = "%g0" });
+}
+
+test "standard/querystring/unescape/sequence_25253431" {
+    try check(@import("program"), "%%41", .{ .value = "%A" });
+}
+
+test "standard/querystring/unescape/sequence_25343125" {
+    try check(@import("program"), "%41%", .{ .value = "A%" });
+}
+
+test "standard/querystring/unescape/sequence_2532353230" {
+    try check(@import("program"), "%2520", .{ .value = "%20" });
+}
+
+test "standard/querystring/unescape/sequence_2532622b" {
+    try check(@import("program"), "%2b+", .{ .value = "++" });
+}
+
+test "standard/querystring/unescape/sequence_254332254132" {
+    try check(@import("program"), "%C2%A2", .{ .value = "\xc2\xa2" });
+}
+
+test "standard/querystring/unescape/sequence_254532253832254143" {
+    try check(@import("program"), "%E2%82%AC", .{ .value = "\xe2\x82\xac" });
+}
+
+test "standard/querystring/unescape/sequence_254630253946253843254231" {
+    try check(@import("program"), "%F0%9F%8C%B1", .{ .value = "\xf0\x9f\x8c\xb1" });
+}
+
+test "standard/querystring/unescape/sequence_256332256132" {
+    try check(@import("program"), "%c2%a2", .{ .value = "\xc2\xa2" });
+}
+
+test "standard/querystring/unescape/sequence_254332" {
+    try check(@import("program"), "%C2", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254532253832" {
+    try check(@import("program"), "%E2%82", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254630253946253843" {
+    try check(@import("program"), "%F0%9F%8C", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254330254146" {
+    try check(@import("program"), "%C0%AF", .{ .value = "\xef\xbf\xbd\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254530253830253830" {
+    try check(@import("program"), "%E0%80%80", .{ .value = "\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254544254130253830" {
+    try check(@import("program"), "%ED%A0%80", .{ .value = "\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254630253830253830253830" {
+    try check(@import("program"), "%F0%80%80%80", .{ .value = "\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254634253930253830253830" {
+    try check(@import("program"), "%F4%90%80%80", .{ .value = "\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254635253830253830253830" {
+    try check(@import("program"), "%F5%80%80%80", .{ .value = "\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254532253431254143" {
+    try check(@import("program"), "%E2%41%AC", .{ .value = "\xef\xbf\xbdA\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254532253832253431" {
+    try check(@import("program"), "%E2%82%41", .{ .value = "\xef\xbf\xbdA" });
+}
+
+test "standard/querystring/unescape/sequence_254630253946253431253830" {
+    try check(@import("program"), "%F0%9F%41%80", .{ .value = "\xef\xbf\xbdA\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/sequence_254546254242254246" {
+    try check(@import("program"), "%EF%BB%BF", .{ .value = "\xef\xbb\xbf" });
+}
+
+test "standard/querystring/unescape/sequence_254546254246254244" {
+    try check(@import("program"), "%EF%BF%BD", .{ .value = "\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/literal_unicode_invalid_byte" {
+    try check(@import("program"), "\xe4\xb8\xad%FF\xe6\x96\x87", .{ .value = "\xe4\xb8\xad\xef\xbf\xbd\xe6\x96\x87" });
+}
+
+test "standard/querystring/unescape/literal_non_bmp_truncated_sequence" {
+    try check(@import("program"), "\xf0\x9f\x8c\xb1%E2%82", .{ .value = "\xf0\x9f\x8c\xb1\xef\xbf\xbd" });
+}
+
+test "standard/querystring/unescape/malformed_percent_preserves_unicode" {
+    try check(@import("program"), "%G1\xe4\xb8\xad", .{ .value = "%G1\xe4\xb8\xad" });
+}
+
+test "standard/querystring/unescape/uri_a3_t1_1" {
+    try check(@import("program"), "%3B", .{ .value = ";" });
+}
+
+test "standard/querystring/unescape/uri_a3_t1_2" {
+    try check(@import("program"), "%2F", .{ .value = "/" });
+}
+
+test "standard/querystring/unescape/uri_a3_t1_3" {
+    try check(@import("program"), "%3F", .{ .value = "?" });
+}
+
+test "standard/querystring/unescape/uri_a3_t1_4" {
+    try check(@import("program"), "%3A", .{ .value = ":" });
+}
+
+test "standard/querystring/unescape/uri_a3_t1_7" {
+    try check(@import("program"), "%3D", .{ .value = "=" });
+}
+
+test "standard/querystring/unescape/uri_a3_t1_8" {
+    try check(@import("program"), "%2B", .{ .value = "+" });
+}
+
+test "standard/querystring/unescape/uri_a3_t1_10" {
+    try check(@import("program"), "%2C", .{ .value = "," });
+}
+
+test "standard/querystring/unescape/uri_a3_t3_1" {
+    try check(@import("program"), "%3B%2F%3F%3A%40%26%3D%2B%24%2C%23", .{ .value = ";/?:@&=+$,#" });
+}
+
+test "standard/querystring/unescape/uri_a3_t3_2" {
+    try check(@import("program"), "%3b%2f%3f%3a%40%26%3d%2b%24%2c%23", .{ .value = ";/?:@&=+$,#" });
+}
+
+test "standard/querystring/unescape/uri_a4_t1_1" {
+    try check(@import("program"), "http://unipro.ru/0123456789", .{ .value = "http://unipro.ru/0123456789" });
+}
+
+test "standard/querystring/unescape/uri_a4_t1_2" {
+    try check(@import("program"), "%41%42%43%44%45%46%47%48%49%4A%4B%4C%4D%4E%4F%50%51%52%53%54%55%56%57%58%59%5A", .{ .value = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" });
+}
+
+test "standard/querystring/unescape/uri_a4_t1_3" {
+    try check(@import("program"), "%61%62%63%64%65%66%67%68%69%6A%6B%6C%6D%6E%6F%70%71%72%73%74%75%76%77%78%79%7A", .{ .value = "abcdefghijklmnopqrstuvwxyz" });
+}
+
+test "standard/querystring/unescape/uri_a4_t2_1" {
+    try check(@import("program"), "http://ru.wikipedia.org/wiki/%d0%ae%D0%bd%D0%B8%D0%BA%D0%BE%D0%B4", .{ .value = "http://ru.wikipedia.org/wiki/\xd0\xae\xd0\xbd\xd0\xb8\xd0\xba\xd0\xbe\xd0\xb4" });
+}
+
+test "standard/querystring/unescape/uri_a4_t2_2" {
+    try check(@import("program"), "http://ru.wikipedia.org/wiki/%D0%AE%D0%BD%D0%B8%D0%BA%D0%BE%D0%B4#%D0%A1%D1%81%D1%8B%D0%BB%D0%BA%D0%B8", .{ .value = "http://ru.wikipedia.org/wiki/\xd0\xae\xd0\xbd\xd0\xb8\xd0\xba\xd0\xbe\xd0\xb4#\xd0\xa1\xd1\x81\xd1\x8b\xd0\xbb\xd0\xba\xd0\xb8" });
+}
+
+test "standard/querystring/unescape/uri_a4_t2_3" {
+    try check(@import("program"), "http://ru.wikipedia.org/wiki/%D0%AE%D0%BD%D0%B8%D0%BA%D0%BE%D0%B4%23%D0%92%D0%B5%D1%80%D1%81%D0%B8%D0%B8%20%D0%AE%D0%BD%D0%B8%D0%BA%D0%BE%D0%B4%D0%B0", .{ .value = "http://ru.wikipedia.org/wiki/\xd0\xae\xd0\xbd\xd0\xb8\xd0\xba\xd0\xbe\xd0\xb4#\xd0\x92\xd0\xb5\xd1\x80\xd1\x81\xd0\xb8\xd0\xb8 \xd0\xae\xd0\xbd\xd0\xb8\xd0\xba\xd0\xbe\xd0\xb4\xd0\xb0" });
+}
+
+test "standard/querystring/unescape/uri_a4_t3_1" {
+    try check(@import("program"), "http://unipro.ru/%0Aabout", .{ .value = "http://unipro.ru/\nabout" });
+}
+
+test "standard/querystring/unescape/uri_a4_t3_2" {
+    try check(@import("program"), "http://unipro.ru/%0Babout", .{ .value = "http://unipro.ru/\x0babout" });
+}
+
+test "standard/querystring/unescape/uri_a4_t3_3" {
+    try check(@import("program"), "http://unipro.ru/%0Cabout", .{ .value = "http://unipro.ru/\x0cabout" });
+}
+
+test "standard/querystring/unescape/uri_a4_t3_4" {
+    try check(@import("program"), "http://unipro.ru/%0Dabout", .{ .value = "http://unipro.ru/\rabout" });
+}
+
+test "standard/querystring/unescape/uri_a4_t4_2" {
+    try check(@import("program"), "http://unipro.ru", .{ .value = "http://unipro.ru" });
+}
+
+test "standard/querystring/unescape/uri_a4_t4_3" {
+    try check(@import("program"), "http:%2f%2Fwww.google.ru/support/jobs/bin/static.py%3Fpage%3dwhy-ru.html%26sid%3Dliveandwork", .{ .value = "http://www.google.ru/support/jobs/bin/static.py?page=why-ru.html&sid=liveandwork" });
+}
+
+test "standard/querystring/unescape/uri_a4_t4_4" {
+    try check(@import("program"), "http:%2F%2Fen.wikipedia.org/wiki/UTF-8%23Description", .{ .value = "http://en.wikipedia.org/wiki/UTF-8#Description" });
+}

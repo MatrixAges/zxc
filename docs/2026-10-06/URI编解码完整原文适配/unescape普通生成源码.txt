@@ -1,0 +1,92 @@
+const std = @import("std");
+
+const zx_native_0 = @import("zxc_standard");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = []const u8;
+
+pub const Output = []const u8;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .object, .fields = .{ .key = zx_shape_10, .value = zx_shape_10, }, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .assignment = zx_shape_10, .max_keys = zx_shape_4, .query = zx_shape_10, .separator = zx_shape_10, }, };
+
+const zx_shape_13 = .{ .kind = .list, .child = zx_shape_11, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .assignment = zx_shape_10, .entries = zx_shape_13, .separator = zx_shape_10, }, };
+
+pub const input_shape = zx_shape_10;
+
+pub const output_shape = zx_shape_10;
+
+fn function_0(allocator: ((std).mem).Allocator, in: []const u8) error{ InvalidUtf8, OutOfMemory, }![]const u8 {
+    const native_result = (try ((zx_native_0).querystring).escape(allocator, in));
+
+    return native_result;
+}
+
+fn function_1(allocator: ((std).mem).Allocator, in: []const u8) error{ OutOfMemory, }![]const u8 {
+    const native_result = (try ((zx_native_0).querystring).unescape(allocator, in));
+
+    return native_result;
+}
+
+fn function_2(allocator: ((std).mem).Allocator, in: []const u8) error{ OutOfMemory, }![]const *const (zx_abi).zx_type_11 {
+    const native_result = (try ((zx_native_0).querystring).parse(allocator, in));
+
+    return native_result;
+}
+
+fn function_3(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_12) error{ OutOfMemory, }![]const *const (zx_abi).zx_type_11 {
+    const native_result = (try ((zx_native_0).querystring).parseWith(allocator, in));
+
+    return native_result;
+}
+
+fn function_4(allocator: ((std).mem).Allocator, in: []const *const (zx_abi).zx_type_11) error{ InvalidUtf8, OutOfMemory, }![]const u8 {
+    const native_result = (try ((zx_native_0).querystring).stringify(allocator, in));
+
+    return native_result;
+}
+
+fn function_5(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_14) error{ InvalidUtf8, OutOfMemory, }![]const u8 {
+    const native_result = (try ((zx_native_0).querystring).stringifyWith(allocator, in));
+
+    return native_result;
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: []const u8) error{ OutOfMemory, }![]const u8 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return (try function_1(allocator, in));
+}
+

@@ -1,0 +1,8 @@
+{"id":"standard/querystring/stringify/empty/delimiter_0","input":[],"expected":{"value":""}}
+{"id":"standard/querystring/stringify/empty_key_value/delimiter_0","input":[{"key":"","value":""}],"expected":{"value":"="}}
+{"id":"standard/querystring/stringify/interleaved_duplicates/delimiter_0","input":[{"key":"a","value":"1"},{"key":"b","value":"2"},{"key":"a","value":"3"}],"expected":{"value":"a=1&b=2&a=3"}}
+{"id":"standard/querystring/stringify/numeric_order/delimiter_0","input":[{"key":"10","value":"a"},{"key":"2","value":"b"}],"expected":{"value":"10=a&2=b"}}
+{"id":"standard/querystring/stringify/unicode/delimiter_0","input":[{"key":"\u4e2d\u6587","value":"\ud83c\udf31"}],"expected":{"value":"%E4%B8%AD%E6%96%87=%F0%9F%8C%B1"}}
+{"id":"standard/querystring/stringify/delimiters/delimiter_0","input":[{"key":"a&b=c","value":"+ %"}],"expected":{"value":"a%26b%3Dc=%2B%20%25"}}
+{"id":"standard/querystring/stringify/nul/delimiter_0","input":[{"key":"\u0000","value":"a\u0000b"}],"expected":{"value":"%00=a%00b"}}
+{"id":"standard/querystring/stringify/prototype_names/delimiter_0","input":[{"key":"__proto__","value":"own"},{"key":"constructor","value":"value"}],"expected":{"value":"__proto__=own&constructor=value"}}

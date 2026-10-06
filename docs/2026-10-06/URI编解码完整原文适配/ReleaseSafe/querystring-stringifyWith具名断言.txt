@@ -1,0 +1,161 @@
+const check = @import("support").check;
+
+test "standard/querystring/stringifyWith/empty/delimiter_0" {
+    try check(@import("program"), &.{.entries = &.{}, .separator = "&", .assignment = "="}, .{ .value = "" });
+}
+
+test "standard/querystring/stringifyWith/empty/delimiter_1" {
+    try check(@import("program"), &.{.entries = &.{}, .separator = ";", .assignment = ":"}, .{ .value = "" });
+}
+
+test "standard/querystring/stringifyWith/empty/delimiter_2" {
+    try check(@import("program"), &.{.entries = &.{}, .separator = "||", .assignment = "=>"}, .{ .value = "" });
+}
+
+test "standard/querystring/stringifyWith/empty/delimiter_3" {
+    try check(@import("program"), &.{.entries = &.{}, .separator = "\xe5\x88\x86", .assignment = "\xe5\x80\xbc"}, .{ .value = "" });
+}
+
+test "standard/querystring/stringifyWith/empty/delimiter_4" {
+    try check(@import("program"), &.{.entries = &.{}, .separator = "", .assignment = ""}, .{ .value = "" });
+}
+
+test "standard/querystring/stringifyWith/empty_key_value/delimiter_0" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "", .value = ""}}, .separator = "&", .assignment = "="}, .{ .value = "=" });
+}
+
+test "standard/querystring/stringifyWith/empty_key_value/delimiter_1" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "", .value = ""}}, .separator = ";", .assignment = ":"}, .{ .value = ":" });
+}
+
+test "standard/querystring/stringifyWith/empty_key_value/delimiter_2" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "", .value = ""}}, .separator = "||", .assignment = "=>"}, .{ .value = "=>" });
+}
+
+test "standard/querystring/stringifyWith/empty_key_value/delimiter_3" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "", .value = ""}}, .separator = "\xe5\x88\x86", .assignment = "\xe5\x80\xbc"}, .{ .value = "\xe5\x80\xbc" });
+}
+
+test "standard/querystring/stringifyWith/empty_key_value/delimiter_4" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "", .value = ""}}, .separator = "", .assignment = ""}, .{ .value = "=" });
+}
+
+test "standard/querystring/stringifyWith/interleaved_duplicates/delimiter_0" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a", .value = "1"}, &.{.key = "b", .value = "2"}, &.{.key = "a", .value = "3"}}, .separator = "&", .assignment = "="}, .{ .value = "a=1&b=2&a=3" });
+}
+
+test "standard/querystring/stringifyWith/interleaved_duplicates/delimiter_1" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a", .value = "1"}, &.{.key = "b", .value = "2"}, &.{.key = "a", .value = "3"}}, .separator = ";", .assignment = ":"}, .{ .value = "a:1;b:2;a:3" });
+}
+
+test "standard/querystring/stringifyWith/interleaved_duplicates/delimiter_2" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a", .value = "1"}, &.{.key = "b", .value = "2"}, &.{.key = "a", .value = "3"}}, .separator = "||", .assignment = "=>"}, .{ .value = "a=>1||b=>2||a=>3" });
+}
+
+test "standard/querystring/stringifyWith/interleaved_duplicates/delimiter_3" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a", .value = "1"}, &.{.key = "b", .value = "2"}, &.{.key = "a", .value = "3"}}, .separator = "\xe5\x88\x86", .assignment = "\xe5\x80\xbc"}, .{ .value = "a\xe5\x80\xbc1\xe5\x88\x86b\xe5\x80\xbc2\xe5\x88\x86a\xe5\x80\xbc3" });
+}
+
+test "standard/querystring/stringifyWith/interleaved_duplicates/delimiter_4" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a", .value = "1"}, &.{.key = "b", .value = "2"}, &.{.key = "a", .value = "3"}}, .separator = "", .assignment = ""}, .{ .value = "a=1&b=2&a=3" });
+}
+
+test "standard/querystring/stringifyWith/numeric_order/delimiter_0" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "10", .value = "a"}, &.{.key = "2", .value = "b"}}, .separator = "&", .assignment = "="}, .{ .value = "10=a&2=b" });
+}
+
+test "standard/querystring/stringifyWith/numeric_order/delimiter_1" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "10", .value = "a"}, &.{.key = "2", .value = "b"}}, .separator = ";", .assignment = ":"}, .{ .value = "10:a;2:b" });
+}
+
+test "standard/querystring/stringifyWith/numeric_order/delimiter_2" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "10", .value = "a"}, &.{.key = "2", .value = "b"}}, .separator = "||", .assignment = "=>"}, .{ .value = "10=>a||2=>b" });
+}
+
+test "standard/querystring/stringifyWith/numeric_order/delimiter_3" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "10", .value = "a"}, &.{.key = "2", .value = "b"}}, .separator = "\xe5\x88\x86", .assignment = "\xe5\x80\xbc"}, .{ .value = "10\xe5\x80\xbca\xe5\x88\x862\xe5\x80\xbcb" });
+}
+
+test "standard/querystring/stringifyWith/numeric_order/delimiter_4" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "10", .value = "a"}, &.{.key = "2", .value = "b"}}, .separator = "", .assignment = ""}, .{ .value = "10=a&2=b" });
+}
+
+test "standard/querystring/stringifyWith/unicode/delimiter_0" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\xe4\xb8\xad\xe6\x96\x87", .value = "\xf0\x9f\x8c\xb1"}}, .separator = "&", .assignment = "="}, .{ .value = "%E4%B8%AD%E6%96%87=%F0%9F%8C%B1" });
+}
+
+test "standard/querystring/stringifyWith/unicode/delimiter_1" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\xe4\xb8\xad\xe6\x96\x87", .value = "\xf0\x9f\x8c\xb1"}}, .separator = ";", .assignment = ":"}, .{ .value = "%E4%B8%AD%E6%96%87:%F0%9F%8C%B1" });
+}
+
+test "standard/querystring/stringifyWith/unicode/delimiter_2" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\xe4\xb8\xad\xe6\x96\x87", .value = "\xf0\x9f\x8c\xb1"}}, .separator = "||", .assignment = "=>"}, .{ .value = "%E4%B8%AD%E6%96%87=>%F0%9F%8C%B1" });
+}
+
+test "standard/querystring/stringifyWith/unicode/delimiter_3" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\xe4\xb8\xad\xe6\x96\x87", .value = "\xf0\x9f\x8c\xb1"}}, .separator = "\xe5\x88\x86", .assignment = "\xe5\x80\xbc"}, .{ .value = "%E4%B8%AD%E6%96%87\xe5\x80\xbc%F0%9F%8C%B1" });
+}
+
+test "standard/querystring/stringifyWith/unicode/delimiter_4" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\xe4\xb8\xad\xe6\x96\x87", .value = "\xf0\x9f\x8c\xb1"}}, .separator = "", .assignment = ""}, .{ .value = "%E4%B8%AD%E6%96%87=%F0%9F%8C%B1" });
+}
+
+test "standard/querystring/stringifyWith/delimiters/delimiter_0" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a&b=c", .value = "+ %"}}, .separator = "&", .assignment = "="}, .{ .value = "a%26b%3Dc=%2B%20%25" });
+}
+
+test "standard/querystring/stringifyWith/delimiters/delimiter_1" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a&b=c", .value = "+ %"}}, .separator = ";", .assignment = ":"}, .{ .value = "a%26b%3Dc:%2B%20%25" });
+}
+
+test "standard/querystring/stringifyWith/delimiters/delimiter_2" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a&b=c", .value = "+ %"}}, .separator = "||", .assignment = "=>"}, .{ .value = "a%26b%3Dc=>%2B%20%25" });
+}
+
+test "standard/querystring/stringifyWith/delimiters/delimiter_3" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a&b=c", .value = "+ %"}}, .separator = "\xe5\x88\x86", .assignment = "\xe5\x80\xbc"}, .{ .value = "a%26b%3Dc\xe5\x80\xbc%2B%20%25" });
+}
+
+test "standard/querystring/stringifyWith/delimiters/delimiter_4" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "a&b=c", .value = "+ %"}}, .separator = "", .assignment = ""}, .{ .value = "a%26b%3Dc=%2B%20%25" });
+}
+
+test "standard/querystring/stringifyWith/nul/delimiter_0" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\x00", .value = "a\x00b"}}, .separator = "&", .assignment = "="}, .{ .value = "%00=a%00b" });
+}
+
+test "standard/querystring/stringifyWith/nul/delimiter_1" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\x00", .value = "a\x00b"}}, .separator = ";", .assignment = ":"}, .{ .value = "%00:a%00b" });
+}
+
+test "standard/querystring/stringifyWith/nul/delimiter_2" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\x00", .value = "a\x00b"}}, .separator = "||", .assignment = "=>"}, .{ .value = "%00=>a%00b" });
+}
+
+test "standard/querystring/stringifyWith/nul/delimiter_3" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\x00", .value = "a\x00b"}}, .separator = "\xe5\x88\x86", .assignment = "\xe5\x80\xbc"}, .{ .value = "%00\xe5\x80\xbca%00b" });
+}
+
+test "standard/querystring/stringifyWith/nul/delimiter_4" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "\x00", .value = "a\x00b"}}, .separator = "", .assignment = ""}, .{ .value = "%00=a%00b" });
+}
+
+test "standard/querystring/stringifyWith/prototype_names/delimiter_0" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "__proto__", .value = "own"}, &.{.key = "constructor", .value = "value"}}, .separator = "&", .assignment = "="}, .{ .value = "__proto__=own&constructor=value" });
+}
+
+test "standard/querystring/stringifyWith/prototype_names/delimiter_1" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "__proto__", .value = "own"}, &.{.key = "constructor", .value = "value"}}, .separator = ";", .assignment = ":"}, .{ .value = "__proto__:own;constructor:value" });
+}
+
+test "standard/querystring/stringifyWith/prototype_names/delimiter_2" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "__proto__", .value = "own"}, &.{.key = "constructor", .value = "value"}}, .separator = "||", .assignment = "=>"}, .{ .value = "__proto__=>own||constructor=>value" });
+}
+
+test "standard/querystring/stringifyWith/prototype_names/delimiter_3" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "__proto__", .value = "own"}, &.{.key = "constructor", .value = "value"}}, .separator = "\xe5\x88\x86", .assignment = "\xe5\x80\xbc"}, .{ .value = "__proto__\xe5\x80\xbcown\xe5\x88\x86constructor\xe5\x80\xbcvalue" });
+}
+
+test "standard/querystring/stringifyWith/prototype_names/delimiter_4" {
+    try check(@import("program"), &.{.entries = &.{&.{.key = "__proto__", .value = "own"}, &.{.key = "constructor", .value = "value"}}, .separator = "", .assignment = ""}, .{ .value = "__proto__=own&constructor=value" });
+}

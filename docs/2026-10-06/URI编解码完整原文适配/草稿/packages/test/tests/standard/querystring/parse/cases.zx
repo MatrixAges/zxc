@@ -1,0 +1,11 @@
+import query from "std:querystring"
+
+import type { Entry, ParseOptions, StringifyOptions } from "std:querystring"
+
+export type Input = string
+
+export type Output = Entry[]
+
+export default function (in: Input): Output {
+  return query.parse(in)
+}
