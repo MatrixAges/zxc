@@ -47,6 +47,7 @@ for original in sorted((fixed / 'packages/test/.zig-cache/o').glob('*/original.z
 assert set(outputs) == {'mixed', 'basic'}
 value = {
     'source_commit': manifest['source_commit'],
+    'input_manifest': '复验起点.json',
     'terminal_exit_code': 0,
     'argv': ['zig', 'build', 'test-native-runtime', '-Doptimize=' + mode, '-j2', '--summary', 'all'],
     'summary': summary,

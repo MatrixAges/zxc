@@ -24,6 +24,16 @@ for name, expected in current['drafts'].items():
     assert digest(fixed / name) == expected
     assert digest(directory.parents[2] / name) == expected
 
+formatting = json.loads((directory / '提交格式差异.json').read_text())
+before_format = json.loads((directory / '格式前版本起点.json').read_text())
+
+for name, row in formatting.items():
+    tested = directory / '格式前源码' / (name + '.txt')
+    formal = directory / '草稿' / name
+    assert digest(tested) == row['tested_sha256'] == before_format['drafts'][name] == initial['drafts'][name]
+    assert digest(formal) == row['formal_sha256'] == current['drafts'][name]
+    assert [line for line in tested.read_bytes().splitlines() if line.strip()] == [line for line in formal.read_bytes().splitlines() if line.strip()]
+
 for name in ['main.zx', 'helper.zx', 'choice.d.zx', 'choice.zig', 'runtime_test.zig']:
     path = 'packages/test/tests/incremental/native_runtime/' + name
     original = subprocess.check_output(['git', 'show', initial['source_commit'] + ':' + path], cwd=fixed)
@@ -36,9 +46,10 @@ assert len(re.findall(r'^test "', basic.read_text(), re.MULTILINE)) == 4
 assert len(re.findall(r'^test "', mixed.read_text(), re.MULTILINE)) == 7
 all_outputs = {}
 
-for label, source in [('Debug', initial), ('ReleaseSafe', initial), ('当前版本Debug', current), ('当前版本ReleaseSafe', current)]:
+for label, source in [('Debug', initial), ('ReleaseSafe', initial), ('当前版本Debug', before_format), ('当前版本ReleaseSafe', before_format), ('提交格式后Debug', current), ('提交格式后ReleaseSafe', current)]:
     saved = directory / label
     result = json.loads((saved / '执行结果.json').read_text())
+    assert json.loads((directory / result['input_manifest']).read_text()) == source
     assert result['source_commit'] == source['source_commit'] and result['terminal_exit_code'] == 0
     assert result['runs'] == expected_runs and result['catalog_ids_added'] == 0
     log = saved / '原始日志.txt'
@@ -72,6 +83,7 @@ for label, source in [('Debug', initial), ('ReleaseSafe', initial), ('当前版�
 
 assert all_outputs['Debug'] == all_outputs['ReleaseSafe']
 assert all_outputs['当前版本Debug'] == all_outputs['当前版本ReleaseSafe']
+assert all_outputs['提交格式后Debug'] == all_outputs['提交格式后ReleaseSafe'] == all_outputs['当前版本Debug']
 
 for label, source in [('初始版本相邻Debug', initial), ('当前版本相邻Debug', current), ('当前版本相邻ReleaseSafe', current)]:
     result = json.loads((directory / (label + '结果.json')).read_text())
@@ -89,4 +101,4 @@ matrix = json.loads((directory / '目录矩阵原始报告.txt').read_text())
 assert matrix['catalog_cases'] == 80625 and matrix['upstream_files'] == 53597
 assert matrix['reviewed'] == {'adapted': 752, 'excluded': 1873, 'equivalent': 103}
 assert matrix['unreviewed'] == 50869 and matrix['linked_cases'] == 5449
-print(json.dumps({'initial_source': initial['source_commit'], 'current_source': current['source_commit'], 'new_unique_declarations': 7, 'native_route_passes_per_gate': 33, 'generated_files_verified': 48, 'adjacent_commands_verified': 3}, ensure_ascii=False))
+print(json.dumps({'initial_source': initial['source_commit'], 'current_source': current['source_commit'], 'new_unique_declarations': 7, 'native_route_passes_per_gate': 33, 'generated_files_verified': 72, 'adjacent_commands_verified': 3}, ensure_ascii=False))
