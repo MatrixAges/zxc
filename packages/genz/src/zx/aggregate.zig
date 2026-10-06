@@ -62,6 +62,8 @@ pub fn tupleValue(self: *Lower, value: ir.Expression, items: []const ir.ExprId) 
 }
 
 fn sequenceMode(self: *Lower, value: ir.Expression, items: []const ir.ExprId, layout: bool) Lower.Error!*const node.Expression {
+    if (value.value == .list) if (try @import("static_list.zig").lower(self, value, items)) |literal| return literal;
+
     var body: std.ArrayList(node.Statement) = .empty;
     const expressions = try self.allocator.alloc(*const node.Expression, items.len);
 
