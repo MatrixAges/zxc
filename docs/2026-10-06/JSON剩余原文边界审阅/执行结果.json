@@ -1,0 +1,60 @@
+{
+	"证据主检出提交": "254593c1fe2d60496465dd9570cd09a7f31e4a82",
+	"Test262提交": "7ab7fafa0003f73fc85c1b95d88094d33f7eb8bd",
+	"Node版本": "v25.8.1",
+	"原始源码与metadata核对": 35,
+	"原样Node普通及严格执行": {
+		"实际执行": 70,
+		"通过": 70,
+		"退出码": 0,
+		"JSON_parse替换": false
+	},
+	"新增ZX可执行案例": 0,
+	"新增excluded": 35,
+	"JSON_parse家族": {
+		"完整文件": 77,
+		"adapted": 42,
+		"excluded": 35,
+		"未审阅": 0,
+		"完全JS兼容": false
+	},
+	"参考执行器SHA256": "6ac39a303c565e2cef19b18863f6c90c0c747a15120dbf93c4aecba4e0809333",
+	"来源SHA256": {
+		"packages/test/upstream/reviews/built_ins/json/remaining.jsonl": "3660aa33a22c081e0946ec59a7b088017937660d6223e34390814b278c362351",
+		"packages/cli/README.md": "f8df95e7a941ed0ae1765f4aede2b66d8a7d47f6cc6d42f9399885e9ec3cc283",
+		"packages/genz/src/host/cli/input.zig": "7bc9f7dd8aa0802d7f214681216008a2682de68d6c5bd7c283bd938fb14ca898",
+		"packages/genz/src/host/wasm/json.zig": "2ffe3f77e34eebb9f044f4de3859aaca35bd956185be5d4df1b2ffc54080b7d7",
+		"packages/test/src/audit_matrix.ts": "8245dc9e9a1c7cf8fdaeff374103d4459ce973bf479f4cdf10b061b0adc7c47f",
+		"packages/test/src/query_upstream.ts": "171b566648e73da002ed9448369ef9ee5088b6b250b6d52636c380d6bf2d5978",
+		"packages/test/src/shared/upstream.ts": "c031ee805cf3f107530659f6c1ed53516b52637bcc1f3ddef1a49196466d6346",
+		"packages/test/upstream/lock.json": "f358ffeade5c167ee0889730adc993da2d401541602250539589bfd4b477ae24"
+	},
+	"Zig默认重复字段契约SHA256": "6a5ebd3c69f615353fbc8df0fe7b439ffaa4418dad5ee3927e2452454ea0611e",
+	"完整矩阵审计": {
+		"upstream_files": 53597,
+		"metadata_files": 53597,
+		"reviewed": {
+			"adapted": 732,
+			"excluded": 1718,
+			"equivalent": 103
+		},
+		"unreviewed": 51044,
+		"catalog_cases": 80533,
+		"catalog_by_runner": {
+			"runtime": 62990,
+			"frontend": 5313,
+			"evaluation_order": 1084,
+			"safety": 464,
+			"module_graphs": 10446,
+			"stores": 236
+		},
+		"linked_cases": 5314,
+		"execution_status": "not measured by this audit; see zig build test results"
+	},
+	"查询闭合": {
+		"matched_unreviewed": 0,
+		"shown": 0,
+		"decisions_added": 0
+	},
+	"自我批判": "原文函数反射、callback、descriptor、原型、source及sameValue身份属于核心断言。Node原样通过只证明参考原文可执行，不计ZX通过。未替换JSON.parse，避免改变length/name/constructor或丢弃reviver。原文key===5分支不会命中，不填为观察。未对负零expected做JSON.stringify转换。重复字段差异来自生产入口标准库默认选项源码，未将其声称为已经运行的ZX缺陷复现。excluded是当前完整适配边界，整个Test262与所有语言特性的原始目标未缩减。"
+}
