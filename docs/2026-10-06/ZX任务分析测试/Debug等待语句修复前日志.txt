@@ -1,0 +1,36 @@
+test-zx-tasks-analysis
++- run test 11 pass, 1 fail (12 total)
+error: 'shape_test.test.void native task keeps void payload and its finite error' failed:
+       unexpected diagnostic: expected const, if, switch, return or a Store setter; ordinary mutation is forbidden
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10e194edf in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/language/expressions/tasks/analysis/shape_test.zig:18:5: 0x10e354404 in task (test)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/language/expressions/tasks/analysis/shape_test.zig:99:5: 0x10e356561 in test.void native task keeps void payload and its finite error (test)
+           try task(.{ .body = "const work = async native.effect(in)\nawait work\nreturn in" }, .{ .scalar = .void, .errors = &.{"EffectFailure"} });
+           ^
+failed command: ./.zig-cache/o/677f9af0135601321cb4df2bdb9a6b50/test --cache-dir=./.zig-cache --seed=0xc264d679 --listen=-
+
+Build Summary: 11/13 steps succeeded (1 failed); 34/35 tests passed (1 failed)
+test-zx-tasks-analysis transitive failure
++- run test 11 pass, 1 fail (12 total)
+|  +- compile test debug native cached 48ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer debug native cached 45ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test cached
+|  +- compile test debug native cached 46ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 23 pass (23 total) 9ms MaxRSS:2M
+|  +- compile test debug native success 3s MaxRSS:418M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test cached
+   +- compile test debug native cached 48ms MaxRSS:21M
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

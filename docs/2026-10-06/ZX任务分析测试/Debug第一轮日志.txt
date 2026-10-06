@@ -1,0 +1,67 @@
+test-zx-tasks-analysis
++- run test 11 pass, 1 fail (12 total)
+error: 'shape_test.test.void native task keeps void payload and its finite error' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10f971edf in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/language/expressions/tasks/analysis/shape_test.zig:17:5: 0x10fb30d08 in task (test)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/language/expressions/tasks/analysis/shape_test.zig:97:5: 0x10fb32e61 in test.void native task keeps void payload and its finite error (test)
+           try task(.{ .body = "const work = async native.effect(in)\nawait work\nreturn in" }, .{ .scalar = .void, .errors = &.{"EffectFailure"} });
+           ^
+failed command: ./.zig-cache/o/5168b70028b0dd6a732d570f806152a6/test --cache-dir=./.zig-cache --seed=0x7ca19144 --listen=-
+
+test-zx-tasks-analysis
++- run test 35 pass, 2 fail (37 total)
+error: 'rejection_test.test.task handles cannot be placed in a heterogeneous tuple' failed:
+       expected .ownership, found .type_mismatch
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x102ea9f6d in expectEqualInner__func_1010 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x102eaa8ea in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/language/expressions/tasks/analysis/fixture.zig:65:5: 0x102eaa9b6 in rejected (test)
+           try std.testing.expectEqual(expected.code, issue.code);
+           ^
+       /Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/language/expressions/tasks/analysis/rejection_test.zig:28:5: 0x1030689b8 in test.task handles cannot be placed in a heterogeneous tuple (test)
+           try f.rejected(std.testing.allocator, .{ .body = prefix ++ "const values = [work, in]\nreturn in" }, .{ .code = .ownership, .message = "tasks cannot be placed in tuples" });
+           ^
+error: 'rejection_test.test.task handles cannot be placed in an optional branch result' failed:
+       expected .ownership, found .type_mismatch
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x102ea9f6d in expectEqualInner__func_1010 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x102eaa8ea in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/language/expressions/tasks/analysis/fixture.zig:65:5: 0x102eaa9b6 in rejected (test)
+           try std.testing.expectEqual(expected.code, issue.code);
+           ^
+       /Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/language/expressions/tasks/analysis/rejection_test.zig:36:5: 0x1030688f8 in test.task handles cannot be placed in an optional branch result (test)
+           try f.rejected(std.testing.allocator, .{ .body = prefix ++ "const value = in == 0 ? work : null\nreturn in" }, .{ .code = .ownership, .message = "tasks cannot be placed in containers" });
+           ^
+failed command: ./.zig-cache/o/577cb2e0ce4daf66b2d08da41544146e/test --cache-dir=./.zig-cache --seed=0x7ca19144 --listen=-
+
+Build Summary: 10/13 steps succeeded (2 failed); 63/66 tests passed (3 failed)
+test-zx-tasks-analysis transitive failure
++- run test 11 pass, 1 fail (12 total)
+|  +- compile test debug native success 3s MaxRSS:426M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer debug native cached 47ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run test 14 pass (14 total) 12ms MaxRSS:3M
+|  +- compile test debug native success 3s MaxRSS:426M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 35 pass, 2 fail (37 total)
+|  +- compile test debug native success 3s MaxRSS:424M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 3 pass (3 total) 75ms MaxRSS:2M
+   +- compile test debug native success 3s MaxRSS:427M
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

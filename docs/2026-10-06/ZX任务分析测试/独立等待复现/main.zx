@@ -1,0 +1,13 @@
+import native from "zig:sample"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const work = async native.effect(in)
+
+  await work
+
+  return in
+}
