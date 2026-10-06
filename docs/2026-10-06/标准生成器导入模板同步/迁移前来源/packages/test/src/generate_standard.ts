@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto'
 import { writeCatalog, writeOutput } from './shared/catalog.ts'
 
-const source = `import crypto from "std:crypto"
-import encoding from "std:encoding"
+const source = `import encoding from "std:encoding"
+import crypto from "std:crypto"
 
 export type Input = { bytes: u8[]
  text: string }

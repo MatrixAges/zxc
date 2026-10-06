@@ -66,7 +66,6 @@ for (const [format, operation, compress] of [
 	writeOutput(
 		base + '.zx',
 		`import zlib from "std:zlib"
-
 import type { DecompressOptions } from "std:zlib"
 
 export type Input = DecompressOptions
