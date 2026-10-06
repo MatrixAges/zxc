@@ -4,13 +4,13 @@ const Lower = @import("../lower.zig");
 const analysis = @import("analysis.zig");
 
 pub fn register(self: *Lower, statements: []const ir.Statement) Lower.Error![]const ir.SymbolId {
-    if (!self.value_output) return &.{};
+    if (!self.value_output and !analysis.scalarLocals(self.program, self.pure_functions)) return &.{};
 
     var symbols: std.ArrayList(ir.SymbolId) = .empty;
 
     for (statements) |statement| switch (statement) {
         .constant => |binding| {
-            const type_id = self.program.symbols[@intFromEnum(binding.symbol)].type_id;
+            const type_id = self.program.symbols[@backingInt(binding.symbol)].type_id;
 
             if (self.program.typeOf(type_id) != .object or analysis.containsDescendant(self.program, self.program.output_type, type_id)) continue;
             if (self.stack_symbols.contains(binding.symbol)) continue;

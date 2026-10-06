@@ -11,6 +11,15 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
 
 pub const Summary = struct { pure: []bool, values: []bool };
 
+pub fn scalarLocals(program: ir.Program, pure: []const bool) bool {
+    switch (program.typeOf(program.output_type)) {
+        .scalar, .enumeration, .error_set => {},
+        else => return false,
+    }
+
+    return program.stores.len == 0 and !parallel(program.body) and calls(program.expressions, program.contracts, pure);
+}
+
 pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Summary {
     const pure = try allocator.alloc(bool, program.functions.len);
 

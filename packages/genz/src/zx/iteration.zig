@@ -5,6 +5,14 @@ const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!*const node.Expression {
+    return lowerMode(self, id, iteration, false);
+}
+
+pub fn lowerValue(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!*const node.Expression {
+    return lowerMode(self, id, iteration, true);
+}
+
+fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: bool) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     var loop: std.ArrayList(node.Statement) = .empty;
     const name = try self.fresh("state");
@@ -12,13 +20,16 @@ pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!*
     const layout_analysis = @import("iteration_layout.zig");
     const pure = try layout_analysis.pure(self.allocator, self.program, iteration, self.pure_functions);
     const layout = pure and layout_analysis.flat(self.program, self.program.expression(id).type_id);
+
+    if (by_value and !layout) return self.builder.expression(.{ .dereference = try lower(self, id, iteration) });
+
     const deep = pure and !layout and layout_analysis.represented(self.program, self.program.expression(id).type_id) and try layout_analysis.deep(self.allocator, self.program, iteration, self.pure_functions);
     const local = layout or deep;
     var context = @import("iteration_value/root.zig"){ .lowering = self, .declarations = &body };
-    const initial_expression = try self.expr(iteration.initial);
+    const initial_expression = if (by_value) try @import("value_call/root.zig").expression(self, iteration.initial) else try self.expr(iteration.initial);
     const initial = if (local) try aggregate.bind(self, &body, initial_expression) else initial_expression;
     const type_id = self.program.expression(id).type_id;
-    const changed_name = if (local) try self.fresh("state_changed") else "";
+    const changed_name = if (local and !by_value) try self.fresh("state_changed") else "";
     var buffers = try @import("iteration_buffer/root.zig").init(self, iteration, &body, pure);
 
     defer buffers.restore();
@@ -65,12 +76,12 @@ pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!*
     try body.append(self.allocator, .{ .variable = .{
         .name = name,
         .type_expr = if (deep) try @import("iteration_value/types.zig").get(&context, type_id) else if (layout) self.layouts[@backingInt(type_id)] else self.types[@backingInt(type_id)],
-        .value = if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial,
+        .value = if (by_value) initial else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial,
     } });
 
     try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
 
-    if (local) {
+    if (local and !by_value) {
         try body.append(self.allocator, .{ .variable = .{ .name = changed_name, .value = try self.builder.expression(.{ .boolean = false }) } });
         try loop.append(self.allocator, .{ .assignment = .{ .target = try self.builder.identifier(changed_name), .value = try self.builder.expression(.{ .boolean = true }) } });
     }
@@ -88,7 +99,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, iteration: ir.Iteration) Lower.Error!*
         .body = try loop.toOwnedSlice(self.allocator),
     } });
 
-    const result = if (local) try self.builder.expression(.{ .conditional = .{
+    const result = if (by_value) state else if (local) try self.builder.expression(.{ .conditional = .{
         .condition = try self.builder.identifier(changed_name),
         .yes = if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, state, true) else try self.construct(type_id, state),
         .no = initial,
