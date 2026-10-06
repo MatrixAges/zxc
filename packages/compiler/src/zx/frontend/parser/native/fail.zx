@@ -1,0 +1,29 @@
+import { Phase } from "./model"
+import current from "./token"
+
+import type { NativeState } from "./model"
+
+export type Input = { state: NativeState, code: string, message: string }
+
+export type Output = NativeState
+
+export default function (in: owned Input): Output {
+  const token = current(in.state)
+  const diagnostic = { code: in.code, start: token.span.start, end: token.span.end, message: in.message }
+
+  return {
+    lexed: in.state.lexed,
+    declarations: in.state.declarations,
+    functions: in.state.functions,
+    parameters: in.state.parameters,
+    errors: in.state.errors,
+    control: {
+      index: in.state.control.index,
+      injected: in.state.control.injected,
+      parameter: in.state.control.parameter,
+      current: in.state.control.current,
+      phase: Phase.Done,
+      diagnostic: diagnostic
+    }
+  }
+}

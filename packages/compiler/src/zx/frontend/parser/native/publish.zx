@@ -1,0 +1,53 @@
+import { Kind, Symbol } from "../../lexer/token_model"
+import advance from "./advance"
+import fail from "./fail"
+import { Phase } from "./model"
+import current from "./token"
+
+import type { NativeState } from "./model"
+
+export type Input = NativeState
+
+export type Output = NativeState
+
+export default function (in: owned Input): Output {
+  const token = current(in)
+
+  if (token.symbol == Symbol.Semicolon) {
+    return fail({ state: in, code: "syntax", message: "semicolons are not allowed in ZX" })
+  }
+
+  if (token.kind != Kind.Eof && token.symbol != Symbol.CloseBrace && !token.line_break) {
+    return fail({ state: in, code: "syntax", message: "expected a newline, closing block or end of source" })
+  }
+
+  const current = {
+    name: { start: in.control.current.name.start, end: in.control.current.name.end },
+    first_parameter: in.control.current.first_parameter,
+    output: in.control.current.output,
+    allocator_argument: in.control.current.allocator_argument,
+    io_argument: in.control.current.io_argument,
+    process_argument: in.control.current.process_argument,
+    fallible: in.control.current.fallible,
+    errors_present: in.control.current.errors_present,
+    first_error: in.control.current.first_error,
+    concurrent: in.control.current.concurrent,
+    count: in.parameters.length - in.control.current.first_parameter,
+    error_count: in.errors.length - in.control.current.first_error
+  }
+
+  const functions = in.functions.push(current)[0]
+
+  return advance({
+    state: {
+      lexed: in.lexed,
+      declarations: in.declarations,
+      parameters: in.parameters,
+      errors: in.errors,
+      control: in.control,
+      functions: functions
+    },
+    phase: Phase.Start,
+    count: 0
+  })
+}

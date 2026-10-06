@@ -1,0 +1,62 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Symbol } from "../../lexer/token_model"
+import advance from "./advance"
+import { Phase } from "./model"
+import current from "./token"
+
+import type { NativeState } from "./model"
+
+export type Input = NativeState
+
+export type Output = NativeState
+
+export default function (in: owned Input): Output {
+  const token = current(in)
+  const throwing = in.control.phase == Phase.Throws
+  const opening = in.control.phase == Phase.ErrorOpen
+
+  const present = match {
+    throwing => token.word == Keyword.Throws,
+    opening => token.symbol == Symbol.OpenBrace,
+    _ => token.word == Keyword.Concurrent
+  }
+
+  const phase = match {
+    throwing => present ? Phase.ErrorOpen : Phase.Concurrent,
+    opening => present ? Phase.ErrorName : Phase.Concurrent,
+    _ => Phase.End
+  }
+
+  return advance({
+    state: {
+      lexed: in.lexed,
+      declarations: in.declarations,
+      functions: in.functions,
+      parameters: in.parameters,
+      errors: in.errors,
+      control: {
+        phase: in.control.phase,
+        index: in.control.index,
+        injected: in.control.injected,
+        parameter: in.control.parameter,
+        diagnostic: in.control.diagnostic,
+        current: {
+          name: in.control.current.name,
+          first_parameter: in.control.current.first_parameter,
+          count: in.control.current.count,
+          output: in.control.current.output,
+          allocator_argument: in.control.current.allocator_argument,
+          io_argument: in.control.current.io_argument,
+          process_argument: in.control.current.process_argument,
+          fallible: throwing ? present : in.control.current.fallible,
+          errors_present: opening ? present : in.control.current.errors_present,
+          first_error: in.control.current.first_error,
+          error_count: in.control.current.error_count,
+          concurrent: !throwing && !opening ? present : in.control.current.concurrent
+        }
+      }
+    },
+    phase: phase,
+    count: present ? 1 : 0
+  })
+}

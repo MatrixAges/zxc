@@ -1,0 +1,23 @@
+import diagnostic from "./diagnostic"
+
+import type { NativeState, NativeOutput } from "./model"
+
+export type Input = NativeState
+
+export type Output = NativeOutput
+
+export default function (in: owned Input): Output {
+  const issue = diagnostic(in)
+  const empty = in.declarations.declarations.length == 0 && in.functions.length == 0 && issue.message == ""
+  const result = empty ? { code: "contract", start: 0, end: 0, message: "native interfaces must export types or functions" } : issue
+
+  return {
+    types: in.declarations.types.tree,
+    declarations: in.declarations.declarations,
+    members: in.declarations.members,
+    functions: in.functions,
+    parameters: in.parameters,
+    errors: in.errors,
+    diagnostic: result
+  }
+}

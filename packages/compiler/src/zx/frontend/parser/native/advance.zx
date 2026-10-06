@@ -1,0 +1,25 @@
+import type { NativeState, Phase } from "./model"
+
+export type Input = { state: NativeState, phase: Phase, count: u64 }
+
+export type Output = NativeState
+
+export default function (in: owned Input): Output {
+  const index = in.state.control.index + in.count
+
+  return {
+    lexed: in.state.lexed,
+    declarations: in.state.declarations,
+    functions: in.state.functions,
+    parameters: in.state.parameters,
+    errors: in.state.errors,
+    control: {
+      injected: in.state.control.injected,
+      parameter: in.state.control.parameter,
+      current: in.state.control.current,
+      diagnostic: in.state.control.diagnostic,
+      phase: in.phase,
+      index: index
+    }
+  }
+}

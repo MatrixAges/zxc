@@ -1,0 +1,46 @@
+import initial from "../declarations/initial"
+import { Phase } from "./model"
+
+import type { Result } from "../../lexer/model"
+import type { Span } from "../../lexer/token_model"
+import type { NativeState, Function, Parameter } from "./model"
+
+export type Input = Result
+
+export type Output = NativeState
+
+export default function (in: owned Input): Output {
+  const functions: Function[] = []
+  const parameters: Parameter[] = []
+  const errors: Span[] = []
+  const failed = in.diagnostic.message != ""
+
+  return {
+    lexed: in,
+    declarations: initial({ start: 0, depth: 0 }),
+    functions: functions,
+    parameters: parameters,
+    errors: errors,
+    control: {
+      phase: failed ? Phase.Done : Phase.Declarations,
+      index: 0,
+      injected: 0,
+      parameter: { start: 0, end: 0 },
+      diagnostic: { code: "", start: 0, end: 0, message: "" },
+      current: {
+        name: { start: 0, end: 0 },
+        first_parameter: 0,
+        count: 0,
+        output: 0,
+        allocator_argument: false,
+        io_argument: false,
+        process_argument: false,
+        fallible: false,
+        errors_present: false,
+        first_error: 0,
+        error_count: 0,
+        concurrent: false
+      }
+    }
+  }
+}

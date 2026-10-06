@@ -1,0 +1,47 @@
+import { Kind, Symbol } from "../../lexer/token_model"
+import advance from "./advance"
+import fail from "./fail"
+import { Phase } from "./model"
+import current from "./token"
+
+import type { NativeState } from "./model"
+
+export type Input = NativeState
+
+export type Output = NativeState
+
+export default function (in: owned Input): Output {
+  const token = current(in)
+
+  if (token.symbol == Symbol.CloseBrace) {
+    return advance({ state: in, phase: Phase.Concurrent, count: 1 })
+  }
+
+  if (in.control.phase == Phase.ErrorSeparator) {
+    if (token.symbol != Symbol.Comma) {
+      return fail({ state: in, code: "syntax", message: "expected }" })
+    }
+
+    return advance({ state: in, phase: Phase.ErrorName, count: 1 })
+  }
+
+  if (token.kind != Kind.Identifier) {
+    return fail({ state: in, code: "syntax", message: "expected an identifier" })
+  }
+
+  const name = { start: token.span.start, end: token.span.end }
+  const errors = in.errors.push(name)[0]
+
+  return advance({
+    state: {
+      lexed: in.lexed,
+      declarations: in.declarations,
+      functions: in.functions,
+      parameters: in.parameters,
+      errors: errors,
+      control: in.control
+    },
+    phase: Phase.ErrorSeparator,
+    count: 1
+  })
+}

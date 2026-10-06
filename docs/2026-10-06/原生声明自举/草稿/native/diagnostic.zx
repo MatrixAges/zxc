@@ -1,0 +1,12 @@
+import type { Diagnostic } from "../../lexer/model"
+import type { NativeState } from "./model"
+
+export type Input = NativeState
+
+export type Output = Diagnostic
+
+export default function (in: Input): Output {
+  const issue = in.lexed.diagnostic.message != "" ? in.lexed.diagnostic : in.control.diagnostic.message != "" ? in.control.diagnostic : in.declarations.types.control.diagnostic.message != "" ? in.declarations.types.control.diagnostic : in.declarations.control.diagnostic
+
+  return { code: issue.code, start: issue.start, end: issue.end, message: issue.message }
+}

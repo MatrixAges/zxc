@@ -1,0 +1,107 @@
+import typeDone from "../types/done"
+import typeStep from "../types/step"
+import { Phase } from "./model"
+import current from "./token"
+
+import type { NativeState } from "./model"
+
+export type Input = NativeState
+
+export type Output = NativeState
+
+export default function (in: owned Input): Output {
+  const token = current(in)
+  const types = typeStep({ state: in.declarations.types, token: token })
+  const index = types.control.index
+  const failed = types.control.diagnostic.message != ""
+  const done = typeDone(types.control.phase)
+  const result = types.control.result
+
+  const state = {
+    lexed: in.lexed,
+    functions: in.functions,
+    parameters: in.parameters,
+    errors: in.errors,
+    declarations: { declarations: in.declarations.declarations, members: in.declarations.members, control: in.declarations.control, types: types },
+    control: {
+      phase: in.control.phase,
+      injected: in.control.injected,
+      parameter: in.control.parameter,
+      current: in.control.current,
+      diagnostic: in.control.diagnostic,
+      index: index
+    }
+  }
+
+  if (failed) {
+    return {
+      lexed: state.lexed,
+      declarations: state.declarations,
+      functions: state.functions,
+      parameters: state.parameters,
+      errors: state.errors,
+      control: {
+        index: state.control.index,
+        injected: state.control.injected,
+        parameter: state.control.parameter,
+        current: state.control.current,
+        phase: Phase.Done,
+        diagnostic: state.control.diagnostic
+      }
+    }
+  }
+
+  if (!done) {
+    return state
+  }
+
+  if (state.control.phase == Phase.ParameterType) {
+    const parameter = { name: { start: state.control.parameter.start, end: state.control.parameter.end }, value: result }
+    const parameters = state.parameters.push(parameter)[0]
+
+    return {
+      lexed: state.lexed,
+      declarations: state.declarations,
+      functions: state.functions,
+      errors: state.errors,
+      parameters: parameters,
+      control: {
+        index: state.control.index,
+        injected: state.control.injected,
+        parameter: state.control.parameter,
+        current: state.control.current,
+        diagnostic: state.control.diagnostic,
+        phase: Phase.Separator
+      }
+    }
+  }
+
+  return {
+    lexed: state.lexed,
+    declarations: state.declarations,
+    functions: state.functions,
+    parameters: state.parameters,
+    errors: state.errors,
+    control: {
+      index: state.control.index,
+      injected: state.control.injected,
+      parameter: state.control.parameter,
+      diagnostic: state.control.diagnostic,
+      phase: Phase.Throws,
+      current: {
+        name: state.control.current.name,
+        first_parameter: state.control.current.first_parameter,
+        count: state.control.current.count,
+        allocator_argument: state.control.current.allocator_argument,
+        io_argument: state.control.current.io_argument,
+        process_argument: state.control.current.process_argument,
+        fallible: state.control.current.fallible,
+        errors_present: state.control.current.errors_present,
+        first_error: state.control.current.first_error,
+        error_count: state.control.current.error_count,
+        concurrent: state.control.current.concurrent,
+        output: result
+      }
+    }
+  }
+}

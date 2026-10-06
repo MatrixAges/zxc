@@ -1,0 +1,64 @@
+import declarationStep from "../declarations/step"
+import declarationDone from "./declaration_done"
+import errors from "./errors"
+import header from "./header"
+import { Phase } from "./model"
+import modifiers from "./modifiers"
+import parameters from "./parameters"
+import publish from "./publish"
+import current from "./token"
+import typed from "./typed"
+
+import type { NativeState } from "./model"
+
+export type Input = NativeState
+
+export type Output = NativeState
+
+export default function (in: owned Input): Output {
+  if (in.control.phase == Phase.Declarations) {
+    const token = current(in)
+    const declarations = declarationStep({ state: in.declarations, token: token })
+    const failed = declarations.control.diagnostic.message != "" || declarations.types.control.diagnostic.message != ""
+    const phase = failed ? Phase.Done : declarationDone(declarations.control.phase) ? Phase.Start : Phase.Declarations
+    const index = declarations.control.index
+
+    return {
+      lexed: in.lexed,
+      functions: in.functions,
+      parameters: in.parameters,
+      errors: in.errors,
+      declarations: declarations,
+      control: {
+        injected: in.control.injected,
+        parameter: in.control.parameter,
+        current: in.control.current,
+        phase: phase,
+        index: index,
+        diagnostic: in.control.diagnostic
+      }
+    }
+  }
+
+  switch (in.control.phase) {
+    case Phase.Start: return header(in)
+    case Phase.Declare: return header(in)
+    case Phase.Function: return header(in)
+    case Phase.Name: return header(in)
+    case Phase.Open: return header(in)
+    case Phase.Inject: return parameters(in)
+    case Phase.Parameter: return parameters(in)
+    case Phase.Colon: return parameters(in)
+    case Phase.Separator: return parameters(in)
+    case Phase.OutputColon: return parameters(in)
+    case Phase.ParameterType: return typed(in)
+    case Phase.OutputType: return typed(in)
+    case Phase.Throws: return modifiers(in)
+    case Phase.ErrorOpen: return modifiers(in)
+    case Phase.ErrorName: return errors(in)
+    case Phase.ErrorSeparator: return errors(in)
+    case Phase.Concurrent: return modifiers(in)
+    case Phase.End: return publish(in)
+    default: return in
+  }
+}
