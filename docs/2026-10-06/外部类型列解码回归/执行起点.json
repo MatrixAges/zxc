@@ -1,0 +1,111 @@
+{
+    "production_commit": "79cc01c8b2abfc9211245cdc5b44c0ec297c613f",
+    "cwd": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test",
+    "formal_sources": {
+        "packages/test/build.zig": "f516c0eea4adfe92b525eb41f8954fff9896e07aa5f792228e13ebc2117b28bf",
+        "packages/test/tests/incremental/cache_codec/type_columns_test.zig": "c88fb93e7a0e81d3b2c61a7a7e63c0df06c72b49fad8223bf97ecc5c47f7de22",
+        "packages/test/tests/library/codec/type_columns_test.zig": "30be2e695fd9fb8f33e05823d9c213403b78ada0c9b4ed05541702690fb87f14",
+        "packages/test/tests/support/type_column_fixture.zig": "00746afcd89ff47ecae8172368efbdf54c19df6ea0961fe80373dafe8604396b"
+    },
+    "new_unique_declarations": 52,
+    "current_gate": null,
+    "draft_command_corrections": [
+        "Initial command ran from repository root and returned no such step test-type-merge; corrected to packages/test. Multiline Zig draft escaping was corrected before the package gate. Neither is a production failure."
+    ],
+    "fixture_revisions": [
+        {
+            "terminal_exit_code": 1,
+            "summary": "Build Summary: 46/50 steps succeeded (2 failed); 57/107 tests passed (50 failed)",
+            "raw_log": "首轮Debug夹具失败日志.txt",
+            "sha256": "d28d4cf1fd655965f11883f9257d276b11d7c2978a0c36f54de26ac3c612031f",
+            "fixture_source": "首轮类型列夹具源码.txt",
+            "fixture_sha256": "5a5e5459d46dd6c2f19a2483a05c33f8f98beebcef70dfc61eb2c9eff3534c6e",
+            "classification": "Fixture guard failed before any mutation: an uncaptured index reports function effects but does not materialize an error_set row. Both codec acceptance tests passed; no production defect reported."
+        },
+        {
+            "terminal_exit_code": 1,
+            "summary": "Build Summary: 46/50 steps succeeded (2 failed); 2/52 tests passed (50 failed)",
+            "raw_log": "第二轮Debug夹具失败日志.txt",
+            "sha256": "b7a468425f3a2236458d4c87d8e0a4493fad213fd41cc08cde58174bdbcca5ff",
+            "fixture_source": "第二轮类型列夹具源码.txt",
+            "fixture_sha256": "1712e5696369c76910190b0f9264f25a3b66be386cc6b82dfa9dcfa1820edb66",
+            "classification": "Changing index to a runtime field still did not materialize an error_set. Inspected existing typed_try shape fixture; an ordinary try capture creates the required finite error value."
+        }
+    ],
+    "completed_gates": [
+        {
+            "mode": "Debug",
+            "handle": 7470,
+            "log": "/tmp/zxc-external-columns-debug.log",
+            "terminal_exit_code": 0,
+            "argv": [
+                "zig",
+                "build",
+                "test-library-codec",
+                "test-cache-codec",
+                "test-nominal-origins",
+                "test-type-merge",
+                "-Doptimize=Debug",
+                "--summary",
+                "all"
+            ],
+            "raw_log": "封装对照补齐前Debug原始日志.txt"
+        },
+        {
+            "mode": "ReleaseSafe",
+            "handle": 77485,
+            "log": "/tmp/zxc-external-columns-safe.log",
+            "terminal_exit_code": 0,
+            "argv": [
+                "zig",
+                "build",
+                "test-library-codec",
+                "test-cache-codec",
+                "test-nominal-origins",
+                "test-type-merge",
+                "-Doptimize=ReleaseSafe",
+                "--summary",
+                "all"
+            ],
+            "raw_log": "封装对照补齐前ReleaseSafe原始日志.txt"
+        },
+        {
+            "mode": "Debug",
+            "handle": 60977,
+            "log": "/tmp/zxc-external-columns-final-debug.log",
+            "terminal_exit_code": 0,
+            "final_source": true,
+            "argv": [
+                "zig",
+                "build",
+                "test-library-codec",
+                "test-cache-codec",
+                "test-nominal-origins",
+                "test-type-merge",
+                "-Doptimize=Debug",
+                "--summary",
+                "all"
+            ],
+            "raw_log": "最终Debug原始日志.txt"
+        },
+        {
+            "mode": "ReleaseSafe",
+            "handle": 61332,
+            "log": "/tmp/zxc-external-columns-final-safe.log",
+            "terminal_exit_code": 0,
+            "final_source": true,
+            "argv": [
+                "zig",
+                "build",
+                "test-library-codec",
+                "test-cache-codec",
+                "test-nominal-origins",
+                "test-type-merge",
+                "-Doptimize=ReleaseSafe",
+                "--summary",
+                "all"
+            ],
+            "raw_log": "最终ReleaseSafe原始日志.txt"
+        }
+    ]
+}
