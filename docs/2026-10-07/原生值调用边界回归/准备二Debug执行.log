@@ -1,0 +1,665 @@
+test-native-value-boundary
++- run test native-value-boundary-guards 0 pass, 12 fail (12 total)
+error: 'guards_test.test.object input rejects local value substitution' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:5:5: 0x104ad33e1 in test.object input rejects local value substitution (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .input = "{ value: u64 }", .pure = false, .local = false });
+           ^
+error: 'guards_test.test.object list input rejects local value substitution' failed:
+       unexpected native boundary diagnostic unsupported: host.d.zx:1:1: native arrays of objects, tuples or enums require a named element type exported by the native module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:9:5: 0x104ad3381 in test.object list input rejects local value substitution (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .input = "{ value: u64 }[]", .pure = false, .local = false });
+           ^
+error: 'guards_test.test.single tuple input cannot impersonate expanded arguments' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:13:5: 0x104ad3321 in test.single tuple input cannot impersonate expanded arguments (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .input = "[u64, u64]", .pure = false, .local = false });
+           ^
+error: 'guards_test.test.expanded object argument remains conservative' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:17:5: 0x104ad32c1 in test.expanded object argument remains conservative (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .input = "[{ value: u64 }, u64]", .parameters = "left: { value: u64 }, right: u64", .arguments = "in[0], in[1]", .expanded = true, .pure = false, .local = false });
+           ^
+error: 'guards_test.test.object result rejects leaf value substitution' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:21:5: 0x104ad3261 in test.object result rejects leaf value substitution (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .output = "{ value: u64 }", .pure = false, .local = false });
+           ^
+error: 'guards_test.test.tuple result rejects leaf value substitution' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:25:5: 0x104ad3201 in test.tuple result rejects leaf value substitution (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .output = "[u64, u64]", .pure = false, .local = false });
+           ^
+error: 'guards_test.test.optional object result remains conservative' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:29:5: 0x104ad31a1 in test.optional object result remains conservative (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .output = "{ value: u64 }?", .pure = false, .local = false });
+           ^
+error: 'guards_test.test.object list result remains conservative' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:33:5: 0x104ad3141 in test.object list result remains conservative (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .output = "{ value: u64 }[]", .pure = false, .local = false });
+           ^
+error: 'guards_test.test.IO numeric call cannot enter local value specialization' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:37:5: 0x104ad30e1 in test.IO numeric call cannot enter local value specialization (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .prefix = "io, ", .io = true, .local = false });
+           ^
+error: 'guards_test.test.process numeric call cannot enter local value specialization' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:41:5: 0x104ad3081 in test.process numeric call cannot enter local value specialization (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .prefix = "process, ", .process = true, .local = false });
+           ^
+error: 'guards_test.test.IO string call preserves both conservative guards' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:45:5: 0x104ad2f01 in test.IO string call preserves both conservative guards (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .input = "string", .prefix = "io, ", .io = true, .pure = false, .local = false });
+           ^
+error: 'guards_test.test.process list call preserves both conservative guards' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1042f76ef in expect (native-value-boundary-guards)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x1042f8002 in analyze (native-value-boundary-guards)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x1042fa9f9 in check (native-value-boundary-guards)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/guards_test.zig:49:5: 0x1042fafe1 in test.process list call preserves both conservative guards (native-value-boundary-guards)
+           try fixture.check(std.testing.allocator, .{ .input = "u64[]", .prefix = "process, ", .process = true, .pure = false, .local = false });
+           ^
+failed command: "/tmp/zxc-native-value-\345\207\206\345\244\207debug-ff894a53/o/c3c1d8d0c3df1a4c627fcbba68258354/native-value-boundary-guards" "--cache-dir=/tmp/zxc-native-value-\345\207\206\345\244\207debug-ff894a53" --seed=0x31e40477 --listen=-
+
+test-native-value-boundary
++- run test native-value-boundary-borrowing 0 pass, 20 fail (20 total)
+error: 'borrowing_test.test.unsigned scalar preserves both native boundaries' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:5:5: 0x10c18a6e1 in test.unsigned scalar preserves both native boundaries (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{});
+           ^
+error: 'borrowing_test.test.signed scalar preserves both native boundaries' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:9:5: 0x10c18a681 in test.signed scalar preserves both native boundaries (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "i64" });
+           ^
+error: 'borrowing_test.test.floating scalar preserves both native boundaries' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:13:5: 0x10c18a621 in test.floating scalar preserves both native boundaries (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "f64" });
+           ^
+error: 'borrowing_test.test.boolean scalar preserves both native boundaries' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:17:5: 0x10c18a5c1 in test.boolean scalar preserves both native boundaries (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "bool" });
+           ^
+error: 'borrowing_test.test.string input permits local values without buffer purity' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:21:5: 0x10c18a561 in test.string input permits local values without buffer purity (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "string", .pure = false });
+           ^
+error: 'borrowing_test.test.optional string input remains a borrowed boundary' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:25:5: 0x10c18a501 in test.optional string input remains a borrowed boundary (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "string?", .pure = false });
+           ^
+error: 'borrowing_test.test.scalar list input permits local values without buffer purity' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:29:5: 0x10c18a4a1 in test.scalar list input permits local values without buffer purity (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "u64[]", .pure = false });
+           ^
+error: 'borrowing_test.test.string list input permits local values without buffer purity' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:33:5: 0x10c18a441 in test.string list input permits local values without buffer purity (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "string[]", .pure = false });
+           ^
+error: 'borrowing_test.test.optional scalar list input remains a borrowed boundary' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:37:5: 0x10c18a3e1 in test.optional scalar list input remains a borrowed boundary (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "u64[]?", .pure = false });
+           ^
+error: 'borrowing_test.test.list of optional strings remains a borrowed boundary' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:41:5: 0x10c18a381 in test.list of optional strings remains a borrowed boundary (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "string?[]", .pure = false });
+           ^
+error: 'borrowing_test.test.nested scalar list recursively preserves borrowing' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:45:5: 0x10c18a321 in test.nested scalar list recursively preserves borrowing (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "u64[][]", .pure = false });
+           ^
+error: 'borrowing_test.test.native reference input preserves both boundaries' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:49:5: 0x10c18a2c1 in test.native reference input preserves both boundaries (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "Node" });
+           ^
+error: 'borrowing_test.test.optional native reference input preserves both boundaries' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:53:5: 0x10c18a261 in test.optional native reference input preserves both boundaries (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "Node?" });
+           ^
+error: 'borrowing_test.test.native reference list input permits local values' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:57:5: 0x10c18a201 in test.native reference list input permits local values (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "Node[]", .pure = false });
+           ^
+error: 'borrowing_test.test.expanded scalar arguments preserve both boundaries' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:61:5: 0x10c18a1a1 in test.expanded scalar arguments preserve both boundaries (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "[u64, i64]", .parameters = "left: u64, right: i64", .arguments = "in[0], in[1]", .expanded = true });
+           ^
+error: 'borrowing_test.test.expanded string argument separates borrowing from purity' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:65:5: 0x10c18a141 in test.expanded string argument separates borrowing from purity (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "[u64, string]", .parameters = "left: u64, right: string", .arguments = "in[0], in[1]", .pure = false, .expanded = true });
+           ^
+error: 'borrowing_test.test.string result keeps ordinary product callers eligible' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:69:5: 0x10c18a0e1 in test.string result keeps ordinary product callers eligible (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .output = "string" });
+           ^
+error: 'borrowing_test.test.optional string result keeps ordinary product callers eligible' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:73:5: 0x10c18a081 in test.optional string result keeps ordinary product callers eligible (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .output = "string?" });
+           ^
+error: 'borrowing_test.test.nested scalar list result keeps ordinary product callers eligible' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:77:5: 0x10c189f01 in test.nested scalar list result keeps ordinary product callers eligible (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .output = "u64[][]" });
+           ^
+error: 'borrowing_test.test.allocator injection preserves string borrowing' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10b9ae6ef in expect (native-value-boundary-borrowing)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x10b9af002 in analyze (native-value-boundary-borrowing)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10b9b19f9 in check (native-value-boundary-borrowing)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/borrowing_test.zig:81:5: 0x10b9b1fe1 in test.allocator injection preserves string borrowing (native-value-boundary-borrowing)
+           try fixture.check(std.testing.allocator, .{ .input = "string", .prefix = "allocator, ", .suffix = " throws { OutOfMemory }", .pure = false, .allocating = true });
+           ^
+failed command: "/tmp/zxc-native-value-\345\207\206\345\244\207debug-ff894a53/o/53c52c58f316a169095b35c6e5479452/native-value-boundary-borrowing" "--cache-dir=/tmp/zxc-native-value-\345\207\206\345\244\207debug-ff894a53" --seed=0x31e40477 --listen=-
+
+test-native-value-boundary
++- run test native-value-boundary-allocation 0 pass, 3 fail (3 total)
+error: 'allocation_test.test.borrowed nested list analysis and codec release every failed allocation' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1014986ef in expect (native-value-boundary-allocation)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x101499002 in analyze (native-value-boundary-allocation)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10149b9f9 in check (native-value-boundary-allocation)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x101c76dc1 in run (native-value-boundary-allocation)
+                   try @call(.auto, test_fn, .{memory} ++ args);
+                   ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x101c76803 in checkAllAllocationFailures__func_5777 (native-value-boundary-allocation)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x101c76ca2 in checkAllAllocationFailures__func_5776 (native-value-boundary-allocation)
+           try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/allocation_test.zig:8:5: 0x101c76cfa in test.borrowed nested list analysis and codec release every failed allocation (native-value-boundary-allocation)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, fixture.check, .{case});
+           ^
+error: 'allocation_test.test.expanded borrowed arguments release every failed allocation' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1014986ef in expect (native-value-boundary-allocation)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x101499002 in analyze (native-value-boundary-allocation)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10149b9f9 in check (native-value-boundary-allocation)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x101c76551 in run (native-value-boundary-allocation)
+                   try @call(.auto, test_fn, .{memory} ++ args);
+                   ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x101c75f93 in checkAllAllocationFailures__func_5775 (native-value-boundary-allocation)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x101c76432 in checkAllAllocationFailures__func_5774 (native-value-boundary-allocation)
+           try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/allocation_test.zig:14:5: 0x101c7648a in test.expanded borrowed arguments release every failed allocation (native-value-boundary-allocation)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, fixture.check, .{case});
+           ^
+error: 'allocation_test.test.IO fallback analysis and codec release every failed allocation' failed:
+       unexpected native boundary diagnostic module: type and enum imports must refer to a pure type module
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1014986ef in expect (native-value-boundary-allocation)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:41:5: 0x101499002 in analyze (native-value-boundary-allocation)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/fixture.zig:49:24: 0x10149b9f9 in check (native-value-boundary-allocation)
+               var analysis = try analyze(allocator, case);
+                              ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x10149c9d1 in run (native-value-boundary-allocation)
+                   try @call(.auto, test_fn, .{memory} ++ args);
+                   ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x10149c113 in checkAllAllocationFailures__func_1023 (native-value-boundary-allocation)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x10149c5b2 in checkAllAllocationFailures__func_1002 (native-value-boundary-allocation)
+           try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+           ^
+       /Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test/tests/native/value_boundary/allocation_test.zig:20:5: 0x10149c60a in test.IO fallback analysis and codec release every failed allocation (native-value-boundary-allocation)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, fixture.check, .{case});
+           ^
+failed command: "/tmp/zxc-native-value-\345\207\206\345\244\207debug-ff894a53/o/c66cbcddca955b06c4a1284873aced21/native-value-boundary-allocation" "--cache-dir=/tmp/zxc-native-value-\345\207\206\345\244\207debug-ff894a53" --seed=0x31e40477 --listen=-
+
+Build Summary: 24/28 steps succeeded (3 failed); 0/35 tests passed (35 failed)
+test-native-value-boundary transitive failure
++- run test native-value-boundary-borrowing 0 pass, 20 fail (20 total)
+|  +- compile test native-value-boundary-borrowing debug native success 8s MaxRSS:959M
+|     +- WriteFile root.zig cached
+|     +- WriteFile interfaces/0.d.zx cached
+|     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     +- compile exe standard-catalog fast native cached 46ms MaxRSS:21M
+|     |     +- WriteFile catalog.json cached
+|     +- options cached
+|     +- run exe generate-parser (parser.zig) cached
+|     |  +- compile exe generate-parser debug native cached 44ms MaxRSS:21M
+|     |     +- options cached
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 49ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) cached
+|     |  +- compile exe generate-lexer debug native cached 47ms MaxRSS:21M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 44ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test native-value-boundary-guards 0 pass, 12 fail (12 total)
+|  +- compile test native-value-boundary-guards debug native success 8s MaxRSS:969M
+|     +- WriteFile root.zig (reused)
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test native-value-boundary-allocation 0 pass, 3 fail (3 total)
+   +- compile test native-value-boundary-allocation debug native success 7s MaxRSS:964M
+      +- WriteFile root.zig (reused)
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+

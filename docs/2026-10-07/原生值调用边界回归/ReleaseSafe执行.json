@@ -1,0 +1,51 @@
+{
+    "argv": [
+        "zig",
+        "build",
+        "test-native-value-boundary",
+        "-Doptimize=ReleaseSafe",
+        "-Dzig-archive=/tmp/zig-x86_64-macos-0.17.0.tar.xz",
+        "-j2",
+        "--summary",
+        "all",
+        "--verbose",
+        "--cache-dir",
+        "/tmp/zxc-native-value-releasesafe-99256cbd"
+    ],
+    "cwd": "/Users/xiewendao/.codex/worktrees/native-value-conformance/zxc/packages/test",
+    "source_commit": "99256cbdbf76fc3b81d5c47dc3c2839a1cedc31d",
+    "inputs": [
+        {
+            "path": "packages/test/build.zig",
+            "sha256": "0175d9c3acee05e3388455449ddcb5172ee8ebfa10eb1b63eefd6b341f37ba04"
+        },
+        {
+            "path": "packages/test/build/native_value_boundary.zig",
+            "sha256": "5e7cf7866efe6862785b8b021522f6800f72b7d63626bf1c1cac172b1d3ad904"
+        },
+        {
+            "path": "packages/test/tests/native/value_boundary/allocation_test.zig",
+            "sha256": "349816fe7019a17dca21a7b79697f29bb68ef170925310f411cf916f21442002"
+        },
+        {
+            "path": "packages/test/tests/native/value_boundary/borrowing_test.zig",
+            "sha256": "5001d7b6a48f6376c4c8d362715c6da6143ad5beb4861c5b15400edb7e2c35e5"
+        },
+        {
+            "path": "packages/test/tests/native/value_boundary/fixture.zig",
+            "sha256": "200fc679d353d61894c87c9097591f30f80ac63611d12a28501d0110528b1cf8"
+        },
+        {
+            "path": "packages/test/tests/native/value_boundary/guards_test.zig",
+            "sha256": "a26f398a6391ad53523f45b2d5a170a4646b9fb295533d696521a2a9947ea4e0"
+        },
+        {
+            "path": "packages/test/tests/native/value_boundary/inspection.zig",
+            "sha256": "385101ec7e18ae99945016f0a9b69f3b6983985d3a8662fb3483df847d595da8"
+        }
+    ],
+    "started_at": "2026-10-06T23:41:41.417536+00:00",
+    "completed_at": "2026-10-06T23:44:29.971023+00:00",
+    "exit_code": 0,
+    "log_sha256": "67b17309514094c1f655cb49019b6b6cde7149f5325f969b2c64ce5b060a5aa7"
+}
