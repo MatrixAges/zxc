@@ -294,19 +294,19 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
             const arguments = try self.allocator.alloc(*const node.Expression, 2 + @as(usize, @intFromBool(invocation.stores.len > 0)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
             arguments[0] = try self.builder.identifier("allocator");
 
-            arguments[1] = if (self.state_active) converted: {
+            arguments[1] = if (callee_function.external != null and callee_function.external.?.expand_tuple and @import("native_value.zig").isolated(self.program, callee_function) and self.program.expression(invocation.argument).value == .tuple and !self.cache.contains(invocation.argument)) temporary: {
+                const argument_value = self.program.expression(invocation.argument);
+                const layout = try @import("aggregate.zig").tupleValue(self, argument_value, argument_value.value.tuple);
+                const argument = try @import("aggregate.zig").bind(self, &body, try self.cast(self.layouts[@backingInt(argument_value.type_id)], layout));
+
+                break :temporary try self.builder.expression(.{ .address_of = argument });
+            } else if (self.state_active) converted: {
                 const argument = try @import("aggregate.zig").bind(self, &body, try self.expr(invocation.argument));
                 const borrow = self.pure_functions[@backingInt(invocation.function)] and !self.state_plan.represented(self.program, callee_function.output_type);
 
                 break :converted try @import("state_value/conversion.zig").convert(self, &body, callee_function.input_type, argument, if (borrow) .borrow else .pointer);
             } else if (scalar and self.pure_functions[@backingInt(invocation.function)] and self.program.expression(invocation.argument).value == .object and !self.cache.contains(invocation.argument)) temporary: {
                 const argument = try @import("aggregate.zig").bind(self, &body, try @import("aggregate.zig").objectValue(self, invocation.argument));
-
-                break :temporary try self.builder.expression(.{ .address_of = argument });
-            } else if (callee_function.external != null and callee_function.external.?.expand_tuple and @import("native_value.zig").isolated(self.program, callee_function) and self.program.expression(invocation.argument).value == .tuple and !self.cache.contains(invocation.argument)) temporary: {
-                const argument_value = self.program.expression(invocation.argument);
-                const layout = try @import("aggregate.zig").tupleValue(self, argument_value, argument_value.value.tuple);
-                const argument = try @import("aggregate.zig").bind(self, &body, try self.cast(self.layouts[@backingInt(argument_value.type_id)], layout));
 
                 break :temporary try self.builder.expression(.{ .address_of = argument });
             } else try self.expr(invocation.argument);

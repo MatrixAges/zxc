@@ -6,7 +6,7 @@ const zx = @import("zx");
 const target = @import("call/target.zig");
 const expression = @import("expression.zig");
 const initializer = @import("store/initializer.zig");
-pub const Options = struct { owner: []const u8, node: rx.ast.Node, types: zx.ir.TypeTable = .{}, nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types") = .{} };
+pub const Options = struct { owner: []const u8, node: rx.ast.Node, types: zx.ir.TypeTable = .{}, nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types") = .{}, native_modules: []const zx.ir.NativeModule = &.{} };
 pub const Binding = struct { name: []const u8, slot: zx.ir.StoreSlot };
 pub const Object = struct { name: []const u8, initial: zx.ir.Program };
 pub const Definition = struct { source_path: []const u8, name: []const u8, version: u32, types: zx.ir.TypeTable, objects: []const Object };
@@ -68,12 +68,12 @@ fn analyzeIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
             if (!std.mem.eql(u8, target.attribute(fragment, "name").value, name)) continue;
 
             for (fragment.children) |field| {
-                const resolved = try @import("store/type.zig").resolve(allocator, path, target.attribute(field, "type"), .{ .types = types, .nominal_types = options.nominal_types });
+                const resolved = try @import("store/type.zig").resolve(allocator, path, target.attribute(field, "type"), .{ .types = types, .nominal_types = options.nominal_types, .native_modules = options.native_modules });
 
                 if (resolved == .diagnostic) return diagnostic(allocator, path, resolved.diagnostic);
 
                 types = resolved.resolved.types;
-                const initial = try expression.compile(allocator, path, target.attribute(field, "value"), .{ .types = types, .expected = resolved.resolved.id });
+                const initial = try expression.compile(allocator, path, target.attribute(field, "value"), .{ .types = types, .native_modules = options.native_modules, .expected = resolved.resolved.id });
 
                 if (initial.value == .diagnostic) return diagnostic(allocator, path, initial.value.diagnostic);
 
@@ -85,7 +85,7 @@ fn analyzeIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.E
 
         var reporter: zx.Reporter = .{};
 
-        const program = initializer.build(allocator, path, fields.items, types, &reporter) catch |err| {
+        const program = initializer.build(allocator, path, fields.items, types, options.native_modules, &reporter) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;
 
             const issue = reporter.diagnostic.?;

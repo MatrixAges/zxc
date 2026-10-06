@@ -13,13 +13,13 @@ pub fn scalarBoundary(program: ir.Program, function: ir.Function) bool {
         for (0..input.tuple.len) |view_index| {
             const child = input.tuple.at(view_index);
 
-            if (!scalarLeaf(program, child)) return false;
+            if (!inputLeaf(program, child)) return false;
         }
 
         return true;
     }
 
-    return scalarLeaf(program, function.input_type);
+    return inputLeaf(program, function.input_type);
 }
 
 pub fn isolated(program: ir.Program, function: ir.Function) bool {

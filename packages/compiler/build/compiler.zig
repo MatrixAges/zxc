@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const ParserModules = struct { program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, native: *std.Build.Module, type_lookup: *std.Build.Module, nominal_lookup: *std.Build.Module };
+pub const ParserModules = struct { program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, native: *std.Build.Module, type_lookup: *std.Build.Module, nominal_lookup: *std.Build.Module, field_sort: *std.Build.Module, field_columns: *std.Build.Module };
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules) Modules {
@@ -38,6 +38,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         frontend.addImport("generated_native", generated.native);
         frontend.addImport("generated_type_lookup", generated.type_lookup);
         frontend.addImport("generated_nominal_lookup", generated.nominal_lookup);
+        frontend.addImport("generated_field_sort", generated.field_sort);
+        frontend.addImport("field_columns", generated.field_columns);
     }
 
     const module = b.createModule(.{

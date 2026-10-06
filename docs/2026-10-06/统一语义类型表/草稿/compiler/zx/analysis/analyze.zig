@@ -20,7 +20,7 @@ pub const Result = struct {
 };
 
 pub const StoreBinding = struct { handle: []const u8, path: []const u8, type_name: ?[]const u8 = null, type_id: ?zx.ir.TypeId = null, readable: bool = true, writable: bool = true };
-pub const Context = struct { types: zx.ir.TypeTable = .{}, nominal_types: Origins.Table = .{}, stores: []const StoreBinding = &.{} };
+pub const Context = struct { types: zx.ir.TypeTable = .{}, nominal_types: Origins.Table = .{}, native_modules: []const zx.ir.NativeModule = &.{}, stores: []const StoreBinding = &.{} };
 
 pub fn analyze(allocator: std.mem.Allocator, parsed: Parsed) std.mem.Allocator.Error!Result {
     return analyzeWithContext(allocator, parsed, .{});
@@ -54,6 +54,12 @@ fn analyzeInput(allocator: std.mem.Allocator, input: anytype, file_name: []const
         .message = "invalid shared type table",
     } } };
 
+    if (!@import("../modules/native_context.zig").valid(context.types, context.native_modules)) return .{ .arena = arena, .value = .{ .diagnostic = .{
+        .code = .contract,
+        .span = .{ .start = 0, .end = 0 },
+        .message = "invalid shared native module table",
+    } } };
+
     const copied_types = try @import("type_table.zig").copy(arena.allocator(), context.types);
     var origins = Origins{ .allocator = arena.allocator() };
 
@@ -78,6 +84,8 @@ fn analyzeInput(allocator: std.mem.Allocator, input: anytype, file_name: []const
 
         return .{ .arena = arena, .value = .{ .diagnostic = reporter.diagnostic.? } };
     };
+
+    program.native_modules = try @import("../modules/native_context.zig").copy(arena.allocator(), context.native_modules);
 
     program.output_ownership = @import("../ownership/check.zig").analyze(arena.allocator(), program, &reporter) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;

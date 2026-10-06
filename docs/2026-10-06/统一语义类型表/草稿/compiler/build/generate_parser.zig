@@ -53,6 +53,18 @@ pub fn main(init: std.process.Init) !void {
 
     for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
 
+    const interfaces = [_]compiler.project.NativeInterface{ .{
+        .specifier = "zig:integers",
+        .path = "zx/analysis/semantic/native/integers.d.zx",
+        .source = @embedFile("semantic_integers"),
+        .module = "integers",
+    }, .{
+        .specifier = "zig:field_columns",
+        .path = "zx/analysis/semantic/ordering/columns.d.zx",
+        .source = @embedFile("field_columns_interface"),
+        .module = "field_columns",
+    } };
+
     const entries = [_][]const u8{
         "zx/frontend/parser/program.rx",
         "zx/frontend/parser/expression_text.rx",
@@ -70,20 +82,25 @@ pub fn main(init: std.process.Init) !void {
     };
 
     for (entries, args[2 .. 2 + entries.len]) |entry, output_path| {
-        const output = try generate(allocator, inputs, sources.items, entry, false);
+        const output = try generate(allocator, inputs, sources.items, entry, false, &interfaces);
 
         try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = output_path, .data = output.source });
     }
 
-    const semantic = try generate(allocator, inputs, sources.items, "zx/analysis/semantic/lookup.rx", true);
+    const semantic = try generate(allocator, inputs, sources.items, "zx/analysis/semantic/lookup.rx", true, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[2 + entries.len], .data = semantic.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[3 + entries.len], .data = semantic.types });
 
-    const nominal = try generate(allocator, inputs, sources.items, "zx/analysis/semantic/nominal.rx", true);
+    const nominal = try generate(allocator, inputs, sources.items, "zx/analysis/semantic/nominal.rx", true, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[4 + entries.len], .data = nominal.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[5 + entries.len], .data = nominal.types });
+
+    const ordering = try generate(allocator, inputs, sources.items, "zx/analysis/semantic/ordering/sort.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[6 + entries.len], .data = ordering.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[7 + entries.len], .data = ordering.types });
 }
 
 fn lessSource(_: void, left: compiler.project.Source, right: compiler.project.Source) bool {
@@ -94,19 +111,16 @@ fn lessModule(_: void, left: rx.TextSource, right: rx.TextSource) bool {
     return std.mem.lessThan(u8, left.path, right.path);
 }
 
-fn generate(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const compiler.project.Source, entry: []const u8, shared_abi: bool) !compiler.zig.Bundle {
-    const interfaces = [_]compiler.project.NativeInterface{.{
-        .specifier = "zig:integers",
-        .path = "zx/analysis/semantic/native/integers.d.zx",
-        .source = @embedFile("semantic_integers"),
-        .module = "integers",
-    }};
+fn generate(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const compiler.project.Source, entry: []const u8, shared_abi: bool, interfaces: []const compiler.project.NativeInterface) !compiler.zig.Bundle {
+    const selected = try @import("parser_inputs.zig").reachable(allocator, modules, entry);
+
+    defer allocator.free(selected);
 
     var analyzed = try analysis.project.infer(allocator, .{
         .entry = entry,
-        .modules = modules,
+        .modules = selected,
         .sources = sources,
-        .project = .{ .entry = "", .native_interfaces = &interfaces },
+        .project = .{ .entry = "", .native_interfaces = interfaces },
     });
 
     defer analyzed.deinit();

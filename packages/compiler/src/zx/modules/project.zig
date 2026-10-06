@@ -474,6 +474,12 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
         .message = "invalid shared type table",
     } } };
 
+    if (!@import("native_context.zig").valid(options.context.types, options.context.native_modules)) return .{ .arena = arena, .value = .{ .diagnostic = .{
+        .code = .contract,
+        .span = .{ .start = 0, .end = 0 },
+        .message = "invalid shared native module table",
+    } } };
+
     const units = try temporary.alloc(Unit, sources.len);
 
     for (sources, 0..) |source, index| units[index] = .{ .path = try std.fs.path.resolve(temporary, &.{ options.root_dir, source.path }) };
@@ -481,7 +487,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
     var normalized = options;
     normalized.entry = try std.fs.path.resolve(temporary, &.{ options.root_dir, options.entry });
     var project = Project{ .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .nominal_origins = .{ .allocator = temporary } };
-
+    project.native_modules = .fromOwnedSlice(try @import("native_context.zig").copy(temporary, options.context.native_modules));
     project.types = try @import("../analysis/type_table.zig").copy(temporary, options.context.types);
 
     project.nominal_origins.seed(project.types, options.context.nominal_types) catch |err| {

@@ -14,6 +14,7 @@ pub const Error = std.mem.Allocator.Error || error{InvalidFlow};
 allocator: std.mem.Allocator,
 owner: []const u8,
 types: zx.ir.TypeTable,
+native_modules: []const zx.ir.NativeModule = &.{},
 output_type: zx.ir.TypeId,
 loaded: []const Module.Loaded,
 results: []const Module.Binding,
@@ -115,7 +116,7 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
 }
 
 fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {
-    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .bindings = self.bindings.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
+    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .native_modules = self.native_modules, .bindings = self.bindings.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
 
     if (compiled.value == .diagnostic) {
         self.issue = compiled.value.diagnostic;

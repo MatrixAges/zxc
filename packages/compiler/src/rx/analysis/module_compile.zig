@@ -15,6 +15,7 @@ pub const Options = struct {
     tasks: []const @import("flow_compile.zig").TaskType = &.{},
     types: zx.ir.TypeTable,
     nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types"),
+    native_modules: []const zx.ir.NativeModule = &.{},
     input_type: zx.ir.TypeId,
     output_type: zx.ir.TypeId,
 };
@@ -24,14 +25,15 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
         .allocator = allocator,
         .owner = options.owner,
         .types = options.types,
+        .native_modules = options.native_modules,
         .output_type = options.output_type,
         .loaded = options.calls,
         .results = options.bindings,
         .tasks = options.tasks,
-        .unit_input = options.input_type == @as(zx.ir.TypeId, @enumFromInt(@intFromEnum(zx.ir.Scalar.void))),
+        .unit_input = options.input_type == @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void)))),
     };
 
-    if (options.input_type != @as(zx.ir.TypeId, @enumFromInt(@intFromEnum(zx.ir.Scalar.void)))) try flow.bindings.append(allocator, .{ .name = "$in", .type_id = options.input_type });
+    if (options.input_type != @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))))) try flow.bindings.append(allocator, .{ .name = "$in", .type_id = options.input_type });
 
     const steps = flow.steps(options.steps) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
@@ -43,7 +45,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
     const calls = flow.calls;
     var result: ?zx.ir.Program = if (steps.len != 0 and steps[steps.len - 1] == .result) steps[steps.len - 1].result else null;
 
-    const native_modules = @import("module_native.zig").merge(allocator, calls.items, types) catch |err| {
+    const native_modules = @import("module_native.zig").merge(allocator, calls.items, types, options.native_modules) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         const failed = try target.failure(allocator, .{ .path = options.owner, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "contract", .message = "RX calls contain conflicting native interfaces" });

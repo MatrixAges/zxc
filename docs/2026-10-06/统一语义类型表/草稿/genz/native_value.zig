@@ -10,12 +10,16 @@ pub fn scalarBoundary(program: ir.Program, function: ir.Function) bool {
 
         if (input != .tuple) return false;
 
-        for (input.tuple) |child| if (!scalarLeaf(program, child)) return false;
+        for (0..input.tuple.len) |view_index| {
+            const child = input.tuple.at(view_index);
+
+            if (!inputLeaf(program, child)) return false;
+        }
 
         return true;
     }
 
-    return scalarLeaf(program, function.input_type);
+    return inputLeaf(program, function.input_type);
 }
 
 pub fn isolated(program: ir.Program, function: ir.Function) bool {
@@ -29,7 +33,11 @@ pub fn isolated(program: ir.Program, function: ir.Function) bool {
 
         if (input != .tuple) return false;
 
-        for (input.tuple) |child| if (!inputLeaf(program, child)) return false;
+        for (0..input.tuple.len) |view_index| {
+            const child = input.tuple.at(view_index);
+
+            if (!inputLeaf(program, child)) return false;
+        }
 
         return true;
     }

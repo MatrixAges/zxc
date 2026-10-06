@@ -52,6 +52,7 @@ pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const State, or
             .tasks = signature.tasks,
             .types = types,
             .nominal_types = loaded.project.context.nominal_types,
+            .native_modules = loaded.project.context.native_modules,
             .input_type = signature.input_type,
             .output_type = signature.output_type,
         });

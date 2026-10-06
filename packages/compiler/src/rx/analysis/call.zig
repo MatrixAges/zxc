@@ -65,12 +65,14 @@ fn linkIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Erro
             return .{ .diagnostic = failed.diagnostic };
         }
 
-        const argument = try @import("call/unit.zig").create(allocator, config.owner, callee.types, config.call.location);
+        var argument = try @import("call/unit.zig").create(allocator, config.owner, callee.types, config.call.location);
+
+        argument.native_modules = callee.native_modules;
 
         return .{ .invocation = .{ .callee = callee, .argument = argument, .nominal_types = loaded.value.function.nominal_types, .store_initializers = loaded.value.function.store_initializers } };
     }
 
-    const compiled = try expression.compile(allocator, config.owner, target.attribute(config.call, "in"), .{ .types = callee.types, .bindings = options.bindings, .expected = callee.input_type });
+    const compiled = try expression.compile(allocator, config.owner, target.attribute(config.call, "in"), .{ .types = callee.types, .native_modules = callee.native_modules, .bindings = options.bindings, .expected = callee.input_type });
 
     if (compiled.value == .diagnostic) {
         const issue = compiled.value.diagnostic;

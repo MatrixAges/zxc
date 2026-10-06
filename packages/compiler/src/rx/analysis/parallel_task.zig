@@ -31,7 +31,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     std.debug.assert(output_type != null);
 
-    var nested = Flow{ .allocator = allocator, .owner = parent.owner, .types = types.items.view(), .output_type = output_type.?, .loaded = parent.loaded, .results = parent.results, .tasks = parent.tasks, .next_binding = parent.next_binding, .unit_input = parent.unit_input };
+    var nested = Flow{ .allocator = allocator, .owner = parent.owner, .types = types.items.view(), .native_modules = parent.native_modules, .output_type = output_type.?, .loaded = parent.loaded, .results = parent.results, .tasks = parent.tasks, .next_binding = parent.next_binding, .unit_input = parent.unit_input };
 
     try nested.bindings.appendSlice(allocator, captures);
 
@@ -68,7 +68,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     parent.types = types.items.view();
 
-    const native_modules = @import("module_native.zig").merge(allocator, nested.calls.items, parent.types) catch |err| {
+    const native_modules = @import("module_native.zig").merge(allocator, nested.calls.items, parent.types, parent.native_modules) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return failure(parent, node, .{ .code = .contract, .span = .{ .start = node.location.offset, .end = node.location.offset }, .message = "Parallel Task calls contain conflicting native interfaces" });

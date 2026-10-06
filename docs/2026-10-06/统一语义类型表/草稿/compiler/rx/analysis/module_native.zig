@@ -4,11 +4,11 @@ const Module = @import("module.zig");
 const Nodes = @import("frontend").ArtifactNodes;
 const native = @import("frontend").native_link;
 
-pub fn merge(allocator: std.mem.Allocator, calls: []Module.Call, types: zx.ir.TypeTable) ![]const zx.ir.NativeModule {
-    var modules: std.ArrayList(zx.ir.NativeModule) = .empty;
+pub fn merge(allocator: std.mem.Allocator, calls: []Module.Call, types: zx.ir.TypeTable, shared: []const zx.ir.NativeModule) ![]const zx.ir.NativeModule {
+    var modules: std.ArrayList(zx.ir.NativeModule) = .fromOwnedSlice(try @import("frontend").native_context.copy(allocator, shared));
     const mapping = try allocator.alloc(zx.ir.TypeId, types.count());
 
-    for (mapping, 0..) |*id, index| id.* = @enumFromInt(index);
+    for (mapping, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
 
     var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = &.{}, .native_modules = &.{} };
 
@@ -20,7 +20,7 @@ pub fn merge(allocator: std.mem.Allocator, calls: []Module.Call, types: zx.ir.Ty
         const functions = try allocator.dupe(zx.ir.Function, call.callee.functions);
 
         for (functions) |*function| {
-            if (function.external) |*external| external.module = native_mapping[@intFromEnum(external.module)];
+            if (function.external) |*external| external.module = native_mapping[@backingInt(external.module)];
         }
 
         call.callee.functions = functions;

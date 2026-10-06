@@ -127,9 +127,7 @@ pub fn containsList(self: *const Self, id: ir.TypeId) bool {
 
 pub fn object(self: *Self, fields: Fields) zx.Error!ir.TypeId {
     for (fields.types) |type_id| if (self.get(@fromBackingInt(type_id)) == .task) return self.reporter.fail(.ownership, .{ .start = 0, .end = 0 }, "tasks cannot be placed in objects");
-
-    fields.sort();
-
+    try fields.sort();
     if (try lookup.find(self.items.view(), .{ .object = fields.view() })) |id| return id;
 
     const id: ir.TypeId = @fromBackingInt(@intCast(self.items.count()));

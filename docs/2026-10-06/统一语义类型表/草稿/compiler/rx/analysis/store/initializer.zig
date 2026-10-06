@@ -5,7 +5,7 @@ const Builder = @import("../program/builder.zig");
 const inlineValue = @import("../program/expression.zig").inlineValue;
 pub const Field = struct { name: []const u8, type_id: zx.ir.TypeId, initial: zx.ir.Program };
 
-pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Field, types: zx.ir.TypeTable, reporter: *zx.Reporter) zx.Error!zx.ir.Program {
+pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Field, types: zx.ir.TypeTable, native_modules: []const zx.ir.NativeModule, reporter: *zx.Reporter) zx.Error!zx.ir.Program {
     var table = frontend.types{ .allocator = allocator, .reporter = reporter, .declarations = &.{} };
 
     try table.items.appendDelta(allocator, types);
@@ -15,7 +15,8 @@ pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Fi
     for (source, 0..) |field, index| fields.set(index, try allocator.dupe(u8, field.name), field.type_id);
 
     const output = try table.object(fields);
-    var builder = Builder{ .allocator = allocator, .types = table.items.view(), .native_modules = &.{} };
+    const owned_modules = try frontend.native_context.copy(allocator, native_modules);
+    var builder = Builder{ .allocator = allocator, .types = table.items.view(), .native_modules = owned_modules };
     const span = zx.Span{ .start = 0, .end = 0 };
     const input: zx.ir.TypeId = @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void)));
 
@@ -50,6 +51,7 @@ pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Fi
     var program = zx.ir.Program{
         .file_name = try allocator.dupe(u8, owner),
         .types = table.items.view(),
+        .native_modules = owned_modules,
         .symbols = builder.symbols.items,
         .expressions = builder.expressions.items,
         .input_type = input,

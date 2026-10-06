@@ -1,0 +1,32 @@
+import columns from "zig:field_columns"
+
+import sift from "./sift"
+
+import type { Columns } from "zig:field_columns"
+
+export type Input = Columns
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const count = columns.length(in)
+
+    const heap = loop({ columns: in, count: count, remaining: count / 2 }, {
+        while: current => current.remaining > 0,
+        next: current => {
+            current.remaining -= 1
+            sift({ columns: current.columns, start: current.remaining, count: current.count })
+        }
+    })
+
+    const ordered = loop({ columns: heap.columns, remaining: count }, {
+        while: current => current.remaining > 1,
+        next: current => {
+            current.remaining -= 1
+            columns.swap(current.columns, 0, current.remaining)
+            sift({ columns: current.columns, start: 0, count: current.remaining })
+        }
+    })
+
+    return
+}

@@ -25,8 +25,26 @@ pub fn view(self: Self) ir.TypeFields {
     return .{ .names = self.names, .types = self.types, .len = self.names.len };
 }
 
-pub fn sort(self: Self) void {
-    std.sort.pdqContext(0, self.names.len, self);
+pub fn sort(self: Self) std.mem.Allocator.Error!void {
+    if (!@import("parser_options").generated_parser) {
+        std.sort.pdqContext(0, self.names.len, self);
+
+        return;
+    }
+
+    const generated = @import("generated_field_sort");
+    const columns = @import("field_columns");
+    const data = columns.View{ .names = self.names, .types = self.types };
+    var storage: [0]u8 = undefined;
+    var fixed = std.heap.FixedBufferAllocator.init(&storage);
+    var arena = std.heap.ArenaAllocator.init(fixed.allocator());
+
+    defer arena.deinit();
+
+    generated.execute(&arena, @ptrCast(&data)) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => unreachable,
+    };
 }
 
 pub fn lessThan(self: Self, a: usize, b: usize) bool {
