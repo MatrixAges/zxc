@@ -12,7 +12,6 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
     const options = b.addOptions();
 
     options.addOptionPath("child", child.getEmittedBin());
-    options.addOption([]const u8, "root", std.Io.Dir.cwd().realPathFileAlloc(b.graph.io, ".", b.allocator) catch @panic("OOM"));
 
     for ([_][]const u8{ "results", "validation", "allocation" }) |name| {
         const module = b.createModule(.{

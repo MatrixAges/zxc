@@ -1,0 +1,110 @@
+Build Summary: 68/68 steps succeeded; 98/98 tests passed
+child-path-regression success
++- test-child-process success
+|  +- run test 20 pass (20 total) 74ms MaxRSS:2M
+|  |  +- compile test safe native success 8s MaxRSS:341M
+|  |     +- options success
+|  |     |  +- compile exe child-process-fixture safe native cached 45ms MaxRSS:21M
+|  |     +- run exe standard-types (standard_abi.zig) cached
+|  |        +- compile exe standard-types safe native cached 48ms MaxRSS:21M
+|  |           +- WriteFile interfaces/0.d.zx cached
+|  |           |  +- run exe standard-catalog (catalog.zig) cached
+|  |           |     +- compile exe standard-catalog fast native cached 45ms MaxRSS:21M
+|  |           |     +- WriteFile catalog.json cached
+|  |           +- options cached
+|  |           +- run exe generate-parser (parser.zig) cached
+|  |           |  +- compile exe generate-parser safe native cached 48ms MaxRSS:21M
+|  |           |     +- options cached
+|  |           |     +- WriteFile interfaces/0.d.zx cached
+|  |           |     |  +- run exe standard-catalog (catalog.zig) cached
+|  |           |     |     +- compile exe standard-catalog fast native cached 45ms MaxRSS:20M
+|  |           |     |     +- WriteFile catalog.json cached
+|  |           |     +- options cached
+|  |           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |           +- run exe generate-lexer (lexer.zig) cached
+|  |              +- compile exe generate-lexer safe native cached 47ms MaxRSS:21M
+|  |                 +- WriteFile interfaces/0.d.zx cached
+|  |                 |  +- run exe standard-catalog (catalog.zig) cached
+|  |                 |     +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+|  |                 |     +- WriteFile catalog.json cached
+|  |                 +- options cached
+|  +- run test 11 pass (11 total) 2ms MaxRSS:1M
+|  |  +- compile test safe native success 8s MaxRSS:336M
+|  |     +- options (+1 more reused dependencies)
+|  |     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
+|  +- run test 4 pass (4 total) 19ms MaxRSS:1M
+|  |  +- compile test safe native success 8s MaxRSS:349M
+|  |     +- options (+1 more reused dependencies)
+|  |     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
+|  +- run test 6 pass (6 total) 12ms MaxRSS:1M
+|     +- compile test safe native success 8s MaxRSS:352M
+|        +- run exe zxc (program.zig) cached
+|        |  +- compile exe zxc safe native cached 50ms MaxRSS:21M
+|        |     +- WriteFile cached
+|        |     +- compile lib yaml safe native cached 43ms MaxRSS:20M
+|        |     +- compile lib yaml safe native (reused)
+|        |     +- translate-c cached 45ms MaxRSS:20M
+|        |     +- options cached
+|        |     +- run exe bundle-zig (bundle) cached
+|        |     |  +- compile exe bundle-zig fast native cached 46ms MaxRSS:21M
+|        |     |  +- WriteFile bundle_manifest.json cached
+|        |     +- options cached
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- WriteFile interfaces/0.d.zx cached
+|        |     |  +- run exe standard-catalog (catalog.zig) cached
+|        |     |     +- compile exe standard-catalog fast native cached 46ms MaxRSS:21M
+|        |     |     +- WriteFile catalog.json cached
+|        |     +- options cached
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|        +- options (+1 more reused dependencies)
+|        +- run exe zxc (program.zig) (+1 more reused dependencies)
++- test-child-input success
+   +- run test 11 pass (11 total) 34ms MaxRSS:4M
+   |  +- compile test safe native success 8s MaxRSS:352M
+   |     +- options success
+   |     |  +- compile exe child-input-fixture safe native cached 45ms MaxRSS:21M
+   |     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
+   +- run test 8 pass (8 total) 33ms MaxRSS:4M
+   |  +- compile test safe native success 8s MaxRSS:346M
+   |     +- options (+1 more reused dependencies)
+   |     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
+   +- run test 4 pass (4 total) 17ms MaxRSS:2M
+   |  +- compile test safe native success 8s MaxRSS:361M
+   |     +- options (+1 more reused dependencies)
+   |     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
+   +- run test 11 pass (11 total) 2ms MaxRSS:1M
+   |  +- compile test safe native success 8s MaxRSS:340M
+   |     +- options (+1 more reused dependencies)
+   |     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
+   +- run test 3 pass (3 total) 10ms MaxRSS:3M
+   |  +- compile test safe native success 8s MaxRSS:350M
+   |     +- options (+1 more reused dependencies)
+   |     +- run exe standard-types (standard_abi.zig) (+1 more reused dependencies)
+   +- run test 10 pass (10 total) 22ms MaxRSS:4M
+   |  +- compile test safe native success 8s MaxRSS:333M
+   |     +- run exe compile-child-input (source.zig) cached
+   |     |  +- compile exe compile-child-input safe native cached 46ms MaxRSS:21M
+   |     |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+   |     |     +- options (reused)
+   |     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+   |     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+   |     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+   |     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+   |     +- options (+1 more reused dependencies)
+   |     +- run exe compile-child-input (source.zig) (+1 more reused dependencies)
+   +- run test 10 pass (10 total) 21ms MaxRSS:4M
+      +- compile test safe native success 8s MaxRSS:344M
+         +- run exe compile-child-input (source.zig) (+1 more reused dependencies)
+         +- options (+1 more reused dependencies)
+         +- run exe compile-child-input (source.zig) (+1 more reused dependencies)
+
