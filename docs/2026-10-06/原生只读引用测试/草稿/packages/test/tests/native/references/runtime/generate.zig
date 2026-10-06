@@ -2,8 +2,8 @@ const std = @import("std");
 const compiler = @import("compiler");
 const Output = @import("library_output").Output;
 
-fn analyze(allocator: std.mem.Allocator, source: []const u8, declaration: []const u8) !compiler.AnalysisResult {
-    var result = try compiler.analyzeProject(allocator, &.{.{ .path = "main.zx", .source = source }}, .{
+fn analyze(allocator: std.mem.Allocator, sources: []const compiler.project.Source, declaration: []const u8) !compiler.AnalysisResult {
+    var result = try compiler.analyzeProject(allocator, sources, .{
         .entry = "main.zx",
         .root_dir = "/provider",
         .native_interfaces = &.{.{ .specifier = "zig:host", .path = "host.d.zx", .source = declaration, .module = "host" }},
@@ -18,7 +18,9 @@ fn analyze(allocator: std.mem.Allocator, source: []const u8, declaration: []cons
 
 fn inspect(result: *const compiler.AnalysisResult) !void {
     if (result.value == .diagnostic) {
-        std.debug.print("{t}: {s}\n", .{ result.value.diagnostic.code, result.value.diagnostic.message });
+        const issue = result.value.diagnostic;
+
+        std.debug.print("{t}: source {?d}, bytes {d}..{d}: {s}\n", .{ issue.code, issue.source_index, issue.span.start, issue.span.end, issue.message });
 
         return error.InvalidAnalysis;
     }
@@ -51,11 +53,19 @@ pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
     const args = try init.minimal.args.toSlice(allocator);
 
-    if (args.len != 5) return error.ExpectedSourceDeclarationRouteAndDirectory;
+    if (args.len < 5) return error.ExpectedSourceDeclarationRouteAndDirectory;
 
     const source = try std.Io.Dir.cwd().readFileAlloc(init.io, args[1], allocator, .limited(1024 * 1024));
     const declaration = try std.Io.Dir.cwd().readFileAlloc(init.io, args[2], allocator, .limited(1024 * 1024));
-    var provider = try analyze(allocator, source, declaration);
+    var sources: std.ArrayList(compiler.project.Source) = .empty;
+
+    try sources.append(allocator, .{ .path = "main.zx", .source = source });
+
+    for (args[5..]) |path| {
+        try sources.append(allocator, .{ .path = std.fs.path.basename(path), .source = try std.Io.Dir.cwd().readFileAlloc(init.io, path, allocator, .limited(1024 * 1024)) });
+    }
+
+    var provider = try analyze(allocator, sources.items, declaration);
 
     defer provider.deinit();
 
@@ -73,8 +83,10 @@ pub fn main(init: std.process.Init) !void {
 
     @memset(bytes, 0xdd);
 
+    const consumer_source = try std.fmt.allocPrint(allocator, "import run from \"dependency\"\n\nimport type {{ SharedInput, SharedOutput }} from \"./types\"\n\nexport type Input = SharedInput\n\nexport type Output = SharedOutput\n\nexport default function (in: {s}Input): Output {{\n  return run(in)\n}}\n", .{if (provider.value.ir.consumes_input) "owned " else ""});
+
     var consumer = try compiler.analyzeProject(allocator, &.{
-        .{ .path = "consumer.zx", .source = "import run from \"dependency\"\n\nimport type { SharedInput, SharedOutput } from \"./types\"\n\nexport type Input = SharedInput\n\nexport type Output = SharedOutput\n\nexport default function (in: Input): Output {\n  return run(in)\n}\n" },
+        .{ .path = "consumer.zx", .source = consumer_source },
         .{ .path = "types.zx", .source = "import type { Input, Output } from \"dependency\"\n\nexport type SharedInput = Input\n\nexport type SharedOutput = Output\n" },
     }, .{
         .entry = "consumer.zx",

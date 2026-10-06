@@ -1,0 +1,23 @@
+import create from "./create"
+import pop from "./pop"
+import push from "./push"
+
+import type { DataInput, DataOutput } from "./types"
+
+export type Input = DataInput
+
+export type Output = DataOutput
+
+export default function (in: owned Input): Output {
+  const result = loop(create(in), {
+    while: state => state.index < state.count,
+    next: state => {
+      state = {
+        values: push({ values: pop(state.values), node: state.node }),
+        node: state.node, index: state.index + 1, count: state.count
+      }
+    }
+  })
+
+  return result.values
+}

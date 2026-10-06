@@ -1,0 +1,13 @@
+import type { State, StepInput } from "./types"
+
+export type Input = StepInput
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.index % 2 == 0) {
+    return { a: in.state.a.push(in.state.left)[0], b: in.state.b, left: in.state.left, right: in.state.right, count: in.state.count + 1 }
+  }
+
+  return { a: in.state.a, b: in.state.b.concat([in.state.right, in.state.left])[0], left: in.state.left, right: in.state.right, count: in.state.count + 1 }
+}

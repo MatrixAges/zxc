@@ -1,0 +1,7 @@
+import type { Node } from "zig:host"
+
+export type State = { a: Node[], b: Node[], left: Node, right: Node, count: u64 }
+
+export type StepInput = { state: State, index: u64 }
+
+export type DataInput = { a: Node[], b: Node[], left: Node, right: Node, steps: u64[] }

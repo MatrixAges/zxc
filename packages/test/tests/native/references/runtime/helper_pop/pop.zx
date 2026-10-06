@@ -1,0 +1,9 @@
+import type { State } from "./types"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  return { values: in.values.pop()[0], node: in.node, index: in.index, count: in.count }
+}

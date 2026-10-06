@@ -1,0 +1,19 @@
+import create from "./create"
+import step from "./step"
+
+import type { DataInput, DataOutput } from "./types"
+
+export type Input = DataInput
+
+export type Output = DataOutput
+
+export default function (in: owned Input): Output {
+  const result = loop(create(in), {
+    while: state => state.index < state.count,
+    next: state => {
+      state = step(state)
+    }
+  })
+
+  return result.values
+}

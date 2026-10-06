@@ -1,0 +1,13 @@
+import step from "./step"
+
+import type { State, DataInput } from "./types"
+
+export type Input = DataInput
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const initial: State = { a: in.a, b: in.b, left: in.left, right: in.right, count: 0 }
+
+  return in.steps.reduce((state, index) => step({ state: state, index: index }), initial)
+}

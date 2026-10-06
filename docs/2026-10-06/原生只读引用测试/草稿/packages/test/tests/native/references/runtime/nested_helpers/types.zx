@@ -1,0 +1,11 @@
+import type { Node } from "zig:host"
+
+export type Values = Node[]
+
+export type PushInput = { values: Node[], node: Node }
+
+export type DataInput = { values: Node[], node: Node, count: u64 }
+
+export type State = { values: Node[], node: Node, index: u64, count: u64 }
+
+export type DataOutput = Node[]

@@ -1,0 +1,9 @@
+import type { DataInput, State } from "./types"
+
+export type Input = DataInput
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  return { values: in.values, node: in.node, index: 0, count: in.count }
+}

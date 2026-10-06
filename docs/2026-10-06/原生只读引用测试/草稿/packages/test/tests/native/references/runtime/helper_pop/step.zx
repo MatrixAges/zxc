@@ -1,0 +1,12 @@
+import pop from "./pop"
+import push from "./push"
+
+import type { State } from "./types"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  return push(pop(in))
+}

@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step {
     const step = b.step("test-native-references-runtime", "Execute real native references through source and compiled library routes");
+    const transfers = b.step("test-native-references-transfers", "Execute native reference capacity transfers through ordinary ZX helpers");
     const directory = "tests/native/references/runtime";
 
     const generator = b.addExecutable(.{ .name = "generate-native-reference-runtime", .root_module = b.createModule(.{
@@ -13,7 +14,26 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
     generator.root_module.addAnonymousImport("library_output", .{ .root_source_file = b.path("tests/library/runtime/save.zig"), .target = target, .optimize = optimize });
 
-    for ([_][]const u8{ "identity", "read", "optional", "coalesce", "containers", "order", "traversal", "borrowed", "loop_write", "loop_history", "two_buffers" }) |name| {
+    const cases = [_]struct { name: []const u8, files: []const []const u8 = &.{} }{
+        .{ .name = "identity" },
+        .{ .name = "read" },
+        .{ .name = "optional" },
+        .{ .name = "coalesce" },
+        .{ .name = "containers" },
+        .{ .name = "order" },
+        .{ .name = "traversal" },
+        .{ .name = "borrowed" },
+        .{ .name = "loop_write" },
+        .{ .name = "loop_history" },
+        .{ .name = "two_buffers" },
+        .{ .name = "nested_helpers", .files = &.{ "types", "create", "pop", "push" } },
+        .{ .name = "helper_pop", .files = &.{ "types", "create", "step", "pop", "push" } },
+        .{ .name = "dual_append", .files = &.{ "types", "step" } },
+    };
+
+    for (cases) |case| {
+        const name = case.name;
+
         for ([_][]const u8{ "source", "library" }) |route| {
             const generate = b.addRunArtifact(generator);
 
@@ -22,6 +42,9 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             generate.addArg(route);
 
             const output = generate.addOutputDirectoryArg(b.fmt("{s}-{s}", .{ name, route }));
+
+            for (case.files) |file| generate.addFileArg(b.path(b.fmt("{s}/{s}/{s}.zx", .{ directory, name, file })));
+
             const run = b.addSystemCommand(&.{"node"});
 
             run.addFileArg(b.path(directory ++ "/run_test.ts"));
@@ -32,9 +55,16 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
             run.addFileArg(b.path(directory ++ "/host.zig"));
             run.addFileArg(b.path(directory ++ "/support.zig"));
             run.addFileArg(b.path("tests/support/allocation_testing.zig"));
-            step.dependOn(&run.step);
+
+            if (case.files.len == 0) {
+                step.dependOn(&run.step);
+            } else {
+                transfers.dependOn(&run.step);
+            }
         }
     }
+
+    step.dependOn(transfers);
 
     return step;
 }

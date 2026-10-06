@@ -1,0 +1,167 @@
+1/4 execution_test.test.native reference helper append preserves separate seeds and conditional first writes...OK
+2/4 execution_test.test.native reference helper append handles empty seeds and repeated leaf aliases...OK
+3/4 execution_test.test.native reference helper append grows linearly without allocator resize...OK
+4/4 execution_test.test.native reference helper append releases every failure and preserves both input lists...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/dual_append/execution_test.zig (debug) (53.151183ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 56.149698
+1/4 execution_test.test.native reference helper append preserves separate seeds and conditional first writes...OK
+2/4 execution_test.test.native reference helper append handles empty seeds and repeated leaf aliases...OK
+3/4 execution_test.test.native reference helper append grows linearly without allocator resize...OK
+4/4 execution_test.test.native reference helper append releases every failure and preserves both input lists...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/dual_append/execution_test.zig (debug) (53.938282ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 56.985483
+1/4 execution_test.test.native reference helper pop and push preserve zero step and first replacement identities...OK
+2/4 execution_test.test.native reference helper pop handles empty and one slot seeds...OK
+3/4 execution_test.test.native reference helper pop transfers capacity across long execution without allocator resize...FAIL (TestUnexpectedResult)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1011cd1bf in expect (root)
+    if (!ok) return error.TestUnexpectedResult;
+             ^
+/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/eb72dfc3213768c04435eb7cb8c496b8/helper_pop-source/../../../../tests/native/references/runtime/helper_pop/execution_test.zig:57:9: 0x1011ce716 in run (root)
+        try std.testing.expect(tracked.allocated_bytes <= limit);
+        ^
+/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/eb72dfc3213768c04435eb7cb8c496b8/helper_pop-source/../../../../tests/native/references/runtime/helper_pop/execution_test.zig:80:18: 0x1011ddb61 in test.native reference helper pop transfers capacity across long execution without allocator resize (root)
+    const long = try run(std.testing.allocator, 8192, 257, true);
+                 ^
+4/4 execution_test.test.native reference helper pop and push release all allocation failures and preserve external slots...OK
+3 passed; 0 skipped; 1 failed.
+error: the following test command failed with exit code 1:
+/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/eaea32edbd23e31a970feb00bb6e8fd0/root --seed=0xfb7ae115
+✖ native reference runtime ./tests/native/references/runtime/helper_pop/execution_test.zig (debug) (1662.266006ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1665.500315
+
+✖ failing tests:
+
+test at tests/native/references/runtime/run_test.ts:13:1
+✖ native reference runtime ./tests/native/references/runtime/helper_pop/execution_test.zig (debug) (1662.266006ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/runtime/run_test.ts:105:9)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+test-native-references-transfers
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/native/references/runtime/run_test.ts /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig ./.zig-cache/o/eb72dfc3213768c04435eb7cb8c496b8/helper_pop-source ./tests/native/references/runtime/helper_pop/execution_test.zig debug ./tests/native/references/runtime/host.zig ./tests/native/references/runtime/support.zig ./tests/support/allocation_testing.zig
+
+1/4 execution_test.test.native reference helper pop and push preserve zero step and first replacement identities...OK
+2/4 execution_test.test.native reference helper pop handles empty and one slot seeds...OK
+3/4 execution_test.test.native reference helper pop transfers capacity across long execution without allocator resize...FAIL (TestUnexpectedResult)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x105ab91bf in expect (root)
+    if (!ok) return error.TestUnexpectedResult;
+             ^
+/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/d1cfac1a7195192e64b0d9c03f324371/helper_pop-library/../../../../tests/native/references/runtime/helper_pop/execution_test.zig:57:9: 0x105aba716 in run (root)
+        try std.testing.expect(tracked.allocated_bytes <= limit);
+        ^
+/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/d1cfac1a7195192e64b0d9c03f324371/helper_pop-library/../../../../tests/native/references/runtime/helper_pop/execution_test.zig:80:18: 0x105ac9c71 in test.native reference helper pop transfers capacity across long execution without allocator resize (root)
+    const long = try run(std.testing.allocator, 8192, 257, true);
+                 ^
+4/4 execution_test.test.native reference helper pop and push release all allocation failures and preserve external slots...OK
+3 passed; 0 skipped; 1 failed.
+error: the following test command failed with exit code 1:
+/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/cc454c5cd68e62e624c26a79aab93c5e/root --seed=0x70ebe33d
+✖ native reference runtime ./tests/native/references/runtime/helper_pop/execution_test.zig (debug) (1660.750045ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1664.30468
+
+✖ failing tests:
+
+test at tests/native/references/runtime/run_test.ts:13:1
+✖ native reference runtime ./tests/native/references/runtime/helper_pop/execution_test.zig (debug) (1660.750045ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/runtime/run_test.ts:105:9)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+test-native-references-transfers
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/native/references/runtime/run_test.ts /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig ./.zig-cache/o/d1cfac1a7195192e64b0d9c03f324371/helper_pop-library ./tests/native/references/runtime/helper_pop/execution_test.zig debug ./tests/native/references/runtime/host.zig ./tests/native/references/runtime/support.zig ./tests/support/allocation_testing.zig
+
+Build Summary: 27/30 steps succeeded (2 failed)
+test-native-references-transfers transitive failure
++- run node failure
+|  +- run exe generate-native-reference-runtime (helper_pop-source) success 7ms
+|     +- compile exe generate-native-reference-runtime debug native cached 45ms MaxRSS:21M
+|        +- WriteFile interfaces/0.d.zx cached
+|        |  +- run exe standard-catalog (catalog.zig) cached
+|        |     +- compile exe standard-catalog fast native cached 46ms MaxRSS:21M
+|        |     +- WriteFile catalog.json cached
+|        +- options cached
+|        +- run exe generate-parser (parser.zig) cached
+|        |  +- compile exe generate-parser debug native cached 47ms MaxRSS:21M
+|        |     +- options cached
+|        |     +- WriteFile interfaces/0.d.zx cached
+|        |     |  +- run exe standard-catalog (catalog.zig) cached
+|        |     |     +- compile exe standard-catalog fast native cached 41ms MaxRSS:21M
+|        |     |     +- WriteFile catalog.json cached
+|        |     +- options cached
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-lexer (lexer.zig) cached
+|           +- compile exe generate-lexer debug native cached 47ms MaxRSS:21M
+|              +- WriteFile interfaces/0.d.zx cached
+|              |  +- run exe standard-catalog (catalog.zig) cached
+|              |     +- compile exe standard-catalog fast native cached 45ms MaxRSS:21M
+|              |     +- WriteFile catalog.json cached
+|              +- options cached
++- run node failure
+|  +- run exe generate-native-reference-runtime (helper_pop-library) success 10ms
+|     +- compile exe generate-native-reference-runtime debug native (+6 more reused dependencies)
++- run node success 115ms
+|  +- run exe generate-native-reference-runtime (dual_append-source) cached
+|     +- compile exe generate-native-reference-runtime debug native (+6 more reused dependencies)
++- run node success 120ms
+   +- run exe generate-native-reference-runtime (dual_append-library) cached
+      +- compile exe generate-native-reference-runtime debug native (+6 more reused dependencies)
+
