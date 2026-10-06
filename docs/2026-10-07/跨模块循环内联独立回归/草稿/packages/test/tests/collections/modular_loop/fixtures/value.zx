@@ -1,0 +1,11 @@
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = [u64, u64]
+
+export default function (in: Input): Output {
+    const total = in.total + in.total + in.index + 3
+
+    return [total, in.index + 1]
+}

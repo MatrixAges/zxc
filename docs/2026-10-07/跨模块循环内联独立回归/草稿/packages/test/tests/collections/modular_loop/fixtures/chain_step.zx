@@ -1,0 +1,16 @@
+import value from "./value"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const [first_total, first_index] = value(in)
+    const middle: State = { ...in, columns: in.columns.push(first_total)[0], index: first_index, total: first_total }
+
+    const [total, index] = value(middle)
+
+    return { ...middle, columns: middle.columns.push(total)[0], index, total }
+}

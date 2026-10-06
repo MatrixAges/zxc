@@ -1,0 +1,22 @@
+import inner_step from "./inner_step"
+
+import type { Inner, State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const initial: Inner = { frames: in.frames, index: 0, total: in.total }
+
+    const inner = loop(initial, {
+        while: current => current.index < 2,
+        next: current => {
+            current = inner_step(current)
+        }
+    })
+
+    const total = inner.total + in.index + 3
+
+    return { ...in, columns: in.columns.push(total)[0], index: in.index + 1, total }
+}

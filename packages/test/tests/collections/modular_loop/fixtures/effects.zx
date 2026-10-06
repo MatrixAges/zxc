@@ -1,0 +1,23 @@
+import probe from "zig:probe"
+
+import condition from "./condition"
+import step from "./step"
+
+import type { Frame, State } from "./model"
+
+export type Input = { frames: Frame[], columns: u64[], count: u64, selected: u64, choice: u64 }
+
+export type Output = { columns: u64[], mirror: u64[], total: u64, iterations: u64 }
+
+export default function (in: Input): Output {
+    const initial: State = { ...in, index: 0, total: 0, event: 0 }
+
+    const state = loop(initial, {
+        while: current => condition({ ...current, event: probe.observe(current.index * 2) }),
+        next: current => {
+            current = step({ ...current, event: probe.observe(current.index * 2 + 1) })
+        }
+    })
+
+    return { columns: state.columns, mirror: state.columns, total: state.total, iterations: state.index }
+}

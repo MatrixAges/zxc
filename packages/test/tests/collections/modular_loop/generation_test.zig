@@ -1,0 +1,178 @@
+const std = @import("std");
+const compiler = @import("compiler");
+const fixture = @import("fixture.zig");
+const same = @import("module_compare").same;
+const allocation_testing = @import("allocation_testing");
+
+fn analyze(changed: bool) !compiler.AnalysisResult {
+    const sources = try fixture.sources(if (changed) "changed" else "simple");
+    var result = try compiler.project.analyze(std.testing.allocator, &sources, .{ .entry = "main.zx", .root_dir = "/project" });
+
+    errdefer result.deinit();
+
+    try std.testing.expect(result.value == .ir);
+
+    return result;
+}
+
+fn cycle(memory: std.mem.Allocator, original: *const compiler.AnalysisResult, changed: *const compiler.AnalysisResult, first: compiler.zig.ModuleBundle, second: compiler.zig.ModuleBundle) !void {
+    var cache = compiler.zig.GenerationCache.init(memory);
+
+    defer cache.deinit();
+
+    const analyses = [_]*const compiler.AnalysisResult{ original, original, changed, original };
+    const expected = [_]compiler.zig.ModuleBundle{ first, first, second, first };
+
+    for (analyses, expected) |analysis, baseline| {
+        var bundle = try compiler.zig.emitModulesCached(memory, analysis, &cache);
+
+        defer bundle.deinit();
+
+        try same(bundle, baseline);
+    }
+}
+
+test "inlined helper edits invalidate caller bytes and repeated generation reuses units" {
+    var original = try analyze(false);
+
+    defer original.deinit();
+
+    var changed = try analyze(true);
+
+    defer changed.deinit();
+
+    var cache = compiler.zig.GenerationCache.init(std.testing.allocator);
+
+    defer cache.deinit();
+
+    var first = try compiler.zig.emitModulesCached(std.testing.allocator, &original, &cache);
+
+    defer first.deinit();
+
+    const generated = cache.generated;
+    var repeated = try compiler.zig.emitModulesCached(std.testing.allocator, &original, &cache);
+
+    defer repeated.deinit();
+
+    try same(first, repeated);
+    try std.testing.expectEqual(generated, cache.generated);
+
+    var second = try compiler.zig.emitModulesCached(std.testing.allocator, &changed, &cache);
+
+    defer second.deinit();
+
+    var uncached = try compiler.zig.emitModules(std.testing.allocator, &changed);
+
+    defer uncached.deinit();
+
+    try same(second, uncached);
+    try std.testing.expectEqualStrings(first.types, second.types);
+    try std.testing.expect(!std.mem.eql(u8, first.entry.source, second.entry.source));
+    try std.testing.expect(cache.generated > generated);
+
+    var restored = try compiler.zig.emitModulesCached(std.testing.allocator, &original, &cache);
+
+    defer restored.deinit();
+
+    try same(first, restored);
+}
+
+test "inlined module cache lifecycle releases every preparation and generation allocation failure" {
+    var original = try analyze(false);
+
+    defer original.deinit();
+
+    var changed = try analyze(true);
+
+    defer changed.deinit();
+
+    var first = try compiler.zig.emitModules(std.testing.allocator, &original);
+
+    defer first.deinit();
+
+    var second = try compiler.zig.emitModules(std.testing.allocator, &changed);
+
+    defer second.deinit();
+
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, cycle, .{ &original, &changed, first, second });
+}
+
+test "same populated cache recovers every failed inlined helper replacement" {
+    var original = try analyze(false);
+
+    defer original.deinit();
+
+    var changed = try analyze(true);
+
+    defer changed.deinit();
+
+    var first = try compiler.zig.emitModules(std.testing.allocator, &original);
+
+    defer first.deinit();
+
+    var second = try compiler.zig.emitModules(std.testing.allocator, &changed);
+
+    defer second.deinit();
+
+    var offset: usize = 0;
+
+    while (true) : (offset += 1) {
+        var failing = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+        const memory = failing.allocator();
+        var cache = compiler.zig.GenerationCache.init(memory);
+
+        defer cache.deinit();
+
+        {
+            var populated = try compiler.zig.emitModulesCached(memory, &original, &cache);
+
+            defer populated.deinit();
+
+            try same(populated, first);
+        }
+
+        failing.fail_index = failing.alloc_index + offset;
+
+        if (compiler.zig.emitModulesCached(memory, &changed, &cache)) |value| {
+            var bundle = value;
+
+            defer bundle.deinit();
+
+            try same(bundle, second);
+            try std.testing.expect(!failing.has_induced_failure);
+            try std.testing.expect(offset > 0);
+
+            break;
+        } else |err| {
+            try std.testing.expectEqual(error.OutOfMemory, err);
+            try std.testing.expect(failing.has_induced_failure);
+        }
+
+        failing.fail_index = std.math.maxInt(usize);
+
+        {
+            var recovered = try compiler.zig.emitModulesCached(memory, &changed, &cache);
+
+            defer recovered.deinit();
+
+            try same(recovered, second);
+        }
+
+        const generated = cache.generated;
+
+        {
+            var repeated = try compiler.zig.emitModulesCached(memory, &changed, &cache);
+
+            defer repeated.deinit();
+
+            try same(repeated, second);
+            try std.testing.expectEqual(generated, cache.generated);
+        }
+
+        var restored = try compiler.zig.emitModulesCached(memory, &original, &cache);
+
+        defer restored.deinit();
+
+        try same(restored, first);
+    }
+}

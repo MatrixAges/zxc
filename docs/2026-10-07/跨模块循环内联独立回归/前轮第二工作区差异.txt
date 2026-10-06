@@ -1,0 +1,71 @@
+diff --git a/packages/test/build/runtime.zig b/packages/test/build/runtime.zig
+index 1f2dd256..a36747d4 100644
+--- a/packages/test/build/runtime.zig
++++ b/packages/test/build/runtime.zig
+@@ -54,6 +54,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
+     const identifiers_step = b.step("test-ascii-identifiers", "Execute original ASCII identifier bindings");
+     const decimal_step = b.step("test-decimal-original", "Execute original decimal and exponent literal values");
+     const strings_step = b.step("test-strings", "Run string values and owned string collection cases");
++    const list_range_step = b.step("test-list-range", "Execute strict dynamic list ranges and preserve caller values");
+     const string_index_step = b.step("test-string-index", "Execute UTF-8 string byte indexing bounds decoding and lazy reads");
+ 
+     step.dependOn(application_json_gateway_step);
+@@ -189,6 +190,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
+         if (uses_bits or suite.kind == .floating_optional) floating_step.dependOn(&run.step);
+         if (suite.shared_abi) standard_step.dependOn(&run.step);
+         if (std.mem.startsWith(u8, suite.path, "built_ins/string/")) strings_step.dependOn(&run.step);
++        if (std.mem.startsWith(u8, suite.path, "built_ins/list/range_extract/")) list_range_step.dependOn(&run.step);
+         if (std.mem.startsWith(u8, suite.path, "built_ins/string/index/")) string_index_step.dependOn(&run.step);
+     }
+ 
+diff --git a/packages/test/suites.json b/packages/test/suites.json
+index 03444ebd..792eb7ed 100644
+--- a/packages/test/suites.json
++++ b/packages/test/suites.json
+@@ -128,7 +128,8 @@
+         "language/lexical/comments/exposure/cases",
+         "language/lexical/identifiers/keywords/cases",
+         "language/statements/const_initializers/cases",
+-        "language/types/string_index/cases"
++        "language/types/string_index/cases",
++        "language/types/list_range/cases"
+     ],
+     "runtime": [
+         {
+@@ -2456,6 +2457,36 @@
+             "name": "string-index-logical-or",
+             "path": "built_ins/string/index/logical_or/cases",
+             "kind": "collections"
++        },
++        {
++            "name": "list-range-integer",
++            "path": "built_ins/list/range_extract/integer/cases",
++            "kind": "collections"
++        },
++        {
++            "name": "list-range-text",
++            "path": "built_ins/list/range_extract/text/cases",
++            "kind": "collections"
++        },
++        {
++            "name": "list-range-products",
++            "path": "built_ins/list/range_extract/products/cases",
++            "kind": "collections"
++        },
++        {
++            "name": "list-range-tuples",
++            "path": "built_ins/list/range_extract/tuples/cases",
++            "kind": "collections"
++        },
++        {
++            "name": "list-range-composed",
++            "path": "built_ins/list/range_extract/composed/cases",
++            "kind": "collections"
++        },
++        {
++            "name": "list-range-lazy",
++            "path": "built_ins/list/range_extract/lazy/cases",
++            "kind": "collections"
+         }
+     ],
+     "safety": [

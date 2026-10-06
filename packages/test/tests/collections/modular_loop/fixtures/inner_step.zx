@@ -1,0 +1,9 @@
+import type { Inner } from "./model"
+
+export type Input = Inner
+
+export type Output = Inner
+
+export default function (in: Input): Output {
+    return { ...in, index: in.index + 1, total: in.total * 2 + 1 }
+}

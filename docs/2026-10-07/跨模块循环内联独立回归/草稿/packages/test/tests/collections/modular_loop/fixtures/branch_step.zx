@@ -1,0 +1,29 @@
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const [remaining, popped] = in.frames.pop()
+
+    if (popped == null) {
+        return { ...in, frames: remaining, index: in.index + 1 }
+    }
+
+    if (in.index % 3 == 0) {
+        const total = in.total + popped.count + in.index + 5
+
+        return { ...in, frames: remaining, columns: in.columns.push(total)[0], index: in.index + 1, total }
+    }
+
+    if (in.choice == 0) {
+        const total = in.total + popped.count + in.index + 7
+
+        return { ...in, frames: remaining, columns: in.columns.push(total)[0], index: in.index + 1, total }
+    }
+
+    const total = in.total + popped.count + in.index + 11
+
+    return { ...in, frames: remaining, columns: in.columns.push(total)[0], index: in.index + 1, total }
+}
