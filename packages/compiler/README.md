@@ -19,9 +19,9 @@ ZX 源码 → 索引语法 → 类型与所有权检查 → IR → genz → Zig�
 - 纯类型与可执行文件，类型/枚举/默认函数导入，./、../、@/ 路径及导入无环检查。
 - number→f64、boolean→bool、Array<T>→T[]；标量、对象、枚举、optional、list、tuple；const、解构、if、switch、match 表达式、return。
 - 列表和对象字面量、展开、索引、length、模板、字符串比较、三元与空值回退。
-- 无捕获 map/filter/reduce，reduce 支持独占累加器；消费式列表更新统一返回元组，可用整数常量索引选择字段；禁止 clone 深拷贝。用法与性能边界见 [归约累加器参考](../../docs/2026-10-05/归约累加器所有权参考.md)，无累加器逃逸的只追加 reduce 支持 [局部容量复用](../../docs/2026-10-05/归约追加生成参考.md)。
+- 无捕获 map/filter/reduce，reduce 支持不可变累加器；列表更新统一返回新结果元组，可用整数常量索引选择字段；禁止 clone 深拷贝。输入与结果共享规则见 [不可变输入参考](../../docs/2026-10-06/不可变输入参考.md)，无累加器逃逸的只追加 reduce 支持 [局部容量复用](../../docs/2026-10-05/归约追加生成参考.md)。
 - `loop(initial, { while, next })` 与 `{ do, while }` 返回最终状态，支持局部状态更新块，回调禁止捕获；ZX 与 RX 内联表达式使用同一语义。详见 [loop 使用参考](../../docs/2026-10-06/loop使用参考.md)。不提供 `forEach`。
-- 普通函数输入默认借用；`in: owned Input` 显式消费调用者的独占输入，契约贯穿模块、库与缓存。Zig 入口暴露 `consumes_input`，详见 [显式输入消费参考](../../docs/2026-10-05/显式输入消费参考.md)。
+- 普通函数统一使用 `in: Input`，不可变借用输入；列表更新产生新结果，旧值仍可读取。源码不提供输入消费标记，内部缓冲复用仅在版本与逃逸检查通过后启用，详见 [不可变输入参考](../../docs/2026-10-06/不可变输入参考.md)。
 - Call 注入的 `$name.value` Store getter/setter、类型与独立读写权限、暂存与宿主统一提交。
 - 显式注册并审查的 zig:/c: 接口与模块成员，保留旧 lib: 兼容；无前缀 ZX 包入口映射；普通项目函数的 Input/Output 类型连接。
 - 内建编码、密码、路径、查询参数、URL、压缩与目标信息接口，以及显式宿主能力的 std:fs、std:child_process、std:process、std:http；完整模块清单与边界见 [功能参考索引](../../docs/2026-10-05/功能参考索引.md)，不是完整 Node.js 标准库兼容实现。
@@ -59,7 +59,7 @@ Store 是应用生命周期内的共享内存，由生成代码初始化和发�
 
 ZX 不提供指针类型、取地址或解引用语法。参数、返回值和局部绑定始终使用普通 ZX 类型；聚合值的引用传递及具体存储表示由编译器处理。clone 已删除。
 
-以下为 Zig 宿主集成细节：生成入口使用调用方 Arena，聚合列表元素保存引用槽。新构造数据在 Arena 中分配，所有权移动不递归复制数据。push/concat/splice 为自身操作分配结果列表，pop/reverse/sort 可复用独占存储。新建聚合返回值的所有权摘要已进入 IR，输入借用不能直接消费。app、库及原生适配共用共享 ABI；宿主仍须遵守输入和借用输出的存活期，带 Store 的生成入口使用独立 Request 管理已提交数据的归属。
+以下为 Zig 宿主集成细节：生成入口使用调用方 Arena，聚合列表元素保存引用槽。新构造数据在 Arena 中分配，不因传参或绑定而递归复制数据。push/concat/splice 分配结果列表，pop 共享只读切片，reverse/sort 默认复制外层列表。经版本和逃逸证明的内部循环可以复用私有缓冲；新建与借用返回的来源摘要保留在 IR。app、库及原生适配共用共享 ABI；宿主仍须遵守输入和借用输出的存活期，带 Store 的生成入口使用独立 Request 管理已提交数据的归属。
 
 std:encoding 的 encodeUtf8/decodeUtf8 验证后返回输入的只读视图，不复制内容。Zig 直接消费方不传 allocator，也不释放这两个借用结果；输入存活期须覆盖视图使用期。
 
@@ -126,7 +126,7 @@ Store 使用 compileWithContext 或 project.Options.context.stores，每项声�
 
 `compiler.parseExpression(allocator, source, file_name)` 解析单个 ZX 表达式并要求消费到 EOF；返回值拥有源码、文件名、tokens 和 AST，使用后 deinit。`compiler.expressions.analyze` 以共享 types、显式 bindings 和可选 expected 类型检查表达式，返回拥有独立 arena 的类型表、符号、表达式节点与结果 ExprId。bindings 的 name 可以是 `$in` 或 `$ctx.user` 等标识符路径，路径必须唯一且不互相覆盖，类型不能是 void。这些显式外部绑定不放宽普通 ZX 源码的 `$` 命名规则，也不能绕过回调的非捕获限制。
 
-`compiler.expressions.compile` 使用相同参数生成可执行 Program，并执行所有权检查。Program.Input 是按 bindings 顺序排列的元组；没有 bindings 时为 void。外部值作为输入借用，表达式不能消费借用列表。Zig 宿主应先构造显式的 `std.meta.Child(program.Input)` 元组变量，再传其地址；当前工具链的动态匿名元组指针隐式转换已有独立错误复现。生成仍通过 zig.emit/emitBundle 的完整 IR 校验。仅需类型推导时可用 analyze，但不能把它的成功当作执行许可。
+`compiler.expressions.compile` 使用相同参数生成可执行 Program，并执行所有权检查。Program.Input 是按 bindings 顺序排列的元组；没有 bindings 时为 void。外部值作为不可变输入借用，表达式生成新列表时保留原值。Zig 宿主应先构造显式的 `std.meta.Child(program.Input)` 元组变量，再传其地址；当前工具链的动态匿名元组指针隐式转换已有独立错误复现。生成仍通过 zig.emit/emitBundle 的完整 IR 校验。仅需类型推导时可用 analyze，但不能把它的成功当作执行许可。
 
 这些接口尚未自动建立 RX 前序 Call 的 $ctx 命名结果环境，也不负责 XML 属性位置映射、分支合流或 RX 编排执行。提供者表达式与 ZX 入口组合生成时必须共享同一份类型表和 zxc_abi，不能凭对象字段相同就互传两个独立 Zig 模块中的匿名类型。
 

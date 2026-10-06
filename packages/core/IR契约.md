@@ -8,7 +8,7 @@
 
 ### 类型、模块与符号
 
-- `Program.version` 必须是 20。版本 20 增加显式 cancel_task；版本 19 增加作用域任务、并发表达式和原生并发契约；旧语义缓存与库必须重建。`types` 起始项按 Scalar 枚举顺序排列，其后为 object、optional、list、tuple、enumeration、error_set、task。版本 12 增加显式输入消费契约；版本 8 移除 Context 注入；版本 7 增加原生声明组 identity。旧原始 IR 不复用新含义。
+- `Program.version` 必须是 22。版本 22 移除显式输入消费并统一不可变输入；版本 20 增加显式 cancel_task；版本 19 增加作用域任务、并发表达式和原生并发契约；旧语义缓存与库必须重建。`types` 起始项按 Scalar 枚举顺序排列，其后为 object、optional、list、tuple、enumeration、error_set、task。版本 12 曾增加显式输入消费契约，版本 22 已移除；版本 8 移除 Context 注入；版本 7 增加原生声明组 identity。旧原始 IR 不复用新含义。
 - 复合类型只能引用更早的 TypeId。对象字段按名称排序且唯一，字段不能是 void；元组可包含 void 丢弃槽；枚举非空且成员唯一。
 - 普通函数的 `symbols[0]` 是 Input，Input 允许 void。纯类型文件设置 type_only，symbols/expressions/body 为空。
 - 每个函数有独立 SymbolId 和 ExprId 空间，共享 Program.types。符号身份由编号决定，不依赖文本名称。
@@ -55,25 +55,23 @@ match_expr 保存可选 subject、有序 arms 与必需 fallback。没有 subjec
 
 ### 所有权与集合回调
 
-所有者被 const 转移或消费之后，旧绑定失效。对象、元组、列表及其 optional 都参与所有权分析。静态对象字段与元组字段按路径跟踪：移动某字段会使该字段及其后代失效，并使祖先聚合不再完整；已证明独立的兄弟字段仍可读取或消费。部分移动后的父值不能整体返回、传参或展开，应以剩余字段与新值构造完整对象。动态索引保守地按所在列表整体处理，不能假设不同索引互不相交。
+普通对象、列表、元组及其 optional 都是持久值：绑定、传参和返回不使旧值失效，列表更新不覆盖接收者。ownership 状态用于记录输出与 Store 的来源，不能用 owned 状态绕过输入不可变规则。Task 句柄仍是线性资源，转移或 await/cancel 后旧句柄失效。
 
-借用不能执行消费式操作；clone 已禁止，不通过复制恢复修改权限。只借出静态字段时，独立兄弟字段不因此失去消费权限；借出整个父聚合则冻结相关子字段。发布给 Store 的值被冻结为借用，允许读取，禁止后续消费修改。分支合流保留继续执行路径上的字段消费，已返回分支不污染其他继续路径。用法与已有证据见 [字段所有权参考](../../docs/2026-10-05/字段所有权参考.md)。
+reverse/sort 默认复制外层列表再操作副本；push/concat/splice 产生新的外层存储，pop 可共享只读切片。引用元素继续共享不可变数据，不能据新容器断言全部可达数据独立。后端私有循环缓冲首次保留输入，并独立证明当前版本、返回路径和无逃逸，才允许后续复用。
 
 字符串虽不可变，仍可能是可变字节缓冲的只读视图，因此借用返回需要冻结可能的来源。reduce 的结果摘要同时合并初值与回调返回，不能忽略空列表路径。
 
-Program/Function.consumes_input 缺省为 false，表示借用 Input。为 true 时，引用输入以 owned 状态分析；调用点必须 move 实参且证明引用值为 owned，即使调用结果被丢弃或仅使用标量字段也不能恢复旧实参。标量仍按 copy 处理。纯类型 Program 和原生 External 不接受 true。该标记必须参与归档签名、接口比较、链接恢复和生成缓存身份；生成的 Zig 入口暴露 consumes_input，宿主负责可变存储的独占性及生命周期。消费不证明分配来源，不允许后端据此释放任意 slice。
+Program/Function 不再包含 consumes_input。所有源码和公开宿主入口只读借用 Input，旧消费型库和缓存必须按版本拒绝并重建。生成的 Zig 入口不发布消费标记，宿主无需放弃或提供可写输入来调用普通函数。
 
-owned 输入是递归独占契约，宿主提供的不同字段路径也不能共享仍可访问的可变子对象；仅排除输入之外的别名还不充分。编译器不在运行期检查宿主是否违反这一约定。
-
-Program/Function.output_ownership 描述 copy、owned 或 borrowed 返回。普通 ZX 函数按调用拓扑分析摘要；调用者可继续消费新拥有结果，借用聚合结果保守冻结实参。校验器重新分析并拒绝无法证明的 owned/copy 声明，borrowed 允许作为更保守的摘要。原生函数暂只接受 borrowed，不从 allocator 标记推导拥有权。
+Program/Function.output_ownership 描述 copy、owned 或 borrowed 返回。普通 ZX 函数按调用拓扑分析摘要；结果可继续用于计算，借用聚合结果保留实参来源。校验器重新分析并拒绝无法证明的 owned/copy 声明，borrowed 允许作为更保守的摘要。原生函数暂只接受 borrowed，不从 allocator 标记推导拥有权。
 
 list_operation 统一产生 `[新列表, 业务值]`。push、sort、reverse、concat 的业务值为 void；pop 为 T?；splice 为被删除列表。destructure 必须覆盖全部槽，void 槽必须丢弃。
 
-concat/splice 的结果缓冲区可以容纳标量或引用槽；聚合借用参数使结果保守地保持借用状态。所有参数始终执行移动/读取校验，不允许把已消费的目标再次作为参数使用。当前后端完整的聚合引用表示还在迁移，不能把已有值布局当作最终 ABI。
+concat/splice 的结果缓冲区可以容纳标量或引用槽；聚合借用参数使结果保守地保持借用状态。普通参数只读求值，接收者也可以作为其它参数再次使用；Task 的线性校验不适用于普通列表。当前后端完整的聚合引用表示还在迁移，不能把已有值布局当作最终 ABI。
 
 transform 参数只在自身回调体可见：map/filter 各一个元素参数，reduce 为累加值和元素两个参数。target 与 initial 在外层求值。回调体不能引用外层符号或 Store slot；验证不能因为 ExprId 已访问而跳过不同作用域的检查。
 
-Symbol.ownership 是描述信息，不能用它绕过验证。官方校验器重新执行移动、借用、发布冻结和分支合流检查，不信任第三方给出的所有权声明。
+Symbol.ownership 是描述信息，不能用它绕过验证。官方校验器重新执行来源、Task 消费、Store 发布和分支合流检查，不信任第三方给出的所有权声明。
 
 ### 作用域任务与有限错误
 

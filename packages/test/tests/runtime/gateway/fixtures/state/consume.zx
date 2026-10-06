@@ -2,6 +2,6 @@ export type Input = u64[]
 
 export type Output = u64[]
 
-export default function (in: owned Input): Output {
+export default function (in: Input): Output {
   return in.push(in.length)[0]
 }
