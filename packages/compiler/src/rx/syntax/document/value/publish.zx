@@ -1,0 +1,39 @@
+import { Phase, ValueKind } from "../model"
+
+import type { Value } from "../../model"
+import type { State } from "../model"
+
+export type Input = { state: State, value: Value, expression: bool }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const value_location = { offset: in.state.control.value_location.offset, line: in.state.control.value_location.line, column: in.state.control.value_location.column }
+
+  if (in.state.control.value_kind == ValueKind.Attribute) {
+    const head = in.state.tree.attributes.length + 1
+    const count = in.state.frame.attribute_count + 1
+
+    const attributes = in.state.tree.attributes.push({
+      expression: in.expression, name: { start: in.state.control.attribute.start, end: in.state.control.attribute.end }, value: in.value,
+      location: { offset: in.state.control.attribute_location.offset, line: in.state.control.attribute_location.line, column: in.state.control.attribute_location.column },
+      value_location: value_location, previous: in.state.frame.attributes
+    })[0]
+
+    return {
+      source: in.state.source,
+      tree: { nodes: in.state.tree.nodes, attributes: attributes, text: in.state.tree.text, children: in.state.tree.children, parts: in.state.tree.parts },
+      frames: in.state.frames, frame: { ...in.state.frame, attributes: head, attribute_count: count }, control: { ...in.state.control, phase: Phase.Attributes }
+    }
+  }
+
+  const head = in.state.tree.text.length + 1
+  const count = in.state.frame.text_count + 1
+  const text = in.state.tree.text.push({ value: in.value, location: value_location, previous: in.state.frame.text })[0]
+
+  return {
+    source: in.state.source,
+    tree: { nodes: in.state.tree.nodes, attributes: in.state.tree.attributes, text: text, children: in.state.tree.children, parts: in.state.tree.parts },
+    frames: in.state.frames, frame: { ...in.state.frame, text: head, text_count: count }, control: { ...in.state.control, phase: Phase.Content }
+  }
+}

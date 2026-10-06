@@ -1,0 +1,8 @@
+export enum Mode { Interpolation, String, LineComment, BlockComment, Template }
+
+export type Frame = { mode: Mode, start: u64, depth: u64, braces: u64 }
+
+export type State = {
+  source: u8[], frames: Frame[], frame: Frame,
+  offset: u64, comment_start: u64, done: bool, message: string, issue: u64
+}

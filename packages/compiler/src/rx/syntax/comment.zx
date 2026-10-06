@@ -1,0 +1,24 @@
+import starts from "./starts"
+
+export enum Issue { None, Unterminated, DoubleDash }
+
+export type Input = { source: u8[], offset: u64 }
+
+export type Output = { end: u64, message: string }
+
+export default function (in: Input): Output {
+  const state = loop({ source: in.source, offset: in.offset + 4, done: false, issue: Issue.None }, {
+    while: value => !value.done,
+    next: value => {
+      const finish = starts({ source: value.source, offset: value.offset, text: [45, 45, 62] })
+      const double_dash = starts({ source: value.source, offset: value.offset, text: [45, 45] })
+      const eof = value.offset == value.source.length
+      const offset = finish ? value.offset + 3 : eof || double_dash ? value.offset : value.offset + 1
+      const issue = finish ? Issue.None : eof ? Issue.Unterminated : double_dash ? Issue.DoubleDash : Issue.None
+
+      value = { ...value, offset: offset, done: finish || eof || double_dash, issue: issue }
+    }
+  })
+
+  return { end: state.offset, message: state.issue == Issue.None ? "" : state.issue == Issue.Unterminated ? "unterminated XML comment" : "XML comments cannot contain --" }
+}

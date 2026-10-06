@@ -1,0 +1,33 @@
+import empty from "./empty"
+import { Phase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const result = in.tree.nodes.length
+  const nodes = in.tree.nodes.push(in.frame)[0]
+
+  if (in.frames.length == 0) {
+    return {
+      source: in.source,
+      tree: { nodes: nodes, attributes: in.tree.attributes, text: in.tree.text, children: in.tree.children, parts: in.tree.parts },
+      frames: in.frames, frame: empty(), control: { ...in.control, phase: Phase.AfterRoot, result: result }
+    }
+  }
+
+  const popped = in.frames.pop()
+  const parent = popped[1] ?? empty()
+  const head = in.tree.children.length + 1
+  const count = parent.child_count + 1
+  const children = in.tree.children.push({ value: result, previous: parent.children })[0]
+
+  return {
+    source: in.source,
+    tree: { nodes: nodes, attributes: in.tree.attributes, text: in.tree.text, children: children, parts: in.tree.parts },
+    frames: popped[0], frame: { ...parent, children: head, child_count: count }, control: { ...in.control, phase: Phase.Content }
+  }
+}

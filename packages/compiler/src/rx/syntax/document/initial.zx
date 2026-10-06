@@ -1,0 +1,29 @@
+import { Phase, ValueKind } from "./model"
+
+import type { Part } from "../model"
+import type { State, Node, Attribute, Text, Child } from "./model"
+
+export type Input = { source: u8[], message: string, expressions: bool }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const nodes: Node[] = []
+  const attributes: Attribute[] = []
+  const text: Text[] = []
+  const children: Child[] = []
+  const parts: Part[] = []
+  const frames: Node[] = []
+  const failed = in.message != ""
+
+  return {
+    source: in.source, tree: { nodes: nodes, attributes: attributes, text: text, children: children, parts: parts }, frames: frames,
+    frame: { name: { start: 0, end: 0 }, location: { offset: 0, line: 1, column: 1 }, attributes: 0, attribute_count: 0, children: 0, child_count: 0, text: 0, text_count: 0 },
+    control: {
+      phase: failed ? Phase.Done : Phase.Prelude, location: { offset: 0, line: 1, column: 1 }, expressions: in.expressions, result: 0,
+      attribute: { start: 0, end: 0 }, attribute_location: { offset: 0, line: 1, column: 1 }, value_location: { offset: 0, line: 1, column: 1 },
+      value_kind: ValueKind.Attribute, terminator: 0, value_start: 0, text_start: 0, value_head: 0, value_count: 0,
+      message: in.message, issue: { offset: 0, line: 1, column: 1 }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+export type Input = { source: u8[], offset: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return loop({ source: in.source, offset: in.offset, done: false }, {
+    while: value => !value.done && value.offset < value.source.length,
+    next: value => {
+      const byte = value.source[value.offset]
+      const accepted = byte == 32 || byte == 9 || byte == 10 || byte == 13
+      const offset = value.offset + (accepted ? 1 : 0)
+
+      value = { ...value, offset: offset, done: !accepted }
+    }
+  }).offset
+}

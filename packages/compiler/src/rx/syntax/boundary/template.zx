@@ -1,0 +1,39 @@
+import close from "./close"
+import fail from "./fail"
+import { Mode } from "./model"
+import open from "./open"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const byte = in.source[in.offset]
+  const has_next = in.offset + 1 < in.source.length
+  const next = has_next ? in.source[in.offset + 1] : 0
+  const offset = in.offset + 1
+
+  if (byte == 96) {
+    return close(in)
+  }
+
+  if (byte == 92) {
+    if (has_next && next != 34 && next != 92 && next != 110 && next != 114 && next != 116 && next != 96 && next != 36) {
+      const issue = in.offset
+
+      return fail({ state: in, offset: issue, message: "unsupported template escape" })
+    }
+
+    return { ...in, offset: has_next ? offset + 1 : offset }
+  }
+
+  if (byte == 36 && next == 123) {
+    const depth = in.frame.depth + 1
+
+    return open({ state: in, mode: Mode.Interpolation, offset: offset + 1, start: offset + 1, depth: depth })
+  }
+
+  return { ...in, offset: offset }
+}

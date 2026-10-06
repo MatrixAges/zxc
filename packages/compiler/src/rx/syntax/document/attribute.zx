@@ -1,0 +1,54 @@
+import name from "../name"
+import whitespace from "../whitespace"
+import advance from "./advance"
+import duplicate from "./duplicate"
+import expression from "./expression"
+import fail from "./fail"
+import { ValueKind } from "./model"
+import start from "./value/start"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const offset = in.control.location.offset
+  const location = { offset: offset, line: in.control.location.line, column: in.control.location.column }
+  const parsed = name({ source: in.source, offset: offset })
+  const end = parsed.end
+  const repeated = duplicate({ source: in.source, attributes: in.tree.attributes, head: in.frame.attributes, name: { start: offset, end: end } })
+  const named = advance({ state: in, count: end - offset })
+
+  if (parsed.message != "") {
+    return fail({ state: named, message: parsed.message })
+  }
+
+  if (repeated) {
+    return fail({ state: named, message: "duplicate XML attribute" })
+  }
+
+  const assign = whitespace({ source: named.source, offset: end })
+  const missing = assign == named.source.length || named.source[assign] != 61
+  const assigned = advance({ state: named, count: assign - end })
+
+  if (missing) {
+    return fail({ state: assigned, message: "unexpected XML token" })
+  }
+
+  const value_offset = whitespace({ source: assigned.source, offset: assign + 1 })
+  const advanced = advance({ state: assigned, count: value_offset - assign })
+  const state = { source: advanced.source, tree: advanced.tree, frames: advanced.frames, frame: advanced.frame, control: { ...advanced.control, attribute: { start: offset, end: end }, attribute_location: location } }
+  const quote = value_offset < state.source.length ? state.source[value_offset] : 0
+
+  if (quote == 123 && state.control.expressions) {
+    return expression(state)
+  }
+
+  if (quote != 34 && quote != 39) {
+    return fail({ state: state, message: "XML attribute values must be quoted" })
+  }
+
+  return start({ state: advance({ state: state, count: 1 }), kind: ValueKind.Attribute, terminator: quote })
+}

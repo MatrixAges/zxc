@@ -1,0 +1,38 @@
+import equal from "../equal"
+import name from "../name"
+import whitespace from "../whitespace"
+import advance from "./advance"
+import fail from "./fail"
+import publish from "./publish"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const offset = in.control.location.offset
+  const parsed = name({ source: in.source, offset: offset + 2 })
+  const end = parsed.end
+  const matched = equal({ source: in.source, left: in.frame.name, right: { start: offset + 2, end: end } })
+  const state = advance({ state: in, count: end - offset })
+
+  if (parsed.message != "") {
+    return fail({ state: state, message: parsed.message })
+  }
+
+  if (!matched) {
+    return fail({ state: state, message: "XML closing tag does not match opening tag" })
+  }
+
+  const finish = whitespace({ source: state.source, offset: end })
+  const closed = finish < state.source.length && state.source[finish] == 62
+  const advanced = advance({ state: state, count: finish - end })
+
+  if (!closed) {
+    return fail({ state: advanced, message: "unexpected XML token" })
+  }
+
+  return publish(advance({ state: advanced, count: 1 }))
+}

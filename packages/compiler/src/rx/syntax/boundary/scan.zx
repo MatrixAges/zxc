@@ -1,0 +1,17 @@
+import initial from "./initial"
+import step from "./step"
+
+export type Input = { source: u8[], start: u64 }
+
+export type Output = { source: u8[], end: u64, offset: u64, message: string }
+
+export default function (in: owned Input): Output {
+  const state = loop(initial(in), {
+    while: value => !value.done,
+    next: value => {
+      value = step(value)
+    }
+  })
+
+  return { source: state.source, end: state.offset, offset: state.issue, message: state.message }
+}

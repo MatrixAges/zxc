@@ -39,20 +39,28 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, file_name: []cons
 
         const output = generated.execute(&scratch, owned_source) catch |err| switch (err) {
             error.OutOfMemory, error.Overflow => return error.OutOfMemory,
-            else => return .{ .arena = arena, .value = .{ .diagnostic = .{
-                .code = .contract,
-                .span = .{ .start = 0, .end = 0 },
-                .message = try std.fmt.allocPrint(temporary, "internal compiler error: generated expression parser failed with {s}", .{@errorName(err)}),
-            } } },
+            else => {
+                const message = try std.fmt.allocPrint(temporary, "internal compiler error: generated expression parser failed with {s}", .{@errorName(err)});
+
+                return .{ .arena = arena, .value = .{ .diagnostic = .{
+                    .code = .contract,
+                    .span = .{ .start = 0, .end = 0 },
+                    .message = message,
+                } } };
+            },
         };
 
         const issue = output.diagnostic;
 
-        if (issue.message.len != 0) return .{ .arena = arena, .value = .{ .diagnostic = .{
-            .code = std.meta.stringToEnum(@FieldType(zx.Diagnostic, "code"), issue.code) orelse unreachable,
-            .span = .{ .start = @intCast(issue.start), .end = @intCast(issue.end) },
-            .message = try temporary.dupe(u8, issue.message),
-        } } };
+        if (issue.message.len != 0) {
+            const message = try temporary.dupe(u8, issue.message);
+
+            return .{ .arena = arena, .value = .{ .diagnostic = .{
+                .code = std.meta.stringToEnum(@FieldType(zx.Diagnostic, "code"), issue.code) orelse unreachable,
+                .span = .{ .start = @intCast(issue.start), .end = @intCast(issue.end) },
+                .message = message,
+            } } };
+        }
 
         const expression = try adapter.expression(temporary, owned_source, output.state);
         const tokens = try adapter.lexed(temporary, output.state.prepared.lexical.lexed);

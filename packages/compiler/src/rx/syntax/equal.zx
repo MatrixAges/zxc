@@ -1,0 +1,22 @@
+import type { Span } from "./model"
+
+export type Input = { source: u8[], left: Span, right: Span }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  if (in.left.end - in.left.start != in.right.end - in.right.start) {
+    return false
+  }
+
+  return loop({ source: in.source, left: in.left.start, right: in.right.start, end: in.left.end, matches: true }, {
+    while: value => value.matches && value.left < value.end,
+    next: value => {
+      const matches = value.source[value.left] == value.source[value.right]
+      const left = value.left + 1
+      const right = value.right + 1
+
+      value = { ...value, left: left, right: right, matches: matches }
+    }
+  }).matches
+}

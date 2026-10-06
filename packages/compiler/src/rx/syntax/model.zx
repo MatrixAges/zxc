@@ -1,0 +1,7 @@
+export type Span = { start: u64, end: u64 }
+
+export type Location = { offset: u64, line: u64, column: u64 }
+
+export type Part = { span: Span, character: bool, codepoint: u64, previous: u64 }
+
+export type Value = { span: Span, head: u64, count: u64 }

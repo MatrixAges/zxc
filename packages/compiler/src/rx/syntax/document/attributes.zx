@@ -1,0 +1,36 @@
+import starts from "../starts"
+import whitespace from "../whitespace"
+import advance from "./advance"
+import attribute from "./attribute"
+import fail from "./fail"
+import { Phase } from "./model"
+import publish from "./publish"
+import transition from "./transition"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const start = in.control.location.offset
+  const offset = whitespace({ source: in.source, offset: start })
+  const closed = starts({ source: in.source, offset: offset, text: [47, 62] })
+  const content = starts({ source: in.source, offset: offset, text: [62] })
+  const state = advance({ state: in, count: offset - start })
+
+  if (closed) {
+    return publish(advance({ state: state, count: 2 }))
+  }
+
+  if (content) {
+    return transition({ state: advance({ state: state, count: 1 }), phase: Phase.Content })
+  }
+
+  if (offset == start) {
+    return fail({ state: state, message: "XML attributes require separating whitespace" })
+  }
+
+  return attribute(state)
+}

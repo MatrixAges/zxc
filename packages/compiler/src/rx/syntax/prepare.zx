@@ -1,0 +1,7 @@
+export type Input = { source: u8[], expressions: bool }
+
+export type Output = { source: u8[], expressions: bool }
+
+export default function (in: Input): Output {
+  return { source: in.source.map(byte => byte), expressions: in.expressions }
+}

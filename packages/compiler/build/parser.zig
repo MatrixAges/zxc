@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const Sources = struct { program: std.Build.LazyPath, expression: std.Build.LazyPath };
+pub const Sources = struct { program: std.Build.LazyPath, expression: std.Build.LazyPath, xml: std.Build.LazyPath };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const target = b.graph.host;
@@ -44,19 +44,20 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     }) });
 
     const run = b.addRunArtifact(executable);
-    const root = b.path("src/zx/frontend");
+    const root = b.path("src");
 
     run.addDirectoryArg2(root, .{});
     trackSources(b, run, root) catch @panic("unable to track RX and ZX parser sources");
 
     const program = run.addOutputFileArg("parser.zig");
     const expression = run.addOutputFileArg("expression.zig");
+    const xml = run.addOutputFileArg("xml.zig");
 
-    return .{ .program = program, .expression = expression };
+    return .{ .program = program, .expression = expression, .xml = xml };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {
-    var directory = try std.Io.Dir.cwd().openDir(b.graph.io, try b.root.joinString(b.allocator, "src/zx/frontend"), .{ .iterate = true });
+    var directory = try std.Io.Dir.cwd().openDir(b.graph.io, try b.root.joinString(b.allocator, "src"), .{ .iterate = true });
 
     defer directory.close(b.graph.io);
 
@@ -88,5 +89,6 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
     return .{
         .program = b.createModule(.{ .root_source_file = source.program, .target = target, .optimize = optimize }),
         .expression = b.createModule(.{ .root_source_file = source.expression, .target = target, .optimize = optimize }),
+        .xml = b.createModule(.{ .root_source_file = source.xml, .target = target, .optimize = optimize }),
     };
 }

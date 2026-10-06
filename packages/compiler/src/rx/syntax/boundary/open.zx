@@ -1,0 +1,16 @@
+import { Mode } from "./model"
+
+import type { State } from "./model"
+
+export type Input = { state: State, mode: Mode, offset: u64, start: u64, depth: u64 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  return {
+    source: in.state.source, frames: in.state.frames.push(in.state.frame)[0],
+    frame: { mode: in.mode, start: in.start, depth: in.depth, braces: 0 },
+    offset: in.offset, comment_start: in.state.comment_start,
+    done: false, message: "", issue: 0
+  }
+}

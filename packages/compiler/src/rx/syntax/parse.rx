@@ -1,0 +1,9 @@
+<Module>
+  <Call fn="prepare" in={$in} />
+
+  <Call fn="validate" in={$ctx.prepare.source} />
+
+  <Call fn="document/parse" in={{source: $ctx.prepare.source, message: $ctx.validate, expressions: $ctx.prepare.expressions}} />
+
+  <Return value={$ctx.parse} />
+</Module>

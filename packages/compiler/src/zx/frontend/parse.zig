@@ -38,18 +38,26 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, file_name: []cons
 
         const output = generated.execute(&temporary, owned_source) catch |err| switch (err) {
             error.OutOfMemory, error.Overflow => return error.OutOfMemory,
-            else => return .{ .arena = arena, .value = .{ .diagnostic = .{
-                .code = .contract,
-                .span = .{ .start = 0, .end = 0 },
-                .message = try std.fmt.allocPrint(arena.allocator(), "internal compiler error: generated parser failed with {s}", .{@errorName(err)}),
-            } } },
+            else => {
+                const message = try std.fmt.allocPrint(arena.allocator(), "internal compiler error: generated parser failed with {s}", .{@errorName(err)});
+
+                return .{ .arena = arena, .value = .{ .diagnostic = .{
+                    .code = .contract,
+                    .span = .{ .start = 0, .end = 0 },
+                    .message = message,
+                } } };
+            },
         };
 
-        if (output.diagnostic.message.len != 0) return .{ .arena = arena, .value = .{ .diagnostic = .{
-            .code = std.meta.stringToEnum(@FieldType(zx.Diagnostic, "code"), output.diagnostic.code) orelse unreachable,
-            .span = .{ .start = @intCast(output.diagnostic.start), .end = @intCast(output.diagnostic.end) },
-            .message = try arena.allocator().dupe(u8, output.diagnostic.message),
-        } } };
+        if (output.diagnostic.message.len != 0) {
+            const message = try arena.allocator().dupe(u8, output.diagnostic.message);
+
+            return .{ .arena = arena, .value = .{ .diagnostic = .{
+                .code = std.meta.stringToEnum(@FieldType(zx.Diagnostic, "code"), output.diagnostic.code) orelse unreachable,
+                .span = .{ .start = @intCast(output.diagnostic.start), .end = @intCast(output.diagnostic.end) },
+                .message = message,
+            } } };
+        }
 
         const tree = try adapter.convert(arena.allocator(), owned_source, output);
         const tokens = try adapter.lexed(arena.allocator(), output.program.body.expression.prepared.lexical.lexed);

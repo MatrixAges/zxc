@@ -1,0 +1,38 @@
+import starts from "../starts"
+import number from "./number"
+
+export type Input = { source: u8[], start: u64, end: u64 }
+
+export type Output = { codepoint: u64, message: string }
+
+export default function (in: Input): Output {
+  const length = in.end - in.start
+
+  if (length == 3 && starts({ source: in.source, offset: in.start, text: [97, 109, 112] })) {
+    return { codepoint: 38, message: "" }
+  }
+
+  if (length == 2 && starts({ source: in.source, offset: in.start, text: [108, 116] })) {
+    return { codepoint: 60, message: "" }
+  }
+
+  if (length == 2 && starts({ source: in.source, offset: in.start, text: [103, 116] })) {
+    return { codepoint: 62, message: "" }
+  }
+
+  if (length == 4 && starts({ source: in.source, offset: in.start, text: [113, 117, 111, 116] })) {
+    return { codepoint: 34, message: "" }
+  }
+
+  if (length == 4 && starts({ source: in.source, offset: in.start, text: [97, 112, 111, 115] })) {
+    return { codepoint: 39, message: "" }
+  }
+
+  if (length < 2 || in.source[in.start] != 35) {
+    return { codepoint: 0, message: "unsupported XML entity reference" }
+  }
+
+  const hexadecimal = in.source[in.start + 1] == 120
+
+  return number({ source: in.source, start: in.start + (hexadecimal ? 2 : 1), end: in.end, hexadecimal: hexadecimal })
+}

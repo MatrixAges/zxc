@@ -1,0 +1,44 @@
+import comment from "../comment"
+import starts from "../starts"
+import advance from "./advance"
+import close from "./close"
+import empty from "./empty"
+import fail from "./fail"
+import { ValueKind } from "./model"
+import open from "./open"
+import start from "./value/start"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const offset = in.control.location.offset
+
+  if (offset == in.source.length) {
+    return fail({ state: in, message: "missing XML closing tag" })
+  }
+
+  if (starts({ source: in.source, offset: offset, text: [60, 47] })) {
+    return close(in)
+  }
+
+  if (starts({ source: in.source, offset: offset, text: [60, 33, 45, 45] })) {
+    const parsed = comment({ source: in.source, offset: offset })
+    const state = advance({ state: in, count: parsed.end - offset })
+
+    return parsed.message == "" ? state : fail({ state: state, message: parsed.message })
+  }
+
+  if (starts({ source: in.source, offset: offset, text: [60, 33, 91, 67, 68, 65, 84, 65, 91] })) {
+    return start({ state: advance({ state: in, count: 9 }), kind: ValueKind.Cdata, terminator: 0 })
+  }
+
+  if (in.source[offset] == 60) {
+    return open({ source: in.source, tree: in.tree, frames: in.frames.push(in.frame)[0], frame: empty(), control: in.control })
+  }
+
+  return start({ state: in, kind: ValueKind.Text, terminator: 60 })
+}

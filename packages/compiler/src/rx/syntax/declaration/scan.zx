@@ -1,0 +1,29 @@
+import { Issue } from "./model"
+import step from "./step"
+
+export type Input = { source: u8[], offset: u64 }
+
+export type Output = { end: u64, message: string }
+
+export default function (in: Input): Output {
+  const state = loop({ source: in.source, offset: in.offset + 5, count: 0, encoding: false, standalone: false, done: false, issue: Issue.None }, {
+    while: value => !value.done,
+    next: value => {
+      value = step(value)
+    }
+  })
+
+  switch (state.issue) {
+    case Issue.None: return { end: state.offset, message: "" }
+    case Issue.VersionRequired: return { end: state.offset, message: "XML declaration requires version 1.0" }
+    case Issue.Space: return { end: state.offset, message: "XML declaration fields require separating whitespace" }
+    case Issue.Name: return { end: state.offset, message: "expected an ASCII XML name; declarations and namespaces are unsupported" }
+    case Issue.Token: return { end: state.offset, message: "unexpected XML token" }
+    case Issue.Quote: return { end: state.offset, message: "XML declaration values must be quoted" }
+    case Issue.Unterminated: return { end: state.offset, message: "unterminated XML declaration" }
+    case Issue.Version: return { end: state.offset, message: "XML declaration must begin with version 1.0" }
+    case Issue.Encoding: return { end: state.offset, message: "only UTF-8 XML encoding is supported" }
+    case Issue.Standalone: return { end: state.offset, message: "XML standalone must be yes or no" }
+    default: return { end: state.offset, message: "invalid or duplicate XML declaration field" }
+  }
+}

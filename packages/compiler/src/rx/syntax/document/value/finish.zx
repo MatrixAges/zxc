@@ -1,0 +1,18 @@
+import advance from "../advance"
+import { ValueKind } from "../model"
+import flush from "./flush"
+import publish from "./publish"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const state = in.control.value_head == 0 ? in : flush(in)
+  const value = { span: { start: state.control.value_start, end: state.control.location.offset }, head: state.control.value_head, count: state.control.value_count }
+  const count = state.control.value_kind == ValueKind.Attribute ? 1 : state.control.value_kind == ValueKind.Cdata ? 3 : 0
+
+  return publish({ state: advance({ state: state, count: count }), value: value, expression: false })
+}

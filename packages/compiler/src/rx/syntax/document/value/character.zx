@@ -1,0 +1,21 @@
+import advance from "../advance"
+import flush from "./flush"
+
+import type { State } from "../model"
+
+export type Input = { state: State, codepoint: u64, count: u64 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const state = flush(in.state)
+  const head = state.tree.parts.length + 1
+  const count = state.control.value_count + 1
+  const end = state.control.location.offset + in.count
+  const parts = state.tree.parts.push({ span: { start: 0, end: 0 }, character: true, codepoint: in.codepoint, previous: state.control.value_head })[0]
+
+  return advance({ state: {
+    source: state.source, tree: { nodes: state.tree.nodes, attributes: state.tree.attributes, text: state.tree.text, children: state.tree.children, parts: parts }, frames: state.frames, frame: state.frame,
+    control: { ...state.control, value_head: head, value_count: count, text_start: end }
+  }, count: in.count })
+}

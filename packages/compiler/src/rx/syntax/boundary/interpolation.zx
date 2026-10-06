@@ -1,0 +1,43 @@
+import close from "./close"
+import fail from "./fail"
+import { Mode } from "./model"
+import open from "./open"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const byte = in.source[in.offset]
+  const has_next = in.offset + 1 < in.source.length
+  const next = has_next ? in.source[in.offset + 1] : 0
+  const offset = in.offset + 1
+  const braces = in.frame.braces
+
+  if (byte == 125 && braces == 0) {
+    return close(in)
+  }
+
+  if (byte == 96) {
+    const depth = in.frame.depth + 1
+    const start = in.offset
+
+    if (depth > 256) {
+      return fail({ state: in, offset: start, message: "template nesting exceeds 256 levels" })
+    }
+
+    return open({ state: in, mode: Mode.Template, offset: offset, start: start, depth: depth })
+  }
+
+  const mode = byte == 34 ? Mode.String : byte == 47 && next == 47 ? Mode.LineComment : byte == 47 && next == 42 ? Mode.BlockComment : Mode.Interpolation
+  const comment_start = mode == Mode.BlockComment ? in.offset : in.comment_start
+  const next_offset = mode == Mode.BlockComment || mode == Mode.LineComment ? offset + 1 : offset
+
+  return {
+    source: in.source, frames: in.frames,
+    frame: { ...in.frame, mode: mode, braces: byte == 123 ? braces + 1 : byte == 125 ? braces - 1 : braces },
+    offset: next_offset, comment_start: comment_start, done: false, message: "", issue: 0
+  }
+}

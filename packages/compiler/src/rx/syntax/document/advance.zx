@@ -1,0 +1,13 @@
+import position from "../position"
+
+import type { State } from "./model"
+
+export type Input = { state: State, count: u64 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const location = position({ source: in.state.source, location: in.state.control.location, count: in.count })
+
+  return { source: in.state.source, tree: in.state.tree, frames: in.state.frames, frame: in.state.frame, control: { ...in.state.control, location: location } }
+}

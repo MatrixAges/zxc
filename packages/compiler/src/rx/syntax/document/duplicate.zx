@@ -1,0 +1,21 @@
+import equal from "../equal"
+
+import type { Span } from "../model"
+import type { Attribute } from "./model"
+
+export type Input = { source: u8[], attributes: Attribute[], head: u64, name: Span }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  return loop({ source: in.source, attributes: in.attributes, head: in.head, name: in.name, found: false }, {
+    while: value => !value.found && value.head != 0,
+    next: value => {
+      const attribute = value.attributes[value.head - 1]
+      const found = equal({ source: value.source, left: value.name, right: attribute.name })
+      const head = attribute.previous
+
+      value = { ...value, head: head, found: found }
+    }
+  }).found
+}

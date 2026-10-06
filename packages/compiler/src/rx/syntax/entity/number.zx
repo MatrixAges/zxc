@@ -1,0 +1,37 @@
+import digit from "./digit"
+
+export type Input = { source: u8[], start: u64, end: u64, hexadecimal: bool }
+
+export type Output = { codepoint: u64, message: string }
+
+export default function (in: Input): Output {
+  if (in.start == in.end) {
+    return { codepoint: 0, message: "empty XML character reference" }
+  }
+
+  const state = loop({ source: in.source, offset: in.start, end: in.end, radix: in.hexadecimal ? 16 : 10, value: 0, valid: true, overflow: false }, {
+    while: value => value.offset < value.end,
+    next: value => {
+      const number = digit(value.source[value.offset])
+      const valid = value.valid && number < value.radix
+      const next = value.overflow ? 0 : value.value * value.radix + number
+      const overflow = value.overflow || next > 2097151
+      const offset = value.offset + 1
+
+      value = { ...value, offset: offset, value: next, valid: valid, overflow: overflow }
+    }
+  })
+
+  if (!state.valid) {
+    return { codepoint: 0, message: "invalid XML character reference" }
+  }
+
+  if (state.overflow) {
+    return { codepoint: 0, message: "XML character reference is out of range" }
+  }
+
+  const character = state.value
+  const valid = character == 9 || character == 10 || character == 13 || character >= 32 && character <= 55295 || character >= 57344 && character <= 65533 || character >= 65536 && character <= 1114111
+
+  return { codepoint: character, message: valid ? "" : "forbidden XML character reference" }
+}

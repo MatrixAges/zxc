@@ -1,0 +1,41 @@
+import fail from "./fail"
+import interpolation from "./interpolation"
+import { Mode } from "./model"
+import template from "./template"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.offset == in.source.length) {
+    const mode = in.frame.mode
+    const issue = mode == Mode.BlockComment ? in.comment_start : in.frame.start
+    const message = mode == Mode.Template ? "unterminated template string" : mode == Mode.BlockComment ? "unterminated comment in template" : "unterminated template interpolation"
+
+    return fail({ state: in, offset: issue, message: message })
+  }
+
+  if (in.frame.mode == Mode.Template) {
+    return template(in)
+  }
+
+  if (in.frame.mode == Mode.Interpolation) {
+    return interpolation(in)
+  }
+
+  const byte = in.source[in.offset]
+  const has_next = in.offset + 1 < in.source.length
+  const next = has_next ? in.source[in.offset + 1] : 0
+  const mode = in.frame.mode
+  const finished = mode == Mode.String ? byte == 34 : mode == Mode.LineComment ? byte == 10 || byte == 13 : byte == 42 && next == 47
+  const skip = has_next && (mode == Mode.String && byte == 92 || mode == Mode.BlockComment && finished)
+  const offset = in.offset + (skip ? 2 : 1)
+
+  return {
+    source: in.source, frames: in.frames, frame: { ...in.frame, mode: finished ? Mode.Interpolation : mode },
+    offset: offset, comment_start: in.comment_start, done: false, message: "", issue: 0
+  }
+}

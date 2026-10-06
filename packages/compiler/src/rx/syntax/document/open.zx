@@ -1,0 +1,37 @@
+import name from "../name"
+import advance from "./advance"
+import fail from "./fail"
+import { Phase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.frames.length >= 256) {
+    return fail({ state: in, message: "XML nesting exceeds 256 elements" })
+  }
+
+  const offset = in.control.location.offset
+
+  if (offset == in.source.length || in.source[offset] != 60) {
+    return fail({ state: in, message: "unexpected XML token" })
+  }
+
+  const location = { offset: offset, line: in.control.location.line, column: in.control.location.column }
+  const parsed = name({ source: in.source, offset: offset + 1 })
+  const end = parsed.end
+  const state = advance({ state: in, count: end - offset })
+
+  if (parsed.message != "") {
+    return fail({ state: state, message: parsed.message })
+  }
+
+  return {
+    source: state.source, tree: state.tree, frames: state.frames,
+    frame: { name: { start: offset + 1, end: end }, location: location, attributes: 0, attribute_count: 0, children: 0, child_count: 0, text: 0, text_count: 0 },
+    control: { ...state.control, phase: Phase.Attributes }
+  }
+}

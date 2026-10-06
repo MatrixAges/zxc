@@ -1,0 +1,3 @@
+export enum Issue { None, VersionRequired, Space, Name, Token, Quote, Unterminated, Version, Encoding, Standalone, Field }
+
+export type State = { source: u8[], offset: u64, count: u64, encoding: bool, standalone: bool, done: bool, issue: Issue }

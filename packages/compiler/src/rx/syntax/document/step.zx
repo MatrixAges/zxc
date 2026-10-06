@@ -1,0 +1,26 @@
+import attributes from "./attributes"
+import content from "./content"
+import { Phase } from "./model"
+import open from "./open"
+import prelude from "./prelude"
+import trivia from "./trivia"
+import value from "./value/step"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  switch (in.control.phase) {
+    case Phase.Prelude: return prelude(in)
+    case Phase.BeforeRoot: return trivia(in)
+    case Phase.Open: return open(in)
+    case Phase.Attributes: return attributes(in)
+    case Phase.Content: return content(in)
+    case Phase.AfterRoot: return trivia(in)
+    case Phase.Value: return value(in)
+    default: return in
+  }
+}

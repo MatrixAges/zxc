@@ -1,0 +1,25 @@
+export type Input = { source: u8[], offset: u64 }
+
+export type Output = { end: u64, message: string }
+
+export default function (in: Input): Output {
+  const byte = in.offset < in.source.length ? in.source[in.offset] : 0
+  const alphabetic = byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122
+
+  if (!alphabetic && byte != 95) {
+    return { end: in.offset, message: "expected an ASCII XML name; declarations and namespaces are unsupported" }
+  }
+
+  const state = loop({ source: in.source, offset: in.offset + 1, done: false }, {
+    while: value => !value.done && value.offset < value.source.length,
+    next: value => {
+      const current = value.source[value.offset]
+      const accepted = current >= 65 && current <= 90 || current >= 97 && current <= 122 || current >= 48 && current <= 57 || current == 95 || current == 45 || current == 46
+      const offset = value.offset + (accepted ? 1 : 0)
+
+      value = { ...value, offset: offset, done: !accepted }
+    }
+  })
+
+  return { end: state.offset, message: "" }
+}

@@ -1,0 +1,22 @@
+import validateUtf8 from "../../zx/frontend/lexer/utf8/validate"
+
+export type State = { valid: bool, first: u8, second: u8 }
+
+export type Input = u8[]
+
+export type Output = string
+
+export default function (in: Input): Output {
+  if (!validateUtf8(in)) {
+    return "XML source must be valid UTF-8"
+  }
+
+  const initial: State = { valid: true, second: 0, first: 0 }
+
+  const checked = in.reduce((state, byte) => ({
+    valid: state.valid && (byte >= 32 || byte == 9 || byte == 10 || byte == 13) && !(state.second == 239 && state.first == 191 && byte >= 190),
+    second: state.first, first: byte
+  }), initial)
+
+  return checked.valid ? "" : "XML source contains a forbidden character"
+}

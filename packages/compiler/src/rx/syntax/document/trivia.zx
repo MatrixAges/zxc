@@ -1,0 +1,37 @@
+import comment from "../comment"
+import starts from "../starts"
+import whitespace from "../whitespace"
+import advance from "./advance"
+import fail from "./fail"
+import { Phase } from "./model"
+import transition from "./transition"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const start = in.control.location.offset
+  const offset = whitespace({ source: in.source, offset: start })
+
+  if (starts({ source: in.source, offset: offset, text: [60, 33, 45, 45] })) {
+    const parsed = comment({ source: in.source, offset: offset })
+    const state = advance({ state: in, count: parsed.end - start })
+
+    return parsed.message == "" ? state : fail({ state: state, message: parsed.message })
+  }
+
+  const state = advance({ state: in, count: offset - start })
+
+  if (state.control.phase == Phase.BeforeRoot) {
+    return transition({ state: state, phase: Phase.Open })
+  }
+
+  if (offset != state.source.length) {
+    return fail({ state: state, message: "XML requires exactly one root element" })
+  }
+
+  return transition({ state: state, phase: Phase.Done })
+}

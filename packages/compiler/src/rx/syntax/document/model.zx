@@ -1,0 +1,24 @@
+import type { Span, Location, Part, Value } from "../model"
+
+export enum Phase { Prelude, BeforeRoot, Open, Attributes, Content, AfterRoot, Value, Done }
+
+export enum ValueKind { Attribute, Text, Cdata }
+
+export type Attribute = { expression: bool, name: Span, value: Value, location: Location, value_location: Location, previous: u64 }
+
+export type Text = { value: Value, location: Location, previous: u64 }
+
+export type Child = { value: u64, previous: u64 }
+
+export type Node = { name: Span, location: Location, attributes: u64, attribute_count: u64, children: u64, child_count: u64, text: u64, text_count: u64 }
+
+export type Tree = { nodes: Node[], attributes: Attribute[], text: Text[], children: Child[], parts: Part[] }
+
+export type Control = {
+  phase: Phase, location: Location, expressions: bool, result: u64,
+  attribute: Span, attribute_location: Location, value_location: Location,
+  value_kind: ValueKind, terminator: u8, value_start: u64, text_start: u64, value_head: u64, value_count: u64,
+  message: string, issue: Location
+}
+
+export type State = { source: u8[], tree: Tree, frames: Node[], frame: Node, control: Control }

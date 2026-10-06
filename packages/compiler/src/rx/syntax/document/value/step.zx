@@ -1,0 +1,66 @@
+import decode from "../../entity/decode"
+import starts from "../../starts"
+import until from "../../until"
+import advance from "../advance"
+import fail from "../fail"
+import { ValueKind } from "../model"
+import character from "./character"
+import finish from "./finish"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const offset = in.control.location.offset
+  const kind = in.control.value_kind
+
+  if (offset == in.source.length) {
+    if (kind == ValueKind.Text) {
+      return finish(in)
+    }
+
+    return fail({ state: in, message: kind == ValueKind.Cdata ? "unterminated XML CDATA section" : "unterminated XML attribute" })
+  }
+
+  const byte = in.source[offset]
+  const cdata_end = starts({ source: in.source, offset: offset, text: [93, 93, 62] })
+
+  if (kind == ValueKind.Cdata ? cdata_end : byte == in.control.terminator) {
+    return finish(in)
+  }
+
+  if (kind == ValueKind.Attribute && byte == 60) {
+    return fail({ state: in, message: "literal < is forbidden in XML attributes" })
+  }
+
+  if (kind == ValueKind.Text && cdata_end) {
+    return fail({ state: in, message: "literal ]]> is forbidden in XML text" })
+  }
+
+  if (kind != ValueKind.Cdata && byte == 38) {
+    const end = until({ source: in.source, offset: offset + 1, byte: 59 })
+
+    if (end == in.source.length) {
+      return fail({ state: advance({ state: in, count: end - offset }), message: "unterminated XML entity reference" })
+    }
+
+    const result = decode({ source: in.source, start: offset + 1, end: end })
+
+    if (result.message != "") {
+      return fail({ state: advance({ state: in, count: end - offset }), message: result.message })
+    }
+
+    return character({ state: in, codepoint: result.codepoint, count: end + 1 - offset })
+  }
+
+  if (byte == 13 || kind == ValueKind.Attribute && (byte == 10 || byte == 9)) {
+    const crlf = starts({ source: in.source, offset: offset, text: [13, 10] })
+
+    return character({ state: in, codepoint: kind == ValueKind.Attribute ? 32 : 10, count: crlf ? 2 : 1 })
+  }
+
+  return advance({ state: in, count: 1 })
+}

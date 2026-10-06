@@ -1,0 +1,22 @@
+import type { Location } from "./model"
+
+export type Input = { source: u8[], location: Location, count: u64 }
+
+export type Output = Location
+
+export default function (in: Input): Output {
+  const state = loop({ source: in.source, offset: in.location.offset, line: in.location.line, column: in.location.column, end: in.location.offset + in.count, previous_cr: in.location.offset != 0 && in.source[in.location.offset - 1] == 13 }, {
+    while: value => value.offset < value.end,
+    next: value => {
+      const byte = value.source[value.offset]
+      const newline = byte == 13 || byte == 10 && !value.previous_cr
+      const offset = value.offset + 1
+      const line = newline ? value.line + 1 : value.line
+      const column = newline ? 1 : byte == 10 ? value.column : value.column + 1
+
+      value = { ...value, offset: offset, line: line, column: column, previous_cr: byte == 13 }
+    }
+  })
+
+  return { offset: state.offset, line: state.line, column: state.column }
+}

@@ -1,0 +1,14 @@
+export type Input = { source: u8[], offset: u64, byte: u8 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return loop({ source: in.source, offset: in.offset, byte: in.byte }, {
+    while: value => value.offset < value.source.length && value.source[value.offset] != value.byte,
+    next: value => {
+      const offset = value.offset + 1
+
+      value = { ...value, offset: offset }
+    }
+  }).offset
+}

@@ -1,0 +1,13 @@
+import { Phase } from "./model"
+
+import type { State } from "./model"
+
+export type Input = { state: State, message: string }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const issue = { offset: in.state.control.location.offset, line: in.state.control.location.line, column: in.state.control.location.column }
+
+  return { source: in.state.source, tree: in.state.tree, frames: in.state.frames, frame: in.state.frame, control: { ...in.state.control, phase: Phase.Done, issue: issue, message: in.message } }
+}

@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const ParserModules = struct { program: *std.Build.Module, expression: *std.Build.Module };
+pub const ParserModules = struct { program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module };
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules) Modules {
@@ -22,9 +22,17 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     frontend.addOptions("parser_options", options);
 
+    frontend.addImport("xml_adapter", b.createModule(.{
+        .root_source_file = b.path("src/rx/syntax_adapter/root.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{.{ .name = "dsl", .module = b.dependency("dsl", .{ .target = target, .optimize = optimize }).module("dsl") }},
+    }));
+
     if (parser) |generated| {
         frontend.addImport("generated_parser", generated.program);
         frontend.addImport("generated_expression", generated.expression);
+        frontend.addImport("generated_xml", generated.xml);
     }
 
     const module = b.createModule(.{

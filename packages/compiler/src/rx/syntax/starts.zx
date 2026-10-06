@@ -1,0 +1,19 @@
+export type Input = { source: u8[], offset: u64, text: u8[] }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  if (in.offset > in.source.length || in.text.length > in.source.length - in.offset) {
+    return false
+  }
+
+  return loop({ source: in.source, offset: in.offset, text: in.text, index: 0, matches: true }, {
+    while: value => value.matches && value.index < value.text.length,
+    next: value => {
+      const matches = value.source[value.offset + value.index] == value.text[value.index]
+      const index = value.index + 1
+
+      value = { ...value, index: index, matches: matches }
+    }
+  }).matches
+}

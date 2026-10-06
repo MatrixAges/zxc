@@ -1,0 +1,60 @@
+import matches from "../matches"
+import name from "../name"
+import starts from "../starts"
+import until from "../until"
+import whitespace from "../whitespace"
+import { Issue } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const offset = whitespace({ source: in.source, offset: in.offset })
+
+  if (starts({ source: in.source, offset: offset, text: [63, 62] })) {
+    return { ...in, offset: offset + 2, done: true, issue: in.count == 0 ? Issue.VersionRequired : Issue.None }
+  }
+
+  if (offset == in.offset) {
+    return { ...in, done: true, issue: Issue.Space }
+  }
+
+  const field = name({ source: in.source, offset: offset })
+
+  if (field.message != "") {
+    return { ...in, offset: field.end, done: true, issue: Issue.Name }
+  }
+
+  const assign = whitespace({ source: in.source, offset: field.end })
+
+  if (assign == in.source.length || in.source[assign] != 61) {
+    return { ...in, offset: assign, done: true, issue: Issue.Token }
+  }
+
+  const quoted = whitespace({ source: in.source, offset: assign + 1 })
+
+  if (quoted == in.source.length || in.source[quoted] != 34 && in.source[quoted] != 39) {
+    return { ...in, offset: quoted, done: true, issue: Issue.Quote }
+  }
+
+  const end = until({ source: in.source, offset: quoted + 1, byte: in.source[quoted] })
+
+  if (end == in.source.length) {
+    return { ...in, offset: end, done: true, issue: Issue.Unterminated }
+  }
+
+  const field_span = { start: offset, end: field.end }
+  const value_span = { start: quoted + 1, end: end }
+  const version = matches({ source: in.source, span: field_span, text: [118, 101, 114, 115, 105, 111, 110], ignore_case: false })
+  const encoding = matches({ source: in.source, span: field_span, text: [101, 110, 99, 111, 100, 105, 110, 103], ignore_case: false })
+  const standalone = matches({ source: in.source, span: field_span, text: [115, 116, 97, 110, 100, 97, 108, 111, 110, 101], ignore_case: false })
+  const version_value = matches({ source: in.source, span: value_span, text: [49, 46, 48], ignore_case: false })
+  const encoding_value = matches({ source: in.source, span: value_span, text: [85, 84, 70, 45, 56], ignore_case: true })
+  const standalone_value = matches({ source: in.source, span: value_span, text: [121, 101, 115], ignore_case: false }) || matches({ source: in.source, span: value_span, text: [110, 111], ignore_case: false })
+  const issue = in.count == 0 ? version && version_value ? Issue.None : Issue.Version : encoding && !in.encoding && !in.standalone ? encoding_value ? Issue.None : Issue.Encoding : standalone && !in.standalone ? standalone_value ? Issue.None : Issue.Standalone : Issue.Field
+
+  return { ...in, offset: end + 1, count: in.count + 1, encoding: in.encoding || encoding, standalone: in.standalone || standalone, done: issue != Issue.None, issue: issue }
+}

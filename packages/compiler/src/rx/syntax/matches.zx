@@ -1,0 +1,24 @@
+import type { Span } from "./model"
+
+export type Input = { source: u8[], span: Span, text: u8[], ignore_case: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  if (in.span.end - in.span.start != in.text.length) {
+    return false
+  }
+
+  return loop({ source: in.source, offset: in.span.start, text: in.text, index: 0, matches: true, ignore_case: in.ignore_case }, {
+    while: value => value.matches && value.index < value.text.length,
+    next: value => {
+      const byte = value.source[value.offset + value.index]
+      const pattern = value.text[value.index]
+      const left = value.ignore_case && byte >= 65 && byte <= 90 ? byte + 32 : byte
+      const right = value.ignore_case && pattern >= 65 && pattern <= 90 ? pattern + 32 : pattern
+      const index = value.index + 1
+
+      value = { ...value, index: index, matches: left == right }
+    }
+  }).matches
+}
