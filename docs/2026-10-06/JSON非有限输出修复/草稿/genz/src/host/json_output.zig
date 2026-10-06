@@ -6,27 +6,29 @@ const Builder = @import("../builder.zig");
 pub const Output = struct { types: []const ir.Type, id: ir.TypeId };
 
 pub fn lower(builder: Builder, output: Output) std.mem.Allocator.Error![]const node.Statement {
-    var sequence: usize = 0;
-
-    return check(builder, output.types, output.id, try builder.identifier("output"), &sequence);
+    return lowerFailure(builder, output, &.{.{ .result = try builder.expression(.{ .error_value = "NonFiniteJsonNumber" }) }});
 }
 
-fn check(builder: Builder, types: []const ir.Type, id: ir.TypeId, value: *const node.Expression, sequence: *usize) std.mem.Allocator.Error![]const node.Statement {
+pub fn lowerFailure(builder: Builder, output: Output, failure: []const node.Statement) std.mem.Allocator.Error![]const node.Statement {
+    var sequence: usize = 0;
+
+    return check(builder, output.types, output.id, try builder.identifier("output"), &sequence, failure);
+}
+
+fn check(builder: Builder, types: []const ir.Type, id: ir.TypeId, value: *const node.Expression, sequence: *usize, failure: []const node.Statement) std.mem.Allocator.Error![]const node.Statement {
     var body: std.ArrayList(node.Statement) = .empty;
 
     switch (types[@backingInt(id)]) {
         .scalar => |scalar| if (scalar == .f32 or scalar == .f64) {
             const finite = try builder.call(try builder.path(&.{ "std", "math", "isFinite" }), &.{value});
 
-            try body.append(builder.allocator, try builder.branch(try builder.expression(.{ .unary = .{ .operator = .not, .operand = finite } }), &.{
-                .{ .result = try builder.expression(.{ .error_value = "NonFiniteJsonNumber" }) },
-            }, &.{}));
+            try body.append(builder.allocator, try builder.branch(try builder.expression(.{ .unary = .{ .operator = .not, .operand = finite } }), failure, &.{}));
         },
         .optional, .list => |child| {
             const name = try std.fmt.allocPrint(builder.allocator, "json_value_{d}", .{sequence.*});
             sequence.* += 1;
 
-            const nested = try check(builder, types, child, try builder.identifier(name), sequence);
+            const nested = try check(builder, types, child, try builder.identifier(name), sequence, failure);
 
             if (nested.len != 0) try body.append(builder.allocator, if (types[@backingInt(id)] == .optional)
                 .{ .branch = .{ .condition = value, .capture = name, .yes = nested, .no = &.{} } }
@@ -34,12 +36,12 @@ fn check(builder: Builder, types: []const ir.Type, id: ir.TypeId, value: *const 
                 .{ .for_loop = .{ .iterable = value, .capture = name, .body = nested } });
         },
         .object => |fields| for (fields) |field| {
-            try body.appendSlice(builder.allocator, try check(builder, types, field.type_id, try builder.field(value, field.name), sequence));
+            try body.appendSlice(builder.allocator, try check(builder, types, field.type_id, try builder.field(value, field.name), sequence, failure));
         },
         .tuple => |fields| for (fields, 0..) |child, index| {
             const name = try std.fmt.allocPrint(builder.allocator, "{d}", .{index});
 
-            try body.appendSlice(builder.allocator, try check(builder, types, child, try builder.field(value, name), sequence));
+            try body.appendSlice(builder.allocator, try check(builder, types, child, try builder.field(value, name), sequence, failure));
         },
         .enumeration, .error_set, .native_reference, .task => {},
     }
