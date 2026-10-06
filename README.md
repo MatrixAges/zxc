@@ -15,12 +15,12 @@ A checkout flow. **RX** is the map — every step, and what flows between them, 
 ```xml
 <!-- checkout.rx -->
 <Module>
-  <Call fn="subtotal" in={$in.items} out="ctx.subtotal" />
-  <Call fn="discount" in={{subtotal: ctx.subtotal, coupon: $in.coupon}} out="ctx.discounted" />
-  <Call fn="shipping" in={{amount: ctx.discounted, region: $in.region}} out="ctx.shipping" />
-  <Call fn="total" in={{amount: ctx.discounted, shipping: ctx.shipping}} out="ctx.total" />
+  <Call fn="subtotal" in={$in.items} />
+  <Call fn="discount" in={{subtotal: $ctx.subtotal, coupon: $in.coupon}} />
+  <Call fn="shipping" in={{amount: $ctx.discount, region: $in.region}} />
+  <Call fn="total" in={{amount: $ctx.discount, shipping: $ctx.shipping}} />
 
-  <Return value={ctx.total} />
+  <Return value={$ctx.total} />
 </Module>
 ```
 
@@ -43,6 +43,8 @@ export default function (in: Input): Output {
   }
 }
 ```
+
+`Call` no longer accepts `out`. Each non-void call automatically exposes its result as `$ctx.<filename>`: `discount.zx` becomes `$ctx.discount`. The name comes from the target filename without its suffix; `Call` has no `name` attribute. RX attributes assemble data and simple expressions; function calls and collection logic belong in ZX.
 
 The [complete checkout example](docs/2026-10-05/首页示例) includes every referenced function. From that directory, build and run:
 
@@ -77,20 +79,20 @@ Every `.rx` and `.zx` file in the entry's closure is loaded, checked and type-in
 
 ## Compose Modules
 
-A module is just another unit. Call it with `service` and branch on its result:
+A module is just another unit. `Call.module` replaces the former `Call.service` attribute. Call it with `module` and branch on its result:
 
 ```xml
 <!-- order.rx -->
 <Module>
-  <Call service="checkout" in={$in} out="ctx.checkout" />
+  <Call module="checkout" in={$in} />
 
-  <Switch on={ctx.checkout.shipping}>
+  <Switch on={$ctx.checkout.shipping}>
     <Case value={0}>
-      <Return value={{payable: ctx.checkout.payable, free_shipping: true}} />
+      <Return value={{payable: $ctx.checkout.payable, free_shipping: true}} />
     </Case>
   </Switch>
 
-  <Return value={{payable: ctx.checkout.payable, free_shipping: false}} />
+  <Return value={{payable: $ctx.checkout.payable, free_shipping: false}} />
 </Module>
 ```
 
@@ -131,7 +133,7 @@ Remove the `requires` and verification fails with a concrete counterexample: the
 | Tag          | Purpose                                                          |
 | ------------ | ---------------------------------------------------------------- |
 | `<Module>`   | Root of an `.rx` file; the module is identified by its file path |
-| `<Call>`     | Call a ZX function (`fn`) or another RX module (`service`)       |
+| `<Call>`     | Call a ZX function (`fn`) or another RX module (`module`)        |
 | `<Return>`   | Return a value from the module                                   |
 | `<Task>`     | Group steps into a named, scoped block                           |
 | `<Switch>`   | Branch on a value                                                |
