@@ -1,0 +1,37 @@
+import integers from "zig:integers"
+import workspace from "zig:resolution"
+
+import find from "../types/find"
+import { Kind } from "../types/model"
+import table from "./table"
+
+import type { Workspace } from "zig:resolution"
+
+export type Input = { workspace: Workspace, kind: Kind }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const unary = in.kind == Kind.Optional || in.kind == Kind.List
+
+    const result = find({
+        tables: { base: table(in.workspace), delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] } },
+        candidate: {
+            kind: in.kind, first: unary ? integers.narrow(workspace.result(in.workspace)) : 0, second: 0, label: "",
+            children: in.kind == Kind.Tuple ? workspace.references(in.workspace) : [],
+            fields: { names: in.kind == Kind.Object ? workspace.fieldNames(in.workspace) : [], types: in.kind == Kind.Object ? workspace.fieldTypes(in.workspace) : [] },
+            names: []
+        }
+    })
+
+    if (result.found) {
+        return integers.widen(result.id)
+    }
+
+    return match in.kind {
+        Kind.Optional => workspace.appendOptional(in.workspace),
+        Kind.List => workspace.appendList(in.workspace),
+        Kind.Tuple => workspace.appendTuple(in.workspace),
+        _ => workspace.appendObject(in.workspace)
+    }
+}

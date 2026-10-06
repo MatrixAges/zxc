@@ -1,0 +1,29 @@
+import workspace from "zig:resolution"
+
+import initialize from "./initialize"
+import run from "./run"
+
+import type { Workspace } from "zig:resolution"
+
+export type Input = { workspace: Workspace, initialize: bool }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    if (in.initialize) {
+        initialize(in.workspace)
+
+        loop({ workspace: in.workspace, index: 0 }, {
+            while: current => current.index < workspace.declarationCount(current.workspace),
+            next: current => {
+                workspace.pushDeclaration(current.workspace, current.index)
+                run(current.workspace)
+                current.index += 1
+            }
+        })
+    } else {
+        run(in.workspace)
+    }
+
+    return
+}

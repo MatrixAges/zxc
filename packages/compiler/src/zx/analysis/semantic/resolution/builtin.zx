@@ -1,0 +1,22 @@
+export type Input = string
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match in {
+        "void" => 1,
+        "bool" => 2,
+        "boolean" => 2,
+        "u8" => 3,
+        "u16" => 4,
+        "u32" => 5,
+        "u64" => 6,
+        "i32" => 7,
+        "i64" => 8,
+        "f32" => 9,
+        "f64" => 10,
+        "number" => 10,
+        "string" => 11,
+        _ => 0
+    }
+}
