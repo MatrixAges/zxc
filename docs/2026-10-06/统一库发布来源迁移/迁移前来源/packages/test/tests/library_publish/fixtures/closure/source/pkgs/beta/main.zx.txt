@@ -1,0 +1,10 @@
+import leaf from "leaf"
+import type { SharedMode } from "./types"
+
+export type Input = SharedMode
+
+export type Output = SharedMode
+
+export default function (in: Input): Output {
+  return leaf(in)
+}

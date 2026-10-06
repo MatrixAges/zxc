@@ -1,0 +1,8 @@
+import raw from "bundle/raw"
+import type { Input } from "bundle/raw"
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  return raw(in)
+}

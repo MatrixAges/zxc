@@ -1,0 +1,219 @@
+✔ unified entry publication / ZX file without entry declaration (17966.216156ms)
+✔ unified entry publication / RX file overrides a different manifest entry (17438.920545ms)
+✔ unified entry publication / ZX manifest entry (17877.790566ms)
+✔ unified entry publication / RX manifest entry (17696.585188ms)
+✔ unified entry publication / explicit default exports retains its public name (17876.545098ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 88859.472763
+✔ published unified package relocates and executes through independent ZX and Zig consumers (17760.949573ms)
+✔ type-only publication validates its interface without invoking an executable solver (5315.393367ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23079.276449
+▶ failed unified public updates preserve every previously published file
+  ✔ missing public source (6.408192ms)
+  ✔ invalid unreferenced public source (5.670513ms)
+  ✔ false contract on a public module (124.730111ms)
+✔ failed unified public updates preserve every previously published file (5417.003603ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5420.165766
+✔ published diamond package closure installs alone and survives offline recovery (25009.888256ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25012.60406
+✔ published Store initializers execute after relocation and type-only republication (9955.604019ms)
+✔ optional arithmetic fix does not authorize nullable operands (16.31827ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9974.849688
+▶ relocated compiled manifest verifies and rebuilds renamed selected exports
+  ✔ missing public module (9.200833ms)
+  ✔ damaged digest (7.697018ms)
+✔ relocated compiled manifest verifies and rebuilds renamed selected exports (13597.795119ms)
+✔ compiled type-only manifest verifies and rebuilds without an executable solver (5311.997921ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18912.600869
+▶ managed inventory retires exact old outputs and protects unknown or unsafe files
+  ✔ modified file (10.016408ms)
+  ✔ directory (9.356795ms)
+  ✔ file symlink (9.11314ms)
+  ✔ parent symlink (10.898242ms)
+  ✔ outside path (8.773119ms)
+  ✔ unmanaged path (9.242388ms)
+  ✔ version (7.892589ms)
+  ✔ malformed (7.933781ms)
+  ✔ managed (10.190413ms)
+  ✔ missing retired file (9.609436ms)
+  ✔ legacy without managed list (8.980294ms)
+✔ managed inventory retires exact old outputs and protects unknown or unsafe files (5441.787388ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5444.623163
+▶ valid digest cannot bypass compiled public contract verification or replace a valid publication
+  ✔ contract revalidation with reversed export order false (133.283206ms)
+  ✔ contract revalidation with reversed export order true (154.35718ms)
+✔ valid digest cannot bypass compiled public contract verification or replace a valid publication (13898.838485ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13902.014802
+▶ compiled Store transaction authorization and required initializers remain separate boundaries
+  ✔ RX cannot call a public bare transaction (7.211885ms)
+  ✔ ZX cannot call a public bare transaction (6.423617ms)
+  ✔ source package cannot act as a compiled module (5.629411ms)
+  ✔ missing all initializers remains loadable but cannot start Store app (10.875331ms)
+  ✔ missing counter initializers remains loadable but cannot start Store app (10.529937ms)
+  ✔ unused settings omitted (7375.682314ms)
+  ✔ all declarations restored (7319.235146ms)
+✔ compiled Store transaction authorization and required initializers remain separate boundaries (28008.83033ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 28011.665847
+▶ RX compiled Store calls share aliases isolate instances and survive republication
+  ✔ direct calls {"left":0,"right":0} (3.258713ms)
+  ✔ direct calls {"left":1,"right":2} (2.260504ms)
+  ✔ direct calls {"left":4,"right":0} (2.092715ms)
+  ✔ direct calls {"left":3,"right":7} (2.015795ms)
+  ✔ nonvoid target requires input (5.222251ms)
+  ✔ public type module is not executable (4.954366ms)
+  ✔ private source path is not a public export (4.374726ms)
+  ✔ undeclared package is rejected (4.403023ms)
+  ✔ module and fn are mutually exclusive (4.537023ms)
+  ✔ removed service attribute is rejected (4.619446ms)
+  ✔ module cannot grant a setter (4.476939ms)
+  ✔ input must match compiled public signature (4.729059ms)
+  ✔ republished calls {"left":0,"right":0} (2.429981ms)
+  ✔ republished calls {"left":1,"right":2} (2.096119ms)
+  ✔ republished calls {"left":4,"right":0} (2.054097ms)
+  ✔ republished calls {"left":3,"right":7} (1.928481ms)
+✔ RX compiled Store calls share aliases isolate instances and survive republication (21427.01785ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21429.953715
+✔ native unified libraries preserve scoped ABI resources and rollback across republication (25641.073717ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25643.712945
+Build Summary: 49/49 steps succeeded
+test-library-publish success
++- test-library-inventory success
+|  +- run node success 5s
+|     +- compile exe zxc safe native cached 49ms MaxRSS:21M
+|        +- WriteFile cached
+|        +- compile lib yaml safe native cached 42ms MaxRSS:20M
+|        +- compile lib yaml safe native (reused)
+|        +- translate-c cached 43ms MaxRSS:20M
+|        +- options cached
+|        +- run exe bundle-zig (bundle) cached
+|        |  +- compile exe bundle-zig fast native cached 44ms MaxRSS:21M
+|        |  +- WriteFile bundle_manifest.json cached
+|        +- options cached
+|        +- run exe generate-parser (parser.zig) cached
+|        |  +- compile exe generate-parser safe native cached 49ms MaxRSS:21M
+|        |     +- options cached
+|        |     +- WriteFile interfaces/0.d.zx cached
+|        |     |  +- run exe standard-catalog (catalog.zig) cached
+|        |     |     +- compile exe standard-catalog fast native cached 44ms MaxRSS:21M
+|        |     |     +- WriteFile catalog.json cached
+|        |     +- options cached
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- WriteFile interfaces/0.d.zx cached
+|        |  +- run exe standard-catalog (catalog.zig) cached
+|        |     +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+|        |     +- WriteFile catalog.json cached
+|        +- options cached
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-lexer (lexer.zig) cached
+|           +- compile exe generate-lexer safe native cached 47ms MaxRSS:21M
+|              +- WriteFile interfaces/0.d.zx cached
+|              |  +- run exe standard-catalog (catalog.zig) cached
+|              |     +- compile exe standard-catalog fast native cached 45ms MaxRSS:21M
+|              |     +- WriteFile catalog.json cached
+|              +- options cached
++- test-library-compiled-contract success
+|  +- run node success 13s
+|     +- compile exe zxc safe native (+15 more reused dependencies)
++- test-library-compiled-manifest success
+|  +- run node success 18s
+|     +- compile exe zxc safe native (+15 more reused dependencies)
++- test-library-rx-boundary success
+|  +- run node success 28s
+|     +- compile exe zxc safe native (+15 more reused dependencies)
++- test-library-rx-compiled success
+|  +- run node success 21s
+|     +- compile exe zxc safe native (+15 more reused dependencies)
++- test-library-store-publish success
+|  +- run node success 10s
+|     +- compile exe zxc safe native (+15 more reused dependencies)
++- test-library-entry success
+|  +- run node success 1m
+|     +- compile exe zxc safe native (+15 more reused dependencies)
++- test-library-native-publish success
+|  +- run node success 25s
+|     +- compile exe zxc safe native (+15 more reused dependencies)
++- run node success 23s
+|  +- compile exe zxc safe native (+15 more reused dependencies)
++- run node success 5s
+|  +- compile exe zxc safe native (+15 more reused dependencies)
++- run node success 25s
+   +- compile exe zxc safe native (+15 more reused dependencies)
+

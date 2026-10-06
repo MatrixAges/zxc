@@ -1,0 +1,12 @@
+import value from "bundle/value"
+import same from "bundle/same"
+import negate from "bundle/negate"
+import type { Payload } from "bundle/types"
+
+export type Input = Payload
+
+export type Output = Payload
+
+export default function (in: Input): Output {
+  return { value: same(value(in.value)), enabled: negate(in.enabled) }
+}
