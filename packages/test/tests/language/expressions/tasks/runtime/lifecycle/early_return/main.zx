@@ -1,0 +1,13 @@
+import native from "zig:host"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const work = async native.block(in)
+  native.waitStarted(in)
+  if (in == 0) { return 23 }
+  cancel work
+  return native.after(in)
+}

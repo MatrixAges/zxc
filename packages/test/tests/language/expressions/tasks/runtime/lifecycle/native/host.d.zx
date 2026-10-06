@@ -1,0 +1,11 @@
+export declare function block(io, input: u64): u64 throws { Canceled, TaskFailure, InlineExecution, WaitTimeout } concurrent
+
+export declare function complete(io, input: u64): u64 throws { TaskFailure } concurrent
+
+export declare function waitStarted(io, input: u64): void throws { Canceled, WaitTimeout } concurrent
+
+export declare function waitFinished(io, input: u64): void throws { Canceled, WaitTimeout } concurrent
+
+export declare function after(input: u64): u64 throws { CleanupIncomplete } concurrent
+
+export declare function outerFailure(input: u64): u64 throws { OuterFailure } concurrent
