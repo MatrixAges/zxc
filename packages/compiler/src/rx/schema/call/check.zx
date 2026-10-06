@@ -1,0 +1,17 @@
+import { Issue } from "./model"
+
+export type Input = { has_function: bool, has_module: bool, has_input: bool, has_setter: bool }
+
+export type Output = Issue
+
+export default function (in: Input): Output {
+  if (in.has_function == in.has_module) {
+    return Issue.Target
+  }
+
+  if (!in.has_input && !in.has_module) {
+    return Issue.Input
+  }
+
+  return in.has_module && in.has_setter ? Issue.Setter : Issue.None
+}

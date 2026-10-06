@@ -53,9 +53,18 @@ pub fn main(init: std.process.Init) !void {
 
     for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
 
-    const entries = [_][]const u8{ "zx/frontend/parser/program.rx", "zx/frontend/parser/expression_text.rx", "rx/syntax/parse.rx", "rx/path_segments/normalize.rx", "rx/dependency_graph/validate.rx" };
+    const entries = [_][]const u8{
+        "zx/frontend/parser/program.rx",
+        "zx/frontend/parser/expression_text.rx",
+        "rx/syntax/parse.rx",
+        "rx/path_segments/normalize.rx",
+        "rx/dependency_graph/validate.rx",
+        "rx/schema/attribute/classify.rx",
+        "rx/schema/content/validate.rx",
+        "rx/schema/call/validate.rx",
+    };
 
-    for (entries, args[2..7]) |entry, output_path| {
+    for (entries, args[2 .. 2 + entries.len]) |entry, output_path| {
         const output = try generate(allocator, inputs, sources.items, entry);
 
         try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = output_path, .data = output });

@@ -1,5 +1,15 @@
 const std = @import("std");
-pub const Sources = struct { program: std.Build.LazyPath, expression: std.Build.LazyPath, xml: std.Build.LazyPath, paths: std.Build.LazyPath, graph: std.Build.LazyPath };
+
+pub const Sources = struct {
+    program: std.Build.LazyPath,
+    expression: std.Build.LazyPath,
+    xml: std.Build.LazyPath,
+    paths: std.Build.LazyPath,
+    graph: std.Build.LazyPath,
+    attribute_role: std.Build.LazyPath,
+    attribute_content: std.Build.LazyPath,
+    call_rule: std.Build.LazyPath,
+};
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const target = b.graph.host;
@@ -27,6 +37,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
 
     rx_options.addOption(bool, "generated_paths", false);
     rx_options.addOption(bool, "generated_graph", false);
+    rx_options.addOption(bool, "generated_rules", false);
     rx.addOptions("rx_options", rx_options);
 
     const analysis = b.createModule(.{
@@ -60,8 +71,11 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const xml = run.addOutputFileArg("xml.zig");
     const paths = run.addOutputFileArg("paths.zig");
     const graph = run.addOutputFileArg("graph.zig");
+    const attribute_role = run.addOutputFileArg("attribute_role.zig");
+    const attribute_content = run.addOutputFileArg("attribute_content.zig");
+    const call_rule = run.addOutputFileArg("call_rule.zig");
 
-    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph };
+    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {

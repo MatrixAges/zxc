@@ -27,10 +27,16 @@ pub fn nonEmpty(node: dsl.ast.Node, reporter: *dsl.Reporter) dsl.Error!void {
     for (node.attributes) |item| {
         if (item.kind == .string and @import("attribute_kind.zig").value(node.name, item.name)) continue;
 
-        if (std.mem.trim(u8, item.value, " \t\r\n").len == 0) {
+        if (!hasContent(item.value)) {
             return fail(node, item.name, "RX attribute must not be empty", reporter);
         }
     }
+}
+
+pub fn hasContent(value: []const u8) bool {
+    if (@import("rx_options").generated_rules) return @import("schema/scalar.zig").execute(@import("generated_attribute_content"), value);
+
+    return std.mem.trim(u8, value, " \t\r\n").len != 0;
 }
 
 pub fn attribute(node: dsl.ast.Node, name: []const u8) ?[]const u8 {

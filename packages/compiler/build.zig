@@ -29,9 +29,13 @@ pub fn build(b: *std.Build) void {
 
     rx_options.addOption(bool, "generated_paths", true);
     rx_options.addOption(bool, "generated_graph", true);
+    rx_options.addOption(bool, "generated_rules", true);
     rx.addOptions("rx_options", rx_options);
     rx.addImport("generated_paths", b.createModule(.{ .root_source_file = parser_source.paths, .target = target, .optimize = optimize }));
     rx.addImport("generated_graph", b.createModule(.{ .root_source_file = parser_source.graph, .target = target, .optimize = optimize }));
+    rx.addImport("generated_attribute_role", b.createModule(.{ .root_source_file = parser_source.attribute_role, .target = target, .optimize = optimize }));
+    rx.addImport("generated_attribute_content", b.createModule(.{ .root_source_file = parser_source.attribute_content, .target = target, .optimize = optimize }));
+    rx.addImport("generated_call_rule", b.createModule(.{ .root_source_file = parser_source.call_rule, .target = target, .optimize = optimize }));
 
     _ = b.addModule("rx_analysis", .{
         .root_source_file = b.path("src/rx/analysis/root.zig"),
@@ -68,6 +72,9 @@ pub fn build(b: *std.Build) void {
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.xml, "bootstrap/xml.zig").step);
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.paths, "bootstrap/paths.zig").step);
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.graph, "bootstrap/graph.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.attribute_role, "bootstrap/attribute_role.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.attribute_content, "bootstrap/attribute_content.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.call_rule, "bootstrap/call_rule.zig").step);
 
     const type_generator = b.addExecutable(.{ .name = "standard-types", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_types.zig"),

@@ -1,0 +1,30 @@
+import { Role } from "./model"
+
+export type Input = { element: string, attribute: string }
+
+export type Output = Role
+
+export default function (in: Input): Output {
+  switch (in.element) {
+    case "Call":
+      return in.attribute == "in" ? Role.Value : in.attribute == "setter" ? Role.Expression : Role.Static
+    case "Switch":
+      return in.attribute == "on" ? Role.Value : Role.Static
+    case "Return":
+      return in.attribute == "value" ? Role.Value : Role.Static
+    case "Case":
+      return in.attribute == "value" ? Role.Value : Role.Static
+    case "Emit":
+      return in.attribute == "value" ? Role.Value : Role.Static
+    case "Field":
+      return in.attribute == "value" ? Role.Value : Role.Static
+    case "Task":
+      return in.attribute == "out" ? Role.Expression : Role.Static
+    case "Store":
+      return in.attribute == "version" ? Role.Expression : Role.Static
+    case "Gateway":
+      return in.attribute == "max_header_bytes" || in.attribute == "max_body_bytes" ? Role.Expression : Role.Static
+    default:
+      return Role.Static
+  }
+}

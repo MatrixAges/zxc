@@ -1,4 +1,3 @@
-const std = @import("std");
 const dsl = @import("dsl");
 const checks = @import("../../../checks.zig");
 
@@ -14,7 +13,7 @@ fn checkField(data: FieldBase.Data, node: dsl.ast.Node, _: anytype, reporter: *d
     try @import("../../../attribute_kind.zig").validate(node, reporter);
 
     inline for (.{ "name", "type" }) |key| {
-        if (std.mem.trim(u8, @field(data.attributes, key), " \t\r\n").len == 0) {
+        if (!checks.hasContent(@field(data.attributes, key))) {
             return checks.fail(node, key, "Field name and type must not be empty", reporter);
         }
     }
