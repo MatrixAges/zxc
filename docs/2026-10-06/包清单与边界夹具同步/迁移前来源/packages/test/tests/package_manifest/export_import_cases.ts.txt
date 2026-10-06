@@ -26,7 +26,7 @@ const undeclared = 'ZX package is not declared in the project dependencies'
 const cases: Array<Case> = [
 	{
 		name: 'exports two public modules compose',
-		source: program('two(one(in))', 'import two from "math/nested/two"\nimport one from "math/one"\n\n'),
+		source: program('two(one(in))', 'import one from "math/one"\nimport two from "math/nested/two"\n\n'),
 		dependencies: { math: 'workspace:*' },
 		members: { math: member },
 		increment: 3
@@ -61,7 +61,7 @@ const cases: Array<Case> = [
 	},
 	{
 		name: 'exports shared implementation aliases',
-		source: program('two(one(in))', 'import two from "math/nested/two"\nimport one from "math/one"\n\n'),
+		source: program('two(one(in))', 'import one from "math/one"\nimport two from "math/nested/two"\n\n'),
 		dependencies: { math: 'workspace:*' },
 		members: { math: { ...member, exports: { './one': 'one.zx', './nested/two': 'one.zx' } } },
 		increment: 2
@@ -70,7 +70,7 @@ const cases: Array<Case> = [
 		name: 'exports internal relative closure',
 		source: call('math/one'),
 		dependencies: { math: 'workspace:*' },
-		members: { math: { ...member, files: { ...member.files, 'one.zx': call('./secret') } } },
+		members: { math: { ...member, files: { ...member.files, 'one.zx': call('./secret.zx') } } },
 		increment: 99
 	}
 ]

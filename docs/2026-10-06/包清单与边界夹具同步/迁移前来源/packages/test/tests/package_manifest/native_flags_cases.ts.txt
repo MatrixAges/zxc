@@ -35,11 +35,7 @@ for (let index = 0; index < 3 ** fields.length; index++) {
 			version: '1.0.0',
 			externals: [{ ...external, implementation: { ...implementation, ...supplied } }]
 		}),
-		expected: {
-			externals: [
-				{ ...external, implementation: { ...implementation, concurrent: false, errors: null, ...expected } }
-			]
-		}
+		expected: { externals: [{ ...external, implementation: { ...implementation, ...expected } }] }
 	})
 }
 
