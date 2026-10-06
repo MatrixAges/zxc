@@ -1,9 +1,8 @@
+import type { State } from "../../../../compiler/src/zx/frontend/parser/types/model"
+import { Phase } from "../../../../compiler/src/zx/frontend/parser/types/model"
 import scan from "../../../../compiler/src/zx/frontend/lexer/scan"
 import initial from "../../../../compiler/src/zx/frontend/parser/types/initial"
-import { Phase } from "../../../../compiler/src/zx/frontend/parser/types/model"
 import parse from "../../../../compiler/src/zx/frontend/parser/types/parse"
-
-import type { State } from "../../../../compiler/src/zx/frontend/parser/types/model"
 
 export type Input = { source: u8[], start: u64, depth: u64 }
 
