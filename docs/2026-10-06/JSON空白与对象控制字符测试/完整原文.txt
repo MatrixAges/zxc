@@ -1,0 +1,721 @@
+test/built-ins/JSON/parse/15.12.1.1-0-1.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.1.1-0-1
+description: The JSON lexical grammar treats whitespace as a token seperator
+---*/
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('12\t\r\n 34'); // should produce a syntax error as whitespace results in two tokens
+});
+
+
+test/built-ins/JSON/parse/15.12.1.1-0-2.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.1.1-0-2
+description: >
+    <VT> is not valid JSON whitespace as specified by the production
+    JSONWhitespace.
+---*/
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u000b1234'); // should produce a syntax error 
+});
+
+
+test/built-ins/JSON/parse/15.12.1.1-0-3.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.1.1-0-3
+description: >
+    <FF> is not valid JSON whitespace as specified by the production
+    JSONWhitespace.
+---*/
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u000c1234'); // should produce a syntax error 
+});
+
+
+test/built-ins/JSON/parse/15.12.1.1-0-4.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.1.1-0-4
+description: >
+    <NBSP> is not valid JSON whitespace as specified by the production
+    JSONWhitespace.
+---*/
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u00a01234'); // should produce a syntax error 
+});
+
+
+test/built-ins/JSON/parse/15.12.1.1-0-5.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.1.1-0-5
+description: >
+    <ZWSPP> is not valid JSON whitespace as specified by the
+    production JSONWhitespace.
+---*/
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u200b1234'); // should produce a syntax error 
+});
+
+
+test/built-ins/JSON/parse/15.12.1.1-0-6.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.1.1-0-6
+description: >
+    <BOM> is not valid JSON whitespace as specified by the production
+    JSONWhitespace.
+---*/
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\ufeff1234'); // should produce a syntax error a
+});
+
+
+test/built-ins/JSON/parse/15.12.1.1-0-8.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.1.1-0-8
+description: >
+    U+2028 and U+2029 are not valid JSON whitespace as specified by
+    the production JSONWhitespace.
+---*/
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u2028\u20291234'); // should produce a syntax error 
+});
+
+
+test/built-ins/JSON/parse/15.12.1.1-0-9.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.1.1-0-9
+description: Whitespace characters can appear before/after any JSONtoken
+---*/
+
+JSON.parse('\t\r \n{\t\r \n' +
+  '"property"\t\r \n:\t\r \n{\t\r \n}\t\r \n,\t\r \n' +
+  '"prop2"\t\r \n:\t\r \n' +
+  '[\t\r \ntrue\t\r \n,\t\r \nnull\t\r \n,123.456\t\r \n]' +
+  '\t\r \n}\t\r \n'); // should JOSN parse without error
+
+
+test/built-ins/JSON/parse/15.12.2-2-1.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-1
+description: >
+    JSON.parse - parsing an object where property name is a null
+    character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{ ' + nullChars[index] + ' : "John" } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/15.12.2-2-10.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-10
+description: >
+    JSON.parse - parsing an object where property value middles with a
+    null character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{ "name" : ' + "Jo" + nullChars[index] + "hn" + ' } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/15.12.2-2-2.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-2
+description: >
+    JSON.parse - parsing an object where property name starts with a
+    null character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{ ' + nullChars[index] + "name" + ' : "John" } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/15.12.2-2-3.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-3
+description: >
+    JSON.parse - parsing an object where property name ends with a
+    null character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{' + "name" + nullChars[index] + ' : "John" } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/15.12.2-2-4.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-4
+description: >
+    JSON.parse - parsing an object where property name starts and ends
+    with a null character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{' + nullChars[index] + "name" + nullChars[index] + ' : "John" } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/15.12.2-2-5.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-5
+description: >
+    JSON.parse - parsing an object where property name middles with a
+    null character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{ ' + "na" + nullChars[index] + "me" + ' : "John" } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/15.12.2-2-6.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-6
+description: >
+    JSON.parse - parsing an object where property value is a null
+    character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{ "name" : ' + nullChars[index] + ' } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/15.12.2-2-7.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-7
+description: >
+    JSON.parse - parsing an object where property value starts with a
+    null character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{ "name" : ' + nullChars[index] + "John" + ' } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/15.12.2-2-8.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-8
+description: >
+    JSON.parse - parsing an object where property value ends with a
+    null character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{ "name" : ' + "John" + nullChars[index] + ' } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/15.12.2-2-9.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es5id: 15.12.2-2-9
+description: >
+    JSON.parse - parsing an object where property value starts and
+    ends with a null character
+---*/
+
+var nullChars = new Array();
+nullChars[0] = '\"\u0000\"';
+nullChars[1] = '\"\u0001\"';
+nullChars[2] = '\"\u0002\"';
+nullChars[3] = '\"\u0003\"';
+nullChars[4] = '\"\u0004\"';
+nullChars[5] = '\"\u0005\"';
+nullChars[6] = '\"\u0006\"';
+nullChars[7] = '\"\u0007\"';
+nullChars[8] = '\"\u0008\"';
+nullChars[9] = '\"\u0009\"';
+nullChars[10] = '\"\u000A\"';
+nullChars[11] = '\"\u000B\"';
+nullChars[12] = '\"\u000C\"';
+nullChars[13] = '\"\u000D\"';
+nullChars[14] = '\"\u000E\"';
+nullChars[15] = '\"\u000F\"';
+nullChars[16] = '\"\u0010\"';
+nullChars[17] = '\"\u0011\"';
+nullChars[18] = '\"\u0012\"';
+nullChars[19] = '\"\u0013\"';
+nullChars[20] = '\"\u0014\"';
+nullChars[21] = '\"\u0015\"';
+nullChars[22] = '\"\u0016\"';
+nullChars[23] = '\"\u0017\"';
+nullChars[24] = '\"\u0018\"';
+nullChars[25] = '\"\u0019\"';
+nullChars[26] = '\"\u001A\"';
+nullChars[27] = '\"\u001B\"';
+nullChars[28] = '\"\u001C\"';
+nullChars[29] = '\"\u001D\"';
+nullChars[30] = '\"\u001E\"';
+nullChars[31] = '\"\u001F\"';
+
+for (var index in nullChars) {
+  assert.throws(SyntaxError, function() {
+    var obj = JSON.parse('{ "name" : ' + nullChars[index] + "John" + nullChars[index] + ' } ');
+  });
+}
+
+
+test/built-ins/JSON/parse/invalid-whitespace.js
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-json.parse
+es5id: 15.12.1.1-0-7
+description: >
+    other category z spaces are not valid JSON whitespace as specified
+    by the production JSONWhitespace.
+---*/
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u16801');
+}, '\\u1680');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u180e1');
+}, '\\u180e');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20001');
+}, '\\u2000');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20011');
+}, '\\u2001');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20021');
+}, '\\u2002');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20031');
+}, '\\u2003');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20041');
+}, '\\u2004');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20051');
+}, '\\u2005');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20061');
+}, '\\u2006');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20071');
+}, '\\u2007');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20081');
+}, '\\u2008');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u20091');
+}, '\\u2009');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u200a1');
+}, '\\u200a');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u202f1');
+}, '\\u202f');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u205f1');
+}, '\\u205f');
+
+assert.throws(SyntaxError, function() {
+  JSON.parse('\u30001');
+}, '\\u3000');

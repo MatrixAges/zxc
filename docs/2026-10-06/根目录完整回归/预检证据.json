@@ -1,0 +1,76 @@
+{
+	"source_commit": "1a7241d67ddde1fa475f5f696e5077b9b3899cdf",
+	"sources": [
+		{
+			"path": "build.zig",
+			"sha256": "0b0d63b3eb36598394d1ba15820efece6f38ebd8bb4de6949d3d6950b2eb99c9"
+		},
+		{
+			"path": "packages/test/build.zig",
+			"sha256": "b6d889224f52083c742bda2e48491ad8b26d8d90fc7930e04427041fdbf4a428"
+		},
+		{
+			"path": "packages/test/build/runtime.zig",
+			"sha256": "4b31fa3cd20c28600d2877db6396fc8151a4bdd548b04e3fcca2f323a8d64dd7"
+		},
+		{
+			"path": "packages/test/build/safety.zig",
+			"sha256": "fa0190e303791a5fda0a857769d43a5b8abd1ca476961ea87f7956d540bd564f"
+		},
+		{
+			"path": "packages/test/build/child_process.zig",
+			"sha256": "496fedb2129e57c15c310c80f4756f83f5bf50952e6cf4fe54c6a26c90afbf08"
+		},
+		{
+			"path": "packages/test/tests/build_modes/build_test.ts",
+			"sha256": "8621a1087019e334841a9aae184ac9437a25f709068c38ceacd4a5f4dafdd6d1"
+		},
+		{
+			"path": "packages/test/tests/plugins/bridge_test.ts",
+			"sha256": "98c76cc2fce2855913d850c38caa340ccd74afe8f20d90f7c86a5ee71a12b872"
+		},
+		{
+			"path": "packages/cli/build/toolchain.zig",
+			"sha256": "4d5612cbab7cea44d710e821aaf989045e25f360d9f516fee2658199970a33d8"
+		},
+		{
+			"path": "packages/cli/build/toolchain/archive.zig",
+			"sha256": "56b259ba43b0af836cce73a0f03c2eefe744c1827456583e08d866bf6ba84f84"
+		},
+		{
+			"path": "packages/cli/build/toolchain/releases.json",
+			"sha256": "69830635dd6739de67b7b3bd8f00f07dc1004d270b90c57e511fcc87d6a8b485"
+		}
+	],
+	"configuration_probes": [
+		{
+			"cwd": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test",
+			"argv": ["zig", "build", "--help", "-Dzig-archive=/tmp/zxc-local-archive-probe"],
+			"exit_code": 1,
+			"log": "测试包归档选项复现.txt"
+		},
+		{
+			"cwd": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc",
+			"argv": [
+				"zig",
+				"build",
+				"--help",
+				"-Dzig-archive=/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive"
+			],
+			"exit_code": 0,
+			"log": "根归档选项复现.txt"
+		}
+	],
+	"archive": {
+		"path": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/.zig-cache/o/c16bf5716bbe508e223213805c3f3621/bundle/zig.archive",
+		"bytes": 59317572,
+		"sha256": "4f9a1c5269aa17ebda5e6d3c2b89d6cbf36f7d2b22a0306e9ab98f25f95529c6",
+		"official_release": {
+			"host": "x86_64-macos",
+			"archive": "https://ziglang.org/download/0.17.0/zig-x86_64-macos-0.17.0.tar.xz",
+			"archive_sha256": "4f9a1c5269aa17ebda5e6d3c2b89d6cbf36f7d2b22a0306e9ab98f25f95529c6"
+		}
+	},
+	"http_attempted": false,
+	"full_root_regression_executed": false
+}
