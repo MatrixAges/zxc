@@ -1,0 +1,91 @@
+node:internal/modules/package_json_reader:301
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'yaml' imported from /Users/xiewendao/.codex/worktrees/rx-schema-regression/zxc/packages/test/tests/build_modes/native_bundle_test.ts
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:764:81)
+    at moduleResolve (node:internal/modules/esm/resolve:855:18)
+    at defaultResolve (node:internal/modules/esm/resolve:988:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)
+    at #resolve (node:internal/modules/esm/loader:679:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v25.8.1
+test-build-modes
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/build_modes/build_test.ts ./../cli/.
+
+node:internal/modules/package_json_reader:301
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'yaml' imported from /Users/xiewendao/.codex/worktrees/rx-schema-regression/zxc/packages/test/tests/incremental/generation_runtime/native_test.ts
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:764:81)
+    at moduleResolve (node:internal/modules/esm/resolve:855:18)
+    at defaultResolve (node:internal/modules/esm/resolve:988:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)
+    at #resolve (node:internal/modules/esm/loader:679:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v25.8.1
+test-native-generation
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/incremental/generation_runtime/native_test.ts ./.zig-cache/o/76c90e5aa5676b84aca3a9c300d83620/zxc
+
+Build Summary: 29/33 steps succeeded (2 failed)
+test-native-generation transitive failure
++- run node failure
+   +- compile exe zxc safe native cached 48ms MaxRSS:21M
+      +- WriteFile cached
+      +- compile lib yaml safe native cached 39ms MaxRSS:20M
+      +- compile lib yaml safe native (reused)
+      +- translate-c cached 40ms MaxRSS:20M
+      +- options cached
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig fast native cached 43ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- options cached
+      +- run exe generate-parser (parser.zig) cached
+      |  +- compile exe generate-parser safe native cached 48ms MaxRSS:21M
+      |     +- options cached
+      |     +- WriteFile interfaces/0.d.zx cached
+      |     |  +- run exe standard-catalog (catalog.zig) cached
+      |     |     +- compile exe standard-catalog fast native cached 45ms MaxRSS:21M
+      |     |     +- WriteFile catalog.json cached
+      |     +- options cached
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- WriteFile interfaces/0.d.zx cached
+      |  +- run exe standard-catalog (catalog.zig) cached
+      |     +- compile exe standard-catalog fast native cached 46ms MaxRSS:21M
+      |     +- WriteFile catalog.json cached
+      +- options cached
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) cached
+         +- compile exe generate-lexer safe native cached 45ms MaxRSS:21M
+            +- WriteFile interfaces/0.d.zx cached
+            |  +- run exe standard-catalog (catalog.zig) cached
+            |     +- compile exe standard-catalog fast native cached 46ms MaxRSS:21M
+            |     +- WriteFile catalog.json cached
+            +- options cached
+test-build-modes transitive failure
++- run node failure
+

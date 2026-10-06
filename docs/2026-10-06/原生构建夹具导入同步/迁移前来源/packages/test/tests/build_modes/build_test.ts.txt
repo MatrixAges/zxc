@@ -70,7 +70,7 @@ try {
 	)
 	writeFileSync(
 		join(project, 'main.zx'),
-		'import increment from "./nested/increment"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return increment(in)\n}\n'
+		'import increment from "./nested/increment.zx"\n\nexport type Input = u64\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  return increment(in)\n}\n'
 	)
 
 	const application = join(directory, 'application' + extension)
