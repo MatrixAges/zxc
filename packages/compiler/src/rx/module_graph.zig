@@ -1,125 +1,41 @@
 const std = @import("std");
 const dsl = @import("dsl");
 const checks = @import("checks.zig");
-const paths = @import("paths.zig");
 const modules = @import("modules.zig");
-const State = enum { unseen, visiting, done };
-
-const Frame = struct {
-    owner: usize,
-    node: *const dsl.ast.Node,
-    child_index: usize = 0,
-    entered: bool = false,
-    root: bool = false,
-};
-
-const Graph = struct {
-    allocator: std.mem.Allocator,
-    sources: []const modules.Source,
-    entries: []const modules.Module,
-    states: []State,
-    reporter: *dsl.Reporter,
-    source_index: *usize,
-    order: *std.ArrayList(usize),
-    fn visit(self: *Graph, index: usize) dsl.Error!void {
-        if (self.states[index] == .done) return;
-
-        var frames: std.ArrayList(Frame) = .empty;
-
-        defer frames.deinit(self.allocator);
-
-        try self.enterModule(index, &frames);
-
-        while (frames.items.len > 0) {
-            const frame = &frames.items[frames.items.len - 1];
-
-            if (!frame.entered) {
-                frame.entered = true;
-
-                if (try self.target(frame.owner, frame.node.*)) |next| {
-                    try self.enterModule(next, &frames);
-
-                    continue;
-                }
-            }
-
-            if (frame.child_index < frame.node.children.len) {
-                const child = &frame.node.children[frame.child_index];
-                const owner = frame.owner;
-                frame.child_index += 1;
-
-                try frames.append(self.allocator, .{ .owner = owner, .node = child });
-
-                continue;
-            }
-
-            if (frame.root) {
-                try self.order.append(self.allocator, frame.owner);
-
-                self.states[frame.owner] = .done;
-            }
-
-            _ = frames.pop();
-        }
-    }
-
-    fn enterModule(self: *Graph, index: usize, frames: *std.ArrayList(Frame)) dsl.Error!void {
-        self.states[index] = .visiting;
-
-        try frames.append(self.allocator, .{ .owner = index, .node = &self.sources[index].node, .root = true });
-    }
-
-    fn target(self: *Graph, owner: usize, node: dsl.ast.Node) dsl.Error!?usize {
-        const key: ?[]const u8 = if (std.mem.eql(u8, node.name, "Import")) "from" else if (std.mem.eql(u8, node.name, "Call") and checks.attribute(node, "module") != null) "module" else null;
-
-        if (key) |attribute| {
-            if (std.mem.eql(u8, attribute, "module") and @import("module_reference.zig").isPackage(checks.attribute(node, attribute).?, self.sources[owner].packages)) return null;
-
-            const path = paths.resolve(self.allocator, self.entries[owner].path, checks.attribute(node, attribute).?) catch |err| {
-                if (err == error.OutOfMemory) return error.OutOfMemory;
-
-                return self.fail(owner, node, attribute, "Module reference escapes the project root or is not a valid module path");
-            };
-
-            defer self.allocator.free(path);
-
-            const index = self.findModule(path) orelse return self.fail(owner, node, attribute, "Referenced module file is not registered");
-
-            if (self.states[index] == .visiting) return self.fail(owner, node, attribute, "Reference creates a circular module dependency");
-
-            return if (self.states[index] == .done) null else index;
-        }
-
-        return null;
-    }
-    fn findModule(self: Graph, path: []const u8) ?usize {
-        for (self.entries, 0..) |entry, index| {
-            if (std.mem.eql(u8, entry.path, path)) return index;
-        }
-
-        return null;
-    }
-    fn fail(self: *Graph, owner: usize, node: dsl.ast.Node, attribute: []const u8, message: []const u8) dsl.Error {
-        self.source_index.* = owner;
-
-        return checks.fail(node, attribute, message, self.reporter);
-    }
-};
 
 pub fn validate(allocator: std.mem.Allocator, sources: []const modules.Source, entries: []const modules.Module, source_index: *usize, reporter: *dsl.Reporter) dsl.Error![]const usize {
-    const states = try allocator.alloc(State, sources.len);
+    if (!@import("rx_options").generated_graph) return @import("dependency_graph/seed.zig").validate(allocator, sources, entries, source_index, reporter);
 
-    defer allocator.free(states);
+    var arena = std.heap.ArenaAllocator.init(allocator);
 
-    @memset(states, .unseen);
+    defer arena.deinit();
 
-    var order: std.ArrayList(usize) = .empty;
+    const prepared = try @import("dependency_graph/prepare.zig").build(arena.allocator(), sources, entries);
 
-    errdefer order.deinit(allocator);
+    const result = @import("generated_graph").execute(&arena, &prepared.input) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        error.IndexOutOfBounds => unreachable,
+    };
 
-    var graph = Graph{ .allocator = allocator, .sources = sources, .entries = entries, .states = states, .source_index = source_index, .reporter = reporter, .order = &order };
+    if (result.issue != .None) {
+        const link = prepared.links[@intCast(result.edge)];
+        source_index.* = link.owner;
 
-    for (sources, 0..) |_, index| try graph.visit(index);
+        const message = switch (result.issue) {
+            .None => unreachable,
+            .InvalidPath => "Module reference escapes the project root or is not a valid module path",
+            .Missing => "Referenced module file is not registered",
+            .Cycle => "Reference creates a circular module dependency",
+        };
 
-    return order.toOwnedSlice(allocator);
+        return checks.fail(link.node.*, link.attribute, message, reporter);
+    }
+
+    std.debug.assert(result.count == sources.len);
+
+    const order = try allocator.alloc(usize, @intCast(result.count));
+
+    for (order, result.order[0..order.len]) |*target, value| target.* = @intCast(value);
+
+    return order;
 }

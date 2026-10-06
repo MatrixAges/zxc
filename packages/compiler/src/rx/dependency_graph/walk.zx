@@ -1,0 +1,60 @@
+import initial from "./initial"
+import { Issue } from "./model"
+
+import type { Graph } from "./model"
+
+export type Input = Graph
+
+export type Output = { order: u64[], count: u64, issue: Issue, edge: u64 }
+
+export default function (in: Input): Output {
+  const state = loop(initial(in), {
+    while: value => value.issue == Issue.None && (value.root + 1 < value.graph.offsets.length || value.depth != 0),
+    next: value => {
+      if (value.depth == 0) {
+        const root = value.root
+
+        if (value.marks[root] == 0) {
+          value.marks[root] = 1
+          value.frames[0] = root
+          value.depth = 1
+        }
+
+        value.root += 1
+      } else {
+        const owner = value.frames[value.depth - 1]
+        const cursor = value.cursors[owner]
+
+        if (cursor == value.graph.offsets[owner + 1]) {
+          value.marks[owner] = 2
+          value.order[value.count] = owner
+          value.count += 1
+          value.depth -= 1
+        } else {
+          const issue = value.graph.issues[cursor]
+          const target = value.graph.targets[cursor]
+
+          value.cursors[owner] = cursor + 1
+
+          if (issue != Issue.None) {
+            value.issue = issue
+            value.edge = cursor
+          } else {
+            if (value.marks[target] == 1) {
+              value.issue = Issue.Cycle
+              value.edge = cursor
+            } else {
+              if (value.marks[target] == 0) {
+                value.marks[target] = 1
+                value.frames[value.depth] = target
+                value.depth += 1
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  return { order: state.order, count: state.count, issue: state.issue, edge: state.edge }
+}

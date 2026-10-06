@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const Sources = struct { program: std.Build.LazyPath, expression: std.Build.LazyPath, xml: std.Build.LazyPath, paths: std.Build.LazyPath };
+pub const Sources = struct { program: std.Build.LazyPath, expression: std.Build.LazyPath, xml: std.Build.LazyPath, paths: std.Build.LazyPath, graph: std.Build.LazyPath };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const target = b.graph.host;
@@ -26,6 +26,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const rx_options = b.addOptions();
 
     rx_options.addOption(bool, "generated_paths", false);
+    rx_options.addOption(bool, "generated_graph", false);
     rx.addOptions("rx_options", rx_options);
 
     const analysis = b.createModule(.{
@@ -58,8 +59,9 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const expression = run.addOutputFileArg("expression.zig");
     const xml = run.addOutputFileArg("xml.zig");
     const paths = run.addOutputFileArg("paths.zig");
+    const graph = run.addOutputFileArg("graph.zig");
 
-    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths };
+    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {

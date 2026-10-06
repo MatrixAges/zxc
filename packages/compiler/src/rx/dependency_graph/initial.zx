@@ -1,0 +1,18 @@
+import { Issue } from "./model"
+
+import type { Graph, State } from "./model"
+
+export type Input = Graph
+
+export type Output = State
+
+export default function (in: Input): Output {
+  return {
+    graph: in,
+    marks: in.offsets.map(offset => 0).pop()[0],
+    cursors: in.offsets.map(offset => offset).pop()[0],
+    frames: in.offsets.map(offset => 0).pop()[0],
+    order: in.offsets.map(offset => 0).pop()[0],
+    root: 0, depth: 0, count: 0, issue: Issue.None, edge: 0
+  }
+}

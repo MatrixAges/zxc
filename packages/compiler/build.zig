@@ -28,8 +28,10 @@ pub fn build(b: *std.Build) void {
     const rx_options = b.addOptions();
 
     rx_options.addOption(bool, "generated_paths", true);
+    rx_options.addOption(bool, "generated_graph", true);
     rx.addOptions("rx_options", rx_options);
     rx.addImport("generated_paths", b.createModule(.{ .root_source_file = parser_source.paths, .target = target, .optimize = optimize }));
+    rx.addImport("generated_graph", b.createModule(.{ .root_source_file = parser_source.graph, .target = target, .optimize = optimize }));
 
     _ = b.addModule("rx_analysis", .{
         .root_source_file = b.path("src/rx/analysis/root.zig"),
@@ -65,6 +67,7 @@ pub fn build(b: *std.Build) void {
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.expression, "bootstrap/expression.zig").step);
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.xml, "bootstrap/xml.zig").step);
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.paths, "bootstrap/paths.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.graph, "bootstrap/graph.zig").step);
 
     const type_generator = b.addExecutable(.{ .name = "standard-types", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_types.zig"),
