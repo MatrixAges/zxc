@@ -31,7 +31,7 @@ zxc build workflow.rx --out build/workflow
 ./build/workflow '{"value": 41}'
 ```
 
-输入 JSON 必须符合从 Call.in 与函数 Input 推导出的模块类型；void Input 默认不接收业务参数；若入口依赖显式 process 能力，可接收原始 argv。非 void Input 使用单个 JSON 参数。默认将返回值写为 JSON，void 输出写为 null；--result discard 关闭返回值输出。
+输入 JSON 必须符合从 Call.in 与函数 Input 推导出的模块类型；void Input 默认不接收业务参数；若入口依赖显式 process 能力，可接收原始 argv。非 void Input 使用单个 JSON 参数。默认将返回值写为 JSON，void 输出写为 null；返回值（含嵌套字段）中的 NaN 或正负 Infinity 会在写出前返回 NonFiniteJsonNumber，不转换为字符串或 null。--result discard 关闭返回值输出，也不执行 JSON 有限数检查。
 
 | 用法                                          | 行为                                                       |
 | --------------------------------------------- | ---------------------------------------------------------- |

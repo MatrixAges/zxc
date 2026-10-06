@@ -35,7 +35,7 @@ JSON 解码、输出编码及必要内存分配有成本，计算程序仍静态
 | zxc_reset()                   | 释放当前请求，保留实例 Store                             |
 | zxc_deinit()                  | 释放当前请求及全部 Store；以后 alloc 会重新初始化        |
 
-void Input 需调用 alloc(0) 后 execute；返回非零地址，无需写入字节。void Output 返回 JSON null。`--result discard` 执行后返回空结果，错误仍提供错误名称。
+void Input 需调用 alloc(0) 后 execute；返回非零地址，无需写入字节。void Output 返回 JSON null。JSON 输出包含 NaN 或正负 Infinity（含嵌套字段）时，execute 返回 1，结果为 NonFiniteJsonNumber；WASI 同样在写出前失败。直接标量导出保留 IEEE 非有限数。`--result discard` 执行后返回空结果，错误仍提供错误名称。
 
 每次 alloc 后只能 execute 一次，重复 execute 返回 InputNotPrepared，避免重复 Store 提交。Store 按既有事务边界提交；如果后续输出编码失败，不会撤销此前已提交的事务。deinit 后重新调用会从初始化状态开始。
 

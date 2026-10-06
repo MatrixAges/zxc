@@ -1,0 +1,51 @@
+[
+	{
+		"source": "scalar",
+		"input": "1",
+		"status": 0,
+		"stdout": "1\n",
+		"stderr": ""
+	},
+	{
+		"source": "scalar",
+		"input": "1e400",
+		"status": 1,
+		"stdout": "",
+		"stderr": "error: NonFiniteJsonNumber\n"
+	},
+	{
+		"source": "scalar",
+		"input": "-1e400",
+		"status": 1,
+		"stdout": "",
+		"stderr": "error: NonFiniteJsonNumber\n"
+	},
+	{
+		"source": "division",
+		"input": "{\"numerator\":1,\"denominator\":1}",
+		"status": 0,
+		"stdout": "1\n",
+		"stderr": ""
+	},
+	{
+		"source": "division",
+		"input": "{\"numerator\":1,\"denominator\":0}",
+		"status": 1,
+		"stdout": "",
+		"stderr": "error: NonFiniteJsonNumber\n"
+	},
+	{
+		"source": "division",
+		"input": "{\"numerator\":-1,\"denominator\":0}",
+		"status": 1,
+		"stdout": "",
+		"stderr": "error: NonFiniteJsonNumber\n"
+	},
+	{
+		"source": "division",
+		"input": "{\"numerator\":0,\"denominator\":0}",
+		"status": 1,
+		"stdout": "",
+		"stderr": "error: NonFiniteJsonNumber\n"
+	}
+]
