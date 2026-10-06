@@ -24,6 +24,12 @@ pub fn get(self: *const Self, id: model.TypeId) model.Type {
 pub fn finish(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error!Table {
     var result: Table = .{};
 
+    errdefer {
+        inline for (@typeInfo(Self).@"struct".field_names) |name| {
+            allocator.free(@field(result, name));
+        }
+    }
+
     inline for (@typeInfo(Self).@"struct".field_names) |name| {
         @field(result, name) = try @field(self, name).toOwnedSlice(allocator);
     }
