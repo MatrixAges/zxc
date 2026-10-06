@@ -1,0 +1,42 @@
+import integers from "zig:integers"
+
+import { Kind } from "../types/model"
+
+import type { Candidate, Table } from "../types/model"
+
+export type Input = Candidate
+
+export type Output = Table
+
+export default function (in: Input): Output {
+    const code: u8 = match in.kind {
+        Kind.Scalar => 0,
+        Kind.Object => 1,
+        Kind.Optional => 2,
+        Kind.List => 3,
+        Kind.Tuple => 4,
+        Kind.ErrorSet => 5,
+        Kind.Task => 6,
+        Kind.Enumeration => 7,
+        _ => 8
+    }
+
+    const named = in.kind == Kind.ErrorSet || in.kind == Kind.Enumeration
+    const first: u32 = in.kind == Kind.Object || in.kind == Kind.Tuple || named ? 0 : in.first
+
+    const second: u32 = match in.kind {
+        Kind.Object => integers.narrow(in.fields.names.length),
+        Kind.Tuple => integers.narrow(in.children.length),
+        Kind.ErrorSet => integers.narrow(in.names.length),
+        Kind.Enumeration => integers.narrow(in.names.length),
+        _ => in.second
+    }
+
+    return {
+        kinds: [code], first: [first], second: [second], labels: [in.label],
+        children: in.kind == Kind.Tuple ? in.children : [],
+        field_types: in.kind == Kind.Object ? in.fields.types : [],
+        field_names: in.kind == Kind.Object ? in.fields.names : [],
+        names: named ? in.names : []
+    }
+}

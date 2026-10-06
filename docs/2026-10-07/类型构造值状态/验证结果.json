@@ -1,0 +1,47 @@
+{
+    "base": "f2a1fc44",
+    "source_sha256": {
+        "packages/compiler/build/compiler.zig": "e729f8b1a8feea0b39e15d5195e170170f2eb647da2992de2dd69d49f2e14523",
+        "packages/compiler/build/generate_parser.zig": "5cfdf3482c04576f52a457539003361737ee71612c3f962b9ee45a96f00fa3ae",
+        "packages/compiler/build/parser.zig": "2d89b4e47c843059bde5ca12a31118e01d4e9abdbdfa699e49a8606685be89e9",
+        "packages/compiler/src/zx/analysis/semantic/constructing/execute.zx": "c4b95d779abd155edd3e0c8573a5a7080ee90839b64f3e090c8ff3175b055f9c",
+        "packages/compiler/src/zx/analysis/semantic/constructing/validate.zx": "fd91e53dc4b14619a83163f5df951440d254f08bfc3d3049affc6c2063626b68",
+        "packages/compiler/src/zx/analysis/semantic/construction.zig": "a699a6d306e97642f04003d7a83a272c693ff77f24771be4f1c26e7892c8c945",
+        "packages/compiler/src/zx/analysis/types.zig": "6a02ff2b79ee5bc1448c51dc13ba4a6257cdd844d2cf1adce66bc3f954f9bbf0",
+        "packages/compiler/src/zx/analysis/semantic/constructing/delta.zx": "828bf16e4d1c58338a8331e5ebb037b21b86a2f4fc7c3ce8ad27a1ed6ac035f9",
+        "packages/compiler/src/zx/analysis/semantic/constructing/fields/less.zx": "8e508f0c06671c45369f466fd9f783c8423b23e6e6a4fabf682f39a5ddea1007",
+        "packages/compiler/src/zx/analysis/semantic/constructing/fields/sort.zx": "681ee544689807e641b92570a775b706c57882a6c26e64429542bbcfeb4f3c6a",
+        "packages/compiler/src/zx/analysis/semantic/constructing/model.zx": "150498df84eaa40e2622de112a2a28f080928a899ea5b07c414822a917bdaa5c"
+    },
+    "deleted": [
+        "packages/compiler/src/zx/analysis/semantic/constructing/candidate.zx",
+        "packages/compiler/src/zx/analysis/semantic/constructing/table.zx",
+        "packages/compiler/src/zx/analysis/semantic/constructing/writer.zig",
+        "packages/compiler/src/zx/analysis/semantic/native/construction.d.zx",
+        "packages/compiler/src/zx/analysis/semantic/native/construction.zig",
+        "packages/compiler/src/zx/analysis/semantic/native/construction/access.zig",
+        "packages/compiler/src/zx/analysis/semantic/native/construction/candidate.zig",
+        "packages/compiler/src/zx/analysis/semantic/native/construction/diagnostics.zig",
+        "packages/compiler/src/zx/analysis/semantic/native/construction/storage.zig",
+        "packages/compiler/src/zx/analysis/semantic/native/construction/table.zig"
+    ],
+    "build": {
+        "steps": 34,
+        "exit_code": 0
+    },
+    "regression": {
+        "command": "zig build test-type-resolution test-zx-tasks-analysis test-typed-try test-object-construction -Doptimize=ReleaseFast --summary all",
+        "steps": 185,
+        "tests": 270,
+        "exit_code": 0
+    },
+    "generated": {
+        "raw_sha256": "35bf6627af4844888cbb04b1e9320a0b0f7f5f5d24b9a9e60e10549b0866ff52",
+        "construction_import": false,
+        "native_modules": ["integers"],
+        "archive_sha256": "b9a7ed9b3a6b39c3528e310efd8c2360be43da074a0b1c60603df066ec65e620"
+    },
+    "new_tests": false,
+    "full_suite": false,
+    "complete_bootstrap": false
+}

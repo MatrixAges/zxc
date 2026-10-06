@@ -1,0 +1,63 @@
+import less from "./less"
+
+import type { Fields } from "../../types/model"
+
+export type Input = Fields
+
+export type Output = Fields
+
+export default function (in: Input): Output {
+    if (in.names.length < 2) {
+        return in
+    }
+
+    const state = loop({ names: in.names, types: in.types, count: in.names.length, remaining: in.names.length / 2, root: 0, building: true, sifting: false }, {
+        while: current => current.building || current.count > 1 || current.sifting,
+        next: current => {
+            if (current.sifting) {
+                if (current.root >= current.count / 2) {
+                    current.sifting = false
+                } else {
+                    const left = current.root * 2 + 1
+                    const right = left + 1
+                    const child = right < current.count && less({ left: current.names[left], right: current.names[right] }) ? right : left
+
+                    if (less({ left: current.names[current.root], right: current.names[child] })) {
+                        const name = current.names[current.root]
+                        const type_id = current.types[current.root]
+
+                        current.names[current.root] = current.names[child]
+                        current.types[current.root] = current.types[child]
+                        current.names[child] = name
+                        current.types[child] = type_id
+                        current.root = child
+                    } else {
+                        current.sifting = false
+                    }
+                }
+            } else if (current.building) {
+                if (current.remaining == 0) {
+                    current.building = false
+                } else {
+                    current.remaining -= 1
+                    current.root = current.remaining
+                    current.sifting = true
+                }
+            } else {
+                current.count -= 1
+
+                const name = current.names[0]
+                const type_id = current.types[0]
+
+                current.names[0] = current.names[current.count]
+                current.types[0] = current.types[current.count]
+                current.names[current.count] = name
+                current.types[current.count] = type_id
+                current.root = 0
+                current.sifting = true
+            }
+        }
+    })
+
+    return { names: state.names, types: state.types }
+}
