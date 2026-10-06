@@ -1,0 +1,645 @@
+1/4 execution_test.test.native reference loop preserves the zero step borrowed slots and first write isolation...OK
+2/4 execution_test.test.native reference loop preserves every input slot across long execution...OK
+3/4 execution_test.test.safe native reference loop updates have equal allocation cost for short and long execution...OK
+4/4 execution_test.test.native reference loop releases all allocation failures without changing any owner or input slot...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/borrowed/execution_test.zig (safe) (47.772478ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50.716015
+1/2 execution_test.test.native optional reference returns the address of the owner's actual child...OK
+2/2 execution_test.test.native optional reference represents a missing child as null...OK
+All 2 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/optional/execution_test.zig (safe) (50.547005ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.492145
+1/4 execution_test.test.native reference loop preserves the zero step borrowed slots and first write isolation...OK
+2/4 execution_test.test.native reference loop preserves every input slot across long execution...OK
+3/4 execution_test.test.safe native reference loop updates have equal allocation cost for short and long execution...OK
+4/4 execution_test.test.native reference loop releases all allocation failures without changing any owner or input slot...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/loop_write/execution_test.zig (safe) (50.399668ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.394582
+1/4 execution_test.test.native reference helper pop and push preserve zero step and first replacement identities...OK
+2/4 execution_test.test.native reference helper pop handles empty and one slot seeds...OK
+3/4 execution_test.test.native reference helper pop transfers capacity across long execution without allocator resize...helper pop: count=4, length=257, allocated=5166, capacity=5118, limit=25152
+helper pop: count=8192, length=257, allocated=389816, capacity=389576, limit=1073216
+helper pop: count=64, length=8193, allocated=148014, capacity=147966, limit=540736
+OK
+4/4 execution_test.test.native reference helper pop and push release all allocation failures and preserve external slots...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/helper_pop/execution_test.zig (safe) (52.633622ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.748278
+1/4 execution_test.test.native reference helper append preserves separate seeds and conditional first writes...OK
+2/4 execution_test.test.native reference helper append handles empty seeds and repeated leaf aliases...OK
+3/4 execution_test.test.native reference helper append grows linearly without allocator resize...OK
+4/4 execution_test.test.native reference helper append releases every failure and preserves both input lists...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/dual_append/execution_test.zig (safe) (52.572004ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.556904
+1/4 execution_test.test.native reference helper pop and push preserve zero step and first replacement identities...OK
+2/4 execution_test.test.native reference helper pop handles empty and one slot seeds...OK
+3/4 execution_test.test.native reference helper pop transfers capacity across long execution without allocator resize...helper pop: count=4, length=257, allocated=5166, capacity=5118, limit=25152
+helper pop: count=8192, length=257, allocated=389816, capacity=389576, limit=1073216
+helper pop: count=64, length=8193, allocated=148014, capacity=147966, limit=540736
+OK
+4/4 execution_test.test.native reference helper pop and push release all allocation failures and preserve external slots...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/helper_pop/execution_test.zig (safe) (55.169259ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58.579437
+1/4 execution_test.test.native reference helper append preserves separate seeds and conditional first writes...OK
+2/4 execution_test.test.native reference helper append handles empty seeds and repeated leaf aliases...OK
+3/4 execution_test.test.native reference helper append grows linearly without allocator resize...OK
+4/4 execution_test.test.native reference helper append releases every failure and preserves both input lists...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/dual_append/execution_test.zig (safe) (52.735111ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.814329
+1/4 execution_test.test.native reference nested helpers preserve zero step and first replacement identities...OK
+2/4 execution_test.test.native reference nested helpers handle empty and one slot seeds...OK
+3/4 execution_test.test.native reference nested helpers preserve every prefix address across long execution...OK
+4/4 execution_test.test.native reference nested helpers release all allocation failures and preserve external slots...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/nested_helpers/execution_test.zig (safe) (52.106661ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.101265
+1/4 execution_test.test.native reference nested helpers preserve zero step and first replacement identities...OK
+2/4 execution_test.test.native reference nested helpers handle empty and one slot seeds...OK
+3/4 execution_test.test.native reference nested helpers preserve every prefix address across long execution...OK
+4/4 execution_test.test.native reference nested helpers release all allocation failures and preserve external slots...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/nested_helpers/execution_test.zig (safe) (50.904567ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.253883
+1/2 execution_test.test.native optional reference returns the address of the owner's actual child...OK
+2/2 execution_test.test.native optional reference represents a missing child as null...OK
+All 2 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/optional/execution_test.zig (safe) (48.499612ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 51.62724
+1/3 execution_test.test.empty native reference traversal reads only the root accessor...OK
+2/3 execution_test.test.native reference traversal reads real leaf addresses in source order...OK
+3/3 execution_test.test.native reference traversal releases all allocation failures and preserves all host leaves...OK
+All 3 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/traversal/execution_test.zig (safe) (52.27466ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.428189
+1/4 execution_test.test.native reference loop preserves the zero step borrowed slots and first write isolation...OK
+2/4 execution_test.test.native reference loop preserves every input slot across long execution...OK
+3/4 execution_test.test.safe native reference loop updates have equal allocation cost for short and long execution...OK
+4/4 execution_test.test.native reference loop releases all allocation failures without changing any owner or input slot...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/loop_write/execution_test.zig (safe) (52.652711ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.612617
+1/2 execution_test.test.present native reference skips the fallback accessor...OK
+2/2 execution_test.test.null native reference invokes only the fallback accessor...OK
+All 2 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/coalesce/execution_test.zig (safe) (48.144468ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 51.233244
+1/2 execution_test.test.native reference identity preserves the actual host address and complete contents...OK
+2/2 execution_test.test.native reference identity can execute with no allocation capacity...OK
+All 2 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/identity/execution_test.zig (safe) (51.739982ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.820795
+1/3 execution_test.test.empty native reference traversal reads only the root accessor...OK
+2/3 execution_test.test.native reference traversal reads real leaf addresses in source order...OK
+3/3 execution_test.test.native reference traversal releases all allocation failures and preserves all host leaves...OK
+All 3 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/traversal/execution_test.zig (safe) (49.750854ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.721854
+1/2 execution_test.test.present native reference skips the fallback accessor...OK
+2/2 execution_test.test.null native reference invokes only the fallback accessor...OK
+All 2 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/coalesce/execution_test.zig (safe) (50.847955ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.900842
+1/2 execution_test.test.native reference identity preserves the actual host address and complete contents...OK
+2/2 execution_test.test.native reference identity can execute with no allocation capacity...OK
+All 2 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/identity/execution_test.zig (safe) (50.205856ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.449236
+1/4 execution_test.test.native reference loop preserves the zero step borrowed slots and first write isolation...OK
+2/4 execution_test.test.native reference loop preserves every input slot across long execution...OK
+3/4 execution_test.test.safe native reference loop updates have equal allocation cost for short and long execution...OK
+4/4 execution_test.test.native reference loop releases all allocation failures without changing any owner or input slot...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/borrowed/execution_test.zig (safe) (52.171382ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.303673
+1/3 execution_test.test.native reference aggregate and list slots preserve child addresses and repeated aliases...OK
+2/3 execution_test.test.native owner survives releasing all ZX aggregate and list buffers...OK
+3/3 execution_test.test.native reference container allocation failures release buffers and preserve every host node...OK
+All 3 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/containers/execution_test.zig (safe) (51.807464ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.733113
+1/4 execution_test.test.native reference loop preserves the zero step borrowed slots and first write isolation...OK
+2/4 execution_test.test.native reference loop preserves every input slot across long execution...OK
+3/4 execution_test.test.native reference history preserves the previous version across multiple replacements...OK
+4/4 execution_test.test.native reference loop releases all allocation failures without changing any owner or input slot...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/loop_history/execution_test.zig (safe) (51.541187ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.48542
+1/4 execution_test.test.native reference loop preserves the zero step borrowed slots and first write isolation...OK
+2/4 execution_test.test.native reference loop preserves every input slot across long execution...OK
+3/4 execution_test.test.safe native reference loop updates have equal allocation cost for short and long execution...OK
+4/4 execution_test.test.native reference loop releases all allocation failures without changing any owner or input slot...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/two_buffers/execution_test.zig (safe) (49.40054ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.426498
+1/3 execution_test.test.native reference argument expansion preserves address order across equal valued owners...OK
+2/3 execution_test.test.first native reference error prevents all later native calls...OK
+3/3 execution_test.test.second native reference error preserves the first call and skips the read...OK
+All 3 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/order/execution_test.zig (safe) (48.253563ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 51.309162
+1/4 execution_test.test.native reference loop preserves the zero step borrowed slots and first write isolation...OK
+2/4 execution_test.test.native reference loop preserves every input slot across long execution...OK
+3/4 execution_test.test.safe native reference loop updates have equal allocation cost for short and long execution...OK
+4/4 execution_test.test.native reference loop releases all allocation failures without changing any owner or input slot...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/two_buffers/execution_test.zig (safe) (47.801163ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50.950502
+1/2 execution_test.test.native accessor reads the real host field without changing the owner...OK
+2/2 execution_test.test.native accessor preserves a zero field with no allocation capacity...OK
+All 2 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/read/execution_test.zig (safe) (50.078329ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.03152
+1/3 execution_test.test.native reference argument expansion preserves address order across equal valued owners...OK
+2/3 execution_test.test.first native reference error prevents all later native calls...OK
+3/3 execution_test.test.second native reference error preserves the first call and skips the read...OK
+All 3 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/order/execution_test.zig (safe) (50.08979ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.242489
+1/3 execution_test.test.native reference aggregate and list slots preserve child addresses and repeated aliases...OK
+2/3 execution_test.test.native owner survives releasing all ZX aggregate and list buffers...OK
+3/3 execution_test.test.native reference container allocation failures release buffers and preserve every host node...OK
+All 3 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/containers/execution_test.zig (safe) (47.073756ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50.125238
+1/2 execution_test.test.native accessor reads the real host field without changing the owner...OK
+2/2 execution_test.test.native accessor preserves a zero field with no allocation capacity...OK
+All 2 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/read/execution_test.zig (safe) (50.080128ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.112153
+1/4 execution_test.test.native reference loop preserves the zero step borrowed slots and first write isolation...OK
+2/4 execution_test.test.native reference loop preserves every input slot across long execution...OK
+3/4 execution_test.test.native reference history preserves the previous version across multiple replacements...OK
+4/4 execution_test.test.native reference loop releases all allocation failures without changing any owner or input slot...OK
+All 4 tests passed.
+✔ native reference runtime ./tests/native/references/runtime/loop_history/execution_test.zig (safe) (49.057927ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.440302
+✔ native reference application boundary input/leaf.zx (safe) (137.360462ms)
+✔ native reference application boundary input/optional.zx (safe) (127.486104ms)
+✔ native reference application boundary input/list.zx (safe) (130.438956ms)
+✔ native reference application boundary input/object.zx (safe) (130.16013ms)
+✔ native reference application boundary input/tuple.zx (safe) (132.367473ms)
+✔ native reference application boundary output/identity.zx (safe) (129.818685ms)
+✔ native reference application boundary output/optional.zx (safe) (135.317078ms)
+✔ native reference application boundary output/nested.zx (safe) (136.231737ms)
+✔ native reference application boundary control/scalar.zx (safe) (44167.312291ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 45230.620056
+Build Summary: 123/123 steps succeeded; 87/87 tests passed
+test-native-references success
++- test-native-references-analysis success
+|  +- run test 13 pass (13 total) 4ms MaxRSS:1M
+|  |  +- compile test safe native success 23s MaxRSS:767M
+|  |     +- WriteFile interfaces/0.d.zx cached
+|  |     |  +- run exe standard-catalog (catalog.zig) cached
+|  |     |     +- compile exe standard-catalog fast native cached 44ms MaxRSS:21M
+|  |     |     +- WriteFile catalog.json cached
+|  |     +- options cached
+|  |     +- run exe generate-parser (parser.zig) cached
+|  |     |  +- compile exe generate-parser safe native cached 46ms MaxRSS:21M
+|  |     |     +- options cached
+|  |     |     +- WriteFile interfaces/0.d.zx cached
+|  |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|  |     |     |     +- compile exe standard-catalog fast native cached 44ms MaxRSS:21M
+|  |     |     |     +- WriteFile catalog.json cached
+|  |     |     +- options cached
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) cached
+|  |        +- compile exe generate-lexer safe native cached 44ms MaxRSS:21M
+|  |           +- WriteFile interfaces/0.d.zx cached
+|  |           |  +- run exe standard-catalog (catalog.zig) cached
+|  |           |     +- compile exe standard-catalog fast native cached 43ms MaxRSS:21M
+|  |           |     +- WriteFile catalog.json cached
+|  |           +- options cached
+|  +- run test 12 pass (12 total) 4ms MaxRSS:1M
+|  |  +- compile test safe native success 23s MaxRSS:854M
+|  |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |     +- options (reused)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run test 13 pass (13 total) 3ms MaxRSS:1M
+|  |  +- compile test safe native success 24s MaxRSS:760M
+|  |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |     +- options (reused)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run test 2 pass (2 total) 10ms MaxRSS:2M
+|     +- compile test safe native success 24s MaxRSS:769M
+|        +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|        +- options (reused)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- test-native-references-ir success
+|  +- run test 5 pass (5 total) 3ms MaxRSS:2M
+|  |  +- compile test safe native success 29s MaxRSS:866M
+|  |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |     +- options (reused)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run test 8 pass (8 total) 3ms MaxRSS:2M
+|  |  +- compile test safe native success 29s MaxRSS:864M
+|  |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |     +- options (reused)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run test 2 pass (2 total) 25ms MaxRSS:2M
+|     +- compile test safe native success 29s MaxRSS:847M
+|        +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|        +- options (reused)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- test-native-references-exports success
+|  +- run test 7 pass (7 total) 3ms MaxRSS:1M
+|  |  +- compile test safe native success 25s MaxRSS:792M
+|  |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |     +- options (reused)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run test 3 pass (3 total) 2ms MaxRSS:2M
+|  |  +- compile test safe native success 31s MaxRSS:921M
+|  |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |     +- options (reused)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run test 2 pass (2 total) 16ms MaxRSS:2M
+|     +- compile test safe native success 32s MaxRSS:938M
+|        +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|        +- options (reused)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- test-native-references-library success
+|  +- run test 5 pass (5 total) 5ms MaxRSS:2M
+|  |  +- compile test safe native success 29s MaxRSS:881M
+|  |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |     +- options (reused)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run test 5 pass (5 total) 4ms MaxRSS:2M
+|  |  +- compile test safe native success 27s MaxRSS:831M
+|  |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |     +- options (reused)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run test 8 pass (8 total) 3ms MaxRSS:1M
+|  |  +- compile test safe native success 28s MaxRSS:899M
+|  |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |     +- options (reused)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run test 2 pass (2 total) 458ms MaxRSS:2M
+|     +- compile test safe native success 29s MaxRSS:843M
+|        +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|        +- options (reused)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|        +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- test-native-references-runtime success
+|  +- run node success 115ms
+|  |  +- run exe generate-native-reference-runtime (identity-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native cached 48ms MaxRSS:21M
+|  |        +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|  |        +- options (reused)
+|  |        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |        +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  |        +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|  +- run node success 113ms
+|  |  +- run exe generate-native-reference-runtime (identity-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 113ms
+|  |  +- run exe generate-native-reference-runtime (read-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 111ms
+|  |  +- run exe generate-native-reference-runtime (read-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 112ms
+|  |  +- run exe generate-native-reference-runtime (optional-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 115ms
+|  |  +- run exe generate-native-reference-runtime (optional-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 109ms
+|  |  +- run exe generate-native-reference-runtime (coalesce-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 115ms
+|  |  +- run exe generate-native-reference-runtime (coalesce-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 109ms
+|  |  +- run exe generate-native-reference-runtime (containers-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 115ms
+|  |  +- run exe generate-native-reference-runtime (containers-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 111ms
+|  |  +- run exe generate-native-reference-runtime (order-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 115ms
+|  |  +- run exe generate-native-reference-runtime (order-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 116ms
+|  |  +- run exe generate-native-reference-runtime (traversal-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 112ms
+|  |  +- run exe generate-native-reference-runtime (traversal-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 109ms
+|  |  +- run exe generate-native-reference-runtime (borrowed-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 115ms
+|  |  +- run exe generate-native-reference-runtime (borrowed-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 114ms
+|  |  +- run exe generate-native-reference-runtime (loop_write-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 115ms
+|  |  +- run exe generate-native-reference-runtime (loop_write-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 123ms
+|  |  +- run exe generate-native-reference-runtime (loop_history-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 115ms
+|  |  +- run exe generate-native-reference-runtime (loop_history-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 111ms
+|  |  +- run exe generate-native-reference-runtime (two_buffers-source) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- run node success 111ms
+|  |  +- run exe generate-native-reference-runtime (two_buffers-library) cached
+|  |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|  +- test-native-references-transfers success
+|     +- run node success 114ms
+|     |  +- run exe generate-native-reference-runtime (nested_helpers-source) success 4ms
+|     |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|     +- run node success 114ms
+|     |  +- run exe generate-native-reference-runtime (nested_helpers-library) success 5ms
+|     |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|     +- run node success 112ms
+|     |  +- run exe generate-native-reference-runtime (helper_pop-source) success 13ms
+|     |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|     +- run node success 118ms
+|     |  +- run exe generate-native-reference-runtime (helper_pop-library) success 5ms
+|     |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|     +- run node success 117ms
+|     |  +- run exe generate-native-reference-runtime (dual_append-source) success 3ms
+|     |     +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
+|     +- run node success 115ms
+|        +- run exe generate-native-reference-runtime (dual_append-library) success 5ms
+|           +- compile exe generate-native-reference-runtime safe native (+6 more reused dependencies)
++- test-native-references-targets success
+   +- run node (application-targets.json) success 45s
+      +- compile exe zxc safe native success 1m MaxRSS:2G
+         +- WriteFile cached
+         +- compile lib yaml safe native success 885ms MaxRSS:103M
+         +- compile lib yaml safe native (reused)
+         +- translate-c success 80ms MaxRSS:21M
+         +- options success
+         +- run exe bundle-zig (bundle) cached
+         |  +- compile exe bundle-zig fast native cached 47ms MaxRSS:21M
+         |  +- WriteFile bundle_manifest.json cached
+         +- options cached
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+         +- options (reused)
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+         +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

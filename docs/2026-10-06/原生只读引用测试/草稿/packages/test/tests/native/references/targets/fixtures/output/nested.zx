@@ -1,0 +1,9 @@
+import type { Node } from "zig:host"
+
+export type Input = u64
+
+export type Output = { nodes: Node?[] }
+
+export default function (in: Input): Output {
+  return { nodes: [null] }
+}
