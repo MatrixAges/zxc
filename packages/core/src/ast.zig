@@ -28,6 +28,7 @@ pub const Expression = struct {
         capture: *const Expression,
         task: *const Expression,
         await_task: *const Expression,
+        cancel_task: *const Expression,
         identifier: Name,
         field: struct { target: *const Expression, name: Name },
         index: struct { target: *const Expression, index: *const Expression },

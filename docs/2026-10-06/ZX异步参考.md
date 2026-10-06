@@ -30,7 +30,17 @@ export default function (in: Input): Output {
 
 `async expression` 创建任务，整个操作数在任务内求值。任务类型携带成功结果类型和有限错误集合；`await task` 消费句柄并取得结果，未捕获的错误向调用者传播。普通函数不需要 async 修饰符。
 
-任务只能保存在创建它的局部 const 中，或直接写作 `await async expression`。每个句柄最多 await 一次；不能复制、作为参数传递、返回，或放进 object、tuple、list、optional。任务离开作用域时，编译器确保取消并等待未完成的执行；提前 return 和错误传播同样适用。
+任务只能保存在创建它的局部 const 中，或直接写作 `await async expression`、`cancel async expression`。每个句柄最多消费一次（await 或 cancel）；不能复制、作为参数传递、返回，或放进 object、tuple、list、optional。任务离开作用域时，编译器确保取消并等待未完成的执行；提前 return 和错误传播同样适用。
+
+`cancel task` 显式请求取消并等待任务结束，结果为 void。它消费句柄，之后不能再次 await 或 cancel。它不传播任务的返回值或业务错误；需要结果时使用 await。取消是协作式的，不能强制终止忽略取消的计算或原生调用。
+
+```zx
+const task = async http.request(options)
+
+cancel task
+```
+
+结果为 void 的 `await task` 可以独立作为语句，完成后继续执行后续语句；失败仍向外传播。非 void 结果需显式使用。
 
 任务的错误只在 await 时传播。退出清理不会把未等待任务的错误替换成当前返回值或已经传播的错误。
 
@@ -87,6 +97,8 @@ flowchart LR
   Start[async 创建任务] --> Handle[局部 task 句柄]
   Handle --> Await[await 消费一次]
   Await --> Result[成功值或有限错误]
+  Handle --> Cancel[cancel 消费一次]
+  Cancel --> Join[请求取消并等待]
   Handle --> Exit[退出作用域]
   Exit --> Cleanup[取消并等待]
 ```

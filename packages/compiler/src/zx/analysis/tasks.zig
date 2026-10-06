@@ -77,3 +77,11 @@ pub fn parallel(self: *Analyzer, expression: *const zx.ast.Expression) zx.Error!
 
     return self.append(.{ .span = expression.span, .type_id = result_type, .value = .{ .parallel = branches } });
 }
+
+pub fn cancel(self: *Analyzer, child: *const zx.ast.Expression, span: zx.Span) zx.Error!ir.ExprId {
+    const operand = try self.expression(child, null);
+
+    if (self.types.get(self.node(operand).type_id) != .task) return self.reporter.fail(.type_mismatch, span, "cancel requires a task");
+
+    return self.append(.{ .span = span, .type_id = Types.scalarId(.void), .value = .{ .cancel_task = operand } });
+}

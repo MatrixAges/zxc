@@ -27,13 +27,15 @@ export default function (in: owned Input): Output {
   }
 
   if (operator == Operator.None) {
-    if (state.expression.tree.nodes[result].kind == ExprKind.Call) {
+    const expression_kind = state.expression.tree.nodes[result].kind
+
+    if (expression_kind == ExprKind.Call || expression_kind == ExprKind.Await || expression_kind == ExprKind.Cancel) {
       return { expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: { ...state.frame, statement: StatementKind.Evaluate }, control: { ...state.control, phase: Phase.EndStatement } }
     }
 
     const start = state.expression.tree.nodes[result].span.start
     const end = state.expression.tree.nodes[result].span.end
-    const diagnostic = { code: "syntax", start: start, end: end, message: "expected a state update or a standalone call" }
+    const diagnostic = { code: "syntax", start: start, end: end, message: "expected a state update, call, await or cancel" }
 
     return { expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: state.frame, control: { ...state.control, phase: Phase.Done, diagnostic: diagnostic } }
   }

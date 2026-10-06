@@ -7,7 +7,7 @@ pub fn analyze(allocator: std.mem.Allocator, expressions: []const ir.Expression,
     for (expressions, 0..) |expression, index| {
         result[index] = switch (expression.value) {
             .task => |task| result[@backingInt(task.body)],
-            .await_task => |child| result[@backingInt(child)],
+            .await_task, .cancel_task => |child| result[@backingInt(child)],
             .parallel => |branches| blk: {
                 for (branches) |branch| if (result[@backingInt(branch.task)]) break :blk true;
 

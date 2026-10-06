@@ -6,6 +6,8 @@ export default function (in: Input): Output {
   const task = async (in + 1)
 
   if (in == 0) {
+    cancel task
+
     return 0
   }
 

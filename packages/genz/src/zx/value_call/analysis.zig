@@ -49,7 +49,7 @@ fn contains(program: ir.Program, child: ir.TypeId, root: ir.TypeId) bool {
 
 fn calls(expressions: []const ir.Expression, contracts: []const ir.Contract, pure: []const bool) bool {
     for (expressions) |expression| switch (expression.value) {
-        .task, .await_task, .parallel => return false,
+        .task, .await_task, .cancel_task, .parallel => return false,
         .call => |value| if (!pure[@backingInt(value.function)]) return false,
         else => {},
     };

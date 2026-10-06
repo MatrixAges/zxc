@@ -117,7 +117,20 @@ export default function (in: Input): Output {
       _ => Keyword.Dead
     }
     case Keyword.Ca: return match {
+      in.byte == 110 => Keyword.Can,
       in.byte == 115 => Keyword.Cas,
+      _ => Keyword.Dead
+    }
+    case Keyword.Can: return match {
+      in.byte == 99 => Keyword.Canc,
+      _ => Keyword.Dead
+    }
+    case Keyword.Canc: return match {
+      in.byte == 101 => Keyword.Cance,
+      _ => Keyword.Dead
+    }
+    case Keyword.Cance: return match {
+      in.byte == 108 => Keyword.Cancel,
       _ => Keyword.Dead
     }
     case Keyword.Cas: return match {

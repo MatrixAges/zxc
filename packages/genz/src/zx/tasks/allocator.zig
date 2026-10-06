@@ -15,7 +15,7 @@ pub fn required(allocator: std.mem.Allocator, program: ir.Program) Lower.Error!b
 
 fn uses(expressions: []const ir.Expression, functions: []const bool) bool {
     for (expressions) |expression| switch (expression.value) {
-        .task, .await_task, .parallel => return true,
+        .task, .await_task, .cancel_task, .parallel => return true,
         .call => |call| if (functions[@backingInt(call.function)]) return true,
         else => {},
     };

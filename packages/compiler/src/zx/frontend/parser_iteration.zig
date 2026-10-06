@@ -55,7 +55,7 @@ pub fn statement(parser: *Parser) zx.Error!@FieldType(ast.Statement, "value") {
 
     if (!parser.take("=")) {
         const candidate = zx.syntax.Operator.parse(parser.current().text(parser.source)) orelse {
-            if (target.value != .call) return parser.reporter.fail(.syntax, target.span, "expected a state update or a standalone call");
+            if (target.value != .call and target.value != .await_task and target.value != .cancel_task) return parser.reporter.fail(.syntax, target.span, "expected a state update, call, await or cancel");
 
             try parser.endStatement();
 

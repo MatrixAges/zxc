@@ -10,7 +10,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
     @memset(uses, 0);
 
     for (program.expressions) |expression| switch (expression.value) {
-        .await_task => |child| {
+        .await_task, .cancel_task => |child| {
             const value = program.expression(child).value;
 
             if (value != .task and value != .reference) return false;
@@ -21,7 +21,12 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
             uses[@backingInt(branch.task)] += 1;
         },
         .scope => |scope| for (scope.bindings) |binding| {
-            if (program.typeOf(program.expression(binding.value).type_id) == .task) return false;
+            const value = program.expression(binding.value);
+
+            if (program.typeOf(value.type_id) != .task) continue;
+            if (binding.symbol == null or value.value != .task) return false;
+
+            uses[@backingInt(binding.value)] += 1;
         },
         else => {},
     };

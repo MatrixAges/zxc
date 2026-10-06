@@ -71,6 +71,7 @@ pub fn analyze(self: *Analyzer, expression: *const zx.ast.Expression, expected: 
         .capture => |child| return @import("capture.zig").analyze(self, child, span),
         .task => |child| return @import("tasks.zig").start(self, child, span),
         .await_task => |child| return @import("tasks.zig").wait(self, child, span),
+        .cancel_task => |child| return @import("tasks.zig").cancel(self, child, span),
         .unary => |unary| {
             if (unary.operator == .negate and unary.operand.value == .number) return numbers.literal(self, unary.operand.value.number, span, aggregates.payload(self, expected), true);
 

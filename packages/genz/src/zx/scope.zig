@@ -29,19 +29,28 @@ fn lowerMode(self: *Lower, scope: ir.Scope, layout: bool) Lower.Error!*const nod
     }
 
     const result = if (layout) try values.expression(self, scope.result) else try self.expr(scope.result);
-    const statements = try self.allocator.alloc(?node.Statement, scope.bindings.len);
+    const statements = try self.allocator.alloc([]const node.Statement, scope.bindings.len);
     var offset = scope.bindings.len;
 
     while (offset > 0) {
         offset -= 1;
         const binding = scope.bindings[offset];
+        var output: std.ArrayList(node.Statement) = .empty;
 
         if (binding.symbol) |symbol| {
             if (!self.used[@backingInt(symbol)] and self.program.expression(binding.value).value == .reference) {
-                statements[offset] = null;
+                statements[offset] = &.{};
 
                 continue;
             }
+        }
+
+        if (self.program.typeOf(self.program.expression(binding.value).type_id) == .task) {
+            try @import("tasks/root.zig").bind(self, &output, self.names[@backingInt(binding.symbol.?)], binding.value, false);
+
+            statements[offset] = try output.toOwnedSlice(self.allocator);
+
+            continue;
         }
 
         const by_value = if (binding.symbol) |symbol| self.stack_symbols.contains(symbol) else false;
@@ -51,18 +60,20 @@ fn lowerMode(self: *Lower, scope: ir.Scope, layout: bool) Lower.Error!*const nod
             const index = @backingInt(symbol);
 
             if (self.used[index]) {
-                statements[offset] = .{ .constant = .{
+                try output.append(self.allocator, .{ .constant = .{
                     .name = self.names[index],
                     .type_expr = if (by_value) self.layouts[@backingInt(self.program.symbols[index].type_id)] else self.types[@backingInt(self.program.symbols[index].type_id)],
                     .value = value,
-                } };
-            } else statements[offset] = .{ .discard = value };
-        } else statements[offset] = .{ .expression = value };
+                } });
+            } else try output.append(self.allocator, .{ .discard = value });
+        } else try output.append(self.allocator, .{ .expression = value });
+
+        statements[offset] = try output.toOwnedSlice(self.allocator);
     }
 
     var body: std.ArrayList(node.Statement) = .empty;
 
-    for (statements) |statement| if (statement) |value| try body.append(self.allocator, value);
+    for (statements) |chunk| try body.appendSlice(self.allocator, chunk);
 
     return @import("aggregate.zig").finish(self, &body, result);
 }

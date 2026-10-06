@@ -27,7 +27,7 @@ fn read(self: Self, value: @FieldType(ir.Expression, "value")) bool {
     const safe = self.safe;
 
     return switch (value) {
-        .scope, .iteration, .list_update, .capture, .task, .await_task, .parallel => false,
+        .scope, .iteration, .list_update, .capture, .task, .await_task, .cancel_task, .parallel => false,
         .reference => |symbol| symbol != self.accumulator,
         .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value, .store_get => true,
         .some, .optional_value => |id| safe[@backingInt(id)],

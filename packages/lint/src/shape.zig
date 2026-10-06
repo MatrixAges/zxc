@@ -30,6 +30,7 @@ fn sameExpression(left: *const ast.Expression, right: *const ast.Expression) boo
         .capture => |child| sameExpression(child, right.value.capture),
         .task => |child| sameExpression(child, right.value.task),
         .await_task => |child| sameExpression(child, right.value.await_task),
+        .cancel_task => |child| sameExpression(child, right.value.cancel_task),
         .unary => |unary| sameExpression(unary.operand, right.value.unary.operand),
         .binary => |binary| sameExpression(binary.left, right.value.binary.left) and sameExpression(binary.right, right.value.binary.right),
         .call => |call| sameExpression(call.callee, right.value.call.callee) and sameType(call.type_argument, right.value.call.type_argument) and sameItems(call.arguments, right.value.call.arguments),

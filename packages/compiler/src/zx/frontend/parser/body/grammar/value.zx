@@ -11,10 +11,12 @@ export default function (in: owned Input): Output {
   const result = in.expression.control.result
   const kind = in.frame.statement
 
-  if (kind == StatementKind.Evaluate && in.expression.tree.nodes[result].kind != ExprKind.Call) {
+  const expression_kind = in.expression.tree.nodes[result].kind
+
+  if (kind == StatementKind.Evaluate && expression_kind != ExprKind.Call && expression_kind != ExprKind.Await && expression_kind != ExprKind.Cancel) {
     const start = in.expression.tree.nodes[result].span.start
     const end = in.expression.tree.nodes[result].span.end
-    const diagnostic = { code: "syntax", start: start, end: end, message: "only calls can be used as standalone expressions" }
+    const diagnostic = { code: "syntax", start: start, end: end, message: "only calls, await and cancel can be used as standalone expressions" }
 
     return { expression: in.expression, tree: in.tree, frames: in.frames, suspended: in.suspended, frame: in.frame, control: { ...in.control, phase: Phase.Done, diagnostic: diagnostic } }
   }

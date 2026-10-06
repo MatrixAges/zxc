@@ -78,7 +78,7 @@ fn expressions(self: *Self, values: []const ir.Expression) Error![]const ir.Expr
 
         item.value = switch (item.value) {
             .task => |task| .{ .task = .{ .body = task.body, .captures = try self.allocator.dupe(ir.SymbolId, task.captures) } },
-            .await_task => item.value,
+            .await_task, .cancel_task => item.value,
             .parallel => |branches| .{ .parallel = try self.allocator.dupe(ir.ParallelBranch, branches) },
             .string => |text| .{ .string = try self.allocator.dupe(u8, text) },
             .list => |ids| .{ .list = try self.allocator.dupe(ir.ExprId, ids) },

@@ -72,6 +72,8 @@ fn primary(parser: *Parser, allow_lambda: bool) zx.Error!*const ast.Expression {
         return parser.make(token.span.start, .{ .task = try primary(parser, allow_lambda) });
     } else if (parser.take("await")) {
         return parser.make(token.span.start, .{ .await_task = try primary(parser, allow_lambda) });
+    } else if (parser.take("cancel")) {
+        return parser.make(token.span.start, .{ .cancel_task = try primary(parser, allow_lambda) });
     } else if (parser.take("try")) {
         return parser.make(token.span.start, .{ .capture = try primary(parser, allow_lambda) });
     } else if (parser.take("match")) {

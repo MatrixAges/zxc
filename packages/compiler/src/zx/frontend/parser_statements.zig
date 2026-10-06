@@ -144,12 +144,13 @@ const Evaluation = struct {
     pub const Value = @FieldType(ast.Statement, "value");
 
     pub fn parse(parser: *Parser) zx.Error!grammar.Match(@This().Value) {
-        if (parser.current().kind != .identifier and !parser.at("(") and !parser.at("[")) return .miss;
+        if (parser.current().kind != .identifier and !parser.at("(") and !parser.at("[") and !parser.at("await") and !parser.at("cancel")) return .miss;
         if (parser.state_block_depth != 0) return .{ .hit = try @import("parser_iteration.zig").statement(parser) };
 
         const value = try parser.expression(0);
 
-        if (value.value != .call) return parser.reporter.fail(.syntax, value.span, "only calls can be used as standalone expressions");
+        if (value.value != .call and value.value != .await_task and value.value != .cancel_task) return parser.reporter.fail(.syntax, value.span, "only calls, await and cancel can be used as standalone expressions");
+
         try parser.endStatement();
 
         return .{ .hit = .{ .evaluate = value } };

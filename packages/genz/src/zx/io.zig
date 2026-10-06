@@ -4,7 +4,7 @@ const capabilities = @import("capabilities.zig");
 
 pub fn uses(expressions: []const ir.Expression, contracts: []const ir.Contract, required: []const bool) bool {
     for (expressions) |expression| switch (expression.value) {
-        .task, .await_task, .parallel => return true,
+        .task, .await_task, .cancel_task, .parallel => return true,
         else => {},
     };
 

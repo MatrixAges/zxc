@@ -426,6 +426,11 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
 
             break :blk .borrowed;
         },
+        .cancel_task => |child| blk: {
+            _ = try self.value(child, .move);
+
+            break :blk .copy;
+        },
         .parallel => |branches| blk: {
             for (branches) |branch| _ = try self.value(branch.task, .move);
 

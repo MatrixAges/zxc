@@ -20,7 +20,7 @@ pub fn isKeyword(name: []const u8) bool {
         "export", "type", "default", "function", "const", "if",     "else",
         "return", "true", "false",   "import",   "enum",  "switch", "null",
         "let",    "var",  "for",     "while",    "new",   "throw",  "async",
-        "await",  "case", "break",   "match",    "try",
+        "await",  "case", "break",   "match",    "try", "cancel",
     };
 
     for (keywords) |keyword| {

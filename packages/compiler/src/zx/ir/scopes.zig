@@ -222,7 +222,7 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
         .index => |item| try self.expression(item.target, depth + 1) and try self.expression(item.index, depth + 1),
         .length, .some => |child| self.expression(child, depth + 1),
         .capture => |child| self.expression(child, depth + 1),
-        .await_task => |child| self.expression(child, depth + 1),
+        .await_task, .cancel_task => |child| self.expression(child, depth + 1),
         .task => |task| blk: {
             const saved = try self.allocator.dupe(bool, self.active);
 

@@ -33,7 +33,7 @@ export default function (in: owned Input): Output {
     return expression({ state: { expression: state.expression, tree: state.tree, frames: state.frames, suspended: state.suspended, frame: { ...state.frame, statement: StatementKind.StoreSet }, control: state.control }, resume: Phase.StoreAssign, minimum: 0 })
   }
 
-  if (state.expression.control.token.kind == Kind.Identifier || symbol == Symbol.OpenParen || symbol == Symbol.OpenBracket) {
+  if (state.expression.control.token.kind == Kind.Identifier || symbol == Symbol.OpenParen || symbol == Symbol.OpenBracket || word == Keyword.Await || word == Keyword.Cancel) {
     const updating = state.control.state_block
 
     return expression({ state: state, resume: updating ? Phase.UpdateOperator : Phase.Value, minimum: updating ? 8 : 0 })

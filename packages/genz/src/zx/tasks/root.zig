@@ -37,9 +37,9 @@ pub fn start(self: *Lower, id: ir.ExprId, concurrent: bool) Lower.Error!*const n
 pub fn bind(self: *Lower, output: *std.ArrayList(node.Statement), name: []const u8, id: ir.ExprId, concurrent: bool) Lower.Error!void {
     try output.append(self.allocator, .{ .variable = .{ .name = name, .value = try start(self, id, concurrent) } });
 
-    const cancel = try self.call(try self.field(try self.builder.identifier(name), "cancel"), &.{try self.builder.identifier("io")}, false);
+    const cleanup = try self.call(try self.field(try self.builder.identifier(name), "cancel"), &.{try self.builder.identifier("io")}, false);
 
-    try output.append(self.allocator, .{ .defer_scope = try self.allocator.dupe(node.Statement, &.{.{ .discard_error = cancel }}) });
+    try output.append(self.allocator, .{ .defer_scope = try self.allocator.dupe(node.Statement, &.{.{ .discard_error = cleanup }}) });
 }
 
 pub fn wait(self: *Lower, child: ir.ExprId) Lower.Error!*const node.Expression {
@@ -88,4 +88,22 @@ pub fn parallel(self: *Lower, type_id: ir.TypeId, branches: []const ir.ParallelB
     const result = if (self.program.typeOf(type_id) == .object) try self.construct(type_id, try self.builder.expression(.{ .object = .{ .fields = try fields.toOwnedSlice(self.allocator) } })) else try self.builder.expression(.unit);
 
     return @import("../aggregate.zig").finish(self, &body, result);
+}
+
+pub fn cancel(self: *Lower, child: ir.ExprId) Lower.Error!*const node.Expression {
+    self.uses_io = true;
+
+    var body: std.ArrayList(node.Statement) = .empty;
+
+    const future = if (self.program.expression(child).value == .task) blk: {
+        const name = try self.fresh("future");
+
+        try bind(self, &body, name, child, false);
+
+        break :blk try self.builder.identifier(name);
+    } else try self.expr(child);
+
+    try body.append(self.allocator, .{ .discard_error = try self.call(try self.field(future, "cancel"), &.{try self.builder.identifier("io")}, false) });
+
+    return @import("../aggregate.zig").finish(self, &body, try self.builder.expression(.unit));
 }

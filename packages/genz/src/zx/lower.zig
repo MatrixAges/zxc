@@ -204,6 +204,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
     return switch (value.value) {
         .task => @import("tasks/root.zig").start(self, id, false),
         .await_task => |child| @import("tasks/root.zig").wait(self, child),
+        .cancel_task => |child| @import("tasks/root.zig").cancel(self, child),
         .parallel => |branches| @import("tasks/root.zig").parallel(self, value.type_id, branches),
         .capture => |child| @import("capture.zig").lower(self, value.type_id, child),
         .optional_value => |child| self.builder.expression(.{ .optional_unwrap = try self.expr(child) }),

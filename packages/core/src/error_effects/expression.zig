@@ -7,6 +7,7 @@ pub fn visit(self: *Effects, values: []const ir.Expression, value: ir.Expression
         .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value, .reference, .store_get => {},
         .capture => try self.add("OutOfMemory"),
         .task => {},
+        .cancel_task => |child| try self.visit(values, child),
         .await_task => |child| {
             try self.visit(values, child);
 

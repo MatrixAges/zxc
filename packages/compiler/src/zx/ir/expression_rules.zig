@@ -34,6 +34,7 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
 
             break :blk task == .task and task.task.result == type_id;
         },
+        .cancel_task => |child| check.earlier(child) and type_id == void_type and program.typeOf(program.expression(child).type_id) == .task,
         .parallel => |branches| blk: {
             if (target != .object and type_id != void_type) break :blk false;
 

@@ -57,6 +57,7 @@ pub const Expression = struct {
         capture: ExprId,
         task: Task,
         await_task: ExprId,
+        cancel_task: ExprId,
         parallel: []const ParallelBranch,
         optional_value: ExprId,
         enum_value: u32,
@@ -158,7 +159,7 @@ pub const Function = struct {
 pub const Program = struct {
     consumes_input: bool = false,
     output_ownership: Ownership = .borrowed,
-    version: u32 = 19,
+    version: u32 = 20,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,
