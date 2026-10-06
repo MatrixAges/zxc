@@ -1,0 +1,41 @@
+const check = @import("support").check;
+
+test "language/expressions/addition/explicit_strings/1" {
+    try check(@import("program"), &.{.left = "1", .right = "1"}, .{ .value = "11" });
+}
+
+test "language/expressions/addition/explicit_strings/2" {
+    try check(@import("program"), &.{.left = "x", .right = "1"}, .{ .value = "x1" });
+}
+
+test "language/expressions/addition/explicit_strings/3" {
+    try check(@import("program"), &.{.left = "1", .right = "x"}, .{ .value = "1x" });
+}
+
+test "language/expressions/addition/explicit_strings/4" {
+    try check(@import("program"), &.{.left = "", .right = ""}, .{ .value = "" });
+}
+
+test "language/expressions/addition/explicit_strings/5" {
+    try check(@import("program"), &.{.left = "", .right = "tail"}, .{ .value = "tail" });
+}
+
+test "language/expressions/addition/explicit_strings/6" {
+    try check(@import("program"), &.{.left = "head", .right = ""}, .{ .value = "head" });
+}
+
+test "language/expressions/addition/explicit_strings/7" {
+    try check(@import("program"), &.{.left = "\xe4\xb8\xad", .right = "\xe6\x96\x87"}, .{ .value = "\xe4\xb8\xad\xe6\x96\x87" });
+}
+
+test "language/expressions/addition/explicit_strings/8" {
+    try check(@import("program"), &.{.left = "\xf0\x9f\x8c\xb1", .right = "\xf0\x9f\x8d\x83"}, .{ .value = "\xf0\x9f\x8c\xb1\xf0\x9f\x8d\x83" });
+}
+
+test "language/expressions/addition/explicit_strings/9" {
+    try check(@import("program"), &.{.left = "e", .right = "\xcc\x81"}, .{ .value = "e\xcc\x81" });
+}
+
+test "language/expressions/addition/explicit_strings/10" {
+    try check(@import("program"), &.{.left = "lego", .right = ""}, .{ .value = "lego" });
+}

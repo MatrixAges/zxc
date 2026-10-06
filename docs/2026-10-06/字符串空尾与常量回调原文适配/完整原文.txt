@@ -1,0 +1,690 @@
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A10.js =====
+SHA256 040e019a564052ff2325d15aaf4573ceaab1733db1908798121a255d70bdfbba
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: The String.prototype.concat.length property has the attribute ReadOnly
+es5id: 15.5.4.6_A10
+description: >
+    Checking if varying the String.prototype.concat.length property
+    fails
+includes: [propertyHelper.js]
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (!(String.prototype.concat.hasOwnProperty('length'))) {
+  throw new Test262Error('#1: String.prototype.concat.hasOwnProperty(\'length\') return true. Actual: ' + String.prototype.concat.hasOwnProperty('length'));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+var __obj = String.prototype.concat.length;
+
+verifyNotWritable(String.prototype.concat, "length", null, function() {
+  return "shifted";
+});
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#2
+if (String.prototype.concat.length !== __obj) {
+  throw new Test262Error('#2: __obj = String.prototype.concat.length; String.prototype.concat.length = function(){return "shifted";}; String.prototype.concat.length === __obj. Actual: ' + String.prototype.concat.length);
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A11.js =====
+SHA256 44d081a2645d7656bde117711221fa4f8c10be886b99a134a37522c5ff1ec095
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: The length property of the concat method is 1
+es5id: 15.5.4.6_A11
+description: Checking String.prototype.concat.length
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (!(String.prototype.concat.hasOwnProperty("length"))) {
+  throw new Test262Error('#1: String.prototype.concat.hasOwnProperty("length") return true. Actual: ' + String.prototype.concat.hasOwnProperty("length"));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#2
+if (String.prototype.concat.length !== 1) {
+  throw new Test262Error('#2: String.prototype.concat.length === 1. Actual: ' + String.prototype.concat.length);
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A1_T1.js =====
+SHA256 64d98d53cd5b24dee7134c06eb78bf0e03f8233a9e69134167e0962086551cf4
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]])
+es5id: 15.5.4.6_A1_T1
+description: Arguments are false and true, and instance is object
+---*/
+
+var __instance = new Object(42);
+
+__instance.concat = String.prototype.concat;
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (__instance.concat(false, true) !== "42falsetrue") {
+  throw new Test262Error('#1: __instance = new Object(42); __instance.concat = String.prototype.concat;  __instance.concat(false,true) === "42falsetrue". Actual: ' + __instance.concat(false, true));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A1_T10.js =====
+SHA256 11f7f1384c93c6aa606235e35e06ebad4a0c52ba757fa9298b4de35819c29b7e
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]])
+es5id: 15.5.4.6_A1_T10
+description: Call concat([,[...]]) function with object arguments
+---*/
+
+var __obj = {
+  toString: function() {
+    return "\u0041";
+  },
+  valueOf: function() {
+    return "_\u0041_";
+  }
+}
+var __obj2 = {
+  toString: function() {
+    return true;
+  }
+}
+var __obj3 = {
+  toString: function() {
+    return 42;
+  }
+}
+var __str = "lego";
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (__str.concat(__obj) !== "legoA") {
+  throw new Test262Error('#1: var x; var __obj = {toString:function(){return "\u0041";}, valueOf:function(){return "_\u0041_";}}; var __str = "lego"; __str.concat(__obj) === "legoA". Actual: ' + __str.concat(__obj));
+}
+if (__str.concat(__obj, __obj2, __obj3, x) !== "legoAtrue42undefined") {
+  throw new Test262Error('#2: var x; var __obj = {toString:function(){return "\u0041";}, valueOf:function(){return "_\u0041_";}}; var __obj2 = {toString:function(){return true;}}; var __obj3 = {toString:function(){return 42;}}; var __str = "lego"; __str.concat(__obj, __obj2, __obj3, x) === "legoAtrue42undefined". Actual: ' + __str.concat(__obj, __obj2, __obj3, x));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+var x;
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A1_T2.js =====
+SHA256 ea9a2a69d38bd5480dd89a538f8da7308804fc08bd55c336330bcf02e4ebc28c
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]])
+es5id: 15.5.4.6_A1_T2
+description: >
+    Arguments are equation with false and true, and instance is
+    Boolean object
+---*/
+
+var __instance = new Boolean;
+
+__instance.concat = String.prototype.concat;
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (__instance.concat("\u0041", true, true + 1) !== "falseAtrue2") {
+  throw new Test262Error('#1: __instance = new Boolean; __instance.concat = String.prototype.concat;  __instance.concat("\\u0041",true,true+1) === "falseAtrue2". Actual: ' + __instance.concat("\u0041", true, true + 1));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A1_T4.js =====
+SHA256 84bbd7ae2fb6b9c828ed7063f580168f7ff367511d44ab018c58d83e37368e92
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]])
+es5id: 15.5.4.6_A1_T4
+description: Call concat([,[...]]) function without argument of string object
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+//since ToString() evaluates to "" concat() evaluates to concat("")
+if ("lego".concat() !== "lego") {
+  throw new Test262Error('#1: "lego".concat() === "lego". Actual: ' + ("lego".concat()));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A1_T5.js =====
+SHA256 bed744879e720063b005fa98c30d45c188b1f583b3c1cbaed8e9b53e4fe3da85
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]])
+es5id: 15.5.4.6_A1_T5
+description: >
+    Call concat([,[...]]) function with null argument of function
+    object
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+//since ToString(null) evaluates to "null" concat(null) evaluates to concat("null")
+if (function() {
+    return "lego"
+  }().concat(null) !== "legonull") {
+  throw new Test262Error('#1: function(){return "lego"}().concat(null) === "legonull". Actual: ' + function() {
+    return "lego"
+  }().concat(null));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A1_T6.js =====
+SHA256 478e6997232e6c9f8a0c22827b6fa2088835ba8012d7b5d52575e924ee3cd448
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]])
+es5id: 15.5.4.6_A1_T6
+description: >
+    Call concat([,[...]]) function with x argument of new String
+    object, where x is undefined variable
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+//since ToString(undefined) evaluates to "undefined" concat(undefined) evaluates to concat("undefined")
+if (new String("lego").concat(x) !== "legoundefined") {
+  throw new Test262Error('#1: var x; new String("lego").concat(x) === "legoundefined". Actual: ' + new String("lego").concat(x));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+var x;
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A1_T7.js =====
+SHA256 ebc1a687e2da80853e619d68b7358aa0d44cb22fd3d25124ccccca15724a613b
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]])
+es5id: 15.5.4.6_A1_T7
+description: >
+    Call concat([,[...]]) function with undefined argument of string
+    object
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+//since ToString(undefined) evaluates to "undefined" concat(undefined) evaluates to concat("undefined")
+if (String("lego").concat(undefined) !== "legoundefined") {
+  throw new Test262Error('#1: String("lego").concat(undefined) === "legoundefined". Actual: ' + String("lego").concat(undefined));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A1_T8.js =====
+SHA256 70fe05f73be5672ba42505d82ef5816cf2f6c7ee1618fb420ca487bccd2f619a
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]])
+es5id: 15.5.4.6_A1_T8
+description: >
+    Call concat([,[...]]) function with void 0 argument of string
+    object
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+//since ToString(void 0) evaluates to "undefined" concat(void 0) evaluates to concat("undefined")
+if (String(42).concat(void 0) !== "42undefined") {
+  throw new Test262Error('#1: String(42).concat(void 0) === "42undefined". Actual: ' + String(42).concat(void 0));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A1_T9.js =====
+SHA256 f77397be06b446cb031c12754b16d9fba66d17b867ae0955cc46afe4b6534a23
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]])
+es5id: 15.5.4.6_A1_T9
+description: >
+    Call concat([,[...]]) function with function(){}() argument of
+    string object
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+//since ToString(undefined) evaluates to "undefined" concat(undefined) evaluates to concat("undefined")
+if (new String(42).concat(function() {}()) !== "42undefined") {
+  throw new Test262Error('#1: new String(42).concat(function(){}()) === "42undefined". Actual: ' + new String(42).concat(function() {}()));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A2.js =====
+SHA256 0030e987ec68dc587540a83b35a1962ef947e3a7676155652d9fa30ac0068b11
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]]) can accept at least 128
+es5id: 15.5.4.6_A2
+description: Call concat([,[...]]) function with 128 arguments
+---*/
+
+var __instance = new Number();
+
+__instance.concat = String.prototype.concat;
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (__instance.concat(
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF
+  ) !== "001234567891011121314150123456789101112131415012345678910111213141501234567891011121314150123456789101112131415012345678910111213141501234567891011121314150123456789101112131415") {
+  throw new Test262Error('#1: Call concat([,[...]]) function with 128 arguments does not lead to throwing any errors');
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A3.js =====
+SHA256 f105e61a71649229091abbe894260156211011ead4d3b7f077b761afadc6b2d9
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat([,[...]]) can't change the instance to be applied
+es5id: 15.5.4.6_A3
+description: Checking if varying the instance that is applied fails
+---*/
+
+var __instance = new String("one");
+
+__instance.concat("two");
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (__instance != "one") {
+  throw new Test262Error('#1: __instance = new String("one"); __instance.concat("two");  __instance = new String("one"); __instance.concat("two"); __instance == "one". Actual: ' + __instance);
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A4_T1.js =====
+SHA256 70ee4ba0938a6aa9b0d001569ea2f1b286fc07155692c04ccdd237898b3d005f
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: |
+    when String.prototype.concat([,[...]]) is called first Call ToString,
+    giving it the this value as its argument
+es5id: 15.5.4.6_A4_T1
+description: Override toString function
+---*/
+
+var __instance = {
+  toString: function() {
+    return "one"
+  }
+};
+
+__instance.concat = String.prototype.concat;
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (__instance.concat("two", x) !== "onetwoundefined") {
+  throw new Test262Error('#1: var x; __instance = {toString:function(){return "one"}}; __instance.concat = String.prototype.concat;  __instance.concat("two",x) === "onetwoundefined". Actual: ' + __instance.concat("two", x));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+var x;
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A4_T2.js =====
+SHA256 c2f08e4d24d6c4c2c3fa3cd2a6bb6078806bdcbad440e59bf15c8ed39af6a1f6
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: |
+    when String.prototype.concat([,[...]]) is called first Call ToString,
+    giving it the this value as its argument
+es5id: 15.5.4.6_A4_T2
+description: Override toString function onto function, that throw exception
+---*/
+
+var __instance = {
+  toString: function() {
+    throw "intostring";
+  }
+};
+var __obj = {
+  toString: function() {
+    throw "infirstarg";
+  }
+};
+
+__instance.concat = String.prototype.concat;
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+try {
+  String.prototype.concat.call(__instance, __obj, notexist);
+  throw new Test262Error('#1: "String.prototype.concat.call(__instance,__obj, notexist)" lead to throwing exception');
+} catch (e) {
+  if (e !== "intostring") {
+    throw new Test262Error('#1: e === "intostring". Actual: ' + e);
+  }
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+var notexist;
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A6.js =====
+SHA256 0754493030a0829ac8ce5ee36dbbec2a760d8b71709f70d1b4b80023e0cbea00
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat has not prototype property
+es5id: 15.5.4.6_A6
+description: Checking String.prototype.concat.prototype
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (String.prototype.concat.prototype !== undefined) {
+  throw new Test262Error('#1: String.prototype.concat.prototype === undefined. Actual: ' + String.prototype.concat.prototype);
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A7.js =====
+SHA256 abdb1ee7f9d20226e5ae337cc21c1d6d1695beb77423274aaed5ee081b3d0573
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: String.prototype.concat can't be used as constructor
+es5id: 15.5.4.6_A7
+description: Checking if creating the String.prototype.concat object fails
+---*/
+
+var __FACTORY = String.prototype.concat;
+
+try {
+  var __instance = new __FACTORY;
+  throw new Test262Error('#1: __FACTORY = String.prototype.concat; "__instance = new __FACTORY" lead throwing exception');
+} catch (e) {
+  if (e instanceof Test262Error) throw e;
+}
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A8.js =====
+SHA256 a3286b4c54d678ff274f70f794d9884eae2b31dd9c82242ab65947d1dbddfe70
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: The String.prototype.concat.length property has the attribute DontEnum
+es5id: 15.5.4.6_A8
+description: >
+    Checking if enumerating the String.prototype.concat.length
+    property fails
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#0
+if (!(String.prototype.concat.hasOwnProperty('length'))) {
+  throw new Test262Error('#0: String.prototype.concat.hasOwnProperty(\'length\') return true. Actual: ' + String.prototype.concat.hasOwnProperty('length'));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// CHECK#1
+if (String.prototype.concat.propertyIsEnumerable('length')) {
+  throw new Test262Error('#1: String.prototype.concat.propertyIsEnumerable(\'length\') return false. Actual: ' + String.prototype.concat.propertyIsEnumerable('length'));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// CHECK#2
+var count = 0;
+
+for (var p in String.prototype.concat) {
+  if (p === "length") count++;
+}
+
+if (count !== 0) {
+  throw new Test262Error('#2: count = 0; for (p in String.prototype.concat){ if (p==="length") count++;}; count === 0. Actual: ' + count);
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/S15.5.4.6_A9.js =====
+SHA256 1e33655d4b63db9c0df72e7e3b15e52845ba818c5b7d0ccde690010bad6b8fee
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+info: |
+    The String.prototype.concat.length property does not have the attribute
+    DontDelete
+es5id: 15.5.4.6_A9
+description: >
+    Checking if deleting the String.prototype.concat.length property
+    fails
+---*/
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#0
+if (!(String.prototype.concat.hasOwnProperty('length'))) {
+  throw new Test262Error('#0: String.prototype.concat.hasOwnProperty(\'length\') return true. Actual: ' + String.prototype.concat.hasOwnProperty('length'));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#1
+if (!delete String.prototype.concat.length) {
+  throw new Test262Error('#1: delete String.prototype.concat.length return true');
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//CHECK#2
+if (String.prototype.concat.hasOwnProperty('length')) {
+  throw new Test262Error('#2: delete String.prototype.concat.length; String.prototype.concat.hasOwnProperty(\'length\') return false. Actual: ' + String.prototype.concat.hasOwnProperty('length'));
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+===== test/built-ins/String/prototype/concat/name.js =====
+SHA256 f9a29a5df339267a44a0c54706a692fedb7043266a6251fa9a65ee21548f7599
+// Copyright (C) 2015 André Bargull. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+es6id: 21.1.3.4
+description: >
+  String.prototype.concat.name is "concat".
+info: |
+  String.prototype.concat ( ...args )
+
+  17 ECMAScript Standard Built-in Objects:
+    Every built-in Function object, including constructors, that is not
+    identified as an anonymous function has a name property whose value
+    is a String.
+
+    Unless otherwise specified, the name property of a built-in Function
+    object, if it exists, has the attributes { [[Writable]]: false,
+    [[Enumerable]]: false, [[Configurable]]: true }.
+includes: [propertyHelper.js]
+---*/
+
+verifyProperty(String.prototype.concat, "name", {
+  value: "concat",
+  writable: false,
+  enumerable: false,
+  configurable: true
+});
+
+
+===== test/built-ins/String/prototype/concat/not-a-constructor.js =====
+SHA256 724fcaf7c0be558e8be580df0cd70494a0ffa64bbceb2c967c173fe111e81d80
+// Copyright (C) 2020 Rick Waldron. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-ecmascript-standard-built-in-objects
+description: >
+  String.prototype.concat does not implement [[Construct]], is not new-able
+info: |
+  ECMAScript Function Objects
+
+  Built-in function objects that are not identified as constructors do not
+  implement the [[Construct]] internal method unless otherwise specified in
+  the description of a particular function.
+
+  sec-evaluatenew
+
+  ...
+  7. If IsConstructor(constructor) is false, throw a TypeError exception.
+  ...
+includes: [isConstructor.js]
+features: [Reflect.construct, arrow-function]
+---*/
+
+assert.sameValue(
+  isConstructor(String.prototype.concat),
+  false,
+  'isConstructor(String.prototype.concat) must return false'
+);
+
+assert.throws(TypeError, () => {
+  new String.prototype.concat();
+});
+
+
+
+===== test/built-ins/String/prototype/concat/this-value-not-obj-coercible.js =====
+SHA256 029f9d7836e96a0b5b2e7a99352d16d2b2cba5481f669ccf7347b82fd963443b
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-string.prototype.concat
+description: The "this" value must be object-coercible
+info: |
+  1. Let O be ? RequireObjectCoercible(this value).
+---*/
+
+var concat = String.prototype.concat;
+
+assert.sameValue(typeof concat, 'function');
+
+assert.throws(TypeError, function() {
+  concat.call(undefined, '');
+}, 'undefined');
+
+assert.throws(TypeError, function() {
+  concat.call(null, '');
+}, 'null');
+
+
+===== test/built-ins/Array/prototype/map/15.4.4.19-8-c-ii-9.js =====
+SHA256 df926ab69d69b37ccf2d88b2ad9a1c694014514f67c8c03c94b8306ede949e04
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.map
+description: Array.prototype.map - callbackfn with 0 formal parameter
+---*/
+
+function callbackfn() {
+  return true;
+}
+
+var testResult = [11].map(callbackfn);
+
+assert.sameValue(testResult[0], true, 'testResult[0]');
+
+
+===== test/built-ins/Array/prototype/filter/15.4.4.20-9-c-ii-9.js =====
+SHA256 af3ff20aa1043a36bec160420d5f77ac9a7c0bd1c70fef061dc50982d2bfd80e
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.filter
+description: >
+    Array.prototype.filter - callbackfn is called with 0 formal
+    parameter
+---*/
+
+function callbackfn() {
+  return true;
+}
+var newArr = [11].filter(callbackfn);
+
+assert.sameValue(newArr.length, 1, 'newArr.length');
+assert.sameValue(newArr[0], 11, 'newArr[0]');
+
