@@ -38,6 +38,8 @@ fn normalizeSpecial(allocator: std.mem.Allocator, path: []const u8, suffix: []co
 }
 
 fn normalizeSegments(allocator: std.mem.Allocator, path: []const u8) Error![]const u8 {
+    if (@import("rx_options").generated_paths) return @import("path_segments/adapter.zig").normalize(allocator, path);
+
     var segments: std.ArrayList([]const u8) = .empty;
 
     defer segments.deinit(allocator);

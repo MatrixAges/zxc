@@ -28,7 +28,7 @@ pub fn sources(allocator: std.mem.Allocator, size: usize, shape: Shape, edges: [
             const leaf = if (shape == .import)
                 try node(allocator, "Import", &.{.{ "from", reference }}, &.{}, point)
             else
-                try node(allocator, "Call", &.{ .{ "service", reference }, .{ "in", "$in" } }, &.{}, point);
+                try node(allocator, "Call", &.{ .{ "module", reference }, .{ "in", "$in" } }, &.{}, point);
 
             const child = switch (shape) {
                 .call, .import => leaf,

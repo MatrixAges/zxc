@@ -82,7 +82,7 @@ fn validate(allocator: std.mem.Allocator, sources: []const rx.ModuleSource, size
     try std.testing.expectEqual(.context, issue.code);
     try std.testing.expectEqualStrings("Reference creates a circular module dependency", issue.message);
     try std.testing.expectEqualStrings(if (shape == .import) "Import" else "Call", issue.element);
-    try std.testing.expectEqualStrings(if (shape == .import) "from" else "service", issue.attribute.?);
+    try std.testing.expectEqualStrings(if (shape == .import) "from" else "module", issue.attribute.?);
     try std.testing.expect(issue.location.offset >= 100);
 
     const edge = issue.location.offset - 100;

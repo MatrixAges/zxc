@@ -1,0 +1,17 @@
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  const length = in.offset - in.start
+
+  if (length == 0 || in.dots && length == 1) {
+    return in
+  }
+
+  const segments = in.segments.push({ start: in.start, end: in.offset, parent: in.dots && length == 2 })[0]
+
+  return { offset: in.offset, start: in.start, dots: in.dots, segments: segments }
+}

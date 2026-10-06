@@ -15,7 +15,7 @@ pub fn check(paths: []const []const u8, owner: ?usize, kind: Kind, reference: ?[
     const allocator = arena.allocator();
     const sources = try allocator.alloc(rx.ModuleSource, paths.len);
     const element = if (kind == .import) "Import" else "Call";
-    const key = if (kind == .import) "from" else "service";
+    const key = if (kind == .import) "from" else "module";
 
     for (sources, paths, 0..) |*source, path, index| {
         source.* = .{ .path = path, .node = .{ .name = "Module", .location = point(index, false) } };

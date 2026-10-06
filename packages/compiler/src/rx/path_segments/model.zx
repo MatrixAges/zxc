@@ -1,0 +1,5 @@
+export type Span = { start: u64, end: u64, parent: bool }
+
+export type State = { offset: u64, start: u64, dots: bool, segments: Span[] }
+
+export type Resolution = { parents: u64, segments: Span[] }

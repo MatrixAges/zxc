@@ -1,0 +1,21 @@
+import finish from "./finish"
+
+import type { State } from "./model"
+
+export type Input = { state: State, byte: u8 }
+
+export type Output = State
+
+export default function (in: owned Input): Output {
+  if (in.byte == 47) {
+    const state = finish(in.state)
+    const offset = state.offset + 1
+
+    return { offset: offset, start: offset, dots: true, segments: state.segments }
+  }
+
+  const offset = in.state.offset + 1
+  const dots = in.state.dots && in.byte == 46
+
+  return { ...in.state, offset: offset, dots: dots }
+}

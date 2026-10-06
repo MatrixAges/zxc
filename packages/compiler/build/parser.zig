@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const Sources = struct { program: std.Build.LazyPath, expression: std.Build.LazyPath, xml: std.Build.LazyPath };
+pub const Sources = struct { program: std.Build.LazyPath, expression: std.Build.LazyPath, xml: std.Build.LazyPath, paths: std.Build.LazyPath };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const target = b.graph.host;
@@ -22,6 +22,11 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
         .optimize = optimize,
         .imports = &.{ .{ .name = "dsl", .module = dsl }, .{ .name = "frontend", .module = seed.frontend } },
     });
+
+    const rx_options = b.addOptions();
+
+    rx_options.addOption(bool, "generated_paths", false);
+    rx.addOptions("rx_options", rx_options);
 
     const analysis = b.createModule(.{
         .root_source_file = b.path("src/rx/analysis/root.zig"),
@@ -52,8 +57,9 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const program = run.addOutputFileArg("parser.zig");
     const expression = run.addOutputFileArg("expression.zig");
     const xml = run.addOutputFileArg("xml.zig");
+    const paths = run.addOutputFileArg("paths.zig");
 
-    return .{ .program = program, .expression = expression, .xml = xml };
+    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {

@@ -1,0 +1,16 @@
+import cancelStep from "./cancel_step"
+
+import type { Resolution, Span } from "./model"
+
+export type Input = Span[]
+
+export type Output = { valid: bool, segments: Span[] }
+
+export default function (in: owned Input): Output {
+  const segments: Span[] = []
+  const initial: Resolution = { parents: 0, segments: segments }
+
+  const state = in.reverse()[0].reduce((state, segment) => cancelStep({ state: state, start: segment.start, end: segment.end, parent: segment.parent }), initial)
+
+  return { valid: state.parents == 0, segments: state.segments.reverse()[0] }
+}

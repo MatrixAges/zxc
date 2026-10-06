@@ -1,0 +1,21 @@
+import type { Resolution } from "./model"
+
+export type Input = { state: Resolution, start: u64, end: u64, parent: bool }
+
+export type Output = Resolution
+
+export default function (in: owned Input): Output {
+  if (in.parent) {
+    const parents = in.state.parents + 1
+
+    return { ...in.state, parents: parents }
+  }
+
+  if (in.state.parents != 0) {
+    const parents = in.state.parents - 1
+
+    return { ...in.state, parents: parents }
+  }
+
+  return { parents: in.state.parents, segments: in.state.segments.push({ start: in.start, end: in.end, parent: false })[0] }
+}

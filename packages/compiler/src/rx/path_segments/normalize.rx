@@ -1,0 +1,7 @@
+<Module>
+  <Call fn="scan" in={$in} />
+
+  <Call fn="resolve" in={$ctx.scan} />
+
+  <Return value={$ctx.resolve} />
+</Module>
