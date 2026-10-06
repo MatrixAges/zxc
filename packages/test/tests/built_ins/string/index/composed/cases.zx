@@ -1,0 +1,12 @@
+export type Input = { left: string
+ right: string
+ index: u64 }
+
+export type Output = { byte: u8
+ bytes: u64 }
+
+export default function (in: Input): Output {
+  const text = `${in.left}${in.right}`
+
+  return { byte: text[in.index], bytes: text.length }
+}

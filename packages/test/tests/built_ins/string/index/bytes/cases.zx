@@ -1,0 +1,9 @@
+export type Input = { text: string
+ index: u64 }
+
+export type Output = { byte: u8
+ bytes: u64 }
+
+export default function (in: Input): Output {
+  return { byte: in.text[in.index], bytes: in.text.length }
+}

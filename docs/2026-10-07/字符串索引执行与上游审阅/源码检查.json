@@ -1,0 +1,32 @@
+[
+    {
+        "argv": ["zig", "fmt", "--check", "packages/test/build/runtime.zig"],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    },
+    {
+        "argv": ["node", "scripts/format.mjs", "--check", "packages/test/build/runtime.zig"],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    },
+    {
+        "argv": ["pnpm", "exec", "prettier", "--check", "packages/test/suites.json"],
+        "exit_code": 0,
+        "stdout": "Checking formatting...\nAll matched files use Prettier code style!\n",
+        "stderr": ""
+    },
+    {
+        "argv": ["node", "--check", "docs/2026-10-07/字符串索引执行与上游审阅/原文核验.mjs"],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    },
+    {
+        "argv": ["git", "diff", "--check", "--", "packages/test/build/runtime.zig", "packages/test/suites.json"],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    }
+]

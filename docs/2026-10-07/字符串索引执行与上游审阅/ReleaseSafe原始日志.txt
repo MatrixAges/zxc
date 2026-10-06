@@ -1,0 +1,137 @@
+Build Summary: 54/54 steps succeeded; 247/247 tests passed
+test-frontend success
++- run test conformance-frontend 19 pass (19 total) 4ms MaxRSS:1M
+   +- compile test conformance-frontend safe native success 21s MaxRSS:847M
+      +- run node (cases.zig) success 110ms
+      +- WriteFile interfaces/0.d.zx cached
+      |  +- run exe standard-catalog (catalog.zig) cached
+      |     +- compile exe standard-catalog fast native cached 63ms MaxRSS:21M
+      |     +- WriteFile catalog.json cached
+      +- options success
+      +- run exe generate-parser (parser.zig) success 4s
+      |  +- compile exe generate-parser safe native success 29s MaxRSS:779M
+      |     +- options success
+      |     +- WriteFile interfaces/0.d.zx success
+      |     |  +- run exe standard-catalog (catalog.zig) success 1ms
+      |     |     +- compile exe standard-catalog fast native success 7s MaxRSS:354M
+      |     |     +- WriteFile catalog.json cached
+      |     +- options success
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) success 18ms
+      |  +- compile exe generate-lexer safe native success 24s MaxRSS:691M
+      |     +- WriteFile interfaces/0.d.zx cached
+      |     |  +- run exe standard-catalog (catalog.zig) cached
+      |     |     +- compile exe standard-catalog fast native cached 54ms MaxRSS:21M
+      |     |     +- WriteFile catalog.json success
+      |     +- options cached
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+test-string-index success
++- run test string-index-bytes 100 pass (100 total) 3ms MaxRSS:1M
+|  +- compile test string-index-bytes safe native success 8s MaxRSS:316M
+|     +- run node (cases.zig) success 65ms
+|     +- run exe zxc (program.zig) success 4ms
+|        +- compile exe zxc safe native success 1m MaxRSS:2G
+|           +- WriteFile success
+|           +- compile lib yaml safe native success 923ms MaxRSS:106M
+|           +- compile lib yaml safe native (reused)
+|           +- translate-c success 81ms MaxRSS:21M
+|           +- options success
+|           +- run exe bundle-zig (bundle) success 54ms
+|           |  +- compile exe bundle-zig fast native success 26s MaxRSS:897M
+|           |  +- WriteFile bundle_manifest.json success
+|           +- options success
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|           +- options (reused)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test string-index-decoded 66 pass (66 total) 3ms MaxRSS:1M
+|  +- compile test string-index-decoded safe native success 7s MaxRSS:339M
+|     +- run node (cases.zig) success 60ms
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+50 more reused dependencies)
+|     +- run exe zxc (program.zig) (+1 more reused dependencies)
++- run test string-index-composed 30 pass (30 total) 2ms MaxRSS:1M
+|  +- compile test string-index-composed safe native success 8s MaxRSS:321M
+|     +- run node (cases.zig) success 65ms
+|     +- run exe zxc (program.zig) success 4ms
+|        +- compile exe zxc safe native (+50 more reused dependencies)
++- run test string-index-logical-and 16 pass (16 total) 2ms MaxRSS:1M
+|  +- compile test string-index-logical-and safe native success 8s MaxRSS:316M
+|     +- run node (cases.zig) success 59ms
+|     +- run exe zxc (program.zig) success 4ms
+|        +- compile exe zxc safe native (+50 more reused dependencies)
++- run test string-index-logical-or 16 pass (16 total) 2ms MaxRSS:1M
+   +- compile test string-index-logical-or safe native success 8s MaxRSS:308M
+      +- run node (cases.zig) success 60ms
+      +- run exe zxc (program.zig) success 4ms
+         +- compile exe zxc safe native (+50 more reused dependencies)
+
