@@ -25,7 +25,7 @@ pub fn leaf(program: ir.Program, id: ir.TypeId) bool {
     };
 }
 
-pub fn pure(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, functions: []const bool) std.mem.Allocator.Error!bool {
+pub fn eligible(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, functions: []const bool) std.mem.Allocator.Error!bool {
     return analyze(allocator, program, iteration, functions, false);
 }
 

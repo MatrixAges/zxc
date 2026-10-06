@@ -5,11 +5,12 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
     const summary = try analyze(allocator, program);
 
     allocator.free(summary.pure);
+    allocator.free(summary.local);
 
     return summary.values;
 }
 
-pub const Summary = struct { pure: []bool, values: []bool };
+pub const Summary = struct { pure: []bool, local: []bool, values: []bool };
 
 pub fn scalarLocals(program: ir.Program, pure: []const bool) bool {
     switch (program.typeOf(program.output_type)) {
@@ -25,14 +26,19 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
 
     errdefer allocator.free(pure);
 
+    const local = try allocator.alloc(bool, program.functions.len);
+
+    errdefer allocator.free(local);
+
     const eligible = try allocator.alloc(bool, program.functions.len);
 
     for (program.functions, 0..) |function, index| {
         pure[index] = function.external == null and function.stores.len == 0 and !parallel(function.body) and calls(function.expressions, function.contracts, pure[0..index]);
+        local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.len == 0 and !parallel(function.body) and calls(function.expressions, function.contracts, local[0..index]);
         eligible[index] = pure[index] and program.typeOf(function.output_type) == .object;
     }
 
-    return .{ .pure = pure, .values = eligible };
+    return .{ .pure = pure, .local = local, .values = eligible };
 }
 
 pub fn containsDescendant(program: ir.Program, parent: ir.TypeId, root: ir.TypeId) bool {
