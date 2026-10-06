@@ -1,0 +1,50 @@
+{
+	"固定生产基线": "767e2ae9d584d8c00c4235c9932f7d832b406263",
+	"门禁": [
+		{
+			"包": "packages/test",
+			"命令": "zig build test-evaluation-order -Doptimize=ReleaseSafe -j1 --summary all",
+			"退出码": 0,
+			"构建步骤": 169,
+			"Zig原声明实际实例": 1085,
+			"测试运行步骤": 37,
+			"运行缓存": 0
+		},
+		{
+			"包": "packages/cli",
+			"命令": "zig build test-runtime -Doptimize=ReleaseSafe -j1 --summary all",
+			"退出码": 0,
+			"构建步骤": 67,
+			"Zig原声明实际实例": 30,
+			"测试运行步骤": 1,
+			"运行缓存": 0
+		}
+	],
+	"新增测试声明或目录案例": 0,
+	"来源SHA256": {
+		"packages/test/tests/runtime/evaluation_order/coalesce.zx": "259a694769a3107c05eb5925052d34b4d70d8bc80eebb7627e1a8a21d535ec75",
+		"packages/test/tests/runtime/evaluation_order/logical.zx": "5175323a4055177b2ed4ac90925263fd33bc47cf59ba767d37d3ed03fff59fb3",
+		"packages/test/tests/runtime/evaluation_order/match_condition.zx": "2ad9516934cbccab4f42d0369c5da3afe1cf3f56b15d31c7cfd46de8226be5c0",
+		"packages/test/tests/runtime/evaluation_order/match_value.zx": "f7a0fe0eb2e816a0137d878ca456ad7d20a4ba1ec35323ccac0c667887f89851",
+		"packages/cli/tests/runtime/cases/modules.zx": "cef8e8bcdc0cc4b71f105d7a2149908a6a6ad4fa07684dcb2bd3561331ea3382"
+	},
+	"资源SHA256": {
+		"docs/2026-10-06/执行夹具导入前缀同步/求值顺序ReleaseSafe测试日志.txt": "4e753a13dff403debe80748bd2a5dd0b1f289eb999a195f7b883f46f888e6d24",
+		"docs/2026-10-06/执行夹具导入前缀同步/初始来源指纹.json": "4e892c445851d9e39fe3858a2822e3b48e7f6fb1f98510cc72828d38aa8a271b",
+		"docs/2026-10-06/执行夹具导入前缀同步/CLI运行ReleaseSafe测试日志.txt": "9083590013b38074e16000333d345d1dab6d69fca0ed9a6044641cb66440cf51",
+		"docs/2026-10-06/执行夹具导入前缀同步/迁移前来源/packages/test/tests/runtime/evaluation_order/coalesce.zx.txt": "b46dcea987c0785acbdd15ed6ea52816637ad7231e21dca2ee4cd841ee18fd56",
+		"docs/2026-10-06/执行夹具导入前缀同步/迁移前来源/packages/test/tests/runtime/evaluation_order/match_condition.zx.txt": "c52c6e0cbd2407d7fcdd3ebe5d4f1cf00ee5d3cf6a18191973bc89784c001b8a",
+		"docs/2026-10-06/执行夹具导入前缀同步/迁移前来源/packages/test/tests/runtime/evaluation_order/logical.zx.txt": "90696eb5dd113f5179a5bb6bcdb1544d934c6e500e711beca2a4618696c0f78f",
+		"docs/2026-10-06/执行夹具导入前缀同步/迁移前来源/packages/test/tests/runtime/evaluation_order/match_value.zx.txt": "2e33a474c08688c035c3da2729f60a1de4bc2045ecd223cc0c953dfa18b3830a",
+		"docs/2026-10-06/执行夹具导入前缀同步/迁移前来源/packages/cli/tests/runtime/cases/modules.zx.txt": "00e6698fb9d0d23e2ac4356202430d435ea109d1d9492a78c887aa8f8ef3e4fc",
+		"docs/2026-10-06/执行夹具导入前缀同步/草稿/packages/test/tests/runtime/evaluation_order/logical.zx": "5175323a4055177b2ed4ac90925263fd33bc47cf59ba767d37d3ed03fff59fb3",
+		"docs/2026-10-06/执行夹具导入前缀同步/草稿/packages/test/tests/runtime/evaluation_order/coalesce.zx": "259a694769a3107c05eb5925052d34b4d70d8bc80eebb7627e1a8a21d535ec75",
+		"docs/2026-10-06/执行夹具导入前缀同步/草稿/packages/test/tests/runtime/evaluation_order/match_value.zx": "f7a0fe0eb2e816a0137d878ca456ad7d20a4ba1ec35323ccac0c667887f89851",
+		"docs/2026-10-06/执行夹具导入前缀同步/草稿/packages/test/tests/runtime/evaluation_order/match_condition.zx": "2ad9516934cbccab4f42d0369c5da3afe1cf3f56b15d31c7cfd46de8226be5c0",
+		"docs/2026-10-06/执行夹具导入前缀同步/草稿/packages/cli/tests/runtime/cases/modules.zx": "cef8e8bcdc0cc4b71f105d7a2149908a6a6ad4fa07684dcb2bd3561331ea3382"
+	},
+	"支持文档SHA256": {
+		"docs/2026-10-06/Test262对齐执行记录.md": "8cf10f9026300d3453a028fa8b9874460ee3a1a036e1aeef3be95bc5162ad7b4",
+		"docs/2026-10-06/执行夹具导入前缀同步计划.md": "1c068a0da6ecd89bb095e45c60e883c7e605fc17f35051245c604c45617c5e5b"
+	}
+}
