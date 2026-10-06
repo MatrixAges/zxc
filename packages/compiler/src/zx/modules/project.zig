@@ -66,7 +66,10 @@ const Project = struct {
         const parsed = try self.parse_cache.get(self.sources[index].source, unit.path);
 
         if (parsed.value == .diagnostic) {
-            self.reporter.diagnostic = parsed.value.diagnostic;
+            var issue = parsed.value.diagnostic;
+            issue.message = try self.allocator.dupe(u8, issue.message);
+            issue.message_allocator = null;
+            self.reporter.diagnostic = issue;
 
             return error.InvalidSource;
         }
@@ -130,7 +133,7 @@ const Project = struct {
 
                     for (module.exports) |exported| {
                         if (!std.mem.eql(u8, name.text, exported.name)) continue;
-                        if (item.kind == .enumeration and self.types[@intFromEnum(exported.type_id)] != .enumeration) return self.reporter.fail(.module, name.span, "value imports from a type module must name an enum");
+                        if (item.kind == .enumeration and self.types[@backingInt(exported.type_id)] != .enumeration) return self.reporter.fail(.module, name.span, "value imports from a type module must name an enum");
                         try aliases.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name.text), .type_id = exported.type_id });
 
                         found = true;
@@ -206,7 +209,7 @@ const Project = struct {
         self.types = program.types;
 
         if (!program.type_only) {
-            unit.function = @enumFromInt(self.functions.items.len);
+            unit.function = @fromBackingInt(@intCast(self.functions.items.len));
 
             try self.functions.append(self.allocator, .{ .stores = program.stores, .store_mode = program.store_mode, .consumes_input = program.consumes_input, .output_ownership = program.output_ownership, .file_name = program.file_name, .input_type = program.input_type, .output_type = program.output_type, .symbols = program.symbols, .expressions = program.expressions, .body = program.body, .contracts = program.contracts });
         }
@@ -268,12 +271,12 @@ const Project = struct {
         for (loaded.exports) |exported| {
             if (!std.mem.eql(u8, exported.name, target.name)) continue;
 
-            const function = if (exported.function) |id| self.functions.items[@intFromEnum(id)] else null;
+            const function = if (exported.function) |id| self.functions.items[@backingInt(id)] else null;
 
             return .{
                 .function = exported.function,
-                .input_type = if (function) |value| value.input_type else @enumFromInt(@intFromEnum(ir.Scalar.void)),
-                .output_type = if (function) |value| value.output_type else @enumFromInt(@intFromEnum(ir.Scalar.void)),
+                .input_type = if (function) |value| value.input_type else @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
+                .output_type = if (function) |value| value.output_type else @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
                 .exports = exported.types,
                 .type_only = function == null,
             };
@@ -292,10 +295,10 @@ const Project = struct {
         if (name.len == 0 or std.mem.indexOfScalar(u8, name, 0) != null or !std.unicode.utf8ValidateSlice(name)) return self.reporter.fail(.module, span, "native import names must be nonempty UTF-8 strings");
 
         for (self.native_modules.items, 0..) |module, index| {
-            if (std.mem.eql(u8, module.key(), identity orelse source) and std.mem.eql(u8, module.import_name, name)) return @enumFromInt(index);
+            if (std.mem.eql(u8, module.key(), identity orelse source) and std.mem.eql(u8, module.import_name, name)) return @fromBackingInt(@intCast(index));
         }
 
-        const id: ir.NativeModuleId = @enumFromInt(self.native_modules.items.len);
+        const id: ir.NativeModuleId = @fromBackingInt(@intCast(self.native_modules.items.len));
 
         try self.native_modules.append(self.allocator, .{ .specifier = try self.allocator.dupe(u8, source), .identity = if (identity) |key| try self.allocator.dupe(u8, key) else null, .import_name = try self.allocator.dupe(u8, name) });
 
@@ -333,8 +336,8 @@ const Project = struct {
 
             for (entry.namespace, namespace) |part, *owned| owned.* = try self.allocator.dupe(u8, part);
 
-            self.native_modules.items[@intFromEnum(module_id)].type_namespace = namespace;
-            self.native_modules.items[@intFromEnum(module_id)].types = loaded.exports;
+            self.native_modules.items[@backingInt(module_id)].type_namespace = namespace;
+            self.native_modules.items[@backingInt(module_id)].types = loaded.exports;
 
             const members = try self.allocator.alloc(Analyzer.FunctionImport, loaded.members.len);
 
@@ -343,11 +346,11 @@ const Project = struct {
             self.types = loaded.types;
 
             for (loaded.members, members) |member, *binding| {
-                const id: ir.FunctionId = @enumFromInt(self.functions.items.len);
+                const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.items.len));
 
                 try self.functions.append(self.allocator, member.function);
 
-                binding.* = .{ .name = member.name, .id = id, .input_type = member.function.input_type, .output_type = member.function.output_type, .positional_types = if (member.function.external.?.expand_tuple) self.types[@intFromEnum(member.function.input_type)].tuple else null };
+                binding.* = .{ .name = member.name, .id = id, .input_type = member.function.input_type, .output_type = member.function.output_type, .positional_types = if (member.function.external.?.expand_tuple) self.types[@backingInt(member.function.input_type)].tuple else null };
             }
 
             const result = NativeUnit{ .exports = loaded.exports, .members = members };
@@ -371,7 +374,7 @@ const Project = struct {
 
             for (unit.exports) |exported| {
                 if (!std.mem.eql(u8, name.text, exported.name)) continue;
-                if (item.kind == .enumeration and self.types[@intFromEnum(exported.type_id)] != .enumeration) return self.reporter.fail(.module, name.span, "native value imports must name an enum");
+                if (item.kind == .enumeration and self.types[@backingInt(exported.type_id)] != .enumeration) return self.reporter.fail(.module, name.span, "native value imports must name an enum");
                 try aliases.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name.text), .type_id = exported.type_id });
 
                 matched = true;
@@ -410,13 +413,13 @@ const Project = struct {
 
             self.types = imported.types;
 
-            const function_id: ir.FunctionId = @enumFromInt(self.functions.items.len);
+            const function_id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.items.len));
 
             try self.functions.append(self.allocator, imported.function);
 
             try imports.append(self.allocator, .{
                 .namespace = if (entry.export_name != null) try self.allocator.dupe(u8, item.names[0].text) else null,
-                .positional_types = if (imported.function.external.?.expand_tuple) self.types[@intFromEnum(imported.function.input_type)].tuple else null,
+                .positional_types = if (imported.function.external.?.expand_tuple) self.types[@backingInt(imported.function.input_type)].tuple else null,
                 .name = try self.allocator.dupe(u8, entry.export_name orelse item.names[0].text),
                 .id = function_id,
                 .input_type = imported.function.input_type,
