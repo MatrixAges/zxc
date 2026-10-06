@@ -26,4 +26,3 @@ pub fn execute(arena: *((std).heap).ArenaAllocator, in: bool) error{ }!bool {
 
     return (!in);
 }
-
