@@ -2,7 +2,7 @@ const zx = @import("zx");
 const Context = @import("context.zig");
 
 pub fn fill(context: anytype) !void {
-    const tree = context.body.expression.types.tree;
+    const tree = context.tables.types;
 
     for (tree.nodes, context.types) |node, *value| {
         value.* = switch (node.kind) {

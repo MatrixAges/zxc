@@ -2,7 +2,7 @@ const zx = @import("zx");
 const Context = @import("context.zig");
 
 pub fn fill(context: anytype) !void {
-    const tree = context.body.tree;
+    const tree = context.tables.blocks;
 
     for (tree.blocks, context.blocks) |node, *value| {
         const statements = try context.allocator.alloc(zx.ast.Statement, @intCast(node.count));
@@ -21,7 +21,7 @@ pub fn fill(context: anytype) !void {
 }
 
 fn statement(context: anytype, index: u64) !zx.ast.Statement {
-    const tree = context.body.tree;
+    const tree = context.tables.blocks;
     const node = tree.statements[@intCast(index)];
 
     return .{ .span = Context.span(node.span), .value = switch (node.kind) {

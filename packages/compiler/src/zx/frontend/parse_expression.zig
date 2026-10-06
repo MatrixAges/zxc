@@ -62,8 +62,8 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, file_name: []cons
             } } };
         }
 
-        const expression = try adapter.expression(temporary, owned_source, output.state);
-        const tokens = try adapter.lexed(temporary, output.state.prepared.lexical.lexed);
+        const expression = try adapter.expression(temporary, owned_source, output);
+        const tokens = try adapter.lexed(temporary, output);
 
         return .{ .arena = arena, .value = .{ .parsed = .{ .source = owned_source, .file_name = owned_name, .lexed = tokens, .expression = expression } } };
     }

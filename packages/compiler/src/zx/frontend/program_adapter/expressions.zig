@@ -3,7 +3,7 @@ const Context = @import("context.zig");
 const collections = @import("expression_collections.zig");
 
 pub fn fill(context: anytype) !void {
-    const tree = context.body.expression.tree;
+    const tree = context.tables.expressions;
 
     for (tree.nodes, context.expressions) |node, *value| {
         value.* = .{ .span = Context.span(node.span), .depth = @intCast(node.depth), .value = switch (node.kind) {

@@ -3,19 +3,19 @@ const zx = @import("zx");
 const Context = @import("context.zig");
 
 pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: anytype) !zx.ast.Program {
-    const program = output.program;
-    const context = try Context.init(allocator, source, program.body);
+    const program = output;
+    const context = try Context.init(allocator, source, program);
 
     try @import("types.zig").fill(context);
     try @import("blocks.zig").fill(context);
     try @import("expressions.zig").fill(context);
 
-    const imports = try allocator.alloc(zx.ast.Import, program.prefix.imports.len);
+    const imports = try allocator.alloc(zx.ast.Import, program.imports.len);
 
-    for (program.prefix.imports, imports) |item, *value| {
+    for (program.imports, imports) |item, *value| {
         const names = try allocator.alloc(zx.ast.Name, @intCast(item.count));
 
-        for (names, program.prefix.names[@intCast(item.first)..][0..names.len]) |*name, position| name.* = context.name(position);
+        for (names, program.import_names[@intCast(item.first)..][0..names.len]) |*name, position| name.* = context.name(position);
 
         value.* = .{
             .kind = switch (item.kind) {
@@ -29,13 +29,13 @@ pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: anytype
         };
     }
 
-    const declarations = try allocator.alloc(zx.ast.Declaration, program.prefix.declarations.len);
+    const declarations = try allocator.alloc(zx.ast.Declaration, program.declarations.len);
 
-    for (program.prefix.declarations, declarations) |item, *value| {
+    for (program.declarations, declarations) |item, *value| {
         const declared_type = if (item.enumeration) blk: {
             const names = try allocator.alloc(zx.ast.Name, @intCast(item.count));
 
-            for (names, program.prefix.members[@intCast(item.first)..][0..names.len]) |*name, position| name.* = context.name(position);
+            for (names, program.members[@intCast(item.first)..][0..names.len]) |*name, position| name.* = context.name(position);
 
             const enumeration = try allocator.create(zx.ast.Type);
 
@@ -59,10 +59,10 @@ pub fn convert(allocator: std.mem.Allocator, source: []const u8, output: anytype
         .imports = imports,
         .declarations = declarations,
         .contracts = contracts,
-        .consumes_input = program.header.consumes_input,
-        .has_store = program.header.has_store,
-        .function_start = @intCast(program.prefix.function_start),
-        .body = if (program.prefix.present) context.block(program.body.control.result) else null,
+        .consumes_input = program.consumes_input,
+        .has_store = program.has_store,
+        .function_start = @intCast(program.function_start),
+        .body = if (program.body) |index| context.block(index) else null,
     };
 }
 
@@ -89,11 +89,11 @@ pub fn lexed(allocator: std.mem.Allocator, input: anytype) !zx.syntax.Lexed {
 }
 
 pub fn expression(allocator: std.mem.Allocator, source: []const u8, output: anytype) !*const zx.ast.Expression {
-    const context = try Context.init(allocator, source, .{ .expression = output, .tree = output.body });
+    const context = try Context.init(allocator, source, output);
 
     try @import("types.zig").fill(context);
     try @import("blocks.zig").fill(context);
     try @import("expressions.zig").fill(context);
 
-    return context.expression(output.control.result);
+    return context.expression(output.result);
 }

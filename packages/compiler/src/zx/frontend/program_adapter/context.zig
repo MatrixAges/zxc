@@ -1,22 +1,22 @@
 const std = @import("std");
 const zx = @import("zx");
 
-pub fn init(allocator: std.mem.Allocator, source: []const u8, body: anytype) !Tables(@TypeOf(body)) {
+pub fn init(allocator: std.mem.Allocator, source: []const u8, tables: anytype) !Tables(@TypeOf(tables)) {
     return .{
         .allocator = allocator,
         .source = source,
-        .body = body,
-        .types = try allocator.alloc(zx.ast.Type, body.expression.types.tree.nodes.len),
-        .expressions = try allocator.alloc(zx.ast.Expression, body.expression.tree.nodes.len),
-        .blocks = try allocator.alloc(zx.ast.Block, body.tree.blocks.len),
+        .tables = tables,
+        .types = try allocator.alloc(zx.ast.Type, tables.types.nodes.len),
+        .expressions = try allocator.alloc(zx.ast.Expression, tables.expressions.nodes.len),
+        .blocks = try allocator.alloc(zx.ast.Block, tables.blocks.blocks.len),
     };
 }
 
-fn Tables(comptime Body: type) type {
+fn Tables(comptime Storage: type) type {
     return struct {
         allocator: std.mem.Allocator,
         source: []const u8,
-        body: Body,
+        tables: Storage,
         types: []zx.ast.Type,
         expressions: []zx.ast.Expression,
         blocks: []zx.ast.Block,

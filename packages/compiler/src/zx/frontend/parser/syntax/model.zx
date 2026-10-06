@@ -1,0 +1,36 @@
+import type { Diagnostic } from "../../lexer/model"
+import type { Span, Token } from "../../lexer/token_model"
+import type { BlockTree } from "../body/model"
+import type { Declaration } from "../declarations/model"
+import type { ExprTree } from "../expressions/state/model"
+import type { Contract } from "../header/model"
+import type { Import } from "../imports/model"
+import type { TypeTree } from "../types/model"
+
+export type Program = {
+  types: TypeTree
+  expressions: ExprTree
+  blocks: BlockTree
+  tokens: Token[]
+  comments: Span[]
+  imports: Import[]
+  import_names: Span[]
+  declarations: Declaration[]
+  members: Span[]
+  contracts: Contract[]
+  consumes_input: bool
+  has_store: bool
+  function_start: u64
+  body: u64?
+  diagnostic: Diagnostic
+}
+
+export type Expression = {
+  types: TypeTree
+  expressions: ExprTree
+  blocks: BlockTree
+  tokens: Token[]
+  comments: Span[]
+  result: u64
+  diagnostic: Diagnostic
+}

@@ -29,3 +29,5 @@ export type Control = { phase: Phase, resume: Phase, state_block: bool, result: 
 export type Suspension = { expression: ExprControl, expression_frames: ExprFrame[], frames: Frame[], frame: Frame, control: Control }
 
 export type State = { expression: ExprState, tree: Tree, frames: Frame[], suspended: Suspension[], frame: Frame, control: Control }
+
+export type BlockTree = Tree

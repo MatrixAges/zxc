@@ -8,7 +8,7 @@ pub fn arguments(context: anytype, node: anytype) ![]*const zx.ast.Expression {
 
     while (remaining != 0) {
         remaining -= 1;
-        const edge = context.body.expression.tree.items[@intCast(head - 1)];
+        const edge = context.tables.expressions.items[@intCast(head - 1)];
         values[remaining] = context.expression(edge.value);
         head = edge.previous;
     }
@@ -23,7 +23,7 @@ pub fn parameters(context: anytype, node: anytype) ![]zx.ast.Name {
 
     while (remaining != 0) {
         remaining -= 1;
-        const edge = context.body.expression.tree.parameters[@intCast(head - 1)];
+        const edge = context.tables.expressions.parameters[@intCast(head - 1)];
         values[remaining] = context.name(edge.name);
         head = edge.previous;
     }
@@ -38,7 +38,7 @@ pub fn parts(context: anytype, node: anytype) ![]zx.ast.TemplatePart {
 
     while (remaining != 0) {
         remaining -= 1;
-        const edge = context.body.expression.tree.parts[@intCast(head - 1)];
+        const edge = context.tables.expressions.parts[@intCast(head - 1)];
         values[remaining] = if (edge.expression) .{ .expression = context.expression(edge.value) } else .{ .text = context.text(edge.span) };
         head = edge.previous;
     }
@@ -53,7 +53,7 @@ pub fn arms(context: anytype, node: anytype) ![]zx.ast.MatchArm {
 
     while (remaining != 0) {
         remaining -= 1;
-        const edge = context.body.expression.tree.arms[@intCast(head - 1)];
+        const edge = context.tables.expressions.arms[@intCast(head - 1)];
         values[remaining] = .{ .condition = context.expression(edge.condition), .result = context.expression(edge.result) };
         head = edge.previous;
     }
@@ -68,7 +68,7 @@ pub fn fields(context: anytype, node: anytype) ![]zx.ast.Field {
 
     while (remaining != 0) {
         remaining -= 1;
-        const edge = context.body.expression.tree.fields[@intCast(head - 1)];
+        const edge = context.tables.expressions.fields[@intCast(head - 1)];
         values[remaining] = .{ .name = if (edge.spread) .{ .text = "", .span = Context.span(edge.name) } else context.name(edge.name), .value = context.expression(edge.value), .spread = edge.spread };
         head = edge.previous;
     }
