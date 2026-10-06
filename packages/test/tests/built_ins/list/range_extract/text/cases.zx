@@ -1,0 +1,14 @@
+export type Input = { items: string[], start: u64, count: u64, other: string[] }
+
+export type Output = { remaining: string[], removed: string[], original: string[], remaining_length: u64, removed_length: u64 }
+
+export default function (in: Input): Output {
+  const owned = in.items.map(item => item)
+
+  const [remaining, removed] = owned.splice(in.start, in.count, in.other)
+
+  const remaining_length = remaining.length
+  const removed_length = removed.length
+
+  return { remaining, removed, original: in.items, remaining_length, removed_length }
+}

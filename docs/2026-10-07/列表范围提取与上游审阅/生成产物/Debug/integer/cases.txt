@@ -1,0 +1,1153 @@
+const check = @import("support").check;
+
+test "built_ins/list/range_extract/integer/0000" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{}, .original = &.{}, .remaining_length = 0, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0001" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{}, .original = &.{}, .remaining_length = 1, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0002" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7}, .removed = &.{}, .original = &.{}, .remaining_length = 2, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0003" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0004" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0005" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0006" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0007" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0008" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0009" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0010" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0011" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0012" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0013" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0014" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0015" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0016" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0017" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0018" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0019" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0020" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0021" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0}, .removed = &.{}, .original = &.{0}, .remaining_length = 1, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0022" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 0}, .removed = &.{}, .original = &.{0}, .remaining_length = 2, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0023" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, 0}, .removed = &.{}, .original = &.{0}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0024" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{0}, .original = &.{0}, .remaining_length = 0, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0025" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{0}, .original = &.{0}, .remaining_length = 1, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0026" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7}, .removed = &.{0}, .original = &.{0}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0027" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0}, .removed = &.{}, .original = &.{0}, .remaining_length = 1, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0028" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807}, .removed = &.{}, .original = &.{0}, .remaining_length = 2, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0029" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7}, .removed = &.{}, .original = &.{0}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0030" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 2, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0031" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 2, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0032" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 2, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0033" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 2, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0034" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 2, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0035" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 2, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0036" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0037" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0038" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0039" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0040" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0041" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0042" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0043" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0044" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0045" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0046" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0047" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0048" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0049" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0050" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0051" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0052" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 0, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0053" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, 0, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0054" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, 7}, .removed = &.{0}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0055" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, 7}, .removed = &.{0}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0056" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7, 7}, .removed = &.{0}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0057" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{7}, .removed = &.{0, -7}, .original = &.{0, -7, 7}, .remaining_length = 1, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0058" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7}, .removed = &.{0, -7}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0059" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, 7}, .removed = &.{0, -7}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0060" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{0, -7, 7}, .original = &.{0, -7, 7}, .remaining_length = 0, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0061" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{0, -7, 7}, .original = &.{0, -7, 7}, .remaining_length = 1, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0062" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7}, .removed = &.{0, -7, 7}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0063" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0064" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0065" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0066" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{0, 7}, .removed = &.{-7}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0067" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807, 7}, .removed = &.{-7}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0068" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, 7}, .removed = &.{-7}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0069" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{0}, .removed = &.{-7, 7}, .original = &.{0, -7, 7}, .remaining_length = 1, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0070" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807}, .removed = &.{-7, 7}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0071" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7}, .removed = &.{-7, 7}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0072" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0073" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 9223372036854775807, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0074" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, -7, 7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0075" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7}, .removed = &.{7}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0076" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 9223372036854775807}, .removed = &.{7}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0077" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, -7, 7}, .removed = &.{7}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0078" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0079" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 7, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0080" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0081" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 4, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0082" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 4, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0083" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 4, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0084" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 4, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0085" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 4, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0086" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 4, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0087" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0088" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0089" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0090" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0091" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0092" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0093" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0094" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0095" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0096" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0097" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0098" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0099" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0100" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0101" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0102" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0103" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0104" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, 0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0105" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0106" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0107" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0108" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{7, -9223372036854775808, 9223372036854775807}, .removed = &.{0, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0109" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{0, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0110" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{0, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0111" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{-9223372036854775808, 9223372036854775807}, .removed = &.{0, -7, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0112" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 9223372036854775807}, .removed = &.{0, -7, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0113" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{0, -7, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0114" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 4, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{0, -7, 7, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 1, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/integer/0115" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 4, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 9223372036854775807}, .removed = &.{0, -7, 7, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/integer/0116" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 4, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, 9223372036854775807}, .removed = &.{0, -7, 7, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/integer/0117" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 5, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 0, .removed_length = 5} });
+}
+
+test "built_ins/list/range_extract/integer/0118" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 5, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 1, .removed_length = 5} });
+}
+
+test "built_ins/list/range_extract/integer/0119" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 5, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7}, .removed = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 5} });
+}
+
+test "built_ins/list/range_extract/integer/0120" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0121" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0122" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0123" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{0, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0124" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0125" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0126" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -9223372036854775808, 9223372036854775807}, .removed = &.{-7, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0127" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807, -9223372036854775808, 9223372036854775807}, .removed = &.{-7, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0128" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{-7, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0129" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807}, .removed = &.{-7, 7, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0130" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807, 9223372036854775807}, .removed = &.{-7, 7, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0131" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, 9223372036854775807}, .removed = &.{-7, 7, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0132" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 4, .other = &.{}}, .{ .value = &.{.remaining = &.{0}, .removed = &.{-7, 7, -9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 1, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/integer/0133" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 4, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807}, .removed = &.{-7, 7, -9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/integer/0134" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 4, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7}, .removed = &.{-7, 7, -9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/integer/0135" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0136" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 9223372036854775807, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0137" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, -7, 7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0138" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, -9223372036854775808, 9223372036854775807}, .removed = &.{7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0139" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 9223372036854775807, -9223372036854775808, 9223372036854775807}, .removed = &.{7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0140" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0141" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 9223372036854775807}, .removed = &.{7, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0142" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 9223372036854775807, 9223372036854775807}, .removed = &.{7, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0143" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, -7, 7, 9223372036854775807}, .removed = &.{7, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0144" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7}, .removed = &.{7, -9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0145" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 9223372036854775807}, .removed = &.{7, -9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0146" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, -7, 7}, .removed = &.{7, -9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0147" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0148" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 7, 9223372036854775807, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0149" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0150" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, 9223372036854775807}, .removed = &.{-9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0151" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 7, 9223372036854775807, 9223372036854775807}, .removed = &.{-9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0152" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -7, 7, 9223372036854775807}, .removed = &.{-9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0153" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7}, .removed = &.{-9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0154" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 7, 9223372036854775807}, .removed = &.{-9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0155" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -7, 7}, .removed = &.{-9223372036854775808, 9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0156" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0157" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0158" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, -7, 7, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0159" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808}, .removed = &.{9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0160" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0161" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, -7, 7}, .removed = &.{9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0162" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0163" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0164" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0165" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 6, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0166" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 6, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0167" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 6, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0168" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 6, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0169" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 6, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0170" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 6, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0171" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0172" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0173" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0174" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0175" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0176" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0177" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0178" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0179" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0180" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0181" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0182" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0183" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0184" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0185" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0186" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0187" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0188" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0189" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0190" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0191" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0192" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0193" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0194" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0195" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{-7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 1, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0196" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0197" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0198" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 4, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{-7, -7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 0, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/integer/0199" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 4, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{-7, -7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 1, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/integer/0200" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 4, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7}, .removed = &.{-7, -7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/integer/0201" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0202" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 9223372036854775807, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0203" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, 7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0204" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0205" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 9223372036854775807, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0206" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, 7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0207" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0208" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 9223372036854775807, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0209" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, 7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0210" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{-7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 1, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0211" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 9223372036854775807}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0212" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, 7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/integer/0213" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0214" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, 9223372036854775807, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0215" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, -7, 7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0216" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0217" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, 9223372036854775807, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0218" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, -7, 7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0219" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0220" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, 9223372036854775807}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0221" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, -7, 7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/integer/0222" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0223" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, -7, 9223372036854775807, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0224" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7, 7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0225" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0226" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, -7, 9223372036854775807}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0227" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7, 7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0228" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0229" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7, 9223372036854775807}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0230" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7, -7, 7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0231" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 5, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0232" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 5, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0233" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 5, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0234" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 5, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0235" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 5, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0236" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 5, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0237" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0238" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0239" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0240" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0241" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0242" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0243" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0244" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0245" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0246" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0247" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0248" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0249" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0250" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0251" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0252" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 17, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0253" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 18, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0254" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 19, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0255" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 17, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 0, .removed_length = 17} });
+}
+
+test "built_ins/list/range_extract/integer/0256" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 17, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 1, .removed_length = 17} });
+}
+
+test "built_ins/list/range_extract/integer/0257" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 17, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7}, .removed = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 2, .removed_length = 17} });
+}
+
+test "built_ins/list/range_extract/integer/0258" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 15, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7}, .removed = &.{-7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 2, .removed_length = 15} });
+}
+
+test "built_ins/list/range_extract/integer/0259" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 15, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807, -7}, .removed = &.{-7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 3, .removed_length = 15} });
+}
+
+test "built_ins/list/range_extract/integer/0260" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 15, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -7}, .removed = &.{-7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 4, .removed_length = 15} });
+}
+
+test "built_ins/list/range_extract/integer/0261" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 17, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0262" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 18, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0263" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, -7, 7}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 19, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/integer/0264" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 16, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 16, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0265" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 16, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, 9223372036854775807}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 17, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0266" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 16, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 18, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/integer/0267" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0268" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0269" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0270" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0271" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0272" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0273" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0274" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0275" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0276" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0277" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0278" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0279" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0280" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0281" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0282" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0283" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0284" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0285" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0286" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/integer/0287" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}

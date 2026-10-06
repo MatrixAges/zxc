@@ -1,0 +1,167 @@
+const std = @import("std");
+
+const zx_type_12 = struct {
+    count: u64,
+    extract: bool,
+    items: []const i64,
+    other: []const i64,
+    start: u64,
+};
+
+const zx_type_13 = struct {
+    original: []const i64,
+    remaining: []const i64,
+    remaining_length: u64,
+    removed: []const i64,
+    removed_length: u64,
+};
+
+const zx_type_14 = struct { []const i64, []const i64, };
+
+const value_zx_type_12_2ddc8d81c21e68612e817c7293e54a7cb5f26a22cd74db770ee9bdcef0645bce = struct {
+    count: u64,
+    extract: bool,
+    items: []const i64,
+    other: []const i64,
+    start: u64,
+    zx_origin: ?*const zx_type_12 = null,
+};
+
+const value_zx_type_13_2ddc8d81c21e68612e817c7293e54a7cb5f26a22cd74db770ee9bdcef0645bce = struct {
+    original: []const i64,
+    remaining: []const i64,
+    remaining_length: u64,
+    removed: []const i64,
+    removed_length: u64,
+    zx_origin: ?*const zx_type_13 = null,
+};
+
+const value_zx_type_14_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct { []const i64, []const i64, ?*const zx_type_14, };
+
+pub const Input = *const zx_type_12;
+
+pub const Output = *const zx_type_13;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_7, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .extract = zx_shape_1, .items = zx_shape_11, .other = zx_shape_11, .start = zx_shape_5, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .original = zx_shape_11, .remaining = zx_shape_11, .remaining_length = zx_shape_5, .removed = zx_shape_11, .removed_length = zx_shape_5, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_11, .@"1" = zx_shape_11, }, };
+
+pub const input_shape = zx_shape_12;
+
+pub const output_shape = zx_shape_13;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const zx_type_12) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!*const zx_type_13 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    if ((!(in).extract)) {
+        return block_32: {
+            const operand_24 = (in).items;
+            const operand_25 = block_26: {
+                break :block_26 (try (allocator).dupe(i64, (&[_]i64{})));
+            };
+            const operand_27 = (in).items;
+            const operand_28 = @as(u64, ((in).items).len);
+            const operand_29 = @as(u64, 0);
+
+            break :block_32 block_31: {
+                const operand_30 = (try (allocator).create(zx_type_13));
+
+                (operand_30).* = @as(zx_type_13, zx_type_13{ .remaining = operand_24, .removed = operand_25, .original = operand_27, .remaining_length = operand_28, .removed_length = operand_29, });
+
+                break :block_31 @as(*const zx_type_13, operand_30);
+            };
+        };
+    }
+
+    const value_2: []const i64 = block_23: {
+        const operand_20 = (in).items;
+        const operand_21 = (try (allocator).alloc(i64, (operand_20).len));
+
+        for (operand_20, 0..) |value_1, index_22| {
+            (operand_21)[index_22] = value_1;
+        }
+
+        break :block_23 operand_21;
+    };
+    const tuple_9 = block_19: {
+        const operand_10 = value_2;
+        const operand_11 = (in).start;
+        const operand_12 = (in).count;
+        const operand_13 = (in).other;
+
+        if (((operand_11 > (operand_10).len) or (operand_12 > ((operand_10).len - operand_11)))) {
+            return error.IndexOutOfBounds;
+        }
+
+        const operand_14 = @as(usize, @intCast(operand_11));
+        const operand_15 = @as(usize, @intCast(operand_12));
+        const operand_16 = (try (allocator).alloc(i64, (try ((std).math).add(usize, ((operand_10).len - operand_15), (operand_13).len))));
+
+        @memcpy((operand_16)[0..operand_14], (operand_10)[0..operand_14]);
+
+        @memcpy(((operand_16)[operand_14..])[0..(operand_13).len], operand_13);
+
+        @memcpy((operand_16)[(operand_14 + (operand_13).len)..], (operand_10)[(operand_14 + operand_15)..]);
+
+        break :block_19 block_18: {
+            const operand_17 = (try (allocator).create(zx_type_14));
+
+            (operand_17).* = @as(zx_type_14, .{ operand_16, (operand_10)[operand_14..(operand_14 + operand_15)], });
+
+            break :block_18 @as(*const zx_type_14, operand_17);
+        };
+    };
+    const value_3 = (tuple_9).@"0";
+    const value_4 = (tuple_9).@"1";
+    const value_5: u64 = @as(u64, (value_3).len);
+    const value_6: u64 = @as(u64, (value_4).len);
+
+    return block_8: {
+        const operand_1 = value_3;
+        const operand_2 = value_4;
+        const operand_3 = (in).items;
+        const operand_4 = value_5;
+        const operand_5 = value_6;
+
+        break :block_8 block_7: {
+            const operand_6 = (try (allocator).create(zx_type_13));
+
+            (operand_6).* = @as(zx_type_13, zx_type_13{ .remaining = operand_1, .removed = operand_2, .original = operand_3, .remaining_length = operand_4, .removed_length = operand_5, });
+
+            break :block_7 @as(*const zx_type_13, operand_6);
+        };
+    };
+}
+

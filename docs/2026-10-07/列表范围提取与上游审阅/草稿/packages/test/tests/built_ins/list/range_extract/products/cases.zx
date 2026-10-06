@@ -1,0 +1,16 @@
+export type Item = { tag: i64, payload: [bool, string], optional: i64?, children: i64[] }
+
+export type Input = { items: Item[], start: u64, count: u64, other: Item[] }
+
+export type Output = { remaining: Item[], removed: Item[], original: Item[], remaining_length: u64, removed_length: u64 }
+
+export default function (in: Input): Output {
+  const owned = in.items.map(item => item)
+
+  const [remaining, removed] = owned.splice(in.start, in.count, in.other)
+
+  const remaining_length = remaining.length
+  const removed_length = removed.length
+
+  return { remaining, removed, original: in.items, remaining_length, removed_length }
+}

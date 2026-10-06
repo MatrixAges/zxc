@@ -1,0 +1,1541 @@
+{
+    "intent": "固定 slice family 尚未审阅集合按 path 字典序排序的前 32 份完整源文分析；正式登记由主代理决定。",
+    "head_at_read": "dc8d800b",
+    "upstream_commit": "7ab7fafa0003f73fc85c1b95d88094d33f7eb8bd",
+    "source_root": "/tmp/zxc-test262-reference/test262-7ab7fafa0003f73fc85c1b95d88094d33f7eb8bd",
+    "index_path": "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/upstream/index/built-ins.jsonl",
+    "sort": "path ascending by Python string/code-point order; uppercase S precedes lowercase c",
+    "family_count": 71,
+    "already_reviewed_count": 7,
+    "remaining_count_before": 64,
+    "selected_count": 32,
+    "source_sha_match_count": 32,
+    "complete_adaptable_count": 0,
+    "existing_reviewed": [
+        {
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.1_T1.js",
+            "sha256": "ddb811c75fe85f8aa368c206d896dfa584421a9f1f4626a576cdb48a374a7a6a",
+            "status": "excluded",
+            "reason": "完整原文检查slice(0,3)结果[0, 1, 2]、长度3及arr[3]为undefined，同时动态设置getClass=Object.prototype.toString并断言[object Array]。ZX明确排除原型、反射与动态属性；静态列表类型及值比较不能替代该运行时观察，不关联整份适配通过。",
+            "contract": "docs/zx_design_doc.md#143-对象与运行时模型",
+            "cases": [],
+            "review_file": "packages/test/upstream/reviews/built_ins/array/slice_result_reflection.jsonl"
+        },
+        {
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.1_T2.js",
+            "sha256": "b8cb23f0e1fe8d5f8e3f17c8e86948aec928ae8ab9793f5254a84d3972df518b",
+            "status": "excluded",
+            "reason": "完整原文检查slice(3,3)结果[]、长度0及arr[0]为undefined，同时动态设置getClass=Object.prototype.toString并断言[object Array]。ZX明确排除原型、反射与动态属性；静态列表类型及值比较不能替代该运行时观察，不关联整份适配通过。",
+            "contract": "docs/zx_design_doc.md#143-对象与运行时模型",
+            "cases": [],
+            "review_file": "packages/test/upstream/reviews/built_ins/array/slice_result_reflection.jsonl"
+        },
+        {
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.1_T3.js",
+            "sha256": "b92a1ddffd15405a50e2be0d7de12cafbbafc1ea692bfaef12e3ef19d1675e2d",
+            "status": "excluded",
+            "reason": "完整原文检查slice(4,3)结果[]、长度0及arr[0]为undefined，同时动态设置getClass=Object.prototype.toString并断言[object Array]。ZX明确排除原型、反射与动态属性；静态列表类型及值比较不能替代该运行时观察，不关联整份适配通过。",
+            "contract": "docs/zx_design_doc.md#143-对象与运行时模型",
+            "cases": [],
+            "review_file": "packages/test/upstream/reviews/built_ins/array/slice_result_reflection.jsonl"
+        },
+        {
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.1_T4.js",
+            "sha256": "5631de8ec1efe60e865aa588778f9dcd810ee348031221f76f9b6ecc3b809eda",
+            "status": "excluded",
+            "reason": "完整原文检查slice(5,5)结果[]、长度0及arr[0]为undefined，同时动态设置getClass=Object.prototype.toString并断言[object Array]。ZX明确排除原型、反射与动态属性；静态列表类型及值比较不能替代该运行时观察，不关联整份适配通过。",
+            "contract": "docs/zx_design_doc.md#143-对象与运行时模型",
+            "cases": [],
+            "review_file": "packages/test/upstream/reviews/built_ins/array/slice_result_reflection.jsonl"
+        },
+        {
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.1_T5.js",
+            "sha256": "58e59ecaf1da5e2d3f3474dfa9af3fc9b00906b2a2bec98edd2160d31e5e9cba",
+            "status": "excluded",
+            "reason": "完整原文检查slice(3,5)结果[3, 4]、长度2及arr[3]为undefined，同时动态设置getClass=Object.prototype.toString并断言[object Array]。ZX明确排除原型、反射与动态属性；静态列表类型及值比较不能替代该运行时观察，不关联整份适配通过。",
+            "contract": "docs/zx_design_doc.md#143-对象与运行时模型",
+            "cases": [],
+            "review_file": "packages/test/upstream/reviews/built_ins/array/slice_result_reflection.jsonl"
+        },
+        {
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.1_T6.js",
+            "sha256": "adb55d6169d520a98c8d6adf827f0513f24924bed639becfe5f6f8f06e96c366",
+            "status": "excluded",
+            "reason": "完整原文检查slice(2,4)结果[2, 3]、长度2及arr[3]为undefined，同时动态设置getClass=Object.prototype.toString并断言[object Array]。ZX明确排除原型、反射与动态属性；静态列表类型及值比较不能替代该运行时观察，不关联整份适配通过。",
+            "contract": "docs/zx_design_doc.md#143-对象与运行时模型",
+            "cases": [],
+            "review_file": "packages/test/upstream/reviews/built_ins/array/slice_result_reflection.jsonl"
+        },
+        {
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.1_T7.js",
+            "sha256": "afa63a034c138fa8e9f693e2add41044f095b46f571d3c85dfd9814efe93d3a3",
+            "status": "excluded",
+            "reason": "完整原文检查slice(3,6)结果[3, 4]、长度2及arr[3]为undefined，同时动态设置getClass=Object.prototype.toString并断言[object Array]。ZX明确排除原型、反射与动态属性；静态列表类型及值比较不能替代该运行时观察，不关联整份适配通过。",
+            "contract": "docs/zx_design_doc.md#143-对象与运行时模型",
+            "cases": [],
+            "review_file": "packages/test/upstream/reviews/built_ins/array/slice_result_reflection.jsonl"
+        }
+    ],
+    "next_unread_path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A3_T2.js",
+    "execution": {
+        "performed": false,
+        "gates_run": false,
+        "formal_files_modified": false,
+        "commit_created": false
+    },
+    "records": [
+        {
+            "ordinal": 1,
+            "path": "test/built-ins/Array/prototype/slice/15.4.4.10-10-c-ii-1.js",
+            "sha256": "a7b1d572a1246609ae660adfad20cb20bc48a8a5bd75096d548f0494f59e1ff4",
+            "actual_sha256": "a7b1d572a1246609ae660adfad20cb20bc48a8a5bd75096d548f0494f59e1ff4",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 23,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/15.4.4.10-10-c-ii-1.js",
+                "sha256": "a7b1d572a1246609ae660adfad20cb20bc48a8a5bd75096d548f0494f59e1ff4",
+                "metadata_status": "parsed",
+                "description": "Array.prototype.slice will slice a string from start to end when index property (read-only) exists in Array.prototype (Step 10.c.ii)\n",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "esid: sec-array.prototype.slice\ndescription: >\n    Array.prototype.slice will slice a string from start to end when\n    index property (read-only) exists in Array.prototype (Step 10.c.ii)",
+            "setup_and_call": "arrObj=[1,2,3]；在 Array.prototype 的索引 0 上定义值 test、writable=false、configurable=true，再取 slice(0,1)。",
+            "observations": [
+                "newArr.hasOwnProperty(\"0\") 为 true，结果自身成功创建索引属性，未被原型上的只读属性阻断。",
+                "newArr[0]===1。",
+                "typeof newArr[1]===\"undefined\"。"
+            ],
+            "assertion_conditions_verbatim": [
+                "assert(newArr.hasOwnProperty(\"0\"), 'newArr.hasOwnProperty(\"0\") !== true');",
+                "assert.sameValue(newArr[0], 1, 'newArr[0]');",
+                "assert.sameValue(typeof newArr[1], \"undefined\", 'typeof newArr[1]');"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "核心是 CreateDataProperty 对原型只读索引的行为，以及 hasOwnProperty 和越界 undefined。ZX 没有 Array.prototype、属性 descriptor 或动态自有属性查询，普通 [1] 值子集不能完整替代。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright (c) 2012 Ecma International.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\nesid: sec-array.prototype.slice\ndescription: >\n    Array.prototype.slice will slice a string from start to end when\n    index property (read-only) exists in Array.prototype (Step 10.c.ii)\n---*/\n\nvar arrObj = [1, 2, 3];\n\nObject.defineProperty(Array.prototype, \"0\", {\n  value: \"test\",\n  writable: false,\n  configurable: true\n});\n\nvar newArr = arrObj.slice(0, 1);\n\nassert(newArr.hasOwnProperty(\"0\"), 'newArr.hasOwnProperty(\"0\") !== true');\nassert.sameValue(newArr[0], 1, 'newArr[0]');\nassert.sameValue(typeof newArr[1], \"undefined\", 'typeof newArr[1]');\n"
+        },
+        {
+            "ordinal": 2,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.2_T1.js",
+            "sha256": "0276455bd1b54ddb06057f7667fafcb673470fe00147cbed2d925fa96515234a",
+            "actual_sha256": "0276455bd1b54ddb06057f7667fafcb673470fe00147cbed2d925fa96515234a",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 30,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.2_T1.js",
+                "sha256": "0276455bd1b54ddb06057f7667fafcb673470fe00147cbed2d925fa96515234a",
+                "metadata_status": "parsed",
+                "description": "length > end = abs(start), start < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is negative, use max(start + length, 0).\n    If end is positive, use min(end, length)\nesid: sec-array.prototype.slice\ndescription: length > end = abs(start), start < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(-3,3)，负 start 相对长度 5 得到起点 2。",
+            "observations": ["结果 Array class 标签、长度 1、arr[0]===2、arr[1]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 1",
+                "arr[0] !== 2",
+                "arr[1] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "除负 start 相对长度归一化外，完整原文还动态挂载 getClass 并调用 Object.prototype.toString，且越界读取返回 undefined。静态列表值 [2] 无法表达这些观察。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is negative, use max(start + length, 0).\n    If end is positive, use min(end, length)\nesid: sec-array.prototype.slice\ndescription: length > end = abs(start), start < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(-3, 3);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(-3,3); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 1) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(-3,3); arr.length === 1. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 2) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(-3,3); arr[0] === 2. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== undefined) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(-3,3); arr[1] === undefined. Actual: ' + (arr[1]));\n}\n"
+        },
+        {
+            "ordinal": 3,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.2_T2.js",
+            "sha256": "a8df70b9e07fbeef0582ecf0e22f30c50e4b59ec092f232473834a3db41d29a5",
+            "actual_sha256": "a8df70b9e07fbeef0582ecf0e22f30c50e4b59ec092f232473834a3db41d29a5",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 30,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.2_T2.js",
+                "sha256": "a8df70b9e07fbeef0582ecf0e22f30c50e4b59ec092f232473834a3db41d29a5",
+                "metadata_status": "parsed",
+                "description": "length = end > abs(start), start < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is negative, use max(start + length, 0).\n    If end is positive, use min(end, length)\nesid: sec-array.prototype.slice\ndescription: length = end > abs(start), start < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(-1,5)，得到最后一个元素。",
+            "observations": ["结果 Array class 标签、长度 1、arr[0]===4、arr[1]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 1",
+                "arr[0] !== 4",
+                "arr[1] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "负 start=-1 的范围值可独立研究，但原文还要求动态 class 标签和尾部越界 undefined；ZX 的静态列表类型和 bounds error 不等价。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is negative, use max(start + length, 0).\n    If end is positive, use min(end, length)\nesid: sec-array.prototype.slice\ndescription: length = end > abs(start), start < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(-1, 5);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(-1,5); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 1) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(-1,5); arr.length === 1. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 4) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(-1,5); arr[0] === 4. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== undefined) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(-1,5); arr[1] === undefined. Actual: ' + (arr[1]));\n}\n"
+        },
+        {
+            "ordinal": 4,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.2_T3.js",
+            "sha256": "5e7a6403c2b008dc5ddb128f08e33c6ba6da3b715b6f80359d1484d95583e266",
+            "actual_sha256": "5e7a6403c2b008dc5ddb128f08e33c6ba6da3b715b6f80359d1484d95583e266",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 30,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.2_T3.js",
+                "sha256": "5e7a6403c2b008dc5ddb128f08e33c6ba6da3b715b6f80359d1484d95583e266",
+                "metadata_status": "parsed",
+                "description": "abs(start) = length > end > 0, start < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is negative, use max(start + length, 0).\n    If end is positive, use min(end, length)\nesid: sec-array.prototype.slice\ndescription: abs(start) = length > end > 0, start < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(-5,1)，start 恰等于负长度。",
+            "observations": ["结果 Array class 标签、长度 1、arr[0]===0、arr[1]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 1",
+                "arr[0] !== 0",
+                "arr[1] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "负长度起点归零并不是全部断言；getClass 动态属性、原型 toString 与 arr[1] 的 undefined 都必须保留，因此不能将 [0] 登记完整适配。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is negative, use max(start + length, 0).\n    If end is positive, use min(end, length)\nesid: sec-array.prototype.slice\ndescription: abs(start) = length > end > 0, start < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(-5, 1);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(-5,1); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 1) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(-5,1); arr.length === 1. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(-5,1); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== undefined) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(-5,1); arr[1] === undefined. Actual: ' + (arr[1]));\n}\n"
+        },
+        {
+            "ordinal": 5,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.2_T4.js",
+            "sha256": "920adc3c4ef02fe87254c53aefba5282f1acb53c1d7c35edf063b0871f93525e",
+            "actual_sha256": "920adc3c4ef02fe87254c53aefba5282f1acb53c1d7c35edf063b0871f93525e",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 46,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.2_T4.js",
+                "sha256": "920adc3c4ef02fe87254c53aefba5282f1acb53c1d7c35edf063b0871f93525e",
+                "metadata_status": "parsed",
+                "description": "abs(start) > length = end > 0, start < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is negative, use max(start + length, 0).\n    If end is positive, use min(end, length)\nesid: sec-array.prototype.slice\ndescription: abs(start) > length = end > 0, start < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(-9,5)，过小 start 被钳制到 0。",
+            "observations": ["结果 Array class 标签、长度 5、arr[0..4] 逐项等于 0/1/2/3/4、arr[5]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 5",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== 3",
+                "arr[4] !== 4",
+                "arr[5] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "start=-9 的钳制、完整五个元素之外，原文还检查运行时 Array 标签和 arr[5] 的 undefined；静态 dense 列表范围提取只能保留值子集。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is negative, use max(start + length, 0).\n    If end is positive, use min(end, length)\nesid: sec-array.prototype.slice\ndescription: abs(start) > length = end > 0, start < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(-9, 5);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(-9,5); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 5) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(-9,5); arr.length === 5. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(-9,5); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(-9,5); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(-9,5); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== 3) {\n  throw new Test262Error('#6: var x = [0,1,2,3,4]; var arr = x.slice(-9,5); arr[3] === 3. Actual: ' + (arr[3]));\n}\n\nif (arr[4] !== 4) {\n  throw new Test262Error('#7: var x = [0,1,2,3,4]; var arr = x.slice(-9,5); arr[4] === 4. Actual: ' + (arr[4]));\n}\n\nif (arr[5] !== undefined) {\n  throw new Test262Error('#8: var x = [0,1,2,3,4]; var arr = x.slice(-9,5); arr[5] === undefined. Actual: ' + (arr[5]));\n}\n"
+        },
+        {
+            "ordinal": 6,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.3_T1.js",
+            "sha256": "fe02b0b19b40491d3849905fc4027669b4cb3da77f16e2c2f2ea824092b54a12",
+            "actual_sha256": "fe02b0b19b40491d3849905fc4027669b4cb3da77f16e2c2f2ea824092b54a12",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 38,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.3_T1.js",
+                "sha256": "fe02b0b19b40491d3849905fc4027669b4cb3da77f16e2c2f2ea824092b54a12",
+                "metadata_status": "parsed",
+                "description": "length > abs(end) > start = 0, end < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is positive, use min(start, length).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: length > abs(end) > start = 0, end < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(0,-2)，负 end 归一化到 3。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "除 end=-2 的相对尾部机制外，还有动态 getClass/原型反射和尾部越界 undefined。返回 [0,1,2] 无法完整对应。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is positive, use min(start, length).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: length > abs(end) > start = 0, end < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(0, -2);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(0,-2); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(0,-2); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(0,-2); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(0,-2); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(0,-2); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var x = [0,1,2,3,4]; var arr = x.slice(0,-2); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 7,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.3_T2.js",
+            "sha256": "d404a340a1375cc99f3e60a11ce83ad6cd1c62c76919ed22468668a9f8190776",
+            "actual_sha256": "d404a340a1375cc99f3e60a11ce83ad6cd1c62c76919ed22468668a9f8190776",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 26,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.3_T2.js",
+                "sha256": "d404a340a1375cc99f3e60a11ce83ad6cd1c62c76919ed22468668a9f8190776",
+                "metadata_status": "parsed",
+                "description": "length > abs(end) > start > 0, end < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is positive, use min(start, length).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: length > abs(end) > start > 0, end < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(1,-4)，归一化 end=1 与 start 相同。",
+            "observations": ["结果仍为 Array class 标签、长度 0、arr[0]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 0",
+                "arr[0] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "空范围结果仍要有可观察 Array class，空列表的索引 0 还应产生 undefined；ZX 越界 error 不能冒充该值。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is positive, use min(start, length).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: length > abs(end) > start > 0, end < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(1, -4);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(1,-4); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 0) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(1,-4); arr.length === 0. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== undefined) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(1,-4); arr[0] === undefined. Actual: ' + (arr[0]));\n}\n"
+        },
+        {
+            "ordinal": 8,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.3_T3.js",
+            "sha256": "2efeb9d129d499808e9322fc43dc9ae7d08f2cdc743db24293ad9623a283222a",
+            "actual_sha256": "2efeb9d129d499808e9322fc43dc9ae7d08f2cdc743db24293ad9623a283222a",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 26,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.3_T3.js",
+                "sha256": "2efeb9d129d499808e9322fc43dc9ae7d08f2cdc743db24293ad9623a283222a",
+                "metadata_status": "parsed",
+                "description": "length = abs(end) > start = 0, end < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is positive, use min(start, length).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: length = abs(end) > start = 0, end < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(0,-5)，负 end 恰为负长度并归零。",
+            "observations": ["结果 Array class 标签、长度 0、arr[0]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 0",
+                "arr[0] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "end=-length 的空结果可作普通范围观察，但 getClass 标签和空数组读取 undefined 与 ZX 当前契约不符。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is positive, use min(start, length).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: length = abs(end) > start = 0, end < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(0, -5);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(0,-5); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 0) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(0,-5); arr.length === 0. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== undefined) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(0,-5); arr[0] === undefined. Actual: ' + (arr[0]));\n}\n"
+        },
+        {
+            "ordinal": 9,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.3_T4.js",
+            "sha256": "25b40ac348a647e906a12edc192498338861fd269cc899f4815729049fe03bcd",
+            "actual_sha256": "25b40ac348a647e906a12edc192498338861fd269cc899f4815729049fe03bcd",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 26,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.3_T4.js",
+                "sha256": "25b40ac348a647e906a12edc192498338861fd269cc899f4815729049fe03bcd",
+                "metadata_status": "parsed",
+                "description": "abs(end) > length > start > 0, end < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is positive, use min(start, length).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: abs(end) > length > start > 0, end < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(4,-9)，过小 end 归零，结果为空。",
+            "observations": ["结果 Array class 标签、长度 0、arr[0]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 0",
+                "arr[0] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "负 end 钳制之后 start>end 产生空数组，原文同时保留 class 反射及越界 undefined；不能只运行长度 0。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is positive, use min(start, length).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: abs(end) > length > start > 0, end < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(4, -9);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(4,-9); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 0) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(4,-9); arr.length === 0. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== undefined) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(4,-9); arr[0] === undefined. Actual: ' + (arr[0]));\n}\n"
+        },
+        {
+            "ordinal": 10,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.4_T1.js",
+            "sha256": "5c4e7e2cf69dc079445f0607afaeef432d5fe25b0a31a92739976dd421540c9f",
+            "actual_sha256": "5c4e7e2cf69dc079445f0607afaeef432d5fe25b0a31a92739976dd421540c9f",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 38,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.4_T1.js",
+                "sha256": "5c4e7e2cf69dc079445f0607afaeef432d5fe25b0a31a92739976dd421540c9f",
+                "metadata_status": "parsed",
+                "description": "-length = start < end < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is negative, use max(start + length, 0).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: -length = start < end < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(-5,-2)，两端负索引归一化为 0/3。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "两个负边界的范围之外还包含动态 class 反射及 undefined；用显式非负 0/3 替换也会删掉原文机制。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is negative, use max(start + length, 0).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: -length = start < end < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(-5, -2);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(-5,-2); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(-5,-2); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(-5,-2); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(-5,-2); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(-5,-2); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var x = [0,1,2,3,4]; var arr = x.slice(-5,-2); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 11,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.4_T2.js",
+            "sha256": "660c8306b6064f2e6a065240bc1bc8c098bdcde76bee7d008f005ebaf504410c",
+            "actual_sha256": "660c8306b6064f2e6a065240bc1bc8c098bdcde76bee7d008f005ebaf504410c",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 34,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.4_T2.js",
+                "sha256": "660c8306b6064f2e6a065240bc1bc8c098bdcde76bee7d008f005ebaf504410c",
+                "metadata_status": "parsed",
+                "description": "-length < start < end < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is negative, use max(start + length, 0).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: -length < start < end < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(-3,-1)，两端归一化为 2/4。",
+            "observations": ["结果 Array class 标签、长度 2、arr[0]===2、arr[1]===3、arr[2]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 2",
+                "arr[0] !== 2",
+                "arr[1] !== 3",
+                "arr[2] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "负 start/end 与动态 getClass 都是原文行为；结果 [2,3] 和长度 2 不包含 arr[2] 的 undefined 及 Array 标签。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is negative, use max(start + length, 0).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: -length < start < end < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(-3, -1);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(-3,-1); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 2) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(-3,-1); arr.length === 2. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 2) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(-3,-1); arr[0] === 2. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 3) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(-3,-1); arr[1] === 3. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== undefined) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(-3,-1); arr[2] === undefined. Actual: ' + (arr[2]));\n}\n"
+        },
+        {
+            "ordinal": 12,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.4_T3.js",
+            "sha256": "df23eae1e74b03bf86742795844a5a8405a0d288bcf4ccc5b830559ed245cc38",
+            "actual_sha256": "df23eae1e74b03bf86742795844a5a8405a0d288bcf4ccc5b830559ed245cc38",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 42,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.4_T3.js",
+                "sha256": "df23eae1e74b03bf86742795844a5a8405a0d288bcf4ccc5b830559ed245cc38",
+                "metadata_status": "parsed",
+                "description": "start < -length < end < 0",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is negative, use max(start + length, 0).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: start < -length < end < 0",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(-9,-1)，过小 start 钳零，end=4。",
+            "observations": [
+                "结果 Array class 标签、长度 4、arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===3、arr[4]===undefined。"
+            ],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 4",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== 3",
+                "arr[4] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "必须保留过小负 start 的钳制、Array class 反射、越界 undefined；仅复制前四项不满足完整文件。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is negative, use max(start + length, 0).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: start < -length < end < 0\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(-9, -1);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(-9,-1); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 4) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(-9,-1); arr.length === 4. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(-9,-1); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(-9,-1); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(-9,-1); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== 3) {\n  throw new Test262Error('#6: var x = [0,1,2,3,4]; var arr = x.slice(-9,-1); arr[3] === 3. Actual: ' + (arr[3]));\n}\n\nif (arr[4] !== undefined) {\n  throw new Test262Error('#7: var x = [0,1,2,3,4]; var arr = x.slice(-9,-1); arr[4] === undefined. Actual: ' + (arr[4]));\n}\n"
+        },
+        {
+            "ordinal": 13,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.4_T4.js",
+            "sha256": "682410765989c6dad17ee2f6a8b015a3c59281546c7c8fa4fe10a094bbfb3bca",
+            "actual_sha256": "682410765989c6dad17ee2f6a8b015a3c59281546c7c8fa4fe10a094bbfb3bca",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 26,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.4_T4.js",
+                "sha256": "682410765989c6dad17ee2f6a8b015a3c59281546c7c8fa4fe10a094bbfb3bca",
+                "metadata_status": "parsed",
+                "description": "start = end < -length",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    If start is negative, use max(start + length, 0).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: start = end < -length",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(-6,-6)，两端均小于负长度并归零。",
+            "observations": ["结果 Array class 标签、长度 0、arr[0]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 0",
+                "arr[0] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "两个超负边界的空数组仍经 getClass 反射检查，空数组索引返回 undefined；ZX error 不能改成 null 或常量标签。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    If start is negative, use max(start + length, 0).\n    If end is negative, use max(end + length, 0)\nesid: sec-array.prototype.slice\ndescription: start = end < -length\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(-6, -6);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(-6,-6); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 0) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(-6,-6); arr.length === 0. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== undefined) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(-6,-6); arr[0] === undefined. Actual: ' + (arr[0]));\n}\n"
+        },
+        {
+            "ordinal": 14,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.5_T1.js",
+            "sha256": "b41534ffddcfeed61f21d123a89870a9d1d7fab8d9614921c0f28102d6eb0d83",
+            "actual_sha256": "b41534ffddcfeed61f21d123a89870a9d1d7fab8d9614921c0f28102d6eb0d83",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 32,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.5_T1.js",
+                "sha256": "b41534ffddcfeed61f21d123a89870a9d1d7fab8d9614921c0f28102d6eb0d83",
+                "metadata_status": "parsed",
+                "description": "end === undefined",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: If end is undefined use length\nesid: sec-array.prototype.slice\ndescription: end === undefined",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(3,undefined)，显式 undefined end 使用 length。",
+            "observations": ["结果 Array class 标签、长度 2、arr[0]===3、arr[1]===4、arr[2]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 2",
+                "arr[0] !== 3",
+                "arr[1] !== 4",
+                "arr[2] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "显式 undefined 参数、尾部 undefined 和动态 class 反射均不属于当前 ZX 列表契约。把 end 预先改为 length 会删掉显式 undefined 的观察。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: If end is undefined use length\nesid: sec-array.prototype.slice\ndescription: end === undefined\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(3, undefined);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(3, undefined); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 2) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(3, undefined); arr.length === 2. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 3) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(3, undefined); arr[0] === 3. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 4) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(3, undefined); arr[1] === 4. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== undefined) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(3, undefined); arr[2] === undefined. Actual: ' + (arr[2]));\n}\n"
+        },
+        {
+            "ordinal": 15,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.5_T2.js",
+            "sha256": "ee4281335508a771ad72e60a0520c51fc90382d7536e02e5204798e59fb05ac3",
+            "actual_sha256": "ee4281335508a771ad72e60a0520c51fc90382d7536e02e5204798e59fb05ac3",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 32,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A1.5_T2.js",
+                "sha256": "ee4281335508a771ad72e60a0520c51fc90382d7536e02e5204798e59fb05ac3",
+                "metadata_status": "parsed",
+                "description": "end is absent",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: If end is undefined use length\nesid: sec-array.prototype.slice\ndescription: end is absent",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(-2)，省略 end 使用 length。",
+            "observations": ["结果 Array class 标签、长度 2、arr[0]===3、arr[1]===4、arr[2]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 2",
+                "arr[0] !== 3",
+                "arr[1] !== 4",
+                "arr[2] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "省略 end 与负 start 的调用形状，加上 getClass 和尾部 undefined，均须保留；不能改为固定二参数整数提取后记完整通过。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: If end is undefined use length\nesid: sec-array.prototype.slice\ndescription: end is absent\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(-2);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(-2); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 2) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(-2); arr.length === 2. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 3) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(-2); arr[0] === 3. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 4) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(-2); arr[1] === 4. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== undefined) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(-2); arr[2] === undefined. Actual: ' + (arr[2]));\n}\n"
+        },
+        {
+            "ordinal": 16,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T1.js",
+            "sha256": "b5a6a3b64551b5fe5d8d2879e275034f22c88849e4e9cf44cceb5ebe93c29b9d",
+            "actual_sha256": "b5a6a3b64551b5fe5d8d2879e275034f22c88849e4e9cf44cceb5ebe93c29b9d",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 32,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T1.js",
+                "sha256": "b5a6a3b64551b5fe5d8d2879e275034f22c88849e4e9cf44cceb5ebe93c29b9d",
+                "metadata_status": "parsed",
+                "description": "start is not integer",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: start is not integer",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(2.5,4)，非整数 start 经 ToInteger 截为 2。",
+            "observations": [
+                "结果 Array class 标签、长度 2、arr[0]===2、arr[1]===3、arr[3]===undefined；原文没有检查 arr[2]。"
+            ],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 2",
+                "arr[0] !== 2",
+                "arr[1] !== 3",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "需保留浮点 start 的 ToInteger，动态 class 和原文实际索引 3 的 undefined；u64 参数或预截断 2 不能证明输入 2.5 的协议。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: start is not integer\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(2.5, 4);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(2.5,4); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 2) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(2.5,4); arr.length === 2. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 2) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(2.5,4); arr[0] === 2. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 3) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(2.5,4); arr[1] === 3. Actual: ' + (arr[1]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(2.5,4); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 17,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T2.js",
+            "sha256": "f96b1dd6843f0eea6c5aa5c2f47ac96c496f2cb673afa85d708dbd575edb0f93",
+            "actual_sha256": "f96b1dd6843f0eea6c5aa5c2f47ac96c496f2cb673afa85d708dbd575edb0f93",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 36,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T2.js",
+                "sha256": "f96b1dd6843f0eea6c5aa5c2f47ac96c496f2cb673afa85d708dbd575edb0f93",
+                "metadata_status": "parsed",
+                "description": "start = NaN",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: start = NaN",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(NaN,3)，NaN start 归零。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "NaN 可表示不代表列表边界会自动 ToInteger；还需动态 Array 标签和越界 undefined，不能以 start=0 替代全部断言。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: start = NaN\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(NaN, 3);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(NaN,3); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(NaN,3); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(NaN,3); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(NaN,3); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(NaN,3); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var x = [0,1,2,3,4]; var arr = x.slice(NaN,3); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 18,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T3.js",
+            "sha256": "12433168310aa54df8af3dad87b32fe9e301f6365214453ce4e73b267260b384",
+            "actual_sha256": "12433168310aa54df8af3dad87b32fe9e301f6365214453ce4e73b267260b384",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 24,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T3.js",
+                "sha256": "12433168310aa54df8af3dad87b32fe9e301f6365214453ce4e73b267260b384",
+                "metadata_status": "parsed",
+                "description": "start = Infinity",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: start = Infinity",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(Number.POSITIVE_INFINITY,3)。",
+            "observations": ["结果 Array class 标签、长度 0、arr[0]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 0",
+                "arr[0] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "正 Infinity 起点被钳到 length 的空结果依赖 JS 数值归一化；结果还带 class 反射与 undefined，不能替换成大 u64。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: start = Infinity\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(Number.POSITIVE_INFINITY, 3);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(Number.POSITIVE_INFINITY,3); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 0) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(Number.POSITIVE_INFINITY,3); arr.length === 0. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== undefined) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(Number.POSITIVE_INFINITY,3); arr[0] === undefined. Actual: ' + (arr[0]));\n}\n"
+        },
+        {
+            "ordinal": 19,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T4.js",
+            "sha256": "45ba8e3d9e26ac2b647377b3b4181d9e29612a5139734a2aad0add2e82043600",
+            "actual_sha256": "45ba8e3d9e26ac2b647377b3b4181d9e29612a5139734a2aad0add2e82043600",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 36,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T4.js",
+                "sha256": "45ba8e3d9e26ac2b647377b3b4181d9e29612a5139734a2aad0add2e82043600",
+                "metadata_status": "parsed",
+                "description": "start = -Infinity",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: start = -Infinity",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(Number.NEGATIVE_INFINITY,3)。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "负 Infinity 起点归零需真实数值语义，不是整数 0 输入；动态 Array 标签和 undefined 也不能删除。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: start = -Infinity\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(Number.NEGATIVE_INFINITY, 3);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(Number.NEGATIVE_INFINITY,3); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(Number.NEGATIVE_INFINITY,3); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(Number.NEGATIVE_INFINITY,3); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(Number.NEGATIVE_INFINITY,3); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(Number.NEGATIVE_INFINITY,3); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var x = [0,1,2,3,4]; var arr = x.slice(Number.NEGATIVE_INFINITY,3); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 20,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T5.js",
+            "sha256": "e833ad686bb6d30ef88b0c9f6d5022c18d1cf6574a1918a55d37042ac163c3a9",
+            "actual_sha256": "e833ad686bb6d30ef88b0c9f6d5022c18d1cf6574a1918a55d37042ac163c3a9",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 43,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.1_T5.js",
+                "sha256": "e833ad686bb6d30ef88b0c9f6d5022c18d1cf6574a1918a55d37042ac163c3a9",
+                "metadata_status": "parsed",
+                "description": "ToInteger use ToNumber",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: ToInteger use ToNumber",
+            "setup_and_call": "x=[0,1,2,3,4]；start 是含 valueOf→0、toString→3 方法的对象，end=3。",
+            "observations": [
+                "选取 [0,1,2]，长度 3：结果说明 ToNumber 优先得到 valueOf 的 0，而非 toString 的 3。",
+                "动态 getClass 标签为 [object Array]；arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"
+            ],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "对象到数值的隐式协议（valueOf/toString 的优先选择）是核心；ZX 静态对象字段不等于这个协议。还存在动态 class 和 undefined，预计算 start=0 会删掉核心机制。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from start\nesid: sec-array.prototype.slice\ndescription: ToInteger use ToNumber\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice({\n  valueOf: function() {\n    return 0\n  },\n  toString: function() {\n    return 3\n  }\n}, 3);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice({valueOf: function() {return 0}, toString: function() {return 3}},3); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice({valueOf: function() {return 0}, toString: function() {return 3}},3); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice({valueOf: function() {return 0}, toString: function() {return 3}},3); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice({valueOf: function() {return 0}, toString: function() {return 3}},3); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice({valueOf: function() {return 0}, toString: function() {return 3}},3); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var x = [0,1,2,3,4]; var arr = x.slice({valueOf: function() {return 0}, toString: function() {return 3}},3); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 21,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T1.js",
+            "sha256": "96ee2717decaa233222b3448de00f5fdeb732fa3bc44ff09bd5475cd78d97943",
+            "actual_sha256": "96ee2717decaa233222b3448de00f5fdeb732fa3bc44ff09bd5475cd78d97943",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 32,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T1.js",
+                "sha256": "96ee2717decaa233222b3448de00f5fdeb732fa3bc44ff09bd5475cd78d97943",
+                "metadata_status": "parsed",
+                "description": "end is not integer",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: end is not integer",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(2,4.5)，非整数 end 经 ToInteger 截为 4。",
+            "observations": [
+                "结果 Array class 标签、长度 2、arr[0]===2、arr[1]===3、arr[3]===undefined；原文没有检查 arr[2]。"
+            ],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 2",
+                "arr[0] !== 2",
+                "arr[1] !== 3",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "需保留浮点 end=4.5 的截断而非写死 4，连同 class 反射和索引 3 的 undefined；静态 u64 范围不等价。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: end is not integer\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(2, 4.5);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(2,4.5); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 2) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(2,4.5); arr.length === 2. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 2) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(2,4.5); arr[0] === 2. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 3) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(2,4.5); arr[1] === 3. Actual: ' + (arr[1]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(2,4.5); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 22,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T2.js",
+            "sha256": "2d80b5e437dda96ea1c5030ffb21fd488041f65f5592a6f3a2b1531d6f76e1b7",
+            "actual_sha256": "2d80b5e437dda96ea1c5030ffb21fd488041f65f5592a6f3a2b1531d6f76e1b7",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 24,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T2.js",
+                "sha256": "2d80b5e437dda96ea1c5030ffb21fd488041f65f5592a6f3a2b1531d6f76e1b7",
+                "metadata_status": "parsed",
+                "description": "end = NaN",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: end = NaN",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(0,NaN)，NaN end 归零。",
+            "observations": ["结果 Array class 标签、长度 0、arr[0]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 0",
+                "arr[0] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "NaN end 的 ToInteger 空范围、Array class 和 undefined 是全部原文观察；不能只保留空列表长度。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: end = NaN\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(0, NaN);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(0,NaN); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 0) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(0,NaN); arr.length === 0. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== undefined) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(0,NaN); arr[0] === undefined. Actual: ' + (arr[0]));\n}\n"
+        },
+        {
+            "ordinal": 23,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T3.js",
+            "sha256": "497ed22581ec191c47bfc28925d52e0bbd9383a437a9beb210c08a14d3c3a64e",
+            "actual_sha256": "497ed22581ec191c47bfc28925d52e0bbd9383a437a9beb210c08a14d3c3a64e",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 44,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T3.js",
+                "sha256": "497ed22581ec191c47bfc28925d52e0bbd9383a437a9beb210c08a14d3c3a64e",
+                "metadata_status": "parsed",
+                "description": "end = Infinity",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: end = Infinity",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(0,Number.POSITIVE_INFINITY)，end 钳到 length。",
+            "observations": ["结果 Array class 标签、长度 5、arr[0..4] 逐项等于 0/1/2/3/4、arr[5]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 5",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== 3",
+                "arr[4] !== 4",
+                "arr[5] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "正 Infinity end 的钳制与运行时反射/越界值都须保留；不得改为 end=5 后记完整适配。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: end = Infinity\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(0, Number.POSITIVE_INFINITY);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.POSITIVE_INFINITY); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 5) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.POSITIVE_INFINITY); arr.length === 5. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.POSITIVE_INFINITY); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.POSITIVE_INFINITY); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.POSITIVE_INFINITY); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== 3) {\n  throw new Test262Error('#6: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.POSITIVE_INFINITY); arr[3] === 3. Actual: ' + (arr[3]));\n}\n\nif (arr[4] !== 4) {\n  throw new Test262Error('#7: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.POSITIVE_INFINITY); arr[4] === 4. Actual: ' + (arr[4]));\n}\n\nif (arr[5] !== undefined) {\n  throw new Test262Error('#8: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.POSITIVE_INFINITY); arr[5] === undefined. Actual: ' + (arr[5]));\n}\n"
+        },
+        {
+            "ordinal": 24,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T4.js",
+            "sha256": "4bdb65b0b8730ba16cfe449171d5a025f8367ac5d3515d887b14f8bdb79589a6",
+            "actual_sha256": "4bdb65b0b8730ba16cfe449171d5a025f8367ac5d3515d887b14f8bdb79589a6",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 24,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T4.js",
+                "sha256": "4bdb65b0b8730ba16cfe449171d5a025f8367ac5d3515d887b14f8bdb79589a6",
+                "metadata_status": "parsed",
+                "description": "end = -Infinity",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: end = -Infinity",
+            "setup_and_call": "x=[0,1,2,3,4]，slice(0,Number.NEGATIVE_INFINITY)，end 归零。",
+            "observations": ["结果 Array class 标签、长度 0、arr[0]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 0",
+                "arr[0] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "负 Infinity end 的空结果仍有 getClass 标签和 undefined；ZX 当前范围和索引错误不能表达完整断言。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: end = -Infinity\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(0, Number.NEGATIVE_INFINITY);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.NEGATIVE_INFINITY); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 0) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.NEGATIVE_INFINITY); arr.length === 0. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== undefined) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(0,Number.NEGATIVE_INFINITY); arr[0] === undefined. Actual: ' + (arr[0]));\n}\n"
+        },
+        {
+            "ordinal": 25,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T5.js",
+            "sha256": "109412255351330b19a29104d789ad60815b8627a05853758b87cd64b77f5588",
+            "actual_sha256": "109412255351330b19a29104d789ad60815b8627a05853758b87cd64b77f5588",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 43,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2.2_T5.js",
+                "sha256": "109412255351330b19a29104d789ad60815b8627a05853758b87cd64b77f5588",
+                "metadata_status": "parsed",
+                "description": "ToInteger use ToNumber",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: ToInteger use ToNumber",
+            "setup_and_call": "x=[0,1,2,3,4]；start=0，end 是含 valueOf→3、toString→0 方法的对象。",
+            "observations": [
+                "选取 [0,1,2]，长度 3：结果说明 end 的 ToNumber 使用 valueOf 的 3。",
+                "动态 getClass 标签为 [object Array]；arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"
+            ],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "end 对象的隐式 valueOf/toString 协议不能替换成显式数值 3；同文件还有 class 反射和越界 undefined。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Operator use ToInteger from end\nesid: sec-array.prototype.slice\ndescription: ToInteger use ToNumber\n---*/\n\nvar x = [0, 1, 2, 3, 4];\nvar arr = x.slice(0, {\n  valueOf: function() {\n    return 3\n  },\n  toString: function() {\n    return 0\n  }\n});\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var x = [0,1,2,3,4]; var arr = x.slice(0,{valueOf: function() {return 3}, toString: function() {return 0}}); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var x = [0,1,2,3,4]; var arr = x.slice(0,{valueOf: function() {return 3}, toString: function() {return 0}}); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var x = [0,1,2,3,4]; var arr = x.slice(0,{valueOf: function() {return 3}, toString: function() {return 0}}); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var x = [0,1,2,3,4]; var arr = x.slice(0,{valueOf: function() {return 3}, toString: function() {return 0}}); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var x = [0,1,2,3,4]; var arr = x.slice(0,{valueOf: function() {return 3}, toString: function() {return 0}}); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var x = [0,1,2,3,4]; var arr = x.slice(0,{valueOf: function() {return 3}, toString: function() {return 0}}); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 26,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T1.js",
+            "sha256": "74ef0a2f06a9114cc66b0e801eaf969b72a6929ed8393fd774def94a5e2f95ce",
+            "actual_sha256": "74ef0a2f06a9114cc66b0e801eaf969b72a6929ed8393fd774def94a5e2f95ce",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 47,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T1.js",
+                "sha256": "74ef0a2f06a9114cc66b0e801eaf969b72a6929ed8393fd774def94a5e2f95ce",
+                "metadata_status": "parsed",
+                "description": "If start is positive, use min(start, length).  If end is positive, use min(end, length)\n",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: >\n    If start is positive, use min(start, length).  If end is positive,\n    use min(end, length)",
+            "setup_and_call": "创建普通 obj={}，动态挂载 slice=Array.prototype.slice、0..4 数值属性及 length=5；调用 obj.slice(0,3)。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "这是 generic 非 Array receiver，读取动态 length/数字键并使用挂载函数的 this，不是 dense list。加上结果 class/undefined，不可将 obj 预先转成 [0,1,2,3,4]。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: >\n    If start is positive, use min(start, length).  If end is positive,\n    use min(end, length)\n---*/\n\nvar obj = {};\nobj.slice = Array.prototype.slice;\nobj[0] = 0;\nobj[1] = 1;\nobj[2] = 2;\nobj[3] = 3;\nobj[4] = 4;\nobj.length = 5;\nvar arr = obj.slice(0, 3);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,3); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,3); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,3); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,3); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,3); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,3); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 27,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T2.js",
+            "sha256": "88de83ff48929f78bb8bcabf6010ef30d3a8d3608abe0311bbc1daecb20dd524",
+            "actual_sha256": "88de83ff48929f78bb8bcabf6010ef30d3a8d3608abe0311bbc1daecb20dd524",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 47,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T2.js",
+                "sha256": "88de83ff48929f78bb8bcabf6010ef30d3a8d3608abe0311bbc1daecb20dd524",
+                "metadata_status": "parsed",
+                "description": "If start is negative, use max(start + length, 0).  If end is positive, use min(end, length)\n",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: >\n    If start is negative, use max(start + length, 0).  If end is\n    positive, use min(end, length)",
+            "setup_and_call": "动态普通 obj 的 0..4 属性与 length=5，挂载 Array.prototype.slice；调用 slice(-5,3)。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "非 Array this、动态数字属性和 length 与负 start 共同构成行为；静态列表及正整数 0/3 会同时删除 generic receiver 与归一化机制。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: >\n    If start is negative, use max(start + length, 0).  If end is\n    positive, use min(end, length)\n---*/\n\nvar obj = {};\nobj.slice = Array.prototype.slice;\nobj[0] = 0;\nobj[1] = 1;\nobj[2] = 2;\nobj[3] = 3;\nobj[4] = 4;\nobj.length = 5;\nvar arr = obj.slice(-5, 3);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,3); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,3); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,3); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,3); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,3); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,3); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 28,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T3.js",
+            "sha256": "f2064ad3a9160a70ea6f5d0973604f73ed3ef77a79511a30a53ffe527b983d44",
+            "actual_sha256": "f2064ad3a9160a70ea6f5d0973604f73ed3ef77a79511a30a53ffe527b983d44",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 47,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T3.js",
+                "sha256": "f2064ad3a9160a70ea6f5d0973604f73ed3ef77a79511a30a53ffe527b983d44",
+                "metadata_status": "parsed",
+                "description": "If start is positive, use min(start, length).  If end is negative, use max(end + length, 0)\n",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: >\n    If start is positive, use min(start, length).  If end is negative,\n    use max(end + length, 0)",
+            "setup_and_call": "动态普通 obj 的 0..4 属性与 length=5，挂载 Array.prototype.slice；调用 slice(0,-2)。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "generic receiver 的动态属性查询与负 end 机制、输出 class/undefined 必须一起保留，不能只提取 [0,1,2]。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: >\n    If start is positive, use min(start, length).  If end is negative,\n    use max(end + length, 0)\n---*/\n\nvar obj = {};\nobj.slice = Array.prototype.slice;\nobj[0] = 0;\nobj[1] = 1;\nobj[2] = 2;\nobj[3] = 3;\nobj[4] = 4;\nobj.length = 5;\nvar arr = obj.slice(0, -2);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,-2); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,-2); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,-2); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,-2); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,-2); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(0,-2); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 29,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T4.js",
+            "sha256": "5f5f10057c45fada1d7b602bb8be31d38caf4dcd050261e98e013a45fbe59dd2",
+            "actual_sha256": "5f5f10057c45fada1d7b602bb8be31d38caf4dcd050261e98e013a45fbe59dd2",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 47,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T4.js",
+                "sha256": "5f5f10057c45fada1d7b602bb8be31d38caf4dcd050261e98e013a45fbe59dd2",
+                "metadata_status": "parsed",
+                "description": "If start is negative, use max(start + length, 0).  If end is negative, use max(end + length, 0)\n",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: >\n    If start is negative, use max(start + length, 0).  If end is\n    negative, use max(end + length, 0)",
+            "setup_and_call": "动态普通 obj 的 0..4 属性与 length=5，挂载 Array.prototype.slice；调用 slice(-5,-2)。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===0、arr[1]===1、arr[2]===2、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 0",
+                "arr[1] !== 1",
+                "arr[2] !== 2",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "两个负边界作用于非 Array this，列表改写无法保留动态 length/数字键、原型借用函数、class 和 undefined。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: >\n    If start is negative, use max(start + length, 0).  If end is\n    negative, use max(end + length, 0)\n---*/\n\nvar obj = {};\nobj.slice = Array.prototype.slice;\nobj[0] = 0;\nobj[1] = 1;\nobj[2] = 2;\nobj[3] = 3;\nobj[4] = 4;\nobj.length = 5;\nvar arr = obj.slice(-5, -2);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,-2); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,-2); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 0) {\n  throw new Test262Error('#3: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,-2); arr[0] === 0. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 1) {\n  throw new Test262Error('#4: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,-2); arr[1] === 1. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 2) {\n  throw new Test262Error('#5: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,-2); arr[2] === 2. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(-5,-2); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 30,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T5.js",
+            "sha256": "d28d145fa189f4878ba02192b78217f158d1c802e738866e59421d21a53b4a8f",
+            "actual_sha256": "d28d145fa189f4878ba02192b78217f158d1c802e738866e59421d21a53b4a8f",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 45,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T5.js",
+                "sha256": "d28d145fa189f4878ba02192b78217f158d1c802e738866e59421d21a53b4a8f",
+                "metadata_status": "parsed",
+                "description": "If end is undefined use length",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: If end is undefined use length",
+            "setup_and_call": "动态普通 obj 的 0..4 属性与 length=5，挂载 Array.prototype.slice；调用 slice(2)，省略 end。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===2、arr[1]===3、arr[2]===4、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 2",
+                "arr[1] !== 3",
+                "arr[2] !== 4",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "省略 end 从 generic object.length 取默认长度，不是固定列表签名；动态 receiver、class 标签和尾部 undefined 不可删去。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: If end is undefined use length\n---*/\n\nvar obj = {};\nobj.slice = Array.prototype.slice;\nobj[0] = 0;\nobj[1] = 1;\nobj[2] = 2;\nobj[3] = 3;\nobj[4] = 4;\nobj.length = 5;\nvar arr = obj.slice(2);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 2) {\n  throw new Test262Error('#3: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2); arr[0] === 2. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 3) {\n  throw new Test262Error('#4: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2); arr[1] === 3. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 4) {\n  throw new Test262Error('#5: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2); arr[2] === 4. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 31,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T6.js",
+            "sha256": "4b8ca702a976f21590578c8b44c05a63a064669bac252311edbfe35373fc990a",
+            "actual_sha256": "4b8ca702a976f21590578c8b44c05a63a064669bac252311edbfe35373fc990a",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 45,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A2_T6.js",
+                "sha256": "4b8ca702a976f21590578c8b44c05a63a064669bac252311edbfe35373fc990a",
+                "metadata_status": "parsed",
+                "description": "If end is undefined use length",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: If end is undefined use length",
+            "setup_and_call": "动态普通 obj 的 0..4 属性与 length=5，挂载 Array.prototype.slice；调用 slice(2,undefined)。",
+            "observations": ["结果 Array class 标签、长度 3、arr[0]===2、arr[1]===3、arr[2]===4、arr[3]===undefined。"],
+            "assertion_conditions_verbatim": [
+                "arr.getClass() !== \"[object \" + \"Array\" + \"]\"",
+                "arr.length !== 3",
+                "arr[0] !== 2",
+                "arr[1] !== 3",
+                "arr[2] !== 4",
+                "arr[3] !== undefined"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "显式 undefined end 与 generic receiver 的动态长度共同决定结果，ZX 不提供该对象协议与 undefined；值子集 [2,3,4] 不能完整登记。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: |\n    The slice function is intentionally generic.\n    It does not require that its this value be an Array object\nesid: sec-array.prototype.slice\ndescription: If end is undefined use length\n---*/\n\nvar obj = {};\nobj.slice = Array.prototype.slice;\nobj[0] = 0;\nobj[1] = 1;\nobj[2] = 2;\nobj[3] = 3;\nobj[4] = 4;\nobj.length = 5;\nvar arr = obj.slice(2, undefined);\n\narr.getClass = Object.prototype.toString;\nif (arr.getClass() !== \"[object \" + \"Array\" + \"]\") {\n  throw new Test262Error('#1: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2, undefined); arr is Array object. Actual: ' + (arr.getClass()));\n}\n\nif (arr.length !== 3) {\n  throw new Test262Error('#2: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2, undefined); arr.length === 3. Actual: ' + (arr.length));\n}\n\nif (arr[0] !== 2) {\n  throw new Test262Error('#3: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2, undefined); arr[0] === 2. Actual: ' + (arr[0]));\n}\n\nif (arr[1] !== 3) {\n  throw new Test262Error('#4: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2, undefined); arr[1] === 3. Actual: ' + (arr[1]));\n}\n\nif (arr[2] !== 4) {\n  throw new Test262Error('#5: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2, undefined); arr[2] === 4. Actual: ' + (arr[2]));\n}\n\nif (arr[3] !== undefined) {\n  throw new Test262Error('#6: var obj = {}; obj.slice = Array.prototype.slice; obj[0] = 0; obj[1] = 1; obj[2] = 2; obj[3] = 3; obj[4] = 4; obj.length = 5; var arr = obj.slice(2, undefined); arr[3] === undefined. Actual: ' + (arr[3]));\n}\n"
+        },
+        {
+            "ordinal": 32,
+            "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A3_T1.js",
+            "sha256": "7105e81b975f6227db36c7a06a1d53cd9c3f846b66d8481281ad9d4af7f13da6",
+            "actual_sha256": "7105e81b975f6227db36c7a06a1d53cd9c3f846b66d8481281ad9d4af7f13da6",
+            "sha256_matches_index": true,
+            "full_source_read": true,
+            "source_line_count": 17,
+            "harness": {
+                "includes": [],
+                "flags": [],
+                "features": [],
+                "negative": null,
+                "metadata_fields_absent_in_source": true
+            },
+            "metadata_index_entry": {
+                "path": "test/built-ins/Array/prototype/slice/S15.4.4.10_A3_T1.js",
+                "sha256": "7105e81b975f6227db36c7a06a1d53cd9c3f846b66d8481281ad9d4af7f13da6",
+                "metadata_status": "parsed",
+                "description": "length = 4294967296",
+                "esid": "sec-array.prototype.slice"
+            },
+            "source_frontmatter": "info: Check ToLength(length) for non Array objects\nesid: sec-array.prototype.slice\ndescription: length = 4294967296",
+            "setup_and_call": "assert.throws 内创建普通 obj，挂载 Array.prototype.slice；obj[0]=\"x\"、obj[4294967295]=\"y\"、obj.length=4294967296；调用 slice(0,4294967296)。",
+            "observations": ["整个回调必须抛出 RangeError。没有单独断言返回元素、结果长度或 class。"],
+            "assertion_conditions_verbatim": [
+                "assert.throws(RangeError, () => {\n  var obj = {};\n  obj.slice = Array.prototype.slice;\n  obj[0] = \"x\";\n  obj[4294967295] = \"y\";\n  obj.length = 4294967296;\n  obj.slice(0, 4294967296);\n});"
+            ],
+            "assessment": "excluded",
+            "review_stage": "analysis_draft",
+            "adapted": false,
+            "reason": "核心是 generic object 的动态 length/稀疏数字属性与创建巨大 Array 时的 RangeError，不是实际 2^32 项 dense slice 的 bounds。ZX 静态 slice 长度来自真实存储、无 new Array/通用 this；IndexOutOfBounds 或 OOM 都不能替代 RangeError。",
+            "contract": [
+                "docs/zx_design_doc.md#143-对象与运行时模型",
+                "packages/core/src/ir.zig:21",
+                "packages/compiler/src/zx/analysis/list_operations.zig",
+                "packages/genz/src/zx/intrinsics.zig:6"
+            ],
+            "cases": [],
+            "source": "// Copyright 2009 the Sputnik authors.  All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\ninfo: Check ToLength(length) for non Array objects\nesid: sec-array.prototype.slice\ndescription: length = 4294967296\n---*/\n\nassert.throws(RangeError, () => {\n  var obj = {};\n  obj.slice = Array.prototype.slice;\n  obj[0] = \"x\";\n  obj[4294967295] = \"y\";\n  obj.length = 4294967296;\n  obj.slice(0, 4294967296);\n});\n"
+        }
+    ]
+}

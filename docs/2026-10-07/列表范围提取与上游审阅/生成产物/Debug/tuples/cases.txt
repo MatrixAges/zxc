@@ -1,0 +1,1153 @@
+const check = @import("support").check;
+
+test "built_ins/list/range_extract/tuples/0000" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{}, .original = &.{}, .remaining_length = 0, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0001" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{}, .remaining_length = 1, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0002" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{}, .remaining_length = 2, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0003" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0004" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0005" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0006" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0007" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0008" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0009" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0010" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0011" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0012" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0013" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0014" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0015" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0016" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0017" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0018" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0019" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0020" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0021" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}}, .removed = &.{}, .original = &.{&.{0, true, ""}}, .remaining_length = 1, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0022" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}}, .removed = &.{}, .original = &.{&.{0, true, ""}}, .remaining_length = 2, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0023" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{0, true, ""}}, .removed = &.{}, .original = &.{&.{0, true, ""}}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0024" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{&.{0, true, ""}}, .original = &.{&.{0, true, ""}}, .remaining_length = 0, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0025" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}}, .original = &.{&.{0, true, ""}}, .remaining_length = 1, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0026" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}}, .original = &.{&.{0, true, ""}}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0027" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}}, .removed = &.{}, .original = &.{&.{0, true, ""}}, .remaining_length = 1, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0028" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 1, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}}, .remaining_length = 2, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0029" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 1, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0030" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 2, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0031" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 2, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0032" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 2, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0033" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 2, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0034" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0035" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0036" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 1, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0037" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 1, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0038" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 1, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0039" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0040" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0041" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0042" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0043" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0044" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0045" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0046" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0047" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0048" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0049" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0050" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0051" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0052" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0053" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0054" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0055" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0056" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0057" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 1, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0058" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0059" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0060" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 0, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0061" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 3, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 1, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0062" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 3, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0063" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0064" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0065" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0066" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0067" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0068" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0069" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 1, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0070" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0071" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0072" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 2, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0073" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 2, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0074" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 2, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0075" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 2, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0076" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 2, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0077" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 2, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0078" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 3, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0079" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 3, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0080" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 3, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0081" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 4, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0082" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 4, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0083" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 4, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0084" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 4, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0085" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 4, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0086" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 4, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0087" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 3, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0088" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 3, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0089" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 3, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0090" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0091" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0092" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0093" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0094" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0095" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0096" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0097" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0098" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0099" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0100" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0101" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0102" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0103" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0104" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0105" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0106" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0107" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0108" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0109" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0110" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0111" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0112" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 3, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0113" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 3, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0114" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 4, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 1, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/tuples/0115" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 4, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/tuples/0116" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 4, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/tuples/0117" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 5, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 0, .removed_length = 5} });
+}
+
+test "built_ins/list/range_extract/tuples/0118" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 5, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 1, .removed_length = 5} });
+}
+
+test "built_ins/list/range_extract/tuples/0119" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 5, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 5} });
+}
+
+test "built_ins/list/range_extract/tuples/0120" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0121" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0122" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0123" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0124" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0125" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0126" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0127" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0128" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0129" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0130" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 3, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0131" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 3, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0132" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 4, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 1, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/tuples/0133" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 4, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/tuples/0134" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 4, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/tuples/0135" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0136" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0137" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0138" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0139" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0140" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0141" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0142" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0143" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0144" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0145" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 3, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0146" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 3, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0147" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0148" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0149" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0150" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0151" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0152" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{3, false, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0153" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0154" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0155" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0156" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0157" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0158" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0159" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}}, .removed = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0160" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0161" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0162" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 5, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0163" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 5, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0164" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 5, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0165" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 6, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0166" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 6, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0167" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 6, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0168" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 6, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0169" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 6, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0170" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 6, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0171" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 5, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0172" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 5, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0173" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 5, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0174" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0175" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0176" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0177" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0178" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0179" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0180" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0181" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0182" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0183" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0184" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0185" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0186" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0187" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0188" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0189" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0190" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0191" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0192" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0193" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0194" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0195" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 1, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0196" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 3, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0197" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 3, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0198" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 4, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 0, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/tuples/0199" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 4, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 1, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/tuples/0200" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 4, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/tuples/0201" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0202" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0203" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0204" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0205" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0206" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0207" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0208" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0209" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0210" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 1, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0211" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 3, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0212" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 3, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/tuples/0213" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0214" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0215" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0216" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0217" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0218" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0219" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0220" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 2, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0221" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 2, .count = 2, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/tuples/0222" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0223" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0224" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0225" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0226" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0227" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 3, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0228" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0229" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0230" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0231" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 5, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0232" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 5, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0233" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 5, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0234" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 5, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0235" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 5, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0236" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 5, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0237" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0238" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0239" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 4, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0240" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0241" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0242" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0243" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0244" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0245" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0246" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0247" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0248" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0249" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0250" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0251" {
+    try check(@import("program"), &.{.items = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0252" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 17, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0253" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 18, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0254" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 19, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0255" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 17, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 0, .removed_length = 17} });
+}
+
+test "built_ins/list/range_extract/tuples/0256" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 17, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 1, .removed_length = 17} });
+}
+
+test "built_ins/list/range_extract/tuples/0257" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 17, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 17} });
+}
+
+test "built_ins/list/range_extract/tuples/0258" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 15, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 2, .removed_length = 15} });
+}
+
+test "built_ins/list/range_extract/tuples/0259" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 15, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 3, .removed_length = 15} });
+}
+
+test "built_ins/list/range_extract/tuples/0260" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 15, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 4, .removed_length = 15} });
+}
+
+test "built_ins/list/range_extract/tuples/0261" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 17, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 17, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0262" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 17, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 18, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0263" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 17, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 19, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/tuples/0264" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 16, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 16, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0265" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 16, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 17, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0266" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 16, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .value = &.{.remaining = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}, .removed = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .original = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .remaining_length = 18, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/tuples/0267" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0268" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0269" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0270" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0271" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0272" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0273" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 17, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0274" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 17, .count = 1, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0275" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 17, .count = 1, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0276" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0277" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0278" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 0, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0279" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0280" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0281" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 0, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0282" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0283" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0284" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0285" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0286" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/tuples/0287" {
+    try check(@import("program"), &.{.items = &.{&.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}, &.{3, false, ""}, &.{4, true, "\xe4\xb8\xad\xe6\x96\x87"}, &.{0, true, ""}, &.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}}, .start = 1, .count = 18446744073709551615, .other = &.{&.{1, false, "\xe4\xb8\xad\xe6\x96\x87"}, &.{2, true, "\xf0\x9f\x99\x82"}}}, .{ .failure = error.IndexOutOfBounds });
+}

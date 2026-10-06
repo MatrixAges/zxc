@@ -1,0 +1,67 @@
+diff --git a/packages/test/build/runtime.zig b/packages/test/build/runtime.zig
+index 3f65dc0c..1f2dd256 100644
+--- a/packages/test/build/runtime.zig
++++ b/packages/test/build/runtime.zig
+@@ -54,6 +54,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
+     const identifiers_step = b.step("test-ascii-identifiers", "Execute original ASCII identifier bindings");
+     const decimal_step = b.step("test-decimal-original", "Execute original decimal and exponent literal values");
+     const strings_step = b.step("test-strings", "Run string values and owned string collection cases");
++    const string_index_step = b.step("test-string-index", "Execute UTF-8 string byte indexing bounds decoding and lazy reads");
+ 
+     step.dependOn(application_json_gateway_step);
+     application_json_output_step.dependOn(application_json_gateway_step);
+@@ -188,6 +189,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
+         if (uses_bits or suite.kind == .floating_optional) floating_step.dependOn(&run.step);
+         if (suite.shared_abi) standard_step.dependOn(&run.step);
+         if (std.mem.startsWith(u8, suite.path, "built_ins/string/")) strings_step.dependOn(&run.step);
++        if (std.mem.startsWith(u8, suite.path, "built_ins/string/index/")) string_index_step.dependOn(&run.step);
+     }
+ 
+     return step;
+diff --git a/packages/test/suites.json b/packages/test/suites.json
+index 29307e9b..03444ebd 100644
+--- a/packages/test/suites.json
++++ b/packages/test/suites.json
+@@ -127,7 +127,8 @@
+         "language/lexical/strings/terminators/cases",
+         "language/lexical/comments/exposure/cases",
+         "language/lexical/identifiers/keywords/cases",
+-        "language/statements/const_initializers/cases"
++        "language/statements/const_initializers/cases",
++        "language/types/string_index/cases"
+     ],
+     "runtime": [
+         {
+@@ -2429,6 +2430,32 @@
+             "name": "application-json-token-whitespace",
+             "path": "built_ins/json/parse/lexical/token_whitespace",
+             "kind": "application_json"
++        },
++        {
++            "name": "string-index-bytes",
++            "path": "built_ins/string/index/bytes/cases",
++            "kind": "collections"
++        },
++        {
++            "name": "string-index-decoded",
++            "path": "built_ins/string/index/decoded/cases",
++            "kind": "collections",
++            "shared_abi": true
++        },
++        {
++            "name": "string-index-composed",
++            "path": "built_ins/string/index/composed/cases",
++            "kind": "collections"
++        },
++        {
++            "name": "string-index-logical-and",
++            "path": "built_ins/string/index/logical_and/cases",
++            "kind": "collections"
++        },
++        {
++            "name": "string-index-logical-or",
++            "path": "built_ins/string/index/logical_or/cases",
++            "kind": "collections"
+         }
+     ],
+     "safety": [

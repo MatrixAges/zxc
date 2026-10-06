@@ -1,0 +1,1153 @@
+const check = @import("support").check;
+
+test "built_ins/list/range_extract/composed/0000" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{}, .original = &.{}, .remaining_length = 0, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0001" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{}, .original = &.{}, .remaining_length = 1, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0002" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7}, .removed = &.{}, .original = &.{}, .remaining_length = 2, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0003" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0004" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0005" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0006" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0007" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0008" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0009" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0010" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0011" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0012" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0013" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0014" {
+    try check(@import("program"), &.{.items = &.{}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0015" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0016" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0017" {
+    try check(@import("program"), &.{.items = &.{}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0018" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0019" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0020" {
+    try check(@import("program"), &.{.items = &.{}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0021" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0}, .removed = &.{}, .original = &.{0}, .remaining_length = 1, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0022" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807}, .removed = &.{}, .original = &.{0}, .remaining_length = 2, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0023" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{0, 7, -7}, .removed = &.{}, .original = &.{0}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0024" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{0}, .original = &.{0}, .remaining_length = 0, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0025" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{0}, .original = &.{0}, .remaining_length = 1, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0026" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7}, .removed = &.{0}, .original = &.{0}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0027" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{0}, .removed = &.{}, .original = &.{0}, .remaining_length = 1, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0028" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 0}, .removed = &.{}, .original = &.{0}, .remaining_length = 2, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0029" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 0}, .removed = &.{}, .original = &.{0}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0030" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 2, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0031" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 2, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0032" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 2, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0033" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 2, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0034" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 2, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0035" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 2, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0036" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0037" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0038" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0039" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0040" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0041" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0042" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0043" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0044" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0045" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0046" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0047" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0048" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0049" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0050" {
+    try check(@import("program"), &.{.items = &.{0}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0051" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0052" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{7, -7, 0, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0053" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 0, 7, -7}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0054" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{7, -7}, .removed = &.{0}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0055" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{7, -7, 9223372036854775807}, .removed = &.{0}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0056" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 7, -7}, .removed = &.{0}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0057" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{7}, .removed = &.{-7, 0}, .original = &.{0, -7, 7}, .remaining_length = 1, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0058" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{7, 9223372036854775807}, .removed = &.{-7, 0}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0059" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, 7, -7}, .removed = &.{-7, 0}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0060" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{7, -7, 0}, .original = &.{0, -7, 7}, .remaining_length = 0, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0061" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{7, -7, 0}, .original = &.{0, -7, 7}, .remaining_length = 1, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0062" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7}, .removed = &.{7, -7, 0}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0063" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0064" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{7, -7, 9223372036854775807, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0065" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0066" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{7, 0}, .removed = &.{-7}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0067" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{7, 9223372036854775807, 0}, .removed = &.{-7}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0068" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, 7, -7, 0}, .removed = &.{-7}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0069" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{0}, .removed = &.{7, -7}, .original = &.{0, -7, 7}, .remaining_length = 1, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0070" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 0}, .removed = &.{7, -7}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0071" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 0}, .removed = &.{7, -7}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0072" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0073" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{7, 9223372036854775807, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0074" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, 7, -7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0075" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, 0}, .removed = &.{7}, .original = &.{0, -7, 7}, .remaining_length = 2, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0076" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, 0}, .removed = &.{7}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0077" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 2, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, -7, 0}, .removed = &.{7}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0078" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 3, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0079" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0080" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0081" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 4, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0082" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 4, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0083" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 4, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0084" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 4, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0085" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 4, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0086" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 4, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0087" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0088" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0089" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 3, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0090" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0091" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0092" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0093" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0094" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0095" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0096" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0097" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0098" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0099" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0100" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0101" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0102" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0103" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0104" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0, 7, -7}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0105" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7}, .removed = &.{0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0106" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 9223372036854775807}, .removed = &.{0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0107" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 7, -7}, .removed = &.{0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0108" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7}, .removed = &.{-7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0109" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, 9223372036854775807}, .removed = &.{-7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0110" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, 7, -7}, .removed = &.{-7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0111" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808}, .removed = &.{7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0112" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 9223372036854775807}, .removed = &.{7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0113" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7}, .removed = &.{7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0114" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 4, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{-9223372036854775808, 7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 1, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/composed/0115" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 4, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 9223372036854775807}, .removed = &.{-9223372036854775808, 7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/composed/0116" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 4, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7, -7}, .removed = &.{-9223372036854775808, 7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/composed/0117" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 5, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 0, .removed_length = 5} });
+}
+
+test "built_ins/list/range_extract/composed/0118" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 5, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 1, .removed_length = 5} });
+}
+
+test "built_ins/list/range_extract/composed/0119" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 5, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7}, .removed = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 5} });
+}
+
+test "built_ins/list/range_extract/composed/0120" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0121" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 9223372036854775807, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0122" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0123" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, 0}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0124" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, 9223372036854775807, 0}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0125" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, 7, -7, 0}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0126" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 0}, .removed = &.{7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0127" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 9223372036854775807, 0}, .removed = &.{7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0128" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0129" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, 0}, .removed = &.{-9223372036854775808, 7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0130" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 9223372036854775807, 0}, .removed = &.{-9223372036854775808, 7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0131" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7, -7, 0}, .removed = &.{-9223372036854775808, 7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0132" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 4, .other = &.{}}, .{ .value = &.{.remaining = &.{0}, .removed = &.{9223372036854775807, -9223372036854775808, 7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 1, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/composed/0133" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 4, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 0}, .removed = &.{9223372036854775807, -9223372036854775808, 7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/composed/0134" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 4, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 0}, .removed = &.{9223372036854775807, -9223372036854775808, 7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/composed/0135" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0136" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, 9223372036854775807, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0137" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, 7, -7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0138" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, -7, 0}, .removed = &.{7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0139" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 9223372036854775807, -7, 0}, .removed = &.{7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0140" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, -7, 0}, .removed = &.{7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0141" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, 0}, .removed = &.{-9223372036854775808, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0142" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 9223372036854775807, -7, 0}, .removed = &.{-9223372036854775808, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0143" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7, -7, -7, 0}, .removed = &.{-9223372036854775808, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0144" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, 0}, .removed = &.{9223372036854775807, -9223372036854775808, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0145" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, 0}, .removed = &.{9223372036854775807, -9223372036854775808, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0146" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 2, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, -7, 0}, .removed = &.{9223372036854775807, -9223372036854775808, 7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0147" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0148" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 9223372036854775807, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0149" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0150" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7, -7, 0}, .removed = &.{-9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0151" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 9223372036854775807, 7, -7, 0}, .removed = &.{-9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0152" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7, -7, 7, -7, 0}, .removed = &.{-9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0153" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{7, -7, 0}, .removed = &.{9223372036854775807, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0154" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7, -7, 0}, .removed = &.{9223372036854775807, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0155" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 3, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 7, -7, 0}, .removed = &.{9223372036854775807, -9223372036854775808}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0156" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0157" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0158" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{9223372036854775807, 7, -7, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0159" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-9223372036854775808, 7, -7, 0}, .removed = &.{9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0160" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0161" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 4, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, -9223372036854775808, 7, -7, 0}, .removed = &.{9223372036854775807}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0162" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0163" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0164" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .remaining_length = 7, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0165" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 6, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0166" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 6, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0167" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 6, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0168" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 6, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0169" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 6, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0170" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 6, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0171" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0172" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0173" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 5, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0174" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0175" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0176" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0177" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0178" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0179" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0180" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0181" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0182" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0183" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0184" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0185" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0186" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0187" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7, 9223372036854775807}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0188" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7, 7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0189" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0190" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, -7, 9223372036854775807}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0191" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, -7, 7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0192" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0193" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, 9223372036854775807}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0194" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, 7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0195" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{-7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 1, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0196" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 9223372036854775807}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0197" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0198" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 4, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{-7, -7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 0, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/composed/0199" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 4, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{-7, -7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 1, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/composed/0200" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 4, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7}, .removed = &.{-7, -7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 4} });
+}
+
+test "built_ins/list/range_extract/composed/0201" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0202" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, -7, 9223372036854775807, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0203" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, -7, 7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0204" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0205" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, 9223372036854775807, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0206" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, 7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0207" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0208" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 9223372036854775807, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0209" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0210" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 3, .other = &.{}}, .{ .value = &.{.remaining = &.{-7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 1, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0211" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 3, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0212" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 3, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, -7}, .removed = &.{-7, -7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 3} });
+}
+
+test "built_ins/list/range_extract/composed/0213" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0214" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, -7, 9223372036854775807, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0215" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, -7, 7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0216" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0217" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 9223372036854775807, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0218" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0219" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 2, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 2, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0220" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 2, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0221" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 2, .count = 2, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, -7, -7}, .removed = &.{-7, -7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 2} });
+}
+
+test "built_ins/list/range_extract/composed/0222" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0223" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 9223372036854775807, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0224" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0225" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 3, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0226" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0227" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 3, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, -7, -7, -7}, .removed = &.{-7}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0228" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 4, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0229" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 5, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0230" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, -7, -7, -7, -7}, .removed = &.{}, .original = &.{-7, -7, -7, -7}, .remaining_length = 6, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0231" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 5, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0232" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 5, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0233" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 5, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0234" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 5, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0235" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 5, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0236" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 5, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0237" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0238" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0239" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 4, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0240" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0241" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0242" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0243" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0244" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0245" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0246" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0247" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0248" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0249" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0250" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0251" {
+    try check(@import("program"), &.{.items = &.{-7, -7, -7, -7}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0252" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 17, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0253" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 18, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0254" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 7, -7}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 19, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0255" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 17, .other = &.{}}, .{ .value = &.{.remaining = &.{}, .removed = &.{-7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 0, .removed_length = 17} });
+}
+
+test "built_ins/list/range_extract/composed/0256" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 17, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807}, .removed = &.{-7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 1, .removed_length = 17} });
+}
+
+test "built_ins/list/range_extract/composed/0257" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 17, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7}, .removed = &.{-7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 2, .removed_length = 17} });
+}
+
+test "built_ins/list/range_extract/composed/0258" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 15, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, 0}, .removed = &.{0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 2, .removed_length = 15} });
+}
+
+test "built_ins/list/range_extract/composed/0259" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 15, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{-7, 9223372036854775807, 0}, .removed = &.{0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 3, .removed_length = 15} });
+}
+
+test "built_ins/list/range_extract/composed/0260" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 15, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{-7, 7, -7, 0}, .removed = &.{0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 4, .removed_length = 15} });
+}
+
+test "built_ins/list/range_extract/composed/0261" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 0, .other = &.{}}, .{ .value = &.{.remaining = &.{-7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 17, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0262" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 0, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 18, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0263" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 0, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 19, .removed_length = 0} });
+}
+
+test "built_ins/list/range_extract/composed/0264" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 16, .count = 1, .other = &.{}}, .{ .value = &.{.remaining = &.{0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 16, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0265" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 16, .count = 1, .other = &.{9223372036854775807}}, .{ .value = &.{.remaining = &.{9223372036854775807, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 17, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0266" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 16, .count = 1, .other = &.{-7, 7}}, .{ .value = &.{.remaining = &.{7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0, 9223372036854775807, -9223372036854775808, 7, -7, 0}, .removed = &.{-7}, .original = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .remaining_length = 18, .removed_length = 1} });
+}
+
+test "built_ins/list/range_extract/composed/0267" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0268" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0269" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0270" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0271" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0272" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0273" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 1, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0274" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 1, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0275" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 17, .count = 1, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0276" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 0, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0277" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 0, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0278" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 0, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0279" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0280" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0281" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 0, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0282" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0283" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0284" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 18446744073709551615, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0285" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 18446744073709551615, .other = &.{}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0286" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 18446744073709551615, .other = &.{9223372036854775807}}, .{ .failure = error.IndexOutOfBounds });
+}
+
+test "built_ins/list/range_extract/composed/0287" {
+    try check(@import("program"), &.{.items = &.{0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7, 7, -9223372036854775808, 9223372036854775807, 0, -7}, .start = 1, .count = 18446744073709551615, .other = &.{-7, 7}}, .{ .failure = error.IndexOutOfBounds });
+}
