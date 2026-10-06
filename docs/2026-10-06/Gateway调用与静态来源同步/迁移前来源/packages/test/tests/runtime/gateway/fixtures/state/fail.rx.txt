@@ -1,0 +1,5 @@
+<Module>
+  <Store from="state" as="inner"/>
+  <Call fn="fail" in={{increment: $in.increment, index: $in.index, state: store.inner.counter}} setter={[store.inner.counter]} name="result"/>
+  <Return value={ctx.result}/>
+</Module>
