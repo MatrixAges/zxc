@@ -1,0 +1,65 @@
+pub const zx_type_11 = struct {
+    count: u64,
+    enabled: bool,
+    nested: bool,
+    post: bool,
+};
+
+pub const zx_type_12 = struct {
+    nested: bool,
+    remaining: u64,
+};
+
+pub const zx_type_13 = struct {
+    base: u64,
+    remaining: u64,
+};
+
+pub const value_zx_type_11_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 = struct {
+    count: u64,
+    enabled: bool,
+    nested: bool,
+    post: bool,
+    zx_origin: ?*const zx_type_11 = null,
+};
+
+pub const value_zx_type_12_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    nested: bool,
+    remaining: u64,
+    zx_origin: ?*const zx_type_12 = null,
+};
+
+pub const value_zx_type_13_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    base: u64,
+    remaining: u64,
+    zx_origin: ?*const zx_type_13 = null,
+};
+
+pub const native = struct {
+    pub const @"zig:choice" = struct {
+        pub const seed = struct {
+            pub const Input = u64;
+            pub const Output = u64;
+            pub const InputValue = u64;
+            pub const OutputValue = u64;
+        };
+        pub const check = struct {
+            pub const Input = u64;
+            pub const Output = bool;
+            pub const InputValue = u64;
+            pub const OutputValue = bool;
+        };
+        pub const record = struct {
+            pub const Input = u64;
+            pub const Output = void;
+            pub const InputValue = u64;
+            pub const OutputValue = void;
+        };
+    };
+};
+
+pub const layouts = struct {
+    pub const @"zig:choice" = struct {
+    };
+};
+

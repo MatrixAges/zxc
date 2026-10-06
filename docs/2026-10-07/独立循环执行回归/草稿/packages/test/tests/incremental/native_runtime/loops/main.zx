@@ -1,0 +1,49 @@
+import native from "zig:choice"
+
+import helper from "./helper"
+
+export type Input = { count: u64, nested: bool, post: bool, enabled: bool }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.enabled) {
+        if (in.post) {
+            loop(native.seed(in.count), {
+                while: remaining => native.check(remaining),
+                do: remaining => {
+                    native.record(3000 + remaining)
+
+                    if (remaining > 0) {
+                        remaining -= 1
+                    }
+                }
+            })
+        } else {
+            loop({ remaining: native.seed(in.count), nested: in.nested }, {
+                while: state => native.check(state.remaining),
+                next: state => {
+                    native.record(3000 + state.remaining)
+
+                    if (state.nested) {
+                        loop({ remaining: 2, base: state.remaining }, {
+                            while: inner => inner.remaining > 0,
+                            next: inner => {
+                                native.record(5000 + inner.base * 10 + inner.remaining)
+                                inner.remaining -= 1
+                            }
+                        })
+                    }
+
+                    state.remaining -= 1
+                }
+            })
+        }
+    }
+
+    native.record(4000)
+    helper(in.count)
+    native.record(7000)
+
+    return in.count
+}

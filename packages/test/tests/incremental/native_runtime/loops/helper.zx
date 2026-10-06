@@ -1,0 +1,15 @@
+import native from "zig:choice"
+
+export type Input = u64
+
+export type Output = void
+
+export default function (in: Input): Output {
+    loop(in, {
+        while: remaining => remaining > 0,
+        next: remaining => {
+            native.record(6000 + remaining)
+            remaining -= 1
+        }
+    })
+}

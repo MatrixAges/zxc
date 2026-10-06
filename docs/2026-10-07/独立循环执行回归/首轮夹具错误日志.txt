@@ -1,0 +1,335 @@
+✔ ZX and RX reject removed APIs without producing applications or modifying input files (32.019253ms)
+✔ ordinary imported names loop and iterate remain callable and independent void calls still execute (4851.258068ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4886.628341
+test-loop-policy
++- run test 0 pass, 9 fail (9 total)
+error: 'standalone_test.test.standalone scalar state retains nonvoid iteration IR' failed:
+       standalone diagnostic: import order or blank lines do not match built-in rules; run zxc fmt
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x106eda78f in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:19:5: 0x106edbef3 in valid (test)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:58:5: 0x10752e7dc in test.standalone scalar state retains nonvoid iteration IR (test)
+           try valid(std.testing.allocator, scalar, 1);
+           ^
+error: 'standalone_test.test.standalone object state can update its fields' failed:
+       standalone diagnostic: import order or blank lines do not match built-in rules; run zxc fmt
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x106eda78f in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:19:5: 0x106edbef3 in valid (test)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:62:5: 0x10752e77c in test.standalone object state can update its fields (test)
+           try valid(std.testing.allocator, "loop({ remaining: in }, { while: current => current.remaining > 0, next: current => { current.remaining -= 1 } })", 1);
+           ^
+error: 'standalone_test.test.nested standalone iterations validate state scope bindings' failed:
+       standalone diagnostic: import order or blank lines do not match built-in rules; run zxc fmt
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x106eda78f in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:19:5: 0x106edbef3 in valid (test)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:66:5: 0x10752e71c in test.nested standalone iterations validate state scope bindings (test)
+           try valid(std.testing.allocator, "loop(in, { while: current => current > 0, next: current => { loop(current, { while: inner => inner > 0, next: inner => { inner -= 1 } })\ncurrent -= 1 } })", 2);
+           ^
+error: 'standalone_test.test.standalone postcondition state remains valid in a branch' failed:
+       standalone diagnostic: import order or blank lines do not match built-in rules; run zxc fmt
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x106eda78f in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:19:5: 0x106edbef3 in valid (test)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:70:5: 0x10752e6bc in test.standalone postcondition state remains valid in a branch (test)
+           try valid(std.testing.allocator, "if (in > 0) { loop(in, { while: current => current > 0, do: current => { current -= 1 } }) }", 1);
+           ^
+error: 'standalone_test.test.parentheses preserve direct standalone iteration identity' failed:
+       standalone diagnostic: import order or blank lines do not match built-in rules; run zxc fmt
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x106eda78f in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:19:5: 0x106edbef3 in valid (test)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:74:5: 0x10752e65c in test.parentheses preserve direct standalone iteration identity (test)
+           try valid(std.testing.allocator, "(" ++ scalar ++ ")", 1);
+           ^
+error: 'standalone_test.test.ordinary reference expression cannot be silently discarded' failed:
+       expected .type_mismatch, found .syntax
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x106eda81d in expectEqualInner__func_1009 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10752de81 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:47:5: 0x10752df36 in rejected (test)
+           try std.testing.expectEqual(.type_mismatch, result.value.diagnostic.code);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:78:5: 0x10752e5ef in test.ordinary reference expression cannot be silently discarded (test)
+           try rejected("in");
+           ^
+error: 'standalone_test.test.ordinary arithmetic expression cannot be silently discarded' failed:
+       expected .type_mismatch, found .syntax
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x106eda81d in expectEqualInner__func_1009 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10752de81 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:47:5: 0x10752df36 in rejected (test)
+           try std.testing.expectEqual(.type_mismatch, result.value.diagnostic.code);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:82:5: 0x10752e58f in test.ordinary arithmetic expression cannot be silently discarded (test)
+           try rejected("in + 1");
+           ^
+error: 'standalone_test.test.conditional containing iteration is not a direct loop statement' failed:
+       expected .type_mismatch, found .syntax
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x106eda81d in expectEqualInner__func_1009 (test)
+                       return error.TestExpectedEqual;
+                       ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10752de81 in expectEqual (test)
+           return expectEqualInner(T, expected, actual);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:47:5: 0x10752df36 in rejected (test)
+           try std.testing.expectEqual(.type_mismatch, result.value.diagnostic.code);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:86:5: 0x10752e2ef in test.conditional containing iteration is not a direct loop statement (test)
+           try rejected("in > 0 ? " ++ scalar ++ " : in");
+           ^
+error: 'standalone_test.test.standalone analysis validation and emission release allocation failures' failed:
+       standalone diagnostic: import order or blank lines do not match built-in rules; run zxc fmt
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x106eda78f in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:19:5: 0x106edbef3 in valid (test)
+           try std.testing.expect(result.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:90:5: 0x106edc755 in allocations (test)
+           try valid(allocator, scalar, 1);
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x106edd17a in run (test)
+                   try @call(.auto, test_fn, .{memory} ++ args);
+                   ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x106edc8e3 in checkAllAllocationFailures__func_1041 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x106edcd82 in checkAllAllocationFailures__func_1002 (test)
+           try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+           ^
+       /Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/language/expressions/loop_policy/standalone_test.zig:94:5: 0x106edcdda in test.standalone analysis validation and emission release allocation failures (test)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, allocations, .{});
+           ^
+failed command: ./.zig-cache/o/bcd187db3ef4cd45803a68ff4f61659b/test --cache-dir=./.zig-cache --seed=0x6dc294ca --listen=-
+
+test-native-runtime
++- run test native-loops-cached
+   +- compile test native-loops-cached debug native
+      +- run exe compile-native-runtime (original.zig) failure
+analysis diagnostic: choice.d.zx:1:8: expected declare
+error: InvalidAnalysis
+/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/incremental/native_runtime/compile.zig:57:40: 0x10135bb68 in main (compile-native-runtime)
+            if (analysis.value != .ir) return error.InvalidAnalysis;
+                                       ^
+error: process exited with code 1
+failed command: ./.zig-cache/o/472a330e57a38ff5e3ba7fb10b21b146/compile-native-runtime loops ./.zig-cache/o/6ebd6cbceb71d176f977faf39f1090f6/original.zig ./.zig-cache/o/6ebd6cbceb71d176f977faf39f1090f6/original_abi.zig ./.zig-cache/o/6ebd6cbceb71d176f977faf39f1090f6/linked.zig ./.zig-cache/o/6ebd6cbceb71d176f977faf39f1090f6/linked_abi.zig ./.zig-cache/o/6ebd6cbceb71d176f977faf39f1090f6/cached.zig ./.zig-cache/o/6ebd6cbceb71d176f977faf39f1090f6/cached_abi.zig
+
+Build Summary: 48/58 steps succeeded (2 failed); 33/42 tests passed (9 failed)
+test-loop-policy transitive failure
++- run test cached
+|  +- compile test debug native cached 49ms MaxRSS:21M
+|     +- WriteFile interfaces/0.d.zx cached
+|     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     +- compile exe standard-catalog fast native cached 42ms MaxRSS:21M
+|     |     +- WriteFile catalog.json cached
+|     +- options cached
+|     +- run exe generate-parser (parser.zig) cached
+|     |  +- compile exe generate-parser debug native cached 46ms MaxRSS:21M
+|     |     +- options cached
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 44ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) cached
+|     |  +- compile exe generate-lexer debug native cached 45ms MaxRSS:21M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 41ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test 0 pass, 9 fail (9 total)
+|  +- compile test debug native success 7s MaxRSS:869M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run node success 4s
+   +- compile exe zxc debug native cached 53ms MaxRSS:21M
+      +- WriteFile cached
+      +- compile lib yaml debug native cached 44ms MaxRSS:20M
+      +- compile lib yaml debug native (reused)
+      +- translate-c cached 41ms MaxRSS:20M
+      +- options cached
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig fast native cached 42ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- options cached
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+test-native-runtime transitive failure
++- run test native-basic-original 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test native-basic-original debug native success 1s MaxRSS:258M
+|     +- run exe compile-native-runtime (original.zig) success 8ms
+|     |  +- compile exe compile-native-runtime debug native success 7s MaxRSS:889M
+|     |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     |     +- options (reused)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-basic-linked 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test native-basic-linked debug native success 1s MaxRSS:258M
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-basic-cached 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test native-basic-cached debug native success 1s MaxRSS:261M
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-mixed-original 7 pass (7 total) 2ms MaxRSS:1M
+|  +- compile test native-mixed-original debug native success 1s MaxRSS:265M
+|     +- run exe compile-native-runtime (original.zig) success 14ms
+|     |  +- compile exe compile-native-runtime debug native (+27 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-mixed-linked 7 pass (7 total) 2ms MaxRSS:1M
+|  +- compile test native-mixed-linked debug native success 1s MaxRSS:274M
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-mixed-cached 7 pass (7 total) 3ms MaxRSS:1M
+|  +- compile test native-mixed-cached debug native success 1s MaxRSS:275M
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-loops-original transitive failure
+|  +- compile test native-loops-original debug native transitive failure
+|     +- run exe compile-native-runtime (original.zig) failure
+|     |  +- compile exe compile-native-runtime debug native (+27 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-loops-linked transitive failure
+|  +- compile test native-loops-linked debug native transitive failure
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-loops-cached transitive failure
+   +- compile test native-loops-cached debug native transitive failure
+      +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+      +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+
