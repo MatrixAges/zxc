@@ -233,8 +233,8 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
 
             break :blk if (self.stack_symbols.contains(symbol)) self.builder.expression(.{ .address_of = reference }) else reference;
         },
-        .field => |item| self.field(try self.expr(item.target), self.program.typeOf(self.program.expression(item.target).type_id).object[item.index].name),
-        .tuple_field => |item| self.field(try self.expr(item.target), try std.fmt.allocPrint(self.allocator, "{d}", .{item.index})),
+        .field => |item| self.field(try self.projection(item.target), self.program.typeOf(self.program.expression(item.target).type_id).object[item.index].name),
+        .tuple_field => |item| self.field(try self.projection(item.target), try std.fmt.allocPrint(self.allocator, "{d}", .{item.index})),
         .index => |item| @import("intrinsics.zig").index(self, try self.expr(item.target), try self.expr(item.index)),
         .length => |child| self.cast(value_type, try self.field(try self.expr(child), "len")),
         .unary => |unary| self.builder.expression(.{ .unary = .{ .operator = if (unary.operator == .not) .not else .negate, .operand = try self.expr(unary.operand) } }),
@@ -249,12 +249,25 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
         .iteration => |iteration| @import("iteration.zig").lower(self, id, iteration),
         .list_update => |update| @import("list_update.zig").lower(self, update, self.list_update_buffers.get(id)),
         .call => |invocation| blk: {
+            var body: std.ArrayList(node.Statement) = .empty;
+            const callee_function = self.program.functions[@backingInt(invocation.function)];
+
+            const scalar = switch (self.program.typeOf(callee_function.output_type)) {
+                .scalar, .enumeration, .error_set => true,
+                else => false,
+            };
+
             const needs_io = self.io_functions[@backingInt(invocation.function)];
             const needs_process = self.process_functions[@backingInt(invocation.function)];
             const arguments = try self.allocator.alloc(*const node.Expression, 2 + @as(usize, @intFromBool(invocation.stores.len > 0)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
 
             arguments[0] = try self.builder.identifier("allocator");
-            arguments[1] = try self.expr(invocation.argument);
+
+            arguments[1] = if (scalar and self.pure_functions[@backingInt(invocation.function)] and self.program.expression(invocation.argument).value == .object and !self.cache.contains(invocation.argument)) temporary: {
+                const argument = try @import("aggregate.zig").bind(self, &body, try @import("aggregate.zig").objectValue(self, invocation.argument));
+
+                break :temporary try self.builder.expression(.{ .address_of = argument });
+            } else try self.expr(invocation.argument);
 
             if (invocation.stores.len > 0) arguments[2] = try @import("store.zig").adapter(self, invocation);
 
@@ -269,9 +282,17 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
                 arguments[arguments.len - 1] = try self.builder.identifier("process");
             }
 
-            break :blk self.call(try self.functionReference(invocation.function), arguments, true);
+            const result = try self.call(try self.functionReference(invocation.function), arguments, true);
+
+            break :blk if (body.items.len == 0) result else try @import("aggregate.zig").finish(self, &body, result);
         },
     };
+}
+
+fn projection(self: *Self, id: ir.ExprId) Error!*const node.Expression {
+    if (self.program.expression(id).value == .iteration) return @import("value_call/root.zig").expression(self, id);
+
+    return self.expr(id);
 }
 
 pub fn functionReference(self: *Self, id: ir.FunctionId) Error!*const node.Expression {
