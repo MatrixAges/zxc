@@ -1,0 +1,60 @@
+{
+	"固定生产基线": "fd6364da9081dc2cf869602cd6f427532b0d7560",
+	"新增独立语义声明": 2,
+	"原有语义声明": 5,
+	"原有运行目录案例": 18,
+	"新增运行目录案例": 0,
+	"新增Test262原文审阅": 0,
+	"canonical与reordered运行源码相同": true,
+	"结果日志": {
+		"Debug语义日志.txt": {
+			"退出码": 0,
+			"构建步骤": 26,
+			"实际运行": 7,
+			"运行缓存": 0,
+			"SHA256": "3b01973337d03a9d4acdcb0b4f49a0aadc75f4c67cd959312102e7feb417b952"
+		},
+		"ReleaseSafe语义与运行日志.txt": {
+			"退出码": 0,
+			"构建步骤": 51,
+			"实际运行": 25,
+			"运行缓存": 0,
+			"SHA256": "1a81671a0b452b52dc7b44f76d8721e0ee383a575f2596811e3a7125bb93a1db"
+		}
+	},
+	"来源SHA256": {
+		"packages/test/src/generate_match_modules.ts": "81975d40ec072667fb123b09e8667cb12c991a1e25c91efcc0e21f84563580d4",
+		"packages/test/build.zig": "05a01c4d1b76b9b42950d10fd1b57053c0f5d5f9b0be1ae021224b0ed537c22b",
+		"packages/test/tests/modules/match_import_order_test.zig": "d1cb94aa0a3f3c54434f4a3f52add53231779c831ddb76cd7617c23b7e924510",
+		"packages/test/tests/language/expressions/match/modules/canonical.zx": "c8e6e7f7fd7b30f49d6a29542eeb41b64f450495f0823497307c2a0d9258b120",
+		"packages/test/tests/language/expressions/match/modules/reordered.zx": "c8e6e7f7fd7b30f49d6a29542eeb41b64f450495f0823497307c2a0d9258b120",
+		"packages/test/tests/language/expressions/match/modules/shared_pattern.zx": "087877a5084c526e5c5fef48e1fb9dc8ebcc1e6f0e2e699a76ec0ac843766a18",
+		"packages/test/tests/language/expressions/match/modules/lazy.zx": "e570e65334bea4c049961edac1eeaa2c0689fc4943dcff167bceaa280f0b97d2",
+		"packages/test/tests/language/expressions/match/modules/nested/choose.zx": "281f1445911ecad322bbb923d6cc0376dea33342d64c23fbe52f651ffb4dab5a",
+		"packages/test/build/runtime.zig": "1080db20a7ab8206a189869afa7364279840d29f164b003f3366644a10026764"
+	},
+	"输出差异": [
+		"packages/test/tests/language/expressions/match/modules/shared_pattern.zx",
+		"packages/test/tests/language/expressions/match/modules/canonical.zx",
+		"packages/test/tests/language/expressions/match/modules/lazy.zx",
+		"packages/test/tests/language/expressions/match/modules/reordered.zx",
+		"packages/test/tests/language/expressions/match/modules/nested/choose.zx"
+	],
+	"JSONL差异": 0,
+	"资源SHA256": {
+		"docs/2026-10-06/跨模块匹配导入换序迁移/核验日志.txt": "7fed19c0b7df636c3bd6eaae39f9ca1fd63749ee29fc28e09b8e8bd0aa093650",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/生成日志.txt": "7fed19c0b7df636c3bd6eaae39f9ca1fd63749ee29fc28e09b8e8bd0aa093650",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/ReleaseSafe语义与运行日志.txt": "1a81671a0b452b52dc7b44f76d8721e0ee383a575f2596811e3a7125bb93a1db",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/初始指纹.json": "2f5ccc905c2eec4f00a2ceb196bfc99aefdeeb2df59de6364702f26c07fd442a",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/Debug语义日志.txt": "3b01973337d03a9d4acdcb0b4f49a0aadc75f4c67cd959312102e7feb417b952",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/草稿/packages/test/build.zig": "05a01c4d1b76b9b42950d10fd1b57053c0f5d5f9b0be1ae021224b0ed537c22b",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/草稿/packages/test/tests/language/expressions/match/modules/shared_pattern.zx": "087877a5084c526e5c5fef48e1fb9dc8ebcc1e6f0e2e699a76ec0ac843766a18",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/草稿/packages/test/tests/language/expressions/match/modules/canonical.zx": "c8e6e7f7fd7b30f49d6a29542eeb41b64f450495f0823497307c2a0d9258b120",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/草稿/packages/test/tests/language/expressions/match/modules/lazy.zx": "e570e65334bea4c049961edac1eeaa2c0689fc4943dcff167bceaa280f0b97d2",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/草稿/packages/test/tests/language/expressions/match/modules/reordered.zx": "c8e6e7f7fd7b30f49d6a29542eeb41b64f450495f0823497307c2a0d9258b120",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/草稿/packages/test/tests/language/expressions/match/modules/nested/choose.zx": "281f1445911ecad322bbb923d6cc0376dea33342d64c23fbe52f651ffb4dab5a",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/草稿/packages/test/tests/modules/match_import_order_test.zig": "d1cb94aa0a3f3c54434f4a3f52add53231779c831ddb76cd7617c23b7e924510",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/草稿/packages/test/build/runtime.zig": "1080db20a7ab8206a189869afa7364279840d29f164b003f3366644a10026764",
+		"docs/2026-10-06/跨模块匹配导入换序迁移/草稿/packages/test/src/generate_match_modules.ts": "81975d40ec072667fb123b09e8667cb12c991a1e25c91efcc0e21f84563580d4"
+	}
+}
