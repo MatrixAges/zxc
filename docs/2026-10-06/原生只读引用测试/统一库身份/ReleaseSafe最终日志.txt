@@ -1,0 +1,51 @@
+Build Summary: 29/29 steps succeeded; 20/20 tests passed
+test-native-references-library success
++- run test 5 pass (5 total) 4ms MaxRSS:2M
+|  +- compile test safe native success 30s MaxRSS:908M
+|     +- WriteFile interfaces/0.d.zx cached
+|     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     +- compile exe standard-catalog fast native cached 55ms MaxRSS:21M
+|     |     +- WriteFile catalog.json cached
+|     +- options cached
+|     +- run exe generate-parser (parser.zig) success 6s
+|     |  +- compile exe generate-parser safe native success 27s MaxRSS:747M
+|     |     +- options cached
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 44ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) success 17ms
+|        +- compile exe generate-lexer safe native success 22s MaxRSS:669M
+|           +- WriteFile interfaces/0.d.zx cached
+|           |  +- run exe standard-catalog (catalog.zig) cached
+|           |     +- compile exe standard-catalog fast native cached 48ms MaxRSS:21M
+|           |     +- WriteFile catalog.json cached
+|           +- options cached
++- run test 5 pass (5 total) 4ms MaxRSS:2M
+|  +- compile test safe native success 28s MaxRSS:851M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 8 pass (8 total) 3ms MaxRSS:1M
+|  +- compile test safe native success 27s MaxRSS:832M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 2 pass (2 total) 424ms MaxRSS:2M
+   +- compile test safe native success 27s MaxRSS:842M
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

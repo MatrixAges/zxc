@@ -1,0 +1,104 @@
+test-native-references-library
++- run test 3 pass, 2 fail (5 total)
+error: 'roundtrip_test.test.compiled native reference aliases preserve one owner through consumption and republishing' failed:
+       unexpected republished reference diagnostic syntax: expected }
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10d7be6ef in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/library/roundtrip.zig:52:5: 0x10d7c24dc in run (test)
+           try std.testing.expect(final.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/library/roundtrip_test.zig:77:5: 0x10dd53c6c in test.compiled native reference aliases preserve one owner through consumption and republishing (test)
+           try roundtrip.run(std.testing.allocator, false);
+           ^
+error: 'roundtrip_test.test.compiled native reference instances preserve distinct owners through republished consumption' failed:
+       unexpected republished reference diagnostic syntax: expected }
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10d7be6ef in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/library/roundtrip.zig:52:5: 0x10d7c24dc in run (test)
+           try std.testing.expect(final.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/library/roundtrip_test.zig:81:5: 0x10d7c27df in test.compiled native reference instances preserve distinct owners through republished consumption (test)
+           try roundtrip.run(std.testing.allocator, true);
+           ^
+failed command: ./.zig-cache/o/7dde34ea4e3c28bf1eadd6a13b9e6679/test --cache-dir=./.zig-cache --seed=0xae64a0ac --listen=-
+
+test-native-references-library
++- run test 1 pass, 1 fail (2 total)
+error: 'allocation_test.test.native reference consumer and republisher clean up every failed allocation' failed:
+       unexpected republished reference diagnostic syntax: expected }
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x103f106ef in expect (test)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/library/roundtrip.zig:52:5: 0x1044aa60c in run (test)
+           try std.testing.expect(final.value == .ir);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/library/allocation_test.zig:8:5: 0x1044aa908 in accepted (test)
+           try roundtrip.run(allocator, true);
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x1044ab0da in run (test)
+                   try @call(.auto, test_fn, .{memory} ++ args);
+                   ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x1044aaa93 in checkAllAllocationFailures__func_4251 (test)
+               try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+               ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x1044aaf32 in checkAllAllocationFailures__func_4246 (test)
+           try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+           ^
+       /Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/native/references/library/allocation_test.zig:22:5: 0x1044aaf8a in test.native reference consumer and republisher clean up every failed allocation (test)
+           try allocation_testing.checkAllAllocationFailures(std.testing.allocator, accepted, .{});
+           ^
+failed command: ./.zig-cache/o/f1aaf846fb9b1030a02a952060266e2d/test --cache-dir=./.zig-cache --seed=0xae64a0ac --listen=-
+
+Build Summary: 26/29 steps succeeded (2 failed); 17/20 tests passed (3 failed)
+test-native-references-library transitive failure
++- run test 5 pass (5 total) 22ms MaxRSS:4M
+|  +- compile test debug native success 6s MaxRSS:803M
+|     +- WriteFile interfaces/0.d.zx cached
+|     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|     |     +- WriteFile catalog.json cached
+|     +- options cached
+|     +- run exe generate-parser (parser.zig) success 32s
+|     |  +- compile exe generate-parser debug native success 4s MaxRSS:590M
+|     |     +- options cached
+|     |     +- WriteFile interfaces/0.d.zx success
+|     |     |  +- run exe standard-catalog (catalog.zig) success 2ms
+|     |     |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) success 83ms
+|        +- compile exe generate-lexer debug native success 3s MaxRSS:500M
+|           +- WriteFile interfaces/0.d.zx cached
+|           |  +- run exe standard-catalog (catalog.zig) cached
+|           |     +- compile exe standard-catalog fast native success 7s MaxRSS:345M
+|           |     +- WriteFile catalog.json cached
+|           +- options cached
++- run test 3 pass, 2 fail (5 total)
+|  +- compile test debug native success 6s MaxRSS:749M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 8 pass (8 total) 10ms MaxRSS:3M
+|  +- compile test debug native success 6s MaxRSS:806M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 1 pass, 1 fail (2 total)
+   +- compile test debug native success 6s MaxRSS:766M
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+
