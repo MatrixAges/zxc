@@ -1,0 +1,85 @@
+import { Message } from "zig:resolution"
+import workspace from "zig:resolution"
+
+import builtin from "./builtin"
+
+import type { Workspace } from "zig:resolution"
+
+export type Input = Workspace
+
+export type Output = void
+
+export default function (in: Input): Output {
+    if (workspace.typeCount(in) == 0) {
+        loop({ workspace: in, index: 0 }, {
+            while: current => current.index < 11,
+            next: current => {
+                workspace.appendScalar(current.workspace, current.index)
+                current.index += 1
+            }
+        })
+    }
+
+    loop({ workspace: in, index: 0 }, {
+        while: current => current.index < workspace.aliasCount(current.workspace),
+        next: current => {
+            const name = workspace.aliasName(current.workspace, current.index)
+
+            if (builtin(name) != 0 || name == "Array") {
+                workspace.failName(current.workspace, 0, 0, Message.ImportedBuiltin)
+            }
+
+            loop({ workspace: current.workspace, name: name, index: 0, count: current.index }, {
+                while: previous => previous.index < previous.count,
+                next: previous => {
+                    if (workspace.aliasName(previous.workspace, previous.index) == previous.name) {
+                        workspace.failName(previous.workspace, 0, 0, Message.ImportedDuplicate)
+                    }
+
+                    previous.index += 1
+                }
+            })
+
+            loop({ workspace: current.workspace, name: name, index: 0 }, {
+                while: declared => declared.index < workspace.declarationCount(declared.workspace),
+                next: declared => {
+                    if (workspace.declarationName(declared.workspace, declared.index) == declared.name) {
+                        workspace.failName(declared.workspace, workspace.declarationStart(declared.workspace, declared.index), workspace.declarationEnd(declared.workspace, declared.index), Message.ImportedConflict)
+                    }
+
+                    declared.index += 1
+                }
+            })
+
+            current.index += 1
+        }
+    })
+
+    loop({ workspace: in, index: 0 }, {
+        while: current => current.index < workspace.declarationCount(current.workspace),
+        next: current => {
+            const name = workspace.declarationName(current.workspace, current.index)
+            const start = workspace.declarationStart(current.workspace, current.index)
+            const end = workspace.declarationEnd(current.workspace, current.index)
+
+            if (builtin(name) != 0 || name == "Array") {
+                workspace.failName(current.workspace, start, end, Message.DeclaredBuiltin)
+            }
+
+            loop({ workspace: current.workspace, name: name, start: start, end: end, index: 0, count: current.index }, {
+                while: previous => previous.index < previous.count,
+                next: previous => {
+                    if (workspace.declarationName(previous.workspace, previous.index) == previous.name) {
+                        workspace.failName(previous.workspace, previous.start, previous.end, Message.DeclaredDuplicate)
+                    }
+
+                    previous.index += 1
+                }
+            })
+
+            current.index += 1
+        }
+    })
+
+    return
+}

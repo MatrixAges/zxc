@@ -1,0 +1,31 @@
+import integers from "zig:integers"
+
+import equal from "./equal"
+import { Kind } from "./model"
+
+import type { Candidate, Search, Tables } from "./model"
+
+export type Input = { tables: Tables, candidate: Candidate }
+
+export type Output = Search
+
+export default function (in: Input): Output {
+    if (in.candidate.kind == Kind.Enumeration || in.candidate.kind == Kind.NativeReference) {
+        return { found: false, id: 0 }
+    }
+
+    const initial_id: u32 = 0
+    const count = in.tables.base.kinds.length + in.tables.delta.kinds.length
+
+    const state = loop({ tables: in.tables, candidate: in.candidate, count: count, index: 0, found: false, id: initial_id }, {
+        while: current => !current.found && current.index < current.count,
+        next: current => {
+            const id = integers.narrow(current.index)
+            const found = equal({ tables: current.tables, id: id, candidate: current.candidate })
+
+            current = { ...current, index: current.index + 1, found: found, id: id }
+        }
+    })
+
+    return { found: state.found, id: state.id }
+}

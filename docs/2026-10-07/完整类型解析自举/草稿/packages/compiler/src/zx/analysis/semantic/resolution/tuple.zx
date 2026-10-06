@@ -1,0 +1,44 @@
+import integers from "zig:integers"
+import { Message } from "zig:resolution"
+import workspace from "zig:resolution"
+
+import { Kind } from "../types/model"
+import intern from "./intern"
+
+import type { Workspace } from "zig:resolution"
+
+export type Input = Workspace
+
+export type Output = void
+
+export default function (in: Input): Output {
+    if (workspace.waiting(in)) {
+        workspace.saveChild(in)
+        workspace.setIndex(in, workspace.frameIndex(in) + 1)
+        workspace.nextItem(in)
+        workspace.setWaiting(in, false)
+    }
+
+    if (workspace.frameIndex(in) == workspace.itemCount(in)) {
+        loop({ workspace: in, index: 0 }, {
+            while: current => current.index < workspace.itemCount(current.workspace),
+            next: current => {
+                if (workspace.typeKind(current.workspace, integers.widen(workspace.references(current.workspace)[current.index])) == 6) {
+                    workspace.failOwnership(current.workspace, 0, 0, Message.TaskTuple)
+                }
+
+                current.index += 1
+            }
+        })
+
+        workspace.setResult(in, intern({ workspace: in, kind: Kind.Tuple }))
+        workspace.pop(in)
+
+        return
+    }
+
+    workspace.setWaiting(in, true)
+    workspace.pushItem(in)
+
+    return
+}

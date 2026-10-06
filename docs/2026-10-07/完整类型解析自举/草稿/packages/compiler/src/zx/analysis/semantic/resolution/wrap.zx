@@ -1,0 +1,28 @@
+import { Message } from "zig:resolution"
+import workspace from "zig:resolution"
+
+import { Kind } from "../types/model"
+import intern from "./intern"
+
+import type { Workspace } from "zig:resolution"
+
+export type Input = Workspace
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const child = workspace.result(in)
+
+    if (workspace.typeKind(in, child) == 6) {
+        workspace.failOwnership(in, 0, 0, Message.TaskContainer)
+    }
+
+    if (workspace.isList(in) && child == 0) {
+        workspace.failType(in, 0, 0, Message.VoidList)
+    }
+
+    workspace.setResult(in, intern({ workspace: in, kind: workspace.isList(in) ? Kind.List : Kind.Optional }))
+    workspace.pop(in)
+
+    return
+}
