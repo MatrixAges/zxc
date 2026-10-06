@@ -39,7 +39,7 @@ test "slot types use local ids after unrelated helper enum is omitted" {
 
     try h.check(result.value);
     try std.testing.expect(analysis.value.ir.stores[0].type_id != result.value.stores[0].type_id);
-    try std.testing.expectEqual(@as(usize, 0), result.value.nominal_types.len);
+    try std.testing.expectEqual(@as(usize, 0), result.value.nominal_types.count());
 }
 
 test "copied get and set nodes reference matching local slots" {

@@ -19,9 +19,9 @@ test "decoded type artifact owns strings after encoded bytes are destroyed" {
     try std.testing.expectEqualSlices(u8, &f.context, &decoded.context_digest);
     try std.testing.expectEqualStrings("/project/shared.zx", decoded.result.value.path);
     try std.testing.expectEqual(@as(usize, 2), decoded.result.value.exports.len);
-    try std.testing.expectEqualStrings("Mode", decoded.result.value.nominal_types[0].name);
+    try std.testing.expectEqualStrings("Mode", decoded.result.value.nominal_types.at(0).name);
 
-    const origin = decoded.result.value.nominal_types[0];
+    const origin = decoded.result.value.nominal_types.at(0);
     const enumeration = decoded.result.value.types.get(origin.type_id).enumeration;
 
     try std.testing.expectEqualStrings("/project/shared.zx", origin.origin.source);
@@ -68,7 +68,7 @@ test "all decoded artifacts relink after original analysis and encoded bytes are
 
     try std.testing.expect(try f.compiler.validateIr(std.testing.allocator, linked.program) == null);
     try std.testing.expectEqual(@as(usize, 2), linked.program.functions.len);
-    try std.testing.expectEqual(@as(usize, 1), linked.nominal_types.len);
+    try std.testing.expectEqual(@as(usize, 1), linked.nominal_types.count());
 
     const generated = try f.compiler.zig.emit(std.testing.allocator, linked.program);
 

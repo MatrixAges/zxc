@@ -1,0 +1,6 @@
+<Module>
+  <Call fn="types/nominal/find" in={$in} />
+  <Call fn="types/nominal/encode" in={$ctx.find} />
+
+  <Return value={$ctx.encode} />
+</Module>

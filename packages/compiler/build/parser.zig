@@ -16,6 +16,8 @@ pub const Sources = struct {
     native: std.Build.LazyPath,
     type_lookup: std.Build.LazyPath,
     semantic_abi: std.Build.LazyPath,
+    nominal_lookup: std.Build.LazyPath,
+    nominal_abi: std.Build.LazyPath,
 };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
@@ -90,8 +92,10 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const native = run.addOutputFileArg("native.zig");
     const type_lookup = run.addOutputFileArg("type_lookup.zig");
     const semantic_abi = run.addOutputFileArg("semantic_abi.zig");
+    const nominal_lookup = run.addOutputFileArg("nominal_lookup.zig");
+    const nominal_abi = run.addOutputFileArg("nominal_abi.zig");
 
-    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi };
+    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {
@@ -124,12 +128,19 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
 }
 
 pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources) @import("compiler.zig").ParserModules {
+    const integers = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.zig"), .target = target, .optimize = optimize });
     const lookup = b.createModule(.{ .root_source_file = source.type_lookup, .target = target, .optimize = optimize });
 
-    lookup.addImport("integers", b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.zig"), .target = target, .optimize = optimize }));
+    lookup.addImport("integers", integers);
     lookup.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.semantic_abi, .target = target, .optimize = optimize }));
 
+    const nominal = b.createModule(.{ .root_source_file = source.nominal_lookup, .target = target, .optimize = optimize });
+
+    nominal.addImport("integers", integers);
+    nominal.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.nominal_abi, .target = target, .optimize = optimize }));
+
     return .{
+        .nominal_lookup = nominal,
         .type_lookup = lookup,
         .program = b.createModule(.{ .root_source_file = source.program, .target = target, .optimize = optimize }),
         .expression = b.createModule(.{ .root_source_file = source.expression, .target = target, .optimize = optimize }),

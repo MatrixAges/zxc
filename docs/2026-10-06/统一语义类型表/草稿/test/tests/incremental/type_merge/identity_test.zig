@@ -14,7 +14,7 @@ test "independent structural modules share optional list tuple and object types"
 
     defer result.deinit();
 
-    try std.testing.expectEqual(@as(usize, 0), result.nominal_types.len);
+    try std.testing.expectEqual(@as(usize, 0), result.nominal_types.count());
 
     for ([_][]const u8{ "Maybe", "Items", "Pair", "Record" }) |name| {
         try std.testing.expectEqual(result.mappings[0][try f.exportIndex(left.value, name)], result.mappings[1][try f.exportIndex(right.value, name)]);
@@ -42,7 +42,7 @@ fn checkIdentity(right_path: []const u8, same: bool) !void {
 
     defer result.deinit();
 
-    try std.testing.expectEqual(@as(usize, if (same) 1 else 2), result.nominal_types.len);
+    try std.testing.expectEqual(@as(usize, if (same) 1 else 2), result.nominal_types.count());
 
     for ([_][]const u8{ "Mode", "Maybe", "Items", "Pair", "Record" }) |name| {
         const a = result.mappings[0][try f.exportIndex(left.value, name)];
@@ -82,7 +82,7 @@ test "same nominal declaration merges across different local type indices" {
 
     defer result.deinit();
 
-    try std.testing.expectEqual(@as(usize, 2), result.nominal_types.len);
+    try std.testing.expectEqual(@as(usize, 2), result.nominal_types.count());
     try std.testing.expectEqual(result.mappings[0][right_index], result.mappings[1][left_index]);
 }
 
@@ -97,7 +97,7 @@ test "merged enum names members origins and objects outlive inputs" {
 
     defer result.deinit();
 
-    const origin = result.nominal_types[0];
+    const origin = result.nominal_types.at(0);
     const enumeration = result.types.get(origin.type_id).enumeration;
 
     try std.testing.expectEqualStrings("/project/shared.zx", origin.origin.source);

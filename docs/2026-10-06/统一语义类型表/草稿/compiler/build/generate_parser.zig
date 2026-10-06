@@ -79,6 +79,11 @@ pub fn main(init: std.process.Init) !void {
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[2 + entries.len], .data = semantic.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[3 + entries.len], .data = semantic.types });
+
+    const nominal = try generate(allocator, inputs, sources.items, "zx/analysis/semantic/nominal.rx", true);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[4 + entries.len], .data = nominal.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[5 + entries.len], .data = nominal.types });
 }
 
 fn lessSource(_: void, left: compiler.project.Source, right: compiler.project.Source) bool {

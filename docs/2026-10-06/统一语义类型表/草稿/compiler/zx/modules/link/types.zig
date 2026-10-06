@@ -21,14 +21,16 @@ pub fn append(self: *Self, temporary: std.mem.Allocator, module: Module) Error![
     return self.appendFrom(temporary, module.types, module.nominal_types, 0);
 }
 
-pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: []const Origins.Item, first: usize) Error![]const ir.TypeId {
+pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize) Error![]const ir.TypeId {
     if (!@import("../../ir/type_rules.zig").validate(values)) return error.InvalidModule;
+    if (!nominal_types.hasValidShape()) return error.InvalidModule;
 
-    const origins = try temporary.alloc(?Origins.Origin, values.count());
+    const origins = try temporary.alloc(?usize, values.count());
 
     @memset(origins, null);
 
-    for (nominal_types) |item| {
+    for (0..nominal_types.count()) |origin_index| {
+        const item = nominal_types.at(origin_index);
         const index = @backingInt(item.type_id);
 
         if (index >= values.count() or origins[index] != null) return error.InvalidModule;
@@ -38,7 +40,7 @@ pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTabl
         if (!std.mem.eql(u8, name, item.name)) return error.InvalidModule;
         if (values.at(index) == .native_reference and item.origin != .native) return error.InvalidModule;
 
-        origins[index] = item.origin;
+        origins[index] = origin_index;
     }
 
     if (first > values.count() or (first != 0 and first != self.items.view().count())) return error.InvalidModule;
@@ -59,7 +61,7 @@ pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTabl
         const mapped = try remap(temporary, value, mapping[0..index]);
 
         if (value.nominalName() != null) {
-            mapping[index] = try self.nominal(mapped, origins[index] orelse return error.MissingNominalOrigin);
+            mapping[index] = try self.nominal(mapped, nominal_types.at(origins[index] orelse return error.MissingNominalOrigin).origin);
         } else {
             mapping[index] = try self.structural(mapped);
         }
@@ -75,12 +77,7 @@ fn structural(self: *Self, value: ir.TypeValue) Error!ir.TypeId {
 }
 
 fn nominal(self: *Self, value: ir.TypeValue, origin: Origins.Origin) Error!ir.TypeId {
-    for (self.origins.items.items) |item| {
-        if (!std.mem.eql(u8, item.name, value.nominalName().?) or !Origins.same(item.origin, origin)) continue;
-        if (!sameType(self.items.view().at(@backingInt(item.type_id)), value)) return error.ConflictingNominalType;
-
-        return item.type_id;
-    }
+    if (try @import("../../analysis/semantic/nominal.zig").find(self.items.view(), self.origins.items.view(), origin, value)) |id| return id;
 
     const id = try self.insert(value);
 

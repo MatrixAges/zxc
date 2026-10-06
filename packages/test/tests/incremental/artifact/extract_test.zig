@@ -16,8 +16,8 @@ test "pure type artifact owns exports and enum declaration origin" {
     try std.testing.expect(result.value.function == null);
     try std.testing.expectEqual(@as(usize, 2), result.value.exports.len);
     try std.testing.expectEqual(@as(usize, 0), result.value.functions.len);
-    try std.testing.expectEqual(@as(usize, 1), result.value.nominal_types.len);
-    try std.testing.expectEqualStrings("/project/shared.zx", result.value.nominal_types[0].origin.source);
+    try std.testing.expectEqual(@as(usize, 1), result.value.nominal_types.count());
+    try std.testing.expectEqualStrings("/project/shared.zx", result.value.nominal_types.at(0).origin.source);
 }
 
 test "helper artifact drops unrelated global enums but retains type import" {
@@ -31,7 +31,7 @@ test "helper artifact drops unrelated global enums but retains type import" {
 
     try std.testing.expect(result.value.function != null);
     try std.testing.expectEqual(@as(usize, 11), result.value.types.count());
-    try std.testing.expectEqual(@as(usize, 0), result.value.nominal_types.len);
+    try std.testing.expectEqual(@as(usize, 0), result.value.nominal_types.count());
     try std.testing.expectEqual(@as(usize, 1), result.value.type_imports.len);
     try std.testing.expectEqualStrings("Count", result.value.type_imports[0].name);
     try std.testing.expectEqual(.u64, result.value.types.get(result.value.type_imports[0].type_id).scalar);
@@ -73,7 +73,7 @@ test "artifact remains readable after original analysis is destroyed" {
     try std.testing.expectEqualStrings("/project/helper.zx", result.value.dependencies[0].target.source);
     try std.testing.expectEqualStrings("in", result.value.function.?.symbols[0].name);
 
-    const nominal = result.value.nominal_types[0];
+    const nominal = result.value.nominal_types.at(0);
 
     try std.testing.expectEqualStrings("Mode", nominal.name);
     try std.testing.expectEqualStrings("First", result.value.types.get(nominal.type_id).enumeration.members[0]);
@@ -128,20 +128,20 @@ test "enum type id is remapped after unrelated earlier declarations are omitted"
     defer analysis.deinit();
 
     try std.testing.expect(analysis.value == .ir);
-    try std.testing.expectEqualStrings("Mode", analysis.nominal_types[1].name);
+    try std.testing.expectEqualStrings("Mode", analysis.nominal_types.at(1).name);
 
-    const global_id = analysis.nominal_types[1].type_id;
+    const global_id = analysis.nominal_types.at(1).type_id;
     var result = try artifact.extract(std.testing.allocator, &analysis, 1);
 
     defer result.deinit();
 
-    try std.testing.expectEqual(@as(usize, 1), result.value.nominal_types.len);
+    try std.testing.expectEqual(@as(usize, 1), result.value.nominal_types.count());
 
-    const local_id = result.value.nominal_types[0].type_id;
+    const local_id = result.value.nominal_types.at(0).type_id;
 
     try std.testing.expect(global_id != local_id);
     try std.testing.expectEqualStrings("Mode", result.value.types.get(local_id).enumeration.name);
-    try std.testing.expectEqualStrings("/project/shared.zx", result.value.nominal_types[0].origin.source);
+    try std.testing.expectEqualStrings("/project/shared.zx", result.value.nominal_types.at(0).origin.source);
 
     var found = false;
 

@@ -7,12 +7,13 @@ const Self = @This();
 allocator: std.mem.Allocator,
 temporary: std.mem.Allocator,
 source: ir.TypeTable,
-origins: []const NominalOrigins.Item,
+origins: NominalOrigins.Table,
 mapping: []?ir.TypeId,
 items: ir.TypeStorage = .{},
 nominal_origins: NominalOrigins,
-pub fn init(allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: ir.TypeTable, origins: []const NominalOrigins.Item) Error!Self {
+pub fn init(allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: ir.TypeTable, origins: NominalOrigins.Table) Error!Self {
     if (!@import("../../ir/type_rules.zig").validate(source)) return error.InvalidIr;
+    if (!origins.hasValidShape()) return error.InvalidModule;
 
     const mapping = try temporary.alloc(?ir.TypeId, source.count());
     var self = Self{ .allocator = allocator, .temporary = temporary, .source = source, .origins = origins, .mapping = mapping, .nominal_origins = .{ .allocator = allocator } };
@@ -88,7 +89,9 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
         if (value.nominalName()) |name| {
             var origin: ?NominalOrigins.Origin = null;
 
-            for (self.origins) |item| {
+            for (0..self.origins.count()) |origin_index| {
+                const item = self.origins.at(origin_index);
+
                 if (item.type_id != step.id) continue;
                 if (origin != null or !std.mem.eql(u8, item.name, name)) return error.InvalidModule;
 

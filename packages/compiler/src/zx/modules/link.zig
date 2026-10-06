@@ -11,7 +11,7 @@ pub const Error = Types.Error || Builder.Error || graph.Error;
 pub const Result = struct {
     arena: std.heap.ArenaAllocator,
     program: ir.Program,
-    nominal_types: []const Origins.Item,
+    nominal_types: Origins.Table,
     pub fn deinit(self: *Result) void {
         self.arena.deinit();
 
@@ -98,5 +98,5 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
 
     if (try @import("../ir/validate.zig").validate(scratch, program) != null) return error.InvalidIr;
 
-    return .{ .arena = arena, .program = program, .nominal_types = types.origins.items.items };
+    return .{ .arena = arena, .program = program, .nominal_types = types.origins.items.view() };
 }

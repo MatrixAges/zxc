@@ -32,7 +32,9 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
 
     @memset(declared, false);
 
-    for (library.nominal_types) |item| {
+    for (0..library.nominal_types.count()) |origin_index| {
+        const item = library.nominal_types.at(origin_index);
+
         declared[@backingInt(item.type_id)] = true;
 
         if (program.typeOf(item.type_id) == .native_reference) {

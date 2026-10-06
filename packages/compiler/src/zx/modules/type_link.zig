@@ -9,7 +9,7 @@ pub const Error = Types.Error;
 pub const Result = struct {
     arena: std.heap.ArenaAllocator,
     types: ir.TypeTable,
-    nominal_types: []const Origins.Item,
+    nominal_types: Origins.Table,
     mappings: []const []const ir.TypeId,
     pub fn deinit(self: *Result) void {
         self.arena.deinit();
@@ -35,5 +35,5 @@ pub fn merge(allocator: std.mem.Allocator, modules: []const Module) Error!Result
         _ = temporary.reset(.retain_capacity);
     }
 
-    return .{ .arena = arena, .types = types.items.view(), .nominal_types = types.origins.items.items, .mappings = mappings };
+    return .{ .arena = arena, .types = types.items.view(), .nominal_types = types.origins.items.view(), .mappings = mappings };
 }

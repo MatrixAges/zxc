@@ -15,7 +15,7 @@ pub const Module = struct {
     source_digest: [32]u8,
     dependencies: []const @import("../module_record.zig").Import,
     types: ir.TypeTable,
-    nominal_types: []const @import("../nominal_origins.zig").Item,
+    nominal_types: @import("../nominal_origins.zig").Table,
     exports: []const ir.Export,
     type_imports: []const ir.Export,
     function_imports: []const @import("../function_import.zig"),

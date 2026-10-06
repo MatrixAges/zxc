@@ -9,7 +9,7 @@ const Origins = @import("../modules/nominal_origins.zig");
 pub const Result = struct {
     arena: std.heap.ArenaAllocator,
     value: union(enum) { ir: zx.ir.Program, diagnostic: zx.Diagnostic },
-    nominal_types: []const @import("../modules/nominal_origins.zig").Item = &.{},
+    nominal_types: @import("../modules/nominal_origins.zig").Table = .{},
     store_initializers: []const @import("../modules/compiled.zig").StoreInitializer = &.{},
     modules: []const @import("../modules/module_record.zig") = &.{},
     pub fn deinit(self: *Result) void {
@@ -20,7 +20,7 @@ pub const Result = struct {
 };
 
 pub const StoreBinding = struct { handle: []const u8, path: []const u8, type_name: ?[]const u8 = null, type_id: ?zx.ir.TypeId = null, readable: bool = true, writable: bool = true };
-pub const Context = struct { types: zx.ir.TypeTable = .{}, nominal_types: []const Origins.Item = &.{}, stores: []const StoreBinding = &.{} };
+pub const Context = struct { types: zx.ir.TypeTable = .{}, nominal_types: Origins.Table = .{}, stores: []const StoreBinding = &.{} };
 
 pub fn analyze(allocator: std.mem.Allocator, parsed: Parsed) std.mem.Allocator.Error!Result {
     return analyzeWithContext(allocator, parsed, .{});
@@ -85,5 +85,5 @@ fn analyzeInput(allocator: std.mem.Allocator, input: anytype, file_name: []const
         return .{ .arena = arena, .value = .{ .diagnostic = reporter.diagnostic.? } };
     };
 
-    return .{ .arena = arena, .value = .{ .ir = program }, .nominal_types = origins.items.items };
+    return .{ .arena = arena, .value = .{ .ir = program }, .nominal_types = origins.items.view() };
 }

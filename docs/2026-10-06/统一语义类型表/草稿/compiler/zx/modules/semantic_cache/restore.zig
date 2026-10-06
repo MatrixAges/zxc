@@ -11,7 +11,7 @@ const FunctionImport = @import("../function_import.zig");
 pub const Current = struct {
     allocator: std.mem.Allocator,
     types: ir.TypeTable,
-    nominal_types: []const Origins.Item,
+    nominal_types: Origins.Table,
     functions: []const ir.Function,
     native_modules: []const ir.NativeModule,
     aliases: []const ir.Export,
@@ -19,7 +19,7 @@ pub const Current = struct {
     dependencies: []const Record.Import,
 };
 
-pub const Result = struct { program: ir.Program, nominal_types: []const Origins.Item };
+pub const Result = struct { program: ir.Program, nominal_types: Origins.Table };
 const Error = Types.Error || model.Error;
 
 pub fn restore(module: model.Module, current: Current) std.mem.Allocator.Error!?Result {
@@ -41,7 +41,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         types = try Types.init(allocator);
     } else {
         try types.items.appendDelta(allocator, current.types);
-        try types.origins.items.appendSlice(allocator, current.nominal_types);
+        try types.origins.items.appendTable(allocator, current.nominal_types);
     }
 
     const mapping = try types.append(allocator, module);
@@ -128,7 +128,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         item.type_id = try nodes.types.include(item.type_id);
     }
 
-    const result = Result{ .nominal_types = types.origins.items.items, .program = .{
+    const result = Result{ .nominal_types = types.origins.items.view(), .program = .{
         .file_name = try allocator.dupe(u8, module.path),
         .types = types.items.view(),
         .input_type = if (function) |value| value.input_type else @fromBackingInt(@intCast(0)),

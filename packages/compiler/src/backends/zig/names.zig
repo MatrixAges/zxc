@@ -5,14 +5,17 @@ const Names = @import("genz").zx.modules.Names;
 const Hash = std.crypto.hash.sha2.Sha256;
 pub const Error = std.mem.Allocator.Error || error{ MissingNominalOrigin, InvalidNominalOrigin };
 
-pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: []const NominalType) Error!Names {
+pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: @FieldType(@import("frontend").AnalysisResult, "nominal_types")) Error!Names {
+    if (!origins.hasValidShape()) return error.InvalidNominalOrigin;
+
     const type_names = try allocator.alloc([]const u8, program.types.count());
     const digests = try allocator.alloc([32]u8, program.types.count());
     const nominal = try allocator.alloc(?NominalType, program.types.count());
 
     @memset(nominal, null);
 
-    for (origins) |item| {
+    for (0..origins.count()) |origin_index| {
+        const item = origins.at(origin_index);
         const index = @backingInt(item.type_id);
 
         if (index >= nominal.len or nominal[index] != null) return error.InvalidNominalOrigin;

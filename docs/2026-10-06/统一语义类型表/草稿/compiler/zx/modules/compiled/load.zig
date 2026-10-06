@@ -9,7 +9,7 @@ const identity = @import("identity.zig");
 pub const Options = struct {
     library: model.Library,
     types: ir.TypeTable,
-    nominal_types: []const Origins.Item,
+    nominal_types: Origins.Table,
     functions: *std.ArrayList(ir.Function),
     native_modules: *std.ArrayList(ir.NativeModule),
 };
@@ -28,15 +28,21 @@ pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
         try types.origins.seed(options.types, options.nominal_types);
     }
 
-    const origins = try allocator.dupe(Origins.Item, library.nominal_types);
+    var origins: Origins.Storage = .{};
 
-    for (origins) |*item| item.origin = switch (item.origin) {
-        .source => |path| .{ .source = try identity.scope(allocator, library.instance, path) },
-        .native => |key| .{ .native = try identity.nativeKey(allocator, library, key) },
-        .external => |value| .{ .external = .{ .module = try identity.nativeKey(allocator, library, value.module), .member = value.member } },
-    };
+    for (0..library.nominal_types.count()) |index| {
+        var item = library.nominal_types.at(index);
 
-    const type_mapping = try types.appendFrom(allocator, program.types, origins, 0);
+        item.origin = switch (item.origin) {
+            .source => |path| .{ .source = try identity.scope(allocator, library.instance, path) },
+            .native => |key| .{ .native = try identity.nativeKey(allocator, library, key) },
+            .external => |value| .{ .external = .{ .module = try identity.nativeKey(allocator, library, value.module), .member = value.member } },
+        };
+
+        try origins.append(allocator, item);
+    }
+
+    const type_mapping = try types.appendFrom(allocator, program.types, origins.view(), 0);
     const function_mapping = try allocator.alloc(?ir.FunctionId, program.functions.len);
     const native_mapping = try allocator.alloc(?ir.NativeModuleId, program.native_modules.len);
 
@@ -92,5 +98,5 @@ pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
         initial.function = try nodes.functionId(initial.function);
     }
 
-    return .{ .types = types.items.view(), .nominal_types = types.origins.items.items, .exports = exports, .store_initializers = initializers };
+    return .{ .types = types.items.view(), .nominal_types = types.origins.items.view(), .exports = exports, .store_initializers = initializers };
 }

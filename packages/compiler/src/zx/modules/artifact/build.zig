@@ -116,7 +116,7 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
         .source_digest = record.source_digest,
         .dependencies = dependencies,
         .types = self.types.items.view(),
-        .nominal_types = self.types.nominal_origins.items.items,
+        .nominal_types = self.types.nominal_origins.items.view(),
         .exports = exported,
         .type_imports = type_imports,
         .function_imports = function_imports,

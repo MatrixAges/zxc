@@ -6,7 +6,7 @@ const zx = @import("zx");
 const target = @import("call/target.zig");
 const expression = @import("expression.zig");
 const initializer = @import("store/initializer.zig");
-pub const Options = struct { owner: []const u8, node: rx.ast.Node, types: zx.ir.TypeTable = .{}, nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types") = &.{} };
+pub const Options = struct { owner: []const u8, node: rx.ast.Node, types: zx.ir.TypeTable = .{}, nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types") = .{} };
 pub const Binding = struct { name: []const u8, slot: zx.ir.StoreSlot };
 pub const Object = struct { name: []const u8, initial: zx.ir.Program };
 pub const Definition = struct { source_path: []const u8, name: []const u8, version: u32, types: zx.ir.TypeTable, objects: []const Object };

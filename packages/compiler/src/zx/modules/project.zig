@@ -177,7 +177,7 @@ const Project = struct {
                 if (try @import("semantic_cache/restore.zig").restore(cached.*, .{
                     .allocator = self.allocator,
                     .types = self.types,
-                    .nominal_types = self.nominal_origins.items.items,
+                    .nominal_types = self.nominal_origins.items.view(),
                     .functions = self.functions.items,
                     .native_modules = self.native_modules.items,
                     .aliases = aliases.items,
@@ -188,7 +188,7 @@ const Project = struct {
 
                     self.nominal_origins.items.clearRetainingCapacity();
 
-                    try self.nominal_origins.items.appendSlice(self.allocator, result.nominal_types);
+                    try self.nominal_origins.items.appendTable(self.allocator, result.nominal_types);
 
                     unit.reused = true;
                     cache.reused += 1;
@@ -261,7 +261,7 @@ const Project = struct {
             const value = compiled.load(self.allocator, .{
                 .library = self.options.compiled_libraries[index],
                 .types = self.types,
-                .nominal_types = self.nominal_origins.items.items,
+                .nominal_types = self.nominal_origins.items.view(),
                 .functions = &self.functions,
                 .native_modules = &self.native_modules,
             }) catch |err| {
@@ -271,9 +271,9 @@ const Project = struct {
             };
 
             self.types = value.types;
-            self.nominal_origins.items = .empty;
+            self.nominal_origins.items = .{};
 
-            try self.nominal_origins.items.appendSlice(self.allocator, value.nominal_types);
+            try self.nominal_origins.items.appendTable(self.allocator, value.nominal_types);
             try self.store_initializers.appendSlice(self.allocator, value.store_initializers);
             try self.compiled_units.put(self.allocator, index, value);
 
@@ -340,7 +340,7 @@ const Project = struct {
             const module_id = try self.nativeModule(entry.specifier, entry.identity, entry.module, item.span);
 
             const loaded = if (self.semantic_cache) |cache|
-                try cache.native.load(self.allocator, entry, .{ .module = module_id, .types = self.types, .nominal_types = self.nominal_origins.items.items }, self.reporter, item.span)
+                try cache.native.load(self.allocator, entry, .{ .module = module_id, .types = self.types, .nominal_types = self.nominal_origins.items.view() }, self.reporter, item.span)
             else
                 try @import("native.zig").load(self.allocator, entry, module_id, self.types, &self.nominal_origins, self.reporter, item.span);
 
@@ -513,7 +513,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
 
     if (try @import("../ir/validate.zig").validate(allocator, program)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 
-    var result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.items, .modules = project.modules.items, .store_initializers = project.store_initializers.items };
+    var result = Analysis.Result{ .arena = arena, .value = .{ .ir = program }, .nominal_types = project.nominal_origins.items.view(), .modules = project.modules.items, .store_initializers = project.store_initializers.items };
 
     if (project.semantic_cache) |semantic| {
         for (result.modules, 0..) |module, index| {

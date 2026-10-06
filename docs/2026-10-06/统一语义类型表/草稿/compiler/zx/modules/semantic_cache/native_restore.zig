@@ -9,7 +9,7 @@ const Types = @import("../link/types.zig");
 const Origins = @import("../nominal_origins.zig");
 const native = @import("../link/native.zig");
 
-pub const Current = struct { module: ir.NativeModuleId, types: ir.TypeTable, nominal_types: []const Origins.Item };
+pub const Current = struct { module: ir.NativeModuleId, types: ir.TypeTable, nominal_types: Origins.Table };
 pub const Error = Types.Error || Artifact.Error;
 
 pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: Current) Error!Loaded.Result {
@@ -26,7 +26,11 @@ pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: N
         if (left.type_id != right.type_id or !std.mem.eql(u8, left.name, right.name)) return error.InvalidModule;
     }
 
-    for (artifact.nominal_types) |item| {
+    if (!artifact.nominal_types.hasValidShape()) return error.InvalidModule;
+
+    for (0..artifact.nominal_types.count()) |origin_index| {
+        const item = artifact.nominal_types.at(origin_index);
+
         if (item.origin != .native or !std.mem.eql(u8, item.origin.native, entry.key())) return error.InvalidModule;
     }
 
@@ -61,7 +65,7 @@ pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: N
         types = try Types.init(allocator);
     } else {
         try types.items.appendDelta(allocator, current.types);
-        try types.origins.items.appendSlice(allocator, current.nominal_types);
+        try types.origins.items.appendTable(allocator, current.nominal_types);
     }
 
     const mapping = try types.append(allocator, artifact);

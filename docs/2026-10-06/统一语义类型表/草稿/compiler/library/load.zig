@@ -16,7 +16,7 @@ pub fn load(allocator: std.mem.Allocator, input: frontend.project.compiled.Libra
     const imported = try frontend.project.compiled.load(owned, .{
         .library = input,
         .types = .{},
-        .nominal_types = &.{},
+        .nominal_types = .{},
         .functions = &functions,
         .native_modules = &native_modules,
     });
@@ -37,8 +37,8 @@ pub fn load(allocator: std.mem.Allocator, input: frontend.project.compiled.Libra
         .program = .{
             .file_name = "library",
             .types = imported.types,
-            .input_type = @enumFromInt(@intFromEnum(ir.Scalar.void)),
-            .output_type = @enumFromInt(@intFromEnum(ir.Scalar.void)),
+            .input_type = @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
+            .output_type = @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
             .symbols = &.{},
             .expressions = &.{},
             .body = &.{},

@@ -6,7 +6,7 @@ pub const identity = "export type Input = u64\n export type Output = u64\n expor
 pub fn check(result: compiler.AnalysisResult, count: usize) !void {
     if (result.value == .diagnostic) std.debug.print("{t}: {s}\n", .{ result.value.diagnostic.code, result.value.diagnostic.message });
     try std.testing.expect(result.value == .ir);
-    try std.testing.expectEqual(count, result.nominal_types.len);
+    try std.testing.expectEqual(count, result.nominal_types.count());
 
     const issue = try compiler.validateIr(std.testing.allocator, result.value.ir);
 
@@ -26,7 +26,9 @@ pub fn check(result: compiler.AnalysisResult, count: usize) !void {
         try std.testing.expectEqual(count, enumerations);
     }
 
-    for (result.nominal_types, 0..) |item, index| {
+    for (0..result.nominal_types.count()) |index| {
+        const item = result.nominal_types.at(index);
+
         try std.testing.expectEqualStrings("Mode", item.name);
 
         const value = result.value.ir.typeOf(item.type_id);
@@ -35,7 +37,7 @@ pub fn check(result: compiler.AnalysisResult, count: usize) !void {
         try std.testing.expectEqualStrings("Mode", value.enumeration.name);
         try std.testing.expectEqualStrings("First", value.enumeration.members[0]);
         try std.testing.expectEqualStrings("Second", value.enumeration.members[1]);
-        for (result.nominal_types[0..index]) |previous| try std.testing.expect(previous.type_id != item.type_id);
+        for (0..index) |previous| try std.testing.expect(result.nominal_types.at(previous).type_id != item.type_id);
     }
 }
 

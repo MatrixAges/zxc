@@ -1,0 +1,25 @@
+{
+    "intent": "名义来源列式存储与 RX/ZX 名义查找生产接线",
+    "release": {
+        "command": "zig build dist",
+        "cwd": "/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc",
+        "exit_code": 0,
+        "log": "/tmp/zxc_nominal_dist6.log"
+    },
+    "initial_checks": {
+        "command": "zig build test-type-merge test-nominal-origins test-library-codec test-cache-codec test-native-references-library",
+        "cwd": "/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test",
+        "exit_code": 1,
+        "passed": 72,
+        "total": 73,
+        "remaining": "库拒绝用例的 JSON 清空辅助逻辑误将 u8 字符串当数组，已按编码修复"
+    },
+    "final_checks": {
+        "command": "zig build test-library-codec test-module-artifacts test-semantic-cache test-library-link",
+        "cwd": "/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test",
+        "exit_code": 0,
+        "log": "/tmp/zxc_nominal_boundaries.log"
+    },
+    "scope": "未执行全量测试，未新增测试用例。前轮四个成功专项的生产源码此后未改变；库编解码已在修复后重跑。",
+    "allocation": "生产名义查找用零容量 FixedBufferAllocator；命中、缺失、冲突及往返流程由上述既有专项覆盖。"
+}

@@ -11,8 +11,8 @@ test "same named source enums keep distinct declaration identities" {
     defer result.deinit();
 
     try h.check(result, 2);
-    try std.testing.expectEqualStrings("/project/helper.zx", result.nominal_types[0].origin.source);
-    try std.testing.expectEqualStrings("/project/main.zx", result.nominal_types[1].origin.source);
+    try std.testing.expectEqualStrings("/project/helper.zx", result.nominal_types.at(0).origin.source);
+    try std.testing.expectEqualStrings("/project/main.zx", result.nominal_types.at(1).origin.source);
 }
 
 test "shared source declaration is recorded once through repeated imports" {
@@ -25,7 +25,7 @@ test "shared source declaration is recorded once through repeated imports" {
     defer result.deinit();
 
     try h.check(result, 1);
-    try std.testing.expectEqualStrings("/project/shared.zx", result.nominal_types[0].origin.source);
+    try std.testing.expectEqualStrings("/project/shared.zx", result.nominal_types.at(0).origin.source);
 }
 
 test "same native specifier reuses enum identity across source modules" {
@@ -34,7 +34,7 @@ test "same native specifier reuses enum identity across source modules" {
     defer result.deinit();
 
     try h.check(result, 1);
-    try std.testing.expectEqualStrings("zig:first", result.nominal_types[0].origin.native);
+    try std.testing.expectEqualStrings("zig:first", result.nominal_types.at(0).origin.native);
     try std.testing.expectEqual(@as(usize, 2), result.modules.len);
     try std.testing.expect(result.modules[0].imports[0].target == .native);
     try std.testing.expect(result.modules[1].imports[0].target == .source);
@@ -48,8 +48,8 @@ test "different native specifiers do not merge same shaped enums" {
     defer result.deinit();
 
     try h.check(result, 2);
-    try std.testing.expectEqualStrings("zig:second", result.nominal_types[0].origin.native);
-    try std.testing.expectEqualStrings("zig:first", result.nominal_types[1].origin.native);
+    try std.testing.expectEqualStrings("zig:second", result.nominal_types.at(0).origin.native);
+    try std.testing.expectEqualStrings("zig:first", result.nominal_types.at(1).origin.native);
 }
 
 test "legacy default bindings share the exported enum identity" {
@@ -58,8 +58,8 @@ test "legacy default bindings share the exported enum identity" {
     defer result.deinit();
 
     try h.check(result, 1);
-    try std.testing.expectEqualStrings("lib:sample", result.nominal_types[0].origin.external.module);
-    try std.testing.expectEqualStrings("first", result.nominal_types[0].origin.external.member);
+    try std.testing.expectEqualStrings("lib:sample", result.nominal_types.at(0).origin.external.module);
+    try std.testing.expectEqualStrings("first", result.nominal_types.at(0).origin.external.member);
 
     for (result.modules[0].imports) |dependency| {
         try std.testing.expect(dependency.target == .external);
@@ -74,7 +74,9 @@ test "legacy named members share identity across bindings and remain distinct ex
 
     try h.check(result, 2);
 
-    for (result.nominal_types, 0..) |item, index| {
+    for (0..result.nominal_types.count()) |index| {
+        const item = result.nominal_types.at(index);
+
         try std.testing.expectEqualStrings("lib:sample", item.origin.external.module);
         try std.testing.expectEqualStrings(if (index == 0) "first" else "second", item.origin.external.member);
     }
@@ -96,7 +98,7 @@ test "context seeded enum is not attributed to the consuming module" {
     defer result.deinit();
 
     try h.check(result, 0);
-    try std.testing.expect(result.value.ir.typeOf(provider.nominal_types[0].type_id) == .enumeration);
+    try std.testing.expect(result.value.ir.typeOf(provider.nominal_types.at(0).type_id) == .enumeration);
 }
 
 test "legacy imports in different source modules share the exported enum identity" {
@@ -114,8 +116,8 @@ test "legacy imports in different source modules share the exported enum identit
     defer result.deinit();
 
     try h.check(result, 1);
-    try std.testing.expectEqualStrings("lib:sample", result.nominal_types[0].origin.external.module);
-    try std.testing.expectEqualStrings("echo", result.nominal_types[0].origin.external.member);
+    try std.testing.expectEqualStrings("lib:sample", result.nominal_types.at(0).origin.external.module);
+    try std.testing.expectEqualStrings("echo", result.nominal_types.at(0).origin.external.member);
 }
 
 test "native origin owns provider specifier after mutation and release" {
@@ -147,7 +149,7 @@ test "native origin owns provider specifier after mutation and release" {
     defer result.deinit();
 
     try h.check(result, 1);
-    try std.testing.expectEqualStrings("zig:sample", result.nominal_types[0].origin.native);
+    try std.testing.expectEqualStrings("zig:sample", result.nominal_types.at(0).origin.native);
 }
 
 test "single legacy enum binding is a valid control for repeated imports" {
@@ -165,6 +167,6 @@ test "single legacy enum binding is a valid control for repeated imports" {
     defer result.deinit();
 
     try h.check(result, 1);
-    try std.testing.expectEqualStrings("lib:sample", result.nominal_types[0].origin.external.module);
-    try std.testing.expectEqualStrings("echo", result.nominal_types[0].origin.external.member);
+    try std.testing.expectEqualStrings("lib:sample", result.nominal_types.at(0).origin.external.module);
+    try std.testing.expectEqualStrings("echo", result.nominal_types.at(0).origin.external.member);
 }

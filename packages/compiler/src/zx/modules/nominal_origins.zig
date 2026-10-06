@@ -1,17 +1,13 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const Self = @This();
-
-pub const Origin = union(enum) {
-    source: []const u8,
-    native: []const u8,
-    external: struct { module: []const u8, member: []const u8 },
-};
-
-pub const Item = struct { type_id: ir.TypeId, origin: Origin, name: []const u8 };
+pub const Origin = @import("nominal_origins/model.zig").Origin;
+pub const Item = @import("nominal_origins/model.zig").Item;
+pub const Table = @import("nominal_origins/table.zig");
+pub const Storage = @import("nominal_origins/storage.zig");
 
 allocator: std.mem.Allocator,
-items: std.ArrayList(Item) = .empty,
+items: Storage = .{},
 pub fn append(self: *Self, types: ir.TypeTable, first: usize, origin: Origin) std.mem.Allocator.Error!void {
     for (first..types.count()) |index| {
         const item = types.at(index);
@@ -46,8 +42,11 @@ pub fn same(left: Origin, right: Origin) bool {
     };
 }
 
-pub fn seed(self: *Self, types: ir.TypeTable, values: []const Item) (std.mem.Allocator.Error || error{InvalidNominalTypes})!void {
-    for (values, 0..) |item, index| {
+pub fn seed(self: *Self, types: ir.TypeTable, values: Table) (std.mem.Allocator.Error || error{InvalidNominalTypes})!void {
+    if (!values.hasValidShape()) return error.InvalidNominalTypes;
+
+    for (0..values.count()) |index| {
+        const item = values.at(index);
         const id = @backingInt(item.type_id);
 
         if (id >= types.count()) return error.InvalidNominalTypes;
@@ -57,15 +56,21 @@ pub fn seed(self: *Self, types: ir.TypeTable, values: []const Item) (std.mem.All
         if (types.at(id) == .native_reference and item.origin != .native) return error.InvalidNominalTypes;
         if (!std.mem.eql(u8, name, item.name)) return error.InvalidNominalTypes;
 
-        for (values[0..index]) |previous| {
+        for (0..index) |previous_index| {
+            const previous = values.at(previous_index);
+
             if (previous.type_id == item.type_id) return error.InvalidNominalTypes;
             if (same(previous.origin, item.origin) and std.mem.eql(u8, previous.name, item.name)) return error.InvalidNominalTypes;
         }
     }
 
-    for (values) |item| try self.items.append(self.allocator, .{
-        .type_id = item.type_id,
-        .origin = try self.copy(item.origin),
-        .name = types.at(@backingInt(item.type_id)).nominalName().?,
-    });
+    for (0..values.count()) |index| {
+        const item = values.at(index);
+
+        try self.items.append(self.allocator, .{
+            .type_id = item.type_id,
+            .origin = try self.copy(item.origin),
+            .name = types.at(@backingInt(item.type_id)).nominalName().?,
+        });
+    }
 }

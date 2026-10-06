@@ -123,7 +123,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
 
     if (try frontend.validateIr(scratch, program) != null) return error.InvalidIr;
 
-    const result = model.Result{ .arena = arena, .program = program, .exports = exports, .nominal_types = types.origins.items.items, .store_initializers = initializers.items.items };
+    const result = model.Result{ .arena = arena, .program = program, .exports = exports, .nominal_types = types.origins.items.view(), .store_initializers = initializers.items.items };
 
     try @import("validate.zig").validate(scratch, &result);
 

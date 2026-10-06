@@ -6,7 +6,7 @@ test "enum without declaration origin is rejected" {
 
     defer source.deinit();
 
-    source.value.nominal_types = &.{};
+    source.value.nominal_types = .{};
 
     try std.testing.expectError(error.MissingNominalOrigin, f.artifact.type_link.merge(std.testing.allocator, &.{source.value}));
 }
@@ -16,8 +16,11 @@ test "duplicate nominal metadata is rejected" {
 
     defer source.deinit();
 
-    const origins = [_]@TypeOf(source.value.nominal_types[0]){ source.value.nominal_types[0], source.value.nominal_types[0] };
-    source.value.nominal_types = &origins;
+    inline for (@typeInfo(@TypeOf(source.value.nominal_types)).@"struct".field_names) |name| {
+        const column = @field(source.value.nominal_types, name);
+
+        @field(source.value.nominal_types, name) = try source.arena.allocator().dupe(@TypeOf(column[0]), &.{ column[0], column[0] });
+    }
 
     try std.testing.expectError(error.InvalidModule, f.artifact.type_link.merge(std.testing.allocator, &.{source.value}));
 }
@@ -27,9 +30,7 @@ test "origin name must match local enum name" {
 
     defer source.deinit();
 
-    var origin = source.value.nominal_types[0];
-    origin.name = "Other";
-    source.value.nominal_types = (&origin)[0..1];
+    source.value.nominal_types.names = &.{"Other"};
 
     try std.testing.expectError(error.InvalidModule, f.artifact.type_link.merge(std.testing.allocator, &.{source.value}));
 }
