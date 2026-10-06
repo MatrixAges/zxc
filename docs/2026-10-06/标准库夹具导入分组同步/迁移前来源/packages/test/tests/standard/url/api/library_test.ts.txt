@@ -38,7 +38,7 @@ try {
 	)
 	writeFileSync(
 		join(root, 'main.zx'),
-		'import library from "library"\n\nimport type { Input, Output } from "library"\n\nexport default function (in: Input): Output {\n  return library(in)\n}\n'
+		'import library from "library"\nimport type { Input, Output } from "library"\n\nexport default function (in: Input): Output {\n  return library(in)\n}\n'
 	)
 
 	for (const directory of readdirSync(source, { withFileTypes: true }).filter(entry => entry.isDirectory())) {

@@ -1,5 +1,4 @@
 import zlib from "std:zlib"
-
 import type { DecompressOptions } from "std:zlib"
 
 export type Input = DecompressOptions
@@ -7,5 +6,5 @@ export type Input = DecompressOptions
 export type Output = u8[]
 
 export default function (in: Input): Output {
-  return zlib.gunzip(in)
+  return zlib.inflateRaw(in)
 }
