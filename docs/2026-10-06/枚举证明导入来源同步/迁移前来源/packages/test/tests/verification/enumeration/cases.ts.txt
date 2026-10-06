@@ -60,7 +60,7 @@ const cases: Array<Case> = [1, 2, 3, 4, 5, 8, 9].flatMap(count => {
 					count,
 					result: scenario.result,
 					files: { 'types.zx': `export enum Mode { ${members.join(', ')} }\n` },
-					source: `import { Mode } from "./types"\n\nexport type Input = ${shape.input}\n\nexport type Output = ${output}\n\nexport default function (in: Input): Output ${clauses} {\n${binding}  return ${body}\n}\n`
+					source: `import { Mode } from "./types.zx"\n\nexport type Input = ${shape.input}\n\nexport type Output = ${output}\n\nexport default function (in: Input): Output ${clauses} {\n${binding}  return ${body}\n}\n`
 				}
 			})
 	})
