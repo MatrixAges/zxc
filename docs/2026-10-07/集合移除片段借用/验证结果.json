@@ -1,0 +1,31 @@
+{
+    "base": "d9aa512e",
+    "source_sha256": {
+        "packages/genz/src/zx/collections.zig": "bd2631e747b0b029d298af38e1824ae0ffb7fc05373f6f8f5c9c4af5feb637ee",
+        "packages/genz/src/zx/lower.zig": "f845de46a21da1afbbaf49957fa8268166e9fc0979143c63201af8b22e4f2f7a",
+        "packages/genz/src/zx/iteration_value/root.zig": "96f0fefb42ee8546d06a4709af184c286ee2ddbc6569e7966fc904ba1b480104",
+        "packages/compiler/src/backends/zig/fingerprint.zig": "de2dc8cb4e89db3edd0b95af958a8b9bcd51d6b691f45a32d8192e13762764fe"
+    },
+    "build": {
+        "steps": 34,
+        "exit_code": 0
+    },
+    "regression": {
+        "command": "zig build test-owned-collections test-value-return test-module-generation -Doptimize=ReleaseFast --summary all",
+        "steps": 417,
+        "tests": 11423,
+        "exit_code": 0
+    },
+    "generated_raw_sha256": "9683d04141364f7d69fea04c60fd4e278c18d77da6d8bd9c7ba7add520e942bb",
+    "new_tests": false,
+    "full_suite": false,
+    "complete_workspace_migration": false,
+    "generated_archive_sha256": "dcc6fd5ae17afd0d1f0b21a7c570e58b93e879e7d8aa34fc6c008357521fe6e5",
+    "upstream_range_regression": {
+        "upstream_commit": "e0567565",
+        "command": "zig build test-list-range -Doptimize=ReleaseFast --summary all",
+        "steps": 54,
+        "tests": 2037,
+        "exit_code": 0
+    }
+}
