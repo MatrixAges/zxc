@@ -1,0 +1,50 @@
+import integers from "zig:integers"
+import names from "zig:type_names"
+
+import kind from "../kind"
+import { Kind } from "../model"
+import children from "./children"
+import members from "./members"
+
+import type { Names } from "zig:type_names"
+import type { Table } from "../model"
+
+export type Input = { table: Table, index: u64, scalar_count: u64, names: Names }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const type_kind = kind(in.table.kinds[in.index])
+    const first = integers.widen(in.table.first[in.index])
+    const second = integers.widen(in.table.second[in.index])
+
+    if (in.index < in.scalar_count) {
+        return type_kind == Kind.Scalar && first == in.index
+    }
+
+    if (type_kind == Kind.Scalar) {
+        return false
+    }
+
+    if (type_kind == Kind.NativeReference) {
+        return names.validLabel(in.names, in.index)
+    }
+
+    if (type_kind == Kind.Task) {
+        return first < in.index && second < in.index && kind(in.table.kinds[first]) != Kind.Task && kind(in.table.kinds[second]) == Kind.ErrorSet
+    }
+
+    if (type_kind == Kind.Optional || type_kind == Kind.List) {
+        return first < in.index && (type_kind != Kind.List || first != 0) && kind(in.table.kinds[first]) != Kind.Task
+    }
+
+    if (type_kind == Kind.Tuple || type_kind == Kind.Object) {
+        return children({ table: in.table, index: in.index, first: first, count: second, object: type_kind == Kind.Object, names: in.names })
+    }
+
+    if (type_kind == Kind.Enumeration && (in.table.labels[in.index] == "" || second == 0)) {
+        return false
+    }
+
+    return members({ values: in.table.names, first: first, count: second, errors: type_kind == Kind.ErrorSet, names: in.names })
+}

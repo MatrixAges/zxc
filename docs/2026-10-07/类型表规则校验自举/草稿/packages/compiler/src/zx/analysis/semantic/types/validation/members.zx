@@ -1,0 +1,37 @@
+import names from "zig:type_names"
+
+import type { Names } from "zig:type_names"
+
+export type Input = { values: string[], first: u64, count: u64, errors: bool, names: Names }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const state = loop({ values: in.values, first: in.first, count: in.count, errors: in.errors, names: in.names, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const position = current.first + current.index
+            const member = current.values[position]
+
+            if (current.errors) {
+                current.valid = names.validMember(current.names, position) && (current.index == 0 || names.membersAscending(current.names, position - 1, position))
+            } else if (member == "") {
+                current.valid = false
+            } else {
+                const previous = loop({ values: current.values, first: current.first, count: current.index, member: member, index: 0, unique: true }, {
+                    while: item => item.unique && item.index < item.count,
+                    next: item => {
+                        item.unique = item.values[item.first + item.index] != item.member
+                        item.index += 1
+                    }
+                })
+
+                current.valid = previous.unique
+            }
+
+            current.index += 1
+        }
+    })
+
+    return state.valid
+}

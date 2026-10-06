@@ -1,0 +1,62 @@
+import integers from "zig:integers"
+
+import kind from "../kind"
+import { Kind } from "../model"
+
+import type { Table } from "../model"
+
+export type Input = { table: Table, scalar_count: u64, maximum_count: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const count = in.table.kinds.length
+
+    if (count > in.maximum_count || in.table.first.length != count || in.table.second.length != count || in.table.labels.length != count ||
+        in.table.field_names.length != in.table.field_types.length || in.table.children.length > in.maximum_count ||
+        in.table.field_types.length > in.maximum_count || in.table.names.length > in.maximum_count) {
+            return false
+        }
+
+    const state = loop({ table: in.table, scalar_count: in.scalar_count, index: 0, child_end: 0, field_end: 0, name_end: 0, valid: true }, {
+        while: current => current.valid && current.index < current.table.kinds.length,
+        next: current => {
+            const code = current.table.kinds[current.index]
+            const first = integers.widen(current.table.first[current.index])
+            const count = integers.widen(current.table.second[current.index])
+            const type_kind = kind(code)
+
+            if (code > 8 || (type_kind != Kind.Enumeration && type_kind != Kind.NativeReference && current.table.labels[current.index] != "")) {
+                current.valid = false
+            } else if (type_kind == Kind.Object) {
+                current.valid = first == current.field_end && first <= current.table.field_types.length && count <= current.table.field_types.length - first
+
+                if (current.valid) {
+                    current.field_end += count
+                }
+            } else if (type_kind == Kind.Tuple) {
+                current.valid = first == current.child_end && first <= current.table.children.length && count <= current.table.children.length - first
+
+                if (current.valid) {
+                    current.child_end += count
+                }
+            } else if (type_kind == Kind.Enumeration || type_kind == Kind.ErrorSet) {
+                current.valid = first == current.name_end && first <= current.table.names.length && count <= current.table.names.length - first
+
+                if (current.valid) {
+                    current.name_end += count
+                }
+            } else if (type_kind == Kind.Scalar) {
+                current.valid = first < current.scalar_count && count == 0
+            } else if (type_kind == Kind.Optional || type_kind == Kind.List) {
+                current.valid = count == 0
+            } else if (type_kind == Kind.NativeReference) {
+                current.valid = first == 0 && count == 0
+            }
+
+            current.index += 1
+        }
+    })
+
+    return state.valid && state.child_end == in.table.children.length && state.field_end == in.table.field_types.length && state.name_end == in.table.names.length
+}

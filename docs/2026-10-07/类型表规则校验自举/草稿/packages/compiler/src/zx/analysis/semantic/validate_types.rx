@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="types/validation/shape" in={{ table: $in.table, scalar_count: $in.scalar_count, maximum_count: $in.maximum_count }} />
+
+    <Switch on={$ctx.shape}>
+        <Case value={true}>
+            <Call fn="types/validation/rows" in={{ table: $in.table, scalar_count: $in.scalar_count, names: $in.names }} />
+
+            <Return value={$ctx.rows} />
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>
