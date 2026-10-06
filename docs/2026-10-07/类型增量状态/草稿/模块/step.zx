@@ -1,0 +1,20 @@
+import update from "./constructing/update"
+
+import type { Diagnostic } from "./constructing/model"
+import type { Candidate, Table } from "./types/model"
+
+export type State = { base: Table, delta: Table, ids: u32[], diagnostic: Diagnostic }
+
+export type Input = { state: State, candidate: Candidate }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    if (in.state.diagnostic.message != "") {
+        return in.state
+    }
+
+    const result = update({ tables: { base: in.state.base, delta: in.state.delta }, candidate: in.candidate })
+
+    return { base: in.state.base, delta: result.delta, ids: result.diagnostic.message == "" ? in.state.ids.push(result.id)[0] : in.state.ids, diagnostic: result.diagnostic }
+}

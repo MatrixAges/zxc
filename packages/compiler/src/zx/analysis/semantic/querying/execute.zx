@@ -1,0 +1,13 @@
+import contains from "./contains"
+
+import type { Table } from "../types/model"
+
+export type Input = { table: Table, id: u32, native_references: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const empty: Table = { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }
+
+    return contains({ tables: { base: in.table, delta: empty }, id: in.id, native_references: in.native_references })
+}

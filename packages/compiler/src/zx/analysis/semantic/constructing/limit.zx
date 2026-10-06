@@ -1,0 +1,24 @@
+import integers from "zig:integers"
+
+import { Kind } from "../types/model"
+
+import type { UpdateInput } from "./model"
+
+export type Input = UpdateInput
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const count = integers.narrow(in.tables.base.kinds.length + in.tables.delta.kinds.length + 1)
+
+    if (in.candidate.kind == Kind.Tuple) {
+        const children = integers.narrow(in.tables.base.children.length + in.tables.delta.children.length + in.candidate.children.length)
+    } else if (in.candidate.kind == Kind.Object) {
+        const field_types = integers.narrow(in.tables.base.field_types.length + in.tables.delta.field_types.length + in.candidate.fields.types.length)
+        const field_names = integers.narrow(in.tables.base.field_names.length + in.tables.delta.field_names.length + in.candidate.fields.names.length)
+    } else if (in.candidate.kind == Kind.ErrorSet || in.candidate.kind == Kind.Enumeration) {
+        const names = integers.narrow(in.tables.base.names.length + in.tables.delta.names.length + in.candidate.names.length)
+    }
+
+    return count - 1
+}

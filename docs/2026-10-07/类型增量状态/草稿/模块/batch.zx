@@ -1,0 +1,26 @@
+import contains from "./querying/contains"
+import step from "./step"
+
+import type { Diagnostic } from "./constructing/model"
+import type { Candidate, Table } from "./types/model"
+
+export type Input = { base: Table, delta: Table, candidates: Candidate[], query_id: u32 }
+
+export type Output = { delta: Table, ids: u32[], diagnostic: Diagnostic, contains_list: bool, contains_native: bool }
+
+export default function (in: Input): Output {
+    const ids: u32[] = []
+    const diagnostic: Diagnostic = { code: "", message: "" }
+
+    const state = in.candidates.reduce((current, candidate) => step({ state: current, candidate: candidate }), { base: in.base, delta: in.delta, ids: ids, diagnostic: diagnostic })
+
+    const tables = { base: in.base, delta: state.delta }
+
+    return {
+        delta: state.delta,
+        ids: state.ids,
+        diagnostic: state.diagnostic,
+        contains_list: contains({ tables: tables, id: in.query_id, native_references: false }),
+        contains_native: contains({ tables: tables, id: in.query_id, native_references: true })
+    }
+}

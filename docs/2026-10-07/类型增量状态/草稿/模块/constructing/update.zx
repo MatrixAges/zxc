@@ -1,0 +1,36 @@
+import find from "../types/find"
+import { Kind } from "../types/model"
+import delta from "./delta"
+import fields from "./fields/sort"
+import limit from "./limit"
+import validate from "./validate"
+
+import type { UpdateInput, ConstructionOutput } from "./model"
+
+export type Input = UpdateInput
+
+export type Output = ConstructionOutput
+
+export default function (in: Input): Output {
+    const issue = validate(in)
+
+    if (issue.message != "") {
+        return { delta: in.tables.delta, id: 0, diagnostic: issue }
+    }
+
+    const normalized = {
+        ...in.candidate,
+        fields: in.candidate.kind == Kind.Object ? fields(in.candidate.fields) : in.candidate.fields,
+        names: in.candidate.kind == Kind.ErrorSet ? in.candidate.names.sort()[0] : in.candidate.names
+    }
+
+    const found = find({ tables: in.tables, candidate: normalized })
+
+    if (found.found) {
+        return { delta: in.tables.delta, id: found.id, diagnostic: issue }
+    }
+
+    const id = limit(in)
+
+    return { delta: delta({ delta: in.tables.delta, candidate: normalized }), id: id, diagnostic: issue }
+}

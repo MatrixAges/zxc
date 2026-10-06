@@ -1,0 +1,21 @@
+import integers from "zig:integers"
+
+import candidate from "../entries/candidate"
+import equal from "../entries/equal"
+import row from "../entries/row"
+
+import type { Candidate, Tables } from "./model"
+
+export type Input = { tables: Tables, id: u32, candidate: Candidate }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const id = integers.widen(in.id)
+    const base_count = in.tables.base.kinds.length
+    const delta = id >= base_count
+    const table = delta ? in.tables.delta : in.tables.base
+    const index = delta ? id - base_count : id
+
+    return equal({ left: row({ table: table, index: index }), right: candidate(in.candidate) })
+}
