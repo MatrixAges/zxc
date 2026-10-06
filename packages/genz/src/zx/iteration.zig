@@ -20,7 +20,8 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
     const layout_analysis = @import("iteration_layout.zig");
     const pure = try layout_analysis.eligible(self.allocator, self.program, iteration, self.pure_functions);
     const local_calls = pure or try layout_analysis.eligible(self.allocator, self.program, iteration, self.local_functions);
-    const layout = local_calls and layout_analysis.flat(self.program, self.program.expression(id).type_id);
+    const selected_call = try @import("buffer_call/iteration.zig").candidate(self, iteration);
+    const layout = selected_call != null or (local_calls and layout_analysis.flat(self.program, self.program.expression(id).type_id));
 
     if (by_value and !layout) return self.builder.expression(.{ .dereference = try lower(self, id, iteration) });
 
@@ -34,6 +35,10 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
     var buffers = try @import("iteration_buffer/root.zig").init(self, iteration, &body, local_calls, local or self.program.typeOf(type_id) == .list);
 
     defer buffers.restore();
+
+    var calls = try @import("buffer_call/iteration.zig").init(self, selected_call, &body);
+
+    defer calls.restore();
 
     const condition_index = @backingInt(iteration.condition_parameter);
     const step_index = @backingInt(iteration.parameter);
@@ -70,7 +75,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
     }
 
     const condition = try self.expr(iteration.condition);
-    const next = if (layout) try @import("value_call/root.zig").expression(self, iteration.body) else try self.expr(iteration.body);
+    const next = if (selected_call) |call| try @import("value_call/root.zig").expression(self, call) else if (layout) try @import("value_call/root.zig").expression(self, iteration.body) else try self.expr(iteration.body);
 
     self.iteration_value = previous_context;
 
@@ -101,6 +106,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
     } });
 
     try buffers.finish(&body, state, type_id);
+    try calls.finish(&body, state, type_id);
 
     const result = if (by_value) state else if (local) try self.builder.expression(.{ .conditional = .{
         .condition = try self.builder.identifier(changed_name),

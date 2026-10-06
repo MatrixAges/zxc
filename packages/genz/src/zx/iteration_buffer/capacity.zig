@@ -38,6 +38,16 @@ fn resize(self: Self, lowering: *Lower, source: *const node.Expression) Lower.Er
 }
 
 pub fn finish(self: Self, lowering: *Lower, body: *std.ArrayList(node.Statement), target: *const node.Expression, element: *const node.Expression) Lower.Error!void {
+    const owned = try self.take(lowering, body, target, element);
+
+    try body.append(lowering.allocator, .{ .branch = .{
+        .condition = self.started,
+        .yes = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = target, .value = owned } }}),
+        .no = &.{},
+    } });
+}
+
+pub fn take(self: Self, lowering: *Lower, body: *std.ArrayList(node.Statement), source: *const node.Expression, element: *const node.Expression) Lower.Error!*const node.Expression {
     const name = try lowering.fresh("state_owned");
     const owned = try lowering.builder.identifier(name);
     const empty = try lowering.builder.expression(.{ .array = .{ .element_type = element, .values = &.{} } });
@@ -53,12 +63,13 @@ pub fn finish(self: Self, lowering: *Lower, body: *std.ArrayList(node.Statement)
     try body.append(lowering.allocator, .{ .branch = .{
         .condition = self.started,
         .yes = try lowering.allocator.dupe(node.Statement, &.{
-            try self.resize(lowering, target),
+            try self.resize(lowering, source),
             .{ .assignment = .{ .target = owned, .value = try self.method(lowering, "toOwnedSlice", &.{}, true) } },
-            .{ .assignment = .{ .target = target, .value = owned } },
         }),
         .no = &.{},
     } });
+
+    return owned;
 }
 
 pub fn method(self: Self, lowering: *Lower, name: []const u8, arguments: []const *const node.Expression, fallible: bool) Lower.Error!*const node.Expression {

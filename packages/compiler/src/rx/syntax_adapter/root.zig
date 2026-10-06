@@ -6,9 +6,8 @@ pub fn location(input: anytype) dsl.ast.Location {
     return .{ .offset = @intCast(input.offset), .line = @intCast(input.line), .column = @intCast(input.column) };
 }
 
-pub fn convert(allocator: std.mem.Allocator, input: anytype) !dsl.ast.Node {
-    const nodes = try allocator.alloc(dsl.ast.Node, input.tree.nodes.len);
-    const source = input.source;
+pub fn convert(allocator: std.mem.Allocator, temporary: std.mem.Allocator, source: []const u8, input: anytype) !dsl.ast.Node {
+    const nodes = try temporary.alloc(dsl.ast.Node, input.tree.nodes.len);
 
     for (input.tree.nodes, nodes) |node, *output| {
         const attributes = try allocator.alloc(dsl.ast.Attribute, @intCast(node.attribute_count));

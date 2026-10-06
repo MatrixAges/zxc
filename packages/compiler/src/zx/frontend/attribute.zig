@@ -12,7 +12,11 @@ pub fn parseXml(allocator: std.mem.Allocator, source: []const u8) std.mem.Alloca
 
     errdefer arena.deinit();
 
-    const output = generated.execute(&arena, &.{ .source = source, .expressions = true }) catch |err| switch (err) {
+    var scratch = std.heap.ArenaAllocator.init(allocator);
+
+    defer scratch.deinit();
+
+    const output = generated.execute(&scratch, &.{ .source = source, .expressions = true }) catch |err| switch (err) {
         error.OutOfMemory, error.Overflow => return error.OutOfMemory,
         else => {
             const message = try std.fmt.allocPrint(arena.allocator(), "internal compiler error: generated XML parser failed with {s}", .{@errorName(err)});
@@ -26,14 +30,19 @@ pub fn parseXml(allocator: std.mem.Allocator, source: []const u8) std.mem.Alloca
         },
     };
 
-    if (output.control.message.len != 0) return .{ .arena = arena, .value = .{ .diagnostic = .{
-        .code = .syntax,
-        .location = adapter.location(output.control.issue),
-        .element = "",
-        .message = output.control.message,
-    } } };
+    if (output.control.message.len != 0) {
+        const message = try arena.allocator().dupe(u8, output.control.message);
 
-    const node = try adapter.convert(arena.allocator(), output);
+        return .{ .arena = arena, .value = .{ .diagnostic = .{
+            .code = .syntax,
+            .location = adapter.location(output.control.issue),
+            .element = "",
+            .message = message,
+        } } };
+    }
+
+    const owned_source = try arena.allocator().dupe(u8, source);
+    const node = try adapter.convert(arena.allocator(), scratch.allocator(), owned_source, output);
 
     return .{ .arena = arena, .value = .{ .node = node } };
 }

@@ -11,6 +11,8 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
     if (trace.function.contracts.len != 0) return .contracts;
     if (parallel(trace.function.body)) return .parallel;
 
+    var transferred = false;
+
     for (trace.function.expressions, 0..) |expression, position| {
         const id: ir.ExprId = @fromBackingInt(@intCast(position));
 
@@ -43,11 +45,13 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
                 if (try count(trace, operation.target, lane) == 0) continue;
                 if (operation.kind != .push and operation.kind != .concat) return .unsupported_operation;
 
-                const transferred = for (lane.appends) |projection| {
+                const forwarded = for (lane.appends) |projection| {
                     if (trace.function.expressions[@backingInt(projection)].value.tuple_field.target == id) break true;
                 } else false;
 
-                if (!transferred) return .detached_append;
+                if (!forwarded) return .detached_append;
+
+                transferred = true;
             },
             .call => |call| {
                 const references = try count(trace, call.argument, lane);
@@ -59,17 +63,25 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
 
                 if (index >= trace.summaries.len or call.stores.len != 0) return .unsupported_call;
 
+                if (index < trace.readers.len and trace.readers[index]) {
+                    if (transferred) return .unsupported_read;
+
+                    continue;
+                }
+
                 const selected = for (trace.summaries[index], 0..) |callee, lane_index| {
                     const origin = try trace.trace(call.argument, callee.input) orelse continue;
 
                     if (std.mem.eql(u32, origin, lane.input) and callee.rejection == null) break lane_index;
                 } else return .unsupported_call;
 
-                const transferred = for (lane.calls) |saved| {
+                const forwarded = for (lane.calls) |saved| {
                     if (saved.expression == id and saved.lane == selected) break true;
                 } else false;
 
-                if (!transferred) return .detached_call;
+                if (!forwarded) return .detached_call;
+
+                transferred = true;
             },
             else => {},
         }
