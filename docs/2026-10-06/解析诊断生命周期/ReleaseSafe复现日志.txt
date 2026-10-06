@@ -1,0 +1,56 @@
+parse_control: message=expected an identifier code=syntax span=106:107
+compile: intact=false code=syntax span=106:107 source_index=null bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+format: intact=false code=syntax span=106:107 source_index=null bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+analyze: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+direct_analyze: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+compile_project: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+cache_destroy: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+direct_cache_destroy: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+semantic_destroy: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+direct_semantic_destroy: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+cache_replace: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+replacement_before_cache_deinit: intact=false
+cache_replace: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+direct_cache_replace: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+replacement_before_cache_deinit: intact=false
+direct_cache_replace: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+semantic_replace: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+replacement_before_cache_deinit: intact=false
+semantic_replace: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+direct_semantic_replace: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+replacement_before_cache_deinit: intact=false
+direct_semantic_replace: intact=false code=syntax span=106:107 source_index=0 bytes={ 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165, 165 }
+checked=13 failures=13
+error: DiagnosticLifetimeViolation
+diagnostic-lifetime
++- run exe diagnostic-lifetime-driver failure
+error: process exited with code 1
+failed command: ./.zig-cache/o/a922b9d4fd9e4c815e8f747c514c45a6/diagnostic-lifetime-driver
+
+Build Summary: 21/23 steps succeeded (1 failed)
+diagnostic-lifetime transitive failure
++- run exe diagnostic-lifetime-driver failure
+   +- compile exe diagnostic-lifetime-driver safe native success 25s MaxRSS:806M
+      +- WriteFile interfaces/0.d.zx cached
+      |  +- run exe standard-catalog (catalog.zig) cached
+      |     +- compile exe standard-catalog fast native cached 42ms MaxRSS:21M
+      |     +- WriteFile catalog.json cached
+      +- options cached
+      +- run exe generate-parser (parser.zig) cached
+      |  +- compile exe generate-parser safe native cached 48ms MaxRSS:21M
+      |     +- options cached
+      |     +- WriteFile interfaces/0.d.zx cached
+      |     |  +- run exe standard-catalog (catalog.zig) cached
+      |     |     +- compile exe standard-catalog fast native cached 43ms MaxRSS:21M
+      |     |     +- WriteFile catalog.json cached
+      |     +- options cached
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) cached
+         +- compile exe generate-lexer safe native cached 44ms MaxRSS:21M
+            +- WriteFile interfaces/0.d.zx cached
+            |  +- run exe standard-catalog (catalog.zig) cached
+            |     +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+            |     +- WriteFile catalog.json cached
+            +- options cached
+
