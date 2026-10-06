@@ -12,7 +12,7 @@ ZX 源码 → 索引语法 → 类型与所有权检查 → IR → genz → Zig�
 
 整数字面量的十进制解码已由 `src/zx/analysis/integer/decode.rx` 与 ZX 扫描实现，直接跳过源码中的下划线并在乘加前检查溢出，不创建清理后的字符串。类型范围与诊断仍由语义分析统一处理；浮点解析与整数转浮点精度检查保持原有实现。边界与验证见 [整数字面量解码自举](../../docs/2026-10-06/整数字面量解码自举/实施计划.md)。
 
-生成 Parser 的程序与独立表达式出口通过 `src/zx/frontend/parser/syntax/model.zx` 发布索引语法表、根索引与最终诊断，不再返回解析控制状态。自包含外部类型签名、项目中的 ZX 模块、单文件 compileWithContext 和 ZX 格式化直接读取生成表，与原生 AST 共用读取协议及既有分析、格式规则；为保持集合源码顺序仍需临时数值索引。项目缓存只持有一种语法表示，索引路径完整执行 lint、导入检查、Store context 校验、名义类型合并及语义缓存流程。公开 parse 和 ParseCache.get 保留原生 AST 契约，显式兼容请求会替换对应缓存表示；RX 属性表达式的校验、Store 授权、项目推断和 IR 编译已直接读取独立表达式索引表；字符串属性保留直接字面量构造。公开 parseExpression、Store 类型属性及 .d.zx 仍有兼容 AST 路径。边界与验证见 [统一索引语法实施计划](../../docs/2026-10-06/统一索引语法/实施计划.md)。
+生成 Parser 的程序与独立表达式出口通过 `src/zx/frontend/parser/syntax/model.zx` 发布索引语法表、根索引与最终诊断，不再返回解析控制状态。自包含外部类型签名、项目中的 ZX 模块、单文件 compileWithContext 和 ZX 格式化直接读取生成表，与原生 AST 共用读取协议及既有分析、格式规则；为保持集合源码顺序仍需临时数值索引。项目缓存只持有一种语法表示，索引路径完整执行 lint、导入检查、Store context 校验、名义类型合并及语义缓存流程。公开 parse 和 ParseCache.get 保留原生 AST 契约，显式兼容请求会替换对应缓存表示；RX 属性表达式的校验、Store 授权、项目推断和 IR 编译已直接读取独立表达式索引表；字符串属性保留直接字面量构造。Store 类型属性和 CLI 普通 lint 也已读取索引结果；compiler.checkSource 返回独立诊断，调用方负责 deinit。公开 parseExpression 及 .d.zx 仍有兼容 AST 路径。边界与验证见 [统一索引语法实施计划](../../docs/2026-10-06/统一索引语法/实施计划.md)。
 
 ## Data：实现范围
 
