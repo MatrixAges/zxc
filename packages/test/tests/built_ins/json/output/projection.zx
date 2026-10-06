@@ -1,0 +1,12 @@
+export type Input = { numerator: f64
+ denominator: f64 }
+
+export type Output = { positive: bool
+ negative: bool
+ nan: bool }
+
+export default function (in: Input): Output {
+  const result = in.numerator / in.denominator
+
+  return { positive: result > 0, negative: result < 0, nan: result != result }
+}

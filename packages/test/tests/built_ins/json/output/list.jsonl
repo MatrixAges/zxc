@@ -1,0 +1,7 @@
+{"id":"built_ins/json/output/list/empty","json_text":"[]","expected":{"value":[]}}
+{"id":"built_ins/json/output/list/empty_layers","json_text":"[[],[]]","expected":{"value":[[],[]]}}
+{"id":"built_ins/json/output/list/finite","json_text":"[[],[1.5,-2,0]]","expected":{"value":[[],[1.5,-2,0]]}}
+{"id":"built_ins/json/output/list/first_overflow","json_text":"[[1e400,1],[]]","expected":{"error":"NonFiniteJsonNumber"}}
+{"id":"built_ins/json/output/list/middle_overflow","json_text":"[[1,1e400,2]]","expected":{"error":"NonFiniteJsonNumber"}}
+{"id":"built_ins/json/output/list/last_negative_overflow","json_text":"[[],[1,-1e400]]","expected":{"error":"NonFiniteJsonNumber"}}
+{"id":"built_ins/json/output/list/finite_after_errors","json_text":"[[3],[],[4]]","expected":{"value":[[3],[],[4]]}}

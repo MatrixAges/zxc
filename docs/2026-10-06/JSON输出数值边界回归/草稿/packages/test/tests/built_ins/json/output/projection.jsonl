@@ -1,0 +1,8 @@
+{"id":"built_ins/json/output/projection/finite_positive","json_text":"{\"numerator\":6,\"denominator\":2}","expected":{"value":{"positive":true,"negative":false,"nan":false}}}
+{"id":"built_ins/json/output/projection/input_positive_overflow","json_text":"{\"numerator\":1e400,\"denominator\":1}","expected":{"value":{"positive":true,"negative":false,"nan":false}}}
+{"id":"built_ins/json/output/projection/input_negative_overflow","json_text":"{\"numerator\":-1e400,\"denominator\":1}","expected":{"value":{"positive":false,"negative":true,"nan":false}}}
+{"id":"built_ins/json/output/projection/divide_positive_infinity","json_text":"{\"numerator\":1,\"denominator\":0}","expected":{"value":{"positive":true,"negative":false,"nan":false}}}
+{"id":"built_ins/json/output/projection/divide_negative_infinity","json_text":"{\"numerator\":-1,\"denominator\":0}","expected":{"value":{"positive":false,"negative":true,"nan":false}}}
+{"id":"built_ins/json/output/projection/divide_nan","json_text":"{\"numerator\":0,\"denominator\":0}","expected":{"value":{"positive":false,"negative":false,"nan":true}}}
+{"id":"built_ins/json/output/projection/divide_negative_zero","json_text":"{\"numerator\":0,\"denominator\":-1}","expected":{"value":{"positive":false,"negative":false,"nan":false}}}
+{"id":"built_ins/json/output/projection/finite_after_non_finite","json_text":"{\"numerator\":-6,\"denominator\":2}","expected":{"value":{"positive":false,"negative":true,"nan":false}}}

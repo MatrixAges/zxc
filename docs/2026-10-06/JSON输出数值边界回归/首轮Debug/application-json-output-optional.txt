@@ -1,0 +1,384 @@
+{
+  "source": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/built_ins/json/output/optional.zx",
+  "catalog": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/built_ins/json/output/optional.jsonl",
+  "optimize": "debug",
+  "commands": [
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/23e51e974f3beb7ac6b7c26ad239d208/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "debug",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/native"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/23e51e974f3beb7ac6b7c26ad239d208/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "debug",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/wasm32-freestanding.wasm",
+        "--target",
+        "wasm32-freestanding"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/.zig-cache/o/23e51e974f3beb7ac6b7c26ad239d208/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "debug",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/wasm32-wasi.wasm",
+        "--target",
+        "wasm32-wasi"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/native",
+      "argv": [
+        "null"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "null\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/wasm32-wasi.wasm",
+        "null"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "null\n",
+      "stderr": "(node:73515) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/native",
+      "argv": [
+        "1.5"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "1.5\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/wasm32-wasi.wasm",
+        "1.5"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "1.5\n",
+      "stderr": "(node:73517) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/native",
+      "argv": [
+        "1e400"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: NonFiniteJsonNumber\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/project/.zxc/build/8c88a77444182856734e9aa4d05da8ab799cc2ef49162306a464b5a96209a53c/main.zig:27:21: 0x101680bec in main (root)\n                    return error.NonFiniteJsonNumber;\n                    ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/wasm32-wasi.wasm",
+        "1e400"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:73519) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: NonFiniteJsonNumber\nCannot print stack trace: debug info unavailable for target\n\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/native",
+      "argv": [
+        "-1e400"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: NonFiniteJsonNumber\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/project/.zxc/build/8c88a77444182856734e9aa4d05da8ab799cc2ef49162306a464b5a96209a53c/main.zig:27:21: 0x10838fbec in main (root)\n                    return error.NonFiniteJsonNumber;\n                    ^\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/wasm32-wasi.wasm",
+        "-1e400"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:73521) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: NonFiniteJsonNumber\nCannot print stack trace: debug info unavailable for target\n\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/native",
+      "argv": [
+        "null"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "null\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/wasm32-wasi.wasm",
+        "null"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "null\n",
+      "stderr": "(node:73523) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    }
+  ],
+  "artifacts": [
+    {
+      "target": "native",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/native",
+      "sha256": "14dc4ff286fae3a11f440272cafa8f75332ab28a2d4040d882eee13f7b8250c1"
+    },
+    {
+      "target": "wasm32-freestanding",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/wasm32-freestanding.wasm",
+      "sha256": "e19c0624f0095487ed809b704e587e0a6e62c25e1c4d290736a5944a2f0e8cec"
+    },
+    {
+      "target": "wasm32-wasi",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/wasm32-wasi.wasm",
+      "sha256": "f0abea04400c6fedb8a92bc9a6b0c58c8d5a39d248b74d5a2c7d4661b7143b52"
+    }
+  ],
+  "observations": [
+    {
+      "id": "built_ins/json/output/optional/none",
+      "target": "native",
+      "input_utf8_hex": "6e756c6c",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "null\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/none",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "6e756c6c",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "null",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/none",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "6e756c6c",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "null\n",
+        "stderr": "(node:73515) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/finite",
+      "target": "native",
+      "input_utf8_hex": "312e35",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "1.5\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/finite",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "312e35",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "1.5",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/finite",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "312e35",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "1.5\n",
+        "stderr": "(node:73517) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/positive_overflow",
+      "target": "native",
+      "input_utf8_hex": "3165343030",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: NonFiniteJsonNumber\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/project/.zxc/build/8c88a77444182856734e9aa4d05da8ab799cc2ef49162306a464b5a96209a53c/main.zig:27:21: 0x101680bec in main (root)\n                    return error.NonFiniteJsonNumber;\n                    ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/positive_overflow",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "3165343030",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "NonFiniteJsonNumber",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/positive_overflow",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "3165343030",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:73519) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: NonFiniteJsonNumber\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/negative_overflow",
+      "target": "native",
+      "input_utf8_hex": "2d3165343030",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: NonFiniteJsonNumber\n/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-GjEwzf/project/.zxc/build/8c88a77444182856734e9aa4d05da8ab799cc2ef49162306a464b5a96209a53c/main.zig:27:21: 0x10838fbec in main (root)\n                    return error.NonFiniteJsonNumber;\n                    ^\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/negative_overflow",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2d3165343030",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "NonFiniteJsonNumber",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/negative_overflow",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2d3165343030",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:73521) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: NonFiniteJsonNumber\nCannot print stack trace: debug info unavailable for target\n\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/none_after_errors",
+      "target": "native",
+      "input_utf8_hex": "6e756c6c",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "null\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/none_after_errors",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "6e756c6c",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "null",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/output/optional/none_after_errors",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "6e756c6c",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "null\n",
+        "stderr": "(node:73523) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    }
+  ]
+}

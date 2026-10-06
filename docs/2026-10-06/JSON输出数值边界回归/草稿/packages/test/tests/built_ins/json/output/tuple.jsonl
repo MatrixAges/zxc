@@ -1,0 +1,5 @@
+{"id":"built_ins/json/output/tuple/finite","json_text":"[\"prefix\",1.5,-2]","expected":{"value":["prefix",1.5,-2]}}
+{"id":"built_ins/json/output/tuple/none","json_text":"[\"prefix\",1,null]","expected":{"value":["prefix",1,null]}}
+{"id":"built_ins/json/output/tuple/required_overflow","json_text":"[\"prefix\",1e400,null]","expected":{"error":"NonFiniteJsonNumber"}}
+{"id":"built_ins/json/output/tuple/optional_overflow","json_text":"[\"prefix\",1,-1e400]","expected":{"error":"NonFiniteJsonNumber"}}
+{"id":"built_ins/json/output/tuple/finite_after_errors","json_text":"[\"after\",2,3]","expected":{"value":["after",2,3]}}
