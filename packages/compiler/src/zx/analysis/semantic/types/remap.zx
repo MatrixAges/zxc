@@ -1,0 +1,39 @@
+import integers from "zig:integers"
+import references from "zig:references"
+
+import kind from "./kind"
+import { Kind } from "./model"
+
+import type { Buffer } from "zig:references"
+import type { Table } from "./model"
+
+export type Input = { table: Table, index: u64, buffer: Buffer }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const type_kind = kind(in.table.kinds[in.index])
+
+    if (type_kind == Kind.Optional || type_kind == Kind.List) {
+        references.set(in.buffer, 0, references.get(in.buffer, in.table.first[in.index]))
+    } else if (type_kind == Kind.Task) {
+        references.set(in.buffer, 0, references.get(in.buffer, in.table.first[in.index]))
+        references.set(in.buffer, 1, references.get(in.buffer, in.table.second[in.index]))
+    } else if (type_kind == Kind.Tuple || type_kind == Kind.Object) {
+        const values = type_kind == Kind.Tuple ? in.table.children : in.table.field_types
+        const first = integers.widen(in.table.first[in.index])
+        const count = integers.widen(in.table.second[in.index])
+
+        const state = loop({ values: values, first: first, count: count, index: 0, buffer: in.buffer }, {
+            while: current => current.index < current.count,
+            next: current => {
+                const id = current.values[current.first + current.index]
+
+                references.set(current.buffer, current.index, references.get(current.buffer, id))
+                current.index += 1
+            }
+        })
+    }
+
+    return
+}
