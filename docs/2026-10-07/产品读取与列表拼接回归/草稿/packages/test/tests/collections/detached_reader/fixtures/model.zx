@@ -1,0 +1,7 @@
+export type Cell = { value: u64, label: string }
+
+export type State = { values: Cell[], seen: u64, label: string, count: u64 }
+
+export type ReadInput = { values: Cell[], selected: u64 }
+
+export type StepInput = { state: State, item: u64 }

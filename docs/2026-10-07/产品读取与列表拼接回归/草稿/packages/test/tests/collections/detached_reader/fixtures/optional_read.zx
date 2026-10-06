@@ -1,0 +1,15 @@
+import type { Cell, ReadInput } from "./model"
+
+export type Input = ReadInput
+
+export type Output = Cell?
+
+export default function (in: Input): Output {
+    if (in.values.length == 0 || in.selected % 2 == 1) {
+        return null
+    }
+
+    const cell = in.values[in.selected]
+
+    return { value: cell.value, label: cell.label }
+}

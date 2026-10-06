@@ -1,0 +1,11 @@
+import type { Cell, ReadInput } from "./model"
+
+export type Input = ReadInput
+
+export type Output = Cell
+
+export default function (in: Input): Output {
+    const cell = in.values[in.selected]
+
+    return { value: cell.value, label: cell.label }
+}

@@ -1,0 +1,15 @@
+import step from "./step"
+
+import type { Cell, State } from "./model"
+
+export type Input = { seed: Cell[], steps: u64[], label: string }
+
+export type Output = { values: Cell[], mirror: Cell[], original: Cell[], seen: u64, label: string, count: u64 }
+
+export default function (in: Input): Output {
+    const values = in.seed.map(cell => cell)
+    const initial: State = { values: values, seen: 0, label: in.label, count: 0 }
+    const state = in.steps.reduce((state, item) => step({ state: state, item: item }), initial)
+
+    return { values: state.values, mirror: state.values, original: in.seed, seen: state.seen, label: state.label, count: state.count }
+}

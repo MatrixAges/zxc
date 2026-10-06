@@ -1,0 +1,11 @@
+import type { Cell, ReadInput } from "./model"
+
+export type Input = ReadInput
+
+export type Output = { cell: Cell, length: u64, pair: [string, u64], maybe: Cell? }
+
+export default function (in: Input): Output {
+    const cell = in.values[in.selected]
+
+    return { cell: { value: cell.value, label: cell.label }, length: in.values.length, pair: [cell.label, cell.value], maybe: in.selected % 2 == 0 ? cell : null }
+}

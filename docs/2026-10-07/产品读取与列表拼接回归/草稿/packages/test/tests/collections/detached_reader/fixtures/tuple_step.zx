@@ -1,0 +1,14 @@
+import read from "./read"
+
+import type { State, StepInput } from "./model"
+
+export type Input = StepInput
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const selected = in.state.values.length == 0 ? 0 : in.item % in.state.values.length
+    const old = read({ values: in.state.values, selected: selected })
+
+    return { values: in.state.values.push({ value: old[0] + in.item + 1, label: old[1] })[0], seen: in.state.seen + old[0] + old[2], label: old[1], count: in.state.count + 1 }
+}

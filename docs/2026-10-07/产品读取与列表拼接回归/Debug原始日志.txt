@@ -1,0 +1,246 @@
+test-detached-reader
++- run test detached-reader-nested-source 7 pass, 1 fail (8 total)
+error: 'root.test.eligible reader append storage stays bounded as inputs grow' failed:
+       count=1024 allocated=11777392 capacity=11776888 limit=2198528
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10540ccef in expect (detached-reader-nested-source)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/detached-product-conformance/zxc/packages/test/tests/collections/detached_reader/execution.zig:77:13: 0x10540fdaf in run (detached-reader-nested-source)
+                   try std.testing.expect(tracked.allocated_bytes <= limit);
+                   ^
+       /Users/xiewendao/.codex/worktrees/detached-product-conformance/zxc/packages/test/tests/collections/detached_reader/root.zig:29:42: 0x10542226f in test.eligible reader append storage stays bounded as inputs grow (detached-reader-nested-source)
+           for ([_]usize{ 1024, 4096 }) |count| try execution.run(std.testing.allocator, .{ .count = count, .seed = 17, .bounded = true });
+                                                ^
+failed command: /tmp/zxc-detached-reader-debug-10ca9e6f/o/aa81d8141ad321f8a93f0aa59bc172a9/detached-reader-nested-source --cache-dir=/tmp/zxc-detached-reader-debug-10ca9e6f --seed=0x990a73f4 --listen=-
+
+test-detached-reader
++- run test detached-reader-nested-library 7 pass, 1 fail (8 total)
+error: 'root.test.eligible reader append storage stays bounded as inputs grow' failed:
+       count=1024 allocated=11777392 capacity=11776888 limit=2198528
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x104c52cef in expect (detached-reader-nested-library)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/detached-product-conformance/zxc/packages/test/tests/collections/detached_reader/execution.zig:77:13: 0x104c55daf in run (detached-reader-nested-library)
+                   try std.testing.expect(tracked.allocated_bytes <= limit);
+                   ^
+       /Users/xiewendao/.codex/worktrees/detached-product-conformance/zxc/packages/test/tests/collections/detached_reader/root.zig:29:42: 0x104c6826f in test.eligible reader append storage stays bounded as inputs grow (detached-reader-nested-library)
+           for ([_]usize{ 1024, 4096 }) |count| try execution.run(std.testing.allocator, .{ .count = count, .seed = 17, .bounded = true });
+                                                ^
+failed command: /tmp/zxc-detached-reader-debug-10ca9e6f/o/835c1629d83ee06b8bb119d96bd81c0d/detached-reader-nested-library --cache-dir=/tmp/zxc-detached-reader-debug-10ca9e6f --seed=0x990a73f4 --listen=-
+
+Build Summary: 101/104 steps succeeded (2 failed); 240/242 tests passed (2 failed)
+test-arrow-bodies success
++- run test arrow-bodies-cases 60 pass (60 total) 3ms MaxRSS:1M
+|  +- compile test arrow-bodies-cases debug native success 1s MaxRSS:260M
+|     +- run node (cases.zig) success 62ms
+|     +- run exe zxc (program.zig) success 8ms
+|        +- compile exe zxc debug native success 19s MaxRSS:2G
+|           +- WriteFile success
+|           +- compile lib yaml debug native success 399ms MaxRSS:97M
+|           +- compile lib yaml debug native (reused)
+|           +- translate-c success 84ms MaxRSS:21M
+|           +- options success
+|           +- run exe bundle-zig (bundle) success 55ms
+|           |  +- compile exe bundle-zig fast native success 26s MaxRSS:894M
+|           |  +- WriteFile bundle_manifest.json success
+|           +- options success
+|           +- run exe generate-parser (parser.zig) success 2m
+|           |  +- compile exe generate-parser debug native success 5s MaxRSS:607M
+|           |     +- options success
+|           |     +- WriteFile interfaces/0.d.zx cached
+|           |     |  +- run exe standard-catalog (catalog.zig) cached
+|           |     |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|           |     |     +- WriteFile catalog.json success
+|           |     +- options success
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- WriteFile interfaces/0.d.zx success
+|           |  +- run exe standard-catalog (catalog.zig) success 2ms
+|           |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|           |     +- WriteFile catalog.json cached
+|           +- options success
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-lexer (lexer.zig) success 102ms
+|           |  +- compile exe generate-lexer debug native success 4s MaxRSS:515M
+|           |     +- WriteFile interfaces/0.d.zx cached
+|           |     |  +- run exe standard-catalog (catalog.zig) cached
+|           |     |     +- compile exe standard-catalog fast native success 7s MaxRSS:353M
+|           |     |     +- WriteFile catalog.json cached
+|           |     +- options cached
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test arrow-bodies-returns-increment 18 pass (18 total) 3ms MaxRSS:1M
+|  +- compile test arrow-bodies-returns-increment debug native success 1s MaxRSS:261M
+|     +- run node (cases.zig) success 60ms
+|     +- run exe zxc (program.zig) success 7ms
+|        +- compile exe zxc debug native (+50 more reused dependencies)
++- run test arrow-bodies-returns-square 18 pass (18 total) 3ms MaxRSS:1M
+|  +- compile test arrow-bodies-returns-square debug native success 1s MaxRSS:259M
+|     +- run node (cases.zig) success 60ms
+|     +- run exe zxc (program.zig) success 7ms
+|        +- compile exe zxc debug native (+50 more reused dependencies)
++- run test arrow-bodies-returns-object_key 18 pass (18 total) 3ms MaxRSS:1M
+   +- compile test arrow-bodies-returns-object_key debug native success 1s MaxRSS:266M
+      +- run node (cases.zig) success 59ms
+      +- run exe zxc (program.zig) success 7ms
+         +- compile exe zxc debug native (+50 more reused dependencies)
+test-detached-reader transitive failure
++- run test detached-reader-object-source 8 pass (8 total) 15ms MaxRSS:2M
+|  +- compile test detached-reader-object-source debug native success 1s MaxRSS:273M
+|     +- run exe compile-detached-reader (source.zig) success 12ms
+|     |  +- compile exe compile-detached-reader debug native success 9s MaxRSS:1G
+|     |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     |     +- options (reused)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-object-library 8 pass (8 total) 15ms MaxRSS:2M
+|  +- compile test detached-reader-object-library debug native success 1s MaxRSS:278M
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-tuple-source 8 pass (8 total) 14ms MaxRSS:2M
+|  +- compile test detached-reader-tuple-source debug native success 1s MaxRSS:274M
+|     +- run exe compile-detached-reader (source.zig) success 12ms
+|     |  +- compile exe compile-detached-reader debug native (+36 more reused dependencies)
+|     +- options success
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-tuple-library 8 pass (8 total) 14ms MaxRSS:2M
+|  +- compile test detached-reader-tuple-library debug native success 1s MaxRSS:272M
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-optional-source 8 pass (8 total) 15ms MaxRSS:2M
+|  +- compile test detached-reader-optional-source debug native success 1s MaxRSS:271M
+|     +- run exe compile-detached-reader (source.zig) success 14ms
+|     |  +- compile exe compile-detached-reader debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-optional-library 8 pass (8 total) 15ms MaxRSS:2M
+|  +- compile test detached-reader-optional-library debug native success 1s MaxRSS:279M
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-projection-source 8 pass (8 total) 14ms MaxRSS:2M
+|  +- compile test detached-reader-projection-source debug native success 1s MaxRSS:271M
+|     +- run exe compile-detached-reader (source.zig) success 12ms
+|     |  +- compile exe compile-detached-reader debug native (+36 more reused dependencies)
+|     +- options success
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-projection-library 8 pass (8 total) 14ms MaxRSS:2M
+|  +- compile test detached-reader-projection-library debug native success 1s MaxRSS:268M
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-nested-source 7 pass, 1 fail (8 total)
+|  +- compile test detached-reader-nested-source debug native success 1s MaxRSS:270M
+|     +- run exe compile-detached-reader (source.zig) success 13ms
+|     |  +- compile exe compile-detached-reader debug native (+36 more reused dependencies)
+|     +- options success
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-nested-library 7 pass, 1 fail (8 total)
+|  +- compile test detached-reader-nested-library debug native success 1s MaxRSS:276M
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-concat-source 8 pass (8 total) 19ms MaxRSS:3M
+|  +- compile test detached-reader-concat-source debug native success 1s MaxRSS:275M
+|     +- run exe compile-detached-reader (source.zig) success 12ms
+|     |  +- compile exe compile-detached-reader debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-concat-library 8 pass (8 total) 19ms MaxRSS:3M
+|  +- compile test detached-reader-concat-library debug native success 1s MaxRSS:273M
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-reference-source 8 pass (8 total) 11ms MaxRSS:3M
+|  +- compile test detached-reader-reference-source debug native success 1s MaxRSS:275M
+|     +- run exe compile-detached-reader (source.zig) success 11ms
+|     |  +- compile exe compile-detached-reader debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-reference-library 8 pass (8 total) 11ms MaxRSS:3M
+|  +- compile test detached-reader-reference-library debug native success 1s MaxRSS:271M
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-reverse-source 8 pass (8 total) 26ms MaxRSS:4M
+|  +- compile test detached-reader-reverse-source debug native success 1s MaxRSS:269M
+|     +- run exe compile-detached-reader (source.zig) success 11ms
+|     |  +- compile exe compile-detached-reader debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
++- run test detached-reader-reverse-library 8 pass (8 total) 26ms MaxRSS:4M
+   +- compile test detached-reader-reverse-library debug native success 1s MaxRSS:279M
+      +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
+      +- options success
+      +- run exe compile-detached-reader (source.zig) (+1 more reused dependencies)
+
