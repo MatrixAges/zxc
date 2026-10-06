@@ -2,7 +2,7 @@
 
 ## Intent：最终目标
 
-`loop` 根据当前状态决定是否继续，最后返回同类型的状态。集合逐项转换用 `map`，筛选用 `filter`，有限集合累积用 `reduce`；条件驱动的状态计算用 `loop`。不提供 `forEach`，也不增加通用 `for`、`while` 语句。
+`loop` 根据当前状态决定是否继续，作为表达式时返回同类型的状态；只需执行副作用时，可以直接作为语句调用，省略 `const state =`。集合逐项转换用 `map`，筛选用 `filter`，有限集合累积用 `reduce`；条件驱动的状态计算用 `loop`。不提供 `forEach`，也不增加通用 `for`、`while` 语句。
 
 ## Data：可用证据
 
@@ -55,15 +55,32 @@ export default function (in: Input): Output {
 
 ```typescript
 const result = loop(initial, {
-	do: state => {
-		if (state.remaining > 0) {
-			state.remaining -= 1
-			state.processed += 1
-		}
-	},
-	while: state => state.remaining > 0
+    do: state => {
+        if (state.remaining > 0) {
+            state.remaining -= 1
+            state.processed += 1
+        }
+    },
+    while: state => state.remaining > 0
 })
 ```
+
+### 只执行循环
+
+不需要读取最终状态时，直接调用 `loop`。例如 `write` 是已导入的、输出为 `void` 的业务模块：
+
+```typescript
+loop({ items: in.items, index: 0 }, {
+  while: state => state.index < state.items.length,
+  next: state => {
+    write(state.items[state.index])
+
+    state.index += 1
+  }
+})
+```
+
+这两种形式使用相同的初值、条件和步骤规则。独立调用仍传播步骤中的错误，允许放在另一个循环的更新块内。内部状态继续参与每一轮计算，只有最终结果被丢弃；若需要最终状态，仍写 `const state = loop(...)`。普通非 `void` 函数和任务结果不能因此自动丢弃。
 
 ### RX 调用 ZX 模块
 
