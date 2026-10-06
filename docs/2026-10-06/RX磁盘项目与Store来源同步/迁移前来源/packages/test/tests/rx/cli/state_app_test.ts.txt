@@ -53,16 +53,6 @@ test('RX native Store uses application memory and fresh process initialization',
 		]) {
 			cpSync(new URL(`../runtime/store/dual/fixtures/${name}`, import.meta.url), join(project, name))
 		}
-		for (const snapshot_name of [
-			'snapshot_before_left',
-			'snapshot_before_right',
-			'snapshot_untouched',
-			'snapshot_after_left',
-			'snapshot_after_right'
-		]) {
-			cpSync(join(project, 'snapshot.zx'), join(project, `${snapshot_name}.zx`))
-		}
-
 		mkdirSync(execution)
 		run({ command: compiler, argv: ['build', 'main.rx', '--out', application], directory: project })
 
