@@ -1,0 +1,11 @@
+export type Node = opaque
+
+export declare function identity(node: Node): Node
+
+export declare function read(node: Node): u64
+
+export declare function first(node: Node): Node?
+
+export declare function childAt(node: Node, index: u64): Node throws { IndexOutOfBounds }
+
+export declare function record(node: Node, marker: u64): Node throws { NativeFailure }

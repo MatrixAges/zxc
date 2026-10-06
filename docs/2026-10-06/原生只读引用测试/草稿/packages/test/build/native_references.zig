@@ -63,6 +63,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
     all.dependOn(validation);
     all.dependOn(exports);
     all.dependOn(library);
+    all.dependOn(@import("native_reference_runtime.zig").add(b, compiler, target, optimize));
 
     return all;
 }

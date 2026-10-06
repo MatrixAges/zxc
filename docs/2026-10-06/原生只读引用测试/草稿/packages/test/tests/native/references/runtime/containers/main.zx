@@ -1,0 +1,11 @@
+import host from "zig:host"
+
+import type { Node } from "zig:host"
+
+export type Input = Node
+
+export type Output = { node: Node, nodes: Node[], pair: [Node, u64] }
+
+export default function (in: Input): Output {
+  return { node: host.identity(in), nodes: [in, host.childAt(in, 0), in], pair: [in, host.read(in)] }
+}

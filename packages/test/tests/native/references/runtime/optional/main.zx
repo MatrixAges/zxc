@@ -1,0 +1,11 @@
+import host from "zig:host"
+
+import type { Node } from "zig:host"
+
+export type Input = Node
+
+export type Output = Node?
+
+export default function (in: Input): Output {
+  return host.first(in)
+}

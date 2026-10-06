@@ -1,0 +1,11 @@
+import host from "zig:host"
+
+import type { Node } from "zig:host"
+
+export type Input = { left: Node, right: Node }
+
+export type Output = [Node, Node, u64]
+
+export default function (in: Input): Output {
+  return [host.record(in.left, 1), host.record(in.right, 2), host.read(in.left)]
+}
