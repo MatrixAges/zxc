@@ -1,0 +1,61 @@
+Build Summary: 46/46 steps succeeded; 29/29 tests passed
+test-null-inequality success
++- run test optional-equality-f64 16 pass (16 total) 2ms MaxRSS:1M
+|  +- compile test optional-equality-f64 safe native success 7s MaxRSS:318M
+|     +- run node (cases.zig) cached
+|     +- run exe zxc (program.zig) success 5ms
+|        +- compile exe zxc safe native success 1m MaxRSS:2G
+|           +- WriteFile cached
+|           +- compile lib yaml safe native cached 46ms MaxRSS:20M
+|           +- compile lib yaml safe native (reused)
+|           +- translate-c cached 39ms MaxRSS:20M
+|           +- options success
+|           +- run exe bundle-zig (bundle) cached
+|           |  +- compile exe bundle-zig fast native cached 48ms MaxRSS:21M
+|           |  +- WriteFile bundle_manifest.json cached
+|           +- options cached
+|           +- run exe generate-parser (parser.zig) success 6s
+|           |  +- compile exe generate-parser safe native success 27s MaxRSS:749M
+|           |     +- options cached
+|           |     +- WriteFile interfaces/0.d.zx cached
+|           |     |  +- run exe standard-catalog (catalog.zig) cached
+|           |     |     +- compile exe standard-catalog fast native cached 44ms MaxRSS:21M
+|           |     |     +- WriteFile catalog.json cached
+|           |     +- options cached
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- WriteFile interfaces/0.d.zx cached
+|           |  +- run exe standard-catalog (catalog.zig) cached
+|           |     +- compile exe standard-catalog fast native cached 49ms MaxRSS:21M
+|           |     +- WriteFile catalog.json cached
+|           +- options cached
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-lexer (lexer.zig) success 17ms
+|              +- compile exe generate-lexer safe native success 23s MaxRSS:675M
+|                 +- WriteFile interfaces/0.d.zx cached
+|                 |  +- run exe standard-catalog (catalog.zig) cached
+|                 |     +- compile exe standard-catalog fast native cached 45ms MaxRSS:21M
+|                 |     +- WriteFile catalog.json cached
+|                 +- options cached
++- run test optional-equality-bool 9 pass (9 total) 2ms MaxRSS:1M
+|  +- compile test optional-equality-bool safe native success 7s MaxRSS:316M
+|     +- run node (cases.zig) cached
+|     +- run exe zxc (program.zig) success 4ms
+|        +- compile exe zxc safe native (+20 more reused dependencies)
++- run test null-inequality-string 2 pass (2 total) 2ms MaxRSS:1M
+|  +- compile test null-inequality-string safe native success 7s MaxRSS:320M
+|     +- run node (cases.zig) cached
+|     +- run exe zxc (program.zig) success 4ms
+|        +- compile exe zxc safe native (+20 more reused dependencies)
++- run test null-inequality-empty_object 2 pass (2 total) 2ms MaxRSS:1M
+   +- compile test null-inequality-empty_object safe native success 7s MaxRSS:309M
+      +- run node (cases.zig) cached
+      +- run exe zxc (program.zig) success 4ms
+         +- compile exe zxc safe native (+20 more reused dependencies)
+

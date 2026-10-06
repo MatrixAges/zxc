@@ -1,0 +1,10 @@
+export type Value = {}
+
+export type Input = Value?
+
+export type Output = { left_different: bool
+ right_different: bool }
+
+export default function (in: Input): Output {
+  return { left_different: null != in, right_different: in != null }
+}
