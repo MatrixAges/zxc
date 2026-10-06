@@ -3,6 +3,25 @@ const ir = @import("zx").ir;
 const node = @import("../../../node.zig");
 const Lower = @import("../../lower.zig");
 
+pub fn project(lowering: *Lower, type_id: ir.TypeId, source: *const node.Expression, path: []const u32) Lower.Error!*const node.Expression {
+    var result = source;
+    var selected = type_id;
+
+    for (path) |part| switch (lowering.program.typeOf(selected)) {
+        .object => |items| {
+            result = try lowering.field(result, items[part].name);
+            selected = items[part].type_id;
+        },
+        .tuple => |items| {
+            result = try lowering.field(result, try std.fmt.allocPrint(lowering.allocator, "{d}", .{part}));
+            selected = items[part];
+        },
+        else => unreachable,
+    };
+
+    return result;
+}
+
 pub fn replace(lowering: *Lower, type_id: ir.TypeId, source: *const node.Expression, path: []const u32, value: *const node.Expression) Lower.Error!*const node.Expression {
     if (path.len == 0) return value;
 

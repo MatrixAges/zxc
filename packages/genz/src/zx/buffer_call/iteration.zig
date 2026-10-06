@@ -91,21 +91,7 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
     const lowering = self.lowering;
 
     for (self.fields.items) |field| {
-        var source = state;
-        var selected = type_id;
-
-        for (field.path) |part| switch (lowering.program.typeOf(selected)) {
-            .object => |items| {
-                source = try lowering.field(source, items[part].name);
-                selected = items[part].type_id;
-            },
-            .tuple => |items| {
-                source = try lowering.field(source, try std.fmt.allocPrint(lowering.allocator, "{d}", .{part}));
-                selected = items[part];
-            },
-            else => unreachable,
-        };
-
+        const source = try @import("../object_reduce/append/writeback.zig").project(lowering, type_id, state, field.path);
         const owned = try field.capacity.take(lowering, body, source, lowering.types[@backingInt(field.element)]);
         const updated = try @import("../object_reduce/append/writeback.zig").replaceLayout(lowering, type_id, state, field.path, owned);
 

@@ -20,7 +20,7 @@ pub fn lower(self: Self, lowering: *Lower, id: ir.ExprId) Lower.Error!*const nod
 
         defer lowering.append_overrides.put(lowering.allocator, id, previous.value) catch unreachable;
 
-        return lowering.cast(lowering.types[@intFromEnum(lowering.program.expression(id).type_id)], try lowering.builder.expression(.{ .conditional = .{
+        return lowering.cast(lowering.types[@backingInt(lowering.program.expression(id).type_id)], try lowering.builder.expression(.{ .conditional = .{
             .condition = enabled,
             .yes = try active.lower(lowering, id),
             .no = try lowering.expr(id),
@@ -40,7 +40,10 @@ pub fn lower(self: Self, lowering: *Lower, id: ir.ExprId) Lower.Error!*const nod
     try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.builder.expression(.{ .unary = .{ .operator = .not, .operand = self.started } }), .yes = try lowering.allocator.dupe(node.Statement, &.{
         .{ .expression = try self.method(lowering, "appendSlice", &.{source}, true) },
         .{ .assignment = .{ .target = self.started, .value = try lowering.builder.expression(.{ .boolean = true }) } },
-    }), .no = &.{} } });
+    }), .no = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{
+        .target = try lowering.field(try lowering.field(self.buffer, "items"), "len"),
+        .value = try lowering.field(source, "len"),
+    } }}) } });
 
     try body.append(lowering.allocator, .{ .expression = try self.method(lowering, if (operation.kind == .push) "append" else "appendSlice", &.{argument}, true) });
 

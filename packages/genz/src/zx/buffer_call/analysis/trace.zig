@@ -12,6 +12,7 @@ readers: []const bool = &.{},
 bindings: []?ir.ExprId,
 results: std.ArrayList(ir.ExprId) = .empty,
 appends: std.ArrayList(ir.ExprId) = .empty,
+pops: std.ArrayList(ir.ExprId) = .empty,
 calls: std.ArrayList(flow.Call) = .empty,
 pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Function, summaries: []const []const flow.Lane) Error!Self {
     var self = Self{ .allocator = allocator, .program = program, .function = function, .summaries = summaries, .bindings = try allocator.alloc(?ir.ExprId, function.symbols.len) };
@@ -31,6 +32,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Func
 
 pub fn lane(self: *Self, output: []const u32) Error!?flow.Lane {
     self.appends.clearRetainingCapacity();
+    self.pops.clearRetainingCapacity();
     self.calls.clearRetainingCapacity();
 
     var input: ?[]const u32 = null;
@@ -47,6 +49,7 @@ pub fn lane(self: *Self, output: []const u32) Error!?flow.Lane {
         .input = input orelse return null,
         .output = output,
         .appends = try self.allocator.dupe(ir.ExprId, self.appends.items),
+        .pops = try self.allocator.dupe(ir.ExprId, self.pops.items),
         .calls = try self.allocator.dupe(flow.Call, self.calls.items),
     };
 }
@@ -81,7 +84,7 @@ pub fn trace(self: *Self, id: ir.ExprId, path: []const u32) Error!?[]const u32 {
         .field, .tuple_field => |projection| blk: {
             const target = self.function.expressions[@backingInt(projection.target)].value;
 
-            if (target == .list_operation) {
+            if (target == .list_operation and target.list_operation.kind != .pop) {
                 const operation = target.list_operation;
 
                 if (path.len != 0 or projection.index != 0 or (operation.kind != .push and operation.kind != .concat)) break :blk null;
@@ -108,6 +111,12 @@ pub fn trace(self: *Self, id: ir.ExprId, path: []const u32) Error!?[]const u32 {
             break :blk null;
         },
         .tuple => |items| if (path.len != 0 and path[0] < items.len) self.trace(items[path[0]], path[1..]) else null,
+        .list_operation => |operation| blk: {
+            if (operation.kind != .pop or path.len != 1 or path[0] != 0) break :blk null;
+            if (std.mem.indexOfScalar(ir.ExprId, self.pops.items, id) == null) try self.pops.append(self.allocator, id);
+
+            break :blk try self.trace(operation.target, &.{});
+        },
         .conditional => |value| self.join(value.yes, value.no, path),
         .match_expr => |value| blk: {
             const origin = try self.trace(value.fallback, path) orelse break :blk null;

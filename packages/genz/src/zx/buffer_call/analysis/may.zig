@@ -63,7 +63,21 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
         .capture => |child| if (path.len == 0 or path[0] == 1) contains(trace, child, if (path.len == 0) &.{} else path[1..], origin) else false,
         .binary => |value| try contains(trace, value.left, path, origin) or try contains(trace, value.right, path, origin),
         .index => |value| contains(trace, value.target, &.{}, origin),
-        .list_operation => |operation| try contains(trace, operation.target, &.{}, origin) or try any(trace, operation.arguments, origin),
+        .list_operation => |operation| blk: {
+            if (operation.kind == .pop and path.len != 0 and path[0] == 1) {
+                var owner = trace.function.input_type;
+
+                for (origin) |part| owner = switch (trace.program.typeOf(owner)) {
+                    .object => |fields| fields[part].type_id,
+                    .tuple => |items| items[part],
+                    else => unreachable,
+                };
+
+                if (owner == trace.function.expressions[@backingInt(operation.target)].type_id) break :blk false;
+            }
+
+            break :blk try contains(trace, operation.target, &.{}, origin) or try any(trace, operation.arguments, origin);
+        },
         .call => |call| blk: {
             const index = @backingInt(call.function);
 

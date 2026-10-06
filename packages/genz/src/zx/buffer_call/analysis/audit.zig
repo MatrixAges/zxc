@@ -4,7 +4,7 @@ const flow = @import("flow.zig");
 const Trace = @import("trace.zig");
 const may = @import("may.zig");
 const Error = std.mem.Allocator.Error;
-pub const Rejection = enum { borrowed_input, contracts, parallel, nested_transform, duplicate, container_escape, element_read, unsupported_read, unsupported_operation, detached_append, cached_append, unsupported_call, detached_call };
+pub const Rejection = enum { borrowed_input, contracts, parallel, nested_transform, duplicate, container_escape, element_read, unsupported_read, unsupported_operation, detached_append, detached_pop, cached_append, unsupported_call, detached_call };
 
 pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
     if (!trace.function.consumes_input) return .borrowed_input;
@@ -18,9 +18,9 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
 
         switch (expression.value) {
             .transform, .iteration => return .nested_transform,
-            .scope, .list_update, .capture, .optional_value, .task, .await_task, .cancel_task, .parallel => return .unsupported_operation,
+            .scope, .list_update, .capture, .task, .await_task, .cancel_task, .parallel => return .unsupported_operation,
             .index => |value| if (try count(trace, value.target, lane) != 0) return .element_read,
-            .some => |value| if (try count(trace, value, lane) != 0) return .container_escape,
+            .some, .optional_value => |value| if (try count(trace, value, lane) != 0) return .container_escape,
             .list => |values| for (values) |value| {
                 if (try count(trace, value, lane) != 0) return .container_escape;
             },
@@ -43,6 +43,15 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
                 }
 
                 if (try count(trace, operation.target, lane) == 0) continue;
+
+                if (operation.kind == .pop) {
+                    if (std.mem.indexOfScalar(ir.ExprId, lane.pops, id) == null) return .detached_pop;
+
+                    transferred = true;
+
+                    continue;
+                }
+
                 if (operation.kind != .push and operation.kind != .concat) return .unsupported_operation;
 
                 const forwarded = for (lane.appends) |projection| {
