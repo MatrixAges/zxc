@@ -1,0 +1,359 @@
+test-aggregate-loop
++- run test aggregate-loop-call-source
+   +- compile test aggregate-loop-call-source debug native
+      +- run exe compile-aggregate-loop (source.zig) failure
+call: module: project imports must omit the .zx extension; runtime and RX imports are forbidden
+error: InvalidAnalysis
+/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/aggregate_loop/compile.zig:26:9: 0x10ad58a1b in main (compile-aggregate-loop)
+        return error.InvalidAnalysis;
+        ^
+error: process exited with code 1
+failed command: /tmp/zxc-aggregate-loop-debug-2320d2e9/o/60da8996b93c82c780fda902a647426e/compile-aggregate-loop call /tmp/zxc-aggregate-loop-debug-2320d2e9/o/9d1611f5dc53784f51570207df9b984d/source.zig /tmp/zxc-aggregate-loop-debug-2320d2e9/o/9d1611f5dc53784f51570207df9b984d/source_abi.zig /tmp/zxc-aggregate-loop-debug-2320d2e9/o/9d1611f5dc53784f51570207df9b984d/library.zig /tmp/zxc-aggregate-loop-debug-2320d2e9/o/9d1611f5dc53784f51570207df9b984d/library_abi.zig
+
+test-aggregate-loop
++- run test aggregate-loop-nested-library
+   +- compile test aggregate-loop-nested-library debug native
+      +- run exe compile-aggregate-loop (source.zig) failure
+nested: type_mismatch: field access requires an object
+error: InvalidAnalysis
+/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/packages/test/tests/collections/aggregate_loop/compile.zig:26:9: 0x100c7ba1b in main (compile-aggregate-loop)
+        return error.InvalidAnalysis;
+        ^
+error: process exited with code 1
+failed command: /tmp/zxc-aggregate-loop-debug-2320d2e9/o/60da8996b93c82c780fda902a647426e/compile-aggregate-loop nested /tmp/zxc-aggregate-loop-debug-2320d2e9/o/41a0c78a505f48005d52fa2aa9abe2a0/source.zig /tmp/zxc-aggregate-loop-debug-2320d2e9/o/41a0c78a505f48005d52fa2aa9abe2a0/source_abi.zig /tmp/zxc-aggregate-loop-debug-2320d2e9/o/41a0c78a505f48005d52fa2aa9abe2a0/library.zig /tmp/zxc-aggregate-loop-debug-2320d2e9/o/41a0c78a505f48005d52fa2aa9abe2a0/library_abi.zig
+
+test-aggregate-loop
++- run test aggregate-loop-escaping-library
+   +- compile test aggregate-loop-escaping-library debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/escaping_test.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/b40df9f5a0a026a4151047cf81850fd7/library.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/e075ba5e4f467364fc47867c13c0c7ea/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/b40df9f5a0a026a4151047cf81850fd7/library_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-escaping-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-old_list-source
+   +- compile test aggregate-loop-old_list-source debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/baa8262e9254d7dd93c06421df4e50c1/source.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/365e93d6b0edeabb4e726e715ad7278e/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/baa8262e9254d7dd93c06421df4e50c1/source_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-old_list-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-consumer-library
+   +- compile test aggregate-loop-consumer-library debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing --dep choose -Mroot=tests/collections/aggregate_loop/consumer_test.zig -Odebug --dep zxc_abi --dep choose -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/0312202e4f2971d15bec48e9f83ba83e/library.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/7d849332f84e465b011cd79aeed8e381/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mchoose=tests/collections/aggregate_loop/consumer/choose.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/0312202e4f2971d15bec48e9f83ba83e/library_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-consumer-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-two_lanes-library
+   +- compile test aggregate-loop-two_lanes-library debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/f8b06bdd5df1ca6c2085f40cce1b6e38/library.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/52c391b3883781ad3dbc7c9c851551f0/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/f8b06bdd5df1ca6c2085f40cce1b6e38/library_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-two_lanes-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-bounds-library
+   +- compile test aggregate-loop-bounds-library debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/702ea742fb4794302097838c56fea481/library.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/83a0e2672c1f719d16bf5aaa21cbe2fb/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/702ea742fb4794302097838c56fea481/library_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-bounds-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-two_lanes-source
+   +- compile test aggregate-loop-two_lanes-source debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/f8b06bdd5df1ca6c2085f40cce1b6e38/source.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/52c391b3883781ad3dbc7c9c851551f0/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/f8b06bdd5df1ca6c2085f40cce1b6e38/source_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-two_lanes-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-stack-library
+   +- compile test aggregate-loop-stack-library debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/763641059171fe0fee0686a6c71c836d/library.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/bb600ac78691bfaedfccb9b5edf1ff89/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/763641059171fe0fee0686a6c71c836d/library_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-stack-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-bounds-source
+   +- compile test aggregate-loop-bounds-source debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/702ea742fb4794302097838c56fea481/source.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/83a0e2672c1f719d16bf5aaa21cbe2fb/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/702ea742fb4794302097838c56fea481/source_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-bounds-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-old_list-library
+   +- compile test aggregate-loop-old_list-library debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/baa8262e9254d7dd93c06421df4e50c1/library.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/365e93d6b0edeabb4e726e715ad7278e/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/baa8262e9254d7dd93c06421df4e50c1/library_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-old_list-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-stack-source
+   +- compile test aggregate-loop-stack-source debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/763641059171fe0fee0686a6c71c836d/source.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/bb600ac78691bfaedfccb9b5edf1ff89/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/763641059171fe0fee0686a6c71c836d/source_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-stack-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-consumer-source
+   +- compile test aggregate-loop-consumer-source debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing --dep choose -Mroot=tests/collections/aggregate_loop/consumer_test.zig -Odebug --dep zxc_abi --dep choose -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/0312202e4f2971d15bec48e9f83ba83e/source.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/7d849332f84e465b011cd79aeed8e381/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mchoose=tests/collections/aggregate_loop/consumer/choose.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/0312202e4f2971d15bec48e9f83ba83e/source_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-consumer-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-aggregate-loop
++- run test aggregate-loop-escaping-source
+   +- compile test aggregate-loop-escaping-source debug native 1 errors
+tests/collections/aggregate_loop/flat_input.zig:4:71: error: no field named 'params' in struct 'lang.Type.Fn'
+pub const Input = @typeInfo(@typeInfo(@TypeOf(program.execute)).@"fn".params[1].type.?).pointer.child;
+                                                                      ^~~~~~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/lang.zig:847:20: note: struct declared here
+    pub const Fn = struct {
+                   ^~~~~~
+referenced by:
+    Frame: tests/collections/aggregate_loop/flat_input.zig:5:50
+    flat_input.Seed: tests/collections/aggregate_loop/flat_input.zig:8:18
+    2 reference(s) hidden; use '-freference-trace=4' to see all references
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/aggregate_loop/escaping_test.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/b40df9f5a0a026a4151047cf81850fd7/source.zig -Moptions=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/e075ba5e4f467364fc47867c13c0c7ea/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-aggregate-loop-debug-2320d2e9/o/b40df9f5a0a026a4151047cf81850fd7/source_abi.zig --cache-dir /tmp/zxc-aggregate-loop-debug-2320d2e9 --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name aggregate-loop-escaping-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+Build Summary: 43/78 steps succeeded (14 failed)
+test-aggregate-loop transitive failure
++- run test aggregate-loop-stack-source transitive failure
+|  +- compile test aggregate-loop-stack-source debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) cached
+|     |  +- compile exe compile-aggregate-loop debug native cached 47ms MaxRSS:21M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 49ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) cached
+|     |     |  +- compile exe generate-parser debug native cached 45ms MaxRSS:21M
+|     |     |     +- options cached
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native cached 49ms MaxRSS:21M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) cached
+|     |     |  +- compile exe generate-lexer debug native cached 46ms MaxRSS:21M
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native cached 43ms MaxRSS:21M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-stack-library transitive failure
+|  +- compile test aggregate-loop-stack-library debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-nested-source transitive failure
+|  +- compile test aggregate-loop-nested-source debug native transitive failure
+|     +- run exe compile-aggregate-loop (source.zig) failure
+|     |  +- compile exe compile-aggregate-loop debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-nested-library transitive failure
+|  +- compile test aggregate-loop-nested-library debug native transitive failure
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-two_lanes-source transitive failure
+|  +- compile test aggregate-loop-two_lanes-source debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) cached
+|     |  +- compile exe compile-aggregate-loop debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-two_lanes-library transitive failure
+|  +- compile test aggregate-loop-two_lanes-library debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-bounds-source transitive failure
+|  +- compile test aggregate-loop-bounds-source debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) cached
+|     |  +- compile exe compile-aggregate-loop debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-bounds-library transitive failure
+|  +- compile test aggregate-loop-bounds-library debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-old_list-source transitive failure
+|  +- compile test aggregate-loop-old_list-source debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) cached
+|     |  +- compile exe compile-aggregate-loop debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-old_list-library transitive failure
+|  +- compile test aggregate-loop-old_list-library debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-call-source transitive failure
+|  +- compile test aggregate-loop-call-source debug native transitive failure
+|     +- run exe compile-aggregate-loop (source.zig) failure
+|     |  +- compile exe compile-aggregate-loop debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-call-library transitive failure
+|  +- compile test aggregate-loop-call-library debug native transitive failure
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-escaping-source transitive failure
+|  +- compile test aggregate-loop-escaping-source debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) cached
+|     |  +- compile exe compile-aggregate-loop debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-escaping-library transitive failure
+|  +- compile test aggregate-loop-escaping-library debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-consumer-source transitive failure
+|  +- compile test aggregate-loop-consumer-source debug native 1 errors
+|     +- run exe compile-aggregate-loop (source.zig) cached
+|     |  +- compile exe compile-aggregate-loop debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
++- run test aggregate-loop-consumer-library transitive failure
+   +- compile test aggregate-loop-consumer-library debug native 1 errors
+      +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-aggregate-loop (source.zig) (+1 more reused dependencies)
+

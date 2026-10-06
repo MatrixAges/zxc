@@ -1,0 +1,22 @@
+export type Frame = { position: u64, count: u64 }
+
+export type Input = { frames: Frame[], count: u64, selected: u64 }
+
+export type State = { frames: Frame[], index: u64, count: u64, selected: u64, total: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const initial: State = { frames: in.frames, index: 0, count: in.count, selected: in.selected, total: 0 }
+
+    const state = loop(initial, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.frames[current.selected].count += 1
+            current.total += current.frames[current.selected].count
+            current.index += 1
+        }
+    })
+
+    return state.total
+}

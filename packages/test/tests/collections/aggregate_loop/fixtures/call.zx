@@ -1,0 +1,26 @@
+import read_frame from "./read_frame"
+
+export type Frame = { position: u64, count: u64 }
+
+export type Input = { frames: Frame[], count: u64 }
+
+export type State = { frames: Frame[], index: u64, count: u64, total: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const initial: State = { frames: in.frames, index: 0, count: in.count, total: 0 }
+
+    const state = loop(initial, {
+        while: current => current.index < current.count,
+        next: current => {
+            const previous = current.frames[0]
+
+            current.frames[0].count += 1
+            current.total += read_frame(previous)
+            current.index += 1
+        }
+    })
+
+    return state.total
+}

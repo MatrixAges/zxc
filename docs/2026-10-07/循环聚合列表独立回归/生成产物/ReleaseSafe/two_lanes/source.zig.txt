@@ -1,0 +1,237 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Frame = *const (zx_abi).zx_type_11;
+
+pub const Input = *const (zx_abi).zx_type_13;
+
+pub const State = *const (zx_abi).zx_type_14;
+
+pub const Output = u64;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .position = zx_shape_5, }, };
+
+const zx_shape_12 = .{ .kind = .list, .child = zx_shape_11, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .frames = zx_shape_12, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .index = zx_shape_5, .left = zx_shape_12, .right = zx_shape_12, .total = zx_shape_5, }, };
+
+pub const input_shape = zx_shape_13;
+
+pub const output_shape = zx_shape_5;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_13) error{ IndexOutOfBounds, OutOfMemory, }!u64 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_1: (zx_abi).zx_type_14 = block_48: {
+        const operand_43 = (in).frames;
+        const operand_44 = (in).frames;
+        const operand_45 = @as(u64, 0);
+        const operand_46 = (in).count;
+        const operand_47 = @as(u64, 0);
+
+        break :block_48 (zx_abi).zx_type_14{ .left = operand_43, .right = operand_44, .index = operand_45, .count = operand_46, .total = operand_47, };
+    };
+
+    return block_42: {
+        const operand_1 = (&value_1);
+        const state_type_3 = struct {
+            count: u64,
+            position: u64,
+        };
+
+        var state_capacity_4: (std).ArrayList(state_type_3) = .empty;
+
+        var state_capacity_started_5 = false;
+
+        defer (state_capacity_4).deinit(allocator);
+
+        var state_capacity_6: (std).ArrayList(state_type_3) = .empty;
+
+        var state_capacity_started_7 = false;
+
+        defer (state_capacity_6).deinit(allocator);
+
+        const state_type_8 = struct {
+            count: u64,
+            index: u64,
+            left: []const state_type_3,
+            right: []const state_type_3,
+            total: u64,
+        };
+        const operand_9 = (operand_1).left;
+
+        (try (state_capacity_4).ensureTotalCapacity(allocator, (operand_9).len));
+
+        ((state_capacity_4).items).len = (operand_9).len;
+
+        for (operand_9, 0..) |initial_element_10, initial_index_11| {
+            ((state_capacity_4).items)[initial_index_11] = state_type_3{ .count = (initial_element_10).count, .position = (initial_element_10).position, };
+        }
+
+        state_capacity_started_5 = true;
+
+        const operand_12 = (operand_1).right;
+
+        (try (state_capacity_6).ensureTotalCapacity(allocator, (operand_12).len));
+
+        ((state_capacity_6).items).len = (operand_12).len;
+
+        for (operand_12, 0..) |initial_element_13, initial_index_14| {
+            ((state_capacity_6).items)[initial_index_14] = state_type_3{ .count = (initial_element_13).count, .position = (initial_element_13).position, };
+        }
+
+        state_capacity_started_7 = true;
+
+        var local_state_2: state_type_8 = state_type_8{ .count = (operand_1).count, .index = (operand_1).index, .left = @as([]const state_type_3, (state_capacity_4).items), .right = @as([]const state_type_3, (state_capacity_6).items), .total = (operand_1).total, };
+
+        while (((local_state_2).index < (local_state_2).count)) {
+            local_state_2 = block_41: {
+                const value_4: state_type_8 = local_state_2;
+                const value_5: []const state_type_3 = (value_4).left;
+                const value_6: u64 = @as(u64, 0);
+                const value_7: state_type_3 = block_40: {
+                    const operand_38 = value_5;
+                    const operand_39 = value_6;
+
+                    if ((operand_39 >= (operand_38).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_40 (operand_38)[@intCast(operand_39)];
+                };
+                const value_8: u64 = (value_7).count;
+                const value_9: u64 = @as(u64, 1);
+                const value_10: state_type_8 = block_37: {
+                    break :block_37 state_type_8{ .count = (value_4).count, .index = (value_4).index, .left = block_36: {
+                        const operand_32 = value_5;
+                        const operand_33 = value_6;
+                        const operand_35 = block_34: {
+                            break :block_34 state_type_3{ .count = (value_8 + value_9), .position = (value_7).position, };
+                        };
+
+                        if ((operand_33 >= (operand_32).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        if ((!state_capacity_started_5)) {
+                            (try (state_capacity_4).appendSlice(allocator, operand_32));
+
+                            state_capacity_started_5 = true;
+                        } else {
+                            ((state_capacity_4).items).len = (operand_32).len;
+                        }
+
+                        ((state_capacity_4).items)[@intCast(operand_33)] = operand_35;
+
+                        break :block_36 (state_capacity_4).items;
+                    }, .right = (value_4).right, .total = (value_4).total, };
+                };
+                const value_11: state_type_8 = value_10;
+                const value_12: []const state_type_3 = (value_11).right;
+                const value_13: u64 = @as(u64, 0);
+                const value_14: state_type_3 = block_31: {
+                    const operand_29 = value_12;
+                    const operand_30 = value_13;
+
+                    if ((operand_30 >= (operand_29).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_31 (operand_29)[@intCast(operand_30)];
+                };
+                const value_15: u64 = (value_14).count;
+                const value_16: u64 = @as(u64, 2);
+                const value_17: state_type_8 = block_28: {
+                    break :block_28 state_type_8{ .count = (value_11).count, .index = (value_11).index, .left = (value_11).left, .right = block_27: {
+                        const operand_23 = value_12;
+                        const operand_24 = value_13;
+                        const operand_26 = block_25: {
+                            break :block_25 state_type_3{ .count = (value_15 + value_16), .position = (value_14).position, };
+                        };
+
+                        if ((operand_24 >= (operand_23).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        if ((!state_capacity_started_7)) {
+                            (try (state_capacity_6).appendSlice(allocator, operand_23));
+
+                            state_capacity_started_7 = true;
+                        } else {
+                            ((state_capacity_6).items).len = (operand_23).len;
+                        }
+
+                        ((state_capacity_6).items)[@intCast(operand_24)] = operand_26;
+
+                        break :block_27 (state_capacity_6).items;
+                    }, .total = (value_11).total, };
+                };
+                const value_18: state_type_8 = value_17;
+                const value_19: u64 = (value_18).total;
+                const value_20: u64 = ((block_19: {
+                    const operand_17 = (value_17).left;
+                    const operand_18 = @as(u64, 0);
+
+                    if ((operand_18 >= (operand_17).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_19 (operand_17)[@intCast(operand_18)];
+                }).count + (block_22: {
+                    const operand_20 = (value_17).right;
+                    const operand_21 = @as(u64, 0);
+
+                    if ((operand_21 >= (operand_20).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_22 (operand_20)[@intCast(operand_21)];
+                }).count);
+                const value_21: state_type_8 = block_16: {
+                    break :block_16 state_type_8{ .count = (value_18).count, .index = (value_18).index, .left = (value_18).left, .right = (value_18).right, .total = (value_19 + value_20), };
+                };
+                const value_22: state_type_8 = value_21;
+                const value_23: u64 = (value_22).index;
+                const value_24: u64 = @as(u64, 1);
+                const value_25: state_type_8 = block_15: {
+                    break :block_15 state_type_8{ .count = (value_22).count, .index = (value_23 + value_24), .left = (value_22).left, .right = (value_22).right, .total = (value_22).total, };
+                };
+
+                break :block_41 value_25;
+            };
+        }
+
+        break :block_42 (local_state_2).total;
+    };
+}
+

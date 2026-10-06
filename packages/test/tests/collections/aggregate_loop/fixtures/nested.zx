@@ -1,0 +1,53 @@
+export type Meta = { value: u64 }
+
+export type Frame = { meta: Meta, pair: [u64, bool], previous: Meta? }
+
+export type Input = { frames: Frame[], count: u64 }
+
+export type State = { frames: Frame[], index: u64, count: u64, total: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const initial: State = { frames: in.frames, index: 0, count: in.count, total: 0 }
+
+    const state = loop(initial, {
+        while: current => current.index < current.count,
+        next: current => {
+            if (current.frames.length > 0) {
+                const first = current.frames[0]
+
+                current.total += first.meta.value + first.pair[0] + (first.pair[1] ? 2 : 5)
+
+                const prior = first.previous
+
+                if (prior != null) {
+                    current.total += prior.value
+                }
+            }
+
+            current.frames = current.frames.push({ meta: { value: current.index }, pair: [current.index + 1, true], previous: current.index % 2 == 1 ? { value: current.index + 2 } : null })[0]
+
+            const previous = current.frames[current.frames.length - 1]
+
+            current.frames[current.frames.length - 1].meta.value += 10
+            current.frames[current.frames.length - 1].pair[0] += 20
+            current.frames[current.frames.length - 1].pair[1] = false
+            current.total += previous.meta.value + previous.pair[0] + (previous.pair[1] ? 7 : 100)
+                + current.frames[current.frames.length - 1].meta.value + current.frames[current.frames.length - 1].pair[0]
+
+            const prior = previous.previous
+
+            if (prior != null) {
+                current.total += prior.value
+            }
+
+            const [remaining, popped] = current.frames.pop()
+
+            current.frames = remaining
+            current.index += 1
+        }
+    })
+
+    return state.total
+}

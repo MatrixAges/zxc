@@ -39,6 +39,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(@import("build/runtime.zig").add(b, compiler, cli_dependency, target, optimize, suites.runtime));
     test_step.dependOn(@import("build/iterate.zig").add(b, cli_dependency, compiler, target, optimize));
     test_step.dependOn(@import("build/iterate_buffer.zig").add(b, cli_dependency, target, optimize));
+    test_step.dependOn(@import("build/aggregate_loop.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/iterate_calls.zig").add(b, compiler, cli_dependency, target, optimize));
     test_step.dependOn(@import("build/loop_policy.zig").add(b, compiler, cli_dependency, target, optimize));
     test_step.dependOn(@import("build/rx_value_policy.zig").add(b, compiler, cli_dependency, target, optimize));
