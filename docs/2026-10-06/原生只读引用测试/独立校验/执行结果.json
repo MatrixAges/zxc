@@ -1,0 +1,42 @@
+{
+	"固定生产提交": "b4b4bcd9f0ffb9c3f27d6a19aa169a0911be1caf",
+	"固定生产源码树": "a9433c58ac70ea2d07877f41e6c579cbcaa75f5a",
+	"测试检出": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc",
+	"工具": {
+		"Zig": "0.17.0"
+	},
+	"测试来源SHA256": {
+		"packages/test/build/native_references.zig": "eb76e34419e6e3d15c8d8afa68daa7a036b16fe65aab4935d3084c8e131f18fb",
+		"packages/test/tests/native/references/ir/allocation_test.zig": "57f6772518161e4ca13b2c7569c81d04d786a97657bce1c50eb1cc3f7738c959",
+		"packages/test/tests/native/references/ir/boundary_test.zig": "351262c0b8a9de084f39664820f0900e3182b5cb75b3388bd5c095bbcfdff486",
+		"packages/test/tests/native/references/ir/fixture.zig": "c0259ff5849b25f46c063a1b28ea7ccb7aa8229856d6bfb94f33a3a333f969ed",
+		"packages/test/tests/native/references/ir/mutation.zig": "2506693e188078c28c07ba78e84de18463d8ca4a7b1ce75f0e8227452a53d3f8",
+		"packages/test/tests/native/references/ir/owner_test.zig": "4ef184a69b2109f0e68a55e1ca23a9363701143d05c1def064104e9de853b6c9"
+	},
+	"门禁": {
+		"Debug": {
+			"命令": "zig build test-native-references-ir -j2 --summary all",
+			"退出码": 0,
+			"构建步骤": "27/27",
+			"独立声明": 15,
+			"实际执行通过": 15,
+			"缓存测试": 0,
+			"日志": "Debug最终日志.txt",
+			"日志SHA256": "64ce95473781266ca29a9526b2cb753a87f133c137b9021fa203ae453ad9cf33"
+		},
+		"ReleaseSafe": {
+			"命令": "zig build test-native-references-ir -Doptimize=safe -j2 --summary all",
+			"退出码": 0,
+			"构建步骤": "27/27",
+			"独立声明": 15,
+			"实际执行通过": 15,
+			"缓存测试": 0,
+			"日志": "ReleaseSafe最终日志.txt",
+			"日志SHA256": "74ac465c0dac9452a1c2d37607bda2935df59bc5fffcffeeb57dc0f85b180cf4"
+		}
+	},
+	"新增独立声明": 15,
+	"新增Test262审阅": 0,
+	"新增JSONL目录案例": 0,
+	"自我复核": "首轮14/15通过；OOM驱动把合法OutOfMemory误报为ExpectedInvalidIr。修正帮助函数以继续要求InvalidIr，并将实际OOM传播给逐分配点驱动。临时Store槽位改为arena分配，避免返回测试自身的局部存储指针。最终两模式15/15。"
+}
