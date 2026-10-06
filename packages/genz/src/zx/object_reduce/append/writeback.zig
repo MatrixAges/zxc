@@ -6,6 +6,12 @@ const Lower = @import("../../lower.zig");
 pub fn replace(lowering: *Lower, type_id: ir.TypeId, source: *const node.Expression, path: []const u32, value: *const node.Expression) Lower.Error!*const node.Expression {
     if (path.len == 0) return value;
 
+    return lowering.construct(type_id, try replaceLayout(lowering, type_id, source, path, value));
+}
+
+pub fn replaceLayout(lowering: *Lower, type_id: ir.TypeId, source: *const node.Expression, path: []const u32, value: *const node.Expression) Lower.Error!*const node.Expression {
+    if (path.len == 0) return value;
+
     const updated = switch (lowering.program.typeOf(type_id)) {
         .object => |fields| blk: {
             const result = try lowering.allocator.alloc(node.Field, fields.len);
@@ -16,7 +22,7 @@ pub fn replace(lowering: *Lower, type_id: ir.TypeId, source: *const node.Express
                 result[index] = .{ .name = field.name, .value = if (index == path[0]) try replace(lowering, field.type_id, existing, path[1..], value) else existing };
             }
 
-            break :blk try lowering.builder.expression(.{ .object = .{ .type_expr = lowering.layouts[@intFromEnum(type_id)], .fields = result } });
+            break :blk try lowering.builder.expression(.{ .object = .{ .type_expr = lowering.layouts[@backingInt(type_id)], .fields = result } });
         },
         .tuple => |items| blk: {
             const result = try lowering.allocator.alloc(*const node.Expression, items.len);
@@ -31,5 +37,5 @@ pub fn replace(lowering: *Lower, type_id: ir.TypeId, source: *const node.Express
         else => unreachable,
     };
 
-    return lowering.construct(type_id, updated);
+    return updated;
 }

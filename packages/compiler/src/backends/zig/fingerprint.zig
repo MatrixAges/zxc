@@ -19,10 +19,10 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, u
 
     const facts = try @import("genz").zx.value_call.analysis.analyze(arena.allocator(), program);
     const value_functions = facts.values;
-    const buffer_functions = try @import("genz").zx.buffer_call.analysis.functions(arena.allocator(), program, value_functions);
+    const buffer_functions = try @import("genz").zx.buffer_call.analysis.functions(arena.allocator(), program, value_functions, facts.pure);
     var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions };
 
-    self.bytes("zxc.zig.input.v6");
+    self.bytes("zxc.zig.input.v8");
     self.bytes(@tagName(unit));
     self.write(program.version);
 

@@ -26,11 +26,15 @@ pub fn leaf(program: ir.Program, id: ir.TypeId) bool {
 }
 
 pub fn eligible(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, functions: []const bool) std.mem.Allocator.Error!bool {
-    return analyze(allocator, program, iteration, functions, false);
+    return analyze(allocator, program, &.{ iteration.condition, iteration.body }, functions, false);
+}
+
+pub fn condition(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, functions: []const bool) std.mem.Allocator.Error!bool {
+    return analyze(allocator, program, &.{iteration.condition}, functions, false);
 }
 
 pub fn deep(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, functions: []const bool) std.mem.Allocator.Error!bool {
-    return analyze(allocator, program, iteration, functions, true);
+    return analyze(allocator, program, &.{ iteration.condition, iteration.body }, functions, true);
 }
 
 pub fn aggregate(program: ir.Program, id: ir.TypeId) bool {
@@ -64,7 +68,7 @@ pub fn supported(program: ir.Program, id: ir.TypeId) bool {
     };
 }
 
-fn analyze(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, functions: []const bool, deep_layout: bool) std.mem.Allocator.Error!bool {
+fn analyze(allocator: std.mem.Allocator, program: ir.Program, roots: []const ir.ExprId, functions: []const bool, deep_layout: bool) std.mem.Allocator.Error!bool {
     const safe = try allocator.alloc(bool, program.expressions.len);
 
     defer allocator.free(safe);
@@ -111,7 +115,7 @@ fn analyze(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iter
         };
     }
 
-    return safe[@backingInt(iteration.condition)] and safe[@backingInt(iteration.body)];
+    return all(safe, roots);
 }
 
 fn deepOperation(program: ir.Program, expression: ir.Expression) bool {

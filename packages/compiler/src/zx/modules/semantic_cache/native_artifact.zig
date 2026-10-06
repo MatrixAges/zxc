@@ -48,8 +48,10 @@ pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, 
 
     try origins.append(loaded.types, 0, .{ .native = entry.key() });
 
+    const path = try owned.dupe(u8, entry.key());
+
     return .{ .arena = arena, .value = .{
-        .path = try owned.dupe(u8, entry.key()),
+        .path = path,
         .source_digest = fingerprint,
         .types = loaded.types,
         .nominal_types = origins.items.items,

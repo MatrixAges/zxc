@@ -11,8 +11,13 @@ pub const Lane = struct {
     rejection: ?@import("audit.zig").Rejection = null,
 };
 
-pub fn functions(allocator: std.mem.Allocator, program: ir.Program, value_functions: []const bool) std.mem.Allocator.Error![]const []const Lane {
+pub fn functions(allocator: std.mem.Allocator, program: ir.Program, value_functions: []const bool, pure_functions: []const bool) std.mem.Allocator.Error![]const []const Lane {
     const summaries = try allocator.alloc([]const Lane, program.functions.len);
+    const readers = try allocator.alloc(bool, program.functions.len);
+
+    defer allocator.free(readers);
+
+    for (program.functions, pure_functions, readers) |function, pure, *reader| reader.* = pure and !function.consumes_input and scalar(program, function.output_type);
 
     for (program.functions, 0..) |function, index| {
         summaries[index] = &.{};
@@ -24,6 +29,8 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program, value_functi
         try leaves(allocator, program, function.output_type, &.{}, false, &paths);
 
         var trace = try Trace.init(allocator, program, function, summaries[0..index]);
+        trace.readers = readers[0..index];
+
         var lanes: std.ArrayList(Lane) = .empty;
 
         for (paths.items) |path| {
@@ -46,6 +53,15 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program, value_functi
     }
 
     return summaries;
+}
+
+fn scalar(program: ir.Program, id: ir.TypeId) bool {
+    return switch (program.typeOf(id)) {
+        .scalar => |value| value != .string,
+        .enumeration, .error_set => true,
+        .optional => |child| scalar(program, child),
+        else => false,
+    };
 }
 
 pub fn leaves(allocator: std.mem.Allocator, program: ir.Program, type_id: ir.TypeId, path: []const u32, include_optional: bool, output: *std.ArrayList([]const u32)) std.mem.Allocator.Error!void {
