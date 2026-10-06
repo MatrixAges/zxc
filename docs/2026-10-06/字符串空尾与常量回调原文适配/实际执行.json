@@ -1,0 +1,394 @@
+{
+    "production_commit": "b7f882ccaf9cdc6f6aa671f6d1b373317209d7d5",
+    "compiler": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+    "compiler_sha256": "a8fc2f00c9f435e880f384bea87baba39205266ce2c42af5a11661f56ae00275",
+    "source_fingerprints": {
+        "packages/test/tests/targets/wasm/host.ts": "b9a43b25a7a309891c4e9d73874cebb34d45ee3e2843b11b4b3aa96c1fc474e4",
+        "packages/test/tests/targets/wasm/protocol.ts": "f3b638042a581a3fd80790d0611a7b4350dca5db5d01e6f1f02936332a9ce532",
+        "packages/test/tests/targets/wasm/run_test.ts": "4cac0f8212327c402289aab1193d1e8171976cdef618cac1950b49ec934a01a6",
+        "packages/test/tests/targets/wasm/scalars.ts": "910e0a7c11c0e4e1fa41f18bdc7dc05e73cc4bcc9f07b86955958931c0c7c591",
+        "packages/test/tests/targets/wasm/state.ts": "df26a16ca97b53ae6033ad8fb6d51a561c68d8132650ddfda40a4808226ab636",
+        "packages/test/tests/targets/wasm/wasi_host.ts": "9e9bd0c94ece143287c6551c4f0483c48e1ba2f2423fb81fe6d7f6352b0aedfa",
+        "packages/test/tests/targets/application_json/check.ts": "fdd5aadcd8d3825245602f6e6405ec98a4b7c214e007528c214951934668163b",
+        "packages/test/tests/targets/application_json/fixture.ts": "fc06fdd2e7ba8d92356fe40e6a9fd280826a739cd9aa00030559feabd75488dc",
+        "packages/test/tests/targets/application_json/model.ts": "688054b7d5b30a1f3be6cb85ad862cfee9f4231129db730615a169d457810b01",
+        "packages/test/tests/targets/application_json/run_test.ts": "b653569a1164c37b67bc6ed295814c508f91de7af6b0c0687f9ad638bba96713",
+        "packages/test/tests/targets/application_json/gateway/run_test.ts": "af0b13df4f214b4b8e11789a28452181160f05d870bd1c0b9acf4d0e66ad51fd",
+        "packages/test/tests/support/control.zig": "45b9b3522b0627c7e77584cd7c6cf196e545dfc653a579486621c9f365af359f",
+        "packages/test/src/emit_control_tests.ts": "99868699206e081b6119efc541b3a8ceac6920a6efdc49b7a39ab6fe5084dc45",
+        "packages/test/src/zig_string.ts": "d44b74ee4f9a04eedb2483fe2694204ca93c671185393957a5b72940a18992c9",
+        "packages/test/src/shared/json.ts": "e111c89a7fc4a87a904039aa307b5427722c01c2d5fd0990b17573a958cc001f",
+        "packages/test/src/shared/zig_literal.ts": "af3806f19968857c6bd2b9501c560432ea253d1de81e081fbb5ac87f91fbb772",
+        "执行草稿.mjs": "948f566fcdd7cfe8d5c140f2a60607e2c85f01808148ce0e1ccfb0c52f9ecd01",
+        "language/expressions/addition/explicit_strings.zx": "c28eba0d20e6021726818f5c7c020ebed28a6b2a5929091e263e203d67761fb5",
+        "language/expressions/addition/explicit_strings.jsonl": "a9d9cc253e20943b8629175ab7aceecfb8bd4bbf9ca453cb8fb5ddf87d11c1a3",
+        "built_ins/list/map_true/i64.zx": "bf3507b3b26aa3c900d2d1e2d3141a5c12958e5357fa0ae6933b1416da087461",
+        "built_ins/list/map_true/i64.jsonl": "db0163c5e853e1203e7419860aa534835d59abc33217bb1bcfdffb7c86c90413",
+        "built_ins/list/filter_true/i64.zx": "69f98b10b29d6d5eb05e8aa1cd0d6c521a64d08191cf25907df1809dc8acc515",
+        "built_ins/list/filter_true/i64.jsonl": "c0fec6a33cb587330fb87d9b9416185ccfa697914d3e4875f640dfdaadd53dce"
+    },
+    "commands": [
+        {
+            "command": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/language/expressions/addition/explicit_strings.zx",
+                "--out",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/addition.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": "/usr/local/bin/node",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/src/emit_control_tests.ts",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/language/expressions/addition/explicit_strings.jsonl",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/addition-cases.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": "zig",
+            "argv": [
+                "test",
+                "-Odebug",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/addition-cases.zig",
+                "-Odebug",
+                "-Msupport=/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/control.zig",
+                "-Odebug",
+                "-Mprogram=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/addition.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": "1/10 addition-cases.test.language/expressions/addition/explicit_strings/1...OK\n2/10 addition-cases.test.language/expressions/addition/explicit_strings/2...OK\n3/10 addition-cases.test.language/expressions/addition/explicit_strings/3...OK\n4/10 addition-cases.test.language/expressions/addition/explicit_strings/4...OK\n5/10 addition-cases.test.language/expressions/addition/explicit_strings/5...OK\n6/10 addition-cases.test.language/expressions/addition/explicit_strings/6...OK\n7/10 addition-cases.test.language/expressions/addition/explicit_strings/7...OK\n8/10 addition-cases.test.language/expressions/addition/explicit_strings/8...OK\n9/10 addition-cases.test.language/expressions/addition/explicit_strings/9...OK\n10/10 addition-cases.test.language/expressions/addition/explicit_strings/10...OK\nAll 10 tests passed.\n"
+        },
+        {
+            "command": "/usr/local/bin/node",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/application_json/run_test.ts",
+                "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/language/expressions/addition/explicit_strings.zx",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/addition-application.jsonl",
+                "debug",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/addition-debug应用原始报告.txt"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "✔ application JSON language/expressions/addition/explicit_strings/10 (debug) (74.418269ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 79.141398\n",
+            "stderr": ""
+        },
+        {
+            "command": "zig",
+            "argv": [
+                "test",
+                "-Osafe",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/addition-cases.zig",
+                "-Osafe",
+                "-Msupport=/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/control.zig",
+                "-Osafe",
+                "-Mprogram=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/addition.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": "1/10 addition-cases.test.language/expressions/addition/explicit_strings/1...OK\n2/10 addition-cases.test.language/expressions/addition/explicit_strings/2...OK\n3/10 addition-cases.test.language/expressions/addition/explicit_strings/3...OK\n4/10 addition-cases.test.language/expressions/addition/explicit_strings/4...OK\n5/10 addition-cases.test.language/expressions/addition/explicit_strings/5...OK\n6/10 addition-cases.test.language/expressions/addition/explicit_strings/6...OK\n7/10 addition-cases.test.language/expressions/addition/explicit_strings/7...OK\n8/10 addition-cases.test.language/expressions/addition/explicit_strings/8...OK\n9/10 addition-cases.test.language/expressions/addition/explicit_strings/9...OK\n10/10 addition-cases.test.language/expressions/addition/explicit_strings/10...OK\nAll 10 tests passed.\n"
+        },
+        {
+            "command": "/usr/local/bin/node",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/application_json/run_test.ts",
+                "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/language/expressions/addition/explicit_strings.zx",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/addition-application.jsonl",
+                "safe",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/addition-safe应用原始报告.txt"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "✔ application JSON language/expressions/addition/explicit_strings/10 (safe) (68.761875ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 73.243083\n",
+            "stderr": ""
+        },
+        {
+            "command": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/built_ins/list/map_true/i64.zx",
+                "--out",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/map.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": "/usr/local/bin/node",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/src/emit_control_tests.ts",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/built_ins/list/map_true/i64.jsonl",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/map-cases.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": "zig",
+            "argv": [
+                "test",
+                "-Odebug",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/map-cases.zig",
+                "-Odebug",
+                "-Msupport=/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/control.zig",
+                "-Odebug",
+                "-Mprogram=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/map.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": "1/5 map-cases.test.built_ins/list/map_true/i64/items_empty...OK\n2/5 map-cases.test.built_ins/list/map_true/i64/items_p0...OK\n3/5 map-cases.test.built_ins/list/map_true/i64/items_n1_p1...OK\n4/5 map-cases.test.built_ins/list/map_true/i64/items_p1_p2_p3_p4_p5...OK\n5/5 map-cases.test.built_ins/list/map_true/i64/items_p11...OK\nAll 5 tests passed.\n"
+        },
+        {
+            "command": "/usr/local/bin/node",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/application_json/run_test.ts",
+                "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/built_ins/list/map_true/i64.zx",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/map-application.jsonl",
+                "debug",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/map-debug应用原始报告.txt"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "✔ application JSON built_ins/list/map_true/i64/items_p11 (debug) (78.025241ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 82.665443\n",
+            "stderr": ""
+        },
+        {
+            "command": "zig",
+            "argv": [
+                "test",
+                "-Osafe",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/map-cases.zig",
+                "-Osafe",
+                "-Msupport=/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/control.zig",
+                "-Osafe",
+                "-Mprogram=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/map.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": "1/5 map-cases.test.built_ins/list/map_true/i64/items_empty...OK\n2/5 map-cases.test.built_ins/list/map_true/i64/items_p0...OK\n3/5 map-cases.test.built_ins/list/map_true/i64/items_n1_p1...OK\n4/5 map-cases.test.built_ins/list/map_true/i64/items_p1_p2_p3_p4_p5...OK\n5/5 map-cases.test.built_ins/list/map_true/i64/items_p11...OK\nAll 5 tests passed.\n"
+        },
+        {
+            "command": "/usr/local/bin/node",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/application_json/run_test.ts",
+                "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/built_ins/list/map_true/i64.zx",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/map-application.jsonl",
+                "safe",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/map-safe应用原始报告.txt"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "✔ application JSON built_ins/list/map_true/i64/items_p11 (safe) (66.547346ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 71.223082\n",
+            "stderr": ""
+        },
+        {
+            "command": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/built_ins/list/filter_true/i64.zx",
+                "--out",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/filter.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": "/usr/local/bin/node",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/src/emit_control_tests.ts",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/built_ins/list/filter_true/i64.jsonl",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/filter-cases.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": "zig",
+            "argv": [
+                "test",
+                "-Odebug",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/filter-cases.zig",
+                "-Odebug",
+                "-Msupport=/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/control.zig",
+                "-Odebug",
+                "-Mprogram=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/filter.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": "1/5 filter-cases.test.built_ins/list/filter_true/i64/items_empty...OK\n2/5 filter-cases.test.built_ins/list/filter_true/i64/items_p0...OK\n3/5 filter-cases.test.built_ins/list/filter_true/i64/items_n1_p1...OK\n4/5 filter-cases.test.built_ins/list/filter_true/i64/items_p1_p2_p3_p4_p5...OK\n5/5 filter-cases.test.built_ins/list/filter_true/i64/items_p11...OK\nAll 5 tests passed.\n"
+        },
+        {
+            "command": "/usr/local/bin/node",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/application_json/run_test.ts",
+                "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/built_ins/list/filter_true/i64.zx",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/filter-application.jsonl",
+                "debug",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/filter-debug应用原始报告.txt"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "✔ application JSON built_ins/list/filter_true/i64/items_p11 (debug) (77.742252ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 82.259185\n",
+            "stderr": ""
+        },
+        {
+            "command": "zig",
+            "argv": [
+                "test",
+                "-Osafe",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/filter-cases.zig",
+                "-Osafe",
+                "-Msupport=/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/support/control.zig",
+                "-Osafe",
+                "-Mprogram=/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/filter.zig"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "",
+            "stderr": "1/5 filter-cases.test.built_ins/list/filter_true/i64/items_empty...OK\n2/5 filter-cases.test.built_ins/list/filter_true/i64/items_p0...OK\n3/5 filter-cases.test.built_ins/list/filter_true/i64/items_n1_p1...OK\n4/5 filter-cases.test.built_ins/list/filter_true/i64/items_p1_p2_p3_p4_p5...OK\n5/5 filter-cases.test.built_ins/list/filter_true/i64/items_p11...OK\nAll 5 tests passed.\n"
+        },
+        {
+            "command": "/usr/local/bin/node",
+            "argv": [
+                "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/application_json/run_test.ts",
+                "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/built_ins/list/filter_true/i64.zx",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/filter-application.jsonl",
+                "safe",
+                "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/filter-safe应用原始报告.txt"
+            ],
+            "status": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "✔ application JSON built_ins/list/filter_true/i64/items_p11 (safe) (65.382838ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 70.302117\n",
+            "stderr": ""
+        }
+    ],
+    "reports": [
+        {
+            "suite": "addition",
+            "optimize": "debug",
+            "added_case": "language/expressions/addition/explicit_strings/10",
+            "native_named_cases": 10,
+            "raw_report": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/addition-debug应用原始报告.txt",
+            "sha256": "1fe8df78b04e18f149366a409780b942d82cf49895fd34effefd62b2334dd28a",
+            "nested_commands": 5,
+            "application_observations": 3
+        },
+        {
+            "suite": "addition",
+            "optimize": "safe",
+            "added_case": "language/expressions/addition/explicit_strings/10",
+            "native_named_cases": 10,
+            "raw_report": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/addition-safe应用原始报告.txt",
+            "sha256": "6ed72f140e790758849e47d3b3aed569220d03d1a1d7fb6625acb664a3245746",
+            "nested_commands": 5,
+            "application_observations": 3
+        },
+        {
+            "suite": "map",
+            "optimize": "debug",
+            "added_case": "built_ins/list/map_true/i64/items_p11",
+            "native_named_cases": 5,
+            "raw_report": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/map-debug应用原始报告.txt",
+            "sha256": "3935d96c0c818901969101218230a391c3816d117b041bd5bb99cb78d62076a3",
+            "nested_commands": 5,
+            "application_observations": 3
+        },
+        {
+            "suite": "map",
+            "optimize": "safe",
+            "added_case": "built_ins/list/map_true/i64/items_p11",
+            "native_named_cases": 5,
+            "raw_report": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/map-safe应用原始报告.txt",
+            "sha256": "849802d3b96395f6e2e8b0fd7ed4f6534fc2586136b4d9da29f593f207caa326",
+            "nested_commands": 5,
+            "application_observations": 3
+        },
+        {
+            "suite": "filter",
+            "optimize": "debug",
+            "added_case": "built_ins/list/filter_true/i64/items_p11",
+            "native_named_cases": 5,
+            "raw_report": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/filter-debug应用原始报告.txt",
+            "sha256": "c0bd854f38f546f70fccbabf7f7e47b7c6733e147d75279eec32097a2a0654dd",
+            "nested_commands": 5,
+            "application_observations": 3
+        },
+        {
+            "suite": "filter",
+            "optimize": "safe",
+            "added_case": "built_ins/list/filter_true/i64/items_p11",
+            "native_named_cases": 5,
+            "raw_report": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/filter-safe应用原始报告.txt",
+            "sha256": "811b8db372bc1d7ac65d2b4c72c2c9af1e14e75471410c2211d5cac73452ad10",
+            "nested_commands": 5,
+            "application_observations": 3
+        }
+    ]
+}

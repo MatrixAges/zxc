@@ -1,0 +1,144 @@
+{
+  "source": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/草稿/packages/test/tests/built_ins/list/filter_true/i64.zx",
+  "catalog": "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-06/字符串空尾与常量回调原文适配/编译-aV0Rxf/filter-application.jsonl",
+  "optimize": "safe",
+  "commands": [
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "safe",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-CmyRbv/native"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "safe",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-CmyRbv/wasm32-freestanding.wasm",
+        "--target",
+        "wasm32-freestanding"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/json-output-conformance/zxc/zig-out/bin/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "safe",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-CmyRbv/wasm32-wasi.wasm",
+        "--target",
+        "wasm32-wasi"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-CmyRbv/native",
+      "argv": [
+        "{\"items\":[11]}"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[11]\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-CmyRbv/wasm32-wasi.wasm",
+        "{\"items\":[11]}"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[11]\n",
+      "stderr": "(node:49150) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    }
+  ],
+  "artifacts": [
+    {
+      "target": "native",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-CmyRbv/native",
+      "sha256": "0371b108bab1d45c2578ad0e9bd8e7f7a0fbd798e708c6b7244dae33c1867619"
+    },
+    {
+      "target": "wasm32-freestanding",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-CmyRbv/wasm32-freestanding.wasm",
+      "sha256": "5db855b1a7f94eb2fe9895740dd534aeafd1d2661bf98673f59bd93657a4fa81"
+    },
+    {
+      "target": "wasm32-wasi",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-CmyRbv/wasm32-wasi.wasm",
+      "sha256": "3cd5c7687f6d0c247a803a17054d9a1b35e41fd2d8af05d1c3a3c7e462cab99b"
+    }
+  ],
+  "observations": [
+    {
+      "id": "built_ins/list/filter_true/i64/items_p11",
+      "target": "native",
+      "input_utf8_hex": "7b226974656d73223a5b31315d7d",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "[11]\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/list/filter_true/i64/items_p11",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "7b226974656d73223a5b31315d7d",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "[11]",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/list/filter_true/i64/items_p11",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "7b226974656d73223a5b31315d7d",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "[11]\n",
+        "stderr": "(node:49150) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    }
+  ]
+}
