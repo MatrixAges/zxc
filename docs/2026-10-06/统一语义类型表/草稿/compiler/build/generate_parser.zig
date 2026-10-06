@@ -59,10 +59,10 @@ pub fn main(init: std.process.Init) !void {
         .source = @embedFile("semantic_integers"),
         .module = "integers",
     }, .{
-        .specifier = "zig:field_columns",
+        .specifier = "zig:named_columns",
         .path = "zx/analysis/semantic/ordering/columns.d.zx",
-        .source = @embedFile("field_columns_interface"),
-        .module = "field_columns",
+        .source = @embedFile("named_columns_interface"),
+        .module = "named_columns",
     } };
 
     const entries = [_][]const u8{

@@ -26,32 +26,5 @@ pub fn view(self: Self) ir.TypeFields {
 }
 
 pub fn sort(self: Self) std.mem.Allocator.Error!void {
-    if (!@import("parser_options").generated_parser) {
-        std.sort.pdqContext(0, self.names.len, self);
-
-        return;
-    }
-
-    const generated = @import("generated_field_sort");
-    const columns = @import("field_columns");
-    const data = columns.View{ .names = self.names, .types = self.types };
-    var storage: [0]u8 = undefined;
-    var fixed = std.heap.FixedBufferAllocator.init(&storage);
-    var arena = std.heap.ArenaAllocator.init(fixed.allocator());
-
-    defer arena.deinit();
-
-    generated.execute(&arena, @ptrCast(&data)) catch |err| switch (err) {
-        error.OutOfMemory => return error.OutOfMemory,
-        else => unreachable,
-    };
-}
-
-pub fn lessThan(self: Self, a: usize, b: usize) bool {
-    return std.mem.lessThan(u8, self.names[a], self.names[b]);
-}
-
-pub fn swap(self: Self, a: usize, b: usize) void {
-    std.mem.swap([]const u8, &self.names[a], &self.names[b]);
-    std.mem.swap(u32, &self.types[a], &self.types[b]);
+    try @import("../semantic/ordering.zig").sort(self.names, self.types);
 }

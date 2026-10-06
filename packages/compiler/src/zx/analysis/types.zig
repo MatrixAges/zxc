@@ -62,11 +62,7 @@ pub fn tuple(self: *Self, children: []const ir.TypeId) zx.Error!ir.TypeId {
 pub fn errorSet(self: *Self, members: []const []const u8) zx.Error!ir.TypeId {
     const names = try self.allocator.dupe([]const u8, members);
 
-    std.mem.sort([]const u8, names, {}, struct {
-        fn less(_: void, left: []const u8, right: []const u8) bool {
-            return std.mem.lessThan(u8, left, right);
-        }
-    }.less);
+    try @import("semantic/ordering.zig").sort(names, null);
 
     if (try lookup.find(self.items.view(), .{ .error_set = names })) |id| {
         self.allocator.free(names);

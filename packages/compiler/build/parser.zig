@@ -18,8 +18,8 @@ pub const Sources = struct {
     semantic_abi: std.Build.LazyPath,
     nominal_lookup: std.Build.LazyPath,
     nominal_abi: std.Build.LazyPath,
-    field_sort: std.Build.LazyPath,
-    field_abi: std.Build.LazyPath,
+    name_sort: std.Build.LazyPath,
+    ordering_abi: std.Build.LazyPath,
 };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
@@ -71,7 +71,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
         .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = rx }, .{ .name = "rx_analysis", .module = analysis } },
     }) });
 
-    executable.root_module.addAnonymousImport("field_columns_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/ordering/columns.d.zx") });
+    executable.root_module.addAnonymousImport("named_columns_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/ordering/columns.d.zx") });
     executable.root_module.addAnonymousImport("semantic_integers", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.d.zx") });
 
     const run = b.addRunArtifact(executable);
@@ -97,10 +97,10 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const semantic_abi = run.addOutputFileArg("semantic_abi.zig");
     const nominal_lookup = run.addOutputFileArg("nominal_lookup.zig");
     const nominal_abi = run.addOutputFileArg("nominal_abi.zig");
-    const field_sort = run.addOutputFileArg("field_sort.zig");
-    const field_abi = run.addOutputFileArg("field_abi.zig");
+    const name_sort = run.addOutputFileArg("name_sort.zig");
+    const ordering_abi = run.addOutputFileArg("ordering_abi.zig");
 
-    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .field_sort = field_sort, .field_abi = field_abi };
+    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {
@@ -144,17 +144,19 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
     nominal.addImport("integers", integers);
     nominal.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.nominal_abi, .target = target, .optimize = optimize }));
 
-    const field_abi = b.createModule(.{ .root_source_file = source.field_abi, .target = target, .optimize = optimize });
+    const ordering_abi = b.createModule(.{ .root_source_file = source.ordering_abi, .target = target, .optimize = optimize });
+    const named_view = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/ordering/view.zig"), .target = target, .optimize = optimize });
     const columns = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/ordering/columns.zig"), .target = target, .optimize = optimize });
-    const ordering = b.createModule(.{ .root_source_file = source.field_sort, .target = target, .optimize = optimize });
+    const ordering = b.createModule(.{ .root_source_file = source.name_sort, .target = target, .optimize = optimize });
 
-    columns.addImport("zxc_abi", field_abi);
-    ordering.addImport("zxc_abi", field_abi);
-    ordering.addImport("field_columns", columns);
+    columns.addImport("zxc_abi", ordering_abi);
+    columns.addImport("named_view", named_view);
+    ordering.addImport("zxc_abi", ordering_abi);
+    ordering.addImport("named_columns", columns);
 
     return .{
-        .field_columns = columns,
-        .field_sort = ordering,
+        .named_view = named_view,
+        .name_sort = ordering,
         .nominal_lookup = nominal,
         .type_lookup = lookup,
         .program = b.createModule(.{ .root_source_file = source.program, .target = target, .optimize = optimize }),

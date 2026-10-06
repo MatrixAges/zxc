@@ -1,0 +1,18 @@
+{
+    "发行构建": {
+        "命令": "zig build dist",
+        "退出码": 0
+    },
+    "专项验证": {
+        "命令": "zig build test-type-merge test-typed-try",
+        "退出码": 0
+    },
+    "实际CLI生成": {
+        "入口": "草稿/compiler/semantic/ordering/sort.rx",
+        "输出": "生成/name_sort.zig",
+        "退出码": 0
+    },
+    "排序分配": "实际调用使用零容量 arena；最终生成源码不含 allocator.alloc/create",
+    "首次编译失败": "共享 view 文件被两个 Zig 模块拥有；已改为单一模块实例显式共享，并通过重新构建与专项",
+    "范围": "没有新增测试或执行全量测试；未声称全编译器自举完成"
+}
