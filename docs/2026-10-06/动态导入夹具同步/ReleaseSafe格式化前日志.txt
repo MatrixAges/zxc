@@ -1,0 +1,142 @@
+✔ watch CLI preserves published artifacts and recovers from edited invalid and missing dependencies (53808.010525ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53811.054607
+✔ watch library exports remain consumable preserve user files and recover after syntax failure (6173.83687ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6175.996202
+✔ split app executes cold warm changed and disabled generation (32238.293193ms)
+✔ corrupt generation files regenerate and execute correctly (16546.493963ms)
+✔ generation payload stored under another key is rejected before compilation (16453.996103ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65241.840211
+✔ independent CLI processes persist reuse and execute the generated program (1558.257323ms)
+✔ helper body change updates output while reusing the caller (18.30945ms)
+✔ corrupted on disk entry is discarded and repaired (13.317781ms)
+✔ disabled cache neither consumes nor rewrites corrupted entries (9.192494ms)
+✔ cache payload stored under a different module path is discarded (9.54678ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1611.783205
+Build Summary: 62/62 steps succeeded; 97/97 tests passed
+test-watch-recovery success
++- run node success 53s
+   +- compile exe zxc safe native success 1m MaxRSS:2G
+      +- WriteFile cached
+      +- compile lib yaml safe native cached 46ms MaxRSS:20M
+      +- compile lib yaml safe native (reused)
+      +- translate-c cached 40ms MaxRSS:20M
+      +- options success
+      +- run exe bundle-zig (bundle) success 6s
+      |  +- compile exe bundle-zig fast native success 26s MaxRSS:987M
+      |  +- WriteFile bundle_manifest.json cached
+      +- WriteFile interfaces/0.d.zx cached
+      |  +- run exe standard-catalog (catalog.zig) cached
+      |     +- compile exe standard-catalog fast native cached 48ms MaxRSS:21M
+      |     +- WriteFile catalog.json cached
+      +- options success
+      +- run exe generate-parser (parser.zig) success 2s
+      |  +- compile exe generate-parser safe native success 26s MaxRSS:765M
+      |     +- WriteFile interfaces/0.d.zx cached
+      |     |  +- run exe standard-catalog (catalog.zig) cached
+      |     |     +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+      |     |     +- WriteFile catalog.json cached
+      |     +- options cached
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) success 17ms
+         +- compile exe generate-lexer safe native success 22s MaxRSS:697M
+            +- WriteFile interfaces/0.d.zx cached
+            |  +- run exe standard-catalog (catalog.zig) cached
+            |     +- compile exe standard-catalog fast native cached 46ms MaxRSS:21M
+            |     +- WriteFile catalog.json cached
+            +- options success
+test-watch-library success
++- run node success 6s
+   +- compile exe zxc safe native (+11 more reused dependencies)
+test-generation-runtime success
++- run node success 1m
+   +- compile exe zxc safe native (+11 more reused dependencies)
+test-persistent-cache success
++- run node success 1s
+   +- compile exe zxc safe native (+11 more reused dependencies)
+test-owned-input success
++- run test 22 pass (22 total) 24ms MaxRSS:1M
+|  +- compile test safe native success 20s MaxRSS:727M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 9 pass (9 total) 51ms MaxRSS:2M
+|  +- compile test safe native success 23s MaxRSS:764M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 6 pass (6 total) 107ms MaxRSS:2M
+|  +- compile test safe native success 24s MaxRSS:810M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test owned-input-source 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test owned-input-source safe native success 7s MaxRSS:327M
+|     +- run exe compile-owned-input (source.zig) success 5ms
+|     |  +- compile exe compile-owned-input safe native success 28s MaxRSS:887M
+|     |     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     |     +- options (reused)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-linked 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test owned-input-linked safe native success 7s MaxRSS:320M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-library 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test owned-input-library safe native success 7s MaxRSS:323M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-republished 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test owned-input-republished safe native success 7s MaxRSS:323M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-owned 10 pass (10 total) 2ms MaxRSS:1M
+|  +- compile test owned-input-owned safe native success 7s MaxRSS:335M
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
++- run test owned-input-mutating 10 pass (10 total) 2ms MaxRSS:1M
+   +- compile test owned-input-mutating safe native success 7s MaxRSS:327M
+      +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-owned-input (source.zig) (+1 more reused dependencies)
+
