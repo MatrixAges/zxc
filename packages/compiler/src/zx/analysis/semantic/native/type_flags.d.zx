@@ -1,9 +1,0 @@
-export type Flags = opaque
-
-export declare function allocate(flags: Flags, count: u64): void throws { OutOfMemory }
-
-export declare function get(flags: Flags, index: u64): bool
-
-export declare function set(flags: Flags, index: u64, value: bool): void
-
-export declare function release(flags: Flags): void
