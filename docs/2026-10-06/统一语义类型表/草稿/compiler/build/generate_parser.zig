@@ -101,6 +101,11 @@ pub fn main(init: std.process.Init) !void {
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[6 + entries.len], .data = ordering.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[7 + entries.len], .data = ordering.types });
+
+    const origins = try generate(allocator, inputs, sources.items, "zx/analysis/semantic/origins.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[8 + entries.len], .data = origins.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[9 + entries.len], .data = origins.types });
 }
 
 fn lessSource(_: void, left: compiler.project.Source, right: compiler.project.Source) bool {

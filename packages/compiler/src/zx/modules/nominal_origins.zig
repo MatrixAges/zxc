@@ -43,26 +43,7 @@ pub fn same(left: Origin, right: Origin) bool {
 }
 
 pub fn seed(self: *Self, types: ir.TypeTable, values: Table) (std.mem.Allocator.Error || error{InvalidNominalTypes})!void {
-    if (!values.hasValidShape()) return error.InvalidNominalTypes;
-
-    for (0..values.count()) |index| {
-        const item = values.at(index);
-        const id = @backingInt(item.type_id);
-
-        if (id >= types.count()) return error.InvalidNominalTypes;
-
-        const name = types.at(id).nominalName() orelse return error.InvalidNominalTypes;
-
-        if (types.at(id) == .native_reference and item.origin != .native) return error.InvalidNominalTypes;
-        if (!std.mem.eql(u8, name, item.name)) return error.InvalidNominalTypes;
-
-        for (0..index) |previous_index| {
-            const previous = values.at(previous_index);
-
-            if (previous.type_id == item.type_id) return error.InvalidNominalTypes;
-            if (same(previous.origin, item.origin) and std.mem.eql(u8, previous.name, item.name)) return error.InvalidNominalTypes;
-        }
-    }
+    if (!try @import("../analysis/semantic/origins.zig").valid(types, values)) return error.InvalidNominalTypes;
 
     for (0..values.count()) |index| {
         const item = values.at(index);

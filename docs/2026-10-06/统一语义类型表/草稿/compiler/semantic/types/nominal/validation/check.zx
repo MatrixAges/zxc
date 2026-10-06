@@ -1,0 +1,34 @@
+import integers from "zig:integers"
+
+import kind from "../../kind"
+import { Kind } from "../../model"
+import unique from "./unique"
+
+import type { Table } from "../../model"
+import type { Bindings } from "../model"
+
+export type Input = { table: Table, origins: Bindings, names: string[], index: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const origin_kind = in.origins.kinds[in.index]
+
+    if (origin_kind > 2 || (origin_kind != 2 && in.origins.members[in.index] != "")) {
+        return false
+    }
+
+    const id = integers.widen(in.origins.ids[in.index])
+
+    if (id >= in.table.kinds.length) {
+        return false
+    }
+
+    const type_kind = kind(in.table.kinds[id])
+
+    if ((type_kind != Kind.Enumeration && type_kind != Kind.NativeReference) || (type_kind == Kind.NativeReference && origin_kind != 1)) {
+        return false
+    }
+
+    return in.table.labels[id] == in.names[in.index] && unique({ origins: in.origins, names: in.names, index: in.index })
+}

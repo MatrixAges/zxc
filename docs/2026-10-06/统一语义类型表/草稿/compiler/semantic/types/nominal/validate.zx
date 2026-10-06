@@ -1,0 +1,27 @@
+import check from "./validation/check"
+
+import type { Table } from "../model"
+import type { Bindings } from "./model"
+
+export type Input = { table: Table, origins: Bindings, names: string[] }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const count = in.origins.ids.length
+
+    if (in.origins.kinds.length != count || in.origins.owners.length != count ||
+        in.origins.members.length != count || in.names.length != count) {
+        return false
+    }
+
+    const state = loop({ table: in.table, origins: in.origins, names: in.names, index: 0, count: count, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            current.valid = check({ table: current.table, origins: current.origins, names: current.names, index: current.index })
+            current.index += 1
+        }
+    })
+
+    return state.valid
+}
