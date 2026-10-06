@@ -1,0 +1,23 @@
+import ends from "../../path_kind/ends"
+import equal from "../../path_kind/equal"
+import { Kind } from "./model"
+
+export type Input = u8[]
+
+export type Output = Kind
+
+export default function (in: Input): Output {
+  if (equal({ source: in, start: 0, pattern: [97, 112, 112, 46, 114, 120] })) {
+    return Kind.App
+  }
+
+  if (ends({ source: in, pattern: [46, 103, 97, 116, 101, 119, 97, 121, 46, 114, 120] })) {
+    return Kind.Gateway
+  }
+
+  if (ends({ source: in, pattern: [46, 115, 116, 111, 114, 101, 46, 114, 120] })) {
+    return Kind.Store
+  }
+
+  return ends({ source: in, pattern: [46, 114, 120] }) ? Kind.Module : Kind.Invalid
+}
