@@ -1,0 +1,10 @@
+import native from "zig:host"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const values = parallel({ zeta: () => native.first(in), alpha: () => native.second(in) })
+  return values.zeta * 100 + values.alpha
+}

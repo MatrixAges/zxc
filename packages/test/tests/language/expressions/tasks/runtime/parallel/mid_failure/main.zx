@@ -1,0 +1,11 @@
+import native from "zig:host"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const [err, res] = try parallel({ zeta: () => native.first(in), alpha: () => native.second(in) })
+  if (err != null) { return err == error.ConcurrencyUnavailable ? 99 : 98 }
+  return res.zeta * 100 + res.alpha
+}

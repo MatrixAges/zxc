@@ -1,0 +1,53 @@
+Build Summary: 36/36 steps succeeded; 13/13 tests passed
+test-zx-parallel-runtime success
++- run test zx-parallel-values 1 pass (1 total) 2ms MaxRSS:1M
+|  +- compile test zx-parallel-values debug native success 1s MaxRSS:258M
+|     +- run exe compile-zx-parallel-runtime (program.zig) cached
+|     |  +- compile exe compile-zx-parallel-runtime debug native cached 42ms MaxRSS:21M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 41ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- run exe generate-lexer (lexer.zig) cached
+|     |        +- compile exe generate-lexer debug native cached 45ms MaxRSS:21M
+|     |           +- WriteFile interfaces/0.d.zx cached
+|     |              +- run exe standard-catalog (catalog.zig) cached
+|     |                 +- compile exe standard-catalog fast native cached 45ms MaxRSS:21M
+|     |                 +- WriteFile catalog.json cached
+|     +- run exe compile-zx-parallel-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-parallel-source_order 2 pass (2 total) 2ms MaxRSS:2M
+|  +- compile test zx-parallel-source_order debug native success 1s MaxRSS:271M
+|     +- run exe compile-zx-parallel-runtime (program.zig) cached
+|     |  +- compile exe compile-zx-parallel-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-parallel-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-parallel-all_join 1 pass (1 total) 2ms MaxRSS:1M
+|  +- compile test zx-parallel-all_join debug native success 1s MaxRSS:262M
+|     +- run exe compile-zx-parallel-runtime (program.zig) cached
+|     |  +- compile exe compile-zx-parallel-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-parallel-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-parallel-mixed 2 pass (2 total) 2ms MaxRSS:2M
+|  +- compile test zx-parallel-mixed debug native success 1s MaxRSS:260M
+|     +- run exe compile-zx-parallel-runtime (program.zig) cached
+|     |  +- compile exe compile-zx-parallel-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-parallel-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-parallel-all_void 2 pass (2 total) 2ms MaxRSS:2M
+|  +- compile test zx-parallel-all_void debug native success 1s MaxRSS:266M
+|     +- run exe compile-zx-parallel-runtime (program.zig) cached
+|     |  +- compile exe compile-zx-parallel-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-parallel-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-parallel-capture 3 pass (3 total) 3ms MaxRSS:2M
+|  +- compile test zx-parallel-capture debug native success 1s MaxRSS:265M
+|     +- run exe compile-zx-parallel-runtime (program.zig) cached
+|     |  +- compile exe compile-zx-parallel-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-parallel-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-parallel-initial_failure 1 pass (1 total) 2ms MaxRSS:1M
+|  +- compile test zx-parallel-initial_failure debug native success 1s MaxRSS:258M
+|     +- run exe compile-zx-parallel-runtime (program.zig) cached
+|     |  +- compile exe compile-zx-parallel-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-parallel-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-parallel-mid_failure 1 pass (1 total) 2ms MaxRSS:1M
+   +- compile test zx-parallel-mid_failure debug native success 1s MaxRSS:261M
+      +- run exe compile-zx-parallel-runtime (program.zig) cached
+      |  +- compile exe compile-zx-parallel-runtime debug native (+2 more reused dependencies)
+      +- run exe compile-zx-parallel-runtime (program.zig) (+1 more reused dependencies)
+
