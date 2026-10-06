@@ -1,0 +1,19 @@
+{
+    "base": "56b0595c",
+    "build": {
+        "command": "zig build dist -Doptimize=ReleaseFast",
+        "exit_code": 0
+    },
+    "regression": {
+        "cwd": "packages/test",
+        "command": "zig build test-iterate-buffer test-iterate-calls test-value-return test-type-parser test-type-resolution -Doptimize=ReleaseFast --summary all",
+        "exit_code": 0,
+        "zig_tests": 380,
+        "node_tests": 1,
+        "steps": 250
+    },
+    "new_tests_added": false,
+    "full_suite": false,
+    "new_aggregate_element_path_exercised": "未证明；现有专项主要覆盖回归，不能视作新分支专项覆盖",
+    "source_sha256": "5eddd5f6619baaae9a24ebcd10fcd696be7f81a449d04f922d226ae20483fdf6"
+}
