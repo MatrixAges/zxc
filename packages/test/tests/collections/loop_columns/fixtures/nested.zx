@@ -1,0 +1,38 @@
+export type Frame = { position: u64, count: u64 }
+
+export type Input = { frames: Frame[], columns: u64[], count: u64 }
+
+export type State = { box: { frames: Frame[], columns: u64[], scratch: u64[] }, index: u64, count: u64, total: u64 }
+
+export type Output = [u64[], { total: u64, mirror: u64[] }, u64]
+
+export default function (in: Input): Output {
+    const initial: State = { box: { frames: in.frames, columns: in.columns, scratch: [] }, index: 0, count: in.count, total: 0 }
+
+    const state = loop(initial, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.box.frames = current.box.frames.push({ position: current.index, count: current.total })[0]
+
+            const previous = current.box.frames[current.box.frames.length - 1]
+
+            current.box.frames[current.box.frames.length - 1].count += 1
+            current.total += previous.count + current.box.frames[current.box.frames.length - 1].count
+
+            const [remaining, popped] = current.box.frames.pop()
+
+            current.box.frames = remaining
+
+            if (popped != null) {
+                current.total += popped.count
+            }
+
+            current.box.columns = current.box.columns.push(current.total)[0]
+            current.box.scratch = current.box.scratch.push(current.index)[0]
+
+            current.index += 1
+        }
+    })
+
+    return [state.box.columns, { total: state.total, mirror: state.box.columns }, state.box.columns.length]
+}

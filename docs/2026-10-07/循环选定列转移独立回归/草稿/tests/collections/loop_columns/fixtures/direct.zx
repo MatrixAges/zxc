@@ -1,0 +1,38 @@
+export type Frame = { position: u64, count: u64 }
+
+export type Input = { frames: Frame[], columns: u64[], count: u64 }
+
+export type State = { frames: Frame[], index: u64, count: u64, total: u64, columns: u64[], scratch: u64[] }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const initial: State = { frames: in.frames, index: 0, count: in.count, total: 0, columns: in.columns, scratch: [] }
+
+    const state = loop(initial, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.frames = current.frames.push({ position: current.index, count: current.total })[0]
+
+            const previous = current.frames[current.frames.length - 1]
+
+            current.frames[current.frames.length - 1].count += 1
+            current.total += previous.count + current.frames[current.frames.length - 1].count
+
+            const [remaining, popped] = current.frames.pop()
+
+            current.frames = remaining
+
+            if (popped != null) {
+                current.total += popped.count
+            }
+
+            current.columns = current.columns.push(current.total)[0]
+            current.scratch = current.scratch.push(current.index)[0]
+
+            current.index += 1
+        }
+    })
+
+    return state.columns
+}

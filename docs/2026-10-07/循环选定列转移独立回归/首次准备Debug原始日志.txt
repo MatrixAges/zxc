@@ -1,0 +1,378 @@
+test-loop-columns
++- run test loop-columns-fallback-library
+   +- compile test loop-columns-fallback-library debug native 1 errors
+tests/collections/loop_columns/root.zig:63:19: error: expected type 'T', found '*const T'
+        try check(first, &seed, args);
+                  ^~~~~
+tests/collections/loop_columns/root.zig:63:19: note: T = library_abi.zx_type_16
+/tmp/zxc-loop-columns-debug-e42d096c/o/88bacdf964da526b73c43ecfd96d691b/library_abi.zig:21:24: note: struct declared here
+pub const zx_type_16 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/root.zig:13:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.selected columns preserve zero step initial values and repeated projections: tests/collections/loop_columns/root.zig:86:62
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/88bacdf964da526b73c43ecfd96d691b/library.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/e1998edd30425f336a0d2bafb4a8599d/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/88bacdf964da526b73c43ecfd96d691b/library_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-fallback-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-mixed-library
+   +- compile test loop-columns-mixed-library debug native 1 errors
+tests/collections/loop_columns/root.zig:63:19: error: expected type 'T', found '*const T'
+        try check(first, &seed, args);
+                  ^~~~~
+tests/collections/loop_columns/root.zig:63:19: note: T = library_abi.zx_type_16
+/tmp/zxc-loop-columns-debug-e42d096c/o/9d70032a6bcb030eb3295dfa5801c22f/library_abi.zig:20:24: note: struct declared here
+pub const zx_type_16 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/root.zig:13:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.selected columns preserve zero step initial values and repeated projections: tests/collections/loop_columns/root.zig:84:20
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/9d70032a6bcb030eb3295dfa5801c22f/library.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/646850af98ab70347a9af01c4d95e1c3/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/9d70032a6bcb030eb3295dfa5801c22f/library_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-mixed-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-dual-source
+   +- compile test loop-columns-dual-source debug native 1 errors
+tests/collections/loop_columns/dual_test.zig:59:23: error: expected type 'T', found '*const T'
+            try check(first, &seed, args);
+                      ^~~~~
+tests/collections/loop_columns/dual_test.zig:59:23: note: T = source_abi.zx_type_16
+/tmp/zxc-loop-columns-debug-e42d096c/o/aecc75b20bbd2cc119cf0e22c58b50ba/source_abi.zig:22:24: note: struct declared here
+pub const zx_type_16 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/dual_test.zig:7:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.two selected columns preserve shared borrowed prefixes at zero steps: tests/collections/loop_columns/dual_test.zig:81:55
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/dual_test.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/aecc75b20bbd2cc119cf0e22c58b50ba/source.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/f16efc57138c3a9b47b3c586491c1942/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/aecc75b20bbd2cc119cf0e22c58b50ba/source_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-dual-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-fallback-source
+   +- compile test loop-columns-fallback-source debug native 1 errors
+tests/collections/loop_columns/root.zig:63:19: error: expected type 'T', found '*const T'
+        try check(first, &seed, args);
+                  ^~~~~
+tests/collections/loop_columns/root.zig:63:19: note: T = source_abi.zx_type_16
+/tmp/zxc-loop-columns-debug-e42d096c/o/88bacdf964da526b73c43ecfd96d691b/source_abi.zig:21:24: note: struct declared here
+pub const zx_type_16 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/root.zig:13:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.selected columns preserve zero step initial values and repeated projections: tests/collections/loop_columns/root.zig:86:62
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/88bacdf964da526b73c43ecfd96d691b/source.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/e1998edd30425f336a0d2bafb4a8599d/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/88bacdf964da526b73c43ecfd96d691b/source_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-fallback-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-nested-library
+   +- compile test loop-columns-nested-library debug native 1 errors
+tests/collections/loop_columns/root.zig:63:19: error: expected type 'T', found '*const T'
+        try check(first, &seed, args);
+                  ^~~~~
+tests/collections/loop_columns/root.zig:63:19: note: T = struct { []const u64, *const library_abi.zx_type_17, u64 }
+tests/collections/loop_columns/root.zig:13:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.selected columns preserve zero step initial values and repeated projections: tests/collections/loop_columns/root.zig:86:62
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/b5301b8751ed9a920229280701795291/library.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/d20ca2908401e27feb033c3f73315f43/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/b5301b8751ed9a920229280701795291/library_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-nested-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-borrowed-library
+   +- compile test loop-columns-borrowed-library debug native 1 errors
+tests/collections/loop_columns/root.zig:63:19: error: expected type 'T', found '*const T'
+        try check(first, &seed, args);
+                  ^~~~~
+tests/collections/loop_columns/root.zig:63:19: note: T = library_abi.zx_type_16
+/tmp/zxc-loop-columns-debug-e42d096c/o/be91149024dc57f1b3fbd120465ba034/library_abi.zig:21:24: note: struct declared here
+pub const zx_type_16 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/root.zig:13:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.selected columns preserve zero step initial values and repeated projections: tests/collections/loop_columns/root.zig:86:62
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/be91149024dc57f1b3fbd120465ba034/library.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/58940235228bcc8fed6d337f36fa60cd/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/be91149024dc57f1b3fbd120465ba034/library_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-borrowed-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-nested-source
+   +- compile test loop-columns-nested-source debug native 1 errors
+tests/collections/loop_columns/root.zig:63:19: error: expected type 'T', found '*const T'
+        try check(first, &seed, args);
+                  ^~~~~
+tests/collections/loop_columns/root.zig:63:19: note: T = struct { []const u64, *const source_abi.zx_type_17, u64 }
+tests/collections/loop_columns/root.zig:13:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.selected columns preserve zero step initial values and repeated projections: tests/collections/loop_columns/root.zig:86:62
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/b5301b8751ed9a920229280701795291/source.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/d20ca2908401e27feb033c3f73315f43/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/b5301b8751ed9a920229280701795291/source_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-nested-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-mixed-source
+   +- compile test loop-columns-mixed-source debug native 1 errors
+tests/collections/loop_columns/root.zig:63:19: error: expected type 'T', found '*const T'
+        try check(first, &seed, args);
+                  ^~~~~
+tests/collections/loop_columns/root.zig:63:19: note: T = source_abi.zx_type_16
+/tmp/zxc-loop-columns-debug-e42d096c/o/9d70032a6bcb030eb3295dfa5801c22f/source_abi.zig:20:24: note: struct declared here
+pub const zx_type_16 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/root.zig:13:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.selected columns preserve zero step initial values and repeated projections: tests/collections/loop_columns/root.zig:84:20
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/9d70032a6bcb030eb3295dfa5801c22f/source.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/646850af98ab70347a9af01c4d95e1c3/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/9d70032a6bcb030eb3295dfa5801c22f/source_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-mixed-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-dual-library
+   +- compile test loop-columns-dual-library debug native 1 errors
+tests/collections/loop_columns/dual_test.zig:59:23: error: expected type 'T', found '*const T'
+            try check(first, &seed, args);
+                      ^~~~~
+tests/collections/loop_columns/dual_test.zig:59:23: note: T = library_abi.zx_type_16
+/tmp/zxc-loop-columns-debug-e42d096c/o/aecc75b20bbd2cc119cf0e22c58b50ba/library_abi.zig:22:24: note: struct declared here
+pub const zx_type_16 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/dual_test.zig:7:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.two selected columns preserve shared borrowed prefixes at zero steps: tests/collections/loop_columns/dual_test.zig:81:55
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/dual_test.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/aecc75b20bbd2cc119cf0e22c58b50ba/library.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/f16efc57138c3a9b47b3c586491c1942/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/aecc75b20bbd2cc119cf0e22c58b50ba/library_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-dual-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-consumer-source
+   +- compile test loop-columns-consumer-source debug native 1 errors
+tests/collections/loop_columns/consumer_test.zig:76:23: error: expected type 'T', found '*const T'
+            try check(first, &seed, args);
+                      ^~~~~
+tests/collections/loop_columns/consumer_test.zig:76:23: note: T = source_abi.zx_type_17
+/tmp/zxc-loop-columns-debug-e42d096c/o/9ead7f21e4b215f5cab822c461ecd89b/source_abi.zig:27:24: note: struct declared here
+pub const zx_type_17 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/consumer_test.zig:24:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.native reads a borrowed selected column at zero steps through the public aggregate ABI: tests/collections/loop_columns/consumer_test.zig:103:51
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing --dep choose -Mroot=tests/collections/loop_columns/consumer_test.zig -Odebug --dep zxc_abi --dep choose -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/9ead7f21e4b215f5cab822c461ecd89b/source.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/7d849332f84e465b011cd79aeed8e381/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mchoose=tests/collections/loop_columns/consumer/choose.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/9ead7f21e4b215f5cab822c461ecd89b/source_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-consumer-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-borrowed-source
+   +- compile test loop-columns-borrowed-source debug native 1 errors
+tests/collections/loop_columns/root.zig:63:19: error: expected type 'T', found '*const T'
+        try check(first, &seed, args);
+                  ^~~~~
+tests/collections/loop_columns/root.zig:63:19: note: T = source_abi.zx_type_16
+/tmp/zxc-loop-columns-debug-e42d096c/o/be91149024dc57f1b3fbd120465ba034/source_abi.zig:21:24: note: struct declared here
+pub const zx_type_16 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/root.zig:13:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.selected columns preserve zero step initial values and repeated projections: tests/collections/loop_columns/root.zig:86:62
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/be91149024dc57f1b3fbd120465ba034/source.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/58940235228bcc8fed6d337f36fa60cd/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/be91149024dc57f1b3fbd120465ba034/source_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-borrowed-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-consumer-library
+   +- compile test loop-columns-consumer-library debug native 1 errors
+tests/collections/loop_columns/consumer_test.zig:76:23: error: expected type 'T', found '*const T'
+            try check(first, &seed, args);
+                      ^~~~~
+tests/collections/loop_columns/consumer_test.zig:76:23: note: T = library_abi.zx_type_17
+/tmp/zxc-loop-columns-debug-e42d096c/o/9ead7f21e4b215f5cab822c461ecd89b/library_abi.zig:27:24: note: struct declared here
+pub const zx_type_17 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/consumer_test.zig:24:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), seed: *const seed_input.Seed, args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.native reads a borrowed selected column at zero steps through the public aggregate ABI: tests/collections/loop_columns/consumer_test.zig:103:51
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing --dep choose -Mroot=tests/collections/loop_columns/consumer_test.zig -Odebug --dep zxc_abi --dep choose -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/9ead7f21e4b215f5cab822c461ecd89b/library.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/7d849332f84e465b011cd79aeed8e381/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mchoose=tests/collections/loop_columns/consumer/choose.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/9ead7f21e4b215f5cab822c461ecd89b/library_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-consumer-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-leaves-source
+   +- compile test loop-columns-leaves-source debug native 1 errors
+tests/collections/loop_columns/leaves_test.zig:79:23: error: expected type 'T', found '*const T'
+            try check(first, args);
+                      ^~~~~
+tests/collections/loop_columns/leaves_test.zig:79:23: note: T = source_abi.zx_type_19
+/tmp/zxc-loop-columns-debug-e42d096c/o/d61fa1f8fe70ef22a2d336fac3980189/source_abi.zig:26:24: note: struct declared here
+pub const zx_type_19 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/leaves_test.zig:10:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.optional string and boolean columns preserve zero step borrowed values: tests/collections/loop_columns/leaves_test.zig:102:45
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/leaves_test.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/d61fa1f8fe70ef22a2d336fac3980189/source.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/8f6f86081f310905fb79013ea8318125/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/d61fa1f8fe70ef22a2d336fac3980189/source_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-leaves-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-loop-columns
++- run test loop-columns-leaves-library
+   +- compile test loop-columns-leaves-library debug native 1 errors
+tests/collections/loop_columns/leaves_test.zig:79:23: error: expected type 'T', found '*const T'
+            try check(first, args);
+                      ^~~~~
+tests/collections/loop_columns/leaves_test.zig:79:23: note: T = library_abi.zx_type_19
+/tmp/zxc-loop-columns-debug-e42d096c/o/d61fa1f8fe70ef22a2d336fac3980189/library_abi.zig:26:24: note: struct declared here
+pub const zx_type_19 = struct {
+                       ^~~~~~
+tests/collections/loop_columns/leaves_test.zig:10:32: note: parameter type declared here
+fn check(result: std.meta.Child(program.Output), args: Case) !void {
+                 ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+referenced by:
+    test.optional string and boolean columns preserve zero step borrowed values: tests/collections/loop_columns/leaves_test.zig:102:45
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/loop_columns/leaves_test.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-loop-columns-debug-e42d096c/o/d61fa1f8fe70ef22a2d336fac3980189/library.zig -Moptions=/tmp/zxc-loop-columns-debug-e42d096c/o/8f6f86081f310905fb79013ea8318125/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-loop-columns-debug-e42d096c/o/d61fa1f8fe70ef22a2d336fac3980189/library_abi.zig --cache-dir /tmp/zxc-loop-columns-debug-e42d096c --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name loop-columns-leaves-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+Build Summary: 42/71 steps succeeded (14 failed)
+test-loop-columns transitive failure
++- run test loop-columns-mixed-source transitive failure
+|  +- compile test loop-columns-mixed-source debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) success 15ms
+|     |  +- compile exe compile-loop-columns debug native success 7s MaxRSS:991M
+|     |     +- WriteFile interfaces/0.d.zx success
+|     |     |  +- run exe standard-catalog (catalog.zig) success 2ms
+|     |     |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|     |     |     +- WriteFile catalog.json success
+|     |     +- options success
+|     |     +- run exe generate-parser (parser.zig) success 29s
+|     |     |  +- compile exe generate-parser debug native success 5s MaxRSS:590M
+|     |     |     +- options success
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) success 99ms
+|     |     |  +- compile exe generate-lexer debug native success 4s MaxRSS:515M
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native success 7s MaxRSS:352M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options success
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-mixed-library transitive failure
+|  +- compile test loop-columns-mixed-library debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-borrowed-source transitive failure
+|  +- compile test loop-columns-borrowed-source debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) success 15ms
+|     |  +- compile exe compile-loop-columns debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-borrowed-library transitive failure
+|  +- compile test loop-columns-borrowed-library debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-nested-source transitive failure
+|  +- compile test loop-columns-nested-source debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) success 17ms
+|     |  +- compile exe compile-loop-columns debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-nested-library transitive failure
+|  +- compile test loop-columns-nested-library debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-dual-source transitive failure
+|  +- compile test loop-columns-dual-source debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) success 13ms
+|     |  +- compile exe compile-loop-columns debug native (+36 more reused dependencies)
+|     +- options success
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-dual-library transitive failure
+|  +- compile test loop-columns-dual-library debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-leaves-source transitive failure
+|  +- compile test loop-columns-leaves-source debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) success 14ms
+|     |  +- compile exe compile-loop-columns debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-leaves-library transitive failure
+|  +- compile test loop-columns-leaves-library debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-consumer-source transitive failure
+|  +- compile test loop-columns-consumer-source debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) success 15ms
+|     |  +- compile exe compile-loop-columns debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-consumer-library transitive failure
+|  +- compile test loop-columns-consumer-library debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-fallback-source transitive failure
+|  +- compile test loop-columns-fallback-source debug native 1 errors
+|     +- run exe compile-loop-columns (source.zig) success 14ms
+|     |  +- compile exe compile-loop-columns debug native (+36 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
++- run test loop-columns-fallback-library transitive failure
+   +- compile test loop-columns-fallback-library debug native 1 errors
+      +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
+      +- options success
+      +- run exe compile-loop-columns (source.zig) (+1 more reused dependencies)
+

@@ -1,0 +1,28 @@
+export type Frame = { position: u64, count: u64 }
+
+export type Input = { frames: Frame[], optional: u64?[], texts: string[], flags: bool[], label: string, count: u64, selected: u64 }
+
+export type State = { frames: Frame[], optional: u64?[], texts: string[], flags: bool[], label: string, index: u64, count: u64 }
+
+export type Output = { optional: u64?[], texts: string[], flags: bool[], mirror: string[], observed: u64? }
+
+export default function (in: Input): Output {
+    const initial: State = { frames: in.frames, optional: in.optional, texts: in.texts, flags: in.flags, label: in.label, index: 0, count: in.count }
+
+    const state = loop(initial, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.frames = current.frames.push({ position: current.index, count: current.index })[0]
+
+            const [remaining, popped] = current.frames.pop()
+
+            current.frames = remaining
+            current.optional = current.optional.push(current.index % 2 == 0 ? current.index : null)[0]
+            current.texts = current.texts.push(current.label)[0]
+            current.flags = current.flags.push(current.index % 2 == 0)[0]
+            current.index += 1
+        }
+    })
+
+    return { optional: state.optional, texts: state.texts, flags: state.flags, mirror: state.texts, observed: state.optional[in.selected] }
+}
