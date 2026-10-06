@@ -1,10 +1,10 @@
 # lint
 
-ZX 名称检查与 ZX/RX 空行格式化包，依赖 core 的 ZX 类型及 dsl 的 XML AST。
+ZX/RX 表达式风格、名称检查与四空格格式化包，依赖 core 的 ZX 类型及 dsl 的 XML AST。
 
 ## Intent：最终目标
 
-让官方编译入口强制执行同一套名称与空行规则，同时允许编辑器独立格式化尚未通过语义检查的源码。
+让官方编译入口强制执行同一套名称、表达式风格与空行规则，同时允许编辑器独立格式化尚未通过语义检查的源码。
 
 ## Data：实现依据
 
@@ -20,7 +20,8 @@ ZX 名称检查与 ZX/RX 空行格式化包，依赖 core 的 ZX 类型及 dsl �
 - 声明、解构、分支、Store 写入与 return 等不同语句形式之间保留一个空行。没有明确同形证据的同类单行组合保留原有间距，不用宽泛 AST 标签强行合并。
 - 块的首尾不保留额外空行。
 - 行尾注释跟随前一语句，独立行注释保留在后一组之前；不修改注释正文。
-- 保留 LF/CRLF、缩进及所有非空行内容；同一物理行中的多个语句不拆行。当前不是完整的缩进/引号/行宽格式器。
+- 官方 fmt 默认使用四个空格缩进，保留 LF/CRLF；同一物理行中的多个语句不拆行，不调整引号与行宽。字符串、模板 token 内部和注释正文保持原文。
+- 单层三元保留，条件、真分支或假分支的后代表达式不能再次包含三元。括号和普通表达式包装不解除限制；lambda 与状态块作为独立执行体重新检查。ZX 使用 match；RX value 使用 Switch 标签，或将判断提取到 ZX 后通过 Call.fn 取得结果。
 - 普通值、回调参数和解构绑定使用 snake_case，类型使用 PascalCase，函数导入使用 camelCase；入口函数匿名。Call 注入的 $句柄不属于普通局部变量。
 - 名称使用 ASCII 字母与数字；snake_case 禁止开头/结尾下划线及连续下划线。字段和外部协议名称不因内部绑定规则而重命名。
 
@@ -28,9 +29,10 @@ ZX 名称检查与 ZX/RX 空行格式化包，依赖 core 的 ZX 类型及 dsl �
 
 ## Answer：接口与执行
 
-- `checkNames(program)` 返回首条名称诊断或 null。
+- `checkNames(program)` 返回首条名称／表达式风格诊断或 null。
+- `checkExpression(expression)` 与 `checkRxExpression(expression)` 共用语法树检查，分别给出 match 与 Switch／Call.fn 建议。
 - `checkName(name, kind)` 检查单个名称。
-- `source.check(allocator, input)` 依次检查名称和空行，返回首条诊断；input 包含 source、comments、program。
+- `source.check(allocator, input)` 依次检查名称、表达式风格和空行，返回首条诊断；input 包含 source、comments、program。
 - `source.format(allocator, input)` 规划并应用空白编辑，内部释放 edits，返回调用方拥有的源码；不要求名称或语义先通过。
 - `source.formatting_required` 是 CLI 格式检查失败的提示，和格式诊断内容统一由本包维护。
 - `spacing.edits(allocator, source, comments, program)` 返回按源码位置排序、不重叠的空白编辑；输入必须是同一源码的 AST 和注释范围。
@@ -43,7 +45,7 @@ zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
 zig-out/bin/zxc fmt application.zx --write
 ```
 
-默认 fmt 输出到标准输出；`--write` 才写回文件。compile 与 fmt 使用相同的 edits 规划逻辑，避免检查和修复规则不一致。
+默认 fmt 输出到标准输出；`--write` 才写回文件。compile 与 fmt 共用导入／空行 edits；官方 fmt 在应用这些编辑后，必要时重新解析位置，再按 token 规划四空格缩进。CLI lint 同时核对默认格式。表达式风格检查与格式化分离，fmt 可以整理尚未满足风格或语义规则的源码，不自动把判断转换成其它控制流。
 
 仓库通用 GCS 格式化钩子跳过 ZX/RX 文件；两种源码使用 `zxc fmt`，避免模型格式化结果覆盖编译器的格式契约。
 
@@ -51,7 +53,7 @@ zig-out/bin/zxc fmt application.zx --write
 
 `rx.format(allocator, source, node)` 接收同一份源码经 dsl.parseXml 成功解析的根节点，返回调用方拥有的文本。完整元素跨行，或相邻元素的标签、属性名列表、子元素结构不同，元素之间保留一个空行；同结构单行元素紧凑排列。元素内部首尾不保留多余空行。
 
-只修改已有换行处的空白，不拆分同一行上的多个标签，不重排缩进或属性。保留 LF/CRLF、注释、属性引号及实体写法；CDATA 和非空白文本不参与空行替换，含混合文本的父元素不调整自身间隔。格式化不要求 RX Schema、命名、依赖或类型检查通过，也不构成这些检查。此阶段未将 RX 空行规则加入构建门禁。
+只修改已有换行处的空白，不拆分同一行上的多个标签，不重排属性。元素、独立属性续行与结构注释按四空格层级缩进；保留 LF/CRLF、注释正文、属性值与实体写法。CDATA 和非空白文本不参与替换，含混合文本的父元素不调整自身间隔。格式化不要求 RX Schema、命名、依赖或类型检查通过，也不构成这些检查。此阶段未将 RX 空行规则加入构建门禁。
 
 ```sh
 zxc fmt module.rx
@@ -63,6 +65,36 @@ zxc fmt http.gateway.rx --write
 
 ## 配置格式
 
-`configuration.json.format(allocator, source)` 校验 JSON 语法并返回 tab 缩进文本；保留数字词法值与数组顺序。`configuration.yaml.format(allocator, source, fields)` 接收同一 UTF-8 源码上已验证、按顺序且互不重叠的完整字段字节范围，只编辑字段间空行。Field.preserve_trailing 用于保护块标量的尾部内容。字段范围由使用既有 YAML parser 的调用方提供，不在 lint 中复制 YAML 或包清单 schema。
+`configuration.json.format(allocator, source)` 校验 JSON 语法并返回四空格缩进文本；保留数字词法值与数组顺序。`configuration.yaml.format(allocator, source, fields)` 接收同一 UTF-8 源码上已验证、按顺序且互不重叠的完整字段字节范围，只编辑字段间空行。Field.preserve_trailing 用于保护块标量的尾部内容。字段范围由使用既有 YAML parser 的调用方提供，不在 lint 中复制 YAML 或包清单 schema。
 
 CLI 的 `zxc lint` 复用 ZX 名称／格式、RX 单文件 Schema／格式与各包配置 validator；`zxc fmt pkg.yaml` 和显式 `--kind index` 复用本包格式器。锁文件只读检查，由安装器维护。完整范围与命令见 [配置检查参考](../../docs/2026-10-05/配置检查参考.md)。
+
+## RX 判断的组织方式
+
+RX 的嵌套三元诊断建议使用 `Switch` 标签组织分支，或者用 `Call.fn` 将判断交给 ZX。以下写法将一个判断值合并后返回：
+
+```xml
+<Module>
+    <Call fn="choose" in={$in} />
+
+    <Return value={$ctx.choose} />
+</Module>
+```
+
+对应的 `choose.zx` 使用 match：
+
+```typescript
+export type Input = { first: bool, second: bool }
+
+export type Output = u8
+
+export default function (in: Input): Output {
+    return match {
+        in.first => 1,
+        in.second => 2,
+        _ => 3
+    }
+}
+```
+
+实现与验证范围见 [表达式风格与四空格实施计划](../../docs/2026-10-06/表达式风格与四空格/实施计划.md)。
