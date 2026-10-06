@@ -1,0 +1,78 @@
+Build Summary: 58/58 steps succeeded; 128/128 tests passed
+test-list-reverse success
++- run test list-reverse-owned-0 1 pass (1 total) 2ms MaxRSS:999K
+|  +- compile test list-reverse-owned-0 safe native success 7s MaxRSS:308M
+|     +- run node (cases.zig) cached
+|     +- run exe zxc (program.zig) success 3ms
+|        +- compile exe zxc safe native success 1m MaxRSS:2G
+|           +- WriteFile cached
+|           +- compile lib yaml safe native cached 41ms MaxRSS:20M
+|           +- compile lib yaml safe native (reused)
+|           +- translate-c cached 40ms MaxRSS:20M
+|           +- options success
+|           +- run exe bundle-zig (bundle) cached
+|           |  +- compile exe bundle-zig fast native cached 51ms MaxRSS:21M
+|           |  +- WriteFile bundle_manifest.json cached
+|           +- options cached
+|           +- run exe generate-parser (parser.zig) success 7s
+|           |  +- compile exe generate-parser safe native success 27s MaxRSS:745M
+|           |     +- options cached
+|           |     +- WriteFile interfaces/0.d.zx cached
+|           |     |  +- run exe standard-catalog (catalog.zig) cached
+|           |     |     +- compile exe standard-catalog fast native cached 42ms MaxRSS:21M
+|           |     |     +- WriteFile catalog.json cached
+|           |     +- options cached
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- WriteFile interfaces/0.d.zx cached
+|           |  +- run exe standard-catalog (catalog.zig) cached
+|           |     +- compile exe standard-catalog fast native cached 46ms MaxRSS:21M
+|           |     +- WriteFile catalog.json cached
+|           +- options cached
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|           +- run exe generate-lexer (lexer.zig) success 17ms
+|              +- compile exe generate-lexer safe native success 22s MaxRSS:663M
+|                 +- WriteFile interfaces/0.d.zx cached
+|                 |  +- run exe standard-catalog (catalog.zig) cached
+|                 |     +- compile exe standard-catalog fast native cached 45ms MaxRSS:21M
+|                 |     +- WriteFile catalog.json cached
+|                 +- options cached
++- run test list-reverse-owned-1 3 pass (3 total) 2ms MaxRSS:1M
+|  +- compile test list-reverse-owned-1 safe native success 7s MaxRSS:314M
+|     +- run node (cases.zig) cached
+|     +- run exe zxc (program.zig) success 4ms
+|        +- compile exe zxc safe native (+22 more reused dependencies)
++- run test list-reverse-owned-2 11 pass (11 total) 2ms MaxRSS:1M
+|  +- compile test list-reverse-owned-2 safe native success 7s MaxRSS:318M
+|     +- run node (cases.zig) cached
+|     +- run exe zxc (program.zig) success 4ms
+|        +- compile exe zxc safe native (+22 more reused dependencies)
++- run test list-reverse-owned-3 28 pass (28 total) 2ms MaxRSS:1M
+|  +- compile test list-reverse-owned-3 safe native success 7s MaxRSS:316M
+|     +- run node (cases.zig) cached
+|     +- run exe zxc (program.zig) success 3ms
+|        +- compile exe zxc safe native (+22 more reused dependencies)
++- run test list-reverse-owned-4 82 pass (82 total) 3ms MaxRSS:1M
+|  +- compile test list-reverse-owned-4 safe native success 7s MaxRSS:322M
+|     +- run node (cases.zig) cached
+|     +- run exe zxc (program.zig) success 4ms
+|        +- compile exe zxc safe native (+22 more reused dependencies)
++- run test list-reverse-owned-5 1 pass (1 total) 2ms MaxRSS:1M
+|  +- compile test list-reverse-owned-5 safe native success 7s MaxRSS:318M
+|     +- run node (cases.zig) cached
+|     +- run exe zxc (program.zig) success 4ms
+|        +- compile exe zxc safe native (+22 more reused dependencies)
++- run test list-reverse-projections 2 pass (2 total) 2ms MaxRSS:1M
+   +- compile test list-reverse-projections safe native success 7s MaxRSS:311M
+      +- run node (cases.zig) cached
+      +- run exe zxc (program.zig) success 4ms
+         +- compile exe zxc safe native (+22 more reused dependencies)
+

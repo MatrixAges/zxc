@@ -1,0 +1,11 @@
+export type Input = { items: i64[] }
+
+export type Output = i64[]
+
+export default function (in: Input): Output {
+  const owned = in.items.map(item => item)
+
+  const [next, _] = owned.reverse()
+
+  return next
+}
