@@ -63,6 +63,7 @@ pub fn initialize(temporary: std.mem.Allocator, program: zx.ir.Program) std.mem.
         .process_functions = try capabilities.functions(temporary, program, .process),
         .value_functions = value_functions,
         .pure_functions = function_facts.pure,
+        .local_functions = function_facts.local,
         .buffer_functions = try buffer_call.analysis.functions(temporary, program, value_functions),
     };
 }

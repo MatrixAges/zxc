@@ -18,8 +18,9 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
     const name = try self.fresh("state");
     const state = try self.builder.identifier(name);
     const layout_analysis = @import("iteration_layout.zig");
-    const pure = try layout_analysis.pure(self.allocator, self.program, iteration, self.pure_functions);
-    const layout = pure and layout_analysis.flat(self.program, self.program.expression(id).type_id);
+    const pure = try layout_analysis.eligible(self.allocator, self.program, iteration, self.pure_functions);
+    const local_calls = pure or try layout_analysis.eligible(self.allocator, self.program, iteration, self.local_functions);
+    const layout = local_calls and layout_analysis.flat(self.program, self.program.expression(id).type_id);
 
     if (by_value and !layout) return self.builder.expression(.{ .dereference = try lower(self, id, iteration) });
 

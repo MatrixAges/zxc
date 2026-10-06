@@ -31,6 +31,7 @@ io_functions: []const bool = &.{},
 process_functions: []const bool = &.{},
 value_functions: []const bool = &.{},
 pure_functions: []const bool = &.{},
+local_functions: []const bool = &.{},
 value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
 iteration_value: ?*@import("iteration_value/root.zig") = null,
@@ -267,6 +268,12 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
                 const argument = try @import("aggregate.zig").bind(self, &body, try @import("aggregate.zig").objectValue(self, invocation.argument));
 
                 break :temporary try self.builder.expression(.{ .address_of = argument });
+            } else if (callee_function.external != null and callee_function.external.?.expand_tuple and @import("native_value.zig").isolated(self.program, callee_function) and self.program.expression(invocation.argument).value == .tuple and !self.cache.contains(invocation.argument)) temporary: {
+                const argument_value = self.program.expression(invocation.argument);
+                const layout = try @import("aggregate.zig").tupleValue(self, argument_value, argument_value.value.tuple);
+                const argument = try @import("aggregate.zig").bind(self, &body, try self.cast(self.layouts[@backingInt(argument_value.type_id)], layout));
+
+                break :temporary try self.builder.expression(.{ .address_of = argument });
             } else try self.expr(invocation.argument);
 
             if (invocation.stores.len > 0) arguments[2] = try @import("store.zig").adapter(self, invocation);
@@ -290,7 +297,10 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
 }
 
 fn projection(self: *Self, id: ir.ExprId) Error!*const node.Expression {
-    if (self.program.expression(id).value == .iteration) return @import("value_call/root.zig").expression(self, id);
+    switch (self.program.expression(id).value) {
+        .iteration, .list_operation => return @import("value_call/root.zig").expression(self, id),
+        else => {},
+    }
 
     return self.expr(id);
 }
