@@ -1,0 +1,81 @@
+const std = @import("std");
+const compiler = @import("compiler");
+const ir = compiler.ir;
+
+fn scalar(table: ir.TypeTable, id: ir.TypeId, expected: ir.Scalar) !void {
+    const value = table.get(id);
+
+    if (value != .scalar or value.scalar != expected) return error.InvalidScalarField;
+}
+
+fn members(actual: []const []const u8, expected: []const []const u8) bool {
+    if (actual.len != expected.len) return false;
+    for (actual, expected) |a, b| if (!std.mem.eql(u8, a, b)) return false;
+
+    return true;
+}
+
+fn fields(table: ir.TypeTable, id: ir.TypeId, expected: []const []const u8) !ir.TypeFields {
+    const value = table.get(id);
+
+    if (value != .object or !members(value.object.names, expected)) return error.InvalidObjectFields;
+
+    return value.object;
+}
+
+pub fn program(allocator: std.mem.Allocator, value: ir.Program) !void {
+    if (try compiler.validateIr(allocator, value) != null) return error.InvalidMixedIr;
+
+    const table = value.types;
+    const input = try fields(table, value.input_type, &.{ "index", "mode", "pair", "record", "saved", "values" });
+    const output = try fields(table, value.output_type, &.{ "missing", "mode", "pair", "picked", "record", "saved", "values" });
+
+    try scalar(table, input.at(0).type_id, .u64);
+    try scalar(table, output.at(0).type_id, .bool);
+
+    const mode = table.get(input.at(1).type_id);
+
+    if (mode != .enumeration or !std.mem.eql(u8, mode.enumeration.name, "Mode") or !members(mode.enumeration.members, &.{ "First", "Second" })) return error.InvalidMode;
+    if (output.at(1).type_id != input.at(1).type_id) return error.InvalidOutputMode;
+
+    const pair = table.get(input.at(2).type_id);
+
+    if (pair != .tuple or pair.tuple.len != 2) return error.InvalidPair;
+    try scalar(table, pair.tuple.at(0), .u64);
+    try scalar(table, pair.tuple.at(1), .bool);
+    if (output.at(2).type_id != input.at(2).type_id) return error.InvalidOutputPair;
+
+    const record = try fields(table, input.at(3).type_id, &.{ "enabled", "value" });
+
+    try scalar(table, record.at(0).type_id, .bool);
+    try scalar(table, record.at(1).type_id, .u64);
+    if (output.at(4).type_id != input.at(3).type_id) return error.InvalidOutputRecord;
+
+    const saved = table.get(input.at(4).type_id);
+
+    if (saved != .optional) return error.InvalidSaved;
+    try scalar(table, saved.optional, .u64);
+    if (output.at(5).type_id != input.at(4).type_id) return error.InvalidOutputSaved;
+
+    const values = table.get(input.at(5).type_id);
+
+    if (values != .list or values.list != input.at(1).type_id) return error.InvalidModeList;
+    if (output.at(6).type_id != input.at(5).type_id) return error.InvalidOutputList;
+
+    const picked = table.get(output.at(3).type_id);
+
+    if (picked != .optional or picked.optional != input.at(1).type_id) return error.InvalidPicked;
+
+    const enum_index = @backingInt(input.at(1).type_id);
+    var adjacent = false;
+
+    for (0..table.count()) |index| {
+        const item = table.at(index);
+
+        if (item != .error_set or !members(item.error_set, &.{"IndexOutOfBounds"})) continue;
+
+        adjacent = table.first[index] == table.first[enum_index] + table.second[enum_index] or table.first[enum_index] == table.first[index] + table.second[index];
+    }
+
+    if (!adjacent) return error.MissingAdjacentErrorRange;
+}

@@ -1,0 +1,1190 @@
+{
+  "source": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/built_ins/json/parse/lexical/strings.zx",
+  "catalog": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/built_ins/json/parse/lexical/strings.jsonl",
+  "optimize": "safe",
+  "commands": [
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/.zig-cache/o/30a852fd14543023a171c512aadb4deb/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "safe",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/.zig-cache/o/30a852fd14543023a171c512aadb4deb/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "safe",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-freestanding.wasm",
+        "--target",
+        "wasm32-freestanding"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/.zig-cache/o/30a852fd14543023a171c512aadb4deb/zxc",
+      "argv": [
+        "build",
+        "main.zx",
+        "--optimize",
+        "safe",
+        "--result",
+        "json",
+        "--out",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "--target",
+        "wasm32-wasi"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"abc\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"abc\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"abc\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"abc\"\n",
+      "stderr": "(node:45751) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "'abc'"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "'abc'"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:45753) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\\u0022abc\\u0022"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\\u0022abc\\u0022"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:45755) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"abc'"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: UnexpectedEndOfInput\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"abc'"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:45757) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: UnexpectedEndOfInput\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\"\n",
+      "stderr": "(node:45759) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\u0058\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"X\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\u0058\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"X\"\n",
+      "stderr": "(node:45761) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\u005\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\u005\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:45763) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\u0X50\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\u0X50\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:45765) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\/\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"/\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\/\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"/\"\n",
+      "stderr": "(node:45767) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\\\\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\\\\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\\\\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\\\\"\n",
+      "stderr": "(node:45769) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\b\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\b\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\b\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\b\"\n",
+      "stderr": "(node:45771) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\f\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\f\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\f\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\f\"\n",
+      "stderr": "(node:45773) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\n\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\n\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\n\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\n\"\n",
+      "stderr": "(node:45775) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\r\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\r\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\r\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\r\"\n",
+      "stderr": "(node:45777) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\\t\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\t\"\n",
+      "stderr": ""
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\\t\""
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "\"\\t\"\n",
+      "stderr": "(node:45779) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\b\t\n\u000b\f\r\u000e\u000f\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\b\t\n\u000b\f\r\u000e\u000f\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:45781) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:45783) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+    },
+    {
+      "command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "argv": [
+        "\"\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "error: SyntaxError\n"
+    },
+    {
+      "command": "/usr/local/bin/node",
+      "argv": [
+        "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+        "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+        "\"\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\""
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "(node:45785) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+    }
+  ],
+  "artifacts": [
+    {
+      "target": "native",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/native",
+      "sha256": "0675a84f71fd887b9170e26560a678849b1ba301fce8ce6f375e2863e42dd519"
+    },
+    {
+      "target": "wasm32-freestanding",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-freestanding.wasm",
+      "sha256": "7151fd2d0be1d38fca47add2c715d40446f6736368a281707ea8d542fed1b68d"
+    },
+    {
+      "target": "wasm32-wasi",
+      "path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-Vyar6y/wasm32-wasi.wasm",
+      "sha256": "f5769f3f2cc33088b81bcce1235c3b6785c13962f99feddfcc6d95e901be1d14"
+    }
+  ],
+  "observations": [
+    {
+      "id": "built_ins/json/parse/lexical/g2_1",
+      "target": "native",
+      "input_utf8_hex": "2261626322",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"abc\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_1",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2261626322",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"abc\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_1",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2261626322",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"abc\"\n",
+        "stderr": "(node:45751) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_2",
+      "target": "native",
+      "input_utf8_hex": "2761626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_2",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2761626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_2",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2761626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:45753) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_3",
+      "target": "native",
+      "input_utf8_hex": "5c75303032326162635c7530303232",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_3",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "5c75303032326162635c7530303232",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_3",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "5c75303032326162635c7530303232",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:45755) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_4",
+      "target": "native",
+      "input_utf8_hex": "2261626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: UnexpectedEndOfInput\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_4",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2261626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "UnexpectedEndOfInput",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_4",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2261626327",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:45757) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: UnexpectedEndOfInput\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_5",
+      "target": "native",
+      "input_utf8_hex": "2222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_5",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g2_5",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\"\n",
+        "stderr": "(node:45759) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_1",
+      "target": "native",
+      "input_utf8_hex": "225c753030353822",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"X\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_1",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c753030353822",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"X\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_1",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c753030353822",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"X\"\n",
+        "stderr": "(node:45761) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_2",
+      "target": "native",
+      "input_utf8_hex": "225c7530303522",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_2",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c7530303522",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_2",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c7530303522",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:45763) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_3",
+      "target": "native",
+      "input_utf8_hex": "225c753058353022",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_3",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c753058353022",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g5_3",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c753058353022",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:45765) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_1",
+      "target": "native",
+      "input_utf8_hex": "225c2f22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"/\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_1",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c2f22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"/\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_1",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c2f22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"/\"\n",
+        "stderr": "(node:45767) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_2",
+      "target": "native",
+      "input_utf8_hex": "225c5c22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\\\\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_2",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c5c22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\\\\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_2",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c5c22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\\\\"\n",
+        "stderr": "(node:45769) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_3",
+      "target": "native",
+      "input_utf8_hex": "225c6222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\b\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_3",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c6222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\b\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_3",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c6222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\b\"\n",
+        "stderr": "(node:45771) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_4",
+      "target": "native",
+      "input_utf8_hex": "225c6622",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\f\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_4",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c6622",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\f\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_4",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c6622",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\f\"\n",
+        "stderr": "(node:45773) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_5",
+      "target": "native",
+      "input_utf8_hex": "225c6e22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\n\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_5",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c6e22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\n\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_5",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c6e22",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\n\"\n",
+        "stderr": "(node:45775) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_6",
+      "target": "native",
+      "input_utf8_hex": "225c7222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\r\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_6",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c7222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\r\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_6",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c7222",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\r\"\n",
+        "stderr": "(node:45777) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_7",
+      "target": "native",
+      "input_utf8_hex": "225c7422",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\t\"\n",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_7",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "225c7422",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\t\"",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g6_7",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "225c7422",
+      "executed": true,
+      "response": {
+        "status": 0,
+        "output": "\"\\t\"\n",
+        "stderr": "(node:45779) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_1",
+      "target": "native",
+      "input_utf8_hex": "22000102030405060722",
+      "executed": false,
+      "reason": "argv cannot transport NUL"
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_1",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "22000102030405060722",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_1",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "22000102030405060722",
+      "executed": false,
+      "reason": "argv cannot transport NUL"
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_2",
+      "target": "native",
+      "input_utf8_hex": "2208090a0b0c0d0e0f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_2",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2208090a0b0c0d0e0f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_2",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2208090a0b0c0d0e0f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:45781) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_3",
+      "target": "native",
+      "input_utf8_hex": "22101112131415161722",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_3",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "22101112131415161722",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_3",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "22101112131415161722",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:45783) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_4",
+      "target": "native",
+      "input_utf8_hex": "2218191a1b1c1d1e1f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "error: SyntaxError\n"
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_4",
+      "target": "wasm32-freestanding",
+      "input_utf8_hex": "2218191a1b1c1d1e1f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "SyntaxError",
+        "stderr": ""
+      },
+      "passed": true
+    },
+    {
+      "id": "built_ins/json/parse/lexical/g4_4",
+      "target": "wasm32-wasi",
+      "input_utf8_hex": "2218191a1b1c1d1e1f22",
+      "executed": true,
+      "response": {
+        "status": 1,
+        "output": "",
+        "stderr": "(node:45785) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nerror: SyntaxError\n"
+      },
+      "passed": true
+    }
+  ]
+}

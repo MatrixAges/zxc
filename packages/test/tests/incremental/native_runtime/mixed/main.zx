@@ -1,0 +1,25 @@
+import helper from "./helper"
+import native from "zig:choice"
+import type { Request, Response } from "./types"
+
+export type Input = Request
+
+export type Output = Response
+
+export default function (in: Input): Output {
+  const mode = native.flip(helper(in.mode))
+  const [err, picked] = try in.values[in.index]
+
+  return {
+    values: in.values,
+    saved: in.saved,
+    record: {
+      value: in.record.value + in.pair[0],
+      enabled: in.pair[1]
+    },
+    pair: in.pair,
+    mode: mode,
+    picked: picked,
+    missing: err != null
+  }
+}

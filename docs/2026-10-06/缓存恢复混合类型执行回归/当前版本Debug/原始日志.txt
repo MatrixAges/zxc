@@ -1,0 +1,66 @@
+Build Summary: 36/36 steps succeeded; 33/33 tests passed
+test-native-runtime success
++- run test native-basic-original 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test native-basic-original debug native success 1s MaxRSS:261M
+|     +- run exe compile-native-runtime (original.zig) success 8ms
+|     |  +- compile exe compile-native-runtime debug native success 7s MaxRSS:949M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) success 27s
+|     |     |  +- compile exe generate-parser debug native success 4s MaxRSS:596M
+|     |     |     +- options cached
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native cached 42ms MaxRSS:21M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) success 97ms
+|     |     |  +- compile exe generate-lexer debug native success 3s MaxRSS:520M
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native cached 50ms MaxRSS:21M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-basic-linked 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test native-basic-linked debug native success 1s MaxRSS:259M
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-basic-cached 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test native-basic-cached debug native success 1s MaxRSS:259M
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-mixed-original 7 pass (7 total) 2ms MaxRSS:1M
+|  +- compile test native-mixed-original debug native success 1s MaxRSS:270M
+|     +- run exe compile-native-runtime (original.zig) success 14ms
+|     |  +- compile exe compile-native-runtime debug native (+21 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-mixed-linked 7 pass (7 total) 2ms MaxRSS:1M
+|  +- compile test native-mixed-linked debug native success 1s MaxRSS:271M
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+|     +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
++- run test native-mixed-cached 7 pass (7 total) 2ms MaxRSS:1M
+   +- compile test native-mixed-cached debug native success 1s MaxRSS:259M
+      +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+      +- run exe compile-native-runtime (original.zig) (+1 more reused dependencies)
+
