@@ -1,0 +1,36 @@
+pub const zx_type_15 = struct { ?error{ MissingValue, NativeFailure, }, ?u64, };
+
+pub const native = struct {
+    pub const @"zig:host" = struct {
+        pub const value = struct {
+            pub const Input = u64;
+            pub const Output = u64;
+            pub const InputValue = u64;
+            pub const OutputValue = u64;
+        };
+        pub const optional = struct {
+            pub const Input = u64;
+            pub const Output = ?u64;
+            pub const InputValue = u64;
+            pub const OutputValue = ?u64;
+        };
+        pub const effect = struct {
+            pub const Input = u64;
+            pub const Output = void;
+            pub const InputValue = u64;
+            pub const OutputValue = void;
+        };
+        pub const identity = struct {
+            pub const Input = u64;
+            pub const Output = u64;
+            pub const InputValue = u64;
+            pub const OutputValue = u64;
+        };
+    };
+};
+
+pub const layouts = struct {
+    pub const @"zig:host" = struct {
+    };
+};
+

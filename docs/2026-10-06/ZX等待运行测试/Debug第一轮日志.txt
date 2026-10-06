@@ -1,0 +1,234 @@
+test-zx-await-runtime
++- run test zx-await-scalar
+   +- compile test zx-await-scalar debug native 2 errors
+tests/language/expressions/tasks/runtime/await/check.zig:22:63: error: expected type 'u64', found 'Io'
+        const actual = try program.execute(&arena, threaded.io(), input);
+                                                   ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/5476aa313ba68f3cb96d5f9b398e4277/program.zig:79:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ MissingValue, NativeFailure, }!u64 {
+                                                        ^~~
+referenced by:
+    test.await returns native scalar payload: tests/language/expressions/tasks/runtime/await/scalar/execution_test.zig:4:21
+tests/language/expressions/tasks/runtime/await/check.zig:45:82: error: expected type 'u64', found 'Io'
+        try std.testing.expectError(expected, program.execute(&arena, threaded.io(), input));
+                                                                      ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/5476aa313ba68f3cb96d5f9b398e4277/program.zig:79:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ MissingValue, NativeFailure, }!u64 {
+                                                        ^~~
+error: 2 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host --dep await_check -Mroot=tests/language/expressions/tasks/runtime/await/scalar/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/5476aa313ba68f3cb96d5f9b398e4277/program.zig -Odebug -Mhost=tests/language/expressions/tasks/runtime/await/native/host.zig -Odebug --dep program --dep host -Mawait_check=tests/language/expressions/tasks/runtime/await/check.zig -Odebug -Mzxc_abi=.zig-cache/o/5476aa313ba68f3cb96d5f9b398e4277/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zx-await-scalar --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-zx-await-runtime
++- run test zx-await-void
+   +- compile test zx-await-void debug native 2 errors
+tests/language/expressions/tasks/runtime/await/check.zig:22:63: error: expected type 'u64', found 'Io'
+        const actual = try program.execute(&arena, threaded.io(), input);
+                                                   ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/4edf8fecff7add3e0fa2ad0ac829bd4a/program.zig:79:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ NativeFailure, }!u64 {
+                                                        ^~~
+referenced by:
+    test.void await continues into the following native call: tests/language/expressions/tasks/runtime/await/void/execution_test.zig:4:21
+tests/language/expressions/tasks/runtime/await/check.zig:45:82: error: expected type 'u64', found 'Io'
+        try std.testing.expectError(expected, program.execute(&arena, threaded.io(), input));
+                                                                      ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/4edf8fecff7add3e0fa2ad0ac829bd4a/program.zig:79:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ NativeFailure, }!u64 {
+                                                        ^~~
+error: 2 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host --dep await_check -Mroot=tests/language/expressions/tasks/runtime/await/void/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/4edf8fecff7add3e0fa2ad0ac829bd4a/program.zig -Odebug -Mhost=tests/language/expressions/tasks/runtime/await/native/host.zig -Odebug --dep program --dep host -Mawait_check=tests/language/expressions/tasks/runtime/await/check.zig -Odebug -Mzxc_abi=.zig-cache/o/4edf8fecff7add3e0fa2ad0ac829bd4a/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zx-await-void --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-zx-await-runtime
++- run test zx-await-direct
+   +- compile test zx-await-direct debug native 2 errors
+tests/language/expressions/tasks/runtime/await/check.zig:22:63: error: expected type 'u64', found 'Io'
+        const actual = try program.execute(&arena, threaded.io(), input);
+                                                   ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/492351c928700ab32da12b0f667504ac/program.zig:79:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ MissingValue, NativeFailure, }!u64 {
+                                                        ^~~
+referenced by:
+    test.direct await async returns native scalar result: tests/language/expressions/tasks/runtime/await/direct/execution_test.zig:4:21
+tests/language/expressions/tasks/runtime/await/check.zig:45:82: error: expected type 'u64', found 'Io'
+        try std.testing.expectError(expected, program.execute(&arena, threaded.io(), input));
+                                                                      ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/492351c928700ab32da12b0f667504ac/program.zig:79:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ MissingValue, NativeFailure, }!u64 {
+                                                        ^~~
+error: 2 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host --dep await_check -Mroot=tests/language/expressions/tasks/runtime/await/direct/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/492351c928700ab32da12b0f667504ac/program.zig -Odebug -Mhost=tests/language/expressions/tasks/runtime/await/native/host.zig -Odebug --dep program --dep host -Mawait_check=tests/language/expressions/tasks/runtime/await/check.zig -Odebug -Mzxc_abi=.zig-cache/o/492351c928700ab32da12b0f667504ac/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zx-await-direct --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-zx-await-runtime
++- run test zx-await-nested
+   +- compile test zx-await-nested debug native 2 errors
+tests/language/expressions/tasks/runtime/await/check.zig:22:63: error: expected type 'u64', found 'Io'
+        const actual = try program.execute(&arena, threaded.io(), input);
+                                                   ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/573496ace6c37fdcecb70ea591ad514b/program.zig:79:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ MissingValue, NativeFailure, }!u64 {
+                                                        ^~~
+referenced by:
+    test.nested local tasks return the inner successful payload: tests/language/expressions/tasks/runtime/await/nested/execution_test.zig:4:21
+tests/language/expressions/tasks/runtime/await/check.zig:45:82: error: expected type 'u64', found 'Io'
+        try std.testing.expectError(expected, program.execute(&arena, threaded.io(), input));
+                                                                      ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/573496ace6c37fdcecb70ea591ad514b/program.zig:79:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ MissingValue, NativeFailure, }!u64 {
+                                                        ^~~
+error: 2 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host --dep await_check -Mroot=tests/language/expressions/tasks/runtime/await/nested/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/573496ace6c37fdcecb70ea591ad514b/program.zig -Odebug -Mhost=tests/language/expressions/tasks/runtime/await/native/host.zig -Odebug --dep program --dep host -Mawait_check=tests/language/expressions/tasks/runtime/await/check.zig -Odebug -Mzxc_abi=.zig-cache/o/573496ace6c37fdcecb70ea591ad514b/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zx-await-nested --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-zx-await-runtime
++- run test zx-await-capture_error
+   +- compile test zx-await-capture_error debug native 1 errors
+tests/language/expressions/tasks/runtime/await/check.zig:22:63: error: expected type 'u64', found 'Io'
+        const actual = try program.execute(&arena, threaded.io(), input);
+                                                   ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/a285e637102ce0795d0a1e93030cbc81/program.zig:83:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ }!u64 {
+                                                        ^~~
+referenced by:
+    test.try await scalar success exposes the correlated result: tests/language/expressions/tasks/runtime/await/capture_error/execution_test.zig:4:21
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host --dep await_check -Mroot=tests/language/expressions/tasks/runtime/await/capture_error/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/a285e637102ce0795d0a1e93030cbc81/program.zig -Odebug -Mhost=tests/language/expressions/tasks/runtime/await/native/host.zig -Odebug --dep program --dep host -Mawait_check=tests/language/expressions/tasks/runtime/await/check.zig -Odebug -Mzxc_abi=.zig-cache/o/a285e637102ce0795d0a1e93030cbc81/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zx-await-capture_error --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-zx-await-runtime
++- run test zx-await-list
+   +- compile test zx-await-list debug native 2 errors
+tests/language/expressions/tasks/runtime/await/check.zig:22:63: error: expected type 'u64', found 'Io'
+        const actual = try program.execute(&arena, threaded.io(), input);
+                                                   ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/810f0b25dd8db2ab77db2eb7f39dab66/program.zig:81:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ MissingValue, NativeFailure, OutOfMemory, }![]const u64 {
+                                                        ^~~
+referenced by:
+    test.task allocated list result survives await until application arena release: tests/language/expressions/tasks/runtime/await/list/execution_test.zig:4:21
+tests/language/expressions/tasks/runtime/await/check.zig:45:82: error: expected type 'u64', found 'Io'
+        try std.testing.expectError(expected, program.execute(&arena, threaded.io(), input));
+                                                                      ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/810f0b25dd8db2ab77db2eb7f39dab66/program.zig:81:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ MissingValue, NativeFailure, OutOfMemory, }![]const u64 {
+                                                        ^~~
+error: 2 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host --dep await_check -Mroot=tests/language/expressions/tasks/runtime/await/list/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/810f0b25dd8db2ab77db2eb7f39dab66/program.zig -Odebug -Mhost=tests/language/expressions/tasks/runtime/await/native/host.zig -Odebug --dep program --dep host -Mawait_check=tests/language/expressions/tasks/runtime/await/check.zig -Odebug -Mzxc_abi=.zig-cache/o/810f0b25dd8db2ab77db2eb7f39dab66/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zx-await-list --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-zx-await-runtime
++- run test zx-await-capture
+   +- compile test zx-await-capture debug native 1 errors
+tests/language/expressions/tasks/runtime/await/check.zig:22:63: error: expected type 'u64', found 'Io'
+        const actual = try program.execute(&arena, threaded.io(), input);
+                                                   ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/db8b30b120d25d45ea7ead2c14c0be2b/program.zig:79:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ MissingValue, NativeFailure, }!u64 {
+                                                        ^~~
+referenced by:
+    test.await reads captured locals in their actual operand order: tests/language/expressions/tasks/runtime/await/capture/execution_test.zig:4:21
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host --dep await_check -Mroot=tests/language/expressions/tasks/runtime/await/capture/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/db8b30b120d25d45ea7ead2c14c0be2b/program.zig -Odebug -Mhost=tests/language/expressions/tasks/runtime/await/native/host.zig -Odebug --dep program --dep host -Mawait_check=tests/language/expressions/tasks/runtime/await/check.zig -Odebug -Mzxc_abi=.zig-cache/o/db8b30b120d25d45ea7ead2c14c0be2b/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zx-await-capture --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+test-zx-await-runtime
++- run test zx-await-optional
+   +- compile test zx-await-optional debug native 1 errors
+tests/language/expressions/tasks/runtime/await/check.zig:22:63: error: expected type 'u64', found 'Io'
+        const actual = try program.execute(&arena, threaded.io(), input);
+                                                   ~~~~~~~~~~~^~
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/Io.zig:1:1: note: struct declared here
+//! A cross-platform interface that abstracts all I/O operations and
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.zig-cache/o/e27feed5f6a23fa2c508423c5d92fbe3/program.zig:85:57: note: parameter type declared here
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: u64, io: (std).Io) error{ }!?u64 {
+                                                        ^~~
+referenced by:
+    test.try await keeps successful null separate from failed optional: tests/language/expressions/tasks/runtime/await/optional/execution_test.zig:4:21
+error: 1 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep host --dep await_check -Mroot=tests/language/expressions/tasks/runtime/await/optional/execution_test.zig -Odebug --dep zxc_abi --dep host -Mprogram=.zig-cache/o/e27feed5f6a23fa2c508423c5d92fbe3/program.zig -Odebug -Mhost=tests/language/expressions/tasks/runtime/await/native/host.zig -Odebug --dep program --dep host -Mawait_check=tests/language/expressions/tasks/runtime/await/check.zig -Odebug -Mzxc_abi=.zig-cache/o/e27feed5f6a23fa2c508423c5d92fbe3/abi.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zx-await-optional --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+Build Summary: 19/36 steps succeeded (8 failed)
+test-zx-await-runtime transitive failure
++- run test zx-await-scalar transitive failure
+|  +- compile test zx-await-scalar debug native 2 errors
+|     +- run exe compile-zx-await-runtime (program.zig) success 4ms
+|     |  +- compile exe compile-zx-await-runtime debug native success 3s MaxRSS:494M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- run exe generate-lexer (lexer.zig) cached
+|     |        +- compile exe generate-lexer debug native cached 44ms MaxRSS:21M
+|     |           +- WriteFile interfaces/0.d.zx cached
+|     |              +- run exe standard-catalog (catalog.zig) cached
+|     |                 +- compile exe standard-catalog fast native cached 43ms MaxRSS:21M
+|     |                 +- WriteFile catalog.json cached
+|     +- run exe compile-zx-await-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-await-capture transitive failure
+|  +- compile test zx-await-capture debug native 1 errors
+|     +- run exe compile-zx-await-runtime (program.zig) success 4ms
+|     |  +- compile exe compile-zx-await-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-await-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-await-direct transitive failure
+|  +- compile test zx-await-direct debug native 2 errors
+|     +- run exe compile-zx-await-runtime (program.zig) success 3ms
+|     |  +- compile exe compile-zx-await-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-await-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-await-nested transitive failure
+|  +- compile test zx-await-nested debug native 2 errors
+|     +- run exe compile-zx-await-runtime (program.zig) success 4ms
+|     |  +- compile exe compile-zx-await-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-await-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-await-optional transitive failure
+|  +- compile test zx-await-optional debug native 1 errors
+|     +- run exe compile-zx-await-runtime (program.zig) success 4ms
+|     |  +- compile exe compile-zx-await-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-await-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-await-void transitive failure
+|  +- compile test zx-await-void debug native 2 errors
+|     +- run exe compile-zx-await-runtime (program.zig) success 4ms
+|     |  +- compile exe compile-zx-await-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-await-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-await-capture_error transitive failure
+|  +- compile test zx-await-capture_error debug native 1 errors
+|     +- run exe compile-zx-await-runtime (program.zig) success 4ms
+|     |  +- compile exe compile-zx-await-runtime debug native (+2 more reused dependencies)
+|     +- run exe compile-zx-await-runtime (program.zig) (+1 more reused dependencies)
++- run test zx-await-list transitive failure
+   +- compile test zx-await-list debug native 2 errors
+      +- run exe compile-zx-await-runtime (program.zig) success 4ms
+      |  +- compile exe compile-zx-await-runtime debug native (+2 more reused dependencies)
+      +- run exe compile-zx-await-runtime (program.zig) (+1 more reused dependencies)
+

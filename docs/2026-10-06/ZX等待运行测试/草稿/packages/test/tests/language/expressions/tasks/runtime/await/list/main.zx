@@ -1,0 +1,9 @@
+import native from "zig:host"
+
+export type Input = u64
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+  return await async [native.value(in), in + 1]
+}

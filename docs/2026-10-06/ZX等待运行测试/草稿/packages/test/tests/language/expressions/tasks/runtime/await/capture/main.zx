@@ -1,0 +1,12 @@
+import native from "zig:host"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  const left = in + 2
+  const right = in + 3
+  const work = async native.value(right + left + right)
+  return await work
+}
