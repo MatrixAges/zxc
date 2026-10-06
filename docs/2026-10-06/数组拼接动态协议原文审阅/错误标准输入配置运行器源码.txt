@@ -1,0 +1,75 @@
+import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const directory = dirname(fileURLToPath(import.meta.url))
+const upstream = '/tmp/zxc-test262-reference/test262-7ab7fafa0003f73fc85c1b95d88094d33f7eb8bd'
+const digest = value => createHash('sha256').update(value).digest('hex')
+const metadata = JSON.parse(readFileSync(resolve(directory, '原文metadata.json')))
+const entry = metadata.find(row => row.path.endsWith('/arg-length-near-integer-limit.js'))
+const source = readFileSync(resolve(directory, '原文/arg-length-near-integer-limit.txt'))
+const harness = ['sta.js', 'assert.js', ...(entry.includes ?? [])].map(name =>
+    readFileSync(resolve(upstream, 'harness', name))
+)
+const results = []
+
+assert.equal(digest(source), entry.sha256)
+mkdirSync(resolve(directory, '草稿'), { recursive: true })
+
+for (const strict of [false, true]) {
+    const script = Buffer.concat([
+        Buffer.from(strict ? '"use strict";\n' : ''),
+        ...harness.flatMap(value => [value, Buffer.from('\n')]),
+        source
+    ])
+    const file = resolve(directory, '草稿', strict ? 'direct_strict.txt' : 'direct_default.txt')
+
+    assert.ok(script.subarray(script.length - source.length).equals(source))
+    writeFileSync(file, script)
+
+    let status = 0
+    let stdout = Buffer.alloc(0)
+    let stderr = Buffer.alloc(0)
+
+    try {
+        stdout = execFileSync(process.execPath, ['--input-type=commonjs'], {
+            input: script,
+            timeout: 10000,
+            stdio: ['ignore', 'pipe', 'pipe']
+        })
+    } catch (error) {
+        status = error.status
+        stdout = error.stdout
+        stderr = error.stderr
+        assert.equal(error.signal, null)
+    }
+
+    const log = resolve(directory, strict ? '独立Node严格模式日志.txt' : '独立Node普通模式日志.txt')
+
+    writeFileSync(log, Buffer.concat([stdout, stderr]))
+    results.push({
+        strict,
+        argv: [process.execPath, '--input-type=commonjs'],
+        standard_input_file: file,
+        terminal_exit_code: status,
+        unchanged_original_sha256: digest(source),
+        assembled_script_sha256: digest(script),
+        raw_log: log,
+        raw_log_sha256: digest(readFileSync(log))
+    })
+}
+
+writeFileSync(
+    resolve(directory, '独立Node复核.json'),
+    JSON.stringify(
+        { node: process.version, script_sha256: digest(readFileSync(fileURLToPath(import.meta.url))), results },
+        null,
+        4
+    ) + '\n'
+)
+console.log(
+    JSON.stringify(results.map(result => ({ strict: result.strict, terminal_exit_code: result.terminal_exit_code })))
+)
