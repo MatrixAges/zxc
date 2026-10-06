@@ -39,8 +39,8 @@ test "modules negative: duplicate imported binding" {
     try reject("import type { Value } from \"./dep\"\n import type { Value } from \"./dep\"\n export type Result = Value\n", "export type Value = u64\n", .name);
 }
 
-test "modules negative: relative extension rejected" {
-    try reject("import type { Value } from \"./dep.zx\"\n export type Result = Value\n", "export type Value = u64\n", .module);
+test "modules negative: relative extension required" {
+    try reject("import type { Value } from \"./dep\"\n export type Result = Value\n", "export type Value = u64\n", .module);
 }
 
 test "modules negative: bare path rejected" {

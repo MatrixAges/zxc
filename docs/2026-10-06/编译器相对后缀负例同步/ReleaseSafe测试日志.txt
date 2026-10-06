@@ -1,0 +1,27 @@
+Build Summary: 23/23 steps succeeded; 309/309 tests passed
+test-frontend success
++- run test zx-frontend-tests 309 pass (309 total) 41ms MaxRSS:2M
+   +- compile test zx-frontend-tests safe native success 20s MaxRSS:744M
+      +- WriteFile interfaces/0.d.zx cached
+      |  +- run exe standard-catalog (catalog.zig) cached
+      |     +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+      |     +- WriteFile catalog.json cached
+      +- options cached
+      +- run exe generate-parser (parser.zig) success 6s
+      |  +- compile exe generate-parser safe native success 26s MaxRSS:797M
+      |     +- options cached
+      |     +- WriteFile interfaces/0.d.zx cached
+      |     |  +- run exe standard-catalog (catalog.zig) cached
+      |     |     +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+      |     |     +- WriteFile catalog.json cached
+      |     +- options cached
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) success 16ms
+         +- compile exe generate-lexer safe native success 21s MaxRSS:691M
+            +- WriteFile interfaces/0.d.zx cached
+            |  +- run exe standard-catalog (catalog.zig) cached
+            |     +- compile exe standard-catalog fast native cached 51ms MaxRSS:21M
+            |     +- WriteFile catalog.json cached
+            +- options cached
+
