@@ -1,0 +1,613 @@
+{
+	"compiler": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/zig-out/bin/zxc",
+	"compiler_sha256": "9158417fa922fab028ce29807dbbc4bb5496a8be7d6b00bcee834cf3a20b2597",
+	"optimize": "debug",
+	"results": [
+		{
+			"source": "scalar.zx",
+			"commands": [
+				{
+					"command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/zig-out/bin/zxc",
+					"argv": [
+						"build",
+						"main.zx",
+						"--optimize",
+						"debug",
+						"--result",
+						"json",
+						"--out",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/native"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "",
+					"stderr": ""
+				},
+				{
+					"command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/zig-out/bin/zxc",
+					"argv": [
+						"build",
+						"main.zx",
+						"--optimize",
+						"debug",
+						"--result",
+						"json",
+						"--out",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/wasm32-freestanding.wasm",
+						"--target",
+						"wasm32-freestanding"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "",
+					"stderr": ""
+				},
+				{
+					"command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/zig-out/bin/zxc",
+					"argv": [
+						"build",
+						"main.zx",
+						"--optimize",
+						"debug",
+						"--result",
+						"json",
+						"--out",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/wasm32-wasi.wasm",
+						"--target",
+						"wasm32-wasi"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "",
+					"stderr": ""
+				},
+				{
+					"command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/native",
+					"argv": ["1"],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "1\n",
+					"stderr": ""
+				},
+				{
+					"command": "/usr/local/bin/node",
+					"argv": [
+						"/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/wasm32-wasi.wasm",
+						"1"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "1\n",
+					"stderr": "(node:67942) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+				},
+				{
+					"command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/native",
+					"argv": ["1e400"],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "inf\n",
+					"stderr": ""
+				},
+				{
+					"command": "/usr/local/bin/node",
+					"argv": [
+						"/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/wasm32-wasi.wasm",
+						"1e400"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "inf\n",
+					"stderr": "(node:67944) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+				},
+				{
+					"command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/native",
+					"argv": ["-1e400"],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "-inf\n",
+					"stderr": ""
+				},
+				{
+					"command": "/usr/local/bin/node",
+					"argv": [
+						"/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/wasm32-wasi.wasm",
+						"-1e400"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "-inf\n",
+					"stderr": "(node:67947) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+				}
+			],
+			"artifacts": [
+				{
+					"target": "native",
+					"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/native",
+					"sha256": "d0446c2ebe15c34745c7ecf2323259b40a264edee6184025ecdd0d4c5675c490"
+				},
+				{
+					"target": "wasm32-freestanding",
+					"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/wasm32-freestanding.wasm",
+					"sha256": "4f8bc88e3214e95f7e3822d0d3040061ae5b743d071d801323c18f907c21a2fe"
+				},
+				{
+					"target": "wasm32-wasi",
+					"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ootFiT/wasm32-wasi.wasm",
+					"sha256": "7ad1e68f20a206c0e87f12a62afc6282c0adf0e8be3f00f5207a653db6883b4f"
+				}
+			],
+			"observations": [
+				{
+					"input": "1",
+					"input_utf8_hex": "31",
+					"target": "native",
+					"response": {
+						"status": 0,
+						"output": "1\n",
+						"stderr": ""
+					},
+					"parsed": 1,
+					"parse_error": null
+				},
+				{
+					"input": "1",
+					"input_utf8_hex": "31",
+					"target": "wasm32-freestanding",
+					"response": {
+						"status": 0,
+						"output": "1",
+						"stderr": ""
+					},
+					"parsed": 1,
+					"parse_error": null
+				},
+				{
+					"input": "1",
+					"input_utf8_hex": "31",
+					"target": "wasm32-wasi",
+					"response": {
+						"status": 0,
+						"output": "1\n",
+						"stderr": "(node:67942) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+					},
+					"parsed": 1,
+					"parse_error": null
+				},
+				{
+					"input": "1e400",
+					"input_utf8_hex": "3165343030",
+					"target": "native",
+					"response": {
+						"status": 0,
+						"output": "inf\n",
+						"stderr": ""
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "Unexpected token 'i', \"inf\n\" is not valid JSON"
+					}
+				},
+				{
+					"input": "1e400",
+					"input_utf8_hex": "3165343030",
+					"target": "wasm32-freestanding",
+					"response": {
+						"status": 0,
+						"output": "inf",
+						"stderr": ""
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "Unexpected token 'i', \"inf\" is not valid JSON"
+					}
+				},
+				{
+					"input": "1e400",
+					"input_utf8_hex": "3165343030",
+					"target": "wasm32-wasi",
+					"response": {
+						"status": 0,
+						"output": "inf\n",
+						"stderr": "(node:67944) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "Unexpected token 'i', \"inf\n\" is not valid JSON"
+					}
+				},
+				{
+					"input": "-1e400",
+					"input_utf8_hex": "2d3165343030",
+					"target": "native",
+					"response": {
+						"status": 0,
+						"output": "-inf\n",
+						"stderr": ""
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "No number after minus sign in JSON at position 1 (line 1 column 2)"
+					}
+				},
+				{
+					"input": "-1e400",
+					"input_utf8_hex": "2d3165343030",
+					"target": "wasm32-freestanding",
+					"response": {
+						"status": 0,
+						"output": "-inf",
+						"stderr": ""
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "No number after minus sign in JSON at position 1 (line 1 column 2)"
+					}
+				},
+				{
+					"input": "-1e400",
+					"input_utf8_hex": "2d3165343030",
+					"target": "wasm32-wasi",
+					"response": {
+						"status": 0,
+						"output": "-inf\n",
+						"stderr": "(node:67947) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "No number after minus sign in JSON at position 1 (line 1 column 2)"
+					}
+				}
+			]
+		},
+		{
+			"source": "division.zx",
+			"commands": [
+				{
+					"command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/zig-out/bin/zxc",
+					"argv": [
+						"build",
+						"main.zx",
+						"--optimize",
+						"debug",
+						"--result",
+						"json",
+						"--out",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/native"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "",
+					"stderr": ""
+				},
+				{
+					"command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/zig-out/bin/zxc",
+					"argv": [
+						"build",
+						"main.zx",
+						"--optimize",
+						"debug",
+						"--result",
+						"json",
+						"--out",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/wasm32-freestanding.wasm",
+						"--target",
+						"wasm32-freestanding"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "",
+					"stderr": ""
+				},
+				{
+					"command": "/Users/xiewendao/.codex/worktrees/native-reference-conformance/zxc/zig-out/bin/zxc",
+					"argv": [
+						"build",
+						"main.zx",
+						"--optimize",
+						"debug",
+						"--result",
+						"json",
+						"--out",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/wasm32-wasi.wasm",
+						"--target",
+						"wasm32-wasi"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "",
+					"stderr": ""
+				},
+				{
+					"command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/native",
+					"argv": ["{\"numerator\":1,\"denominator\":1}"],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "1\n",
+					"stderr": ""
+				},
+				{
+					"command": "/usr/local/bin/node",
+					"argv": [
+						"/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/wasm32-wasi.wasm",
+						"{\"numerator\":1,\"denominator\":1}"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "1\n",
+					"stderr": "(node:68045) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+				},
+				{
+					"command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/native",
+					"argv": ["{\"numerator\":1,\"denominator\":0}"],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "inf\n",
+					"stderr": ""
+				},
+				{
+					"command": "/usr/local/bin/node",
+					"argv": [
+						"/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/wasm32-wasi.wasm",
+						"{\"numerator\":1,\"denominator\":0}"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "inf\n",
+					"stderr": "(node:68047) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+				},
+				{
+					"command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/native",
+					"argv": ["{\"numerator\":-1,\"denominator\":0}"],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "-inf\n",
+					"stderr": ""
+				},
+				{
+					"command": "/usr/local/bin/node",
+					"argv": [
+						"/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/wasm32-wasi.wasm",
+						"{\"numerator\":-1,\"denominator\":0}"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "-inf\n",
+					"stderr": "(node:68049) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+				},
+				{
+					"command": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/native",
+					"argv": ["{\"numerator\":0,\"denominator\":0}"],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "\"-nan\"\n",
+					"stderr": ""
+				},
+				{
+					"command": "/usr/local/bin/node",
+					"argv": [
+						"/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/targets/wasm/wasi_host.ts",
+						"/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/wasm32-wasi.wasm",
+						"{\"numerator\":0,\"denominator\":0}"
+					],
+					"status": 0,
+					"signal": null,
+					"error": null,
+					"stdout": "\"-nan\"\n",
+					"stderr": "(node:68051) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+				}
+			],
+			"artifacts": [
+				{
+					"target": "native",
+					"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/native",
+					"sha256": "113881fce10a1824e331189226503f8adba73bca82fd6392669493a9c9af85eb"
+				},
+				{
+					"target": "wasm32-freestanding",
+					"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/wasm32-freestanding.wasm",
+					"sha256": "83087eaad43bbac9c0d346b31423b0722236f9a5ef84af67eec0e5b00061f685"
+				},
+				{
+					"target": "wasm32-wasi",
+					"path": "/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc-application-json-ehpxfx/wasm32-wasi.wasm",
+					"sha256": "be509e78924c12d3aad101670908d6c27a11d982cd28cf355140a065f43d079e"
+				}
+			],
+			"observations": [
+				{
+					"input": "{\"numerator\":1,\"denominator\":1}",
+					"input_utf8_hex": "7b226e756d657261746f72223a312c2264656e6f6d696e61746f72223a317d",
+					"target": "native",
+					"response": {
+						"status": 0,
+						"output": "1\n",
+						"stderr": ""
+					},
+					"parsed": 1,
+					"parse_error": null
+				},
+				{
+					"input": "{\"numerator\":1,\"denominator\":1}",
+					"input_utf8_hex": "7b226e756d657261746f72223a312c2264656e6f6d696e61746f72223a317d",
+					"target": "wasm32-freestanding",
+					"response": {
+						"status": 0,
+						"output": "1",
+						"stderr": ""
+					},
+					"parsed": 1,
+					"parse_error": null
+				},
+				{
+					"input": "{\"numerator\":1,\"denominator\":1}",
+					"input_utf8_hex": "7b226e756d657261746f72223a312c2264656e6f6d696e61746f72223a317d",
+					"target": "wasm32-wasi",
+					"response": {
+						"status": 0,
+						"output": "1\n",
+						"stderr": "(node:68045) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+					},
+					"parsed": 1,
+					"parse_error": null
+				},
+				{
+					"input": "{\"numerator\":1,\"denominator\":0}",
+					"input_utf8_hex": "7b226e756d657261746f72223a312c2264656e6f6d696e61746f72223a307d",
+					"target": "native",
+					"response": {
+						"status": 0,
+						"output": "inf\n",
+						"stderr": ""
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "Unexpected token 'i', \"inf\n\" is not valid JSON"
+					}
+				},
+				{
+					"input": "{\"numerator\":1,\"denominator\":0}",
+					"input_utf8_hex": "7b226e756d657261746f72223a312c2264656e6f6d696e61746f72223a307d",
+					"target": "wasm32-freestanding",
+					"response": {
+						"status": 0,
+						"output": "inf",
+						"stderr": ""
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "Unexpected token 'i', \"inf\" is not valid JSON"
+					}
+				},
+				{
+					"input": "{\"numerator\":1,\"denominator\":0}",
+					"input_utf8_hex": "7b226e756d657261746f72223a312c2264656e6f6d696e61746f72223a307d",
+					"target": "wasm32-wasi",
+					"response": {
+						"status": 0,
+						"output": "inf\n",
+						"stderr": "(node:68047) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "Unexpected token 'i', \"inf\n\" is not valid JSON"
+					}
+				},
+				{
+					"input": "{\"numerator\":-1,\"denominator\":0}",
+					"input_utf8_hex": "7b226e756d657261746f72223a2d312c2264656e6f6d696e61746f72223a307d",
+					"target": "native",
+					"response": {
+						"status": 0,
+						"output": "-inf\n",
+						"stderr": ""
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "No number after minus sign in JSON at position 1 (line 1 column 2)"
+					}
+				},
+				{
+					"input": "{\"numerator\":-1,\"denominator\":0}",
+					"input_utf8_hex": "7b226e756d657261746f72223a2d312c2264656e6f6d696e61746f72223a307d",
+					"target": "wasm32-freestanding",
+					"response": {
+						"status": 0,
+						"output": "-inf",
+						"stderr": ""
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "No number after minus sign in JSON at position 1 (line 1 column 2)"
+					}
+				},
+				{
+					"input": "{\"numerator\":-1,\"denominator\":0}",
+					"input_utf8_hex": "7b226e756d657261746f72223a2d312c2264656e6f6d696e61746f72223a307d",
+					"target": "wasm32-wasi",
+					"response": {
+						"status": 0,
+						"output": "-inf\n",
+						"stderr": "(node:68049) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+					},
+					"parsed": null,
+					"parse_error": {
+						"name": "SyntaxError",
+						"message": "No number after minus sign in JSON at position 1 (line 1 column 2)"
+					}
+				},
+				{
+					"input": "{\"numerator\":0,\"denominator\":0}",
+					"input_utf8_hex": "7b226e756d657261746f72223a302c2264656e6f6d696e61746f72223a307d",
+					"target": "native",
+					"response": {
+						"status": 0,
+						"output": "\"-nan\"\n",
+						"stderr": ""
+					},
+					"parsed": "-nan",
+					"parse_error": null
+				},
+				{
+					"input": "{\"numerator\":0,\"denominator\":0}",
+					"input_utf8_hex": "7b226e756d657261746f72223a302c2264656e6f6d696e61746f72223a307d",
+					"target": "wasm32-freestanding",
+					"response": {
+						"status": 0,
+						"output": "\"-nan\"",
+						"stderr": ""
+					},
+					"parsed": "-nan",
+					"parse_error": null
+				},
+				{
+					"input": "{\"numerator\":0,\"denominator\":0}",
+					"input_utf8_hex": "7b226e756d657261746f72223a302c2264656e6f6d696e61746f72223a307d",
+					"target": "wasm32-wasi",
+					"response": {
+						"status": 0,
+						"output": "\"-nan\"\n",
+						"stderr": "(node:68051) ExperimentalWarning: WASI is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+					},
+					"parsed": "-nan",
+					"parse_error": null
+				}
+			]
+		}
+	]
+}
