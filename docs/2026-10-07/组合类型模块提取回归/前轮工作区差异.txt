@@ -1,0 +1,13 @@
+diff --git a/packages/test/build.zig b/packages/test/build.zig
+index cdb584a5..c267e0d1 100644
+--- a/packages/test/build.zig
++++ b/packages/test/build.zig
+@@ -108,7 +108,7 @@ pub fn build(b: *std.Build) void {
+ 
+     const type_merge_step = b.step("test-type-merge", "Validate structural and nominal module type merging");
+ 
+-    for ([_][]const u8{ "identity", "invalid", "resources", "storage", "storage_append", "preflight/prefix", "preflight/origins", "preflight/resources" }) |name| {
++    for ([_][]const u8{ "identity", "invalid", "resources", "storage", "storage_append", "preflight/prefix", "preflight/origins", "preflight/resources", "bulk/mapping", "bulk/nominal", "bulk/ownership", "bulk/resources" }) |name| {
+         const type_tests = b.addTest(.{
+             .root_module = b.createModule(.{
+                 .root_source_file = b.path(b.fmt("tests/incremental/type_merge/{s}_test.zig", .{name})),
