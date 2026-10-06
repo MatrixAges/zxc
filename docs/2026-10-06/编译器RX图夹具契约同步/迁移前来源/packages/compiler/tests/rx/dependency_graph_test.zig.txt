@@ -12,7 +12,7 @@ test "all 512 directed graphs on three modules obey the DAG contract" {
 
             inline for (.{ "a", "b", "c" }, 0..) |target, index| {
                 if (hasEdge(edges, owner, index)) {
-                    children[owner][count] = h.node("Call", .{ .module = target, .in = "$in" }, &.{});
+                    children[owner][count] = h.node("Call", .{ .service = target, .in = "$in" }, &.{});
                     count += 1;
                 }
             }
@@ -28,7 +28,7 @@ test "all 512 directed graphs on three modules obey the DAG contract" {
         try std.testing.expectEqual(isAcyclic(edges), result.value == .data);
 
         if (result.value == .diagnostic) {
-            try std.testing.expectEqualStrings("module", result.value.diagnostic.issue.attribute.?);
+            try std.testing.expectEqualStrings("service", result.value.diagnostic.issue.attribute.?);
         }
     }
 }
@@ -37,7 +37,7 @@ test "conditional calls and imports cannot hide circular dependencies" {
     const sources = [_]rx.ModuleSource{
         .{ .path = "a.rx", .node = h.module(&.{h.node("Import", .{ .from = "b" }, &.{})}) },
         .{ .path = "b.rx", .node = h.module(&.{h.node("Switch", .{ .on = "$in.mode" }, &.{
-            h.node("Case", .{ .value = "rare" }, &.{h.node("Call", .{ .module = "a", .in = "$in" }, &.{})}),
+            h.node("Case", .{ .value = "rare" }, &.{h.node("Call", .{ .service = "a", .in = "$in" }, &.{})}),
         })}) },
     };
 
@@ -47,7 +47,7 @@ test "conditional calls and imports cannot hide circular dependencies" {
 
     try std.testing.expect(result.value == .diagnostic);
     try std.testing.expectEqual(@as(usize, 1), result.value.diagnostic.source_index);
-    try std.testing.expectEqualStrings("module", result.value.diagnostic.issue.attribute.?);
+    try std.testing.expectEqualStrings("service", result.value.diagnostic.issue.attribute.?);
     try std.testing.expectEqualDeep(h.value_location, result.value.diagnostic.issue.location);
 }
 

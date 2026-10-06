@@ -39,34 +39,34 @@ fn expectFailure(sources: []const rx.ModuleSource, owner: usize, attribute: ?[]c
 }
 
 test "modules compose through relative file paths without aliases or Pipeline" {
-    const domain = source("domain/index.rx", &.{h.node("Call", .{ .module = "users", .in = "$in" }, &.{})});
-    const parent = source("checkout.rx", &.{h.node("Call", .{ .module = "domain/index", .in = "$in" }, &.{})});
+    const domain = source("domain/index.rx", &.{h.node("Call", .{ .service = "users", .in = "$in" }, &.{})});
+    const parent = source("checkout.rx", &.{h.node("Call", .{ .service = "domain/index", .in = "$in" }, &.{})});
 
     try expectValid(&.{ parent, source("domain/users.rx", &.{h.call()}), domain });
 }
 
 test "orchestrator invokes multiple independent child modules" {
     const orchestrator = source("checkout.rx", &.{
-        h.node("Call", .{ .module = "users", .in = "$in" }, &.{}),
-        h.node("Call", .{ .module = "orders", .in = "$ctx.users" }, &.{}),
+        h.node("Call", .{ .service = "users", .in = "$in", .out = "ctx.user" }, &.{}),
+        h.node("Call", .{ .service = "orders", .in = "ctx.user", .out = "ctx.order" }, &.{}),
     });
 
     try expectValid(&.{ source("users.rx", &.{h.call()}), source("orders.rx", &.{h.call()}), orchestrator });
 }
 
-test "Call requires exactly one function or module target" {
-    const both = h.node("Call", .{ .@"fn" = "local", .module = "users", .in = "$in" }, &.{});
+test "Call requires exactly one function or service target" {
+    const both = h.node("Call", .{ .@"fn" = "local", .service = "users", .in = "$in" }, &.{});
     const neither = h.node("Call", .{ .in = "$in" }, &.{});
     _ = try h.expectError("orders.rx", h.module(&.{both}), .context);
     _ = try h.expectError("orders.rx", h.module(&.{neither}), .context);
 
     inline for (.{ "/users", "users/", "app", "app.rx", "api.gateway", "jobs.store.rx", ".", ".." }) |path| {
-        _ = try h.expectError("orders.rx", h.module(&.{h.node("Call", .{ .module = path, .in = "$in" }, &.{})}), .context);
+        _ = try h.expectError("orders.rx", h.module(&.{h.node("Call", .{ .service = path, .in = "$in" }, &.{})}), .context);
     }
 }
 
-test "module calls cannot grant Store setters belonging to another module" {
-    const invalid = h.node("Call", .{ .module = "users", .in = "$in", .setter = "[store.users.state]" }, &.{});
+test "service calls cannot grant Store setters belonging to another module" {
+    const invalid = h.node("Call", .{ .service = "users", .in = "$in", .setter = "[store.users.state]" }, &.{});
 
     _ = try h.expectError("orders.rx", h.module(&.{invalid}), .context);
 }
@@ -83,7 +83,7 @@ test "Import is optional composition metadata and has no alias" {
 test "same directory references support omitted dot slash and extension" {
     inline for (.{ "users", "./users", "users.rx", "./users.rx", "sub/../users" }) |path| {
         try expectValid(&.{
-            source("area/index.rx", &.{h.node("Call", .{ .module = path, .in = "$in" }, &.{})}),
+            source("area/index.rx", &.{h.node("Call", .{ .service = path, .in = "$in" }, &.{})}),
             source("area/users.rx", &.{h.call()}),
         });
     }
@@ -103,19 +103,19 @@ test "registration normalizes paths and distinguishes equal basenames in differe
 
 test "missing module files and references escaping the root report their source" {
     try expectFailure(&.{source("index.rx", &.{h.node("Import", .{ .from = "absent" }, &.{})})}, 0, "from");
-    try expectFailure(&.{source("index.rx", &.{h.node("Call", .{ .module = "absent", .in = "$in" }, &.{})})}, 0, "module");
-    try expectFailure(&.{source("index.rx", &.{h.node("Call", .{ .module = "../outside", .in = "$in" }, &.{})})}, 0, "module");
+    try expectFailure(&.{source("index.rx", &.{h.node("Call", .{ .service = "absent", .in = "$in" }, &.{})})}, 0, "service");
+    try expectFailure(&.{source("index.rx", &.{h.node("Call", .{ .service = "../outside", .in = "$in" }, &.{})})}, 0, "service");
     try expectFailure(&.{source("../outside.rx", &.{})}, 0, null);
 }
 
 test "self calls and indirect cycles are detected after path normalization" {
-    try expectFailure(&.{source("self.rx", &.{h.node("Call", .{ .module = "./nested/../self", .in = "$in" }, &.{})})}, 0, "module");
+    try expectFailure(&.{source("self.rx", &.{h.node("Call", .{ .service = "./nested/../self", .in = "$in" }, &.{})})}, 0, "service");
 
-    const a = source("a.rx", &.{h.node("Call", .{ .module = "sub/b", .in = "$in" }, &.{})});
-    const b = source("sub/b.rx", &.{h.node("Call", .{ .module = "../c", .in = "$in" }, &.{})});
-    const c = source("c.rx", &.{h.node("Call", .{ .module = "a", .in = "$in" }, &.{})});
+    const a = source("a.rx", &.{h.node("Call", .{ .service = "sub/b", .in = "$in" }, &.{})});
+    const b = source("sub/b.rx", &.{h.node("Call", .{ .service = "../c", .in = "$in" }, &.{})});
+    const c = source("c.rx", &.{h.node("Call", .{ .service = "a", .in = "$in" }, &.{})});
 
-    try expectFailure(&.{ a, b, c }, 2, "module");
+    try expectFailure(&.{ a, b, c }, 2, "service");
 }
 
 test "unused imports also cannot form circular composition" {
@@ -126,29 +126,29 @@ test "unused imports also cannot form circular composition" {
 }
 
 test "diamond dependencies and repeated calls are not cycles" {
-    const left = source("left.rx", &.{h.node("Call", .{ .module = "users", .in = "$in" }, &.{})});
-    const right = source("right.rx", &.{h.node("Call", .{ .module = "users", .in = "$in" }, &.{})});
+    const left = source("left.rx", &.{h.node("Call", .{ .service = "users", .in = "$in" }, &.{})});
+    const right = source("right.rx", &.{h.node("Call", .{ .service = "users", .in = "$in" }, &.{})});
 
     const top = source("top.rx", &.{
-        h.node("Call", .{ .module = "left", .in = "$in" }, &.{}),
-        h.node("Call", .{ .module = "right", .in = "$in" }, &.{}),
-        h.node("Call", .{ .module = "left", .in = "$in" }, &.{}),
+        h.node("Call", .{ .service = "left", .in = "$in" }, &.{}),
+        h.node("Call", .{ .service = "right", .in = "$in" }, &.{}),
+        h.node("Call", .{ .service = "left", .in = "$in" }, &.{}),
     });
 
     try expectValid(&.{ top, left, right, source("users.rx", &.{h.call()}) });
 }
 
 test "calls inside nested control structures participate in cycle detection" {
-    const a = source("a.rx", &.{h.node("Task", .{ .name = "nested" }, &.{h.node("Call", .{ .module = "b", .in = "$in" }, &.{})})});
-    const b = source("b.rx", &.{h.node("Call", .{ .module = "a", .in = "$in" }, &.{})});
+    const a = source("a.rx", &.{h.node("Task", .{ .name = "nested" }, &.{h.node("Call", .{ .service = "b", .in = "$in" }, &.{})})});
+    const b = source("b.rx", &.{h.node("Call", .{ .service = "a", .in = "$in" }, &.{})});
 
-    try expectFailure(&.{ a, b }, 1, "module");
+    try expectFailure(&.{ a, b }, 1, "service");
 }
 
 test "module graph allocation failures release partial syntax and graph data" {
     const sources = [_]rx.ModuleSource{
         source("users.rx", &.{h.call()}),
-        source("index.rx", &.{h.node("Call", .{ .module = "users", .in = "$in" }, &.{})}),
+        source("index.rx", &.{h.node("Call", .{ .service = "users", .in = "$in" }, &.{})}),
     };
 
     try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {

@@ -6,14 +6,14 @@ pub const value_location: rx.ast.Location = .{ .offset = 60, .line = 3, .column 
 
 pub fn node(comptime name: []const u8, comptime attributes: anytype, children: []const rx.ast.Node) rx.ast.Node {
     const values = comptime blk: {
-        const fields = @typeInfo(@TypeOf(attributes)).@"struct".field_names;
+        const fields = std.meta.fields(@TypeOf(attributes));
         var result: [fields.len]rx.ast.Attribute = undefined;
 
         for (fields, 0..) |field, index| {
             result[index] = .{
-                .kind = if (expressionAttribute(name, field)) .expression else .string,
-                .name = field,
-                .value = @field(attributes, field),
+                .kind = if (expressionAttribute(name, field.name)) .expression else .string,
+                .name = field.name,
+                .value = @field(attributes, field.name),
                 .location = location,
                 .value_location = value_location,
             };
@@ -43,7 +43,7 @@ pub fn module(children: []const rx.ast.Node) rx.ast.Node {
 }
 
 pub fn call() rx.ast.Node {
-    return node("Call", .{ .@"fn" = "create_order", .in = "$in" }, &.{});
+    return node("Call", .{ .@"fn" = "create_order", .in = "$in", .out = "ctx.order" }, &.{});
 }
 
 pub fn expectValid(file: []const u8, root: rx.ast.Node) !void {

@@ -3,7 +3,7 @@ const rx = @import("rx");
 const h = @import("helpers.zig");
 
 test "ordinary RX tags compose directly inside a typed Module" {
-    const branch = h.node("Switch", .{ .on = "$ctx.status" }, &.{
+    const branch = h.node("Switch", .{ .on = "ctx.status" }, &.{
         h.node("Case", .{ .value = "blocked" }, &.{h.node("Return", .{ .value = "false" }, &.{})}),
         h.node("Default", .{}, &.{h.node("Task", .{ .name = "fallback" }, &.{h.call()})}),
     });
@@ -12,7 +12,7 @@ test "ordinary RX tags compose directly inside a typed Module" {
         h.node("Store", .{ .from = "scheduler", .as = "jobs" }, &.{}),
         h.node("Task", .{ .name = "validate" }, &.{branch}),
         h.node("Parallel", .{}, &.{ h.call(), h.node("Task", .{ .name = "query" }, &.{h.call()}) }),
-        h.node("Emit", .{ .event = "order.created", .value = "$ctx.create_order" }, &.{}),
+        h.node("Emit", .{ .event = "order.created", .value = "ctx.order" }, &.{}),
         h.node("Call", .{ .@"fn" = "advance", .in = "$in", .setter = "[store.jobs.dispatcher]" }, &.{}),
     });
 
@@ -26,8 +26,8 @@ test "ordinary RX tags compose directly inside a typed Module" {
 
     try std.testing.expectEqualStrings("Input", data.attributes.in.?);
     try std.testing.expectEqualStrings("jobs", data.children[0].store.attributes.as.?);
-    try std.testing.expectEqualStrings("$ctx.status", data.children[1].task.children[0].@"switch".attributes.on);
-    try std.testing.expectEqualStrings("[store.jobs.dispatcher]", data.children[4].call.attributes.setter.?);
+    try std.testing.expectEqualStrings("ctx.status", data.children[1].task.children[0].@"switch".attributes.on);
+    try std.testing.expectEqual(@as(?[]const u8, null), data.children[4].call.attributes.out);
 }
 
 test "nesting table rejects misplaced flow elements" {

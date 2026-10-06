@@ -1,0 +1,33 @@
+Build Summary: 24/24 steps succeeded; 39/39 tests passed
+test-rx success
++- run test 39 pass (39 total) 44ms MaxRSS:2M
+   +- compile test debug native success 2s MaxRSS:390M
+      +- options success
+      +- run exe generate-parser (parser.zig) success 26s
+      |  +- compile exe generate-parser debug native success 4s MaxRSS:570M
+      |     +- options success
+      |     +- WriteFile interfaces/0.d.zx success
+      |     |  +- run exe standard-catalog (catalog.zig) success 2ms
+      |     |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+      |     |     +- WriteFile catalog.json success
+      |     +- options success
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- WriteFile interfaces/0.d.zx cached
+      |  +- run exe standard-catalog (catalog.zig) cached
+      |     +- compile exe standard-catalog fast native cached 45ms MaxRSS:20M
+      |     +- WriteFile catalog.json cached
+      +- options success
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) success 84ms
+         +- compile exe generate-lexer debug native success 3s MaxRSS:523M
+            +- WriteFile interfaces/0.d.zx cached
+            |  +- run exe standard-catalog (catalog.zig) cached
+            |     +- compile exe standard-catalog fast native success 7s MaxRSS:364M
+            |     +- WriteFile catalog.json cached
+            +- options cached
+
