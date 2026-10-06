@@ -14,8 +14,9 @@ pub fn build(b: *std.Build) void {
     }) });
 
     const generate = b.addRunArtifact(generator);
-    const source = generate.addOutputFileArg("walk.zig");
-    const types = generate.addOutputFileArg("abi.zig");
+    const cli_source = b.option(bool, "cli-source", "Use generated/cli.zig from the CLI source output") orelse false;
+    const source = if (cli_source) b.path("generated/cli.zig") else generate.addOutputFileArg("walk.zig");
+    const types = if (cli_source) b.path("generated/cli.zig.abi.zig") else generate.addOutputFileArg("abi.zig");
     const abi = b.createModule(.{ .root_source_file = types, .target = target, .optimize = optimize });
 
     const native = b.createModule(.{
