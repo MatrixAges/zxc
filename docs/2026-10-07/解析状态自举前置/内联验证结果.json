@@ -1,0 +1,47 @@
+{
+    "base": "b63b45f2",
+    "source_sha256": {
+        "packages/genz/src/zx/collections.zig": "856a6346b495dc6652ae14a16851a03ec7aea06ece20f5608a13dc03255b1819",
+        "packages/genz/src/zx/iteration.zig": "6fed7418a2e9d73a7fe340161626602e8d493601d7bba5ffc166b9087830722a",
+        "packages/genz/src/zx/iteration_buffer/analysis.zig": "b3191338685932e70ef54af2d5bd469065b12419c85a835d83d608bf9071e455",
+        "packages/genz/src/zx/iteration_buffer/root.zig": "5af7a8f7075244a001cfe569b21779625997723f4c3c9e3b0dad5c28d0eaa29b",
+        "packages/genz/src/zx/iteration_value/root.zig": "8fac8a46076c621d9b473c813b0c561bce5b3b38897003ba7c69e1e5db0b2295",
+        "packages/genz/src/zx/iteration_value/scope.zig": "1fbe20a3c3833748518f50403a8e59931f53588d008812a0dca424709a71630b",
+        "packages/genz/src/zx/iteration_value/types.zig": "f56318a908fa02e5f14f1830501180bb5cb47f2c0008d7a7993214ef82a70fb9",
+        "packages/genz/src/zx/list_update.zig": "2918aeb664080e4eb8f4b5044b6cec57863cd07db1fb7f5c56c8416532727e84",
+        "packages/genz/src/zx/iteration_value/initial.zig": "b9456896be423d680489dea7c269fdff547c120b0a060238246a1a413b574043",
+        "packages/genz/src/zx/iteration_value/list.zig": "66b803d36461f886932d37cd3814bc68385a419a81a3ea456f48dd44766469c5",
+        "packages/genz/src/zx/iteration_value/list_plan.zig": "c1fa1af1c292452fcd5e05b36b7c856b536253dcfd1f6dd6ea91060c34cb6098",
+        "packages/genz/src/zx/iteration_value/local.zig": "321cbec35e268034db00ba5cb8a2617513ed5d79db7a2b0b1f87f7d6078f2694"
+    },
+    "build": {
+        "command": "zig build dist -Doptimize=ReleaseFast --summary all",
+        "exit_code": 0,
+        "steps": 34
+    },
+    "generated": {
+        "raw_sha256": "a099b7baf5230e69d40bf4bc4cf71f2599f7b55ae49d9d5114906c434ce633e4",
+        "archived_sha256": "c19aa817a86a549fac80d9bc7d38479cf8a5fd73e1723aac5b93ef3c2704e6a7",
+        "formal_cli_identical": true,
+        "array_list_of_value_layout": true,
+        "create_calls": 0,
+        "dupe_calls": 0,
+        "to_owned_slice_calls": 0,
+        "deinit_calls": 1
+    },
+    "manual_execution": {
+        "command": "zxc build stack.zx --result json --optimize Debug",
+        "results": "验证/内联草稿执行.json",
+        "successful_runs": 3
+    },
+    "new_test_files": false,
+    "full_suite": false,
+    "regression": {
+        "cwd": "packages/test",
+        "command": "zig build test-iterate-buffer test-iterate-calls test-value-return test-type-parser test-type-resolution -Doptimize=ReleaseFast --summary all",
+        "exit_code": 0,
+        "steps": 250,
+        "zig_tests": 380,
+        "node_tests": 1
+    }
+}
