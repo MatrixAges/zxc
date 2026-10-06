@@ -1,0 +1,15 @@
+<Module>
+  <Call module="prepare" in={$in} />
+
+  <Call fn="program/imports" in={$ctx.prepare} />
+
+  <Call fn="program/declarations" in={$ctx.imports} />
+
+  <Call fn="program/header" in={$ctx.declarations} />
+
+  <Call fn="program/body" in={$ctx.header} />
+
+  <Call fn="program/finish" in={$ctx.body} />
+
+  <Return value={$ctx.finish} />
+</Module>

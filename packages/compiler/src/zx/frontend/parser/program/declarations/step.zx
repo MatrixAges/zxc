@@ -1,0 +1,14 @@
+import step from "../../declarations/step"
+import current from "../token"
+
+import type { DeclarationStage } from "./model"
+
+export type Input = DeclarationStage
+
+export type Output = DeclarationStage
+
+export default function (in: owned Input): Output {
+  const token = current({ prepared: in.prefix.prepared, index: in.declarations.control.index })
+
+  return { prefix: in.prefix, declarations: step({ state: in.declarations, token: token }) }
+}

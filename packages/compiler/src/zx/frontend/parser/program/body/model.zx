@@ -1,0 +1,5 @@
+import type { State } from "../../body/model"
+import type { Contract, Control } from "../../header/model"
+import type { Prefix } from "../prefix"
+
+export type BodyStage = { prefix: Prefix, contracts: Contract[], header: Control, body: State }

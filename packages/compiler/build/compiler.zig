@@ -1,7 +1,11 @@
 const std = @import("std");
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
-pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module) Modules {
+pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?*std.Build.Module) Modules {
+    const options = b.addOptions();
+
+    options.addOption(bool, "generated_parser", parser != null);
+
     const frontend = b.createModule(.{
         .root_source_file = b.path("src/zx/frontend.zig"),
         .target = target,
@@ -14,6 +18,10 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
             .{ .name = "standard_interfaces", .module = @import("standard.zig").create(b) },
         },
     });
+
+    frontend.addOptions("parser_options", options);
+
+    if (parser) |generated| frontend.addImport("generated_parser", generated);
 
     const module = b.createModule(.{
         .root_source_file = b.path("src/root.zig"),

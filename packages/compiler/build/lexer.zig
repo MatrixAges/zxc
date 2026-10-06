@@ -10,7 +10,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) std.Build.Laz
         .imports = &.{.{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") }},
     });
 
-    const compiler = @import("compiler.zig").create(b, target, optimize, seed).compiler;
+    const compiler = @import("compiler.zig").create(b, target, optimize, seed, null).compiler;
 
     const executable = b.addExecutable(.{ .name = "generate-lexer", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_lexer.zig"),

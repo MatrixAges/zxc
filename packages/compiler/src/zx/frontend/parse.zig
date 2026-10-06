@@ -29,6 +29,34 @@ pub fn parse(allocator: std.mem.Allocator, source: []const u8, file_name: []cons
     const owned_source = try arena.allocator().dupe(u8, source);
     const owned_name = try arena.allocator().dupe(u8, file_name);
 
+    if (@import("parser_options").generated_parser) {
+        const generated = @import("generated_parser");
+        const adapter = @import("program_adapter/root.zig");
+        var temporary = std.heap.ArenaAllocator.init(allocator);
+
+        defer temporary.deinit();
+
+        const output = generated.execute(&temporary, owned_source) catch |err| switch (err) {
+            error.OutOfMemory, error.Overflow => return error.OutOfMemory,
+            else => return .{ .arena = arena, .value = .{ .diagnostic = .{
+                .code = .contract,
+                .span = .{ .start = 0, .end = 0 },
+                .message = try std.fmt.allocPrint(arena.allocator(), "internal compiler error: generated parser failed with {s}", .{@errorName(err)}),
+            } } },
+        };
+
+        if (output.diagnostic.message.len != 0) return .{ .arena = arena, .value = .{ .diagnostic = .{
+            .code = std.meta.stringToEnum(@FieldType(zx.Diagnostic, "code"), output.diagnostic.code) orelse unreachable,
+            .span = .{ .start = @intCast(output.diagnostic.start), .end = @intCast(output.diagnostic.end) },
+            .message = try arena.allocator().dupe(u8, output.diagnostic.message),
+        } } };
+
+        const tree = try adapter.convert(arena.allocator(), owned_source, output);
+        const tokens = try adapter.lexed(arena.allocator(), output);
+
+        return .{ .arena = arena, .value = .{ .parsed = .{ .source = owned_source, .file_name = owned_name, .lexed = tokens, .ast = tree } } };
+    }
+
     const lexed = lex(arena.allocator(), owned_source, &reporter) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 

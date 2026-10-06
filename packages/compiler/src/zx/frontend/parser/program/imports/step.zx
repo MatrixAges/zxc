@@ -1,0 +1,14 @@
+import step from "../../imports/step"
+import current from "../token"
+
+import type { ImportStage } from "./model"
+
+export type Input = ImportStage
+
+export type Output = ImportStage
+
+export default function (in: owned Input): Output {
+  const token = current({ prepared: in.prepared, index: in.imports.control.index })
+
+  return { prepared: in.prepared, imports: step({ state: in.imports, token: token }) }
+}

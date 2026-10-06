@@ -1,0 +1,42 @@
+import { Keyword } from "../../lexer/keyword_model"
+import { Kind } from "../../lexer/token_model"
+
+import type { Diagnostic } from "../../lexer/model"
+import type { DeclarationStage } from "./declarations/model"
+
+export type Input = DeclarationStage
+
+export type Output = { index: u64, start: u64, present: bool, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+  const tokens = in.prefix.prepared.lexical.lexed.tokens
+  const index = in.declarations.control.index
+  const token = index < tokens.length ? tokens[index] : { kind: Kind.Eof, word: Keyword.Root, symbol: in.declarations.control.token.symbol, span: { start: in.prefix.prepared.lexical.lexed.diagnostic.start, end: in.prefix.prepared.lexical.lexed.diagnostic.end }, line_break: false, dollar: false }
+  const lexical = in.prefix.prepared.lexical.lexed.diagnostic
+  const imports = in.prefix.imports.control.diagnostic
+  const declarations = in.declarations.control.type_diagnostic ? in.declarations.types.control.diagnostic : in.declarations.control.diagnostic
+  const diagnostic = { code: "", start: 0, end: 0, message: "" }
+
+  if (lexical.message != "" || imports.message != "" || declarations.message != "") {
+    return { index: index, start: token.span.start, present: false, diagnostic: diagnostic }
+  }
+
+  if (token.kind == Kind.Eof) {
+    return {
+      index: index, start: token.span.start, present: false,
+      diagnostic: in.declarations.declarations.length == 0 ? { code: "contract", start: token.span.start, end: token.span.end, message: "a pure type file must export at least one type or enum" } : diagnostic
+    }
+  }
+
+  if (token.word != Keyword.Export || index + 1 >= tokens.length || tokens[index + 1].word != Keyword.Default) {
+    return { index: index, start: token.span.start, present: false, diagnostic: { code: "contract", start: token.span.start, end: token.span.end, message: "imports and types must precede the single anonymous default function" } }
+  }
+
+  const function_token = tokens[index + 2]
+
+  if (function_token.word != Keyword.Function) {
+    return { index: index + 2, start: token.span.start, present: false, diagnostic: { code: "syntax", start: function_token.span.start, end: function_token.span.end, message: "expected function" } }
+  }
+
+  return { index: index + 3, start: token.span.start, present: true, diagnostic: diagnostic }
+}

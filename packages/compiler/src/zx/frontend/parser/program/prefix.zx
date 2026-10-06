@@ -1,0 +1,10 @@
+import type { Diagnostic } from "../../lexer/model"
+import type { Span } from "../../lexer/token_model"
+import type { Declaration } from "../declarations/model"
+import type { Import } from "../imports/model"
+
+export type Prefix = {
+  imports: Import[], names: Span[], declarations: Declaration[], members: Span[],
+  function_start: u64, present: bool, type_diagnostic: bool,
+  import_diagnostic: Diagnostic, declaration_diagnostic: Diagnostic, diagnostic: Diagnostic
+}

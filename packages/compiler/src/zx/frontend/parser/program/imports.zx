@@ -1,0 +1,19 @@
+import { Phase } from "../imports/model"
+import initial from "./imports/initial"
+import advance from "./imports/step"
+
+import type { PreparedInput } from "../expressions/prepare/model"
+import type { ImportStage } from "./imports/model"
+
+export type Input = PreparedInput
+
+export type Output = ImportStage
+
+export default function (in: owned Input): Output {
+  return loop(initial(in), {
+    while: value => value.prepared.lexical.lexed.diagnostic.message == "" && value.imports.control.phase != Phase.Done && value.imports.control.index < value.prepared.lexical.lexed.tokens.length,
+    next: value => {
+      value = advance(value)
+    }
+  })
+}

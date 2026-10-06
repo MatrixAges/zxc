@@ -1,0 +1,23 @@
+import initial from "../../declarations/initial"
+import { Phase } from "../../declarations/model"
+
+import type { ImportStage } from "../imports/model"
+import type { DeclarationStage } from "./model"
+
+export type Input = ImportStage
+
+export type Output = DeclarationStage
+
+export default function (in: owned Input): Output {
+  const state = initial({ start: in.imports.control.index, depth: 0 })
+  const index = state.control.start
+  const failed = in.prepared.lexical.lexed.diagnostic.message != "" || in.imports.control.diagnostic.message != ""
+
+  return {
+    prefix: in,
+    declarations: {
+      declarations: state.declarations, members: state.members, types: state.types,
+      control: { ...state.control, index: index, phase: failed ? Phase.Done : Phase.Start }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+import diagnostic from "./diagnostic"
+
+import type { Diagnostic } from "../../lexer/model"
+import type { BodyStage } from "./body/model"
+
+export type Input = BodyStage
+
+export type Output = { program: BodyStage, diagnostic: Diagnostic }
+
+export default function (in: owned Input): Output {
+  const issue = diagnostic(in)
+
+  return { program: in, diagnostic: issue }
+}

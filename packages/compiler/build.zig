@@ -6,7 +6,9 @@ pub fn build(b: *std.Build) void {
     const standard = b.addModule("standard", .{ .root_source_file = b.path("standard/src/root.zig"), .target = target, .optimize = optimize });
     const lexer = @import("build/lexer.zig");
     const lexer_source = lexer.generate(b, optimize);
-    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source));
+    const parser = @import("build/parser.zig");
+    const parser_source = parser.generate(b, optimize);
+    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source), parser.module(b, target, optimize, parser_source));
     const frontend = modules.frontend;
     const module = modules.compiler;
 
@@ -47,9 +49,10 @@ pub fn build(b: *std.Build) void {
 
     b.step("test-rx", "Run RX syntax and dependency graph tests").dependOn(&run_rx_tests.step);
 
-    const host_compiler = @import("build/compiler.zig").create(b, b.graph.host, optimize, lexer.module(b, b.graph.host, optimize, lexer_source)).compiler;
+    const host_compiler = @import("build/compiler.zig").create(b, b.graph.host, optimize, lexer.module(b, b.graph.host, optimize, lexer_source), parser.module(b, b.graph.host, optimize, parser_source)).compiler;
 
     b.step("bootstrap-lexer", "Generate the ZX lexer with the host seed compiler").dependOn(&b.addInstallFile(lexer_source, "bootstrap/lexer.zig").step);
+    b.step("bootstrap-parser", "Generate the RX and ZX Program parser with the host seed compiler").dependOn(&b.addInstallFile(parser_source, "bootstrap/parser.zig").step);
 
     const type_generator = b.addExecutable(.{ .name = "standard-types", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_types.zig"),

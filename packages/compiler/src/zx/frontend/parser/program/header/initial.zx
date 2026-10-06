@@ -1,0 +1,30 @@
+import emptyTree from "../../expressions/state/empty_tree"
+import expression from "../../expressions/state/start"
+import initial from "../../header/initial"
+import functionInfo from "../function"
+
+import type { DeclarationStage } from "../declarations/model"
+import type { HeaderStage } from "./model"
+
+export type Input = DeclarationStage
+
+export type Output = HeaderStage
+
+export default function (in: owned Input): Output {
+  const info = functionInfo(in)
+  const type_diagnostic = in.declarations.control.type_diagnostic
+
+  return {
+    prefix: {
+      imports: in.prefix.imports.imports, names: in.prefix.imports.names,
+      declarations: in.declarations.declarations, members: in.declarations.members,
+      function_start: info.start, present: info.present, type_diagnostic: type_diagnostic,
+      import_diagnostic: in.prefix.imports.control.diagnostic,
+      declaration_diagnostic: in.declarations.control.diagnostic, diagnostic: info.diagnostic
+    },
+    header: initial(expression({
+      prepared: in.prefix.prepared, tree: emptyTree(), types: in.declarations.types,
+      start: info.index, depth: 0, minimum: 0, allow_lambda: true
+    }))
+  }
+}

@@ -1,0 +1,16 @@
+import type { Token } from "../../lexer/token_model"
+import type { PreparedInput } from "../expressions/prepare/model"
+
+export type Input = { prepared: PreparedInput, index: u64 }
+
+export type Output = Token
+
+export default function (in: Input): Output {
+  const token = in.prepared.lexical.lexed.tokens[in.index]
+
+  return {
+    kind: token.kind, word: token.word, symbol: token.symbol,
+    span: { start: token.span.start, end: token.span.end },
+    line_break: token.line_break, dollar: token.dollar
+  }
+}

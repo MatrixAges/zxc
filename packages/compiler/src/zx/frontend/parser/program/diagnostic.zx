@@ -1,0 +1,60 @@
+import { Kind } from "../../lexer/token_model"
+import current from "./token"
+
+import type { Diagnostic } from "../../lexer/model"
+import type { BodyStage } from "./body/model"
+
+export type Input = BodyStage
+
+export type Output = Diagnostic
+
+export default function (in: Input): Output {
+  const expression = in.body.expression
+  const lexical = expression.prepared.lexical.lexed.diagnostic
+
+  if (lexical.message != "") {
+    return lexical
+  }
+
+  if (in.prefix.import_diagnostic.message != "") {
+    return in.prefix.import_diagnostic
+  }
+
+  if (in.prefix.type_diagnostic) {
+    return expression.types.control.diagnostic
+  }
+
+  if (in.prefix.declaration_diagnostic.message != "") {
+    return in.prefix.declaration_diagnostic
+  }
+
+  if (in.prefix.diagnostic.message != "") {
+    return in.prefix.diagnostic
+  }
+
+  if (in.header.diagnostic.message != "") {
+    return in.header.diagnostic
+  }
+
+  if (in.header.expression_diagnostic || in.body.control.expression_diagnostic) {
+    const lexical_index = expression.control.lexical_diagnostic
+
+    if (lexical_index != 0) {
+      return lexical_index == 1 ? lexical : expression.prepared.lexical.interpolations[lexical_index - 2].lexed.diagnostic
+    }
+
+    return expression.control.type_diagnostic ? expression.types.control.diagnostic : expression.control.diagnostic
+  }
+
+  if (in.body.control.diagnostic.message != "") {
+    return in.body.control.diagnostic
+  }
+
+  const token = current({ prepared: expression.prepared, index: expression.control.index })
+
+  if (token.kind != Kind.Eof) {
+    return { code: "contract", start: token.span.start, end: token.span.end, message: "imports and types must precede the single anonymous default function" }
+  }
+
+  return { code: "", start: 0, end: 0, message: "" }
+}

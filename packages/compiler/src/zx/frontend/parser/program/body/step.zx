@@ -1,0 +1,11 @@
+import step from "../../body/step"
+
+import type { BodyStage } from "./model"
+
+export type Input = BodyStage
+
+export type Output = BodyStage
+
+export default function (in: owned Input): Output {
+  return { prefix: in.prefix, contracts: in.contracts, header: in.header, body: step(in.body) }
+}

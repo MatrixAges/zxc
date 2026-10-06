@@ -1,0 +1,11 @@
+import step from "../../header/step"
+
+import type { HeaderStage } from "./model"
+
+export type Input = HeaderStage
+
+export type Output = HeaderStage
+
+export default function (in: owned Input): Output {
+  return { prefix: in.prefix, header: step(in.header) }
+}

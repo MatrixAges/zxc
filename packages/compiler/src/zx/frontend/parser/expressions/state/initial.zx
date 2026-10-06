@@ -1,24 +1,18 @@
 import typeInitial from "../../types/initial"
+import emptyTree from "./empty_tree"
 import start from "./start"
 
 import type { PreparedInput } from "../prepare/model"
-import type { ExprState, ExprNode, Item, Field, Parameter, Part, Arm } from "./model"
+import type { ExprState } from "./model"
 
 export type Input = { prepared: PreparedInput, start: u64, depth: u64, minimum: u8, allow_lambda: bool }
 
 export type Output = ExprState
 
 export default function (in: owned Input): Output {
-  const nodes: ExprNode[] = []
-  const items: Item[] = []
-  const fields: Field[] = []
-  const parameters: Parameter[] = []
-  const parts: Part[] = []
-  const arms: Arm[] = []
-
   return start({
     prepared: in.prepared,
-    tree: { nodes: nodes, items: items, fields: fields, parameters: parameters, parts: parts, arms: arms },
+    tree: emptyTree(),
     types: typeInitial({ start: 0, depth: 0 }),
     start: in.start, depth: in.depth, minimum: in.minimum, allow_lambda: in.allow_lambda
   })

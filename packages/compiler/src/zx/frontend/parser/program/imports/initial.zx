@@ -1,0 +1,12 @@
+import initial from "../../imports/initial"
+
+import type { PreparedInput } from "../../expressions/prepare/model"
+import type { ImportStage } from "./model"
+
+export type Input = PreparedInput
+
+export type Output = ImportStage
+
+export default function (in: owned Input): Output {
+  return { prepared: in, imports: initial(0) }
+}

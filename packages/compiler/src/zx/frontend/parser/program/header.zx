@@ -1,0 +1,19 @@
+import { HeaderPhase } from "../header/model"
+import initial from "./header/initial"
+import advance from "./header/step"
+
+import type { DeclarationStage } from "./declarations/model"
+import type { HeaderStage } from "./header/model"
+
+export type Input = DeclarationStage
+
+export type Output = HeaderStage
+
+export default function (in: owned Input): Output {
+  return loop(initial(in), {
+    while: value => value.prefix.present && value.header.control.phase != HeaderPhase.Done,
+    next: value => {
+      value = advance(value)
+    }
+  })
+}

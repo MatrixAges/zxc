@@ -1,0 +1,16 @@
+import type { ExprTree, ExprNode, Item, Field, Parameter, Part, Arm } from "./model"
+
+export type Input = void
+
+export type Output = ExprTree
+
+export default function (in: Input): Output {
+  const nodes: ExprNode[] = []
+  const items: Item[] = []
+  const fields: Field[] = []
+  const parameters: Parameter[] = []
+  const parts: Part[] = []
+  const arms: Arm[] = []
+
+  return { nodes: nodes, items: items, fields: fields, parameters: parameters, parts: parts, arms: arms }
+}

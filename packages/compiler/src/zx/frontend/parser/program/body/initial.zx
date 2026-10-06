@@ -1,0 +1,15 @@
+import initial from "../../body/state/initial"
+
+import type { HeaderStage } from "../header/model"
+import type { BodyStage } from "./model"
+
+export type Input = HeaderStage
+
+export type Output = BodyStage
+
+export default function (in: owned Input): Output {
+  return {
+    prefix: in.prefix, contracts: in.header.contracts, header: in.header.control,
+    body: initial({ expression: in.header.expression, state_block: false, tree: in.header.body, expression_only: false })
+  }
+}
