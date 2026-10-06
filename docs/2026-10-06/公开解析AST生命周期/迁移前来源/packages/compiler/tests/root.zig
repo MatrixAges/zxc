@@ -21,8 +21,6 @@ test {
     _ = @import("ownership/consumption_test.zig");
     _ = @import("ir/validate_test.zig");
     _ = @import("frontend/combinators_test.zig");
-    _ = @import("frontend/lifetime/program_test.zig");
-    _ = @import("frontend/lifetime/expression_test.zig");
     _ = @import("language/parser_test.zig");
     _ = @import("language/callback_scope_test.zig");
 }

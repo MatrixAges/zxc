@@ -1,0 +1,84 @@
+{
+	"固定生产提交": "95854c909eec2e3881246c9b1981d1b0d6531d58",
+	"同时检出的独立诊断测试": "本部分门禁同时包含尚未提交的15个诊断声明；它们属于独立部分，不计入此处新增数。",
+	"新增独立Zig声明": 4,
+	"新增目录案例": 0,
+	"门禁": [
+		{
+			"模式": "Debug",
+			"命令": "zig build test -Doptimize=Debug -j1 --summary all",
+			"退出码": 0,
+			"原始完整构建步骤": "28/28",
+			"完整编译器实例": "372/372",
+			"frontend实际实例": "313/313",
+			"本部分新增独立Zig声明": 4,
+			"frontend缓存测试步骤": 0,
+			"日志": "docs/2026-10-06/公开解析AST生命周期/Debug编译器门禁日志.txt"
+		},
+		{
+			"模式": "ReleaseSafe",
+			"命令": "zig build test -Doptimize=ReleaseSafe -j1 --summary all",
+			"退出码": 0,
+			"原始完整构建步骤": "28/28",
+			"完整编译器实例": "372/372",
+			"frontend实际实例": "313/313",
+			"本部分新增独立Zig声明": 4,
+			"frontend缓存测试步骤": 0,
+			"日志": "docs/2026-10-06/公开解析AST生命周期/ReleaseSafe编译器门禁日志.txt"
+		}
+	],
+	"来源SHA256": [
+		{
+			"路径": "packages/compiler/tests/root.zig",
+			"sha256": "054ba6add01015bf9767ba7c140fe3fe4404e902e26b2c262ea189c1ebe75209"
+		},
+		{
+			"路径": "packages/compiler/tests/frontend/lifetime/program_test.zig",
+			"sha256": "e7ba9971a3ef6addb28d5fe5a9a2fd97a478083ca34fde987f2bc1b4861d6653"
+		},
+		{
+			"路径": "packages/compiler/tests/frontend/lifetime/expression_test.zig",
+			"sha256": "fe665613b9dc7355f883dbd8592018c1752aa189797a9be545fdee3017db8ca4"
+		}
+	],
+	"资源SHA256": [
+		{
+			"路径": "docs/2026-10-06/公开解析AST生命周期/Debug编译器门禁日志.txt",
+			"sha256": "0bc64e4f46232f0c5acfb7c9beae387be5f90dfb5cb24b4ac9e0abc0a3747bbd"
+		},
+		{
+			"路径": "docs/2026-10-06/公开解析AST生命周期/ReleaseSafe编译器门禁日志.txt",
+			"sha256": "674ff204c19236d5665efcb522b74d17be7307b3f574348f743baddd65c79363"
+		},
+		{
+			"路径": "docs/2026-10-06/公开解析AST生命周期/初始来源指纹.json",
+			"sha256": "5805c180b11e684d68e3f1e95454c51a313094de7226d453f6d9def49694ed33"
+		},
+		{
+			"路径": "docs/2026-10-06/公开解析AST生命周期/草稿/packages/compiler/tests/frontend/lifetime/expression_test.zig",
+			"sha256": "fe665613b9dc7355f883dbd8592018c1752aa189797a9be545fdee3017db8ca4"
+		},
+		{
+			"路径": "docs/2026-10-06/公开解析AST生命周期/草稿/packages/compiler/tests/frontend/lifetime/program_test.zig",
+			"sha256": "e7ba9971a3ef6addb28d5fe5a9a2fd97a478083ca34fde987f2bc1b4861d6653"
+		},
+		{
+			"路径": "docs/2026-10-06/公开解析AST生命周期/草稿/packages/compiler/tests/root.zig",
+			"sha256": "054ba6add01015bf9767ba7c140fe3fe4404e902e26b2c262ea189c1ebe75209"
+		},
+		{
+			"路径": "docs/2026-10-06/公开解析AST生命周期/迁移前来源/packages/compiler/tests/root.zig",
+			"sha256": "1758eb1edf13f9598fbe7fea01918b61257dff5e6bfde046e416a4287add7824"
+		}
+	],
+	"支持文档SHA256": [
+		{
+			"路径": "docs/2026-10-06/公开解析AST生命周期测试计划.md",
+			"sha256": "1f45a42507a58edf969d76277621fabfb79ad2727400a3a20c1d5fb9c7f8268e"
+		},
+		{
+			"路径": "docs/2026-10-06/Test262对齐执行记录.md",
+			"sha256": "e45d5405c52c1144edac20f5073d73f3a7687777c0f6a1adb87daa24cdc7c568"
+		}
+	]
+}
