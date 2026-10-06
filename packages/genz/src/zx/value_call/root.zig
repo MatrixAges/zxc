@@ -8,6 +8,7 @@ pub const functions = analysis.functions;
 pub const containsDescendant = analysis.containsDescendant;
 
 pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
+    if (self.state_active and self.state_plan.represented(self.program, self.program.expression(id).type_id)) return self.expr(id);
     if (self.cache.contains(id)) return dereference(self, id);
     if (self.buffer_calls.contains(id)) return @import("../buffer_call/root.zig").invocation(self, id);
 
@@ -38,11 +39,27 @@ pub fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.Expression, "val
     const function = self.program.functions[@backingInt(value.function)];
     const can_stack = !containsDescendant(self.program, function.output_type, function.input_type);
 
-    const argument = if (can_stack and self.program.expression(value.argument).value == .object and !self.cache.contains(value.argument)) temporary: {
+    var argument = if (!self.state_active and can_stack and self.program.expression(value.argument).value == .object and !self.cache.contains(value.argument)) temporary: {
         const layout = try aggregate.bind(self, &body, try aggregate.objectValue(self, value.argument));
 
         break :temporary try self.builder.expression(.{ .address_of = layout });
     } else try self.expr(value.argument);
+
+    const state_callee = self.state_plan.represented(self.program, function.output_type);
+    const legacy = buffers == null and state_callee and !self.state_active and !self.allows_allocation and self.state_plan.nested(self.program, function.output_type);
+
+    if (legacy) {
+        const result = try self.call(try self.functionReference(value.function), &.{ try self.builder.identifier("allocator"), argument }, true);
+        const output_type = self.program.typeOf(function.output_type);
+        const output = if (output_type == .object or output_type == .tuple) try self.builder.expression(.{ .dereference = result }) else result;
+
+        return aggregate.finish(self, &body, output);
+    }
+
+    if (state_callee != self.state_active) {
+        argument = try aggregate.bind(self, &body, argument);
+        argument = try @import("../state_value/conversion.zig").convert(self, &body, function.input_type, argument, if (state_callee) .value else .borrow);
+    }
 
     const callee = if (self.function_modules) |modules|
         try self.field(try self.builtin(.import, &.{try self.builder.string(modules[@backingInt(value.function)])}), if (buffers != null) "callBuffered" else "callValue")
@@ -57,7 +74,12 @@ pub fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.Expression, "val
 
     if (buffers) |context| arguments[2] = context;
 
-    const result = try self.call(callee, arguments, true);
+    var result = try self.call(callee, arguments, true);
+
+    if (state_callee and !self.state_active) {
+        result = try aggregate.bind(self, &body, result);
+        result = try @import("../state_value/conversion.zig").convert(self, &body, function.output_type, result, .layout);
+    }
 
     return aggregate.finish(self, &body, result);
 }

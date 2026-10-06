@@ -4,6 +4,12 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const node.Statement {
+    const state_symbols = try @import("state_value/locals.zig").statements(self, values);
+
+    defer for (state_symbols) |symbol| {
+        _ = self.state_symbols.remove(symbol);
+    };
+
     const locals = @import("value_call/locals.zig");
     const stacked = try locals.register(self, values);
 

@@ -6,11 +6,13 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
 
     allocator.free(summary.pure);
     allocator.free(summary.local);
+    allocator.free(summary.state.selected);
+    allocator.free(summary.state.keys);
 
     return summary.values;
 }
 
-pub const Summary = struct { pure: []bool, local: []bool, values: []bool };
+pub const Summary = struct { pure: []bool, local: []bool, values: []bool, state: @import("../state_value/analysis.zig") };
 
 pub fn scalarLocals(program: ir.Program, pure: []const bool) bool {
     switch (program.typeOf(program.output_type)) {
@@ -22,6 +24,11 @@ pub fn scalarLocals(program: ir.Program, pure: []const bool) bool {
 }
 
 pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Summary {
+    const state = try @import("../state_value/analysis.zig").create(allocator, program);
+
+    errdefer allocator.free(state.selected);
+    errdefer allocator.free(state.keys);
+
     const pure = try allocator.alloc(bool, program.functions.len);
 
     errdefer allocator.free(pure);
@@ -35,10 +42,10 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
     for (program.functions, 0..) |function, index| {
         pure[index] = function.external == null and function.stores.len == 0 and !parallel(function.body) and calls(function.expressions, function.contracts, pure[0..index]);
         local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.len == 0 and !parallel(function.body) and calls(function.expressions, function.contracts, local[0..index]);
-        eligible[index] = pure[index] and program.typeOf(function.output_type) == .object;
+        eligible[index] = pure[index] and (program.typeOf(function.output_type) == .object or state.represented(program, function.output_type));
     }
 
-    return .{ .pure = pure, .local = local, .values = eligible };
+    return .{ .pure = pure, .local = local, .values = eligible, .state = state };
 }
 
 pub fn containsDescendant(program: ir.Program, parent: ir.TypeId, root: ir.TypeId) bool {

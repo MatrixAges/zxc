@@ -12,6 +12,7 @@ value_functions: []const bool,
 pure_functions: []const bool,
 local_functions: []const bool,
 buffer_functions: []const []const @import("genz").zx.buffer_call.Lane,
+state_plan: @import("genz").zx.state_value.Analysis,
 pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit) std.mem.Allocator.Error![32]u8 {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
@@ -20,9 +21,10 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, u
     const facts = try @import("genz").zx.value_call.analysis.analyze(arena.allocator(), program);
     const value_functions = facts.values;
     const buffer_functions = try @import("genz").zx.buffer_call.analysis.functions(arena.allocator(), program, value_functions, facts.pure);
-    var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions };
+    const state_plan = facts.state;
+    var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions, .state_plan = state_plan };
 
-    self.bytes("zxc.zig.input.v9");
+    self.bytes("zxc.zig.input.v11");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -49,6 +51,10 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, u
             .type_only = program.type_only,
         }),
         .types => {
+            self.write(state_plan.keys.len);
+
+            for (state_plan.keys) |key| self.hash.update(&key);
+
             self.write(names.types);
             self.write(program.types);
             self.write(program.native_modules);
@@ -78,7 +84,13 @@ fn write(self: *Self, value: anytype) void {
     const T = @TypeOf(value);
 
     if (T == @FieldType(ir.Expression, "span")) return;
-    if (T == ir.TypeId) return self.bytes(self.names.types[@backingInt(value)]);
+
+    if (T == ir.TypeId) {
+        self.bytes(self.names.types[@backingInt(value)]);
+        self.hash.update(&self.state_plan.keys[@backingInt(value)]);
+
+        return;
+    }
 
     if (T == ir.FunctionId) {
         self.bytes(self.names.functions[@backingInt(value)]);
@@ -90,6 +102,8 @@ fn write(self: *Self, value: anytype) void {
 
         const function = self.program.functions[@backingInt(value)];
 
+        self.write(function.input_type);
+        self.write(function.output_type);
         self.write(function.consumes_input);
         self.write(!@import("genz").zx.value_call.containsDescendant(self.program, function.output_type, function.input_type));
 

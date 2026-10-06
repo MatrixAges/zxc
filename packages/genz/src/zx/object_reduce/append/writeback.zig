@@ -51,7 +51,7 @@ pub fn replaceLayout(lowering: *Lower, type_id: ir.TypeId, source: *const node.E
                 result[index] = if (index == path[0]) try replace(lowering, item, existing, path[1..], value) else existing;
             }
 
-            break :blk try lowering.builder.expression(.{ .tuple = result });
+            break :blk try @import("../../state_value/origin.zig").tuple(lowering, type_id, try lowering.builder.expression(.{ .tuple = result }));
         },
         else => unreachable,
     };

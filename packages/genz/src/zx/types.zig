@@ -61,4 +61,6 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
 
         if (value != .object and value != .tuple and value != .native_reference) self.layouts[index] = self.types[index];
     }
+
+    try @import("state_value/types.zig").lower(self, output, exported);
 }

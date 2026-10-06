@@ -5,6 +5,12 @@ const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 
 pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!*const node.Expression {
+    const state_symbols = try @import("state_value/locals.zig").parameters(self, value.parameters);
+
+    defer for (state_symbols) |symbol| {
+        _ = self.state_symbols.remove(symbol);
+    };
+
     if (try @import("append_reduce/root.zig").lower(self, value)) |result| return result;
     if (try @import("object_reduce/root.zig").lower(self, value)) |result| return result;
     if (try @import("simd/root.zig").lower(self, id, value)) |result| return result;

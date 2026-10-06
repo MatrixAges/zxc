@@ -11,6 +11,13 @@ program: ir.Program,
 builder: Builder,
 types: []*const node.Expression,
 layouts: []*const node.Expression,
+abi_types: []*const node.Expression = &.{},
+abi_layouts: []*const node.Expression = &.{},
+state_types: []*const node.Expression = &.{},
+state_layouts: []*const node.Expression = &.{},
+state_plan: @import("state_value/analysis.zig"),
+state_active: bool = false,
+state_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
 names: [][]const u8,
 native_names: []const []const u8 = &.{},
 used: []bool,
@@ -26,6 +33,7 @@ uses_buffers: bool = false,
 serial: usize = 0,
 capture: ?@import("capture.zig").Boundary = null,
 uses_allocator: bool = false,
+allows_allocation: bool = false,
 uses_io: bool = false,
 uses_process: bool = false,
 io_functions: []const bool = &.{},
@@ -115,6 +123,14 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
 }
 
 pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {
+    const state = if (self.state_plan.represented(self.program, self.program.output_type)) try @import("state_value/root.zig").enter(self) else null;
+
+    defer if (state) |saved| saved.restore();
+
+    if (self.state_active) try self.state_symbols.put(self.allocator, @fromBackingInt(0), {});
+
+    defer _ = self.state_symbols.remove(@fromBackingInt(0));
+
     self.value_output = true;
     defer self.value_output = false;
 
@@ -127,6 +143,12 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     self.uses_io = false;
     self.uses_process = false;
     self.uses_buffers = false;
+
+    const errors = try @import("zx").error_effects.program(self.allocator, self.program);
+
+    self.allows_allocation = if (errors) |names| for (names) |error_name| {
+        if (std.mem.eql(u8, error_name, "OutOfMemory")) break true;
+    } else false else true;
 
     const needs_io = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.io_functions);
     const needs_process = @import("capabilities.zig").uses(self.program.expressions, self.program.contracts, self.process_functions);
@@ -181,7 +203,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
     if (self.buffered_type) |buffered_type| parameters[parameters.len - 1] = .{ .name = "buffers", .value = buffered_type };
 
-    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.value_output) self.layouts[@backingInt(self.program.output_type)] else self.types[@backingInt(self.program.output_type)], .errors = try @import("zx").error_effects.program(self.allocator, self.program) } }), .body = try body.toOwnedSlice(self.allocator), .exported = exported } };
+    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.value_output) self.layouts[@backingInt(self.program.output_type)] else self.types[@backingInt(self.program.output_type)], .errors = errors } }), .body = try body.toOwnedSlice(self.allocator), .exported = exported } };
 }
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!*const node.Expression {
@@ -232,8 +254,16 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
             self.used[@backingInt(symbol)] = true;
 
             const reference = try self.builder.identifier(self.names[@backingInt(symbol)]);
+            const value_reference = if (self.stack_symbols.contains(symbol)) try self.builder.expression(.{ .address_of = reference }) else reference;
 
-            break :blk if (self.stack_symbols.contains(symbol)) self.builder.expression(.{ .address_of = reference }) else reference;
+            if (self.state_active and !self.state_symbols.contains(symbol)) {
+                var body: std.ArrayList(node.Statement) = .empty;
+                const converted = try @import("state_value/conversion.zig").convert(self, &body, value.type_id, value_reference, .value);
+
+                break :blk @import("aggregate.zig").finish(self, &body, converted);
+            }
+
+            break :blk value_reference;
         },
         .field => |item| self.field(try self.projection(item.target), self.program.typeOf(self.program.expression(item.target).type_id).object[item.index].name),
         .tuple_field => |item| self.field(try self.projection(item.target), try std.fmt.allocPrint(self.allocator, "{d}", .{item.index})),
@@ -254,6 +284,8 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
             var body: std.ArrayList(node.Statement) = .empty;
             const callee_function = self.program.functions[@backingInt(invocation.function)];
 
+            if (self.state_active and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").invocation(self, invocation, null);
+
             const scalar = switch (self.program.typeOf(callee_function.output_type)) {
                 .scalar, .enumeration, .error_set => true,
                 else => false,
@@ -262,10 +294,14 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
             const needs_io = self.io_functions[@backingInt(invocation.function)];
             const needs_process = self.process_functions[@backingInt(invocation.function)];
             const arguments = try self.allocator.alloc(*const node.Expression, 2 + @as(usize, @intFromBool(invocation.stores.len > 0)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
-
             arguments[0] = try self.builder.identifier("allocator");
 
-            arguments[1] = if (scalar and self.pure_functions[@backingInt(invocation.function)] and self.program.expression(invocation.argument).value == .object and !self.cache.contains(invocation.argument)) temporary: {
+            arguments[1] = if (self.state_active) converted: {
+                const argument = try @import("aggregate.zig").bind(self, &body, try self.expr(invocation.argument));
+                const borrow = self.pure_functions[@backingInt(invocation.function)] and !self.state_plan.represented(self.program, callee_function.output_type);
+
+                break :converted try @import("state_value/conversion.zig").convert(self, &body, callee_function.input_type, argument, if (borrow) .borrow else .pointer);
+            } else if (scalar and self.pure_functions[@backingInt(invocation.function)] and self.program.expression(invocation.argument).value == .object and !self.cache.contains(invocation.argument)) temporary: {
                 const argument = try @import("aggregate.zig").bind(self, &body, try @import("aggregate.zig").objectValue(self, invocation.argument));
 
                 break :temporary try self.builder.expression(.{ .address_of = argument });
@@ -290,7 +326,12 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
                 arguments[arguments.len - 1] = try self.builder.identifier("process");
             }
 
-            const result = try self.call(try self.functionReference(invocation.function), arguments, true);
+            var result = try self.call(try self.functionReference(invocation.function), arguments, true);
+
+            if (self.state_active and self.state_plan.represented(self.program, callee_function.output_type)) {
+                result = try @import("aggregate.zig").bind(self, &body, result);
+                result = try @import("state_value/conversion.zig").convert(self, &body, callee_function.output_type, result, .value);
+            }
 
             break :blk if (body.items.len == 0) result else try @import("aggregate.zig").finish(self, &body, result);
         },
@@ -370,6 +411,8 @@ pub fn cast(self: *Self, type_expr: *const node.Expression, value: *const node.E
 }
 
 pub fn construct(self: *Self, type_id: ir.TypeId, value: *const node.Expression) Error!*const node.Expression {
+    if (@import("state_value/root.zig").selected(self, type_id)) return self.cast(self.types[@backingInt(type_id)], try @import("state_value/origin.zig").tuple(self, type_id, value));
+
     var body: std.ArrayList(node.Statement) = .empty;
     const layout = self.layouts[@backingInt(type_id)];
     const pointer = try @import("aggregate.zig").bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "create"), &.{layout}, true));
