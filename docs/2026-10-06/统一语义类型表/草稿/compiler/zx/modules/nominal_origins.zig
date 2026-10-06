@@ -1,35 +1,16 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const Self = @This();
-pub const Origin = @import("nominal_origins/model.zig").Origin;
-pub const Item = @import("nominal_origins/model.zig").Item;
-pub const Table = @import("nominal_origins/table.zig");
-pub const Storage = @import("nominal_origins/storage.zig");
+const data = @import("nominal_data");
+pub const Origin = data.Origin;
+pub const Item = data.Item;
+pub const Table = data.Table;
+pub const Storage = data.Storage;
 
 allocator: std.mem.Allocator,
 items: Storage = .{},
 pub fn append(self: *Self, types: ir.TypeTable, first: usize, origin: Origin) std.mem.Allocator.Error!void {
-    for (first..types.count()) |index| {
-        const item = types.at(index);
-        const name = item.nominalName() orelse continue;
-
-        try self.items.append(self.allocator, .{
-            .type_id = @fromBackingInt(@intCast(index)),
-            .origin = try self.copy(origin),
-            .name = name,
-        });
-    }
-}
-
-fn copy(self: *Self, origin: Origin) std.mem.Allocator.Error!Origin {
-    return switch (origin) {
-        .source => |path| .{ .source = try self.allocator.dupe(u8, path) },
-        .native => |specifier| .{ .native = try self.allocator.dupe(u8, specifier) },
-        .external => |entry| .{ .external = .{
-            .module = try self.allocator.dupe(u8, entry.module),
-            .member = try self.allocator.dupe(u8, entry.member),
-        } },
-    };
+    try @import("../analysis/semantic/produce.zig").append(self.allocator, &self.items, types, first, origin);
 }
 
 pub fn same(left: Origin, right: Origin) bool {
@@ -50,7 +31,7 @@ pub fn seed(self: *Self, types: ir.TypeTable, values: Table) (std.mem.Allocator.
 
         try self.items.append(self.allocator, .{
             .type_id = item.type_id,
-            .origin = try self.copy(item.origin),
+            .origin = try data.copy(self.allocator, item.origin),
             .name = types.at(@backingInt(item.type_id)).nominalName().?,
         });
     }

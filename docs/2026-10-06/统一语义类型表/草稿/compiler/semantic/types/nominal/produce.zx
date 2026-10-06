@@ -1,0 +1,27 @@
+import writer from "zig:origin_writer"
+
+import kind from "../kind"
+import { Kind } from "../model"
+
+import type { Writer } from "zig:origin_writer"
+
+export type Input = { kinds: u8[], first: u64, writer: Writer }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const state = loop({ kinds: in.kinds, index: in.first, writer: in.writer }, {
+        while: current => current.index < current.kinds.length,
+        next: current => {
+            const type_kind = kind(current.kinds[current.index])
+
+            if (type_kind == Kind.Enumeration || type_kind == Kind.NativeReference) {
+                writer.append(current.writer, current.index)
+            }
+
+            current.index += 1
+        }
+    })
+
+    return
+}

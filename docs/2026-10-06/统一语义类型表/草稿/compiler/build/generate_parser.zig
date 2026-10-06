@@ -59,6 +59,11 @@ pub fn main(init: std.process.Init) !void {
         .source = @embedFile("semantic_integers"),
         .module = "integers",
     }, .{
+        .specifier = "zig:origin_writer",
+        .path = "zx/analysis/semantic/native/origin_writer.d.zx",
+        .source = @embedFile("origin_writer_interface"),
+        .module = "origin_writer",
+    }, .{
         .specifier = "zig:named_columns",
         .path = "zx/analysis/semantic/ordering/columns.d.zx",
         .source = @embedFile("named_columns_interface"),
@@ -106,6 +111,11 @@ pub fn main(init: std.process.Init) !void {
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[8 + entries.len], .data = origins.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[9 + entries.len], .data = origins.types });
+
+    const production = try generate(allocator, inputs, sources.items, "zx/analysis/semantic/produce.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[10 + entries.len], .data = production.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[11 + entries.len], .data = production.types });
 }
 
 fn lessSource(_: void, left: compiler.project.Source, right: compiler.project.Source) bool {

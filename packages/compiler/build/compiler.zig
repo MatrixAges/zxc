@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const ParserModules = struct { program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, native: *std.Build.Module, type_lookup: *std.Build.Module, nominal_lookup: *std.Build.Module, origin_validation: *std.Build.Module, name_sort: *std.Build.Module, named_view: *std.Build.Module };
+pub const ParserModules = struct { program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, native: *std.Build.Module, type_lookup: *std.Build.Module, nominal_lookup: *std.Build.Module, origin_validation: *std.Build.Module, origin_production: *std.Build.Module, origin_writer: *std.Build.Module, nominal_data: *std.Build.Module, name_sort: *std.Build.Module, named_view: *std.Build.Module };
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules) Modules {
@@ -21,6 +21,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     });
 
     frontend.addOptions("parser_options", options);
+    frontend.addImport("nominal_data", if (parser) |generated| generated.nominal_data else nominalData(b, target, optimize));
 
     frontend.addImport("named_view", if (parser) |generated| generated.named_view else b.createModule(.{
         .root_source_file = b.path("src/zx/analysis/semantic/ordering/view.zig"),
@@ -45,6 +46,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         frontend.addImport("generated_type_lookup", generated.type_lookup);
         frontend.addImport("generated_nominal_lookup", generated.nominal_lookup);
         frontend.addImport("generated_origin_validation", generated.origin_validation);
+        frontend.addImport("generated_origin_production", generated.origin_production);
+        frontend.addImport("origin_writer", generated.origin_writer);
         frontend.addImport("generated_name_sort", generated.name_sort);
     }
 
@@ -62,4 +65,13 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     });
 
     return .{ .frontend = frontend, .compiler = module };
+}
+
+pub fn nominalData(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Module {
+    return b.createModule(.{
+        .root_source_file = b.path("src/zx/modules/nominal_origins/root.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{.{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") }},
+    });
 }

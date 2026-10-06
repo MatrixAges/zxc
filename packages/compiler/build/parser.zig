@@ -22,6 +22,8 @@ pub const Sources = struct {
     ordering_abi: std.Build.LazyPath,
     origin_validation: std.Build.LazyPath,
     origins_abi: std.Build.LazyPath,
+    origin_production: std.Build.LazyPath,
+    production_abi: std.Build.LazyPath,
 };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
@@ -73,6 +75,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
         .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = rx }, .{ .name = "rx_analysis", .module = analysis } },
     }) });
 
+    executable.root_module.addAnonymousImport("origin_writer_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/origin_writer.d.zx") });
     executable.root_module.addAnonymousImport("named_columns_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/ordering/columns.d.zx") });
     executable.root_module.addAnonymousImport("semantic_integers", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.d.zx") });
 
@@ -103,8 +106,10 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const ordering_abi = run.addOutputFileArg("ordering_abi.zig");
     const origin_validation = run.addOutputFileArg("origin_validation.zig");
     const origins_abi = run.addOutputFileArg("origins_abi.zig");
+    const origin_production = run.addOutputFileArg("origin_production.zig");
+    const production_abi = run.addOutputFileArg("production_abi.zig");
 
-    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi };
+    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {
@@ -153,6 +158,16 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
     origins.addImport("integers", integers);
     origins.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.origins_abi, .target = target, .optimize = optimize }));
 
+    const nominal_data = @import("compiler.zig").nominalData(b, target, optimize);
+    const production_abi = b.createModule(.{ .root_source_file = source.production_abi, .target = target, .optimize = optimize });
+    const writer = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/origin_writer.zig"), .target = target, .optimize = optimize });
+    const production = b.createModule(.{ .root_source_file = source.origin_production, .target = target, .optimize = optimize });
+
+    writer.addImport("nominal_data", nominal_data);
+    writer.addImport("zxc_abi", production_abi);
+    production.addImport("origin_writer", writer);
+    production.addImport("zxc_abi", production_abi);
+
     const ordering_abi = b.createModule(.{ .root_source_file = source.ordering_abi, .target = target, .optimize = optimize });
     const named_view = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/ordering/view.zig"), .target = target, .optimize = optimize });
     const columns = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/ordering/columns.zig"), .target = target, .optimize = optimize });
@@ -168,6 +183,9 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .name_sort = ordering,
         .nominal_lookup = nominal,
         .origin_validation = origins,
+        .origin_production = production,
+        .origin_writer = writer,
+        .nominal_data = nominal_data,
         .type_lookup = lookup,
         .program = b.createModule(.{ .root_source_file = source.program, .target = target, .optimize = optimize }),
         .expression = b.createModule(.{ .root_source_file = source.expression, .target = target, .optimize = optimize }),
