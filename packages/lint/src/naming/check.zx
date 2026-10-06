@@ -1,0 +1,40 @@
+import { NameKind } from "./model"
+
+export type Input = { name: string, kind: NameKind }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.name.length == 0) {
+        return false
+    }
+
+    const first = in.name[0]
+    const valid_first = in.kind == NameKind.TypeDecl ? first >= 65 && first <= 90 : first >= 97 && first <= 122
+
+    if (!valid_first) {
+        return false
+    }
+
+    const state = loop({ name: in.name, kind: in.kind, index: 0, after_underscore: false, valid: true }, {
+        while: current => current.valid && current.index < current.name.length,
+        next: current => {
+            const byte = current.name[current.index]
+            const upper = byte >= 65 && byte <= 90
+            const lower = byte >= 97 && byte <= 122
+            const digit = byte >= 48 && byte <= 57
+
+            if (current.kind == NameKind.Value && byte == 95) {
+                current.valid = !current.after_underscore
+                current.after_underscore = true
+            } else {
+                current.valid = (upper || lower || digit) && (current.kind != NameKind.Value || !upper)
+                current.after_underscore = false
+            }
+
+            current.index += 1
+        }
+    })
+
+    return state.valid && !state.after_underscore
+}

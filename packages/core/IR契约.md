@@ -33,7 +33,7 @@ object 包含 fields 和 evaluation。evaluation 记录源码操作数的求值�
 
 list、tuple、template 保留元素顺序。`&&`、`||`、`??` 和 conditional 保持短路。索引越界产生运行失败。none/some 显式表示可选值，unit 只表示 void。
 
-字符串是不可变字节序列；相等比较按字节内容。可选标量可以相等比较，可选聚合只允许与 null 比较。对象和列表不提供隐式深相等。
+字符串是不可变字节序列；相等比较按字节内容。string 的 length 是字节数，index 接受 u64 并返回 u8 编码字节，越界产生 IndexOutOfBounds；不复制字符串，不允许通过索引修改字节。可选标量可以相等比较，可选聚合只允许与 null 比较。对象和列表不提供隐式深相等。
 
 match_expr 保存可选 subject、有序 arms 与必需 fallback。没有 subject 时条件必须为 bool；有 subject 时目标必须为非 void 标量或枚举，匹配项与其同型。所有结果与表达式同型。目标只求值一次，匹配项从前到后惰性求值，只有首个命中分支的结果或 fallback 会执行。所有权合流保留此前未命中条件的消费状态。
 

@@ -1,0 +1,19 @@
+export type Input = { left: string, right: string }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const state = loop({ left: in.left, right: in.right, index: 0, equal: true, ascending: false }, {
+        while: current => current.equal && current.index < current.left.length && current.index < current.right.length,
+        next: current => {
+            const left = current.left[current.index]
+            const right = current.right[current.index]
+
+            current.equal = left == right
+            current.ascending = left < right
+            current.index += 1
+        }
+    })
+
+    return state.equal ? in.left.length < in.right.length : state.ascending
+}
