@@ -3,8 +3,9 @@ const ir = @import("zx").ir;
 const node = @import("../../../node.zig");
 const Lower = @import("../../lower.zig");
 const Builder = @import("builder.zig");
+const Capacity = @import("../../iteration_buffer/capacity.zig");
 const Self = @This();
-const Field = struct { path: []const u32, builder: Builder };
+const Field = struct { path: []const u32, element: ir.TypeId, builder: Builder };
 const Saved = struct { id: ir.ExprId, previous: ?Builder };
 const SavedCall = struct { id: ir.ExprId, previous: ?[]const ?Builder };
 
@@ -42,13 +43,13 @@ pub fn init(lowering: *Lower, transform: ir.Transform, body: *std.ArrayList(node
         const element = lowering.program.typeOf(selected).list;
         const name = try lowering.fresh("field_items");
         const started_name = try lowering.fresh("field_started");
-        const buffer_type = try lowering.call(try lowering.field(try lowering.builder.identifier("std"), "ArrayList"), &.{lowering.types[@intFromEnum(element)]}, false);
+        const buffer_type = try lowering.call(try lowering.field(try lowering.builder.identifier("std"), "ArrayList"), &.{lowering.types[@backingInt(element)]}, false);
         const builder = Builder{ .buffer = try lowering.builder.identifier(name), .started = try lowering.builder.identifier(started_name) };
 
         try body.append(lowering.allocator, .{ .variable = .{ .name = name, .type_expr = buffer_type, .value = try lowering.builder.expression(.{ .enum_literal = "empty" }) } });
         try body.append(lowering.allocator, .{ .variable = .{ .name = started_name, .value = try lowering.builder.expression(.{ .boolean = false }) } });
         try body.append(lowering.allocator, .{ .defer_expression = try builder.method(lowering, "deinit", &.{}, false) });
-        try self.fields.append(lowering.allocator, .{ .path = path, .builder = builder });
+        try self.fields.append(lowering.allocator, .{ .path = path, .element = element, .builder = builder });
 
         for (projections orelse &.{}) |id| {
             try self.saved.append(lowering.allocator, .{ .id = id, .previous = lowering.append_overrides.get(id) });
@@ -89,7 +90,10 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), accumulator: *co
     for (self.fields.items) |field| {
         const selected = lowering.program.typeOf(self.type_id).object[field.path[0]];
         const target = try lowering.field(accumulator, selected.name);
-        const value = try @import("writeback.zig").replace(lowering, selected.type_id, target, field.path[1..], try field.builder.method(lowering, "toOwnedSlice", &.{}, true));
+        const source = try @import("writeback.zig").project(lowering, self.type_id, accumulator, field.path);
+        const capacity = Capacity{ .buffer = field.builder.buffer, .started = field.builder.started };
+        const owned = try capacity.take(lowering, body, source, lowering.types[@backingInt(field.element)]);
+        const value = try @import("writeback.zig").replace(lowering, selected.type_id, target, field.path[1..], owned);
 
         try body.append(lowering.allocator, .{ .branch = .{ .condition = field.builder.started, .yes = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{
             .target = target,

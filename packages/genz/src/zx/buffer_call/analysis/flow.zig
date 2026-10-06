@@ -7,6 +7,7 @@ pub const Lane = struct {
     input: []const u32,
     output: []const u32,
     appends: []const ir.ExprId,
+    pops: []const ir.ExprId,
     calls: []const Call,
     rejection: ?@import("audit.zig").Rejection = null,
 };

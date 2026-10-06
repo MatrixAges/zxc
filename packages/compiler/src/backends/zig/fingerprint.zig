@@ -22,7 +22,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, names: Names, u
     const buffer_functions = try @import("genz").zx.buffer_call.analysis.functions(arena.allocator(), program, value_functions, facts.pure);
     var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions };
 
-    self.bytes("zxc.zig.input.v8");
+    self.bytes("zxc.zig.input.v9");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
