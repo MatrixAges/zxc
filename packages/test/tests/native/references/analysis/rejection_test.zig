@@ -52,3 +52,13 @@ test "ordinary type aliases cannot introduce native opaque types" {
 test "optional native references cannot compare their host addresses" {
     try f.rejected(std.testing.allocator, .{ .input = "Node?", .output = "bool", .body = "return in == in" }, .{ .code = .type_mismatch, .message = "optional aggregates can only be compared with null", .span_text = "in == in" });
 }
+
+test "task cannot return a native optional reference from a pure helper without captures" {
+    try f.rejected(std.testing.allocator, .{
+        .input = "u64",
+        .output = "u64",
+        .imports = "\nimport empty from \"./empty\"\n",
+        .body = "const work = async empty()\n\n  return in",
+        .sources = &.{.{ .path = "empty.zx", .source = "import type { Node } from \"zig:host\"\n\nexport type Input = void\n\nexport type Output = Node?\n\nexport default function (in: Input): Output {\n  return null\n}\n" }},
+    }, .{ .code = .capability, .message = "tasks cannot return host references", .span_text = "" });
+}

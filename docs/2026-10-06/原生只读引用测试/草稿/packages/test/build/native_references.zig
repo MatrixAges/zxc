@@ -16,8 +16,17 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
     }
 
     const validation = b.step("test-native-references-ir", "Validate native reference IR ownership and accessor boundaries");
+    const frontend = compiler.module("frontend");
+    const files = b.addWriteFiles();
+    const checks_root = files.add("root.zig", "pub const expressions = @import(\"zx/ir/expression_rules.zig\");\npub const scopes = @import(\"zx/ir/scopes.zig\");\npub const tasks = @import(\"zx/ir/tasks.zig\");\n");
+    _ = files.addCopyDirectory(compiler.path("src/zx"), "zx", .{});
 
-    for ([_][]const u8{ "owner", "boundary", "allocation" }) |name| {
+    const checks = b.createModule(.{ .root_source_file = checks_root, .target = target, .optimize = optimize });
+    var imports = frontend.import_table.iterator();
+
+    while (imports.next()) |entry| checks.addImport(entry.key_ptr.*, entry.value_ptr.*);
+
+    for ([_][]const u8{ "owner", "boundary", "allocation", "task" }) |name| {
         const tests = b.addTest(.{ .root_module = b.createModule(.{
             .root_source_file = b.path(b.fmt("tests/native/references/ir/{s}_test.zig", .{name})),
             .target = target,
@@ -26,6 +35,12 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
         }) });
 
         tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
+
+        if (std.mem.eql(u8, name, "task")) {
+            tests.root_module.addImport("frontend", frontend);
+            tests.root_module.addImport("native_ir_checks", checks);
+        }
+
         validation.dependOn(&b.addRunArtifact(tests).step);
     }
 

@@ -6,6 +6,10 @@ pub fn analyze(allocator: std.mem.Allocator, shape: []const u8) !compiler.Analys
 
     defer allocator.free(source);
 
+    return analyzeSource(allocator, source);
+}
+
+fn analyzeSource(allocator: std.mem.Allocator, source: []const u8) !compiler.AnalysisResult {
     var result = try compiler.analyzeProject(allocator, &.{.{ .path = "main.zx", .source = source }}, .{
         .entry = "main.zx",
         .root_dir = "/project",
@@ -44,7 +48,25 @@ pub fn gateway(allocator: std.mem.Allocator, shape: []const u8, rejected: bool) 
 
     defer analysis.deinit();
 
-    var library = try compiler.library.link(allocator, &.{.{ .name = "read", .analysis = &analysis }});
+    try gatewayAnalysis(allocator, &analysis, rejected);
+}
+
+pub fn gatewayOutput(allocator: std.mem.Allocator, shape: []const u8, value: []const u8) !void {
+    const source = try std.fmt.allocPrint(allocator, "import type {{ Node }} from \"zig:host\"\n\nexport type Input = u64\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n  return {s}\n}}\n", .{ shape, value });
+
+    defer allocator.free(source);
+
+    var analysis = try analyzeSource(allocator, source);
+
+    defer analysis.deinit();
+
+    try std.testing.expect(!try compiler.ir.containsNativeReference(allocator, analysis.value.ir.types, analysis.value.ir.input_type));
+    try std.testing.expect(try compiler.ir.containsNativeReference(allocator, analysis.value.ir.types, analysis.value.ir.output_type));
+    try gatewayAnalysis(allocator, &analysis, true);
+}
+
+fn gatewayAnalysis(allocator: std.mem.Allocator, analysis: *compiler.AnalysisResult, rejected: bool) !void {
+    var library = try compiler.library.link(allocator, &.{.{ .name = "read", .analysis = analysis }});
 
     defer library.deinit();
 

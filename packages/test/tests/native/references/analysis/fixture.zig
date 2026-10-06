@@ -9,6 +9,8 @@ pub const Case = struct {
     declaration: []const u8 = declaration,
     extra: []const u8 = "",
     context: compiler.Context = .{},
+    sources: []const compiler.project.Source = &.{},
+    imports: []const u8 = "",
 };
 
 pub const Failure = struct {
@@ -19,7 +21,7 @@ pub const Failure = struct {
 };
 
 pub fn sourceText(allocator: std.mem.Allocator, case: Case) ![]u8 {
-    return std.fmt.allocPrint(allocator, "import host from \"zig:host\"\n\nimport type {{ Node }} from \"zig:host\"\n\n{s}export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n  {s}\n}}\n", .{ case.extra, case.input, case.output, case.body });
+    return std.fmt.allocPrint(allocator, "import host from \"zig:host\"\n{s}\nimport type {{ Node }} from \"zig:host\"\n\n{s}export type Input = {s}\n\nexport type Output = {s}\n\nexport default function (in: Input): Output {{\n  {s}\n}}\n", .{ case.imports, case.extra, case.input, case.output, case.body });
 }
 
 pub fn analyze(allocator: std.mem.Allocator, case: Case) !compiler.AnalysisResult {
@@ -27,7 +29,15 @@ pub fn analyze(allocator: std.mem.Allocator, case: Case) !compiler.AnalysisResul
 
     defer allocator.free(source);
 
-    return compiler.analyzeProject(allocator, &.{.{ .path = "main.zx", .source = source }}, .{
+    const sources = try allocator.alloc(compiler.project.Source, 1 + case.sources.len);
+
+    defer allocator.free(sources);
+
+    sources[0] = .{ .path = "main.zx", .source = source };
+
+    @memcpy(sources[1..], case.sources);
+
+    return compiler.analyzeProject(allocator, sources, .{
         .entry = "main.zx",
         .root_dir = "/project",
         .context = case.context,
