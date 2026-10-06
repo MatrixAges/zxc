@@ -20,7 +20,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
             .task => |task| try self.call(try @import("intrinsics.zig").standardField(self, &.{ "Io", "Future" }), &.{try self.builder.expression(.{ .error_union = .{ .errors = self.program.typeOf(task.errors).error_set, .payload = self.types[@backingInt(task.result)] } })}, false),
             .optional => |child| try self.builder.expression(.{ .optional_type = self.types[@backingInt(child)] }),
             .list => |child| try self.builder.expression(.{ .const_slice = self.types[@backingInt(child)] }),
-            .object, .tuple, .enumeration => blk: {
+            .object, .tuple, .enumeration, .native_reference => blk: {
                 const name = if (self.type_names) |names| names[index] else try std.fmt.allocPrint(self.allocator, "zx_type_{d}", .{index});
 
                 if (self.shared_types) {
@@ -30,6 +30,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
                 }
 
                 const definition = switch (value) {
+                    .native_reference => try self.builder.expression(.opaque_type),
                     .enumeration => |enumeration| try self.builder.expression(.{ .enum_type = enumeration.members }),
                     .tuple => |children| tuple: {
                         const items = try self.allocator.alloc(*const node.Expression, children.len);
@@ -58,6 +59,6 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
             },
         };
 
-        if (value != .object and value != .tuple) self.layouts[index] = self.types[index];
+        if (value != .object and value != .tuple and value != .native_reference) self.layouts[index] = self.types[index];
     }
 }

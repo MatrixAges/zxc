@@ -73,7 +73,7 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
                         try pending.append(self.temporary, .{ .id = fields[remaining].type_id });
                     }
                 },
-                .scalar, .enumeration, .error_set => {},
+                .scalar, .enumeration, .error_set, .native_reference => {},
             }
 
             continue;
@@ -85,12 +85,12 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
 
         self.mapping[current] = mapped;
 
-        if (value == .enumeration) {
+        if (value.nominalName()) |name| {
             var origin: ?NominalOrigins.Origin = null;
 
             for (self.origins) |item| {
                 if (item.type_id != step.id) continue;
-                if (origin != null or !std.mem.eql(u8, item.name, value.enumeration.name)) return error.InvalidModule;
+                if (origin != null or !std.mem.eql(u8, item.name, name)) return error.InvalidModule;
 
                 origin = item.origin;
             }
@@ -105,6 +105,7 @@ pub fn include(self: *Self, id: ir.TypeId) Error!ir.TypeId {
 fn copy(self: *Self, value: ir.Type) Error!ir.Type {
     return switch (value) {
         .scalar => value,
+        .native_reference => |name| .{ .native_reference = try self.allocator.dupe(u8, name) },
         .task => |task| .{ .task = .{ .result = self.mapping[@backingInt(task.result)].?, .errors = self.mapping[@backingInt(task.errors)].? } },
         .optional => |child| .{ .optional = self.mapping[@backingInt(child)].? },
         .list => |child| .{ .list = self.mapping[@backingInt(child)].? },

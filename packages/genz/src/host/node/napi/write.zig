@@ -16,7 +16,7 @@ pub fn lower(types: Types, id: ir.TypeId) Types.Error!node.Declaration {
     try body.append(builder.allocator, .{ .variable = .{ .name = "result", .type_expr = try builder.path(&.{ "api", "Value" }), .value = nil } });
 
     switch (types.values[@backingInt(id)]) {
-        .task => return error.UnsupportedNodeType,
+        .task, .native_reference => return error.UnsupportedNodeType,
         .scalar => |scalar| switch (scalar) {
             .void => try body.appendSlice(builder.allocator, &.{
                 .{ .discard = value },

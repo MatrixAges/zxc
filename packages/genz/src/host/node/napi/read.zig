@@ -13,7 +13,7 @@ pub fn lower(types: Types, id: ir.TypeId) Types.Error!node.Declaration {
     var body: std.ArrayList(node.Statement) = .empty;
 
     switch (value_type) {
-        .task => return error.UnsupportedNodeType,
+        .task, .native_reference => return error.UnsupportedNodeType,
         .scalar => |scalar| {
             if (scalar != .string) try body.append(builder.allocator, .{ .discard = allocator });
 

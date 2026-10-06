@@ -15,6 +15,7 @@ pub fn validate(types: []const ir.Type) bool {
 
         switch (value) {
             .scalar => return false,
+            .native_reference => |name| if (!@import("lint").checkName(name, .type_decl)) return false,
             .task => |task| {
                 if (@backingInt(task.result) >= index or @backingInt(task.errors) >= index) return false;
                 if (types[@backingInt(task.result)] == .task or types[@backingInt(task.errors)] != .error_set) return false;

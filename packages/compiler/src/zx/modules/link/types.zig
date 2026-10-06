@@ -31,7 +31,11 @@ pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: []const ir.
         const index = @backingInt(item.type_id);
 
         if (index >= values.len or origins[index] != null) return error.InvalidModule;
-        if (values[index] != .enumeration or !std.mem.eql(u8, values[index].enumeration.name, item.name)) return error.InvalidModule;
+
+        const name = values[index].nominalName() orelse return error.InvalidModule;
+
+        if (!std.mem.eql(u8, name, item.name)) return error.InvalidModule;
+        if (values[index] == .native_reference and item.origin != .native) return error.InvalidModule;
 
         origins[index] = item.origin;
     }
@@ -49,8 +53,8 @@ pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: []const ir.
     for (values[first..], first..) |value, index| {
         const mapped = try remap(temporary, value, mapping[0..index]);
 
-        if (value == .enumeration) {
-            mapping[index] = try self.enumeration(mapped, origins[index] orelse return error.MissingNominalOrigin);
+        if (value.nominalName() != null) {
+            mapping[index] = try self.nominal(mapped, origins[index] orelse return error.MissingNominalOrigin);
         } else {
             mapping[index] = try self.structural(mapped);
         }
@@ -67,9 +71,9 @@ fn structural(self: *Self, value: ir.Type) Error!ir.TypeId {
     return self.insert(value);
 }
 
-fn enumeration(self: *Self, value: ir.Type, origin: Origins.Origin) Error!ir.TypeId {
+fn nominal(self: *Self, value: ir.Type, origin: Origins.Origin) Error!ir.TypeId {
     for (self.origins.items.items) |item| {
-        if (!std.mem.eql(u8, item.name, value.enumeration.name) or !Origins.same(item.origin, origin)) continue;
+        if (!std.mem.eql(u8, item.name, value.nominalName().?) or !Origins.same(item.origin, origin)) continue;
         if (!sameType(self.items.items[@backingInt(item.type_id)], value)) return error.ConflictingNominalType;
 
         return item.type_id;
@@ -85,6 +89,7 @@ fn enumeration(self: *Self, value: ir.Type, origin: Origins.Origin) Error!ir.Typ
 fn insert(self: *Self, value: ir.Type) Error!ir.TypeId {
     const owned: ir.Type = switch (value) {
         .scalar, .optional, .list, .task => value,
+        .native_reference => |name| .{ .native_reference = try self.allocator.dupe(u8, name) },
         .tuple => |children| .{ .tuple = try self.allocator.dupe(ir.TypeId, children) },
         .object => |fields| blk: {
             const copied = try self.allocator.dupe(ir.TypeField, fields);
@@ -118,7 +123,7 @@ fn insert(self: *Self, value: ir.Type) Error!ir.TypeId {
 
 fn remap(allocator: std.mem.Allocator, value: ir.Type, mapping: []const ir.TypeId) Error!ir.Type {
     return switch (value) {
-        .scalar, .enumeration, .error_set => value,
+        .scalar, .enumeration, .error_set, .native_reference => value,
         .task => |task| .{ .task = .{ .result = mapping[@backingInt(task.result)], .errors = mapping[@backingInt(task.errors)] } },
         .optional => |child| .{ .optional = mapping[@backingInt(child)] },
         .list => |child| .{ .list = mapping[@backingInt(child)] },
@@ -144,6 +149,7 @@ fn sameType(left: ir.Type, right: ir.Type) bool {
 
     return switch (left) {
         .scalar => |value| value == right.scalar,
+        .native_reference => |name| std.mem.eql(u8, name, right.native_reference),
         .task => |task| task.result == right.task.result and task.errors == right.task.errors,
         .error_set => |members| blk: {
             if (members.len != right.error_set.len) break :blk false;

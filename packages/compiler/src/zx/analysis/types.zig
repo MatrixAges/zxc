@@ -12,6 +12,7 @@ resolved: std.StringHashMapUnmanaged(ir.TypeId) = .empty,
 visiting: std.StringHashMapUnmanaged(void) = .empty,
 aliases: []const ir.Export = &.{},
 shared: ?Shared = null,
+native_interface: bool = false,
 pub fn initialize(self: *Self) zx.Error!void {
     const first = self.items.items.len;
 
@@ -63,7 +64,14 @@ pub fn named(self: *Self, name: zx.ast.Name) zx.Error!ir.TypeId {
         try self.visiting.put(self.allocator, name.text, {});
 
         defer _ = self.visiting.remove(name.text);
-        const id = if (declaration.value.* == .enumeration) try self.enumeration(declaration.name, declaration.value.enumeration) else try self.resolve(declaration.value);
+
+        const id = if (self.native_interface and declaration.value.* == .named and std.mem.eql(u8, declaration.value.named.text, "opaque")) blk: {
+            const id: ir.TypeId = @fromBackingInt(@intCast(self.items.items.len));
+
+            try self.items.append(self.allocator, .{ .native_reference = try self.allocator.dupe(u8, declaration.name.text) });
+
+            break :blk id;
+        } else if (declaration.value.* == .enumeration) try self.enumeration(declaration.name, declaration.value.enumeration) else try self.resolve(declaration.value);
 
         try self.resolved.put(self.allocator, name.text, id);
 
@@ -172,6 +180,7 @@ pub fn errorSet(self: *Self, members: []const []const u8) zx.Error!ir.TypeId {
 }
 
 pub fn task(self: *Self, result: ir.TypeId, errors: ir.TypeId) zx.Error!ir.TypeId {
+    if (try ir.containsNativeReference(self.allocator, self.items.items, result)) return self.reporter.fail(.capability, .{ .start = 0, .end = 0 }, "tasks cannot return host references");
     if (self.get(result) == .task) return self.reporter.fail(.ownership, .{ .start = 0, .end = 0 }, "a task cannot return another task");
 
     for (self.items.items, 0..) |item, index| {

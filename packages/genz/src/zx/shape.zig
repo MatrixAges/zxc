@@ -15,6 +15,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error
             .optional => "optional",
             .list => "list",
             .object, .tuple => "object",
+            .native_reference => "native_reference",
             .task => unreachable,
         };
 

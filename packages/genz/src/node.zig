@@ -37,6 +37,7 @@ pub const Expression = union(enum) {
     const_slice: *const Expression,
     mutable_slice: *const Expression,
     many_pointer: *const Expression,
+    opaque_type,
     struct_type: []const Field,
     namespace_type: []const Declaration,
     container_type: struct { fields: []const Field, declarations: []const Declaration },

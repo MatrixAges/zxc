@@ -62,7 +62,7 @@ pub fn emit(allocator: std.mem.Allocator, program: @import("zx").ir.Program, ide
     const store = cache orelse return generate(allocator, program, identities, unit);
 
     const name = switch (unit) {
-        .function => |id| identities.functions[@intFromEnum(id)],
+        .function => |id| identities.functions[@backingInt(id)],
         .entry, .types => try std.fmt.allocPrint(allocator, "{s}:{s}", .{ @tagName(unit), program.file_name }),
     };
 
@@ -94,12 +94,12 @@ pub fn functionFiles(owned: std.mem.Allocator, program: @import("zx").ir.Program
     for (program.functions, 0..) |function, index| {
         if (!needed[index]) continue;
 
-        const source = try emit(owned, program, identities, .{ .function = @enumFromInt(index) }, cache);
+        const source = try emit(owned, program, identities, .{ .function = @fromBackingInt(@intCast(index)) }, cache);
 
         const file = File{
             .name = identities.functions[index],
             .source = source,
-            .imports = if (function.external) |external| try owned.dupe([]const u8, &.{try owned.dupe(u8, program.native_modules[@intFromEnum(external.module)].import_name)}) else try references.imports(owned, function.expressions, function.contracts, identities.functions),
+            .imports = if (function.external) |external| try owned.dupe([]const u8, &.{try owned.dupe(u8, program.native_modules[@backingInt(external.module)].import_name)}) else try references.imports(owned, function.expressions, function.contracts, identities.functions),
         };
 
         const entry = try seen.getOrPut(owned, file.name);
@@ -123,7 +123,7 @@ pub fn typeNames(owned: std.mem.Allocator, program: @import("zx").ir.Program, id
     var type_set: std.StringHashMapUnmanaged(void) = .empty;
 
     for (program.types, identities.types) |value, name| {
-        if (value != .object and value != .tuple and value != .enumeration) continue;
+        if (value != .object and value != .tuple and value != .enumeration and value != .native_reference) continue;
         if ((try type_set.getOrPut(owned, name)).found_existing) continue;
         try type_names.append(owned, name);
     }

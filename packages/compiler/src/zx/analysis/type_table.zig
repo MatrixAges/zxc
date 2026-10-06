@@ -12,6 +12,7 @@ pub fn copy(allocator: std.mem.Allocator, values: []const ir.Type) std.mem.Alloc
 
             value.* = .{ .object = owned };
         },
+        .native_reference => |name| value.* = .{ .native_reference = try allocator.dupe(u8, name) },
         .tuple => |children| value.* = .{ .tuple = try allocator.dupe(ir.TypeId, children) },
         .error_set => |names| {
             const members = try allocator.alloc([]const u8, names.len);

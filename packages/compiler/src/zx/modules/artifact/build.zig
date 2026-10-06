@@ -31,7 +31,16 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
     const needed = try @import("roots.zig").collect(self.types.temporary, self.program, record);
 
     for (needed, 0..) |included, index| {
-        if (included) _ = try self.types.include(@enumFromInt(index));
+        if (included) _ = try self.types.include(@fromBackingInt(@intCast(index)));
+    }
+
+    for (self.program.native_modules, 0..) |module, index| {
+        for (module.types) |binding| {
+            if (self.program.typeOf(binding.type_id) != .native_reference or self.types.mapping[@backingInt(binding.type_id)] == null) continue;
+            try self.nativeModule(@fromBackingInt(@intCast(index)));
+
+            break;
+        }
     }
 
     const type_imports = try self.exports(record.type_imports);
@@ -43,7 +52,7 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
 
         for (self.program.native_modules, 0..) |module, index| {
             if (!std.mem.eql(u8, module.key(), dependency.identity orelse dependency.specifier)) continue;
-            try self.nativeModule(@enumFromInt(index));
+            try self.nativeModule(@fromBackingInt(@intCast(index)));
 
             found = true;
         }
@@ -54,7 +63,7 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
     const function_imports = try self.allocator.dupe(FunctionImport, record.function_imports);
 
     for (function_imports) |*binding| {
-        const index = @intFromEnum(binding.id);
+        const index = @backingInt(binding.id);
 
         if (index >= self.program.functions.len) return error.InvalidModule;
 
@@ -79,7 +88,7 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
 
     const exported = try self.exports(record.exports);
     const function = try self.copyFunction(record);
-    const stores = try self.allocator.dupe(ir.StoreSlot, if (record.body == .entry) self.program.stores else if (record.body == .function) self.program.functions[@intFromEnum(record.body.function)].stores else &.{});
+    const stores = try self.allocator.dupe(ir.StoreSlot, if (record.body == .entry) self.program.stores else if (record.body == .function) self.program.functions[@backingInt(record.body.function)].stores else &.{});
 
     for (stores) |*slot| {
         slot.path = try self.allocator.dupe(u8, slot.path);
@@ -127,9 +136,9 @@ fn copyFunction(self: *Self, record: Record) Error!?ir.Function {
             break :blk .{ .stores = self.program.stores, .store_mode = self.program.store_mode, .file_name = self.program.file_name, .input_type = self.program.input_type, .output_type = self.program.output_type, .consumes_input = self.program.consumes_input, .output_ownership = self.program.output_ownership, .symbols = self.program.symbols, .expressions = self.program.expressions, .body = self.program.body, .contracts = self.program.contracts };
         },
         .function => |id| blk: {
-            if (@intFromEnum(id) >= self.program.functions.len) return error.InvalidModule;
+            if (@backingInt(id) >= self.program.functions.len) return error.InvalidModule;
 
-            const value = self.program.functions[@intFromEnum(id)];
+            const value = self.program.functions[@backingInt(id)];
 
             if (value.external != null or !std.mem.eql(u8, record.path, value.file_name)) return error.InvalidModule;
 
@@ -143,7 +152,7 @@ fn copyFunction(self: *Self, record: Record) Error!?ir.Function {
 }
 
 fn importFunction(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
-    const index = @intFromEnum(id);
+    const index = @backingInt(id);
 
     if (index >= self.program.functions.len) return error.InvalidModule;
     if (self.function_mapping[index]) |mapped| return mapped;
@@ -153,7 +162,7 @@ fn importFunction(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
     if (value.external) |external| try self.nativeModule(external.module);
 
     var nodes = self.nodeCopier();
-    const mapped: ir.FunctionId = @enumFromInt(self.functions.items.len);
+    const mapped: ir.FunctionId = @fromBackingInt(@intCast(self.functions.items.len));
 
     try self.functions.append(self.allocator, .{
         .file_name = try self.allocator.dupe(u8, value.file_name),
@@ -170,14 +179,14 @@ fn importFunction(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
 }
 
 fn nativeModule(self: *Self, id: ir.NativeModuleId) Error!void {
-    const index = @intFromEnum(id);
+    const index = @backingInt(id);
 
     if (index >= self.program.native_modules.len) return error.InvalidModule;
     if (self.native_mapping[index] != null) return;
 
     const value = self.program.native_modules[index];
     var nodes = self.nodeCopier();
-    const mapped: ir.NativeModuleId = @enumFromInt(self.native_modules.items.len);
+    const mapped: ir.NativeModuleId = @fromBackingInt(@intCast(self.native_modules.items.len));
 
     try self.native_modules.append(self.allocator, .{
         .specifier = try self.allocator.dupe(u8, value.specifier),
