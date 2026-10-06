@@ -4,7 +4,7 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const intrinsics = @import("intrinsics.zig");
-pub const Storage = struct { buffer: *const node.Expression, started: *const node.Expression };
+pub const Storage = struct { buffer: *const node.Expression, started: *const node.Expression, capacity: ?@import("iteration_buffer/capacity.zig") = null };
 
 pub fn lower(self: *Lower, update: ir.ListUpdate, storage: ?Storage) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
@@ -18,6 +18,12 @@ pub fn lower(self: *Lower, update: ir.ListUpdate, storage: ?Storage) Lower.Error
     const copy = try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ self.types[@backingInt(element)], source }, true);
 
     const buffer = if (storage) |shared| blk: {
+        if (shared.capacity) |capacity| {
+            try capacity.prepare(self, &body, source);
+
+            break :blk try capacity.items(self);
+        }
+
         try body.append(self.allocator, .{ .branch = .{
             .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = shared.started } }),
             .yes = try self.allocator.dupe(node.Statement, &.{

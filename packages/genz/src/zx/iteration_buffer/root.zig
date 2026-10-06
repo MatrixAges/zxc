@@ -2,12 +2,16 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
+const Capacity = @import("capacity.zig");
 const Self = @This();
+const Field = struct { path: []const usize, element: ir.TypeId, storage: Capacity };
 
 lowering: *Lower,
 overrides: std.ArrayList(ir.ExprId) = .empty,
-pub fn init(lowering: *Lower, iteration: ir.Iteration, body: *std.ArrayList(node.Statement), enabled: bool) Lower.Error!Self {
-    var self = Self{ .lowering = lowering };
+fields: std.ArrayList(Field) = .empty,
+mutable_state: bool,
+pub fn init(lowering: *Lower, iteration: ir.Iteration, body: *std.ArrayList(node.Statement), enabled: bool, mutable_state: bool) Lower.Error!Self {
+    var self = Self{ .lowering = lowering, .mutable_state = mutable_state };
 
     errdefer self.restore();
 
@@ -49,10 +53,28 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
     const updates = try @import("analysis.zig").analyze(lowering.allocator, lowering.program, iteration, path) orelse return;
 
     const overlap = for (updates) |update| {
-        if (lowering.list_update_buffers.contains(update)) break true;
+        if (lowering.list_update_buffers.contains(update) or lowering.collection_buffers.contains(update)) break true;
     } else false;
 
     if (overlap) return;
+
+    var dynamic = false;
+    var writes = false;
+
+    for (updates) |update| switch (lowering.program.expression(update).value) {
+        .list_operation => |operation| {
+            dynamic = true;
+            writes = writes or operation.kind != .pop;
+        },
+        .list_update => writes = true,
+        else => unreachable,
+    };
+
+    if (dynamic) {
+        if (self.mutable_state and writes) try self.installCapacity(body, child, path, updates);
+
+        return;
+    }
 
     const buffer_name = try lowering.fresh("state_items");
     const started_name = try lowering.fresh("state_items_started");
@@ -76,8 +98,49 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
     }
 }
 
+fn installCapacity(self: *Self, body: *std.ArrayList(node.Statement), child: ir.TypeId, path: []const usize, updates: []const ir.ExprId) Lower.Error!void {
+    const lowering = self.lowering;
+    const capacity = try Capacity.create(lowering, body, lowering.types[@backingInt(child)]);
+
+    try self.fields.append(lowering.allocator, .{ .path = try lowering.allocator.dupe(usize, path), .element = child, .storage = capacity });
+
+    for (updates) |update| {
+        try self.overrides.append(lowering.allocator, update);
+
+        if (lowering.program.expression(update).value == .list_update) {
+            try lowering.list_update_buffers.put(lowering.allocator, update, .{ .buffer = try capacity.items(lowering), .started = capacity.started, .capacity = capacity });
+        } else try lowering.collection_buffers.put(lowering.allocator, update, capacity);
+    }
+}
+
+pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const node.Expression, type_id: ir.TypeId) Lower.Error!void {
+    const lowering = self.lowering;
+
+    for (self.fields.items) |field| {
+        var target = state;
+        var current = type_id;
+
+        for (field.path) |index| switch (lowering.program.typeOf(current)) {
+            .object => |fields| {
+                target = try lowering.field(target, fields[index].name);
+                current = fields[index].type_id;
+            },
+            .tuple => |items| {
+                target = try lowering.field(target, try std.fmt.allocPrint(lowering.allocator, "{d}", .{index}));
+                current = items[index];
+            },
+            else => unreachable,
+        };
+
+        try field.storage.finish(lowering, body, target, lowering.types[@backingInt(field.element)]);
+    }
+}
+
 pub fn restore(self: *Self) void {
-    for (self.overrides.items) |id| _ = self.lowering.list_update_buffers.remove(id);
+    for (self.overrides.items) |id| {
+        _ = self.lowering.list_update_buffers.remove(id);
+        _ = self.lowering.collection_buffers.remove(id);
+    }
 
     self.overrides.clearRetainingCapacity();
 }

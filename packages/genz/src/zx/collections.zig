@@ -4,16 +4,17 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const intrinsic = @import("intrinsics.zig");
+const Capacity = @import("iteration_buffer/capacity.zig");
 
-pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation")) Lower.Error!*const node.Expression {
-    return lowerMode(self, type_id, operation, null);
+pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), storage: ?Capacity) Lower.Error!*const node.Expression {
+    return lowerMode(self, type_id, operation, null, storage);
 }
 
-pub fn lowerValue(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), layout: *const node.Expression) Lower.Error!*const node.Expression {
-    return lowerMode(self, type_id, operation, layout);
+pub fn lowerValue(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), layout: *const node.Expression, storage: ?Capacity) Lower.Error!*const node.Expression {
+    return lowerMode(self, type_id, operation, layout, storage);
 }
 
-fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), layout: ?*const node.Expression) Lower.Error!*const node.Expression {
+fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), layout: ?*const node.Expression, storage: ?Capacity) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(operation.target));
     const arguments = try self.allocator.alloc(*const node.Expression, operation.arguments.len);
@@ -54,9 +55,20 @@ fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(
 
             result = try pair(self, source, unit);
         },
-        .push, .concat => {
+        .push, .concat => append: {
             const added = if (operation.kind == .push) try self.builder.integer(1) else try self.field(arguments[0], "len");
             const count = try addLength(self, length, added);
+
+            if (storage) |capacity| {
+                try body.append(self.allocator, .{ .discard = count });
+                try capacity.prepare(self, &body, source);
+                try body.append(self.allocator, .{ .expression = try capacity.method(self, if (operation.kind == .push) "append" else "appendSlice", arguments, true) });
+
+                result = try pair(self, try capacity.items(self), unit);
+
+                break :append;
+            }
+
             const buffer = try allocate(self, &body, child_type, count);
 
             try copy(self, &body, try slice(self, buffer, null, length), source);

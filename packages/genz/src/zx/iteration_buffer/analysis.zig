@@ -115,19 +115,7 @@ fn expression(self: *Self, id: ir.ExprId) Error!Value {
             self.observe(try self.expression(update.index));
             self.rejectAlias(try self.expression(update.value));
 
-            if (target == .none) break :blk .none;
-
-            if (target != .version or target.version != self.current) {
-                self.valid = false;
-
-                break :blk .none;
-            }
-
-            if (std.mem.indexOfScalar(ir.ExprId, self.updates.items, id) == null) try self.updates.append(self.allocator, id);
-
-            self.current = self.fresh();
-
-            break :blk .{ .version = self.current };
+            break :blk try self.advance(id, target);
         },
         .scope => |scope| blk: {
             const previous = try self.allocator.dupe(Value, self.symbols);
@@ -208,7 +196,7 @@ fn expression(self: *Self, id: ir.ExprId) Error!Value {
 
             self.observe(argument);
 
-            if (facts.contains(argument) and (function.consumes_input or self.hasList(function.output_type))) self.valid = false;
+            if (facts.contains(argument) and (function.external != null or function.consumes_input or self.hasList(function.output_type))) self.valid = false;
 
             break :blk .none;
         },
@@ -223,21 +211,25 @@ fn expression(self: *Self, id: ir.ExprId) Error!Value {
             break :blk .none;
         },
         .list_operation => |operation| blk: {
-            self.rejectAlias(try self.expression(operation.target));
+            const target = try self.expression(operation.target);
 
             for (operation.arguments) |argument| self.rejectAlias(try self.expression(argument));
 
-            break :blk .none;
-        },
-        .transform => |transform| blk: {
-            self.rejectAlias(try self.expression(transform.target));
+            if (target == .none) break :blk .none;
 
-            if (transform.initial) |initial| self.rejectAlias(try self.expression(initial));
+            if (operation.kind != .push and operation.kind != .concat and operation.kind != .pop) {
+                self.valid = false;
 
-            break :blk .none;
+                break :blk .none;
+            }
+
+            const next = try self.advance(id, target);
+            const values = try self.allocator.dupe(Value, &.{ next, .none });
+
+            break :blk .{ .aggregate = values };
         },
-        .iteration => |iteration| blk: {
-            self.rejectAlias(try self.expression(iteration.initial));
+        .transform, .iteration => blk: {
+            self.valid = false;
 
             break :blk .none;
         },
@@ -254,6 +246,7 @@ fn expression(self: *Self, id: ir.ExprId) Error!Value {
             const version = self.current;
             const right = try self.expression(binary.right);
 
+            self.observe(left);
             self.observe(right);
 
             if (binary.operator == .coalesce) {
@@ -272,6 +265,22 @@ fn expression(self: *Self, id: ir.ExprId) Error!Value {
         },
         .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value => .none,
     };
+}
+
+fn advance(self: *Self, id: ir.ExprId, target: Value) Error!Value {
+    if (target == .none) return .none;
+
+    if (target != .version or target.version != self.current) {
+        self.valid = false;
+
+        return .none;
+    }
+
+    if (std.mem.indexOfScalar(ir.ExprId, self.updates.items, id) == null) try self.updates.append(self.allocator, id);
+
+    self.current = self.fresh();
+
+    return .{ .version = self.current };
 }
 
 fn observe(self: *Self, value: Value) void {
