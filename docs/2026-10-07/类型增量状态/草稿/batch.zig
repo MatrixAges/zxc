@@ -4652,4 +4652,3 @@ fn zx_compare_10(context: void, left: []const u8, right: []const u8) bool {
 
     return ((std).mem).lessThan(u8, left, right);
 }
-

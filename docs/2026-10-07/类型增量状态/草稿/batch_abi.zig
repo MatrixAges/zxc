@@ -474,4 +474,3 @@ pub const native = struct {
 pub const layouts = struct {
     pub const @"zig:integers" = (layouts_by_identity).@"zig:zxc_native_fa5740cadd8ce63d5afc271b40ead6207d62ec22521aab1e29836a853b99faa0";
 };
-
