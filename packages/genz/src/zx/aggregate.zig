@@ -73,7 +73,7 @@ fn sequenceMode(self: *Lower, value: ir.Expression, items: []const ir.ExprId, la
         .tuple => blk: {
             const tuple = try self.builder.expression(.{ .tuple = expressions });
 
-            break :blk if (layout) tuple else try self.construct(value.type_id, tuple);
+            break :blk if (layout) try @import("state_value/origin.zig").tuple(self, value.type_id, tuple) else try self.construct(value.type_id, tuple);
         },
         .list => blk: {
             const element_type = self.types[@backingInt(self.program.typeOf(value.type_id).list)];

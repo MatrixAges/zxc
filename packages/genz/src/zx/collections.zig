@@ -104,7 +104,7 @@ fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(
         },
     }
 
-    return aggregate.finish(self, &body, if (layout) |target| try self.cast(target, result) else try self.construct(type_id, result));
+    return aggregate.finish(self, &body, if (layout) |target| try self.cast(target, try @import("state_value/origin.zig").tuple(self, type_id, result)) else try self.construct(type_id, result));
 }
 
 fn slice(self: *Lower, target: *const node.Expression, start: ?*const node.Expression, end: ?*const node.Expression) Lower.Error!*const node.Expression {

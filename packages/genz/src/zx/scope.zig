@@ -12,6 +12,12 @@ pub fn lowerValue(self: *Lower, scope: ir.Scope) Lower.Error!*const node.Express
 }
 
 fn lowerMode(self: *Lower, scope: ir.Scope, layout: bool) Lower.Error!*const node.Expression {
+    const state_symbols = try @import("state_value/locals.zig").scope(self, scope);
+
+    defer for (state_symbols) |symbol| {
+        _ = self.state_symbols.remove(symbol);
+    };
+
     const analysis = @import("iteration_layout.zig");
     const values = @import("value_call/root.zig");
     var stacked: std.ArrayList(ir.SymbolId) = .empty;
@@ -22,6 +28,7 @@ fn lowerMode(self: *Lower, scope: ir.Scope, layout: bool) Lower.Error!*const nod
 
     if (layout and analysis.flat(self.program, self.program.expression(scope.result).type_id)) {
         for (scope.bindings) |binding| if (binding.symbol) |symbol| {
+            if (@import("state_value/root.zig").selected(self, self.program.symbols[@backingInt(symbol)].type_id)) continue;
             if (!analysis.flat(self.program, self.program.symbols[@backingInt(symbol)].type_id) or self.stack_symbols.contains(symbol)) continue;
             try stacked.append(self.allocator, symbol);
             try self.stack_symbols.put(self.allocator, symbol, {});

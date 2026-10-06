@@ -8,6 +8,7 @@ pub const state = @import("state.zig");
 pub const io = @import("io.zig");
 pub const value_call = @import("value_call/root.zig");
 pub const buffer_call = @import("buffer_call/root.zig");
+pub const state_value = @import("state_value/root.zig");
 pub const capabilities = @import("capabilities.zig");
 pub const tasks = @import("tasks/root.zig");
 
@@ -56,6 +57,7 @@ pub fn initialize(temporary: std.mem.Allocator, program: zx.ir.Program) std.mem.
         .builder = .{ .allocator = temporary },
         .types = try temporary.alloc(*const node.Expression, program.types.len),
         .layouts = try temporary.alloc(*const node.Expression, program.types.len),
+        .state_plan = function_facts.state,
         .names = try temporary.alloc([]const u8, program.symbols.len),
         .cache_reads = try temporary.alloc(usize, program.expressions.len),
         .used = try temporary.alloc(bool, program.symbols.len),

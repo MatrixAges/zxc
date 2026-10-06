@@ -119,20 +119,31 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
     for (self.fields.items) |field| {
         var target = state;
         var current = type_id;
+        var invalidation: std.ArrayList(node.Statement) = .empty;
 
-        for (field.path) |index| switch (lowering.program.typeOf(current)) {
-            .object => |fields| {
-                target = try lowering.field(target, fields[index].name);
-                current = fields[index].type_id;
-            },
-            .tuple => |items| {
-                target = try lowering.field(target, try std.fmt.allocPrint(lowering.allocator, "{d}", .{index}));
-                current = items[index];
-            },
-            else => unreachable,
-        };
+        for (field.path) |index| {
+            try @import("../state_value/origin.zig").clear(lowering, &invalidation, current, target);
+
+            switch (lowering.program.typeOf(current)) {
+                .object => |fields| {
+                    target = try lowering.field(target, fields[index].name);
+                    current = fields[index].type_id;
+                },
+                .tuple => |items| {
+                    target = try lowering.field(target, try std.fmt.allocPrint(lowering.allocator, "{d}", .{index}));
+                    current = items[index];
+                },
+                else => unreachable,
+            }
+        }
 
         try field.storage.finish(lowering, body, target, lowering.types[@backingInt(field.element)]);
+
+        if (invalidation.items.len != 0) try body.append(lowering.allocator, .{ .branch = .{
+            .condition = field.storage.started,
+            .yes = try invalidation.toOwnedSlice(lowering.allocator),
+            .no = &.{},
+        } });
     }
 }
 

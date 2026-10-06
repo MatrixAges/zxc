@@ -1,0 +1,160 @@
+const std = @import("std");
+const ir = @import("zx").ir;
+const Self = @This();
+
+selected: []bool,
+keys: [][32]u8,
+pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
+    const boxed = try allocator.alloc(bool, program.types.len);
+
+    defer allocator.free(boxed);
+    @memset(boxed, false);
+
+    for (program.types) |value| switch (value) {
+        .list => |child| mark(program, boxed, child),
+        .task => |task| mark(program, boxed, task.result),
+        else => {},
+    };
+
+    for (program.stores) |slot| mark(program, boxed, slot.type_id);
+
+    comparisons(program, boxed, program.expressions, program.contracts);
+
+    for (program.functions) |function| {
+        comparisons(program, boxed, function.expressions, function.contracts);
+
+        for (function.stores) |slot| mark(program, boxed, slot.type_id);
+
+        if (function.external != null) {
+            mark(program, boxed, function.input_type);
+            mark(program, boxed, function.output_type);
+        }
+    }
+
+    const seen = try allocator.alloc(bool, program.types.len);
+
+    defer allocator.free(seen);
+
+    for (program.types, 0..) |_, index| {
+        @memset(seen, false);
+        duplicates(program, boxed, seen, @fromBackingInt(@intCast(index)));
+    }
+
+    const selected = try allocator.alloc(bool, program.types.len);
+
+    errdefer allocator.free(selected);
+
+    const keys = try allocator.alloc([32]u8, program.types.len);
+
+    for (program.types, 0..) |value, index| {
+        selected[index] = !boxed[index] and (value == .object or value == .tuple);
+
+        var hash = std.crypto.hash.sha2.Sha256.init(.{});
+
+        hash.update("state.value.origin.v1");
+        hash.update(&.{@intFromBool(selected[index])});
+
+        switch (value) {
+            .optional => |child| hash.update(&keys[@backingInt(child)]),
+            .object => |fields| if (selected[index]) {
+                for (fields) |field| hash.update(&keys[@backingInt(field.type_id)]);
+            },
+            .tuple => |items| if (selected[index]) {
+                for (items) |item| hash.update(&keys[@backingInt(item)]);
+            },
+            else => {},
+        }
+
+        hash.final(&keys[index]);
+    }
+
+    return .{ .selected = selected, .keys = keys };
+}
+
+fn duplicates(program: ir.Program, boxed: []bool, seen: []bool, id: ir.TypeId) void {
+    const index = @backingInt(id);
+
+    if (boxed[index]) return;
+
+    switch (program.typeOf(id)) {
+        .object, .tuple => {
+            if (seen[index]) {
+                mark(program, boxed, id);
+
+                return;
+            }
+
+            seen[index] = true;
+        },
+        else => {},
+    }
+
+    switch (program.typeOf(id)) {
+        .optional => |child| duplicates(program, boxed, seen, child),
+        .object => |fields| for (fields) |field| duplicates(program, boxed, seen, field.type_id),
+        .tuple => |items| for (items) |item| duplicates(program, boxed, seen, item),
+        else => {},
+    }
+}
+
+pub fn represented(self: Self, program: ir.Program, id: ir.TypeId) bool {
+    return switch (program.typeOf(id)) {
+        .optional => |child| self.represented(program, child),
+        else => self.selected[@backingInt(id)],
+    };
+}
+
+pub fn name(self: Self, allocator: std.mem.Allocator, id: ir.TypeId, base: []const u8) std.mem.Allocator.Error![]const u8 {
+    return std.fmt.allocPrint(allocator, "value_{s}_{x}", .{ base, self.keys[@backingInt(id)] });
+}
+
+pub fn nested(self: Self, program: ir.Program, id: ir.TypeId) bool {
+    return switch (program.typeOf(id)) {
+        .optional => |child| self.represented(program, child),
+        .object => |fields| blk: {
+            for (fields) |field| if (self.represented(program, field.type_id)) break :blk true;
+
+            break :blk false;
+        },
+        .tuple => |items| blk: {
+            for (items) |item| if (self.represented(program, item)) break :blk true;
+
+            break :blk false;
+        },
+        else => false,
+    };
+}
+
+fn comparisons(program: ir.Program, boxed: []bool, expressions: []const ir.Expression, contracts: []const ir.Contract) void {
+    for (expressions) |expression| if (expression.value == .binary) {
+        const binary = expression.value.binary;
+
+        if (binary.operator != .equal and binary.operator != .not_equal) continue;
+
+        const left = expressions[@backingInt(binary.left)];
+        const right = expressions[@backingInt(binary.right)];
+
+        if (left.value == .none or right.value == .none) continue;
+
+        mark(program, boxed, left.type_id);
+        mark(program, boxed, right.type_id);
+    };
+
+    for (contracts) |contract| comparisons(program, boxed, contract.expressions, &.{});
+}
+
+fn mark(program: ir.Program, boxed: []bool, id: ir.TypeId) void {
+    const index = @backingInt(id);
+
+    if (boxed[index]) return;
+
+    boxed[index] = true;
+
+    switch (program.typeOf(id)) {
+        .optional, .list => |child| mark(program, boxed, child),
+        .task => |task| mark(program, boxed, task.result),
+        .object => |fields| for (fields) |field| mark(program, boxed, field.type_id),
+        .tuple => |items| for (items) |item| mark(program, boxed, item),
+        else => {},
+    }
+}

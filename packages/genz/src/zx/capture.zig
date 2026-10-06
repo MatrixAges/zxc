@@ -21,7 +21,7 @@ pub fn lowerValue(self: *Lower, type_id: ir.TypeId, child: ir.ExprId) Lower.Erro
     const previous = self.capture;
 
     const result = blk: {
-        self.capture = .{ .name = name, .label = label, .failure = try self.cast(layout, failed) };
+        self.capture = .{ .name = name, .label = label, .failure = try self.cast(layout, try @import("state_value/origin.zig").tuple(self, type_id, failed)) };
         defer self.capture = previous;
 
         break :blk try self.expr(child);
@@ -37,7 +37,7 @@ pub fn lowerValue(self: *Lower, type_id: ir.TypeId, child: ir.ExprId) Lower.Erro
 
     const succeeded = try self.builder.expression(.{ .tuple = try self.allocator.dupe(*const node.Expression, &.{ try self.builder.expression(.null_value), value }) });
 
-    try body.append(self.allocator, .{ .break_value = .{ .label = label, .value = try self.cast(layout, succeeded) } });
+    try body.append(self.allocator, .{ .break_value = .{ .label = label, .value = try self.cast(layout, try @import("state_value/origin.zig").tuple(self, type_id, succeeded)) } });
 
     return self.builder.expression(.{ .block = .{ .label = label, .statements = try body.toOwnedSlice(self.allocator) } });
 }

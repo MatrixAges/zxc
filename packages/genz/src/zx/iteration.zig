@@ -21,16 +21,21 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
     const pure = try layout_analysis.eligible(self.allocator, self.program, iteration, self.pure_functions);
     const local_calls = pure or try layout_analysis.eligible(self.allocator, self.program, iteration, self.local_functions);
     const selected_call = try @import("buffer_call/iteration.zig").candidate(self, iteration);
-    const layout = selected_call != null or (local_calls and layout_analysis.flat(self.program, self.program.expression(id).type_id));
+    const type_id = self.program.expression(id).type_id;
+    const selected_state = self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null);
+    const layout = selected_state or selected_call != null or (local_calls and layout_analysis.flat(self.program, type_id));
 
     if (by_value and !layout) return self.builder.expression(.{ .dereference = try lower(self, id, iteration) });
 
-    const deep = pure and !layout and layout_analysis.represented(self.program, self.program.expression(id).type_id) and try layout_analysis.deep(self.allocator, self.program, iteration, self.pure_functions);
+    const deep = !self.state_active and pure and !layout and layout_analysis.represented(self.program, type_id) and try layout_analysis.deep(self.allocator, self.program, iteration, self.pure_functions);
     const local = layout or deep;
     var context = @import("iteration_value/root.zig"){ .lowering = self, .declarations = &body };
     const initial_expression = if (by_value) try @import("value_call/root.zig").expression(self, iteration.initial) else try self.expr(iteration.initial);
     const initial = if (local) try aggregate.bind(self, &body, initial_expression) else initial_expression;
-    const type_id = self.program.expression(id).type_id;
+    const state_scope = if (selected_state and !self.state_active) try @import("state_value/root.zig").enter(self) else null;
+
+    defer if (state_scope) |scope| scope.restore();
+
     const changed_name = if (local and !by_value) try self.fresh("state_changed") else "";
     var buffers = try @import("iteration_buffer/root.zig").init(self, iteration, &body, local_calls, local or self.program.typeOf(type_id) == .list);
 
@@ -52,13 +57,20 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
 
     const condition_stacked = self.stack_symbols.contains(iteration.condition_parameter);
     const step_stacked = self.stack_symbols.contains(iteration.parameter);
+    const condition_state = self.state_symbols.contains(iteration.condition_parameter);
+    const step_state = self.state_symbols.contains(iteration.parameter);
 
-    if (layout) {
+    if (selected_state) {
+        try self.state_symbols.put(self.allocator, iteration.condition_parameter, {});
+        try self.state_symbols.put(self.allocator, iteration.parameter, {});
+    } else if (layout) {
         try self.stack_symbols.put(self.allocator, iteration.condition_parameter, {});
         try self.stack_symbols.put(self.allocator, iteration.parameter, {});
     }
 
     defer {
+        if (selected_state and !condition_state) _ = self.state_symbols.remove(iteration.condition_parameter);
+        if (selected_state and !step_state) _ = self.state_symbols.remove(iteration.parameter);
         if (layout and !condition_stacked) _ = self.stack_symbols.remove(iteration.condition_parameter);
         if (layout and !step_stacked) _ = self.stack_symbols.remove(iteration.parameter);
     }
@@ -82,7 +94,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
     try body.append(self.allocator, .{ .variable = .{
         .name = name,
         .type_expr = if (deep) try @import("iteration_value/types.zig").get(&context, type_id) else if (layout) self.layouts[@backingInt(type_id)] else self.types[@backingInt(type_id)],
-        .value = if (by_value) initial else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial,
+        .value = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &body, type_id, initial, if (by_value) .value_layout else .value) else if (selected_state or by_value) initial else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, initial, false) else if (layout) try self.builder.expression(.{ .dereference = initial }) else initial,
     } });
 
     try loop.append(self.allocator, .{ .assignment = .{ .target = state, .value = next } });
@@ -108,9 +120,13 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, by_value: boo
     try buffers.finish(&body, state, type_id);
     try calls.finish(&body, state, type_id);
 
-    const result = if (by_value) state else if (local) try self.builder.expression(.{ .conditional = .{
+    var converted_body: std.ArrayList(node.Statement) = .empty;
+    const converted_state = if (state_scope != null) try @import("state_value/conversion.zig").convert(self, &converted_body, type_id, state, if (by_value) .layout else .pointer) else state;
+    const boundary = try aggregate.finish(self, &converted_body, converted_state);
+
+    const result = if (by_value) boundary else if (local) try self.builder.expression(.{ .conditional = .{
         .condition = try self.builder.identifier(changed_name),
-        .yes = if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, state, true) else try self.construct(type_id, state),
+        .yes = if (state_scope != null) boundary else if (selected_state) state else if (deep) try @import("iteration_value/conversion.zig").convert(&context, type_id, state, true) else try self.construct(type_id, state),
         .no = initial,
     } }) else state;
 

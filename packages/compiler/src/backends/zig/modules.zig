@@ -121,11 +121,20 @@ pub fn functionFiles(owned: std.mem.Allocator, program: @import("zx").ir.Program
 pub fn typeNames(owned: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names) std.mem.Allocator.Error![]const []const u8 {
     var type_names: std.ArrayList([]const u8) = .empty;
     var type_set: std.StringHashMapUnmanaged(void) = .empty;
+    const state_plan = try @import("genz").zx.state_value.Analysis.create(owned, program);
 
-    for (program.types, identities.types) |value, name| {
+    defer owned.free(state_plan.selected);
+    defer owned.free(state_plan.keys);
+
+    for (program.types, identities.types, 0..) |value, name, index| {
         if (value != .object and value != .tuple and value != .enumeration and value != .native_reference) continue;
-        if ((try type_set.getOrPut(owned, name)).found_existing) continue;
-        try type_names.append(owned, name);
+        if (!(try type_set.getOrPut(owned, name)).found_existing) try type_names.append(owned, name);
+
+        if (state_plan.selected[index]) {
+            const internal_name = try state_plan.name(owned, @fromBackingInt(@intCast(index)), name);
+
+            if (!(try type_set.getOrPut(owned, internal_name)).found_existing) try type_names.append(owned, internal_name);
+        }
     }
 
     return type_names.toOwnedSlice(owned);

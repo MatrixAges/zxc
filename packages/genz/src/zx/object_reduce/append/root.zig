@@ -94,10 +94,14 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), accumulator: *co
         const capacity = Capacity{ .buffer = field.builder.buffer, .started = field.builder.started };
         const owned = try capacity.take(lowering, body, source, lowering.types[@backingInt(field.element)]);
         const value = try @import("writeback.zig").replace(lowering, selected.type_id, target, field.path[1..], owned);
+        var writes: std.ArrayList(node.Statement) = .empty;
 
-        try body.append(lowering.allocator, .{ .branch = .{ .condition = field.builder.started, .yes = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{
+        try writes.append(lowering.allocator, .{ .assignment = .{
             .target = target,
             .value = value,
-        } }}), .no = &.{} } });
+        } });
+
+        try @import("../../state_value/origin.zig").clear(lowering, &writes, self.type_id, accumulator);
+        try body.append(lowering.allocator, .{ .branch = .{ .condition = field.builder.started, .yes = try writes.toOwnedSlice(lowering.allocator), .no = &.{} } });
     }
 }
