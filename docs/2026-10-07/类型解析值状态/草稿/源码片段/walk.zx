@@ -1,0 +1,20 @@
+import advance from "./advance"
+
+import type { Span } from "./model"
+
+export type Input = { source: u8[], spans: Span[] }
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    const names: string[] = []
+
+    const state = loop({ source: in.source, spans: in.spans, names: names, index: 0 }, {
+        while: current => current.index < current.spans.length,
+        next: current => {
+            current = advance(current)
+        }
+    })
+
+    return state.names
+}

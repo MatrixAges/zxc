@@ -1,0 +1,13 @@
+import step from "./step"
+
+import type { WalkState } from "./model"
+
+export type Input = WalkState
+
+export type Output = WalkState
+
+export default function (in: Input): Output {
+    const result = step({ state: { source: in.source, names: in.names }, span: in.spans[in.index] })
+
+    return { ...in, names: result.names, index: in.index + 1 }
+}

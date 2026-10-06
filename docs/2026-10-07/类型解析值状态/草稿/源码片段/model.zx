@@ -1,0 +1,5 @@
+export type State = { source: u8[], names: string[] }
+
+export type Span = { start: u64, end: u64 }
+
+export type WalkState = { source: u8[], spans: Span[], names: string[], index: u64 }

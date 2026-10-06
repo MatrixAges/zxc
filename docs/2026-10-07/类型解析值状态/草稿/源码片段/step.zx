@@ -1,0 +1,13 @@
+import encoding from "std:encoding"
+
+import type { State, Span } from "./model"
+
+export type Input = { state: State, span: Span }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const name = encoding.decodeUtf8(in.state.source.splice(in.span.start, in.span.end - in.span.start, [])[1])
+
+    return { source: in.state.source, names: in.state.names.push(name)[0] }
+}

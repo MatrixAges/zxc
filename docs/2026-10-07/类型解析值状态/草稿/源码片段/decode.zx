@@ -1,0 +1,9 @@
+import encoding from "std:encoding"
+
+export type Input = u8[]
+
+export type Output = string
+
+export default function (in: Input): Output {
+    return encoding.decodeUtf8(in)
+}

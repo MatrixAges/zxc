@@ -1,0 +1,24 @@
+import decode from "./decode"
+
+export type Input = u8[]
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    const bytes: u8[] = [0]
+    const names: string[] = []
+
+    const state = loop({ source: in, index: 0, bytes: bytes, names: names }, {
+        while: current => current.index < current.source.length,
+        next: current => {
+            current.bytes[0] = current.source[current.index]
+
+            const name = decode(current.bytes)
+
+            current.names = current.names.push(name)[0]
+            current.index += 1
+        }
+    })
+
+    return state.names
+}

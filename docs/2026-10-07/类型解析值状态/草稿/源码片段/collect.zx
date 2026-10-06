@@ -1,0 +1,14 @@
+import step from "./step"
+
+import type { Span } from "./model"
+
+export type Input = { source: u8[], spans: Span[] }
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    const names: string[] = []
+    const state = in.spans.reduce((current, span) => step({ state: current, span: span }), { source: in.source, names: names })
+
+    return state.names
+}
