@@ -8,7 +8,15 @@ pub fn main(init: std.process.Init) !void {
 
     defer source.deinit();
 
-    for (compiler.project.standard, 0..) |module, index| {
+    const order = try allocator.alloc(usize, compiler.project.standard.len);
+
+    for (order, 0..) |*item, index| item.* = index;
+
+    std.mem.sort(usize, order, {}, lessThan);
+
+    for (order) |index| {
+        const module = compiler.project.standard[index];
+
         try source.writer.print("import module{d} from \"{f}\"\n", .{ index, std.zig.fmtString(module.specifier) });
     }
 
@@ -29,4 +37,8 @@ pub fn main(init: std.process.Init) !void {
     defer bundle.deinit(allocator);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[1], .data = bundle.types });
+}
+
+fn lessThan(_: void, left: usize, right: usize) bool {
+    return std.mem.lessThan(u8, compiler.project.standard[left].specifier, compiler.project.standard[right].specifier);
 }
