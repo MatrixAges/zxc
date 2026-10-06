@@ -1,0 +1,844 @@
+[
+    {
+        "path": "test/built-ins/Array/prototype/concat/15.4.4.4-5-b-iii-3-b-1.js",
+        "sha256": "7fca830a0e81416c6729c1063d16ca36b224a0c4cfe0445885b70ff2a398a859",
+        "status": "excluded",
+        "reason": "原文要求 Array.prototype 上的只读索引不阻止 concat 创建可写、可枚举、可配置的自有数据属性。ZX 同类型 list concat 没有原型索引和 CreateDataProperty 属性描述符，不能用结果值 101 代替完整属性观察。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Array.prototype[0] 被定义为值 100、writable=false、configurable=true。",
+            "对 [101] 调用 concat 后，结果自有索引 0 的 value=101，writable/enumerable/configurable 均为 true。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/15.4.4.4-5-c-i-1.js",
+        "sha256": "3b604a324296b34e44a49e55c8d99b09d470ea7631e7ea4f4bb14b47bb275572",
+        "status": "excluded",
+        "reason": "原文以数字 primitive 为 generic receiver，要求 ToObject 装箱及结果索引的数据属性。ZX concat 只接收 list receiver，不提供 Number 包装对象、instanceof 或属性描述符。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Array.prototype[0] 是只读值 100。",
+            "Array.prototype.concat.call(101) 的结果第 0 项 instanceof Number 为 true。",
+            "结果索引 0 的 writable/enumerable/configurable 均为 true。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-length-to-string-throws.js",
+        "sha256": "277f1a7c9d4acb1211f84bd418ea9aeffed642256820f225414a034e1ce28da2",
+        "status": "excluded",
+        "reason": "原文通过 Symbol.isConcatSpreadable 展开对象，并在 LengthOfArrayLike 对 length 对象调用 toString 时传播异常。ZX concat 没有 Spreadable、动态 length 或对象隐式转换，静态列表错误不等价。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "对象 length 的 valueOf=null，toString 抛 Test262Error，并设置 Symbol.isConcatSpreadable=true。",
+            "[].concat(objWithPoisonedLengthToString) 必须抛 Test262Error。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-length-value-of-throws.js",
+        "sha256": "750b9e1cba2823433c2de0e7276fde51c05cad3af294d5c732c0e949613c8bc6",
+        "status": "excluded",
+        "reason": "原文要求 spreadable 对象的 length 经 valueOf 转换并传播 Test262Error。ZX list 长度来自静态同类型容器，没有 Symbol 属性或 length 对象转换，不能删去 valueOf。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "length 对象的 toString=null，valueOf 抛 Test262Error。",
+            "开启 Spreadable 后，[].concat(objWithPoisonedLengthValueOf) 抛 Test262Error。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-negative-length.js",
+        "sha256": "c9b876cc1d11326c417cde1cd868fbe93fd6d704c93c5cac9c333102108036a9",
+        "status": "excluded",
+        "reason": "原文在同一 spreadable 对象上先后使用负 number length 和负 string length，检查 ToLength 的截断结果。ZX 没有动态 length 属性或该隐式转换；三个空列表输出不足以覆盖原文。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "对象包含索引 1/3/5，Symbol.isConcatSpreadable=true。",
+            "length=-4294967294 时第一次结果为空数组。",
+            "再次赋相同负 number length 后结果仍为空数组。",
+            "length 改为字符串 -4294967294 后结果为空数组。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-primitive-non-number-length.js",
+        "sha256": "1f5b7548256f4daf383cf46ca6a7185811f955dc22c58a9261adef410dd97a40",
+        "status": "excluded",
+        "reason": "原文分别通过 length 对象的 toString 与 valueOf 得到非数字字符串 SIX，再通过 ToLength 得到零。ZX concat 没有这两条对象转换路径，不能预先替换为长度零。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "spreadable 对象的 length 首先为 toString 返回 SIX、valueOf=null 的对象，concat 结果为空。",
+            "同一对象 length 改为 toString=null、valueOf 返回 SIX 的对象，concat 结果仍为空。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-string-length.js",
+        "sha256": "d4ac9d0418b9cf33332b8bc7e6e0d86d48898a82c40858a6c31f80fdf31efc1d",
+        "status": "excluded",
+        "reason": "原文要求字符串 length 的转换、稀疏对象展开和普通对象作为单项保持引用身份。ZX 同类型 list concat 不支持 Spreadable、对象索引、JS undefined 读取或混合对象身份，不能仅提取字符值。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "receiver 对象 length 为字符串 6，仅索引 1/3/5 为 A/B/C，并开启 Spreadable。",
+            "obj2 虽有 length 和索引，但未开启 Spreadable，必须作为同一对象引用保留为一项。",
+            "结果完整比较为 [undefined,A,undefined,B,undefined,C,obj2,X,Y,Z]；compareArray 读取缺失索引为 undefined，不另断言 own property。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-to-length-throws.js",
+        "sha256": "081e325be8e9e51c5570f09776e87819657a3da4f67af3562c9d44433caa181d",
+        "status": "excluded",
+        "reason": "原文的 length 对象两种转换方法均不可调用，必须在 ToPrimitive/ToLength 阶段抛 TypeError。ZX 没有该对象转换协议，不能用未知方法或静态类型拒绝代替。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "receiver 开启 Spreadable，length 对象 valueOf=null、toString=null。",
+            "Array.prototype.concat.call(receiver,obj2,[X,Y,Z]) 抛 TypeError。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like.js",
+        "sha256": "c0e51ff64c9d055b56d6a473f600e854065a286237e164d72eaa8d3c3d6fe9c2",
+        "status": "excluded",
+        "reason": "原文在 spreadable 稀疏 receiver 后保留未展开 obj2 的严格对象身份，再展开字符数组。ZX concat 没有 Symbol.isConcatSpreadable、稀疏索引、undefined 或混合对象列表。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "receiver length=6，索引 1/3/5 分别为 A/B/C，并开启 Spreadable。",
+            "结果完整比较为 [undefined,A,undefined,B,undefined,C,obj2,X,Y,Z]，其中 obj2 是原对象引用。",
+            "缺失索引通过 compareArray 的 undefined 读取比较，不另包含 hasOwnProperty 断言。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_holey-sloppy-arguments.js",
+        "sha256": "d47b232b32523a79a759a62559a0539be6af6d5817fd948c33256bc6a8a7f49e",
+        "status": "excluded",
+        "reason": "原文从 sloppy arguments 删除索引后通过 Spreadable 展开自身两次。ZX 没有 arguments exotic object、删除形成的缺失索引或 Symbol 展开，不能以预制数值列表替换。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "从以 (1,2,3) 调用的函数取得 arguments，删除其索引 1。",
+            "开启 Spreadable 后，[].concat(args,args) 与 [1,undefined,3,1,undefined,3] 比较相等。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_large-typed-array.js",
+        "sha256": "6b01d53b467f224a25c8c1a0a95c13627f4261ac5592dafb2d838235bef92eec",
+        "status": "excluded",
+        "reason": "原文同时要求 TypedArray 默认保持引用身份、显式 Spreadable 展开以及伪造 length 后访问缺失索引。ZX list concat 不具备 TypedArray 对象、动态 Symbol/length 或对象引用身份；不能只取展开后的整数结果。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "固定遍历 Uint8Array、Uint16Array、Uint32Array、Float32Array、Float64Array，元素数量为 4000。",
+            "每种类型由 items 构造的 ta 默认拼接两次得到 [ta,ta]，保持原 TypedArray 引用；设置 Spreadable=true 后拼接得到 items。",
+            "每种类型按长度构造的 ta_by_len 同样检查默认两项引用与显式展开结果。",
+            "重新创建长度 1 的 TypedArray，定义可见 length=4000 后展开，比较长度 4000、首项默认值、其余索引读取 undefined 的期望数组。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_length-throws.js",
+        "sha256": "ed5b8f950ef6c2a41afa235ee9519a6c67a2da05a8f7b2cac5b29c1ce15cc2c0",
+        "status": "excluded",
+        "reason": "原文要求开启 Spreadable 的对象 length getter 在普通参数与 generic receiver 两种调用中都传播 Test262Error。ZX 没有动态 getter 或 generic receiver，普通列表失败不能代替。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "spreadablePoisonedLengthGetter 的 length getter 抛 Test262Error。",
+            "[].concat(obj) 抛 Test262Error。",
+            "Array.prototype.concat.call(obj,1,2,3) 也抛 Test262Error。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_no-prototype.js",
+        "sha256": "3638c27eb12e61b4963dc9192eb3adbee9fd670acd93c91281befef9f293fc92",
+        "status": "excluded",
+        "reason": "原文只观察 Array.prototype.concat 函数的 prototype 属性。ZX concat 是编译器识别的 list 操作，不提供可反射的 JS 函数对象或 undefined 属性值。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": ["Array.prototype.concat.prototype 与 void 0 为 sameValue。"]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_non-array.js",
+        "sha256": "abb04ee89f111ce149f84341d1a9d26c3f074f35273efebce7e0d2f6c6ca78f7",
+        "status": "excluded",
+        "reason": "原文以 NonArray 类实例作 generic receiver，并观察结果构造器、instanceof 和原对象身份。ZX list concat 不提供类实例 receiver、JS 构造器反射或混合对象引用列表。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "NonArray 构造器执行 Array.apply(this,arguments)，创建 obj。",
+            "Array.prototype.concat.call(obj,4,5,6) 的 result.constructor 与 Array 相同。",
+            "result instanceof NonArray 为 false。",
+            "result 与 [obj,4,5,6] 比较相等，第 0 项是同一 obj 引用。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_sloppy-arguments-throws.js",
+        "sha256": "fe318d420f4a993917f271f3aaf6785d177dd4c57b26b4169548b1374d55c094",
+        "status": "excluded",
+        "reason": "原文展开 sloppy arguments 时必须读取索引 getter 并传播 Test262Error。ZX 没有 arguments、索引属性 getter 或 Spreadable，不能用普通索引错误代替。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "取得 (1,2,3) 的 arguments，为索引 0 定义抛 Test262Error 的 getter。",
+            "设置 Spreadable=true 后，[].concat(args,args) 抛 Test262Error。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_sloppy-arguments-with-dupes.js",
+        "sha256": "ae46088526d56901a85418182f1d5f038da5f7f72622d77288aac6b3ef224196",
+        "status": "excluded",
+        "reason": "原文使用重复形式参数产生的 arguments，并在同一对象上修改 length 后再次展开。ZX 没有该 arguments aliasing 或属性修改协议，第二次缺失索引读取不能由独立普通输入冒充。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "noStrict 函数的形式参数为 (a,a,a)，实际参数为 (1,2,3)。",
+            "开启 Spreadable 后第一次 concat(args,args) 比较为 [1,2,3,1,2,3]。",
+            "同一 args 的 length 被 defineProperty 改为 6，第二次 concat(args) 比较为 [1,2,3,undefined,undefined,undefined]。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_sloppy-arguments.js",
+        "sha256": "a3b3c58e8d0a5f9ff24d21af7191ef0adcb5e42ef3f06eda24db33ee797c2349",
+        "status": "excluded",
+        "reason": "原文要求 sloppy arguments 在两次 concat 之间修改可见 length 并影响展开。ZX list concat 无 arguments 或动态属性，不能拆成两个预制列表输入算完整覆盖。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "实际调用 (1,2,3) 后取得 arguments，开启 Spreadable。",
+            "第一次 concat(args,args) 比较为 [1,2,3,1,2,3]。",
+            "同一 args.length 改为 6 后，concat(args) 比较为 [1,2,3,undefined,undefined,undefined]。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_small-typed-array.js",
+        "sha256": "c564955350118c490da1e221eaf76200306f157dc5817c4afde810b40fec219a",
+        "status": "excluded",
+        "reason": "原文的小 TypedArray 值观察仍伴随默认引用身份、Spreadable 切换和 length=4000 的动态稀疏展开。ZX 没有 TypedArray 对象及这些协议，不能只截取小整数结果。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "固定遍历五种 TypedArray；仅当 Float16Array 存在时额外加入该类型；初始元素数量为 1。",
+            "每种类型由 items 构造的 ta 默认两次拼接保持 [ta,ta] 引用，开启 Spreadable 后展开为 items。",
+            "按长度构造的 ta_by_len 同样检查默认两项引用与显式展开。",
+            "重新创建长度 1 的 TypedArray，定义可见 length=4000 后展开，比较首项默认值及其余 undefined 读取。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-boolean-wrapper.js",
+        "sha256": "f3d244749ddea4bfaea968cb8cabb8aa91a6d7bbfb1358805dd95e61ee8a087b",
+        "status": "excluded",
+        "reason": "原文区分 Boolean wrapper 与 primitive，修改实例和 Boolean.prototype 的 Spreadable 与索引属性，并保持默认对象身份。ZX 没有包装对象、原型修改或 Symbol 展开；最后 primitive true 的值子集不能代表整个文件。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "new Boolean(true) 默认 concat 后保留同一 bool 引用。",
+            "实例开启 Spreadable、length=3、索引 1/2/3 值后，结果为 [1,2,3]。",
+            "Boolean.prototype 开启 Spreadable 后新 wrapper 先得到空数组；加入原型索引和 length 后得到 [1,2,3]。",
+            "primitive true 始终不展开，结果为 [true]；最后清理修改的原型属性。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-function.js",
+        "sha256": "3f303d6f76be6e5075d389bee19c42ab3eb3f7da82bbfc26942b143e660db103",
+        "status": "excluded",
+        "reason": "原文把函数作为拥有 length、索引和 Symbol 属性的动态对象，检查默认引用身份及原型展开。ZX collection lambda 不是此类可操作函数对象，不能用列表替代函数。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "三形式参数函数 fn 默认 concat 后保持同一 fn 引用。",
+            "fn 实例设置 Spreadable 与索引后展开为 [1,2,3]。",
+            "Function.prototype 设置 Spreadable 后新三形参函数结果为三个 undefined 读取。",
+            "原型再加入索引后新函数结果为 [1,2,3]，随后清理原型修改。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-getter-throws.js",
+        "sha256": "778a40b6a58261c5cb984bae5fce4637bdcdc7d22e9bea3abe59f8a464822838",
+        "status": "excluded",
+        "reason": "原文在普通参数和 generic receiver 两种路径读取 Symbol.isConcatSpreadable getter 并传播异常。ZX concat 没有 Symbol getter 或 generic receiver。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Spreadable getter 抛 Test262Error。",
+            "[].concat(obj) 抛 Test262Error。",
+            "Array.prototype.concat.call(obj,1,2,3) 抛 Test262Error。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-number-wrapper.js",
+        "sha256": "c4e59470a050bcedc711c05dd82cb289d1b27b5740e7f45dd2605f37348fe1a2",
+        "status": "excluded",
+        "reason": "原文要求 Number wrapper 的默认引用身份及实例/原型 Spreadable 行为，最后实际源码检查 primitive true 不展开。ZX 没有 wrapper 或原型协议，不能按文件名修正 true，也不能只取该 primitive 值。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "new Number(true) 默认保留同一 num 引用。",
+            "实例开启 Spreadable 并定义 length/索引后展开为 [1,2,3]。",
+            "Number.prototype 开启 Spreadable 后新 wrapper 先为空；添加原型索引和 length 后为 [1,2,3]。",
+            "最后原文实际检查 [].concat(true) 与 [true] 相等，并清理原型修改。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-reg-exp.js",
+        "sha256": "0d701b0bc5b5695a3f3910fa818e4325d7eb7c0f9cef7079f2d4c0ba53d9defe",
+        "status": "excluded",
+        "reason": "原文检查 RegExp 对象身份、实例和 RegExp.prototype 的 Spreadable 与索引。ZX 没有 RegExp 动态对象、原型或 Symbol 展开，不能只取 [1,2,3] 子集。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "RegExp /abc/ 默认拼接保留同一 re 引用。",
+            "实例开启 Spreadable 并设置索引/length 后展开为 [1,2,3]。",
+            "RegExp.prototype 开启 Spreadable、length=3 后新 RegExp 结果为三个 undefined 读取。",
+            "原型加入索引后新 RegExp 结果为 [1,2,3]，然后清理原型修改。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-sparse-object.js",
+        "sha256": "763f8a6c26e249c4800250e2686f0ec2a053e45451c6e0136f061a5c60c80614",
+        "status": "excluded",
+        "reason": "原文在同一无索引的 spreadable 对象上把 length 从 5 改为 4000。ZX 没有对象 length 属性或 Symbol 展开，预制空值列表不能保留跨调用行为；compareArray 没有额外 own-property 断言。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "对象仅有 length=5，开启 Spreadable 后结果与五项 undefined 期望比较相等。",
+            "同一 obj.length 改为 4000，结果与 new Array(4000) 比较相等；比较通过缺失索引的 undefined 读取完成。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-string-wrapper.js",
+        "sha256": "68d31beb7f42bc188cc666df92bc2dd27c6161d1150abecd34dd3fd39800188b",
+        "status": "excluded",
+        "reason": "原文要求 String wrapper 默认身份、实例/原型 Spreadable 展开，以及 UTF-16 code unit 包括两个孤立 surrogate 的字符串项。ZX UTF-8 string 和 list concat 不具备这些包装、身份或 UTF-16 表示，不能替换成完整 Unicode code point。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "new String(yuck加D83D DCA9代理对) 默认拼接保留同一 str1 引用。",
+            "实例开启 Spreadable 后结果为 y/u/c/k/D83D/DCA9 六个 UTF-16 code-unit 字符串。",
+            "String.prototype 开启 Spreadable 后新 wrapper 产生相同六项。",
+            "primitive string 不展开，作为完整原字符串一项；最后清理原型属性。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/Array.prototype.concat_strict-arguments.js",
+        "sha256": "a3193cb25259adcf68c34deffcc7a9f6c53c8817c3820e1e747832b62d3968e1",
+        "status": "excluded",
+        "reason": "原文使用 strict arguments 并修改同一对象可见 length 后再次展开。ZX 没有 strict arguments exotic object、Symbol 属性或可见 length 修改。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "strict 函数以 (1,2,3) 调用，取得 arguments，开启 Spreadable。",
+            "concat(args,args) 比较为 [1,2,3,1,2,3]。",
+            "defineProperty 将同一 args.length 改为 6，concat(args) 比较为 [1,2,3,undefined,undefined,undefined]。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/S15.4.4.4_A1_T2.js",
+        "sha256": "65d4d7fc86c1d746e81c90d34390940a6ed81fd43359ffba88f64b0d0dae0137",
+        "status": "excluded",
+        "reason": "原文同时包含 Object.prototype.toString class 反射、同一对象 y 的引用身份、异构结果和 primitive 单项追加。ZX 同类型 list concat 不支持这些协议，不能只保留数字位置。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "x=[0]，y 为普通对象，z=[1,2]；调用 x.concat(y,z,-1,true,NaN字符串)。",
+            "结果 getClass() 为 [object Array]。",
+            "七项依次为 0、同一 y、1、2、-1、true、NaN字符串；长度为 7。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/S15.4.4.4_A1_T3.js",
+        "sha256": "779b044133c753145c623b6737b75a8fb3a667c4f7e0e8f321c63459eefa05c4",
+        "status": "excluded",
+        "reason": "原文不仅检查 [0,1] 的值与长度，还检查 class 反射及 arr 与原 x 严格不是同一数组。ZX owned concat 的普通输出深比较不提供 JS 新数组身份或 class 协议；现有精确值案例不足。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "x=[0,1]，arr=x.concat()。",
+            "arr.getClass() 为 [object Array]，元素 0/1 和长度 2 保持。",
+            "assert.notSameValue(arr,x) 要求结果与原数组身份不同。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/S15.4.4.4_A1_T4.js",
+        "sha256": "4e54b1a90a36cc48e603b6bc99e9bb9aeaa541566cfdd7be19533688d6454927",
+        "status": "excluded",
+        "reason": "原文的稀疏 receiver 和稀疏追加项必须按 JS undefined 读取并具有指定长度，同时检查 class 反射。ZX 普通同类型列表或 JSON null 不等价，不能把 holes 改成显式普通值。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "x=[hole,1]，arr=x.concat([], [hole])。",
+            "arr.getClass() 为 [object Array]。",
+            "arr[0]/arr[2] 读取 undefined，arr[1]=1，length=3；本文件不另检查 hasOwnProperty。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/S15.4.4.4_A2_T1.js",
+        "sha256": "0170652162d459721eb12dd438b9facd36ab46adbef670d41166d7d80ffaf13f",
+        "status": "excluded",
+        "reason": "原文把普通对象 x 作为 generic receiver，要求 x/y 都以原引用进入异构数组，并进行 class 反射。ZX concat 的 list receiver 和同类型参数不能保留对象身份与混合 primitive 项。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "x 绑定 Array.prototype.concat，y 为普通对象，z=[1,2]。",
+            "x.concat(y,z,-1,true,NaN字符串) 的 class 为 [object Array]。",
+            "七项依次为同一 x、同一 y、1、2、-1、true、NaN字符串；length=7。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/S15.4.4.4_A2_T2.js",
+        "sha256": "80b3554bd8aa9532adbe9088720a8c6923469a067275c26c6703975c46492887",
+        "status": "excluded",
+        "reason": "原文 generic object receiver 在零参数 concat 后必须成为结果中的同一对象引用，并检查 Array class。ZX list concat 没有 generic receiver、对象引用身份或 class 反射。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "普通对象 x 绑定 Array.prototype.concat，arr=x.concat()。",
+            "arr.getClass() 为 [object Array]，arr[0] 与 x 同一引用，length=1。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/S15.4.4.4_A3_T1.js",
+        "sha256": "8d926bcb0ff509f8dc8fc7c9f9fcf77d3dc25f182c27e26229f1abe2570f4974",
+        "status": "excluded",
+        "reason": "原文分别检查数组继承索引被复制为 own property，以及普通 object receiver 结果仍从 Object.prototype 继承索引且没有 own property。ZX list 没有原型、属性存在性和对象身份，不能用相同元素值代替。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Array.prototype[1]=1；x=[0] 后 length=2，x.concat() 的元素为 0/1，结果 own property 1 为 true。",
+            "Object.prototype[1]=1、length=2 并设置 concat；普通对象 x={0:0} 调用后结果第 0 项为同一 x，第 1 项读取 1，own property 1 为 false。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/S15.4.4.4_A3_T2.js",
+        "sha256": "f50b461f796afcbdea25acd83558e0ca0b73b85a83af6d14b00ceeae69ddc74b",
+        "status": "excluded",
+        "reason": "原文显式区分 holes、继承属性和拼接后的自有数据属性，含 13 项断言。ZX list concat 没有动态 length、Array.prototype 读取或 hasOwnProperty，不能仅提取 [0,undefined,2]。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "a=[0] 初始 length=1；length 改为 3 后 a[1]/a[2] 读取 undefined。",
+            "Array.prototype[2]=2 后 a[1] 仍 undefined、a[2]=2；a 的 own property 1/2 均 false。",
+            "b=a.concat() 后 length=3、元素读取为 0/undefined/2；b own property 1=false、2=true。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/S15.4.4.4_A3_T3.js",
+        "sha256": "4f6e551d628f94fb687e4ee7cf0006c579f7837d7468b5602695e03c79080c20",
+        "status": "excluded",
+        "reason": "原文继承源为 Object.prototype，显式检查 holes、继承索引和拼接后的 own property，共 13 项断言。ZX 普通 list 无 Object.prototype 或属性存在性协议。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "a=[0] 初始 length=1；length 改为 3 后索引 1/2 读取 undefined。",
+            "Object.prototype[2]=2 后 a[1] 仍 undefined、a[2]=2；a own property 1/2 均 false。",
+            "b=a.concat() 后 length=3、元素为 0/undefined/2，b own property 1=false、2=true。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/arg-length-exceeding-integer-limit.js",
+        "sha256": "1cee262f5b97af603cd5859813db476ef0e6ac2a60dae19fe998ebe2f9b9ced7",
+        "status": "excluded",
+        "reason": "原文在 spreadable 对象和 array Proxy 两条路径通过假 length 触发 2^53-1 上限。ZX list 长度不是任意 JS 属性，且没有 Proxy Get、Spreadable 和该 JS 安全整数协议；不能以分配失败替代 TypeError。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "spreadable 对象 length=Number.MAX_SAFE_INTEGER；[1].concat(obj) 抛 TypeError。",
+            "array Proxy 的 length Get 返回 Number.MAX_SAFE_INTEGER；[].concat(1,proxy) 抛 TypeError。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/arg-length-near-integer-limit.js",
+        "sha256": "a8ec1349097a2847b324492e66b33db49ad705d1dbc07bf5b1410739765c318b",
+        "status": "excluded",
+        "reason": "原文要求合法临界 length=2^53-1 后实际读取索引 0 并传播 getter 的 Test262Error。ZX 没有这种假 length 或 getter；提前拒绝长度或分配失败不等价。宿主参考失败不作为 zxc 缺陷证据。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "对象 length=Number.MAX_SAFE_INTEGER，索引 0 getter 抛 Test262Error，并开启 Spreadable。",
+            "[].concat(obj) 必须抛 Test262Error，观察要求算法到达索引读取阶段。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/call-with-boolean.js",
+        "sha256": "173af9e370a00dc34e8baddd0d27ad30108fd296930fa6d8891c32be59c034b1",
+        "status": "excluded",
+        "reason": "原文观察 primitive Boolean receiver 经 ToObject 装箱后的 instanceof。ZX concat 需要 list receiver，没有 Boolean 包装实例或 instanceof，不能用 [true]/[false] 值替代。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Array.prototype.concat.call(true)[0] instanceof Boolean 为 true。",
+            "Array.prototype.concat.call(false)[0] instanceof Boolean 为 true。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-ctor-non-object.js",
+        "sha256": "08f243971a9eefddc5cc05289fcd6c5d154c57ce37130286911c36920c308be1",
+        "status": "excluded",
+        "reason": "原文分别赋四种 non-object constructor 并要求 ArraySpeciesCreate/IsConstructor 抛 TypeError。ZX list 无可修改 constructor 属性或 JS 构造协议，静态类型拒绝不等价。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "array.constructor=null 时 concat() 抛 TypeError。",
+            "新 array.constructor=1 时抛 TypeError。",
+            "新 array.constructor=string 时抛 TypeError。",
+            "新 array.constructor=true 时抛 TypeError。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-ctor-poisoned.js",
+        "sha256": "00f38aaa4b28bd4c20485a2195b59c461bdc0ba3bddc7c12e597f8e5df66f54e",
+        "status": "excluded",
+        "reason": "原文要求 ArraySpeciesCreate 读取 constructor getter 并传播 Test262Error。ZX list concat 没有 constructor 属性或动态 getter。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": ["空数组 constructor 被定义为抛 Test262Error 的 getter。", "a.concat() 抛 Test262Error。"]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-non-array.js",
+        "sha256": "a7ae344fda8a56b85de041b0213f0bb707e400ff562ba0f9d54d6c3a9ae3d55b",
+        "status": "excluded",
+        "reason": "原文要求 generic 非数组 receiver 的 constructor getter 完全不调用，并检查结果原型、IsArray 和原 obj 身份。ZX list concat 没有 generic receiver、getter调用计数、JS 原型或严格对象引用。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "普通 obj 有 length=0，constructor getter 增加 callCount。",
+            "Array.prototype.concat.call(obj) 后 callCount=0。",
+            "结果原型为 Array.prototype，Array.isArray(result)=true。",
+            "result.length=1，result[0] 与原 obj 同一引用。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-proto-from-ctor-realm-array.js",
+        "sha256": "74c4bd391efe4b8dd3b79e76f13f02cbf6e200334f36e967cc15098f1ca0195c",
+        "status": "excluded",
+        "reason": "原文识别外 Realm 的内建 Array constructor 并忽略其 Species，同时不读取当前 Array 的 Species。ZX 静态 list 无 Realm、constructor/Species 属性、原型身份或 getter调用计数。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "取得外 Realm 的 Array 并赋给 array.constructor。",
+            "当前 Array 与外 Realm Array 的 Species getter 均增加同一 callCount。",
+            "array.concat() 结果原型是当前 Array.prototype，callCount=0。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-proto-from-ctor-realm-non-array.js",
+        "sha256": "3c4e217ee5b7a6a4d690f76eb5cb71471147627c40581423c101b7e2af3b45a0",
+        "status": "excluded",
+        "reason": "原文接受外 Realm 非 Array constructor 的 Species，且不访问当前 Array Species。ZX 无 Realm、动态构造器、Symbol.species 或原型身份。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "外 Realm Object 的 Species 设置为 CustomCtor，array.constructor 设为该外 Realm Object。",
+            "当前 Array 的 Species getter 增加 callCount。",
+            "concat() 结果原型为 CustomCtor.prototype，callCount=0。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-proxy.js",
+        "sha256": "78f51e1f84bc12f850bd11c34855cadd3473192e7df53e57fa1cfce0fcd07841",
+        "status": "excluded",
+        "reason": "原文要求两层 array Proxy 的递归 IsArray 和原数组 Species 生效。ZX 没有 Proxy 或动态 Species，不能将 Proxy 先替换成普通 list。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "array 被两层 Proxy 包装，array.constructor 的 Species=Ctor。",
+            "Array.prototype.concat.call(proxy) 的结果原型为 Ctor.prototype。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-revoked-proxy.js",
+        "sha256": "2a6fd69ee00635174f652d40c5d8d909208a898b5ef6b3ea31c566d7b8a8dbce",
+        "status": "excluded",
+        "reason": "原文要求 revoked Proxy 在 IsArray 阶段失败，且 constructor getter 完全不调用。ZX 没有 Proxy revocation 或属性访问顺序，普通失败不能验证该阶段。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "array Proxy 的 constructor getter 增加 callCount，之后 revoke。",
+            "Array.prototype.concat.call(proxy) 抛 TypeError。",
+            "callCount 保持 0。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-abrupt.js",
+        "sha256": "2ff8a65102b20563dfb0b108e2ae6e9df4aed6caf341a5aec6560fceca6b0d14",
+        "status": "excluded",
+        "reason": "原文通过 Symbol.species 选择 constructor 并传播其 Construct 调用异常。ZX concat 不读取 Species 或调用 JS constructor。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": ["a.constructor 是对象，Species=Ctor，Ctor 抛 Test262Error。", "a.concat() 抛 Test262Error。"]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-non-ctor.js",
+        "sha256": "e73f9b8caa543d28ab7352f3e8666d20707d584d51b4cdfba95b53b423a28721",
+        "status": "excluded",
+        "reason": "原文先反射验证 parseInt 不可构造，再用作 Species 要求 TypeError。ZX 没有可反射函数对象、IsConstructor 或动态 Species。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "isConstructor(parseInt)=false 的前置断言。",
+            "array.constructor 的 Species=parseInt。",
+            "a.concat() 抛 TypeError。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-non-extensible-spreadable.js",
+        "sha256": "861933e6be46b501341e8c0d7f029a08b235d472387e24ee8626c2afe0e9dbae",
+        "status": "excluded",
+        "reason": "原文 Species 构造不可扩展对象，展开参数后 CreateDataPropertyOrThrow 失败。ZX list concat 不产生 JS Species 对象、不可扩展属性状态或 Spreadable 分支属性创建。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Species=A，A 设置 length=0 并 Object.preventExtensions(this)。",
+            "arr.concat([1]) 抛 TypeError。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-non-extensible.js",
+        "sha256": "cf1403f6fff5cd048f4ccd5e6b3471103ea6ebacef54714d504a96ca9d73f641",
+        "status": "excluded",
+        "reason": "原文在非展开 primitive 参数分支向 Species 产生的不可扩展对象创建属性并失败。ZX 不支持 Species、对象 extensibility 或该非 Spreadable 分支；不能以另一分支错误代替。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": ["Species=A，A 设置 length=0 并使自身不可扩展。", "arr.concat(1) 抛 TypeError。"]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-null.js",
+        "sha256": "190fb8d1c4cdc9909a78bcf614bf78df6a2bb809784b7ca6503b2989fec5b7f4",
+        "status": "excluded",
+        "reason": "原文检查 Symbol.species=null 的默认 Array fallback 及结果原型/IsArray。ZX 没有 Species 读取或 JS 数组反射，空 list 结果不能证明 fallback。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "a.constructor 为普通对象，Species=null。",
+            "concat() 结果的 Object.getPrototypeOf 为 Array.prototype。",
+            "Array.isArray(result)=true。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-poisoned.js",
+        "sha256": "0f35d18cacb4ec51b3fd3ffa3e6f4a58f0ffb9926ea33e0f45c4ee8fd1c5b7b2",
+        "status": "excluded",
+        "reason": "原文在 constructor 对象的 Species getter 处传播 Test262Error。ZX list concat 没有 Symbol getter 或此访问阶段。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": ["a.constructor 的 Symbol.species getter 抛 Test262Error。", "a.concat() 抛 Test262Error。"]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-undef.js",
+        "sha256": "0aa2625ec49efb6cf1495ae47a1fad380196efc64a54e4b9196c6b676950c3f2",
+        "status": "excluded",
+        "reason": "原文实际调用 concat，要求 Species=undefined 回退 ArrayCreate 并保留原型与 IsArray 观察。ZX 没有 Species fallback 或 JS 反射；不按元数据中 splice 字样改写源码。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "a.constructor 为对象，Species=undefined。",
+            "a.concat() 结果原型为 Array.prototype。",
+            "Array.isArray(result)=true。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-with-non-configurable-property-spreadable.js",
+        "sha256": "0def1c384d06cccdb376e4f3aea733289da991a36a5c4a19f994271cc4e3f118",
+        "status": "excluded",
+        "reason": "原文向 Species 结果不可配置的索引数据属性创建展开元素，要求 CreateDataPropertyOrThrow 失败。ZX list 不带属性 descriptor 或 Species，因此不能用普通值写入错误代替。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Species=A，A 定义索引 0 为 writable=true、configurable=false 的数据属性。",
+            "arr.concat([1]) 抛 TypeError。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-with-non-configurable-property.js",
+        "sha256": "4bb759bf3240c55d190448233d05a7f2e3a36a2f2475fd25651728c03b6e65e5",
+        "status": "excluded",
+        "reason": "原文 Species 结果索引 0 为不可配置 accessor，在非展开参数分支创建数据属性失败。ZX 无 accessor/descriptor、Species 或 primitive 单项 concat 分支。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Species=A，A 定义索引 0 为 setter accessor，configurable=false。",
+            "arr.concat(1) 抛 TypeError。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-with-non-writable-property-spreadable.js",
+        "sha256": "e487efbdb921093dfbb3e4a64c08d7cb287e95337cad6867d9a82e6b22449e36",
+        "status": "excluded",
+        "reason": "原文要求 CreateDataProperty 覆盖 Species 结果可配置但只读的索引，且重新设置全部 descriptor。ZX list concat 没有 Species 或数据属性描述符，值 2 子集不够。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Species=A，A 的索引 0 初始 value=1、writable=false、enumerable=false、configurable=true。",
+            "arr.concat([2]) 的结果索引 0 为 value=2，writable/enumerable/configurable 全 true。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species-with-non-writable-property.js",
+        "sha256": "f5395ea78e0047db62207781878ec3a7a447a840fff9e597666f9d9d627a7a56",
+        "status": "excluded",
+        "reason": "原文在非展开 primitive 参数分支覆盖可配置只读属性，并检查全部 descriptor。ZX concat 只追加同类型 list，且无 Species 或属性描述符。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Species=A，索引 0 初始 value=1、writable=false、enumerable=false、configurable=true。",
+            "arr.concat(2) 的结果索引 0 为 value=2，writable/enumerable/configurable 全 true。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/create-species.js",
+        "sha256": "6e92650245fdac49b51ae6b1c1fad58f506981e9300479577f490074cadfa751",
+        "status": "excluded",
+        "reason": "原文完整观察 Species Construct 的调用次数、constructor this 原型、arguments 以及返回同一指定 instance。ZX 静态 list concat 没有这些构造与严格对象身份协议，不能只保留空数组结果。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Species=Ctor，Ctor 保存 this/arguments，增加 callCount 并返回指定 instance。",
+            "concat() 后 callCount=1。",
+            "constructor this 的原型为 Ctor.prototype。",
+            "arguments.length=1，arguments[0]=0。",
+            "result 与指定 instance 严格同一引用。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/is-concat-spreadable-get-err.js",
+        "sha256": "5586c2194babca1ca6539b414e379e19ceacca0155c3b300a56a1936007bdf9c",
+        "status": "excluded",
+        "reason": "原文以对象 receiver 读取 Symbol.isConcatSpreadable getter 并传播异常。ZX concat 的 list receiver 无 Symbol getter 或 generic receiver。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "o 的 Symbol.isConcatSpreadable getter 抛 Test262Error。",
+            "Array.prototype.concat.call(o) 抛 Test262Error。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/is-concat-spreadable-get-order.js",
+        "sha256": "cbf528985b73bcbc3f161b057bc89307492e3679e8b186e5a329511e9e1cc124",
+        "status": "excluded",
+        "reason": "原文要求 constructor 先于 Spreadable 的访问日志，并分别覆盖 receiver 与 object 参数，包含 object 参数身份。ZX 不提供动态 getter、访问次数/顺序或对象引用，值子集不足。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "第一段 arr1 有 constructor 与 Spreadable getter；arr1.concat(1) 比较为 [1]。",
+            "第一段 calls 精确为 [constructor,isConcatSpreadable]。",
+            "重置 calls 后，第二段 arr2 有 constructor getter，arg 有 Spreadable getter；arr2.concat(arg) 比较为 [arg]，保留同一 arg。",
+            "第二段 calls 精确为 [constructor,isConcatSpreadable]。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/is-concat-spreadable-is-array-proxy-revoked.js",
+        "sha256": "ad4e8732d06c13449aa55c18d7f8013ffbac967fe69230274858176f8a4616b9",
+        "status": "excluded",
+        "reason": "原文故意在 Spreadable Get 内撤销 Proxy，再由 IsArray 抛 TypeError。ZX 无 Proxy 与撤销顺序，不能把更早 getter/Get 错误算作此观察。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Proxy get 在 key=Symbol.isConcatSpreadable 时 revoke，再返回 target[key]。",
+            "[].concat(proxy) 抛 TypeError，原文确保失败阶段为之后的 IsArray。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/is-concat-spreadable-proxy-revoked.js",
+        "sha256": "905ad0a658ef9e6ca518e94b13bf6887939fac838d6f38a2c5ea3f2a657b38f5",
+        "status": "excluded",
+        "reason": "原文预先撤销 Proxy，要求在 Spreadable Get 阶段抛 TypeError，与 IsArray 后撤销文件不同。ZX 无 Proxy Get/revocation，普通静态错误不等价。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "Proxy.revocable([], {}) 立即 revoke。",
+            "[].concat(proxy) 抛 TypeError，失败阶段为 Spreadable 属性访问。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/is-concat-spreadable-proxy.js",
+        "sha256": "964a8b6bbf0eaa7617cd0b16c2bade8cfe45f71572ba94f2caeaf1cbf1f15d0b",
+        "status": "excluded",
+        "reason": "原文分别通过 array Proxy、两层 Proxy、spreadable object Proxy 验证 IsArray 和 Spreadable。ZX 不能先把代理替换成静态空 list，三次空结果不保留代理路径。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "arrayProxy 目标为空数组，concat 结果 length=0。",
+            "arrayProxyProxy 是其外层 Proxy，concat 结果 length=0。",
+            "spreadableProxy 的目标是设置 Spreadable=true 的普通对象，concat 结果 length=0。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/is-concat-spreadable-val-falsey.js",
+        "sha256": "00ce9cf7ab62cc7c9827855d2457e826dd30d42194f05cf99059a47329f8df0c",
+        "status": "excluded",
+        "reason": "原文在同一 item 上修改 Spreadable 为四种 falsey 值，要求不展开且严格保留 item 引用。ZX 没有 Symbol 属性、动态 ToBoolean 或对象身份；不能用嵌套值数组的深比较替代。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "item=[1,2]。",
+            "Spreadable 依次为 null、false、0、NaN；每次 concat 结果 length=1。",
+            "四次结果的第 0 项都与同一原 item 严格同一引用。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/is-concat-spreadable-val-truthy.js",
+        "sha256": "f5556c7dd1d1dc54912f8442d9760d7cd6b8551febe287e651f9379e414e9792",
+        "status": "excluded",
+        "reason": "原文在同一对象上使用 true、number、string、Symbol、object 五种 truthy Spreadable 值，验证动态 ToBoolean 展开。ZX 无此 Symbol 属性或 JS 动态转换，不能预先提供空 list 代替。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "item 是无 length 的普通对象。",
+            "Spreadable 依次为 true、86、string、Symbol()、{}。",
+            "每次 [].concat(item) 的 result.length 都为 0。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/is-concat-spreadable-val-undefined.js",
+        "sha256": "60bcc1b082d13bfa3bef7d2cf3fc9f4295fe0b596426918d04709e87c56f3b4b",
+        "status": "excluded",
+        "reason": "原文显式设置 Symbol.isConcatSpreadable=undefined，要求退回 IsArray。ZX 普通空 list 无该属性访问或 fallback 协议，输出空列表不能覆盖它。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": ["item=[]，显式定义其 Spreadable 值为 undefined。", "[].concat(item) 的 result.length=0。"]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/length.js",
+        "sha256": "e9fcd146ec2da3019f767c5b3b91fe9209b378f67fb9e596cc5847117f6a4a1e",
+        "status": "excluded",
+        "reason": "原文反射 Array.prototype.concat.length 的值和 descriptor。ZX concat 为编译器 list 操作，没有 JS 函数 length 属性及 writable/enumerable/configurable。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": ["concat.length 的 value=1、writable=false、enumerable=false、configurable=true。"]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/name.js",
+        "sha256": "3c1de42f98c5cf66644dbb870e08cf015b3cb65c0896484722b257c3f85ba3a2",
+        "status": "excluded",
+        "reason": "原文反射 Array.prototype.concat.name 的值和 descriptor。ZX concat 没有可反射 JS 函数对象或 name 属性。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": ["concat.name 的 value=concat、writable=false、enumerable=false、configurable=true。"]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/not-a-constructor.js",
+        "sha256": "dae2e0e21bece6139e339f45af12f8d6fdd5d607d5f1c2c0c26e643e4c739f62",
+        "status": "excluded",
+        "reason": "原文观察 JS 函数 IsConstructor 与 new 的 TypeError。ZX concat 不是 JS 函数对象，语法或类型拒绝不能充当运行时 Construct 协议。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "isConstructor(Array.prototype.concat)=false。",
+            "new Array.prototype.concat([]) 抛 TypeError。"
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/concat/prop-desc.js",
+        "sha256": "aa3f4ade4ac202c1a998fda44fc1b31a18dac740f4057ec70a93829c04c12049",
+        "status": "excluded",
+        "reason": "原文既检查 concat 的 typeof，又检查 Array.prototype 上方法属性的 descriptor。ZX list 操作没有 typeof function 或可修改的 JS 原型方法属性。",
+        "contract": "packages/compiler/src/zx/analysis/list_operations.zig; docs/zx_design_doc.md#143-对象与运行时模型",
+        "cases": [],
+        "observations": [
+            "typeof Array.prototype.concat 为 function。",
+            "Array.prototype 的 concat 属性 writable=true、enumerable=false、configurable=true。"
+        ]
+    }
+]

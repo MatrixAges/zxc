@@ -1,0 +1,2683 @@
+===== test/built-ins/Array/prototype/concat/15.4.4.4-5-b-iii-3-b-1.js =====
+SHA256 7fca830a0e81416c6729c1063d16ca36b224a0c4cfe0445885b70ff2a398a859
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+    Array.prototype.concat will concat an Array when index property
+    (read-only) exists in Array.prototype (Step 5.b.iii.3.b)
+includes: [propertyHelper.js]
+---*/
+
+Object.defineProperty(Array.prototype, "0", {
+  value: 100,
+  writable: false,
+  configurable: true
+});
+
+var oldArr = [101];
+var newArr = Array.prototype.concat.call(oldArr);
+
+verifyProperty(newArr, "0", {
+  value: 101,
+  writable: true,
+  enumerable: true,
+  configurable: true,
+});
+
+
+===== test/built-ins/Array/prototype/concat/15.4.4.4-5-c-i-1.js =====
+SHA256 3b604a324296b34e44a49e55c8d99b09d470ea7631e7ea4f4bb14b47bb275572
+// Copyright (c) 2012 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+    Array.prototype.concat will concat an Array when index property
+    (read-only) exists in Array.prototype (Step 5.c.i)
+includes: [propertyHelper.js]
+---*/
+
+Object.defineProperty(Array.prototype, "0", {
+  value: 100,
+  writable: false,
+  configurable: true
+});
+
+var newArrayFromConcat = Array.prototype.concat.call(101);
+
+assert(
+  newArrayFromConcat[0] instanceof Number,
+  'The result of evaluating (newArrayFromConcat[0] instanceof Number) is expected to be true'
+);
+verifyProperty(newArrayFromConcat, "0", {
+  writable: true,
+  enumerable: true,
+  configurable: true,
+});
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-length-to-string-throws.js =====
+SHA256 277f1a7c9d4acb1211f84bd418ea9aeffed642256820f225414a034e1ce28da2
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat array like length to string throws
+features: [Symbol.isConcatSpreadable]
+---*/
+var objWithPoisonedLengthToString = {
+  "length": {
+    toString: function() {
+      throw new Test262Error();
+    },
+    valueOf: null
+  },
+  "1": "A",
+  "3": "B",
+  "5": "C"
+};
+objWithPoisonedLengthToString[Symbol.isConcatSpreadable] = true;
+assert.throws(Test262Error, function() {
+  [].concat(objWithPoisonedLengthToString);
+}, '[].concat(objWithPoisonedLengthToString) throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-length-value-of-throws.js =====
+SHA256 750b9e1cba2823433c2de0e7276fde51c05cad3af294d5c732c0e949613c8bc6
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat array like length valueOf throws
+features: [Symbol.isConcatSpreadable]
+---*/
+var objWithPoisonedLengthValueOf = {
+  "length": {
+    valueOf: function() {
+      throw new Test262Error();
+    },
+    toString: null
+  },
+  "1": "A",
+  "3": "B",
+  "5": "C"
+};
+objWithPoisonedLengthValueOf[Symbol.isConcatSpreadable] = true;
+assert.throws(Test262Error, function() {
+  [].concat(objWithPoisonedLengthValueOf);
+}, '[].concat(objWithPoisonedLengthValueOf) throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-negative-length.js =====
+SHA256 c9b876cc1d11326c417cde1cd868fbe93fd6d704c93c5cac9c333102108036a9
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat array like negative length
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var obj = {
+  "length": -4294967294,
+  "1": "A",
+  "3": "B",
+  "5": "C"
+};
+obj[Symbol.isConcatSpreadable] = true;
+assert.compareArray([].concat(obj), [], '[].concat({"length": -4294967294, "1": "A", "3": "B", "5": "C"}) must return []');
+obj.length = -4294967294;
+assert.compareArray([].concat(obj), [], '[].concat({"length": -4294967294, "1": "A", "3": "B", "5": "C"}) must return []');
+obj.length = "-4294967294";
+assert.compareArray([].concat(obj), [], '[].concat({"length": -4294967294, "1": "A", "3": "B", "5": "C"}) must return []');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-primitive-non-number-length.js =====
+SHA256 1f5b7548256f4daf383cf46ca6a7185811f955dc22c58a9261adef410dd97a40
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat array like primitive non number length
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var obj = {
+  "1": "A",
+  "3": "B",
+  "5": "C"
+};
+obj[Symbol.isConcatSpreadable] = true;
+obj.length = {
+  toString: function() {
+    return "SIX";
+  },
+  valueOf: null
+};
+assert.compareArray([].concat(obj), [], '[].concat({"1": "A", "3": "B", "5": "C"}) must return []');
+obj.length = {
+  toString: null,
+  valueOf: function() {
+    return "SIX";
+  }
+};
+assert.compareArray([].concat(obj), [], '[].concat({"1": "A", "3": "B", "5": "C"}) must return []');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-string-length.js =====
+SHA256 d4ac9d0418b9cf33332b8bc7e6e0d86d48898a82c40858a6c31f80fdf31efc1d
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat array like string length
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var obj = {
+  "length": "6",
+  "1": "A",
+  "3": "B",
+  "5": "C"
+};
+obj[Symbol.isConcatSpreadable] = true;
+var obj2 = {
+  length: 3,
+  "0": "0",
+  "1": "1",
+  "2": "2"
+};
+var arr = ["X", "Y", "Z"];
+
+var expected = [
+  void 0, "A", void 0, "B", void 0, "C",
+  obj2,
+  "X", "Y", "Z"
+];
+var actual = Array.prototype.concat.call(obj, obj2, arr);
+
+assert.compareArray(actual, expected, 'The value of actual is expected to equal the value of expected');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like-to-length-throws.js =====
+SHA256 081e325be8e9e51c5570f09776e87819657a3da4f67af3562c9d44433caa181d
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat array like to length throws
+features: [Symbol.isConcatSpreadable]
+---*/
+var spreadableWithBrokenLength = {
+  "length": {
+    valueOf: null,
+    toString: null
+  },
+  "1": "A",
+  "3": "B",
+  "5": "C"
+};
+spreadableWithBrokenLength[Symbol.isConcatSpreadable] = true;
+var obj2 = {
+  length: 3,
+  "0": "0",
+  "1": "1",
+  "2": "2"
+};
+var arr = ["X", "Y", "Z"];
+assert.throws(TypeError, function() {
+  Array.prototype.concat.call(spreadableWithBrokenLength, obj2, arr);
+}, 'Array.prototype.concat.call(spreadableWithBrokenLength, obj2, arr) throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_array-like.js =====
+SHA256 c0e51ff64c9d055b56d6a473f600e854065a286237e164d72eaa8d3c3d6fe9c2
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat array like
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var obj = {
+  "length": 6,
+  "1": "A",
+  "3": "B",
+  "5": "C"
+};
+obj[Symbol.isConcatSpreadable] = true;
+var obj2 = {
+  length: 3,
+  "0": "0",
+  "1": "1",
+  "2": "2"
+};
+var arr = ["X", "Y", "Z"];
+
+var expected = [
+  void 0, "A", void 0, "B", void 0, "C",
+  obj2,
+  "X", "Y", "Z"
+];
+var actual = Array.prototype.concat.call(obj, obj2, arr);
+
+assert.compareArray(actual, expected, 'The value of actual is expected to equal the value of expected');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_holey-sloppy-arguments.js =====
+SHA256 d47b232b32523a79a759a62559a0539be6af6d5817fd948c33256bc6a8a7f49e
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat holey sloppy arguments
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var args = (function(a) {
+  return arguments;
+})(1, 2, 3);
+delete args[1];
+args[Symbol.isConcatSpreadable] = true;
+assert.compareArray([1, void 0, 3, 1, void 0, 3], [].concat(args, args),
+  '[1, void 0, 3, 1, void 0, 3] must return the same value returned by [].concat(args, args)'
+);
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_large-typed-array.js =====
+SHA256 6b01d53b467f224a25c8c1a0a95c13627f4261ac5592dafb2d838235bef92eec
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat large typed array
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+function concatTypedArray(type, elems, modulo) {
+  var items = new Array(elems);
+  var ta_by_len = new type(elems);
+  for (var i = 0; i < elems; ++i) {
+    ta_by_len[i] = items[i] = modulo === false ? i : elems % modulo;
+  }
+  var ta = new type(items);
+  assert.compareArray([].concat(ta, ta), [ta, ta]);
+  ta[Symbol.isConcatSpreadable] = true;
+  assert.compareArray([].concat(ta), items);
+
+  assert.compareArray([].concat(ta_by_len, ta_by_len), [ta_by_len, ta_by_len]);
+  ta_by_len[Symbol.isConcatSpreadable] = true;
+  assert.compareArray([].concat(ta_by_len), items);
+
+  // TypedArray with fake `length`.
+  ta = new type(1);
+  var defValue = ta[0];
+  var expected = new Array(4000);
+  expected[0] = defValue;
+
+  Object.defineProperty(ta, "length", {
+    value: 4000
+  });
+  ta[Symbol.isConcatSpreadable] = true;
+  assert.compareArray([].concat(ta), expected);
+}
+
+// Float16Array cannot be included in this because it cannot precisely represent integers above 2048
+var max = [Math.pow(2, 8), Math.pow(2, 16), Math.pow(2, 32), false, false];
+[
+  Uint8Array,
+  Uint16Array,
+  Uint32Array,
+  Float32Array,
+  Float64Array
+].forEach(function(ctor, i) {
+  concatTypedArray(ctor, 4000, max[i]);
+});
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_length-throws.js =====
+SHA256 ed5b8f950ef6c2a41afa235ee9519a6c67a2da05a8f7b2cac5b29c1ce15cc2c0
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat length throws
+features: [Symbol.isConcatSpreadable]
+---*/
+var spreadablePoisonedLengthGetter = {};
+spreadablePoisonedLengthGetter[Symbol.isConcatSpreadable] = true;
+Object.defineProperty(spreadablePoisonedLengthGetter, "length", {
+  get: function() {
+    throw new Test262Error();
+  }
+});
+
+assert.throws(Test262Error, function() {
+  [].concat(spreadablePoisonedLengthGetter);
+}, '[].concat(spreadablePoisonedLengthGetter) throws a Test262Error exception');
+
+assert.throws(Test262Error, function() {
+  Array.prototype.concat.call(spreadablePoisonedLengthGetter, 1, 2, 3);
+}, 'Array.prototype.concat.call(spreadablePoisonedLengthGetter, 1, 2, 3) throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_no-prototype.js =====
+SHA256 3638c27eb12e61b4963dc9192eb3adbee9fd670acd93c91281befef9f293fc92
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat no prototype
+---*/
+assert.sameValue(
+  Array.prototype.concat.prototype,
+  void 0,
+  'The value of Array.prototype.concat.prototype is expected to be void 0'
+);
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_non-array.js =====
+SHA256 abb04ee89f111ce149f84341d1a9d26c3f074f35273efebce7e0d2f6c6ca78f7
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: array-concat-non-array
+includes: [compareArray.js]
+---*/
+
+//
+// test262 --command "v8 --harmony-classes  --harmony_object_literals" array-concat-non-array
+//
+class NonArray {
+  constructor() {
+    Array.apply(this, arguments);
+  }
+}
+
+var obj = new NonArray(1, 2, 3);
+var result = Array.prototype.concat.call(obj, 4, 5, 6);
+assert.sameValue(Array, result.constructor, 'The value of Array is expected to equal the value of result.constructor');
+assert.sameValue(
+  result instanceof NonArray,
+  false,
+  'The result of evaluating (result instanceof NonArray) is expected to be false'
+);
+assert.compareArray(result, [obj, 4, 5, 6], 'The value of result is expected to be [obj, 4, 5, 6]');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_sloppy-arguments-throws.js =====
+SHA256 fe318d420f4a993917f271f3aaf6785d177dd4c57b26b4169548b1374d55c094
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat sloppy arguments throws
+features: [Symbol.isConcatSpreadable]
+---*/
+var args = (function(a) {
+  return arguments;
+})(1, 2, 3);
+Object.defineProperty(args, 0, {
+  get: function() {
+    throw new Test262Error();
+  }
+});
+args[Symbol.isConcatSpreadable] = true;
+assert.throws(Test262Error, function() {
+  return [].concat(args, args);
+}, 'return [].concat(args, args) throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_sloppy-arguments-with-dupes.js =====
+SHA256 ae46088526d56901a85418182f1d5f038da5f7f72622d77288aac6b3ef224196
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat sloppy arguments with dupes
+flags: [noStrict]
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var args = (function(a, a, a) {
+  return arguments;
+})(1, 2, 3);
+args[Symbol.isConcatSpreadable] = true;
+assert.compareArray([].concat(args, args), [1, 2, 3, 1, 2, 3],
+  '[].concat((function(a, a, a) {return arguments;})(1, 2, 3), (function(a, a, a) {return arguments;})(1, 2, 3)) must return [1, 2, 3, 1, 2, 3]'
+);
+
+Object.defineProperty(args, "length", {
+  value: 6
+});
+assert.compareArray([].concat(args), [1, 2, 3, void 0, void 0, void 0],
+  '[].concat((function(a, a, a) {return arguments;})(1, 2, 3)) must return [1, 2, 3, void 0, void 0, void 0]'
+);
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_sloppy-arguments.js =====
+SHA256 a3b3c58e8d0a5f9ff24d21af7191ef0adcb5e42ef3f06eda24db33ee797c2349
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat sloppy arguments
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var args = (function(a, b, c) {
+  return arguments;
+})(1, 2, 3);
+args[Symbol.isConcatSpreadable] = true;
+assert.compareArray([].concat(args, args), [1, 2, 3, 1, 2, 3],
+  '[].concat((function(a, b, c) {return arguments;})(1, 2, 3), (function(a, b, c) {return arguments;})(1, 2, 3)) must return [1, 2, 3, 1, 2, 3]'
+);
+
+Object.defineProperty(args, "length", {
+  value: 6
+});
+assert.compareArray([].concat(args), [1, 2, 3, void 0, void 0, void 0],
+  '[].concat((function(a, b, c) {return arguments;})(1, 2, 3)) must return [1, 2, 3, void 0, void 0, void 0]'
+);
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_small-typed-array.js =====
+SHA256 c564955350118c490da1e221eaf76200306f157dc5817c4afde810b40fec219a
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat small typed array
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+function concatTypedArray(type, elems, modulo) {
+  var items = new Array(elems);
+  var ta_by_len = new type(elems);
+  for (var i = 0; i < elems; ++i) {
+    ta_by_len[i] = items[i] = modulo === false ? i : elems % modulo;
+  }
+  var ta = new type(items);
+  assert.compareArray([].concat(ta, ta), [ta, ta]);
+  ta[Symbol.isConcatSpreadable] = true;
+  assert.compareArray([].concat(ta), items);
+
+  assert.compareArray([].concat(ta_by_len, ta_by_len), [ta_by_len, ta_by_len]);
+  ta_by_len[Symbol.isConcatSpreadable] = true;
+  assert.compareArray([].concat(ta_by_len), items);
+
+  // TypedArray with fake `length`.
+  ta = new type(1);
+  var defValue = ta[0];
+  var expected = new Array(4000);
+  expected[0] = defValue;
+
+  Object.defineProperty(ta, "length", {
+    value: 4000
+  });
+  ta[Symbol.isConcatSpreadable] = true;
+  assert.compareArray([].concat(ta), expected);
+}
+var max = [Math.pow(2, 8), Math.pow(2, 16), Math.pow(2, 32), false, false];
+var TAs = [
+  Uint8Array,
+  Uint16Array,
+  Uint32Array,
+  Float32Array,
+  Float64Array
+];
+if (typeof Float16Array !== 'undefined') {
+  max.push(false);
+  TAs.push(Float16Array);
+}
+
+TAs.forEach(function(ctor, i) {
+  concatTypedArray(ctor, 1, max[i]);
+});
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-boolean-wrapper.js =====
+SHA256 f3d244749ddea4bfaea968cb8cabb8aa91a6d7bbfb1358805dd95e61ee8a087b
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat Symbol.isConcatSpreadable boolean wrapper
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var bool = new Boolean(true)
+// Boolean wrapper objects are not concat-spreadable by default
+assert.compareArray([bool], [].concat(bool), '[bool] must return the same value returned by [].concat(bool)');
+
+// Boolean wrapper objects may be individually concat-spreadable
+bool[Symbol.isConcatSpreadable] = true;
+bool.length = 3;
+bool[0] = 1, bool[1] = 2, bool[2] = 3;
+assert.compareArray([1, 2, 3], [].concat(bool),
+  '[1, 2, 3] must return the same value returned by [].concat(bool)'
+);
+
+Boolean.prototype[Symbol.isConcatSpreadable] = true;
+// Boolean wrapper objects may be concat-spreadable
+assert.compareArray([], [].concat(new Boolean(true)),
+  '[] must return the same value returned by [].concat(new Boolean(true))'
+);
+Boolean.prototype[0] = 1;
+Boolean.prototype[1] = 2;
+Boolean.prototype[2] = 3;
+Boolean.prototype.length = 3;
+assert.compareArray([1, 2, 3], [].concat(new Boolean(true)),
+  '[1, 2, 3] must return the same value returned by [].concat(new Boolean(true))'
+);
+
+// Boolean values are never concat-spreadable
+assert.compareArray([true], [].concat(true), '[true] must return the same value returned by [].concat(true)');
+delete Boolean.prototype[Symbol.isConcatSpreadable];
+delete Boolean.prototype[0];
+delete Boolean.prototype[1];
+delete Boolean.prototype[2];
+delete Boolean.prototype.length;
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-function.js =====
+SHA256 3f303d6f76be6e5075d389bee19c42ab3eb3f7da82bbfc26942b143e660db103
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat Symbol.isConcatSpreadable function
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var fn = function(a, b, c) {}
+// Functions are not concat-spreadable by default
+assert.compareArray([fn], [].concat(fn), '[fn] must return the same value returned by [].concat(fn)');
+
+// Functions may be individually concat-spreadable
+fn[Symbol.isConcatSpreadable] = true;
+fn[0] = 1, fn[1] = 2, fn[2] = 3;
+assert.compareArray([1, 2, 3], [].concat(fn), '[1, 2, 3] must return the same value returned by [].concat(fn)');
+
+Function.prototype[Symbol.isConcatSpreadable] = true;
+// Functions may be concat-spreadable
+assert.compareArray([void 0, void 0, void 0], [].concat(function(a, b, c) {}),
+  '[void 0, void 0, void 0] must return the same value returned by [].concat(function(a, b, c) {})'
+);
+Function.prototype[0] = 1;
+Function.prototype[1] = 2;
+Function.prototype[2] = 3;
+assert.compareArray([1, 2, 3], [].concat(function(a, b, c) {}),
+  '[1, 2, 3] must return the same value returned by [].concat(function(a, b, c) {})'
+);
+
+delete Function.prototype[Symbol.isConcatSpreadable];
+delete Function.prototype[0];
+delete Function.prototype[1];
+delete Function.prototype[2];
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-getter-throws.js =====
+SHA256 778a40b6a58261c5cb984bae5fce4637bdcdc7d22e9bea3abe59f8a464822838
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat Symbol.isConcatSpreadable getter throws
+features: [Symbol.isConcatSpreadable]
+---*/
+var spreadablePoisonedGetter = {};
+Object.defineProperty(spreadablePoisonedGetter, Symbol.isConcatSpreadable, {
+  get: function() {
+    throw new Test262Error();
+  }
+});
+
+assert.throws(Test262Error, function() {
+  [].concat(spreadablePoisonedGetter);
+}, '[].concat(spreadablePoisonedGetter) throws a Test262Error exception');
+
+assert.throws(Test262Error, function() {
+  Array.prototype.concat.call(spreadablePoisonedGetter, 1, 2, 3);
+}, 'Array.prototype.concat.call(spreadablePoisonedGetter, 1, 2, 3) throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-number-wrapper.js =====
+SHA256 c4e59470a050bcedc711c05dd82cb289d1b27b5740e7f45dd2605f37348fe1a2
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat Symbol.isConcatSpreadable number wrapper
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var num = new Number(true)
+// Number wrapper objects are not concat-spreadable by default
+assert.compareArray([num], [].concat(num), '[num] must return the same value returned by [].concat(num)');
+
+// Number wrapper objects may be individually concat-spreadable
+num[Symbol.isConcatSpreadable] = true;
+num.length = 3;
+num[0] = 1, num[1] = 2, num[2] = 3;
+assert.compareArray([1, 2, 3], [].concat(num), '[1, 2, 3] must return the same value returned by [].concat(num)');
+
+Number.prototype[Symbol.isConcatSpreadable] = true;
+// Number wrapper objects may be concat-spreadable
+assert.compareArray([], [].concat(new Number(123)),
+  '[] must return the same value returned by [].concat(new Number(123))'
+);
+Number.prototype[0] = 1;
+Number.prototype[1] = 2;
+Number.prototype[2] = 3;
+Number.prototype.length = 3;
+assert.compareArray([1, 2, 3], [].concat(new Number(123)),
+  '[1, 2, 3] must return the same value returned by [].concat(new Number(123))'
+);
+
+// Number values are never concat-spreadable
+assert.compareArray([true], [].concat(true), '[true] must return the same value returned by [].concat(true)');
+delete Number.prototype[Symbol.isConcatSpreadable];
+delete Number.prototype[0];
+delete Number.prototype[1];
+delete Number.prototype[2];
+delete Number.prototype.length;
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-reg-exp.js =====
+SHA256 0d701b0bc5b5695a3f3910fa818e4325d7eb7c0f9cef7079f2d4c0ba53d9defe
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat Symbol.isConcatSpreadable reg exp
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var re = /abc/;
+// RegExps are not concat-spreadable by default
+assert.compareArray([].concat(re), [re], '[].concat(/abc/) must return [re]');
+
+// RegExps may be individually concat-spreadable
+re[Symbol.isConcatSpreadable] = true;
+re[0] = 1, re[1] = 2, re[2] = 3, re.length = 3;
+assert.compareArray([].concat(re), [1, 2, 3], '[].concat(/abc/) must return [1, 2, 3]');
+
+// RegExps may be concat-spreadable
+RegExp.prototype[Symbol.isConcatSpreadable] = true;
+RegExp.prototype.length = 3;
+
+assert.compareArray([].concat(/abc/), [void 0, void 0, void 0],
+  '[].concat(/abc/) must return [void 0, void 0, void 0]'
+);
+RegExp.prototype[0] = 1;
+RegExp.prototype[1] = 2;
+RegExp.prototype[2] = 3;
+assert.compareArray([].concat(/abc/), [1, 2, 3],
+  '[].concat(/abc/) must return [1, 2, 3]'
+);
+
+delete RegExp.prototype[Symbol.isConcatSpreadable];
+delete RegExp.prototype[0];
+delete RegExp.prototype[1];
+delete RegExp.prototype[2];
+delete RegExp.prototype.length;
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-sparse-object.js =====
+SHA256 763f8a6c26e249c4800250e2686f0ec2a053e45451c6e0136f061a5c60c80614
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat Symbol.isConcatSpreadable sparse object
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var obj = {
+  length: 5
+};
+obj[Symbol.isConcatSpreadable] = true;
+assert.compareArray([void 0, void 0, void 0, void 0, void 0], [].concat(obj),
+  '[void 0, void 0, void 0, void 0, void 0] must return the same value returned by [].concat(obj)'
+);
+
+obj.length = 4000;
+assert.compareArray(new Array(4000), [].concat(obj),
+  'new Array(4000) must return the same value returned by [].concat(obj)'
+);
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_spreadable-string-wrapper.js =====
+SHA256 68d31beb7f42bc188cc666df92bc2dd27c6161d1150abecd34dd3fd39800188b
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat Symbol.isConcatSpreadable string wrapper
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var str1 = new String("yuck\uD83D\uDCA9")
+// String wrapper objects are not concat-spreadable by default
+assert.compareArray([str1], [].concat(str1), '[str1] must return the same value returned by [].concat(str1)');
+
+// String wrapper objects may be individually concat-spreadable
+str1[Symbol.isConcatSpreadable] = true;
+assert.compareArray(["y", "u", "c", "k", "\uD83D", "\uDCA9"], [].concat(str1),
+  '["y", "u", "c", "k", "uD83D", "uDCA9"] must return the same value returned by [].concat(str1)'
+);
+
+String.prototype[Symbol.isConcatSpreadable] = true;
+// String wrapper objects may be concat-spreadable
+assert.compareArray(["y", "u", "c", "k", "\uD83D", "\uDCA9"], [].concat(new String("yuck\uD83D\uDCA9")),
+  '["y", "u", "c", "k", "uD83D", "uDCA9"] must return the same value returned by [].concat(new String("yuckuD83DuDCA9"))'
+);
+
+// String values are never concat-spreadable
+assert.compareArray(["yuck\uD83D\uDCA9"], [].concat("yuck\uD83D\uDCA9"),
+  '["yuckuD83DuDCA9"] must return the same value returned by [].concat("yuckuD83DuDCA9")'
+);
+delete String.prototype[Symbol.isConcatSpreadable];
+
+
+===== test/built-ins/Array/prototype/concat/Array.prototype.concat_strict-arguments.js =====
+SHA256 a3193cb25259adcf68c34deffcc7a9f6c53c8817c3820e1e747832b62d3968e1
+// Copyright (c) 2014 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat strict arguments
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+var args = (function(a, b, c) {
+  "use strict";
+  return arguments;
+})(1, 2, 3);
+args[Symbol.isConcatSpreadable] = true;
+assert.compareArray([].concat(args, args), [1, 2, 3, 1, 2, 3],
+  '[].concat("(function(a, b, c) {"use strict"; return arguments;})(1, 2, 3)", "(function(a, b, c) {"use strict"; return arguments;})(1, 2, 3)") must return [1, 2, 3, 1, 2, 3]'
+);
+
+Object.defineProperty(args, "length", {
+  value: 6
+});
+assert.compareArray([].concat(args), [1, 2, 3, void 0, void 0, void 0],
+  '[].concat("(function(a, b, c) {"use strict"; return arguments;})(1, 2, 3)") must return [1, 2, 3, void 0, void 0, void 0]'
+);
+
+
+===== test/built-ins/Array/prototype/concat/S15.4.4.4_A1_T1.js =====
+SHA256 31258834ef7bd0419c0851acda229446794407de1e78644f89bfb8edccf3d14e
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+info: |
+    When the concat method is called with zero or more arguments item1, item2,
+    etc., it returns an array containing the array elements of the object followed by
+    the array elements of each argument in order
+es5id: 15.4.4.4_A1_T1
+description: Checking this algorithm, items are Array object
+---*/
+
+var x = new Array();
+var y = new Array(0, 1);
+var z = new Array(2, 3, 4);
+var arr = x.concat(y, z);
+
+arr.getClass = Object.prototype.toString;
+assert.sameValue(arr.getClass(), "[object Array]", 'arr.getClass() must return "[object Array]"');
+assert.sameValue(arr[0], 0, 'The value of arr[0] is expected to be 0');
+assert.sameValue(arr[1], 1, 'The value of arr[1] is expected to be 1');
+assert.sameValue(arr[2], 2, 'The value of arr[2] is expected to be 2');
+assert.sameValue(arr[3], 3, 'The value of arr[3] is expected to be 3');
+assert.sameValue(arr[4], 4, 'The value of arr[4] is expected to be 4');
+assert.sameValue(arr.length, 5, 'The value of arr.length is expected to be 5');
+
+
+===== test/built-ins/Array/prototype/concat/S15.4.4.4_A1_T2.js =====
+SHA256 65d4d7fc86c1d746e81c90d34390940a6ed81fd43359ffba88f64b0d0dae0137
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+info: |
+    When the concat method is called with zero or more arguments item1, item2,
+    etc., it returns an array containing the array elements of the object followed by
+    the array elements of each argument in order
+es5id: 15.4.4.4_A1_T2
+description: Checking this algorithm, items are objects and primitives
+---*/
+
+var x = [0];
+var y = new Object();
+var z = new Array(1, 2);
+var arr = x.concat(y, z, -1, true, "NaN");
+
+arr.getClass = Object.prototype.toString;
+assert.sameValue(arr.getClass(), "[object Array]", 'arr.getClass() must return "[object Array]"');
+assert.sameValue(arr[0], 0, 'The value of arr[0] is expected to be 0');
+assert.sameValue(arr[1], y, 'The value of arr[1] is expected to equal the value of y');
+assert.sameValue(arr[2], 1, 'The value of arr[2] is expected to be 1');
+assert.sameValue(arr[3], 2, 'The value of arr[3] is expected to be 2');
+assert.sameValue(arr[4], -1, 'The value of arr[4] is expected to be -1');
+assert.sameValue(arr[5], true, 'The value of arr[5] is expected to be true');
+assert.sameValue(arr[6], "NaN", 'The value of arr[6] is expected to be "NaN"');
+assert.sameValue(arr.length, 7, 'The value of arr.length is expected to be 7');
+
+
+===== test/built-ins/Array/prototype/concat/S15.4.4.4_A1_T3.js =====
+SHA256 779b044133c753145c623b6737b75a8fb3a667c4f7e0e8f321c63459eefa05c4
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+info: |
+    When the concat method is called with zero or more arguments item1, item2,
+    etc., it returns an array containing the array elements of the object followed by
+    the array elements of each argument in order
+es5id: 15.4.4.4_A1_T3
+description: Checking this algorithm with no items
+---*/
+
+var x = [0, 1];
+var arr = x.concat();
+
+arr.getClass = Object.prototype.toString;
+assert.sameValue(arr.getClass(), "[object Array]", 'arr.getClass() must return "[object Array]"');
+assert.sameValue(arr[0], 0, 'The value of arr[0] is expected to be 0');
+assert.sameValue(arr[1], 1, 'The value of arr[1] is expected to be 1');
+assert.sameValue(arr.length, 2, 'The value of arr.length is expected to be 2');
+assert.notSameValue(arr, x, 'The value of arr is expected to not equal the value of `x`');
+
+
+===== test/built-ins/Array/prototype/concat/S15.4.4.4_A1_T4.js =====
+SHA256 4e54b1a90a36cc48e603b6bc99e9bb9aeaa541566cfdd7be19533688d6454927
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+info: |
+    When the concat method is called with zero or more arguments item1, item2,
+    etc., it returns an array containing the array elements of the object followed by
+    the array elements of each argument in order
+es5id: 15.4.4.4_A1_T4
+description: Checking this algorithm, items are [], [,]
+---*/
+
+var x = [, 1];
+var arr = x.concat([], [, ]);
+
+arr.getClass = Object.prototype.toString;
+assert.sameValue(arr.getClass(), "[object Array]", 'arr.getClass() must return "[object Array]"');
+assert.sameValue(arr[0], undefined, 'The value of arr[0] is expected to equal undefined');
+assert.sameValue(arr[1], 1, 'The value of arr[1] is expected to be 1');
+assert.sameValue(arr[2], undefined, 'The value of arr[2] is expected to equal undefined');
+assert.sameValue(arr.length, 3, 'The value of arr.length is expected to be 3');
+
+
+===== test/built-ins/Array/prototype/concat/S15.4.4.4_A2_T1.js =====
+SHA256 0170652162d459721eb12dd438b9facd36ab46adbef670d41166d7d80ffaf13f
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+info: |
+    The concat function is intentionally generic.
+    It does not require that its this value be an Array object
+es5id: 15.4.4.4_A2_T1
+description: Checking this for Object object, items are objects and primitives
+---*/
+
+var x = {};
+x.concat = Array.prototype.concat;
+var y = new Object();
+var z = new Array(1, 2);
+var arr = x.concat(y, z, -1, true, "NaN");
+
+arr.getClass = Object.prototype.toString;
+assert.sameValue(arr.getClass(), "[object Array]", 'arr.getClass() must return "[object Array]"');
+assert.sameValue(arr[0], x, 'The value of arr[0] is expected to equal the value of x');
+assert.sameValue(arr[1], y, 'The value of arr[1] is expected to equal the value of y');
+assert.sameValue(arr[2], 1, 'The value of arr[2] is expected to be 1');
+assert.sameValue(arr[3], 2, 'The value of arr[3] is expected to be 2');
+assert.sameValue(arr[4], -1, 'The value of arr[4] is expected to be -1');
+assert.sameValue(arr[5], true, 'The value of arr[5] is expected to be true');
+assert.sameValue(arr[6], "NaN", 'The value of arr[6] is expected to be "NaN"');
+assert.sameValue(arr.length, 7, 'The value of arr.length is expected to be 7');
+
+
+===== test/built-ins/Array/prototype/concat/S15.4.4.4_A2_T2.js =====
+SHA256 80b3554bd8aa9532adbe9088720a8c6923469a067275c26c6703975c46492887
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+info: |
+    The concat function is intentionally generic.
+    It does not require that its this value be an Array object
+es5id: 15.4.4.4_A2_T2
+description: Checking this for Object object with no items
+---*/
+
+var x = {};
+x.concat = Array.prototype.concat;
+var arr = x.concat();
+
+arr.getClass = Object.prototype.toString;
+assert.sameValue(arr.getClass(), "[object Array]", 'arr.getClass() must return "[object Array]"');
+assert.sameValue(arr[0], x, 'The value of arr[0] is expected to equal the value of x');
+assert.sameValue(arr.length, 1, 'The value of arr.length is expected to be 1');
+
+
+===== test/built-ins/Array/prototype/concat/S15.4.4.4_A3_T1.js =====
+SHA256 8d926bcb0ff509f8dc8fc7c9f9fcf77d3dc25f182c27e26229f1abe2570f4974
+// Copyright 2009 the Sputnik authors.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+info: "[[Get]] from not an inherited property"
+es5id: 15.4.4.4_A3_T1
+description: >
+    [[Prototype]] of Array instance is Array.prototype, [[Prototype]
+    of Array.prototype is Object.prototype
+---*/
+
+Array.prototype[1] = 1;
+var x = [0];
+x.length = 2;
+var arr = x.concat();
+
+assert.sameValue(arr[0], 0, 'The value of arr[0] is expected to be 0');
+assert.sameValue(arr[1], 1, 'The value of arr[1] is expected to be 1');
+assert.sameValue(arr.hasOwnProperty('1'), true, 'arr.hasOwnProperty("1") must return true');
+
+Object.prototype[1] = 1;
+Object.prototype.length = 2;
+Object.prototype.concat = Array.prototype.concat;
+x = {
+  0: 0
+};
+var arr = x.concat();
+
+assert.sameValue(arr[0], x, 'The value of arr[0] is expected to equal the value of x');
+assert.sameValue(arr[1], 1, 'The value of arr[1] is expected to be 1');
+assert.sameValue(arr.hasOwnProperty('1'), false, 'arr.hasOwnProperty("1") must return false');
+
+
+===== test/built-ins/Array/prototype/concat/S15.4.4.4_A3_T2.js =====
+SHA256 f50b461f796afcbdea25acd83558e0ca0b73b85a83af6d14b00ceeae69ddc74b
+// Copyright (c) 2014 Ecma International.  All rights reserved.
+// See LICENSE or https://github.com/tc39/test262/blob/HEAD/LICENSE
+
+/*---
+esid: sec-array.prototype.concat
+info: Array.prototype.concat uses [[Get]] on 'length' to determine array length
+es5id: 15.4.4.4_A3_T2
+description: >
+  checking whether non-ownProperties are seen, copied by Array.prototype.concat: Array.prototype[1]
+---*/
+
+var a = [0];
+
+assert.sameValue(a.length, 1, 'The value of a.length is expected to be 1');
+
+a.length = 3;
+
+assert.sameValue(a[1], undefined, 'The value of a[1] is expected to equal undefined');
+assert.sameValue(a[2], undefined, 'The value of a[2] is expected to equal undefined');
+
+Array.prototype[2] = 2;
+
+assert.sameValue(a[1], undefined, 'The value of a[1] is expected to equal undefined');
+assert.sameValue(a[2], 2, 'The value of a[2] is expected to be 2');
+assert.sameValue(a.hasOwnProperty('1'), false, 'a.hasOwnProperty("1") must return false');
+assert.sameValue(a.hasOwnProperty('2'), false, 'a.hasOwnProperty("2") must return false');
+
+var b = a.concat();
+
+assert.sameValue(b.length, 3, 'The value of b.length is expected to be 3');
+assert.sameValue(b[0], 0, 'The value of b[0] is expected to be 0');
+assert.sameValue(b[1], undefined, 'The value of b[1] is expected to equal undefined');
+assert.sameValue(b[2], 2, 'The value of b[2] is expected to be 2');
+assert.sameValue(b.hasOwnProperty('1'), false, 'b.hasOwnProperty("1") must return false');
+assert.sameValue(b.hasOwnProperty('2'), true, 'b.hasOwnProperty("2") must return true');
+
+
+===== test/built-ins/Array/prototype/concat/S15.4.4.4_A3_T3.js =====
+SHA256 4f6e551d628f94fb687e4ee7cf0006c579f7837d7468b5602695e03c79080c20
+// Copyright (c) 2014 Ecma International.  All rights reserved.
+// See LICENSE or https://github.com/tc39/test262/blob/HEAD/LICENSE
+
+/*---
+esid: sec-array.prototype.concat
+info: Array.prototype.concat uses [[Get]] on 'length' to determine array length
+es5id: 15.4.4.4_A3_T3
+description: >
+  checking whether non-ownProperties are seen, copied by Array.prototype.concat: Object.prototype[1]
+---*/
+
+var a = [0];
+
+assert.sameValue(a.length, 1, 'The value of a.length is expected to be 1');
+
+a.length = 3;
+
+assert.sameValue(a[1], undefined, 'The value of a[1] is expected to equal undefined');
+assert.sameValue(a[2], undefined, 'The value of a[2] is expected to equal undefined');
+
+Object.prototype[2] = 2;
+
+assert.sameValue(a[1], undefined, 'The value of a[1] is expected to equal undefined');
+assert.sameValue(a[2], 2, 'The value of a[2] is expected to be 2');
+assert.sameValue(a.hasOwnProperty('1'), false, 'a.hasOwnProperty("1") must return false');
+assert.sameValue(a.hasOwnProperty('2'), false, 'a.hasOwnProperty("2") must return false');
+
+var b = a.concat();
+
+assert.sameValue(b.length, 3, 'The value of b.length is expected to be 3');
+assert.sameValue(b[0], 0, 'The value of b[0] is expected to be 0');
+assert.sameValue(b[1], undefined, 'The value of b[1] is expected to equal undefined');
+assert.sameValue(b[2], 2, 'The value of b[2] is expected to be 2');
+assert.sameValue(b.hasOwnProperty('1'), false, 'b.hasOwnProperty("1") must return false');
+assert.sameValue(b.hasOwnProperty('2'), true, 'b.hasOwnProperty("2") must return true');
+
+
+===== test/built-ins/Array/prototype/concat/arg-length-exceeding-integer-limit.js =====
+SHA256 1cee262f5b97af603cd5859813db476ef0e6ac2a60dae19fe998ebe2f9b9ced7
+// Copyright (C) 2020 Alexey Shvayka. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  TypeError is thrown if "length" of result array exceeds 2^53 - 1.
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  [...]
+  5. Repeat, while items is not empty
+    [...]
+    c. If spreadable is true, then
+      [...]
+      ii. Let len be ? LengthOfArrayLike(E).
+      iii. If n + len > 2^53 - 1, throw a TypeError exception.
+    [...]
+features: [Symbol.isConcatSpreadable, Proxy]
+---*/
+
+var spreadableLengthOutOfRange = {};
+spreadableLengthOutOfRange.length = Number.MAX_SAFE_INTEGER;
+spreadableLengthOutOfRange[Symbol.isConcatSpreadable] = true;
+
+assert.throws(TypeError, function() {
+  [1].concat(spreadableLengthOutOfRange);
+}, '[1].concat(spreadableLengthOutOfRange) throws a TypeError exception');
+
+var proxyForArrayWithLengthOutOfRange = new Proxy([], {
+  get: function(_target, key) {
+    if (key === "length") {
+      return Number.MAX_SAFE_INTEGER;
+    }
+  },
+});
+
+assert.throws(TypeError, function() {
+  [].concat(1, proxyForArrayWithLengthOutOfRange);
+}, '[].concat(1, proxyForArrayWithLengthOutOfRange) throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/arg-length-near-integer-limit.js =====
+SHA256 a8ec1349097a2847b324492e66b33db49ad705d1dbc07bf5b1410739765c318b
+// Copyright (C) 2020 Alexey Shvayka. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  Elements are copied from a spreadable array-like object
+  whose "length" property is near the integer limit.
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  [...]
+  5. Repeat, while items is not empty
+    [...]
+    c. If spreadable is true, then
+      [...]
+      ii. Let len be ? LengthOfArrayLike(E).
+      iii. If n + len > 2^53 - 1, throw a TypeError exception.
+      iv. Repeat, while k < len
+        [...]
+        3. If exists is true, then
+          a. Let subElement be ? Get(E, P).
+    [...]
+features: [Symbol.isConcatSpreadable]
+---*/
+
+var spreadableHasPoisonedIndex = {
+  length: Number.MAX_SAFE_INTEGER,
+  get 0() {
+    throw new Test262Error();
+  },
+};
+spreadableHasPoisonedIndex[Symbol.isConcatSpreadable] = true;
+
+assert.throws(Test262Error, function() {
+  [].concat(spreadableHasPoisonedIndex);
+}, '[].concat(spreadableHasPoisonedIndex) throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/call-with-boolean.js =====
+SHA256 173af9e370a00dc34e8baddd0d27ad30108fd296930fa6d8891c32be59c034b1
+// Copyright (c) 2020 Rick Waldron.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: Array.prototype.concat applied to boolean primitive
+---*/
+
+assert.sameValue(
+  Array.prototype.concat.call(true)[0] instanceof Boolean,
+  true,
+  'The result of evaluating (Array.prototype.concat.call(true)[0] instanceof Boolean) is expected to be true'
+);
+assert.sameValue(
+  Array.prototype.concat.call(false)[0] instanceof Boolean,
+  true,
+  'The result of evaluating (Array.prototype.concat.call(false)[0] instanceof Boolean) is expected to be true'
+);
+
+
+===== test/built-ins/Array/prototype/concat/create-ctor-non-object.js =====
+SHA256 08f243971a9eefddc5cc05289fcd6c5d154c57ce37130286911c36920c308be1
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: >
+    Behavior when `constructor` property is neither an Object nor undefined
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+    [...]
+    9. If IsConstructor(C) is false, throw a TypeError exception.
+---*/
+
+var a = [];
+
+a.constructor = null;
+assert.throws(TypeError, function() {
+  a.concat();
+}, 'a.concat() throws a TypeError exception');
+
+a = [];
+a.constructor = 1;
+assert.throws(TypeError, function() {
+  a.concat();
+}, 'a.concat() throws a TypeError exception');
+
+a = [];
+a.constructor = 'string';
+assert.throws(TypeError, function() {
+  a.concat();
+}, 'a.concat() throws a TypeError exception');
+
+a = [];
+a.constructor = true;
+assert.throws(TypeError, function() {
+  a.concat();
+}, 'a.concat() throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/create-ctor-poisoned.js =====
+SHA256 00f38aaa4b28bd4c20485a2195b59c461bdc0ba3bddc7c12e597f8e5df66f54e
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Abrupt completion from `constructor` property access
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+---*/
+
+var a = [];
+
+Object.defineProperty(a, 'constructor', {
+  get: function() {
+    throw new Test262Error();
+  }
+});
+
+assert.throws(Test262Error, function() {
+  a.concat();
+}, 'a.concat() throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/create-non-array.js =====
+SHA256 a7ae344fda8a56b85de041b0213f0bb707e400ff562ba0f9d54d6c3a9ae3d55b
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Constructor is ignored for non-Array values
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    3. Let isArray be ? IsArray(originalArray).
+    4. If isArray is false, return ? ArrayCreate(length).
+---*/
+
+var obj = {
+  length: 0
+};
+var callCount = 0;
+var result;
+Object.defineProperty(obj, 'constructor', {
+  get: function() {
+    callCount += 1;
+  }
+});
+
+result = Array.prototype.concat.call(obj);
+
+assert.sameValue(callCount, 0, 'The value of callCount is expected to be 0');
+assert.sameValue(
+  Object.getPrototypeOf(result),
+  Array.prototype,
+  'Object.getPrototypeOf(Array.prototype.concat.call(obj)) returns Array.prototype'
+);
+assert(Array.isArray(result), 'Array.isArray(result) must return true');
+assert.sameValue(result.length, 1, 'The value of result.length is expected to be 1');
+assert.sameValue(result[0], obj, 'The value of result[0] is expected to equal the value of obj');
+
+
+===== test/built-ins/Array/prototype/concat/create-proto-from-ctor-realm-array.js =====
+SHA256 74c4bd391efe4b8dd3b79e76f13f02cbf6e200334f36e967cc15098f1ca0195c
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Prefer Array constructor of current realm record
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+    [...]
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+    6. If IsConstructor(C) is true, then
+       a. Let thisRealm be the current Realm Record.
+       b. Let realmC be ? GetFunctionRealm(C).
+       c. If thisRealm and realmC are not the same Realm Record, then
+          i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, let C
+             be undefined.
+    [...]
+features: [cross-realm, Symbol.species]
+---*/
+
+var array = [];
+var callCount = 0;
+var OArray = $262.createRealm().global.Array;
+var speciesDesc = {
+  get: function() {
+    callCount += 1;
+  }
+};
+var result;
+array.constructor = OArray;
+
+Object.defineProperty(Array, Symbol.species, speciesDesc);
+Object.defineProperty(OArray, Symbol.species, speciesDesc);
+
+result = array.concat();
+
+assert.sameValue(
+  Object.getPrototypeOf(result),
+  Array.prototype,
+  'Object.getPrototypeOf(array.concat()) returns Array.prototype'
+);
+assert.sameValue(callCount, 0, 'The value of callCount is expected to be 0');
+
+
+===== test/built-ins/Array/prototype/concat/create-proto-from-ctor-realm-non-array.js =====
+SHA256 3c4e217ee5b7a6a4d690f76eb5cb71471147627c40581423c101b7e2af3b45a0
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Accept non-Array constructors from other realms
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+    [...]
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+    6. If IsConstructor(C) is true, then
+       a. Let thisRealm be the current Realm Record.
+       b. Let realmC be ? GetFunctionRealm(C).
+       c. If thisRealm and realmC are not the same Realm Record, then
+          i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, let C
+             be undefined.
+    [...]
+features: [cross-realm, Symbol.species]
+---*/
+
+var array = [];
+var callCount = 0;
+var CustomCtor = function() {};
+var OObject = $262.createRealm().global.Object;
+var speciesDesc = {
+  get: function() {
+    callCount += 1;
+  }
+};
+var result;
+array.constructor = OObject;
+OObject[Symbol.species] = CustomCtor;
+
+Object.defineProperty(Array, Symbol.species, speciesDesc);
+
+result = array.concat();
+
+assert.sameValue(
+  Object.getPrototypeOf(result),
+  CustomCtor.prototype,
+  'Object.getPrototypeOf(array.concat()) returns CustomCtor.prototype'
+);
+assert.sameValue(callCount, 0, 'The value of callCount is expected to be 0');
+
+
+===== test/built-ins/Array/prototype/concat/create-proxy.js =====
+SHA256 78f51e1f84bc12f850bd11c34855cadd3473192e7df53e57fa1cfce0fcd07841
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Species constructor of a Proxy object whose target is an array
+info: |
+    [...]
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+    [...]
+    7. Return A.
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    3. Let isArray be ? IsArray(originalArray).
+
+    7.2.2 IsArray
+
+    [...]
+    3. If argument is a Proxy exotic object, then
+       a. If the value of the [[ProxyHandler]] internal slot of argument is
+          null, throw a TypeError exception.
+       b. Let target be the value of the [[ProxyTarget]] internal slot of
+          argument.
+       c. Return ? IsArray(target).
+features: [Proxy, Symbol.species]
+---*/
+
+var array = [];
+var proxy = new Proxy(new Proxy(array, {}), {});
+var Ctor = function() {};
+var result;
+
+array.constructor = function() {};
+array.constructor[Symbol.species] = Ctor;
+
+result = Array.prototype.concat.call(proxy);
+
+assert.sameValue(
+  Object.getPrototypeOf(result),
+  Ctor.prototype,
+  'Object.getPrototypeOf(Array.prototype.concat.call(proxy)) returns Ctor.prototype'
+);
+
+
+===== test/built-ins/Array/prototype/concat/create-revoked-proxy.js =====
+SHA256 2a6fd69ee00635174f652d40c5d8d909208a898b5ef6b3ea31c566d7b8a8dbce
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Abrupt completion from constructor that is a revoked Proxy object
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    3. Let isArray be ? IsArray(originalArray).
+
+    7.2.2 IsArray
+
+    [...]
+    3. If argument is a Proxy exotic object, then
+       a. If the value of the [[ProxyHandler]] internal slot of argument is
+          null, throw a TypeError exception.
+features: [Proxy]
+---*/
+
+var o = Proxy.revocable([], {});
+var callCount = 0;
+
+Object.defineProperty(o.proxy, 'constructor', {
+  get: function() {
+    callCount += 1;
+  }
+});
+o.revoke();
+
+assert.throws(TypeError, function() {
+  Array.prototype.concat.call(o.proxy);
+}, 'Array.prototype.concat.call(o.proxy) throws a TypeError exception');
+
+assert.sameValue(callCount, 0, 'The value of callCount is expected to be 0');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-abrupt.js =====
+SHA256 2ff8a65102b20563dfb0b108e2ae6e9df4aed6caf341a5aec6560fceca6b0d14
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Species constructor returns an abrupt completion
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+    [...]
+    7. If Type(C) is Object, then
+       a. Let C be ? Get(C, @@species).
+       b. If C is null, let C be undefined.
+    [...]
+    10. Return ? Construct(C, « length »).
+features: [Symbol.species]
+---*/
+
+var Ctor = function() {
+  throw new Test262Error();
+};
+var a = [];
+a.constructor = {};
+a.constructor[Symbol.species] = Ctor;
+
+assert.throws(Test262Error, function() {
+  a.concat();
+}, 'a.concat() throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-non-ctor.js =====
+SHA256 e73f9b8caa543d28ab7352f3e8666d20707d584d51b4cdfba95b53b423a28721
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: >
+    Behavior when the @@species attribute is a non-constructor object
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+    [...]
+    7. If Type(C) is Object, then
+       a. Let C be ? Get(C, @@species).
+       b. If C is null, let C be undefined.
+    [...]
+    9. If IsConstructor(C) is false, throw a TypeError exception.
+includes: [isConstructor.js]
+features: [Symbol.species, Reflect.construct]
+---*/
+
+assert.sameValue(
+  isConstructor(parseInt),
+  false,
+  'precondition: isConstructor(parseInt) must return false'
+);
+
+var a = [];
+
+a.constructor = {};
+a.constructor[Symbol.species] = parseInt;
+
+assert.throws(TypeError, function() {
+  a.concat();
+}, 'a.concat() throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-non-extensible-spreadable.js =====
+SHA256 861933e6be46b501341e8c0d7f029a08b235d472387e24ee8626c2afe0e9dbae
+// Copyright (C) 2020 Alexey Shvayka. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  TypeError is thrown if CreateDataProperty fails.
+  (result object is non-extensible, argument is spreadable)
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  [...]
+  5. Repeat, while items is not empty
+    [...]
+    c. If spreadable is true, then
+      [...]
+      iv. Repeat, while k < len
+        [...]
+        3. If exists is true, then
+          [...]
+          b. Perform ? CreateDataPropertyOrThrow(A, ! ToString(n), subElement).
+    [...]
+
+  CreateDataPropertyOrThrow ( O, P, V )
+
+  [...]
+  3. Let success be ? CreateDataProperty(O, P, V).
+  4. If success is false, throw a TypeError exception.
+features: [Symbol.species]
+---*/
+
+var A = function(_length) {
+  this.length = 0;
+  Object.preventExtensions(this);
+};
+
+var arr = [];
+arr.constructor = {};
+arr.constructor[Symbol.species] = A;
+
+assert.throws(TypeError, function() {
+  arr.concat([1]);
+}, 'arr.concat([1]) throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-non-extensible.js =====
+SHA256 cf1403f6fff5cd048f4ccd5e6b3471103ea6ebacef54714d504a96ca9d73f641
+// Copyright (C) 2020 Alexey Shvayka. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  TypeError is thrown if CreateDataProperty fails.
+  (result object is non-extensible, argument is not spreadable)
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  [...]
+  5. Repeat, while items is not empty
+    [...]
+    c. If spreadable is true, then
+      [...]
+    d. Else,
+      [...]
+      iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(n), E).
+    [...]
+
+  CreateDataPropertyOrThrow ( O, P, V )
+
+  [...]
+  3. Let success be ? CreateDataProperty(O, P, V).
+  4. If success is false, throw a TypeError exception.
+features: [Symbol.species]
+---*/
+
+var A = function(_length) {
+  this.length = 0;
+  Object.preventExtensions(this);
+};
+
+var arr = [];
+arr.constructor = {};
+arr.constructor[Symbol.species] = A;
+
+assert.throws(TypeError, function() {
+  arr.concat(1);
+}, 'arr.concat(1) throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-null.js =====
+SHA256 190fb8d1c4cdc9909a78bcf614bf78df6a2bb809784b7ca6503b2989fec5b7f4
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: >
+    A null value for the @@species constructor is interpreted as `undefined`
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+    [...]
+    7. If Type(C) is Object, then
+       a. Let C be ? Get(C, @@species).
+       b. If C is null, let C be undefined.
+    8. If C is undefined, return ? ArrayCreate(length).
+features: [Symbol.species]
+---*/
+
+var a = [];
+var result;
+
+a.constructor = {};
+a.constructor[Symbol.species] = null;
+
+result = a.concat();
+
+assert.sameValue(
+  Object.getPrototypeOf(result),
+  Array.prototype,
+  'Object.getPrototypeOf(a.concat()) returns Array.prototype'
+);
+assert(Array.isArray(result), 'Array.isArray(result) must return true');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-poisoned.js =====
+SHA256 0f35d18cacb4ec51b3fd3ffa3e6f4a58f0ffb9926ea33e0f45c4ee8fd1c5b7b2
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Abrupt completion from `@@species` property access
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+    [...]
+    7. If Type(C) is Object, then
+       a. Let C be ? Get(C, @@species).
+features: [Symbol.species]
+---*/
+
+var a = [];
+a.constructor = {};
+
+Object.defineProperty(a.constructor, Symbol.species, {
+  get: function() {
+    throw new Test262Error();
+  }
+});
+
+assert.throws(Test262Error, function() {
+  a.concat();
+}, 'a.concat() throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-undef.js =====
+SHA256 0aa2625ec49efb6cf1495ae47a1fad380196efc64a54e4b9196c6b676950c3f2
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: >
+    An undefined value for the @@species constructor triggers the creation  of
+    an Array exotic object
+info: |
+    [...]
+    9. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).
+    [...]
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+    [...]
+    7. If Type(C) is Object, then
+       a. Let C be ? Get(C, @@species).
+       b. If C is null, let C be undefined.
+    8. If C is undefined, return ? ArrayCreate(length).
+features: [Symbol.species]
+---*/
+
+var a = [];
+var result;
+
+a.constructor = {};
+a.constructor[Symbol.species] = undefined;
+
+result = a.concat();
+
+assert.sameValue(
+  Object.getPrototypeOf(result),
+  Array.prototype,
+  'Object.getPrototypeOf(a.concat()) returns Array.prototype'
+);
+assert(Array.isArray(result), 'Array.isArray(result) must return true');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-with-non-configurable-property-spreadable.js =====
+SHA256 0def1c384d06cccdb376e4f3aea733289da991a36a5c4a19f994271cc4e3f118
+// Copyright (C) 2020 Alexey Shvayka. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  TypeError is thrown if CreateDataProperty fails.
+  (result object's "0" is non-configurable, argument is spreadable)
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  [...]
+  5. Repeat, while items is not empty
+    [...]
+    c. If spreadable is true, then
+      [...]
+      iv. Repeat, while k < len
+        [...]
+        3. If exists is true, then
+          [...]
+          b. Perform ? CreateDataPropertyOrThrow(A, ! ToString(n), subElement).
+    [...]
+
+  CreateDataPropertyOrThrow ( O, P, V )
+
+  [...]
+  3. Let success be ? CreateDataProperty(O, P, V).
+  4. If success is false, throw a TypeError exception.
+features: [Symbol.species]
+---*/
+
+var A = function(_length) {
+  Object.defineProperty(this, "0", {
+    writable: true,
+    configurable: false,
+  });
+};
+
+var arr = [];
+arr.constructor = {};
+arr.constructor[Symbol.species] = A;
+
+assert.throws(TypeError, function() {
+  arr.concat([1]);
+}, 'arr.concat([1]) throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-with-non-configurable-property.js =====
+SHA256 4bb759bf3240c55d190448233d05a7f2e3a36a2f2475fd25651728c03b6e65e5
+// Copyright (C) 2020 Alexey Shvayka. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  TypeError is thrown if CreateDataProperty fails.
+  (result object's "0" is non-configurable, argument is non-spreadable)
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  [...]
+  5. Repeat, while items is not empty
+    [...]
+    c. If spreadable is true, then
+      [...]
+    d. Else,
+      [...]
+      iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(n), E).
+    [...]
+
+  CreateDataPropertyOrThrow ( O, P, V )
+
+  [...]
+  3. Let success be ? CreateDataProperty(O, P, V).
+  4. If success is false, throw a TypeError exception.
+features: [Symbol.species]
+---*/
+
+var A = function(_length) {
+  Object.defineProperty(this, "0", {
+    set: function(_value) {},
+    configurable: false,
+  });
+};
+
+var arr = [];
+arr.constructor = {};
+arr.constructor[Symbol.species] = A;
+
+assert.throws(TypeError, function() {
+  arr.concat(1);
+}, 'arr.concat(1) throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/create-species-with-non-writable-property-spreadable.js =====
+SHA256 e487efbdb921093dfbb3e4a64c08d7cb287e95337cad6867d9a82e6b22449e36
+// Copyright (C) 2020 Alexey Shvayka. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  Non-writable properties are overwritten by CreateDataProperty.
+  (result object's "0" is non-writable, argument is spreadable)
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  [...]
+  5. Repeat, while items is not empty
+    [...]
+    c. If spreadable is true, then
+      [...]
+      iv. Repeat, while k < len
+        [...]
+        3. If exists is true, then
+          [...]
+          b. Perform ? CreateDataPropertyOrThrow(A, ! ToString(n), subElement).
+    [...]
+features: [Symbol.species]
+includes: [propertyHelper.js]
+---*/
+
+var A = function(_length) {
+  Object.defineProperty(this, "0", {
+    value: 1,
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+};
+
+var arr = [];
+arr.constructor = {};
+arr.constructor[Symbol.species] = A;
+
+var res = arr.concat([2]);
+
+verifyProperty(res, "0", {
+  value: 2,
+  writable: true,
+  enumerable: true,
+  configurable: true,
+});
+
+
+===== test/built-ins/Array/prototype/concat/create-species-with-non-writable-property.js =====
+SHA256 f5395ea78e0047db62207781878ec3a7a447a840fff9e597666f9d9d627a7a56
+// Copyright (C) 2020 Alexey Shvayka. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  Non-writable properties are overwritten by CreateDataProperty.
+  (result object's "0" is non-writable, argument is not spreadable)
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  [...]
+  5. Repeat, while items is not empty
+    [...]
+    c. If spreadable is true, then
+      [...]
+      iv. Repeat, while k < len
+        [...]
+        3. If exists is true, then
+          [...]
+          b. Perform ? CreateDataPropertyOrThrow(A, ! ToString(n), subElement).
+    [...]
+features: [Symbol.species]
+includes: [propertyHelper.js]
+---*/
+
+var A = function(_length) {
+  Object.defineProperty(this, "0", {
+    value: 1,
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+};
+
+var arr = [];
+arr.constructor = {};
+arr.constructor[Symbol.species] = A;
+
+var res = arr.concat(2);
+
+verifyProperty(res, "0", {
+  value: 2,
+  writable: true,
+  enumerable: true,
+  configurable: true,
+});
+
+
+===== test/built-ins/Array/prototype/concat/create-species.js =====
+SHA256 6e92650245fdac49b51ae6b1c1fad58f506981e9300479577f490074cadfa751
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Species constructor is used to create a new instance
+info: |
+    1. Let O be ? ToObject(this value).
+    2. Let A be ? ArraySpeciesCreate(O, 0).
+
+    9.4.2.3 ArraySpeciesCreate
+
+    [...]
+    5. Let C be ? Get(originalArray, "constructor").
+    [...]
+    7. If Type(C) is Object, then
+       a. Let C be ? Get(C, @@species).
+       b. If C is null, let C be undefined.
+    [...]
+    10. Return ? Construct(C, « length »).
+features: [Symbol.species]
+---*/
+
+var thisValue, args, result;
+var callCount = 0;
+var instance = [];
+var Ctor = function() {
+  callCount += 1;
+  thisValue = this;
+  args = arguments;
+  return instance;
+};
+var a = [];
+a.constructor = {};
+a.constructor[Symbol.species] = Ctor;
+
+result = a.concat();
+
+assert.sameValue(callCount, 1, 'The value of callCount is expected to be 1');
+assert.sameValue(
+  Object.getPrototypeOf(thisValue),
+  Ctor.prototype,
+  'Object.getPrototypeOf(this) returns Ctor.prototype'
+);
+assert.sameValue(args.length, 1, 'The value of args.length is expected to be 1');
+assert.sameValue(args[0], 0, 'The value of args[0] is expected to be 0');
+assert.sameValue(result, instance, 'The value of result is expected to equal the value of instance');
+
+
+===== test/built-ins/Array/prototype/concat/is-concat-spreadable-get-err.js =====
+SHA256 5586c2194babca1ca6539b414e379e19ceacca0155c3b300a56a1936007bdf9c
+// Copyright (C) 2015 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: Error thrown when accessing `Symbol.isConcatSpreadable` property
+info: |
+    1. Let O be ToObject(this value).
+    2. ReturnIfAbrupt(O).
+    3. Let A be ArraySpeciesCreate(O, 0).
+    4. ReturnIfAbrupt(A).
+    5. Let n be 0.
+    6. Let items be a List whose first element is O and whose subsequent
+       elements are, in left to right order, the arguments that were passed to
+       this function invocation.
+    7. Repeat, while items is not empty
+      a. Remove the first element from items and let E be the value of the element.
+      b. Let spreadable be IsConcatSpreadable(E).
+      c. ReturnIfAbrupt(spreadable).
+
+    ES6 22.1.3.1.1: Runtime Semantics: IsConcatSpreadable ( O )
+
+    1. If Type(O) is not Object, return false.
+    2. Let spreadable be Get(O, @@isConcatSpreadable).
+    3. ReturnIfAbrupt(spreadable).
+features: [Symbol.isConcatSpreadable]
+---*/
+
+var o = {};
+
+Object.defineProperty(o, Symbol.isConcatSpreadable, {
+  get: function() {
+    throw new Test262Error();
+  }
+});
+
+assert.throws(Test262Error, function() {
+  Array.prototype.concat.call(o);
+}, 'Array.prototype.concat.call(o) throws a Test262Error exception');
+
+
+===== test/built-ins/Array/prototype/concat/is-concat-spreadable-get-order.js =====
+SHA256 cbf528985b73bcbc3f161b057bc89307492e3679e8b186e5a329511e9e1cc124
+// Copyright (C) 2020 Alexey Shvayka. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  Symbol.isConcatSpreadable should be looked up once for `this value` and
+  once for each argument, after ArraySpeciesCreate routine.
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  1. Let O be ? ToObject(this value).
+  2. Let A be ? ArraySpeciesCreate(O, 0).
+  [...]
+  5. Repeat, while items is not empty
+    a. Remove the first element from items and let E be the value of the element.
+    b. Let spreadable be ? IsConcatSpreadable(E).
+    [...]
+
+  ArraySpeciesCreate ( originalArray, length )
+
+  [...]
+  5. Let C be ? Get(originalArray, "constructor").
+  [...]
+
+  Runtime Semantics: IsConcatSpreadable ( O )
+
+  1. If Type(O) is not Object, return false.
+  2. Let spreadable be ? Get(O, @@isConcatSpreadable).
+  [...]
+includes: [compareArray.js]
+features: [Symbol.isConcatSpreadable]
+---*/
+
+var calls = [];
+var descConstructor = {
+  get: function() {
+    calls.push("constructor");
+    return Array;
+  },
+  configurable: true,
+};
+var descSpreadable = {
+  get: function() {
+    calls.push("isConcatSpreadable");
+  },
+  configurable: true,
+};
+
+var arr1 = [];
+Object.defineProperty(arr1, "constructor", descConstructor);
+Object.defineProperty(arr1, Symbol.isConcatSpreadable, descSpreadable);
+
+assert.compareArray(arr1.concat(1), [1], 'arr1.concat(1) must return [1]');
+assert.compareArray(
+  calls,
+  ["constructor", "isConcatSpreadable"],
+  'The value of calls is expected to be ["constructor", "isConcatSpreadable"]'
+);
+
+calls = [];
+
+var arr2 = [];
+var arg = {};
+Object.defineProperty(arr2, "constructor", descConstructor);
+Object.defineProperty(arg, Symbol.isConcatSpreadable, descSpreadable);
+
+assert.compareArray(arr2.concat(arg), [arg], 'arr2.concat({}) must return [arg]');
+assert.compareArray(
+  calls,
+  ["constructor", "isConcatSpreadable"],
+  'The value of calls is expected to be ["constructor", "isConcatSpreadable"]'
+);
+
+
+===== test/built-ins/Array/prototype/concat/is-concat-spreadable-is-array-proxy-revoked.js =====
+SHA256 ad4e8732d06c13449aa55c18d7f8013ffbac967fe69230274858176f8a4616b9
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-isconcatspreadable
+description: Revoked proxy value produces a TypeError when supplied to IsArray
+info: |
+  [...]
+  5. Repeat, while items is not empty
+     a. Remove the first element from items and let E be the value of the
+        element.
+     b. Let spreadable be ? IsConcatSpreadable(E).
+     c. If spreadable is true, then
+        [...]
+     e. Else E is added as a single item rather than spread,
+        [...]
+
+  ES6 22.1.3.1.1: Runtime Semantics: IsConcatSpreadable ( O )
+
+  1. If Type(O) is not Object, return false.
+  2. Let spreadable be ? Get(O, @@isConcatSpreadable).
+  3. If spreadable is not undefined, return ToBoolean(spreadable).
+  4. Return ? IsArray(O).
+
+  7.2.2 IsArray
+
+  [...]
+  3. If argument is a Proxy exotic object, then
+     a. If the value of the [[ProxyHandler]] internal slot of argument is null,
+        throw a TypeError exception.
+     b. Let target be the value of the [[ProxyTarget]] internal slot of
+        argument.
+     c. Return ? IsArray(target).
+features: [Proxy, Symbol.isConcatSpreadable]
+---*/
+
+var target = [];
+var handle = Proxy.revocable(target, {
+  get: function(_, key) {
+    // Defer proxy revocation until after property access to ensure that the
+    // expected TypeError originates from the IsArray operation.
+    if (key === Symbol.isConcatSpreadable) {
+      handle.revoke();
+    }
+    return target[key];
+  }
+});
+
+assert.throws(TypeError, function() {
+  [].concat(handle.proxy);
+}, '[].concat(handle.proxy) throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/is-concat-spreadable-proxy-revoked.js =====
+SHA256 905ad0a658ef9e6ca518e94b13bf6887939fac838d6f38a2c5ea3f2a657b38f5
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-isconcatspreadable
+description: >
+  Revoked proxy value produces a TypeError during access of
+  `Symbol.isConcatSpreadable` property
+info: |
+  [...]
+  5. Repeat, while items is not empty
+     a. Remove the first element from items and let E be the value of the
+        element.
+     b. Let spreadable be ? IsConcatSpreadable(E).
+     c. If spreadable is true, then
+        [...]
+     e. Else E is added as a single item rather than spread,
+        [...]
+
+  ES6 22.1.3.1.1: Runtime Semantics: IsConcatSpreadable ( O )
+
+  1. If Type(O) is not Object, return false.
+  2. Let spreadable be ? Get(O, @@isConcatSpreadable).
+
+  7.3.1 Get
+
+  [...]
+  3. Return ? O.[[Get]](P, O).
+
+  9.5.8 [[Get]]
+
+  [...]
+  2. Let handler be O.[[ProxyHandler]].
+  3. If handler is null, throw a TypeError exception.
+features: [Proxy]
+---*/
+
+var handle = Proxy.revocable([], {});
+
+handle.revoke();
+
+assert.throws(TypeError, function() {
+  [].concat(handle.proxy);
+}, '[].concat(handle.proxy) throws a TypeError exception');
+
+
+===== test/built-ins/Array/prototype/concat/is-concat-spreadable-proxy.js =====
+SHA256 964a8b6bbf0eaa7617cd0b16c2bade8cfe45f71572ba94f2caeaf1cbf1f15d0b
+// Copyright (C) 2016 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-isconcatspreadable
+description: >
+  Proxies who final targets are arrays are considered spreadable
+info: |
+  [...]
+  5. Repeat, while items is not empty
+     a. Remove the first element from items and let E be the value of the
+        element.
+     b. Let spreadable be ? IsConcatSpreadable(E).
+     c. If spreadable is true, then
+        [...]
+     e. Else E is added as a single item rather than spread,
+        [...]
+
+  ES6 22.1.3.1.1: Runtime Semantics: IsConcatSpreadable ( O )
+
+  1. If Type(O) is not Object, return false.
+  2. Let spreadable be ? Get(O, @@isConcatSpreadable).
+  3. If spreadable is not undefined, return ToBoolean(spreadable).
+  4. Return ? IsArray(O).
+
+  7.2.2 IsArray
+
+  [...]
+  3. If argument is a Proxy exotic object, then
+     a. If the value of the [[ProxyHandler]] internal slot of argument is null,
+        throw a TypeError exception.
+     b. Let target be the value of the [[ProxyTarget]] internal slot of
+        argument.
+     c. Return ? IsArray(target).
+features: [Proxy, Symbol.isConcatSpreadable]
+---*/
+
+var arrayProxy = new Proxy([], {});
+var arrayProxyProxy = new Proxy(arrayProxy, {});
+var spreadable = {};
+spreadable[Symbol.isConcatSpreadable] = true;
+var spreadableProxy = new Proxy(spreadable, {});
+
+assert.sameValue([].concat(arrayProxy).length, 0, 'The value of [].concat(arrayProxy).length is expected to be 0');
+assert.sameValue(
+  [].concat(arrayProxyProxy).length, 0, 'The value of [].concat(arrayProxyProxy).length is expected to be 0'
+);
+assert.sameValue(
+  [].concat(spreadableProxy).length,
+  0,
+  'The value of [].concat(spreadableProxy).length is expected to be 0'
+);
+
+
+===== test/built-ins/Array/prototype/concat/is-concat-spreadable-val-falsey.js =====
+SHA256 00ce9cf7ab62cc7c9827855d2457e826dd30d42194f05cf99059a47329f8df0c
+// Copyright (C) 2015 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: >
+    The `Symbol.isConcatSpreadable` property is defined and coerces to `false`
+info: |
+    1. Let O be ToObject(this value).
+    2. ReturnIfAbrupt(O).
+    3. Let A be ArraySpeciesCreate(O, 0).
+    4. ReturnIfAbrupt(A).
+    5. Let n be 0.
+    6. Let items be a List whose first element is O and whose subsequent
+       elements are, in left to right order, the arguments that were passed to
+       this function invocation.
+    7. Repeat, while items is not empty
+      a. Remove the first element from items and let E be the value of the element.
+      b. Let spreadable be IsConcatSpreadable(E).
+      c. ReturnIfAbrupt(spreadable).
+      d. If spreadable is true, then
+         [...]
+      e. Else E is added as a single item rather than spread,
+         [...]
+
+    ES6 22.1.3.1.1: Runtime Semantics: IsConcatSpreadable ( O )
+
+    1. If Type(O) is not Object, return false.
+    2. Let spreadable be Get(O, @@isConcatSpreadable).
+    3. ReturnIfAbrupt(spreadable).
+    4. If spreadable is not undefined, return ToBoolean(spreadable).
+features: [Symbol.isConcatSpreadable]
+---*/
+
+var item = [1, 2];
+var result;
+
+item[Symbol.isConcatSpreadable] = null;
+result = [].concat(item);
+assert.sameValue(result.length, 1, 'The value of result.length is expected to be 1');
+assert.sameValue(result[0], item, 'The value of result[0] is expected to equal the value of item');
+
+item[Symbol.isConcatSpreadable] = false;
+result = [].concat(item);
+assert.sameValue(result.length, 1, 'The value of result.length is expected to be 1');
+assert.sameValue(result[0], item, 'The value of result[0] is expected to equal the value of item');
+
+item[Symbol.isConcatSpreadable] = 0;
+result = [].concat(item);
+assert.sameValue(result.length, 1, 'The value of result.length is expected to be 1');
+assert.sameValue(result[0], item, 'The value of result[0] is expected to equal the value of item');
+
+item[Symbol.isConcatSpreadable] = NaN;
+result = [].concat(item);
+assert.sameValue(result.length, 1, 'The value of result.length is expected to be 1');
+assert.sameValue(result[0], item, 'The value of result[0] is expected to equal the value of item');
+
+
+===== test/built-ins/Array/prototype/concat/is-concat-spreadable-val-truthy.js =====
+SHA256 f5556c7dd1d1dc54912f8442d9760d7cd6b8551febe287e651f9379e414e9792
+// Copyright (C) 2015 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: >
+    The `Symbol.isConcatSpreadable` property is defined and coerces to `true`
+info: |
+    1. Let O be ToObject(this value).
+    2. ReturnIfAbrupt(O).
+    3. Let A be ArraySpeciesCreate(O, 0).
+    4. ReturnIfAbrupt(A).
+    5. Let n be 0.
+    6. Let items be a List whose first element is O and whose subsequent
+       elements are, in left to right order, the arguments that were passed to
+       this function invocation.
+    7. Repeat, while items is not empty
+      a. Remove the first element from items and let E be the value of the element.
+      b. Let spreadable be IsConcatSpreadable(E).
+      c. ReturnIfAbrupt(spreadable).
+      d. If spreadable is true, then
+         [...]
+
+    ES6 22.1.3.1.1: Runtime Semantics: IsConcatSpreadable ( O )
+
+    1. If Type(O) is not Object, return false.
+    2. Let spreadable be Get(O, @@isConcatSpreadable).
+    3. ReturnIfAbrupt(spreadable).
+    4. If spreadable is not undefined, return ToBoolean(spreadable).
+features: [Symbol, Symbol.isConcatSpreadable]
+---*/
+
+var item = {};
+var result;
+
+item[Symbol.isConcatSpreadable] = true;
+result = [].concat(item);
+assert.sameValue(result.length, 0, 'The value of result.length is expected to be 0');
+
+item[Symbol.isConcatSpreadable] = 86;
+result = [].concat(item);
+assert.sameValue(result.length, 0, 'The value of result.length is expected to be 0');
+
+item[Symbol.isConcatSpreadable] = 'string';
+result = [].concat(item);
+assert.sameValue(result.length, 0, 'The value of result.length is expected to be 0');
+
+item[Symbol.isConcatSpreadable] = Symbol();
+result = [].concat(item);
+assert.sameValue(result.length, 0, 'The value of result.length is expected to be 0');
+
+item[Symbol.isConcatSpreadable] = {};
+result = [].concat(item);
+assert.sameValue(result.length, 0, 'The value of result.length is expected to be 0');
+
+
+===== test/built-ins/Array/prototype/concat/is-concat-spreadable-val-undefined.js =====
+SHA256 60bcc1b082d13bfa3bef7d2cf3fc9f4295fe0b596426918d04709e87c56f3b4b
+// Copyright (C) 2015 the V8 project authors. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+esid: sec-array.prototype.concat
+description: >
+    The `Symbol.isConcatSpreadable` property is defined as the value `undefined`
+info: |
+    1. Let O be ToObject(this value).
+    2. ReturnIfAbrupt(O).
+    3. Let A be ArraySpeciesCreate(O, 0).
+    4. ReturnIfAbrupt(A).
+    5. Let n be 0.
+    6. Let items be a List whose first element is O and whose subsequent
+       elements are, in left to right order, the arguments that were passed to
+       this function invocation.
+    7. Repeat, while items is not empty
+      a. Remove the first element from items and let E be the value of the element.
+      b. Let spreadable be IsConcatSpreadable(E).
+      c. ReturnIfAbrupt(spreadable).
+      d. If spreadable is true, then
+         [...]
+      e. Else E is added as a single item rather than spread,
+         [...]
+
+    ES6 22.1.3.1.1: Runtime Semantics: IsConcatSpreadable ( O )
+
+    1. If Type(O) is not Object, return false.
+    2. Let spreadable be Get(O, @@isConcatSpreadable).
+    3. ReturnIfAbrupt(spreadable).
+    4. If spreadable is not undefined, return ToBoolean(spreadable).
+    5. Return IsArray(O).
+features: [Symbol.isConcatSpreadable]
+---*/
+
+var item = [];
+var result;
+
+item[Symbol.isConcatSpreadable] = undefined;
+result = [].concat(item);
+
+assert.sameValue(result.length, 0, 'The value of result.length is expected to be 0');
+
+
+===== test/built-ins/Array/prototype/concat/length.js =====
+SHA256 e9fcd146ec2da3019f767c5b3b91fe9209b378f67fb9e596cc5847117f6a4a1e
+// Copyright (C) 2017 Leo Balter. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  The "length" property of Array.prototype.concat
+info: |
+  22.1.3.1 Array.prototype.concat ( ...arguments )
+
+  The length property of the concat method is 1.
+
+  17 ECMAScript Standard Built-in Objects
+
+  Every built-in function object, including constructors, has a length property
+  whose value is an integer. Unless otherwise specified, this value is equal to
+  the largest number of named arguments shown in the subclause headings for the
+  function description. Optional parameters (which are indicated with brackets:
+  [ ]) or rest parameters (which are shown using the form «...name») are not
+  included in the default argument count.
+
+  Unless otherwise specified, the length property of a built-in function object
+  has the attributes { [[Writable]]: false, [[Enumerable]]: false,
+    [[Configurable]]: true }.
+includes: [propertyHelper.js]
+---*/
+
+verifyProperty(Array.prototype.concat, "length", {
+  value: 1,
+  writable: false,
+  enumerable: false,
+  configurable: true
+});
+
+
+===== test/built-ins/Array/prototype/concat/name.js =====
+SHA256 3c1de42f98c5cf66644dbb870e08cf015b3cb65c0896484722b257c3f85ba3a2
+// Copyright (C) 2015 André Bargull. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  Array.prototype.concat.name is "concat".
+info: |
+  Array.prototype.concat ( ...arguments )
+
+  17 ECMAScript Standard Built-in Objects:
+    Every built-in Function object, including constructors, that is not
+    identified as an anonymous function has a name property whose value
+    is a String.
+
+    Unless otherwise specified, the name property of a built-in Function
+    object, if it exists, has the attributes { [[Writable]]: false,
+    [[Enumerable]]: false, [[Configurable]]: true }.
+includes: [propertyHelper.js]
+---*/
+
+verifyProperty(Array.prototype.concat, "name", {
+  value: "concat",
+  writable: false,
+  enumerable: false,
+  configurable: true
+});
+
+
+===== test/built-ins/Array/prototype/concat/not-a-constructor.js =====
+SHA256 dae2e0e21bece6139e339f45af12f8d6fdd5d607d5f1c2c0c26e643e4c739f62
+// Copyright (C) 2020 Rick Waldron. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-ecmascript-standard-built-in-objects
+description: >
+  Array.prototype.concat does not implement [[Construct]], is not new-able
+info: |
+  ECMAScript Function Objects
+
+  Built-in function objects that are not identified as constructors do not
+  implement the [[Construct]] internal method unless otherwise specified in
+  the description of a particular function.
+
+  sec-evaluatenew
+
+  ...
+  7. If IsConstructor(constructor) is false, throw a TypeError exception.
+  ...
+includes: [isConstructor.js]
+features: [Reflect.construct, arrow-function]
+---*/
+
+assert.sameValue(
+  isConstructor(Array.prototype.concat),
+  false,
+  'isConstructor(Array.prototype.concat) must return false'
+);
+
+assert.throws(TypeError, () => {
+  new Array.prototype.concat([]);
+}, 'new Array.prototype.concat([]) throws a TypeError exception');
+
+
+
+===== test/built-ins/Array/prototype/concat/prop-desc.js =====
+SHA256 aa3f4ade4ac202c1a998fda44fc1b31a18dac740f4057ec70a93829c04c12049
+// Copyright (C) 2017 Leo Balter. All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+
+/*---
+esid: sec-array.prototype.concat
+description: >
+  "concat" property of Array.prototype
+info: |
+  17 ECMAScript Standard Built-in Objects
+  
+  Every other data property described in clauses 18 through 26 and in Annex B.2
+  has the attributes { [[Writable]]: true, [[Enumerable]]: false,
+    [[Configurable]]: true } unless otherwise specified.
+includes: [propertyHelper.js]
+---*/
+
+assert.sameValue(typeof Array.prototype.concat, 'function', 'The value of `typeof Array.prototype.concat` is expected to be "function"');
+
+verifyProperty(Array.prototype, "concat", {
+  writable: true,
+  enumerable: false,
+  configurable: true
+});
+
