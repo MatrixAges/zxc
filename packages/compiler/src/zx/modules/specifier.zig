@@ -1,8 +1,27 @@
 const std = @import("std");
-
 pub const Kind = enum { file, package, zig, c, standard, legacy_library };
 
 pub fn classify(specifier: []const u8) error{InvalidSpecifier}!Kind {
+    if (@import("parser_options").generated_parser) {
+        var storage: [0]u8 = undefined;
+        var fixed = std.heap.FixedBufferAllocator.init(&storage);
+        var arena = std.heap.ArenaAllocator.init(fixed.allocator());
+
+        defer arena.deinit();
+
+        const result = @import("generated_specifier").execute(&arena, specifier) catch unreachable;
+
+        return switch (result) {
+            .File => .file,
+            .Package => .package,
+            .Zig => .zig,
+            .C => .c,
+            .Standard => .standard,
+            .LegacyLibrary => .legacy_library,
+            .Invalid => error.InvalidSpecifier,
+        };
+    }
+
     if (specifier.len == 0 or std.mem.indexOfAny(u8, specifier, "\\\x00\r\n\t ") != null) return error.InvalidSpecifier;
 
     if (std.mem.indexOfScalar(u8, specifier, ':')) |separator| {

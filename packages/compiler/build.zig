@@ -79,6 +79,7 @@ pub fn build(b: *std.Build) void {
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.call_rule, "bootstrap/call_rule.zig").step);
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.path_kind, "bootstrap/path_kind.zig").step);
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.file_kind, "bootstrap/file_kind.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.specifier, "bootstrap/specifier.zig").step);
 
     const type_generator = b.addExecutable(.{ .name = "standard-types", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_types.zig"),

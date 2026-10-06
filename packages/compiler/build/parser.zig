@@ -11,6 +11,7 @@ pub const Sources = struct {
     call_rule: std.Build.LazyPath,
     path_kind: std.Build.LazyPath,
     file_kind: std.Build.LazyPath,
+    specifier: std.Build.LazyPath,
 };
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
@@ -78,8 +79,9 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const call_rule = run.addOutputFileArg("call_rule.zig");
     const path_kind = run.addOutputFileArg("path_kind.zig");
     const file_kind = run.addOutputFileArg("file_kind.zig");
+    const specifier = run.addOutputFileArg("specifier.zig");
 
-    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind };
+    return .{ .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath) !void {
@@ -116,5 +118,6 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .program = b.createModule(.{ .root_source_file = source.program, .target = target, .optimize = optimize }),
         .expression = b.createModule(.{ .root_source_file = source.expression, .target = target, .optimize = optimize }),
         .xml = b.createModule(.{ .root_source_file = source.xml, .target = target, .optimize = optimize }),
+        .specifier = b.createModule(.{ .root_source_file = source.specifier, .target = target, .optimize = optimize }),
     };
 }

@@ -1,0 +1,78 @@
+import { Kind } from "./model"
+
+export type Input = u8[]
+
+export type Output = Kind
+
+export default function (in: Input): Output {
+  if (in.length == 0) {
+    return Kind.Invalid
+  }
+
+  const state = loop({ source: in, offset: 0, separator: in.length, valid: true }, {
+    while: value => value.valid && value.offset < value.source.length,
+    next: value => {
+      const byte = value.source[value.offset]
+
+      value.valid = byte != 0 && byte != 9 && byte != 10 && byte != 13 && byte != 32 && byte != 92
+
+      if (byte == 58) {
+        value.valid = value.separator == value.source.length && value.offset + 1 < value.source.length
+        value.separator = value.offset
+      }
+
+      value.offset += 1
+    }
+  })
+
+  if (!state.valid) {
+    return Kind.Invalid
+  }
+
+  if (state.separator < in.length) {
+    if (state.separator == 1 && in[0] == 99) {
+      return Kind.C
+    }
+
+    if (state.separator == 3) {
+      if (in[0] == 122 && in[1] == 105 && in[2] == 103) {
+        return Kind.Zig
+      }
+
+      if (in[0] == 115 && in[1] == 116 && in[2] == 100) {
+        return Kind.Standard
+      }
+
+      if (in[0] == 108 && in[1] == 105 && in[2] == 98) {
+        return Kind.LegacyLibrary
+      }
+    }
+
+    return Kind.Invalid
+  }
+
+  if (in.length >= 2 && (in[0] == 46 || in[0] == 64) && in[1] == 47) {
+    return Kind.File
+  }
+
+  if (in.length >= 3 && in[0] == 46 && in[1] == 46 && in[2] == 47) {
+    return Kind.File
+  }
+
+  const segments = loop({ source: in, offset: 0, start: 0, valid: true }, {
+    while: value => value.valid && value.offset <= value.source.length,
+    next: value => {
+      if (value.offset == value.source.length || value.source[value.offset] == 47) {
+        const length = value.offset - value.start
+
+        value.valid = length != 0 && !(length == 1 && value.source[value.start] == 46) &&
+          !(length == 2 && value.source[value.start] == 46 && value.source[value.start + 1] == 46)
+        value.start = value.offset + 1
+      }
+
+      value.offset += 1
+    }
+  })
+
+  return segments.valid ? Kind.Package : Kind.Invalid
+}
