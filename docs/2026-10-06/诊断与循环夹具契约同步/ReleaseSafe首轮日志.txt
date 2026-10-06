@@ -1,0 +1,474 @@
+✔ semantic lint / invalid options / lint main.zx --semantic --semantic (11.099215ms)
+✔ semantic lint / invalid options / lint main.zx --project pkg.yaml (4.136459ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --kind manifest (3.861161ms)
+✔ semantic lint / invalid options / fmt main.zx --semantic (3.959716ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --out output (3.561248ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29.775053
+✖ semantic lint / valid main.zx ignores unreachable invalid source (12.409578ms)
+✖ semantic lint / valid pkg.yaml ignores unreachable invalid source (5.632467ms)
+✖ semantic lint / type failure and selection / nested/increment.zx (11.70241ms)
+✖ semantic lint / type failure and selection / extra.zx (8.746839ms)
+✖ semantic lint / entry fallback (5.029834ms)
+✔ semantic lint / no public modules (5.481703ms)
+✖ semantic lint / missing import (5.06789ms)
+✖ semantic lint / reachable formatting (5.015409ms)
+✖ semantic lint / import cycle (4.995037ms)
+✖ semantic lint / explicit project path / pkg.yaml (4.52813ms)
+✖ semantic lint / explicit project path / ./pkg.yaml (4.20862ms)
+✖ semantic lint / explicit project path / nested/../pkg.yaml (4.216257ms)
+✖ semantic lint / explicit project path / absolute (4.312477ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 1
+ℹ fail 12
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85.269554
+
+✖ failing tests:
+
+test at tests/semantic_lint/project_test.ts:32:2
+✖ semantic lint / valid main.zx ignores unreachable invalid source (12.409578ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint n2Nn68/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:37:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:32:2
+✖ semantic lint / valid pkg.yaml ignores unreachable invalid source (5.632467ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint RyZsHA/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:37:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:46:2
+✖ semantic lint / type failure and selection / nested/increment.zx (11.70241ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /type|Type/. Input:
+  
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint gaMi3S/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden\n'
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:58:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint gaMi3S/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden\n',
+    expected: /type|Type/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:46:2
+✖ semantic lint / type failure and selection / extra.zx (8.746839ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint FoKIF7/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:54:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:70:2
+✖ semantic lint / entry fallback (5.029834ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint mJFrFe/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:75:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:92:2
+✖ semantic lint / missing import (5.06789ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /FileNotFound|not found|missing/i. Input:
+  
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint tjLv4z/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden\n'
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:103:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint tjLv4z/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden\n',
+    expected: /FileNotFound|not found|missing/i,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:92:2
+✖ semantic lint / reachable formatting (5.015409ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /format|blank/i. Input:
+  
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint kvUqft/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden\n'
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:103:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint kvUqft/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden\n',
+    expected: /format|blank/i,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:92:2
+✖ semantic lint / import cycle (4.995037ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /cycl/i. Input:
+  
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint HMAnDV/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden\n'
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:103:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint HMAnDV/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden\n',
+    expected: /cycl/i,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / pkg.yaml (4.52813ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint Xx73iR/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / ./pkg.yaml (4.20862ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 2qDGhs/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / nested/../pkg.yaml (4.216257ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint emyBNO/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / absolute (4.312477ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint VBGvB7/main.zx:1:1: module: project imports must omit the .zx extension; runtime and RX imports are forbidden
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/release-safe-regression/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+test-semantic-lint
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/semantic_lint/project_test.ts ./.zig-cache/o/ca04a89f8950e538d30c5409c13b4e86/zxc
+
+✔ semantic lint / RX valid / main.gateway.rx (13.376768ms)
+✔ semantic lint / RX valid / empty.gateway.rx (5.553012ms)
+✔ semantic lint / RX valid / state.store.rx (5.126978ms)
+✔ semantic lint / RX valid / read.rx (5.452658ms)
+✔ semantic lint / RX valid / pkg.yaml (5.756406ms)
+✔ semantic lint / Store initial type / state.store.rx (8.147534ms)
+✔ semantic lint / Store initial type / read.rx (8.802921ms)
+✔ semantic lint / Store initial type / main.gateway.rx (8.680585ms)
+✔ semantic lint / Store initial type / pkg.yaml (8.784367ms)
+✔ semantic lint / Gateway rejects missing service (4.778937ms)
+✔ semantic lint / Gateway rejects duplicate route (4.503129ms)
+✔ semantic lint / Gateway rejects service type (5.526602ms)
+✔ semantic lint / reachable Store formatting / state.store.rx (4.366485ms)
+✔ semantic lint / reachable Store formatting / read.rx (5.343892ms)
+✔ semantic lint / reachable Store formatting / main.gateway.rx (5.489752ms)
+✔ semantic lint / reachable Store formatting / pkg.yaml (5.620895ms)
+✔ semantic lint / dedicated manifest entry / state.store.rx (4.705058ms)
+✔ semantic lint / dedicated manifest entry / empty.gateway.rx (4.320901ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 118.246021
+✔ workspace lint / declared scope / explicit semantic false (21.419697ms)
+✔ workspace lint / declared scope / explicit semantic true (8.472811ms)
+✔ workspace lint / independent member errors accumulate (8.181593ms)
+✔ workspace lint / rejects duplicate package name (6.055031ms)
+✔ workspace lint / rejects missing workspace dependency (6.07836ms)
+✔ workspace lint / rejects dependency cycle (6.24408ms)
+✔ workspace lint / rejects missing entry (8.001774ms)
+✔ workspace lint / rejects uninstalled external (6.215201ms)
+✔ workspace lint / rejects organization formatting (8.098653ms)
+✔ workspace lint / root manifest directory symlink (25.474303ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --workspace (6.048299ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --project pkg.yaml (5.880902ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --kind manifest (5.629909ms)
+✔ workspace lint / invalid options / fmt pkg.yaml --workspace (5.598017ms)
+✔ workspace lint / source input rejected (5.556655ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 136.855251
+✔ compiled semantic lint / no original sources / lint main.zx --semantic (12.153887ms)
+✔ compiled semantic lint / no original sources / lint main.rx --semantic (6.599171ms)
+✔ compiled semantic lint / no original sources / lint pkg.yaml --semantic (5.106908ms)
+✔ compiled semantic lint / no original sources / lint pkgs/bundle/pkg.yaml --semantic (5.054969ms)
+✔ compiled semantic lint / no original sources / lint pkg.yaml --workspace (6.210959ms)
+✔ compiled semantic lint / dependency input type / main.zx (5.473102ms)
+✔ compiled semantic lint / dependency input type / pkg.yaml (5.301526ms)
+✔ compiled semantic lint / damaged digest / main.zx (5.225228ms)
+✔ compiled semantic lint / damaged digest / pkgs/bundle/pkg.yaml (5.266196ms)
+✔ compiled semantic lint / damaged digest / workspace (5.9322ms)
+✔ compiled semantic lint / missing public module / main.zx (9.797279ms)
+✔ compiled semantic lint / missing public module / pkgs/bundle/pkg.yaml (5.737313ms)
+✔ compiled semantic lint / missing public module / workspace (6.095861ms)
+✔ compiled semantic lint / explicit source has independent status / true (9.708435ms)
+✔ compiled semantic lint / explicit source has independent status / false (9.022409ms)
+✔ compiled semantic lint / explicit source does not consume its package archive (9.582951ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.350321
+✔ public verification / all public modules proved and hidden invalid source ignored (53.266245ms)
+✔ public verification / same source aliases have independent proof files (49.081054ms)
+✔ public verification / type only public module does not invoke solver (4.861188ms)
+✔ public verification / unreferenced public syntax failure prevents partial proof (4.509715ms)
+✔ public verification / missing public source prevents partial proof (4.33105ms)
+✔ public verification / RX and ZX public proofs share collection (48.897182ms)
+✔ public verification / counterexample does not skip other public entry false (66.00421ms)
+✔ public verification / counterexample does not skip other public entry true (66.860869ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 301.654452
+✔ ZX and RX reject removed APIs without producing applications or modifying input files (19.573111ms)
+✔ ordinary imported names loop and iterate remain callable and independent void calls still execute (23408.291814ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23431.414996
+✔ loop CLI / precondition evaluation order (7764.206491ms)
+✔ loop CLI / postcondition evaluation order (7752.231281ms)
+✔ loop CLI / index failure precedes right hand side effects (7822.570347ms)
+✔ loop RX / explicit ZX calls preserve initial values (7814.202175ms)
+✔ loop import shadows the built in without changing its calling convention (7675.589217ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38832.524895
+Build Summary: 41/43 steps succeeded (1 failed); 4/4 tests passed
+test-loop-policy success
++- run test 4 pass (4 total) 8ms MaxRSS:2M
+|  +- compile test safe native success 25s MaxRSS:887M
+|     +- WriteFile interfaces/0.d.zx cached
+|     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     +- compile exe standard-catalog fast native cached 42ms MaxRSS:21M
+|     |     +- WriteFile catalog.json cached
+|     +- options cached
+|     +- run exe generate-parser (parser.zig) cached
+|     |  +- compile exe generate-parser safe native cached 45ms MaxRSS:21M
+|     |     +- options cached
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 44ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer safe native cached 43ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
+|           |  +- run exe standard-catalog (catalog.zig) cached
+|           |     +- compile exe standard-catalog fast native cached 44ms MaxRSS:21M
+|           |     +- WriteFile catalog.json cached
+|           +- options cached
++- run node success 23s
+   +- compile exe zxc safe native cached 55ms MaxRSS:21M
+      +- WriteFile cached
+      +- compile lib yaml safe native cached 39ms MaxRSS:20M
+      +- compile lib yaml safe native (reused)
+      +- translate-c cached 41ms MaxRSS:20M
+      +- options cached
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig fast native cached 46ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- options cached
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+test-iterate-cli success
++- run node success 38s
+   +- compile exe zxc safe native (+15 more reused dependencies)
+test-public-verification success
++- run node success 376ms
+   +- compile exe zxc safe native (+15 more reused dependencies)
+test-semantic-lint transitive failure
++- run node failure
+|  +- compile exe zxc safe native (+15 more reused dependencies)
++- run node success 91ms
+|  +- compile exe zxc safe native (+15 more reused dependencies)
++- run node success 181ms
+|  +- compile exe zxc safe native (+15 more reused dependencies)
++- run node success 198ms
+|  +- compile exe zxc safe native (+15 more reused dependencies)
++- run node success 5s
+   +- compile exe zxc safe native (+15 more reused dependencies)
+

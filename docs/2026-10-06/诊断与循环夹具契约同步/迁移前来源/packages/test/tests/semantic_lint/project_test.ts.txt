@@ -10,7 +10,7 @@ export default function (in: Input): Output {
   return in
 }
 `
-const main = `import increment from "./nested/increment"
+const main = `import increment from "./nested/increment.zx"
 
 ${identity.replace('return in', 'return increment(in)')}`
 const manifest = `name: semantic-test
@@ -85,7 +85,7 @@ for (const entry of [
 	{ name: 'reachable formatting', dependency: identity.replace('\n\n', '\n'), diagnostic: /format|blank/i },
 	{
 		name: 'import cycle',
-		dependency: `import main from "../main"\n\n${identity.replace('return in', 'return main(in)')}`,
+		dependency: `import main from "../main.zx"\n\n${identity.replace('return in', 'return main(in)')}`,
 		diagnostic: /cycl/i
 	}
 ]) {

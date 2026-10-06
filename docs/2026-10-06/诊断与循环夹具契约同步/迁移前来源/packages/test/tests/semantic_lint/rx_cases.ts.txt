@@ -11,9 +11,9 @@ const gateway = `<Gateway name="state" protocol="http">
 const service = `<Module>
   <Store from="state" as="reader" />
 
-  <Call fn="read" in={store.reader.counter.value} />
+  <Call fn="read" in={store.reader.counter.value} name="result" />
 
-  <Return value={$ctx.read} />
+  <Return value={ctx.result} />
 </Module>
 `
 const identity = `export type Input = u64

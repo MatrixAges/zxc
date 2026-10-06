@@ -141,7 +141,8 @@ test('loop RX / explicit ZX calls preserve initial values', () => {
 	const current = fixture({
 		'calculate.zx':
 			'export type Input = { values: i64[], count: u64 }\n\nexport type State = { values: i64[], count: u64, index: u64 }\n\nexport type Output = { original: i64[], result: State }\n\nexport default function (in: Input): Output {\n  const initial: State = { values: in.values, count: in.count, index: 0 }\n\n  const result = loop(initial, {\n    while: state => state.index < state.count,\n    next: state => {\n      state.values[state.index] += 1\n      state.index += 1\n    }\n  })\n\n  return { original: in.values, result: result }\n}\n',
-		'main.rx': '<Module>\n  <Call fn="calculate" in={$in} />\n  <Return value={$ctx.calculate} />\n</Module>\n'
+		'main.rx':
+			"<Module>\n  <Call fn=\"calculate\" in={$in} name=\"result\" />\n  <Return value={ctx.result} />\n</Module>\n"
 	})
 
 	try {
