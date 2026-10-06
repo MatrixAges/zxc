@@ -1,0 +1,621 @@
+const check = @import("support").check;
+
+test "standard/querystring/escape/codepoint_0" {
+    try check(@import("program"), "\x00", .{ .value = "%00" });
+}
+
+test "standard/querystring/escape/codepoint_1" {
+    try check(@import("program"), "\x01", .{ .value = "%01" });
+}
+
+test "standard/querystring/escape/codepoint_2" {
+    try check(@import("program"), "\x02", .{ .value = "%02" });
+}
+
+test "standard/querystring/escape/codepoint_3" {
+    try check(@import("program"), "\x03", .{ .value = "%03" });
+}
+
+test "standard/querystring/escape/codepoint_4" {
+    try check(@import("program"), "\x04", .{ .value = "%04" });
+}
+
+test "standard/querystring/escape/codepoint_5" {
+    try check(@import("program"), "\x05", .{ .value = "%05" });
+}
+
+test "standard/querystring/escape/codepoint_6" {
+    try check(@import("program"), "\x06", .{ .value = "%06" });
+}
+
+test "standard/querystring/escape/codepoint_7" {
+    try check(@import("program"), "\x07", .{ .value = "%07" });
+}
+
+test "standard/querystring/escape/codepoint_8" {
+    try check(@import("program"), "\x08", .{ .value = "%08" });
+}
+
+test "standard/querystring/escape/codepoint_9" {
+    try check(@import("program"), "\t", .{ .value = "%09" });
+}
+
+test "standard/querystring/escape/codepoint_a" {
+    try check(@import("program"), "\n", .{ .value = "%0A" });
+}
+
+test "standard/querystring/escape/codepoint_b" {
+    try check(@import("program"), "\x0b", .{ .value = "%0B" });
+}
+
+test "standard/querystring/escape/codepoint_c" {
+    try check(@import("program"), "\x0c", .{ .value = "%0C" });
+}
+
+test "standard/querystring/escape/codepoint_d" {
+    try check(@import("program"), "\r", .{ .value = "%0D" });
+}
+
+test "standard/querystring/escape/codepoint_e" {
+    try check(@import("program"), "\x0e", .{ .value = "%0E" });
+}
+
+test "standard/querystring/escape/codepoint_f" {
+    try check(@import("program"), "\x0f", .{ .value = "%0F" });
+}
+
+test "standard/querystring/escape/codepoint_10" {
+    try check(@import("program"), "\x10", .{ .value = "%10" });
+}
+
+test "standard/querystring/escape/codepoint_11" {
+    try check(@import("program"), "\x11", .{ .value = "%11" });
+}
+
+test "standard/querystring/escape/codepoint_12" {
+    try check(@import("program"), "\x12", .{ .value = "%12" });
+}
+
+test "standard/querystring/escape/codepoint_13" {
+    try check(@import("program"), "\x13", .{ .value = "%13" });
+}
+
+test "standard/querystring/escape/codepoint_14" {
+    try check(@import("program"), "\x14", .{ .value = "%14" });
+}
+
+test "standard/querystring/escape/codepoint_15" {
+    try check(@import("program"), "\x15", .{ .value = "%15" });
+}
+
+test "standard/querystring/escape/codepoint_16" {
+    try check(@import("program"), "\x16", .{ .value = "%16" });
+}
+
+test "standard/querystring/escape/codepoint_17" {
+    try check(@import("program"), "\x17", .{ .value = "%17" });
+}
+
+test "standard/querystring/escape/codepoint_18" {
+    try check(@import("program"), "\x18", .{ .value = "%18" });
+}
+
+test "standard/querystring/escape/codepoint_19" {
+    try check(@import("program"), "\x19", .{ .value = "%19" });
+}
+
+test "standard/querystring/escape/codepoint_1a" {
+    try check(@import("program"), "\x1a", .{ .value = "%1A" });
+}
+
+test "standard/querystring/escape/codepoint_1b" {
+    try check(@import("program"), "\x1b", .{ .value = "%1B" });
+}
+
+test "standard/querystring/escape/codepoint_1c" {
+    try check(@import("program"), "\x1c", .{ .value = "%1C" });
+}
+
+test "standard/querystring/escape/codepoint_1d" {
+    try check(@import("program"), "\x1d", .{ .value = "%1D" });
+}
+
+test "standard/querystring/escape/codepoint_1e" {
+    try check(@import("program"), "\x1e", .{ .value = "%1E" });
+}
+
+test "standard/querystring/escape/codepoint_1f" {
+    try check(@import("program"), "\x1f", .{ .value = "%1F" });
+}
+
+test "standard/querystring/escape/codepoint_20" {
+    try check(@import("program"), " ", .{ .value = "%20" });
+}
+
+test "standard/querystring/escape/codepoint_21" {
+    try check(@import("program"), "!", .{ .value = "!" });
+}
+
+test "standard/querystring/escape/codepoint_22" {
+    try check(@import("program"), "\"", .{ .value = "%22" });
+}
+
+test "standard/querystring/escape/codepoint_23" {
+    try check(@import("program"), "#", .{ .value = "%23" });
+}
+
+test "standard/querystring/escape/codepoint_24" {
+    try check(@import("program"), "$", .{ .value = "%24" });
+}
+
+test "standard/querystring/escape/codepoint_25" {
+    try check(@import("program"), "%", .{ .value = "%25" });
+}
+
+test "standard/querystring/escape/codepoint_26" {
+    try check(@import("program"), "&", .{ .value = "%26" });
+}
+
+test "standard/querystring/escape/codepoint_27" {
+    try check(@import("program"), "'", .{ .value = "'" });
+}
+
+test "standard/querystring/escape/codepoint_28" {
+    try check(@import("program"), "(", .{ .value = "(" });
+}
+
+test "standard/querystring/escape/codepoint_29" {
+    try check(@import("program"), ")", .{ .value = ")" });
+}
+
+test "standard/querystring/escape/codepoint_2a" {
+    try check(@import("program"), "*", .{ .value = "*" });
+}
+
+test "standard/querystring/escape/codepoint_2b" {
+    try check(@import("program"), "+", .{ .value = "%2B" });
+}
+
+test "standard/querystring/escape/codepoint_2c" {
+    try check(@import("program"), ",", .{ .value = "%2C" });
+}
+
+test "standard/querystring/escape/codepoint_2d" {
+    try check(@import("program"), "-", .{ .value = "-" });
+}
+
+test "standard/querystring/escape/codepoint_2e" {
+    try check(@import("program"), ".", .{ .value = "." });
+}
+
+test "standard/querystring/escape/codepoint_2f" {
+    try check(@import("program"), "/", .{ .value = "%2F" });
+}
+
+test "standard/querystring/escape/codepoint_30" {
+    try check(@import("program"), "0", .{ .value = "0" });
+}
+
+test "standard/querystring/escape/codepoint_31" {
+    try check(@import("program"), "1", .{ .value = "1" });
+}
+
+test "standard/querystring/escape/codepoint_32" {
+    try check(@import("program"), "2", .{ .value = "2" });
+}
+
+test "standard/querystring/escape/codepoint_33" {
+    try check(@import("program"), "3", .{ .value = "3" });
+}
+
+test "standard/querystring/escape/codepoint_34" {
+    try check(@import("program"), "4", .{ .value = "4" });
+}
+
+test "standard/querystring/escape/codepoint_35" {
+    try check(@import("program"), "5", .{ .value = "5" });
+}
+
+test "standard/querystring/escape/codepoint_36" {
+    try check(@import("program"), "6", .{ .value = "6" });
+}
+
+test "standard/querystring/escape/codepoint_37" {
+    try check(@import("program"), "7", .{ .value = "7" });
+}
+
+test "standard/querystring/escape/codepoint_38" {
+    try check(@import("program"), "8", .{ .value = "8" });
+}
+
+test "standard/querystring/escape/codepoint_39" {
+    try check(@import("program"), "9", .{ .value = "9" });
+}
+
+test "standard/querystring/escape/codepoint_3a" {
+    try check(@import("program"), ":", .{ .value = "%3A" });
+}
+
+test "standard/querystring/escape/codepoint_3b" {
+    try check(@import("program"), ";", .{ .value = "%3B" });
+}
+
+test "standard/querystring/escape/codepoint_3c" {
+    try check(@import("program"), "<", .{ .value = "%3C" });
+}
+
+test "standard/querystring/escape/codepoint_3d" {
+    try check(@import("program"), "=", .{ .value = "%3D" });
+}
+
+test "standard/querystring/escape/codepoint_3e" {
+    try check(@import("program"), ">", .{ .value = "%3E" });
+}
+
+test "standard/querystring/escape/codepoint_3f" {
+    try check(@import("program"), "?", .{ .value = "%3F" });
+}
+
+test "standard/querystring/escape/codepoint_40" {
+    try check(@import("program"), "@", .{ .value = "%40" });
+}
+
+test "standard/querystring/escape/codepoint_41" {
+    try check(@import("program"), "A", .{ .value = "A" });
+}
+
+test "standard/querystring/escape/codepoint_42" {
+    try check(@import("program"), "B", .{ .value = "B" });
+}
+
+test "standard/querystring/escape/codepoint_43" {
+    try check(@import("program"), "C", .{ .value = "C" });
+}
+
+test "standard/querystring/escape/codepoint_44" {
+    try check(@import("program"), "D", .{ .value = "D" });
+}
+
+test "standard/querystring/escape/codepoint_45" {
+    try check(@import("program"), "E", .{ .value = "E" });
+}
+
+test "standard/querystring/escape/codepoint_46" {
+    try check(@import("program"), "F", .{ .value = "F" });
+}
+
+test "standard/querystring/escape/codepoint_47" {
+    try check(@import("program"), "G", .{ .value = "G" });
+}
+
+test "standard/querystring/escape/codepoint_48" {
+    try check(@import("program"), "H", .{ .value = "H" });
+}
+
+test "standard/querystring/escape/codepoint_49" {
+    try check(@import("program"), "I", .{ .value = "I" });
+}
+
+test "standard/querystring/escape/codepoint_4a" {
+    try check(@import("program"), "J", .{ .value = "J" });
+}
+
+test "standard/querystring/escape/codepoint_4b" {
+    try check(@import("program"), "K", .{ .value = "K" });
+}
+
+test "standard/querystring/escape/codepoint_4c" {
+    try check(@import("program"), "L", .{ .value = "L" });
+}
+
+test "standard/querystring/escape/codepoint_4d" {
+    try check(@import("program"), "M", .{ .value = "M" });
+}
+
+test "standard/querystring/escape/codepoint_4e" {
+    try check(@import("program"), "N", .{ .value = "N" });
+}
+
+test "standard/querystring/escape/codepoint_4f" {
+    try check(@import("program"), "O", .{ .value = "O" });
+}
+
+test "standard/querystring/escape/codepoint_50" {
+    try check(@import("program"), "P", .{ .value = "P" });
+}
+
+test "standard/querystring/escape/codepoint_51" {
+    try check(@import("program"), "Q", .{ .value = "Q" });
+}
+
+test "standard/querystring/escape/codepoint_52" {
+    try check(@import("program"), "R", .{ .value = "R" });
+}
+
+test "standard/querystring/escape/codepoint_53" {
+    try check(@import("program"), "S", .{ .value = "S" });
+}
+
+test "standard/querystring/escape/codepoint_54" {
+    try check(@import("program"), "T", .{ .value = "T" });
+}
+
+test "standard/querystring/escape/codepoint_55" {
+    try check(@import("program"), "U", .{ .value = "U" });
+}
+
+test "standard/querystring/escape/codepoint_56" {
+    try check(@import("program"), "V", .{ .value = "V" });
+}
+
+test "standard/querystring/escape/codepoint_57" {
+    try check(@import("program"), "W", .{ .value = "W" });
+}
+
+test "standard/querystring/escape/codepoint_58" {
+    try check(@import("program"), "X", .{ .value = "X" });
+}
+
+test "standard/querystring/escape/codepoint_59" {
+    try check(@import("program"), "Y", .{ .value = "Y" });
+}
+
+test "standard/querystring/escape/codepoint_5a" {
+    try check(@import("program"), "Z", .{ .value = "Z" });
+}
+
+test "standard/querystring/escape/codepoint_5b" {
+    try check(@import("program"), "[", .{ .value = "%5B" });
+}
+
+test "standard/querystring/escape/codepoint_5c" {
+    try check(@import("program"), "\\", .{ .value = "%5C" });
+}
+
+test "standard/querystring/escape/codepoint_5d" {
+    try check(@import("program"), "]", .{ .value = "%5D" });
+}
+
+test "standard/querystring/escape/codepoint_5e" {
+    try check(@import("program"), "^", .{ .value = "%5E" });
+}
+
+test "standard/querystring/escape/codepoint_5f" {
+    try check(@import("program"), "_", .{ .value = "_" });
+}
+
+test "standard/querystring/escape/codepoint_60" {
+    try check(@import("program"), "`", .{ .value = "%60" });
+}
+
+test "standard/querystring/escape/codepoint_61" {
+    try check(@import("program"), "a", .{ .value = "a" });
+}
+
+test "standard/querystring/escape/codepoint_62" {
+    try check(@import("program"), "b", .{ .value = "b" });
+}
+
+test "standard/querystring/escape/codepoint_63" {
+    try check(@import("program"), "c", .{ .value = "c" });
+}
+
+test "standard/querystring/escape/codepoint_64" {
+    try check(@import("program"), "d", .{ .value = "d" });
+}
+
+test "standard/querystring/escape/codepoint_65" {
+    try check(@import("program"), "e", .{ .value = "e" });
+}
+
+test "standard/querystring/escape/codepoint_66" {
+    try check(@import("program"), "f", .{ .value = "f" });
+}
+
+test "standard/querystring/escape/codepoint_67" {
+    try check(@import("program"), "g", .{ .value = "g" });
+}
+
+test "standard/querystring/escape/codepoint_68" {
+    try check(@import("program"), "h", .{ .value = "h" });
+}
+
+test "standard/querystring/escape/codepoint_69" {
+    try check(@import("program"), "i", .{ .value = "i" });
+}
+
+test "standard/querystring/escape/codepoint_6a" {
+    try check(@import("program"), "j", .{ .value = "j" });
+}
+
+test "standard/querystring/escape/codepoint_6b" {
+    try check(@import("program"), "k", .{ .value = "k" });
+}
+
+test "standard/querystring/escape/codepoint_6c" {
+    try check(@import("program"), "l", .{ .value = "l" });
+}
+
+test "standard/querystring/escape/codepoint_6d" {
+    try check(@import("program"), "m", .{ .value = "m" });
+}
+
+test "standard/querystring/escape/codepoint_6e" {
+    try check(@import("program"), "n", .{ .value = "n" });
+}
+
+test "standard/querystring/escape/codepoint_6f" {
+    try check(@import("program"), "o", .{ .value = "o" });
+}
+
+test "standard/querystring/escape/codepoint_70" {
+    try check(@import("program"), "p", .{ .value = "p" });
+}
+
+test "standard/querystring/escape/codepoint_71" {
+    try check(@import("program"), "q", .{ .value = "q" });
+}
+
+test "standard/querystring/escape/codepoint_72" {
+    try check(@import("program"), "r", .{ .value = "r" });
+}
+
+test "standard/querystring/escape/codepoint_73" {
+    try check(@import("program"), "s", .{ .value = "s" });
+}
+
+test "standard/querystring/escape/codepoint_74" {
+    try check(@import("program"), "t", .{ .value = "t" });
+}
+
+test "standard/querystring/escape/codepoint_75" {
+    try check(@import("program"), "u", .{ .value = "u" });
+}
+
+test "standard/querystring/escape/codepoint_76" {
+    try check(@import("program"), "v", .{ .value = "v" });
+}
+
+test "standard/querystring/escape/codepoint_77" {
+    try check(@import("program"), "w", .{ .value = "w" });
+}
+
+test "standard/querystring/escape/codepoint_78" {
+    try check(@import("program"), "x", .{ .value = "x" });
+}
+
+test "standard/querystring/escape/codepoint_79" {
+    try check(@import("program"), "y", .{ .value = "y" });
+}
+
+test "standard/querystring/escape/codepoint_7a" {
+    try check(@import("program"), "z", .{ .value = "z" });
+}
+
+test "standard/querystring/escape/codepoint_7b" {
+    try check(@import("program"), "{", .{ .value = "%7B" });
+}
+
+test "standard/querystring/escape/codepoint_7c" {
+    try check(@import("program"), "|", .{ .value = "%7C" });
+}
+
+test "standard/querystring/escape/codepoint_7d" {
+    try check(@import("program"), "}", .{ .value = "%7D" });
+}
+
+test "standard/querystring/escape/codepoint_7e" {
+    try check(@import("program"), "~", .{ .value = "~" });
+}
+
+test "standard/querystring/escape/codepoint_7f" {
+    try check(@import("program"), "\x7f", .{ .value = "%7F" });
+}
+
+test "standard/querystring/escape/codepoint_80" {
+    try check(@import("program"), "\xc2\x80", .{ .value = "%C2%80" });
+}
+
+test "standard/querystring/escape/codepoint_7ff" {
+    try check(@import("program"), "\xdf\xbf", .{ .value = "%DF%BF" });
+}
+
+test "standard/querystring/escape/codepoint_800" {
+    try check(@import("program"), "\xe0\xa0\x80", .{ .value = "%E0%A0%80" });
+}
+
+test "standard/querystring/escape/codepoint_d7ff" {
+    try check(@import("program"), "\xed\x9f\xbf", .{ .value = "%ED%9F%BF" });
+}
+
+test "standard/querystring/escape/codepoint_e000" {
+    try check(@import("program"), "\xee\x80\x80", .{ .value = "%EE%80%80" });
+}
+
+test "standard/querystring/escape/codepoint_ffff" {
+    try check(@import("program"), "\xef\xbf\xbf", .{ .value = "%EF%BF%BF" });
+}
+
+test "standard/querystring/escape/codepoint_10000" {
+    try check(@import("program"), "\xf0\x90\x80\x80", .{ .value = "%F0%90%80%80" });
+}
+
+test "standard/querystring/escape/codepoint_10ffff" {
+    try check(@import("program"), "\xf4\x8f\xbf\xbf", .{ .value = "%F4%8F%BF%BF" });
+}
+
+test "standard/querystring/escape/empty" {
+    try check(@import("program"), "", .{ .value = "" });
+}
+
+test "standard/querystring/escape/combining" {
+    try check(@import("program"), "e\xcc\x81", .{ .value = "e%CC%81" });
+}
+
+test "standard/querystring/escape/unicode" {
+    try check(@import("program"), "\xe4\xb8\xad\xe6\x96\x87\xf0\x9f\x8c\xb1", .{ .value = "%E4%B8%AD%E6%96%87%F0%9F%8C%B1" });
+}
+
+test "standard/querystring/escape/literal_plus" {
+    try check(@import("program"), "+", .{ .value = "%2B" });
+}
+
+test "standard/querystring/escape/mixed" {
+    try check(@import("program"), "a +%&=\x00z", .{ .value = "a%20%2B%25%26%3D%00z" });
+}
+
+test "standard/querystring/escape/safe_punctuation" {
+    try check(@import("program"), "-_.!~*'()", .{ .value = "-_.!~*'()" });
+}
+
+test "standard/querystring/escape/uri_a4_t1_1" {
+    try check(@import("program"), "http://unipro.ru/0123456789", .{ .value = "http%3A%2F%2Funipro.ru%2F0123456789" });
+}
+
+test "standard/querystring/escape/uri_a4_t1_2" {
+    try check(@import("program"), "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ", .{ .value = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ" });
+}
+
+test "standard/querystring/escape/uri_a4_t1_3" {
+    try check(@import("program"), ";/?:@&=+$,", .{ .value = "%3B%2F%3F%3A%40%26%3D%2B%24%2C" });
+}
+
+test "standard/querystring/escape/uri_a4_t2_1" {
+    try check(@import("program"), "http://ru.wikipedia.org/wiki/\xd0\xae\xd0\xbd\xd0\xb8\xd0\xba\xd0\xbe\xd0\xb4", .{ .value = "http%3A%2F%2Fru.wikipedia.org%2Fwiki%2F%D0%AE%D0%BD%D0%B8%D0%BA%D0%BE%D0%B4" });
+}
+
+test "standard/querystring/escape/uri_a4_t2_2" {
+    try check(@import("program"), "http://ru.wikipedia.org/wiki/\xd0\xae\xd0\xbd\xd0\xb8\xd0\xba\xd0\xbe\xd0\xb4#\xd0\xa1\xd1\x81\xd1\x8b\xd0\xbb\xd0\xba\xd0\xb8", .{ .value = "http%3A%2F%2Fru.wikipedia.org%2Fwiki%2F%D0%AE%D0%BD%D0%B8%D0%BA%D0%BE%D0%B4%23%D0%A1%D1%81%D1%8B%D0%BB%D0%BA%D0%B8" });
+}
+
+test "standard/querystring/escape/uri_a4_t2_3" {
+    try check(@import("program"), "http://ru.wikipedia.org/wiki/\xd0\xae\xd0\xbd\xd0\xb8\xd0\xba\xd0\xbe\xd0\xb4#\xd0\x92\xd0\xb5\xd1\x80\xd1\x81\xd0\xb8\xd0\xb8 \xd0\xae\xd0\xbd\xd0\xb8\xd0\xba\xd0\xbe\xd0\xb4\xd0\xb0", .{ .value = "http%3A%2F%2Fru.wikipedia.org%2Fwiki%2F%D0%AE%D0%BD%D0%B8%D0%BA%D0%BE%D0%B4%23%D0%92%D0%B5%D1%80%D1%81%D0%B8%D0%B8%20%D0%AE%D0%BD%D0%B8%D0%BA%D0%BE%D0%B4%D0%B0" });
+}
+
+test "standard/querystring/escape/uri_a4_t3_1" {
+    try check(@import("program"), "http://unipro.ru/\nabout", .{ .value = "http%3A%2F%2Funipro.ru%2F%0Aabout" });
+}
+
+test "standard/querystring/escape/uri_a4_t3_2" {
+    try check(@import("program"), "http://unipro.ru/\x0babout", .{ .value = "http%3A%2F%2Funipro.ru%2F%0Babout" });
+}
+
+test "standard/querystring/escape/uri_a4_t3_3" {
+    try check(@import("program"), "http://unipro.ru/\x0cabout", .{ .value = "http%3A%2F%2Funipro.ru%2F%0Cabout" });
+}
+
+test "standard/querystring/escape/uri_a4_t3_4" {
+    try check(@import("program"), "http://unipro.ru/\rabout", .{ .value = "http%3A%2F%2Funipro.ru%2F%0Dabout" });
+}
+
+test "standard/querystring/escape/uri_a4_t4_2" {
+    try check(@import("program"), "http://unipro.ru", .{ .value = "http%3A%2F%2Funipro.ru" });
+}
+
+test "standard/querystring/escape/uri_a4_t4_3" {
+    try check(@import("program"), "http://www.google.ru/support/jobs/bin/static.py?page=why-ru.html&sid=liveandwork", .{ .value = "http%3A%2F%2Fwww.google.ru%2Fsupport%2Fjobs%2Fbin%2Fstatic.py%3Fpage%3Dwhy-ru.html%26sid%3Dliveandwork" });
+}
+
+test "standard/querystring/escape/uri_a4_t4_4" {
+    try check(@import("program"), "http://en.wikipedia.org/wiki/UTF-8#Description", .{ .value = "http%3A%2F%2Fen.wikipedia.org%2Fwiki%2FUTF-8%23Description" });
+}

@@ -1,0 +1,11 @@
+import collect from "./borrowed_objects/collect"
+
+import type { Job, Result } from "./borrowed_objects/types"
+
+export type Input = Job[]
+
+export type Output = Result[]
+
+export default function (in: Input): Output {
+    return in.map(job => collect(job))
+}

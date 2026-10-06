@@ -1,0 +1,14 @@
+import advance from "./native_scalar/loop"
+
+export type State = { index: u64, total: u64, last: u64, steps: u64[] }
+
+export type Input = { first: State, second: State }
+
+export type Output = { first: State, second: State }
+
+export default function (in: Input): Output {
+    const first = advance(in.first)
+    const second = advance(in.second)
+
+    return { first: first, second: second }
+}

@@ -1,0 +1,94 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = []const u64;
+
+pub const Output = []const u64;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_11, .@"1" = zx_shape_0, }, };
+
+pub const input_shape = zx_shape_11;
+
+pub const output_shape = zx_shape_11;
+
+fn function_0(allocator: ((std).mem).Allocator, in: []const u64) error{ OutOfMemory, Overflow, }![]const u64 {
+    @setRuntimeSafety(true);
+
+    return (block_4: {
+        const operand_1 = in;
+        const operand_2 = @as(u64, (in).len);
+        const operand_3 = (try (allocator).alloc(u64, (try ((std).math).add(usize, (operand_1).len, 1))));
+
+        @memcpy((operand_3)[0..(operand_1).len], operand_1);
+
+        (operand_3)[(operand_1).len] = operand_2;
+
+        break :block_4 @as((zx_abi).zx_type_12, .{ operand_3, {}, });
+    }).@"0";
+}
+
+fn function_1(allocator: ((std).mem).Allocator, in: []const u64) error{ OutOfMemory, Overflow, }![]const u64 {
+    @setRuntimeSafety(true);
+
+    const value_2: []const u64 = block_7: {
+        const operand_4 = in;
+        const operand_5 = (try (allocator).alloc(u64, (operand_4).len));
+
+        for (operand_4, 0..) |value_1, index_6| {
+            (operand_5)[index_6] = value_1;
+        }
+
+        break :block_7 operand_5;
+    };
+    const value_3: []const u64 = (try function_0(allocator, value_2));
+    const value_4: []const u64 = (try function_0(allocator, value_3));
+
+    return (block_3: {
+        const operand_1 = value_4;
+        const operand_2 = (try (allocator).alloc(u64, (operand_1).len));
+
+        @memcpy(operand_2, operand_1);
+
+        ((std).mem).reverse(u64, operand_2);
+
+        break :block_3 @as((zx_abi).zx_type_12, .{ operand_2, {}, });
+    }).@"0";
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: []const u64) error{ OutOfMemory, Overflow, }![]const u64 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return (try function_1(allocator, in));
+}
+

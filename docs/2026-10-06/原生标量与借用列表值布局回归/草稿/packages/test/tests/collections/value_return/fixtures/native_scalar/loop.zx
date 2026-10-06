@@ -1,0 +1,22 @@
+import host from "zig:scalar"
+
+export type State = { index: u64, total: u64, last: u64, steps: u64[] }
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.index < state.steps.length,
+        next: state => {
+            const first = host.first(state.steps[state.index])
+            const second = host.second(first)
+            const value = host.allocated(second)
+
+            state.total += value
+            state.last = value
+            state.index += 1
+        }
+    })
+}

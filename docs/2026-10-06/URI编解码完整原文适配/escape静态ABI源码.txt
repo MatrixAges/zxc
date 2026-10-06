@@ -1,0 +1,70 @@
+pub const zx_type_11 = struct {
+    key: []const u8,
+    value: []const u8,
+};
+
+pub const zx_type_12 = struct {
+    assignment: []const u8,
+    max_keys: u32,
+    query: []const u8,
+    separator: []const u8,
+};
+
+pub const zx_type_14 = struct {
+    assignment: []const u8,
+    entries: []const *const zx_type_11,
+    separator: []const u8,
+};
+
+pub const native = struct {
+    pub const @"std:querystring" = struct {
+        pub const Entry = *const zx_type_11;
+        pub const ParseOptions = *const zx_type_12;
+        pub const StringifyOptions = *const zx_type_14;
+        pub const escape = struct {
+            pub const Input = []const u8;
+            pub const Output = []const u8;
+            pub const InputValue = []const u8;
+            pub const OutputValue = []const u8;
+        };
+        pub const unescape = struct {
+            pub const Input = []const u8;
+            pub const Output = []const u8;
+            pub const InputValue = []const u8;
+            pub const OutputValue = []const u8;
+        };
+        pub const parse = struct {
+            pub const Input = []const u8;
+            pub const Output = []const *const zx_type_11;
+            pub const InputValue = []const u8;
+            pub const OutputValue = []const *const zx_type_11;
+        };
+        pub const parseWith = struct {
+            pub const Input = *const zx_type_12;
+            pub const Output = []const *const zx_type_11;
+            pub const InputValue = zx_type_12;
+            pub const OutputValue = []const *const zx_type_11;
+        };
+        pub const stringify = struct {
+            pub const Input = []const *const zx_type_11;
+            pub const Output = []const u8;
+            pub const InputValue = []const *const zx_type_11;
+            pub const OutputValue = []const u8;
+        };
+        pub const stringifyWith = struct {
+            pub const Input = *const zx_type_14;
+            pub const Output = []const u8;
+            pub const InputValue = zx_type_14;
+            pub const OutputValue = []const u8;
+        };
+    };
+};
+
+pub const layouts = struct {
+    pub const @"std:querystring" = struct {
+        pub const Entry = zx_type_11;
+        pub const ParseOptions = zx_type_12;
+        pub const StringifyOptions = zx_type_14;
+    };
+};
+

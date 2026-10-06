@@ -1,0 +1,33 @@
+const check = @import("support").check;
+
+test "standard/querystring/stringify/empty/delimiter_0" {
+    try check(@import("program"), &.{}, .{ .value = "" });
+}
+
+test "standard/querystring/stringify/empty_key_value/delimiter_0" {
+    try check(@import("program"), &.{&.{.key = "", .value = ""}}, .{ .value = "=" });
+}
+
+test "standard/querystring/stringify/interleaved_duplicates/delimiter_0" {
+    try check(@import("program"), &.{&.{.key = "a", .value = "1"}, &.{.key = "b", .value = "2"}, &.{.key = "a", .value = "3"}}, .{ .value = "a=1&b=2&a=3" });
+}
+
+test "standard/querystring/stringify/numeric_order/delimiter_0" {
+    try check(@import("program"), &.{&.{.key = "10", .value = "a"}, &.{.key = "2", .value = "b"}}, .{ .value = "10=a&2=b" });
+}
+
+test "standard/querystring/stringify/unicode/delimiter_0" {
+    try check(@import("program"), &.{&.{.key = "\xe4\xb8\xad\xe6\x96\x87", .value = "\xf0\x9f\x8c\xb1"}}, .{ .value = "%E4%B8%AD%E6%96%87=%F0%9F%8C%B1" });
+}
+
+test "standard/querystring/stringify/delimiters/delimiter_0" {
+    try check(@import("program"), &.{&.{.key = "a&b=c", .value = "+ %"}}, .{ .value = "a%26b%3Dc=%2B%20%25" });
+}
+
+test "standard/querystring/stringify/nul/delimiter_0" {
+    try check(@import("program"), &.{&.{.key = "\x00", .value = "a\x00b"}}, .{ .value = "%00=a%00b" });
+}
+
+test "standard/querystring/stringify/prototype_names/delimiter_0" {
+    try check(@import("program"), &.{&.{.key = "__proto__", .value = "own"}, &.{.key = "constructor", .value = "value"}}, .{ .value = "__proto__=own&constructor=value" });
+}

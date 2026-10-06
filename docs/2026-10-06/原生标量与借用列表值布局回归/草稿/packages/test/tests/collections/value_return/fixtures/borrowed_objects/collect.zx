@@ -1,0 +1,15 @@
+import advance from "./loop"
+
+import type { Job, Result } from "./types"
+
+export type Input = Job
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const empty = advance({ index: in.values.length, total: in.seed, values: in.values, saved: null })
+    const first = advance({ index: 0, total: in.seed + in.ordinal * 2, values: in.values, saved: in.saved })
+    const second = advance({ index: 0, total: in.seed + in.ordinal * 2 + 1, values: in.values, saved: in.saved })
+
+    return { empty: empty, first: first, second: second }
+}

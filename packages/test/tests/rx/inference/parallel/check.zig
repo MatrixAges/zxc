@@ -10,6 +10,7 @@ pub const Case = struct {
     modules: []const Source = &.{},
     expected: ?Expected = null,
     output: compiler.ir.Scalar = .u64,
+    check_output: ?*const fn (compiler.ir.TypeTable, compiler.ir.TypeId) anyerror!void = null,
     store: bool = false,
     store_source: ?[]const u8 = null,
     slots: usize = 0,
@@ -142,7 +143,12 @@ pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
 
         const program = result.value.contract.program;
 
-        try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, program.types.get(program.output_type));
+        if (case.check_output) |check_output| {
+            try check_output(program.types, program.output_type);
+        } else {
+            try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, program.types.get(program.output_type));
+        }
+
         try std.testing.expectEqual(case.slots, program.stores.len);
         try std.testing.expect(try compiler.validateIr(allocator, program) == null);
     }
