@@ -46,7 +46,7 @@ pub fn compileWithContext(allocator: std.mem.Allocator, source: []const u8, file
 
     defer parsed.deinit();
 
-    if (parsed.value == .diagnostic) return .{ .diagnostic = parsed.value.diagnostic };
+    if (parsed.value == .diagnostic) return .{ .diagnostic = try parsed.value.diagnostic.clone(allocator) };
 
     const input = parsed.value.parsed;
 
@@ -87,7 +87,7 @@ pub fn format(allocator: std.mem.Allocator, source: []const u8, file_name: []con
 
     defer parsed.deinit();
 
-    if (parsed.value == .diagnostic) return .{ .diagnostic = parsed.value.diagnostic };
+    if (parsed.value == .diagnostic) return .{ .diagnostic = try parsed.value.diagnostic.clone(allocator) };
 
     const input = parsed.value.parsed;
 
@@ -105,15 +105,27 @@ pub fn analyzeProject(allocator: std.mem.Allocator, sources: []const project.Sou
 }
 
 pub fn analyzeProjectWithCache(allocator: std.mem.Allocator, sources: []const project.Source, options: project.Options, cache: *project.ParseCache) std.mem.Allocator.Error!AnalysisResult {
-    if (try checkProjectSources(allocator, sources, options, cache)) |issue| return .{ .arena = std.heap.ArenaAllocator.init(allocator), .value = .{ .diagnostic = issue } };
+    if (try checkProjectSources(allocator, sources, options, cache)) |issue| return analysisDiagnostic(allocator, issue);
 
     return project.analyzeWithCache(allocator, sources, options, cache);
 }
 
 pub fn analyzeProjectIncremental(allocator: std.mem.Allocator, sources: []const project.Source, options: project.Options, cache: *project.SemanticCache) std.mem.Allocator.Error!AnalysisResult {
-    if (try checkProjectSources(allocator, sources, options, &cache.parse_cache)) |issue| return .{ .arena = std.heap.ArenaAllocator.init(allocator), .value = .{ .diagnostic = issue } };
+    if (try checkProjectSources(allocator, sources, options, &cache.parse_cache)) |issue| return analysisDiagnostic(allocator, issue);
 
     return project.analyzeIncremental(allocator, sources, options, cache);
+}
+
+fn analysisDiagnostic(allocator: std.mem.Allocator, issue: Diagnostic) std.mem.Allocator.Error!AnalysisResult {
+    var arena = std.heap.ArenaAllocator.init(allocator);
+
+    errdefer arena.deinit();
+
+    var owned = issue;
+    owned.message = try arena.allocator().dupe(u8, issue.message);
+    owned.message_allocator = null;
+
+    return .{ .arena = arena, .value = .{ .diagnostic = owned } };
 }
 
 fn checkProjectSources(allocator: std.mem.Allocator, sources: []const project.Source, options: project.Options, cache: *project.ParseCache) std.mem.Allocator.Error!?Diagnostic {
