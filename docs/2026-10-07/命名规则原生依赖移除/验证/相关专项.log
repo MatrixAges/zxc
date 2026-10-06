@@ -1,0 +1,1248 @@
+✖ compiled semantic lint / no original sources / lint main.zx --semantic (13.631841ms)
+✖ compiled semantic lint / no original sources / lint main.rx --semantic (5.452678ms)
+✖ compiled semantic lint / no original sources / lint pkg.yaml --semantic (5.110935ms)
+✔ compiled semantic lint / no original sources / lint pkgs/bundle/pkg.yaml --semantic (4.874714ms)
+✖ compiled semantic lint / no original sources / lint pkg.yaml --workspace (5.681605ms)
+✔ compiled semantic lint / dependency input type / main.zx (4.770563ms)
+✔ compiled semantic lint / dependency input type / pkg.yaml (4.974559ms)
+✔ compiled semantic lint / damaged digest / main.zx (4.750378ms)
+✔ compiled semantic lint / damaged digest / pkgs/bundle/pkg.yaml (4.467762ms)
+✔ compiled semantic lint / damaged digest / workspace (4.912086ms)
+✔ compiled semantic lint / missing public module / main.zx (8.792496ms)
+✔ compiled semantic lint / missing public module / pkgs/bundle/pkg.yaml (5.607268ms)
+✔ compiled semantic lint / missing public module / workspace (5.484ms)
+✖ compiled semantic lint / explicit source has independent status / true (8.627539ms)
+✔ compiled semantic lint / explicit source has independent status / false (8.467959ms)
+✖ compiled semantic lint / explicit source does not consume its package archive (5.25828ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 10
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 105.562279
+
+✖ failing tests:
+
+test at tests/semantic_lint/compiled_test.ts:36:2
+✖ compiled semantic lint / no original sources / lint main.zx --semantic (13.631841ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint X33p9Q/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/compiled_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:36:2
+✖ compiled semantic lint / no original sources / lint main.rx --semantic (5.452678ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint PpScHo/main.rx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/compiled_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:36:2
+✖ compiled semantic lint / no original sources / lint pkg.yaml --semantic (5.110935ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint trIi2P/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/compiled_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:36:2
+✖ compiled semantic lint / no original sources / lint pkg.yaml --workspace (5.681605ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint OHXLoR/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/compiled_test.ts:41:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:98:2
+✖ compiled semantic lint / explicit source has independent status / true (8.627539ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint thfidI/pkgs/bundle/selected.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/compiled_test.ts:109:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/compiled_test.ts:117:1
+✖ compiled semantic lint / explicit source does not consume its package archive (5.25828ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint Ojbp8v/pkgs/bundle/selected.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/compiled_test.ts:126:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+✔ semantic lint / invalid options / lint main.zx --semantic --semantic (11.941964ms)
+✔ semantic lint / invalid options / lint main.zx --project pkg.yaml (5.18276ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --kind manifest (4.548162ms)
+✔ semantic lint / invalid options / fmt main.zx --semantic (3.925301ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --out output (3.856784ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32.739118
+✖ semantic lint / RX valid / main.gateway.rx (12.856355ms)
+✔ semantic lint / RX valid / empty.gateway.rx (5.437199ms)
+✖ semantic lint / RX valid / state.store.rx (4.72404ms)
+✖ semantic lint / RX valid / read.rx (5.203548ms)
+✖ semantic lint / RX valid / pkg.yaml (4.29539ms)
+✖ semantic lint / Store initial type / state.store.rx (3.985714ms)
+✖ semantic lint / Store initial type / read.rx (3.945407ms)
+✖ semantic lint / Store initial type / main.gateway.rx (4.357998ms)
+✖ semantic lint / Store initial type / pkg.yaml (4.200696ms)
+✖ semantic lint / Gateway rejects missing service (4.640186ms)
+✖ semantic lint / Gateway rejects duplicate route (4.318502ms)
+✖ semantic lint / Gateway rejects service type (4.076778ms)
+✔ semantic lint / reachable Store formatting / state.store.rx (4.319833ms)
+✖ semantic lint / reachable Store formatting / read.rx (5.064641ms)
+✖ semantic lint / reachable Store formatting / main.gateway.rx (4.580041ms)
+✖ semantic lint / reachable Store formatting / pkg.yaml (4.176896ms)
+✖ semantic lint / dedicated manifest entry / state.store.rx (4.324725ms)
+✔ semantic lint / dedicated manifest entry / empty.gateway.rx (4.128867ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 3
+ℹ fail 15
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 92.670499
+
+✖ failing tests:
+
+test at tests/semantic_lint/rx_test.ts:7:2
+✖ semantic lint / RX valid / main.gateway.rx (12.856355ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint sxHuoQ/main.gateway.rx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:12:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:7:2
+✖ semantic lint / RX valid / state.store.rx (4.72404ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint Fvdip2/state.store.rx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:12:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:7:2
+✖ semantic lint / RX valid / read.rx (5.203548ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint euGdV0/read.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:12:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:7:2
+✖ semantic lint / RX valid / pkg.yaml (4.29539ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 5u3vjf/main.gateway.rx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:12:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:21:2
+✖ semantic lint / Store initial type / state.store.rx (3.985714ms)
+  AssertionError [ERR_ASSERTION]: state.store.rx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:29:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:21:2
+✖ semantic lint / Store initial type / read.rx (3.945407ms)
+  AssertionError [ERR_ASSERTION]: state.store.rx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:29:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:21:2
+✖ semantic lint / Store initial type / main.gateway.rx (4.357998ms)
+  AssertionError [ERR_ASSERTION]: state.store.rx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:29:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:21:2
+✖ semantic lint / Store initial type / pkg.yaml (4.200696ms)
+  AssertionError [ERR_ASSERTION]: state.store.rx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:29:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:63:2
+✖ semantic lint / Gateway rejects missing service (4.640186ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /FileNotFound|not found|missing/i. Input:
+
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint lV4yLL/main.gateway.rx: import order, blank lines or indentation require formatting\n'
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:69:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint lV4yLL/main.gateway.rx: import order, blank lines or indentation require formatting\n',
+    expected: /FileNotFound|not found|missing/i,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:63:2
+✖ semantic lint / Gateway rejects duplicate route (4.318502ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /routes overlap/i. Input:
+
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint fRlG3V/main.gateway.rx: import order, blank lines or indentation require formatting\n'
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:69:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint fRlG3V/main.gateway.rx: import order, blank lines or indentation require formatting\n',
+    expected: /routes overlap/i,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:63:2
+✖ semantic lint / Gateway rejects service type (4.076778ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /type|Type/. Input:
+
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 6YV1am/main.gateway.rx: import order, blank lines or indentation require formatting\n'
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:69:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 6YV1am/main.gateway.rx: import order, blank lines or indentation require formatting\n',
+    expected: /type|Type/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:77:2
+✖ semantic lint / reachable Store formatting / read.rx (5.064641ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /state\.store\.rx/. Input:
+
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 6h0bcz/read.zx: import order, blank lines or indentation require formatting\n'
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:84:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 6h0bcz/read.zx: import order, blank lines or indentation require formatting\n',
+    expected: /state\.store\.rx/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:77:2
+✖ semantic lint / reachable Store formatting / main.gateway.rx (4.580041ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /state\.store\.rx/. Input:
+
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint F9pwMN/main.gateway.rx: import order, blank lines or indentation require formatting\n'
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:84:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint F9pwMN/main.gateway.rx: import order, blank lines or indentation require formatting\n',
+    expected: /state\.store\.rx/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:77:2
+✖ semantic lint / reachable Store formatting / pkg.yaml (4.176896ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /state\.store\.rx/. Input:
+
+  '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 1Fhrkn/main.gateway.rx: import order, blank lines or indentation require formatting\n'
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:84:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 1Fhrkn/main.gateway.rx: import order, blank lines or indentation require formatting\n',
+    expected: /state\.store\.rx/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/rx_test.ts:92:2
+✖ semantic lint / dedicated manifest entry / state.store.rx (4.324725ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint R6Qttk/state.store.rx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/rx_test.ts:97:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+test-semantic-lint
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/semantic_lint/rx_test.ts ./.zig-cache/o/6d7a0f3df71b974703cddc02485dcb23/zxc
+
+✖ workspace lint / declared scope / explicit semantic false (16.320812ms)
+✖ workspace lint / declared scope / explicit semantic true (8.18806ms)
+✔ workspace lint / independent member errors accumulate (7.930856ms)
+✔ workspace lint / rejects duplicate package name (6.25586ms)
+✔ workspace lint / rejects missing workspace dependency (6.36864ms)
+✔ workspace lint / rejects dependency cycle (6.084007ms)
+✔ workspace lint / rejects missing entry (7.201616ms)
+✔ workspace lint / rejects uninstalled external (5.89851ms)
+✔ workspace lint / rejects organization formatting (7.201615ms)
+✖ workspace lint / root manifest directory symlink (25.993305ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --workspace (7.026321ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --project pkg.yaml (5.354685ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --kind manifest (5.167425ms)
+✔ workspace lint / invalid options / fmt pkg.yaml --workspace (5.506422ms)
+✔ workspace lint / source input rejected (5.554108ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 12
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 130.02828
+
+✖ failing tests:
+
+test at tests/semantic_lint/workspace_test.ts:9:2
+✖ workspace lint / declared scope / explicit semantic false (16.320812ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint dxPWUq/packages/app/main.zx: import order, blank lines or indentation require formatting
+  /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint dxPWUq/packages/numbers/main.zx: import order, blank lines or indentation require formatting
+  /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint dxPWUq/packages/other/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/workspace_test.ts:14:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/workspace_test.ts:9:2
+✖ workspace lint / declared scope / explicit semantic true (8.18806ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 8Qo18x/packages/app/main.zx: import order, blank lines or indentation require formatting
+  /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 8Qo18x/packages/numbers/main.zx: import order, blank lines or indentation require formatting
+  /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 8Qo18x/packages/other/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/workspace_test.ts:14:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/workspace_test.ts:91:1
+✖ workspace lint / root manifest directory symlink (25.993305ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint xNstu8/packages/app/main.zx: import order, blank lines or indentation require formatting
+  /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint xNstu8/packages/numbers/main.zx: import order, blank lines or indentation require formatting
+  /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint xNstu8/packages/other/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/workspace_test.ts:97:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+test-semantic-lint
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/semantic_lint/compiled_test.ts ./.zig-cache/o/6d7a0f3df71b974703cddc02485dcb23/zxc
+
+✖ semantic lint / valid main.zx ignores unreachable invalid source (14.047769ms)
+✖ semantic lint / valid pkg.yaml ignores unreachable invalid source (5.827324ms)
+✖ semantic lint / type failure and selection / nested/increment.zx (4.686818ms)
+✖ semantic lint / type failure and selection / extra.zx (4.149766ms)
+✖ semantic lint / entry fallback (4.644631ms)
+✔ semantic lint / no public modules (4.074107ms)
+✔ semantic lint / missing import (4.203934ms)
+✔ semantic lint / reachable formatting (4.156384ms)
+✔ semantic lint / import cycle (4.620603ms)
+✖ semantic lint / explicit project path / pkg.yaml (4.945357ms)
+✖ semantic lint / explicit project path / ./pkg.yaml (4.371276ms)
+✖ semantic lint / explicit project path / nested/../pkg.yaml (4.569597ms)
+✖ semantic lint / explicit project path / absolute (4.574806ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 4
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 72.723288
+
+✖ failing tests:
+
+test at tests/semantic_lint/project_test.ts:32:2
+✖ semantic lint / valid main.zx ignores unreachable invalid source (14.047769ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 9dkMFZ/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/project_test.ts:37:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:32:2
+✖ semantic lint / valid pkg.yaml ignores unreachable invalid source (5.827324ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint JZjGMJ/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/project_test.ts:37:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:46:2
+✖ semantic lint / type failure and selection / nested/increment.zx (4.686818ms)
+  AssertionError [ERR_ASSERTION]: nested/increment.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/project_test.ts:51:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:46:2
+✖ semantic lint / type failure and selection / extra.zx (4.149766ms)
+  AssertionError [ERR_ASSERTION]: extra.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/project_test.ts:51:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:70:2
+✖ semantic lint / entry fallback (4.644631ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 8sknqk/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/project_test.ts:75:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / pkg.yaml (4.945357ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint YdD5jv/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / ./pkg.yaml (4.371276ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint ckS4rx/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / nested/../pkg.yaml (4.569597ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint dlgU5E/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / absolute (4.574806ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint bYBdFI/main.zx: import order, blank lines or indentation require formatting
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+test-semantic-lint
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/semantic_lint/workspace_test.ts ./.zig-cache/o/6d7a0f3df71b974703cddc02485dcb23/zxc
+
+test-semantic-lint
++- run node failure
+error: process exited with code 1
+failed command: node ./tests/semantic_lint/project_test.ts ./.zig-cache/o/6d7a0f3df71b974703cddc02485dcb23/zxc
+
+Build Summary: 49/54 steps succeeded (4 failed); 252/252 tests passed
+test-semantic-lint transitive failure
++- run node failure
+|  +- compile exe zxc fast native success 1m MaxRSS:3G
+|     +- WriteFile cached
+|     +- compile lib yaml fast native success 566ms MaxRSS:79M
+|     +- compile lib yaml fast native (reused)
+|     +- translate-c success 126ms MaxRSS:21M
+|     +- options success
+|     +- run exe bundle-zig (bundle) success 6s
+|     |  +- compile exe bundle-zig fast native success 26s MaxRSS:913M
+|     |  +- WriteFile bundle_manifest.json cached
+|     +- options cached
+|     +- run exe generate-parser (parser.zig) success 3s
+|     |  +- compile exe generate-parser fast native success 31s MaxRSS:869M
+|     |     +- options cached
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 47ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- WriteFile interfaces/0.d.zx cached
+|     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     +- compile exe standard-catalog fast native cached 54ms MaxRSS:21M
+|     |     +- WriteFile catalog.json cached
+|     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) cached
+|     |  +- compile exe generate-lexer fast native cached 85ms MaxRSS:21M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 55ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run node success 96ms
+|  +- compile exe zxc fast native (+50 more reused dependencies)
++- run node failure
+|  +- compile exe zxc fast native (+50 more reused dependencies)
++- run node failure
+|  +- compile exe zxc fast native (+50 more reused dependencies)
++- run node failure
+   +- compile exe zxc fast native (+50 more reused dependencies)
+test-native-declarations success
++- run test 4 pass (4 total) 6ms MaxRSS:2M
+|  +- compile test fast native success 27s MaxRSS:835M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test 4 pass (4 total) 2ms MaxRSS:1M
+|  +- compile test fast native success 27s MaxRSS:859M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test 2 pass (2 total) 3ms MaxRSS:1M
+   +- compile test fast native success 27s MaxRSS:809M
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+test-rx-inference success
++- run test 138 pass (138 total) 149ms MaxRSS:5M
+   +- compile test fast native success 51s MaxRSS:1G
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+test-type-validation success
++- run test type-validation-shape 36 pass (36 total) 3ms MaxRSS:1M
+|  +- compile test type-validation-shape fast native success 11s MaxRSS:404M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test type-validation-references 30 pass (30 total) 2ms MaxRSS:1M
+|  +- compile test type-validation-references fast native success 27s MaxRSS:431M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test type-validation-names 20 pass (20 total) 2ms MaxRSS:1M
+|  +- compile test type-validation-names fast native success 11s MaxRSS:419M
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test type-validation-allowed 18 pass (18 total) 2ms MaxRSS:1M
+   +- compile test type-validation-allowed fast native success 11s MaxRSS:423M
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)

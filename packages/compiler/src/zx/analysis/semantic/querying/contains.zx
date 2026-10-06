@@ -1,0 +1,46 @@
+import integers from "zig:integers"
+
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+import row from "./row"
+
+import type { Table } from "../types/model"
+
+export type Input = { table: Table, id: u32, native_references: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.id)
+    const target = in.native_references ? Kind.NativeReference : Kind.List
+
+    if (kind(in.table.kinds[index]) == target) {
+        return true
+    }
+
+    const first = loop({ table: in.table, limit: index, target: target, index: 0, found: false }, {
+        while: current => !current.found && current.index < current.limit,
+        next: current => {
+            current.found = kind(current.table.kinds[current.index]) == current.target
+            current.index += 1
+        }
+    })
+
+    if (!first.found) {
+        return false
+    }
+
+    const flags: bool[] = []
+
+    const state = loop({ table: in.table, index: 0, first: first.index - 1, limit: index + 1, flags: flags, native_references: in.native_references }, {
+        while: current => current.index < current.limit,
+        next: current => {
+            const found = current.index >= current.first && row({ table: current.table, index: current.index, flags: current.flags, native_references: current.native_references })
+
+            current.flags = current.flags.push(found)[0]
+            current.index += 1
+        }
+    })
+
+    return state.flags[index]
+}

@@ -1,0 +1,41 @@
+import integers from "zig:integers"
+import flags from "zig:type_flags"
+
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+
+import type { Flags } from "zig:type_flags"
+import type { Table } from "../types/model"
+
+export type Input = { table: Table, index: u64, flags: Flags, native_references: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const type_kind = kind(in.table.kinds[in.index])
+    const target = in.native_references ? Kind.NativeReference : Kind.List
+
+    if (type_kind == target) {
+        return true
+    }
+
+    if (type_kind == Kind.Optional || (in.native_references && (type_kind == Kind.List || type_kind == Kind.Task))) {
+        return flags.get(in.flags, integers.widen(in.table.first[in.index]))
+    }
+
+    if (type_kind != Kind.Tuple && type_kind != Kind.Object) {
+        return false
+    }
+
+    const children = type_kind == Kind.Tuple ? in.table.children : in.table.field_types
+
+    const state = loop({ flags: in.flags, children: children, offset: integers.widen(in.table.first[in.index]), count: integers.widen(in.table.second[in.index]), index: 0, found: false }, {
+        while: current => !current.found && current.index < current.count,
+        next: current => {
+            current.found = flags.get(current.flags, integers.widen(current.children[current.offset + current.index]))
+            current.index += 1
+        }
+    })
+
+    return state.found
+}

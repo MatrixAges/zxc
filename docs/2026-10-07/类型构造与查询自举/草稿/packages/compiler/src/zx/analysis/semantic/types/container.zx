@@ -1,0 +1,41 @@
+import integers from "zig:integers"
+
+import { Violation } from "./container_model"
+import kind from "./kind"
+import { Kind } from "./model"
+
+import type { Candidate, Table } from "./model"
+
+export type Input = { table: Table, candidate: Candidate }
+
+export type Output = Violation
+
+export default function (in: Input): Output {
+    if (in.candidate.kind == Kind.Optional || in.candidate.kind == Kind.List) {
+        if (kind(in.table.kinds[integers.widen(in.candidate.first)]) == Kind.Task) {
+            return Violation.TaskContainer
+        }
+
+        return in.candidate.kind == Kind.List && in.candidate.first == 0 ? Violation.VoidList : Violation.None
+    }
+
+    if (in.candidate.kind != Kind.Tuple && in.candidate.kind != Kind.Object) {
+        return Violation.None
+    }
+
+    const children = in.candidate.kind == Kind.Tuple ? in.candidate.children : in.candidate.fields.types
+
+    const state = loop({ table: in.table, children: children, index: 0, found: false }, {
+        while: current => !current.found && current.index < current.children.length,
+        next: current => {
+            current.found = kind(current.table.kinds[integers.widen(current.children[current.index])]) == Kind.Task
+            current.index += 1
+        }
+    })
+
+    if (!state.found) {
+        return Violation.None
+    }
+
+    return in.candidate.kind == Kind.Tuple ? Violation.TaskTuple : Violation.TaskObject
+}

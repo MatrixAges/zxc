@@ -1,0 +1,50 @@
+import writer from "zig:construction"
+import integers from "zig:integers"
+
+import find from "../types/find"
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+import candidate from "./candidate"
+import table from "./table"
+import validate from "./validate"
+
+import type { Writer } from "zig:construction"
+
+export type Input = { writer: Writer }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    validate(in)
+
+    const type_kind = kind(writer.candidateKind(in.writer))
+
+    if (type_kind == Kind.ErrorSet) {
+        writer.prepareNames(in.writer)
+    }
+
+    if (type_kind == Kind.ErrorSet || type_kind == Kind.Object) {
+        writer.sortNames(in.writer)
+    }
+
+    const result = find({
+        tables: { base: table(in.writer), delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] } },
+        candidate: candidate(in.writer)
+    })
+
+    if (result.found) {
+        return integers.widen(result.id)
+    }
+
+    if (type_kind == Kind.ErrorSet) {
+        loop({ writer: in.writer, index: 0 }, {
+            while: current => current.index < writer.memberNames(current.writer).length,
+            next: current => {
+                writer.copyName(current.writer, current.index)
+                current.index += 1
+            }
+        })
+    }
+
+    return writer.append(in.writer)
+}

@@ -1,0 +1,46 @@
+import { Message } from "zig:construction"
+import writer from "zig:construction"
+import integers from "zig:integers"
+
+import contains from "../querying/contains"
+import container from "../types/container"
+import { Violation } from "../types/container_model"
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+import candidate from "./candidate"
+import table from "./table"
+
+import type { Writer } from "zig:construction"
+
+export type Input = { writer: Writer }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const types = table(in.writer)
+    const violation = container({ table: types, candidate: candidate(in.writer) })
+
+    if (violation == Violation.TaskContainer) {
+        writer.failOwnership(in.writer, Message.TaskContainer)
+    } else if (violation == Violation.VoidList) {
+        writer.failType(in.writer, Message.VoidList)
+    } else if (violation == Violation.TaskTuple) {
+        writer.failOwnership(in.writer, Message.TaskTuple)
+    } else if (violation == Violation.TaskObject) {
+        writer.failOwnership(in.writer, Message.TaskObject)
+    }
+
+    if (kind(writer.candidateKind(in.writer)) == Kind.Task) {
+        const result = writer.candidateFirst(in.writer)
+
+        if (contains({ table: types, id: result, native_references: true })) {
+            writer.failCapability(in.writer, Message.NativeTask)
+        }
+
+        if (kind(types.kinds[integers.widen(result)]) == Kind.Task) {
+            writer.failOwnership(in.writer, Message.NestedTask)
+        }
+    }
+
+    return
+}
