@@ -1,0 +1,27 @@
+import writer from "zig:merge_writer"
+
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+
+import type { Writer } from "zig:merge_writer"
+import type { Table, Candidate } from "../types/model"
+
+export type Input = { source: Table, index: u64, writer: Writer }
+
+export type Output = Candidate
+
+export default function (in: Input): Output {
+    const type_kind = kind(in.source.kinds[in.index])
+    const references = writer.references(in.writer)
+    const single = type_kind == Kind.Optional || type_kind == Kind.List || type_kind == Kind.Task
+
+    return {
+        kind: type_kind,
+        first: single ? references[0] : in.source.first[in.index],
+        second: type_kind == Kind.Task ? references[1] : 0,
+        label: in.source.labels[in.index],
+        children: type_kind == Kind.Tuple ? references : [],
+        fields: { names: type_kind == Kind.Object ? writer.fieldNames(in.writer, in.index) : [], types: type_kind == Kind.Object ? references : [] },
+        names: type_kind == Kind.Enumeration || type_kind == Kind.ErrorSet ? writer.memberNames(in.writer, in.index) : []
+    }
+}

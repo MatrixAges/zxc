@@ -1,0 +1,44 @@
+export type Writer = opaque
+
+export declare function prepareReferences(writer: Writer, index: u64, count: u64, dynamic: bool): void throws { OutOfMemory }
+
+export declare function references(writer: Writer): u32[]
+
+export declare function hasOrigin(writer: Writer, index: u64): bool
+
+export declare function originIndex(writer: Writer, index: u64): u64
+
+export declare function setMapping(writer: Writer, index: u64, value: u64): void
+
+export declare function appendType(writer: Writer, index: u64): u64 throws { OutOfMemory }
+
+export declare function appendOrigin(writer: Writer, index: u64, origin: u64): void throws { OutOfMemory }
+
+export declare function fieldNames(writer: Writer, index: u64): string[]
+
+export declare function memberNames(writer: Writer, index: u64): string[]
+
+export declare function kinds(writer: Writer): u8[]
+
+export declare function first(writer: Writer): u32[]
+
+export declare function second(writer: Writer): u32[]
+
+export declare function labels(writer: Writer): string[]
+
+export declare function children(writer: Writer): u32[]
+
+export declare function fieldTypes(writer: Writer): u32[]
+
+export declare function allFieldNames(writer: Writer): string[]
+
+export declare function names(writer: Writer): string[]
+
+export declare function originIds(writer: Writer): u32[]
+
+export declare function originKinds(writer: Writer): u8[]
+
+export declare function originOwners(writer: Writer): string[]
+
+export declare function originMembers(writer: Writer): string[]
+

@@ -1,0 +1,15 @@
+import writer from "zig:merge_writer"
+
+import type { Writer } from "zig:merge_writer"
+import type { Table } from "../types/model"
+
+export type Input = Writer
+
+export type Output = Table
+
+export default function (in: Input): Output {
+    return {
+        kinds: writer.kinds(in), first: writer.first(in), second: writer.second(in), labels: writer.labels(in),
+        children: writer.children(in), field_types: writer.fieldTypes(in), field_names: writer.allFieldNames(in), names: writer.names(in)
+    }
+}

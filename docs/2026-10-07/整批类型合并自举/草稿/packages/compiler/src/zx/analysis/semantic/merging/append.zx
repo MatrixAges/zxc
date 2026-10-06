@@ -1,0 +1,58 @@
+import integers from "zig:integers"
+import writer from "zig:merge_writer"
+
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+import remap from "../types/remap"
+import nominal from "./nominal"
+import structural from "./structural"
+
+import type { Writer } from "zig:merge_writer"
+import type { Buffer } from "zig:references"
+import type { Table } from "../types/model"
+import type { Bindings } from "../types/nominal/model"
+
+export type Input = { source: Table, origins: Bindings, first: u64, writer: Writer, buffer: Buffer }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const state = loop({ source: in.source, origins: in.origins, index: in.first, writer: in.writer, buffer: in.buffer, status: 0 }, {
+        while: current => current.status == 0 && current.index < current.source.kinds.length,
+        next: current => {
+            const type_kind = kind(current.source.kinds[current.index])
+            const dynamic = type_kind == Kind.Tuple || type_kind == Kind.Object
+
+            writer.prepareReferences(current.writer, current.index, dynamic ? integers.widen(current.source.second[current.index]) : 0, dynamic)
+            remap({ table: current.source, index: current.index, buffer: current.buffer })
+
+            const is_nominal = type_kind == Kind.Enumeration || type_kind == Kind.NativeReference
+
+            if (is_nominal && !writer.hasOrigin(current.writer, current.index)) {
+                current.status = 1
+            } else {
+                const origin = is_nominal ? writer.originIndex(current.writer, current.index) : 0
+                const result = is_nominal ? nominal({ source: current.source, index: current.index, writer: current.writer, origins: current.origins, origin: origin }) :
+                    structural({ source: current.source, index: current.index, writer: current.writer })
+
+                if (result == 1) {
+                    current.status = 2
+                } else if (result == 0) {
+                    const id = writer.appendType(current.writer, current.index)
+
+                    if (is_nominal) {
+                        writer.appendOrigin(current.writer, id, origin)
+                    }
+
+                    writer.setMapping(current.writer, current.index, id)
+                } else {
+                    writer.setMapping(current.writer, current.index, result - 2)
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return state.status
+}

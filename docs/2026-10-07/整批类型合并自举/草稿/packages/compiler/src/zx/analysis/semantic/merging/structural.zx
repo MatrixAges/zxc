@@ -1,0 +1,18 @@
+import integers from "zig:integers"
+
+import find from "../types/find"
+import candidate from "./candidate"
+import table from "./table"
+
+import type { Writer } from "zig:merge_writer"
+import type { Table } from "../types/model"
+
+export type Input = { source: Table, index: u64, writer: Writer }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const result = find({ tables: { base: table(in.writer), delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] } }, candidate: candidate(in) })
+
+    return result.found ? integers.widen(result.id) + 2 : 0
+}

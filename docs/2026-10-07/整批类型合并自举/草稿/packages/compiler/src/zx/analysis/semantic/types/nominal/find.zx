@@ -1,0 +1,38 @@
+import equal from "../equal"
+import row from "../row"
+import { Status } from "./model"
+
+import type { Candidate, Tables } from "../model"
+import type { Origin, Origins, Search } from "./model"
+
+export type Input = { tables: Tables, origins: Origins, origin: Origin, candidate: Candidate }
+
+export type Output = Search
+
+export default function (in: Input): Output {
+    const count = in.origins.base.ids.length + in.origins.delta.ids.length
+    const initial_id: u32 = 0
+
+    const state = loop({ tables: in.tables, origins: in.origins, origin: in.origin, candidate: in.candidate, count: count, index: 0, status: Status.Missing, id: initial_id }, {
+        while: current => current.status == Status.Missing && current.index < current.count,
+        next: current => {
+            const base_count = current.origins.base.ids.length
+            const delta = current.index >= base_count
+            const bindings = delta ? current.origins.delta : current.origins.base
+            const position = delta ? current.index - base_count : current.index
+            const id = bindings.ids[position]
+            const same_origin = bindings.kinds[position] == current.origin.kind &&
+                bindings.owners[position] == current.origin.owner && bindings.members[position] == current.origin.member
+            const matches = same_origin && row({ tables: current.tables, id: id }).label == current.candidate.label
+            const status = match {
+                !matches => Status.Missing,
+                equal({ tables: current.tables, id: id, candidate: current.candidate }) => Status.Found,
+                _ => Status.Conflict
+            }
+
+            current = { ...current, index: current.index + 1, status: status, id: matches ? id : current.id }
+        }
+    })
+
+    return { status: state.status, id: state.id }
+}

@@ -1,0 +1,14 @@
+export type Origin = { kind: u8, owner: string, member: string }
+
+export type Bindings = {
+    ids: u32[]
+    kinds: u8[]
+    owners: string[]
+    members: string[]
+}
+
+export type Origins = { base: Bindings, delta: Bindings }
+
+export enum Status { Missing, Found, Conflict }
+
+export type Search = { status: Status, id: u32 }
