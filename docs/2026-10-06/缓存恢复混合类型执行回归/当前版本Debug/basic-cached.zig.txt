@@ -1,0 +1,64 @@
+const std = @import("std");
+
+const zx_native_0 = @import("choice");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = (zx_abi).zx_type_11;
+
+pub const Output = (zx_abi).zx_type_11;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .scalar, };
+
+pub const input_shape = zx_shape_11;
+
+pub const output_shape = zx_shape_11;
+
+fn function_0(allocator: ((std).mem).Allocator, in: (zx_abi).zx_type_11) anyerror!(zx_abi).zx_type_11 {
+    const native_result = (try (zx_native_0).flip(in));
+
+    _ = allocator;
+
+    return native_result;
+}
+
+fn function_1(allocator: ((std).mem).Allocator, in: (zx_abi).zx_type_11) anyerror!(zx_abi).zx_type_11 {
+    @setRuntimeSafety(true);
+
+    return (try function_0(allocator, in));
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: (zx_abi).zx_type_11) anyerror!(zx_abi).zx_type_11 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return (try function_0(allocator, (try function_1(allocator, in))));
+}
+

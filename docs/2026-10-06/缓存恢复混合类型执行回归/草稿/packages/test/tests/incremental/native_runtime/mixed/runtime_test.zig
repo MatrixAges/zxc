@@ -1,0 +1,122 @@
+const std = @import("std");
+const allocation_testing = @import("allocation_testing");
+const program = @import("program");
+const host = @import("host");
+const fixture = @import("fixture.zig");
+const Case = fixture.Case;
+const normal: Case = .{ .values = &.{ .First, .Second }, .saved = 0, .record_value = 31, .record_enabled = false, .pair_value = 11, .pair_enabled = true, .mode = .First, .index = 1, .output_value = 42, .picked = .Second, .missing = false };
+const empty: Case = .{ .values = &.{}, .saved = null, .record_value = 0, .record_enabled = true, .pair_value = std.math.maxInt(u64), .pair_enabled = false, .mode = .Second, .index = 0, .output_value = std.math.maxInt(u64), .picked = null, .missing = true };
+const outside: Case = .{ .values = &.{.Second}, .saved = 91, .record_value = 4, .record_enabled = false, .pair_value = 7, .pair_enabled = true, .mode = .Second, .index = 1, .output_value = 11, .picked = null, .missing = true };
+
+fn execute(allocator: std.mem.Allocator, case: Case) !void {
+    var input_fixture = try fixture.Fixture.init(case);
+
+    defer input_fixture.deinit();
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+
+    defer arena.deinit();
+
+    const input = input_fixture.input();
+
+    host.reset(0);
+
+    const output = program.execute(&arena, &input) catch |err| {
+        try input_fixture.checkInput(input);
+        try std.testing.expect(host.calls <= 2);
+        try fixture.checkCalls(case.mode, host.calls);
+
+        return err;
+    };
+
+    try input_fixture.checkOutput(output);
+    try input_fixture.checkInput(input);
+    try fixture.checkCalls(case.mode, 2);
+}
+
+test "mixed values preserve nested payloads and borrowed enum list" {
+    try execute(std.testing.allocator, normal);
+}
+
+test "mixed empty list preserves null and maximum unsigned value" {
+    try execute(std.testing.allocator, empty);
+}
+
+test "mixed out of bounds index preserves nonempty input and optional scalar" {
+    try execute(std.testing.allocator, outside);
+}
+
+test "mixed helper finite error stops entry call without mutating input" {
+    var input_fixture = try fixture.Fixture.init(normal);
+
+    defer input_fixture.deinit();
+
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+    defer arena.deinit();
+
+    const input = input_fixture.input();
+
+    host.reset(1);
+
+    try std.testing.expectError(error.NativeFailure, program.execute(&arena, &input));
+    try fixture.checkCalls(.First, 1);
+    try input_fixture.checkInput(input);
+}
+
+test "mixed entry finite error preserves helper completion and input" {
+    var input_fixture = try fixture.Fixture.init(outside);
+
+    defer input_fixture.deinit();
+
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+    defer arena.deinit();
+
+    const input = input_fixture.input();
+
+    host.reset(2);
+
+    try std.testing.expectError(error.ZetaFailure, program.execute(&arena, &input));
+    try fixture.checkCalls(.Second, 2);
+    try input_fixture.checkInput(input);
+}
+
+test "mixed consecutive calls keep both results alive in one arena" {
+    var first_fixture = try fixture.Fixture.init(normal);
+
+    defer first_fixture.deinit();
+
+    var second_fixture = try fixture.Fixture.init(outside);
+
+    defer second_fixture.deinit();
+
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+    defer arena.deinit();
+
+    const first_input = first_fixture.input();
+    const second_input = second_fixture.input();
+
+    host.reset(0);
+
+    const first = try program.execute(&arena, &first_input);
+
+    try fixture.checkCalls(.First, 2);
+    try first_fixture.checkOutput(first);
+
+    host.reset(0);
+
+    const second = try program.execute(&arena, &second_input);
+
+    try fixture.checkCalls(.Second, 2);
+    try second_fixture.checkOutput(second);
+    try first_fixture.checkOutput(first);
+    try first_fixture.checkInput(first_input);
+    try second_fixture.checkInput(second_input);
+    try std.testing.expect(first.record != second.record);
+}
+
+test "mixed result allocation failures preserve input and native trace prefix" {
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, execute, .{normal});
+}
