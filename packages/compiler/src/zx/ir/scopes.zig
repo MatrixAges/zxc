@@ -39,13 +39,13 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
     defer if (self.pure_functions) |pure| allocator.free(pure);
     defer self.refinement.deinit(allocator);
 
-    if (!try self.block(program.body, 0)) return false;
+    if (!try self.block(program.body.block(), 0)) return false;
 
     for (declared) |item| if (!item) {
         return false;
     };
 
-    return program.output_type == Types.scalarId(.void) or Analyzer.returns(program.body);
+    return program.output_type == Types.scalarId(.void) or Analyzer.returns(program.body.block());
 }
 
 fn declare(self: *Self, symbol: ir.SymbolId, type_id: ir.TypeId) bool {
@@ -59,7 +59,7 @@ fn declare(self: *Self, symbol: ir.SymbolId, type_id: ir.TypeId) bool {
     return true;
 }
 
-fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Allocator.Error!bool {
+fn block(self: *Self, statements: ir.Block, depth: usize) std.mem.Allocator.Error!bool {
     if (depth > 256) return false;
 
     const facts = self.refinement.mark();
@@ -71,8 +71,10 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
     defer self.allocator.free(saved);
     defer @memcpy(self.active, saved);
 
-    for (statements, 0..) |statement, index| {
-        if (Analyzer.returns(statements[0..index])) return false;
+    for (0..statements.len) |index| {
+        const statement = statements.at(index);
+
+        if (Analyzer.returns(statements.prefix(index))) return false;
 
         switch (statement) {
             .evaluate => |id| if (!try self.expression(id, 0)) return false,
@@ -83,7 +85,9 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
                 if (invocations.len == 0) return false;
                 if (self.pure_functions == null) self.pure_functions = try @import("parallel.zig").functions(self.allocator, self.program);
 
-                for (invocations) |invocation| {
+                for (0..invocations.len) |invocation_index| {
+                    const invocation = invocations.at(invocation_index);
+
                     if (!try self.expression(invocation.value, 0)) return false;
 
                     const value = self.program.expression(invocation.value).value;
@@ -91,7 +95,9 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
                     if (value != .call or !self.pure_functions.?[@backingInt(value.call.function)]) return false;
                 }
 
-                for (invocations) |invocation| {
+                for (0..invocations.len) |invocation_index| {
+                    const invocation = invocations.at(invocation_index);
+
                     if (invocation.symbol) |symbol| if (!self.declare(symbol, self.program.expression(invocation.value).type_id)) return false;
                 }
             },
@@ -102,7 +108,8 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
 
                 if (target != .tuple or target.tuple.len != binding.symbols.len) return false;
 
-                for (binding.symbols, 0..target.tuple.len) |symbol, view_index| {
+                for (0..binding.symbols.len, 0..target.tuple.len) |symbol_index, view_index| {
+                    const symbol = binding.symbols.at(symbol_index);
                     const type_id = target.tuple.at(view_index);
 
                     if (symbol) |id| if (!self.declare(id, type_id)) {
@@ -110,7 +117,7 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
                     };
                 }
 
-                try self.refinement.bind(self.allocator, self.program.expression(binding.value), binding.symbols);
+                if (binding.symbols.len == 2) try self.refinement.bind(self.allocator, self.program.expression(binding.value), &.{ binding.symbols.at(0), binding.symbols.at(1) });
             },
             .result => |value| {
                 if (value) |id| {
@@ -137,7 +144,9 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
             .switch_stmt => |selection| {
                 if (!try self.expression(selection.subject, 0) or !self.switchCases(selection)) return false;
 
-                for (selection.cases) |case| {
+                for (0..selection.cases.len) |case_index| {
+                    const case = selection.cases.at(case_index);
+
                     if (case.value) |id| if (!try self.expression(id, 0)) {
                         return false;
                     };
@@ -357,7 +366,7 @@ fn sequence(self: *Self, items: []const ir.ExprId, depth: usize) std.mem.Allocat
     return true;
 }
 
-fn switchCases(self: *Self, selection: @FieldType(ir.Statement, "switch_stmt")) bool {
+fn switchCases(self: *Self, selection: @FieldType(ir.StatementRow, "switch_stmt")) bool {
     const type_id = self.program.expression(selection.subject).type_id;
     const target = self.program.typeOf(type_id);
 
@@ -365,7 +374,9 @@ fn switchCases(self: *Self, selection: @FieldType(ir.Statement, "switch_stmt")) 
 
     var has_default = false;
 
-    for (selection.cases, 0..) |case, index| {
+    for (0..selection.cases.len) |index| {
+        const case = selection.cases.at(index);
+
         if (case.value) |id| {
             if (@backingInt(id) >= self.program.expressions.count() or self.program.expression(id).type_id != type_id) return false;
 
@@ -376,7 +387,9 @@ fn switchCases(self: *Self, selection: @FieldType(ir.Statement, "switch_stmt")) 
                 else => return false,
             }
 
-            for (selection.cases[0..index]) |previous| {
+            for (0..index) |previous_index| {
+                const previous = selection.cases.at(previous_index);
+
                 if (previous.value) |previous_id| if (same(value, self.program.expression(previous_id).value)) {
                     return false;
                 };

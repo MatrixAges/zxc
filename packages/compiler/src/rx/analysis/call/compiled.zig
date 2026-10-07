@@ -76,7 +76,7 @@ pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Alloc
             .output_ownership = function.output_ownership,
             .symbols = symbols,
             .expressions = expressions,
-            .body = try allocator.dupe(zx.ir.Statement, &.{.{ .result = @fromBackingInt(@intCast(1)) }}),
+            .body = try zx.ir.ControlBody.fromValues(allocator, &.{.{ .result = @fromBackingInt(@intCast(1)) }}),
             .functions = functions.items,
             .native_modules = native_modules.items,
         };

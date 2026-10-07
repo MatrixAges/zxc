@@ -156,7 +156,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     @memset(self.used, false);
     @memset(self.cache_reads, 0);
 
-    const body_statements = try self.statements(self.program.body);
+    const body_statements = try self.statements(self.program.body.block());
     const preconditions = try @import("contracts.zig").preconditions(self);
     var body: std.ArrayList(node.Statement) = .empty;
 
@@ -183,12 +183,12 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
 
         const pending = node.Constant{ .name = "pending", .type_expr = try self.builder.identifier(self.pending_name), .value = try self.builder.expression(.{ .object = .{ .type_expr = try self.builder.identifier(self.pending_name), .fields = fields } }) };
 
-        try body.append(self.allocator, if (@import("statements.zig").writes(self.program.body)) .{ .variable = pending } else .{ .constant = pending });
+        try body.append(self.allocator, if (@import("statements.zig").writes(self.program.body.block())) .{ .variable = pending } else .{ .constant = pending });
     }
 
     try body.appendSlice(self.allocator, preconditions);
     try body.appendSlice(self.allocator, body_statements);
-    if (self.transaction() and !ir.terminates(self.program.body)) try body.append(self.allocator, .{ .expression = try self.commit() });
+    if (self.transaction() and !ir.terminates(self.program.body.block())) try body.append(self.allocator, .{ .expression = try self.commit() });
 
     const injected = self.program.stores.len > 0;
     const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(injected)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)) + @as(usize, @intFromBool(self.buffered_type != null)));
@@ -436,7 +436,7 @@ pub fn fresh(self: *Self, prefix: []const u8) Error![]const u8 {
     return std.fmt.allocPrint(self.allocator, "{s}_{d}", .{ prefix, self.serial });
 }
 
-pub fn statements(self: *Self, values: []const ir.Statement) Error![]const node.Statement {
+pub fn statements(self: *Self, values: ir.Block) Error![]const node.Statement {
     return @import("statements.zig").lower(self, values);
 }
 

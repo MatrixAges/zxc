@@ -3,19 +3,19 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 
-pub fn statement(self: *Lower, statements: []const ir.Statement, index: usize) Lower.Error!?node.Statement {
+pub fn statement(self: *Lower, statements: ir.Block, index: usize) Lower.Error!?node.Statement {
     if (self.program.store_mode != .orchestration or self.program.stores.len == 0) return null;
 
-    const first = value(self, statements[index]) orelse return null;
+    const first = value(self, statements.at(index)) orelse return null;
 
     if (first != .store_get and first != .call) return null;
-    if (index > 0) if (value(self, statements[index - 1])) |previous| if (previous == .store_get) return null;
+    if (index > 0) if (value(self, statements.at(index - 1))) |previous| if (previous == .store_get) return null;
 
     var slots: std.ArrayList(u32) = .empty;
     var cursor = index;
 
     while (cursor < statements.len) : (cursor += 1) {
-        const expression = value(self, statements[cursor]) orelse break;
+        const expression = value(self, statements.at(cursor)) orelse break;
 
         switch (expression) {
             .store_get => |slot| try append(self, &slots, slot),
@@ -53,7 +53,7 @@ pub fn array(self: *Lower, slots: []const u32) Lower.Error!*const node.Expressio
     return self.builder.expression(.{ .array = .{ .element_type = try self.builder.expression(.{ .primitive = .u32 }), .values = values } });
 }
 
-fn value(self: *Lower, statement_value: ir.Statement) ?@FieldType(ir.ExpressionRow, "value") {
+fn value(self: *Lower, statement_value: ir.StatementRow) ?@FieldType(ir.ExpressionRow, "value") {
     const id = switch (statement_value) {
         .constant => |binding| binding.value,
         .evaluate => |id| id,

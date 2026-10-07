@@ -5,7 +5,7 @@ const ir = zx.ir;
 const Analyzer = @import("analyzer.zig");
 const Types = @import("types.zig");
 
-pub fn block(self: *Analyzer, value: anytype) zx.Error![]const ir.Statement {
+pub fn block(self: *Analyzer, value: anytype) zx.Error!ir.BlockId {
     const scope_start = self.active.items.len;
     const facts = self.refinement.mark();
 
@@ -14,10 +14,12 @@ pub fn block(self: *Analyzer, value: anytype) zx.Error![]const ir.Statement {
 
     var result: std.ArrayList(ir.Statement) = .empty;
 
+    defer result.deinit(self.allocator);
+
     for (0..value.statements.len) |statement_index| {
         const statement = syntax.item(value.statements, statement_index);
 
-        if (Analyzer.returns(result.items)) return self.reporter.fail(.return_path, statement.span, "unreachable statement after a terminating branch or return");
+        if (self.control.terminates(result.items)) return self.reporter.fail(.return_path, statement.span, "unreachable statement after a terminating branch or return");
 
         switch (statement.value) {
             .state_update => return self.reporter.fail(.unsupported, statement.span, "state updates are only allowed in loop"),
@@ -82,12 +84,12 @@ pub fn block(self: *Analyzer, value: anytype) zx.Error![]const ir.Statement {
 
                 try self.refinement.assume(self.allocator, self.nodes.view(), condition, false);
 
-                const no = if (branch.no) |body| try block(self, body) else &.{};
+                const no = if (branch.no) |body| try block(self, body) else try self.control.appendBlock(self.allocator, &.{});
 
                 self.refinement.restore(before);
 
-                if (Analyzer.returns(yes)) try self.refinement.assume(self.allocator, self.nodes.view(), condition, false);
-                if (Analyzer.returns(no)) try self.refinement.assume(self.allocator, self.nodes.view(), condition, true);
+                if (self.control.returns(yes)) try self.refinement.assume(self.allocator, self.nodes.view(), condition, false);
+                if (self.control.returns(no)) try self.refinement.assume(self.allocator, self.nodes.view(), condition, true);
                 try result.append(self.allocator, .{ .branch = .{ .condition = condition, .yes = yes, .no = no } });
             },
             .switch_stmt => |selection| try result.append(self.allocator, try @import("switch.zig").analyze(self, selection.subject, selection.cases)),
@@ -102,7 +104,7 @@ pub fn block(self: *Analyzer, value: anytype) zx.Error![]const ir.Statement {
         }
     }
 
-    return result.toOwnedSlice(self.allocator);
+    return self.control.appendBlock(self.allocator, result.items);
 }
 
 pub fn bindingName(self: *Analyzer, name: zx.ast.Name) zx.Error!void {

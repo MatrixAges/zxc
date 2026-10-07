@@ -12,6 +12,7 @@ types: Types,
 symbols: ir.SymbolStorage = .{},
 active: std.ArrayList(ir.SymbolId) = .empty,
 nodes: ir.ExpressionStorage = .{},
+control: ir.ControlStorage = .{},
 output_type: ir.TypeId = undefined,
 function_imports: []const FunctionImport = &.{},
 functions: []const ir.Function = &.{},
@@ -46,13 +47,13 @@ fn runInitialized(self: *Self, program: anytype, view: anytype, file_name: []con
 
     try self.resolveStores(program.has_store, contract_span);
 
-    const body = if (program.body) |source_body| blk: {
+    const body: ?ir.BlockId = if (program.body) |source_body| blk: {
         _ = try self.bind(.{ .text = "in", .span = contract_span }, input_type, 0);
 
         break :blk try self.block(source_body);
-    } else &.{};
+    } else null;
 
-    if (self.output_type != Types.scalarId(.void) and !returns(body)) return self.reporter.fail(.return_path, contract_span, "every path must return Output");
+    if (self.output_type != Types.scalarId(.void) and !self.control.returns(body.?)) return self.reporter.fail(.return_path, contract_span, "every path must return Output");
 
     const exports = try self.exportTypes(view);
     const contracts = try @import("contracts.zig").analyze(self, program.contracts, input_type, exports);
@@ -97,7 +98,7 @@ const Output = struct {
     input_type: ir.TypeId,
     exports: []const ir.Export,
     type_only: bool,
-    body: []const ir.Statement = &.{},
+    body: ?ir.BlockId = null,
     contracts: []const ir.Contract = &.{},
 };
 
@@ -110,7 +111,7 @@ fn finish(self: *Self, output: Output) zx.Error!ir.Program {
         .expressions = try self.nodes.finish(self.allocator),
         .input_type = output.input_type,
         .output_type = self.output_type,
-        .body = output.body,
+        .body = try self.control.finish(self.allocator, output.body),
         .exports = output.exports,
         .stores = self.stores,
         .type_only = output.type_only,
@@ -195,7 +196,7 @@ pub fn bind(self: *Self, name: zx.ast.Name, type_id: ir.TypeId, scope_start: usi
     return id;
 }
 
-pub fn block(self: *Self, value: anytype) zx.Error![]const ir.Statement {
+pub fn block(self: *Self, value: anytype) zx.Error!ir.BlockId {
     return statements.block(self, value);
 }
 

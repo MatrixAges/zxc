@@ -24,7 +24,7 @@ pub fn scalarLocals(program: ir.Program, pure: []const bool) bool {
         else => return false,
     }
 
-    return program.stores.len == 0 and !parallel(program.body) and calls(program.expressions, program.contracts, pure);
+    return program.stores.len == 0 and !parallel(program.body.block()) and calls(program.expressions, program.contracts, pure);
 }
 
 pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Summary {
@@ -44,8 +44,8 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
     const eligible = try allocator.alloc(bool, program.functions.len);
 
     for (program.functions, 0..) |function, index| {
-        pure[index] = if (function.external != null) @import("../native_value.zig").valueBoundary(program, function) else function.stores.len == 0 and !parallel(function.body) and calls(function.expressions, function.contracts, pure[0..index]);
-        local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.len == 0 and !parallel(function.body) and calls(function.expressions, function.contracts, local[0..index]);
+        pure[index] = if (function.external != null) @import("../native_value.zig").valueBoundary(program, function) else function.stores.len == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, pure[0..index]);
+        local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.len == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, local[0..index]);
         eligible[index] = local[index] and (program.typeOf(function.output_type) == .object or state.represented(program, function.output_type));
     }
 
@@ -118,15 +118,21 @@ fn calls(expressions: ir.ExpressionTable, contracts: []const ir.Contract, pure: 
     return true;
 }
 
-fn parallel(body: []const ir.Statement) bool {
-    for (body) |statement| switch (statement) {
-        .parallel => return true,
-        .branch => |value| if (parallel(value.yes) or parallel(value.no)) return true,
-        .switch_stmt => |value| for (value.cases) |case| {
-            if (parallel(case.body)) return true;
-        },
-        else => {},
-    };
+fn parallel(body: ir.Block) bool {
+    for (0..body.len) |statement_index| {
+        const statement = body.at(statement_index);
+
+        switch (statement) {
+            .parallel => return true,
+            .branch => |value| if (parallel(value.yes) or parallel(value.no)) return true,
+            .switch_stmt => |value| for (0..value.cases.len) |case_index| {
+                const case = value.cases.at(case_index);
+
+                if (parallel(case.body)) return true;
+            },
+            else => {},
+        }
+    }
 
     return false;
 }

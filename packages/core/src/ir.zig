@@ -5,6 +5,12 @@ pub const Operator = @import("syntax.zig").Operator;
 pub const TypeId = @import("type_table/model.zig").TypeId;
 pub const SymbolId = enum(u32) { _ };
 pub const ExprId = enum(u32) { _ };
+pub const BlockId = enum(u32) { _ };
+pub const ControlBody = @import("control_table/root.zig");
+pub const ControlTable = @import("control_table/model.zig").Table;
+pub const ControlStorage = @import("control_table/storage.zig");
+pub const Block = @import("control_table/read.zig").Block;
+pub const StatementRow = @import("control_table/read.zig").Statement;
 pub const FunctionId = enum(u32) { _ };
 pub const NativeModuleId = enum(u32) { _ };
 pub const Ownership = enum { copy, borrowed, owned };
@@ -95,14 +101,14 @@ pub const Statement = union(enum) {
     constant: struct { symbol: SymbolId, value: ExprId },
     parallel: []const ParallelCall,
     destructure: struct { symbols: []const ?SymbolId, value: ExprId },
-    branch: struct { condition: ExprId, yes: []const Statement, no: []const Statement },
+    branch: struct { condition: ExprId, yes: BlockId, no: BlockId },
     switch_stmt: struct { subject: ExprId, cases: []const SwitchCase, exhaustive: bool },
     store_set: struct { slot: u32, value: ExprId },
     result: ?ExprId,
 };
 
 pub const ParallelCall = struct { symbol: ?SymbolId, value: ExprId };
-pub const SwitchCase = struct { value: ?ExprId, body: []const Statement };
+pub const SwitchCase = struct { value: ?ExprId, body: BlockId };
 pub const StoreMode = enum { transaction, orchestration };
 pub const StoreSlot = struct { path: []const u8, type_id: TypeId, handle: []const u8 = "", readable: bool = true, writable: bool = true };
 
@@ -155,12 +161,12 @@ pub const Function = struct {
     output_type: TypeId,
     symbols: SymbolTable,
     expressions: ExpressionTable,
-    body: []const Statement,
+    body: ControlBody,
 };
 
 pub const Program = struct {
     output_ownership: Ownership = .borrowed,
-    version: u32 = 27,
+    version: u32 = 28,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,
@@ -169,7 +175,7 @@ pub const Program = struct {
     expressions: ExpressionTable,
     input_type: TypeId,
     output_type: TypeId,
-    body: []const Statement,
+    body: ControlBody,
     exports: []const Export = &.{},
     functions: []const Function = &.{},
     native_modules: []const NativeModule = &.{},
@@ -184,16 +190,16 @@ pub const Program = struct {
     }
 };
 
-pub fn terminates(statements: []const Statement) bool {
+pub fn terminates(statements: Block) bool {
     if (statements.len == 0) return false;
 
-    return switch (statements[statements.len - 1]) {
+    return switch (statements.at(statements.len - 1)) {
         .result => true,
         .branch => |branch| terminates(branch.yes) and terminates(branch.no),
         .switch_stmt => |selection| blk: {
             if (!selection.exhaustive) break :blk false;
 
-            for (selection.cases) |case| if (!terminates(case.body)) {
+            for (0..selection.cases.len) |index| if (!terminates(selection.cases.at(index).body)) {
                 break :blk false;
             };
 

@@ -18,7 +18,9 @@ pub fn select(allocator: std.mem.Allocator, bindings: []const Binding, calls: []
 }
 
 fn reads(program: ir.Program, name: []const u8) bool {
-    for (program.body) |statement| {
+    for (0..program.body.block().len) |statement_index| {
+        const statement = program.body.block().at(statement_index);
+
         if (statement != .constant) break;
 
         const symbol = statement.constant.symbol;

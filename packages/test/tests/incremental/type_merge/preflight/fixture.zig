@@ -99,7 +99,7 @@ pub fn valid(memory: std.mem.Allocator, table: ir.TypeTable) !void {
         .expressions = .{},
         .input_type = @fromBackingInt(@backingInt(ir.Scalar.void)),
         .output_type = @fromBackingInt(@backingInt(ir.Scalar.void)),
-        .body = &.{},
+        .body = .{},
         .type_only = true,
         .native_modules = &.{.{ .specifier = "zig:fixture", .import_name = "fixture", .types = exports.items }},
     };

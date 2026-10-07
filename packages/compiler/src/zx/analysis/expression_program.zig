@@ -101,7 +101,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
         .expressions = try analyzer.nodes.finish(allocator),
         .input_type = input_type,
         .output_type = output_type,
-        .body = try body.toOwnedSlice(allocator),
+        .body = try ir.ControlBody.fromValues(allocator, body.items),
     };
 
     if (!linking) program.output_ownership = try @import("../ownership/check.zig").analyze(allocator, program, reporter);

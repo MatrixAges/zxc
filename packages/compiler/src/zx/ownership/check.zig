@@ -46,7 +46,7 @@ pub fn facts(allocator: std.mem.Allocator, program: ir.Program, reporter: *zx.Re
 
     places.assign(states, 0, .borrowed);
 
-    try self.block(program.body);
+    try self.block(program.body.block());
 
     const output: ir.Ownership = switch (self.returned orelse .copy) {
         .copy => .copy,
@@ -62,8 +62,10 @@ fn isReference(self: *Self, id: ir.TypeId) bool {
     return Places.isReference(self.program, id);
 }
 
-fn block(self: *Self, statements: []const ir.Statement) zx.Error!void {
-    for (statements) |statement| {
+fn block(self: *Self, statements: ir.Block) zx.Error!void {
+    for (0..statements.len) |statement_index| {
+        const statement = statements.at(statement_index);
+
         defer self.releaseLoans(null);
 
         switch (statement) {
@@ -72,7 +74,8 @@ fn block(self: *Self, statements: []const ir.Statement) zx.Error!void {
             },
             .constant => |binding| self.places.assign(self.states, @backingInt(binding.symbol), try self.value(binding.value, .move)),
             .parallel => |invocations| {
-                for (invocations) |invocation| {
+                for (0..invocations.len) |invocation_index| {
+                    const invocation = invocations.at(invocation_index);
                     const state = try self.value(invocation.value, .read);
 
                     if (invocation.symbol) |symbol| self.places.assign(self.states, @backingInt(symbol), state);
@@ -83,9 +86,13 @@ fn block(self: *Self, statements: []const ir.Statement) zx.Error!void {
             .destructure => |binding| {
                 const state = try self.value(binding.value, .move);
 
-                for (binding.symbols) |symbol| if (symbol) |id| {
-                    self.places.assign(self.states, @backingInt(id), state);
-                };
+                for (0..binding.symbols.len) |symbol_index| {
+                    const symbol = binding.symbols.at(symbol_index);
+
+                    if (symbol) |id| {
+                        self.places.assign(self.states, @backingInt(id), state);
+                    }
+                }
             },
             .result => |result| if (result) |id| {
                 const state = try self.value(id, .move);
@@ -131,7 +138,9 @@ fn block(self: *Self, statements: []const ir.Statement) zx.Error!void {
 
                 var has_path = !selection.exhaustive;
 
-                for (selection.cases) |case| {
+                for (0..selection.cases.len) |case_index| {
+                    const case = selection.cases.at(case_index);
+
                     @memcpy(self.states, before);
 
                     try self.block(case.body);

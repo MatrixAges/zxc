@@ -34,7 +34,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!ir.ExprId {
         const argument = try self.expression(call.argument);
         const function = self.unit.plan.program.functions[@backingInt(call.function)];
         var child = try init(self.unit, function.symbols, function.expressions, null);
-        const returned = try @import("block.zig").lower(&child, function.body, null, function.output_type, item.span);
+        const returned = try @import("block.zig").lower(&child, function.body.block(), null, function.output_type, item.span);
         const input: ir.SymbolId = @fromBackingInt(@intCast(child.symbol_offset));
 
         if (self.unit.costs.items[@backingInt(returned)] > @import("plan.zig").limit) return error.ExpansionLimit;
@@ -47,6 +47,33 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!ir.ExprId {
     self.ids[@backingInt(id)] = result;
 
     return result;
+}
+
+pub fn block(self: *Self, source: ir.Block) Error!ir.BlockId {
+    const statements = try self.unit.allocator.alloc(ir.Statement, source.len);
+
+    defer self.unit.allocator.free(statements);
+
+    for (statements, 0..) |*target, index| {
+        target.* = switch (source.at(index)) {
+            .parallel => |items| .{ .parallel = try self.records(ir.ParallelCall, items) },
+            .destructure => |binding| .{ .destructure = .{ .symbols = try self.records(?ir.SymbolId, binding.symbols), .value = try self.expression(binding.value) } },
+            .branch => |branch| .{ .branch = .{ .condition = try self.expression(branch.condition), .yes = try self.block(branch.yes), .no = try self.block(branch.no) } },
+            .switch_stmt => |selection| blk: {
+                const cases = try self.unit.allocator.alloc(ir.SwitchCase, selection.cases.len);
+
+                for (cases, 0..) |*target_case, position| {
+                    const case = selection.cases.at(position);
+                    target_case.* = .{ .value = try self.value(?ir.ExprId, case.value), .body = try self.block(case.body) };
+                }
+
+                break :blk .{ .switch_stmt = .{ .subject = try self.expression(selection.subject), .cases = cases, .exhaustive = selection.exhaustive } };
+            },
+            inline else => |item, tag| @unionInit(ir.Statement, @tagName(tag), try self.value(@TypeOf(item), item)),
+        };
+    }
+
+    return self.unit.control.appendBlock(self.unit.allocator, statements);
 }
 
 fn expressionValue(self: *Self, source: @FieldType(ir.ExpressionRow, "value")) Error!@FieldType(ir.Expression, "value") {

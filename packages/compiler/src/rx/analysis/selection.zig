@@ -33,7 +33,7 @@ pub fn check(subject: zx.ir.Program, attribute: rx.ast.Attribute, cases: []const
 }
 
 fn label(program: zx.ir.Program) Value {
-    return program.expression(program.body[program.body.len - 1].result.?).value;
+    return program.expression(program.body.block().at(program.body.block().len - 1).result.?).value;
 }
 
 fn same(left: Value, right: Value) bool {

@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
-pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const node.Statement {
+pub fn lower(self: *Lower, values: ir.Block) Lower.Error![]const node.Statement {
     const state_symbols = try @import("state_value/locals.zig").statements(self, values);
 
     defer for (state_symbols) |symbol| {
@@ -27,7 +27,7 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
 
         if (try @import("store/begin.zig").statement(self, values, offset)) |begin| try output.append(self.allocator, begin);
 
-        switch (values[offset]) {
+        switch (values.at(offset)) {
             .evaluate => |id| try output.append(self.allocator, .{ .discard = try @import("iteration.zig").discard(self, id) }),
             .parallel => |invocations| try output.appendSlice(self.allocator, try @import("parallel/root.zig").lower(self, invocations)),
             .constant => |binding| binding_block: {
@@ -51,7 +51,9 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
 
                 var used = false;
 
-                for (binding.symbols, 0..) |symbol, index| {
+                for (0..binding.symbols.len) |index| {
+                    const symbol = binding.symbols.at(index);
+
                     if (symbol) |id| {
                         if (self.used[@backingInt(id)]) {
                             used = true;
@@ -67,8 +69,8 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
                 var returned: ?*const node.Expression = null;
 
                 if (value) |id| {
-                    if (offset + 1 == values.len and offset != 0 and values[offset - 1] == .constant) {
-                        const binding = values[offset - 1].constant;
+                    if (offset + 1 == values.len and offset != 0 and values.at(offset - 1) == .constant) {
+                        const binding = values.at(offset - 1).constant;
                         returned = try @import("iteration_consumer.zig").lower(self, binding.symbol, binding.value, id, self.value_output);
                         consumed_previous = returned != null;
                     }
@@ -114,7 +116,7 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
     return output.toOwnedSlice(self.allocator);
 }
 
-fn switchStatement(self: *Lower, selection: @FieldType(ir.Statement, "switch_stmt")) Lower.Error![]const node.Statement {
+fn switchStatement(self: *Lower, selection: @FieldType(ir.StatementRow, "switch_stmt")) Lower.Error![]const node.Statement {
     const name = try self.fresh("switch");
     const subject = try self.expr(selection.subject);
     const old = self.cache.get(selection.subject);
@@ -127,15 +129,19 @@ fn switchStatement(self: *Lower, selection: @FieldType(ir.Statement, "switch_stm
 
     var tail: []const node.Statement = if (selection.exhaustive) try self.allocator.dupe(node.Statement, &.{.unreachable_stmt}) else &.{};
 
-    for (selection.cases) |case| if (case.value == null) {
-        tail = try lower(self, case.body);
-    };
+    for (0..selection.cases.len) |case_index| {
+        const case = selection.cases.at(case_index);
+
+        if (case.value == null) {
+            tail = try lower(self, case.body);
+        }
+    }
 
     var index = selection.cases.len;
 
     while (index > 0) {
         index -= 1;
-        const case = selection.cases[index];
+        const case = selection.cases.at(index);
 
         if (case.value) |label| {
             tail = try self.allocator.dupe(node.Statement, &.{.{ .branch = .{ .condition = try self.binary(.{ .operator = .equal, .left = selection.subject, .right = label }), .yes = try lower(self, case.body), .no = tail } }});
@@ -145,20 +151,24 @@ fn switchStatement(self: *Lower, selection: @FieldType(ir.Statement, "switch_stm
     var result: std.ArrayList(node.Statement) = .empty;
 
     try result.append(self.allocator, .{ .constant = .{ .name = name, .value = subject } });
-    if (selection.cases.len == 0 or (selection.cases.len == 1 and selection.cases[0].value == null)) try result.append(self.allocator, .{ .discard = try self.builder.identifier(name) });
+    if (selection.cases.len == 0 or (selection.cases.len == 1 and selection.cases.at(0).value == null)) try result.append(self.allocator, .{ .discard = try self.builder.identifier(name) });
     try result.appendSlice(self.allocator, tail);
 
     return result.toOwnedSlice(self.allocator);
 }
 
-pub fn writes(values: []const ir.Statement) bool {
-    for (values) |value| {
+pub fn writes(values: ir.Block) bool {
+    for (0..values.len) |value_index| {
+        const value = values.at(value_index);
+
         switch (value) {
             .store_set => return true,
             .branch => |branch| if (writes(branch.yes) or writes(branch.no)) {
                 return true;
             },
-            .switch_stmt => |selection| for (selection.cases) |case| {
+            .switch_stmt => |selection| for (0..selection.cases.len) |case_index| {
+                const case = selection.cases.at(case_index);
+
                 if (writes(case.body)) return true;
             },
             else => {},

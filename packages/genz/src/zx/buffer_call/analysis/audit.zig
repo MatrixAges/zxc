@@ -12,7 +12,7 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
     trace.proven.clearRetainingCapacity();
 
     if (trace.function.contracts.len != 0) return .contracts;
-    if (parallel(trace.function.body)) return .parallel;
+    if (parallel(trace.function.body.block())) return .parallel;
 
     for (0..trace.function.expressions.count()) |position| {
         const expression = trace.function.expressions.at(position);
@@ -119,15 +119,21 @@ fn count(trace: *Trace, id: ir.ExprId, lane: flow.Lane) Error!usize {
     return total;
 }
 
-fn parallel(statements: []const ir.Statement) bool {
-    for (statements) |statement| switch (statement) {
-        .parallel => return true,
-        .branch => |branch| if (parallel(branch.yes) or parallel(branch.no)) return true,
-        .switch_stmt => |selection| for (selection.cases) |case| {
-            if (parallel(case.body)) return true;
-        },
-        else => {},
-    };
+fn parallel(statements: ir.Block) bool {
+    for (0..statements.len) |statement_index| {
+        const statement = statements.at(statement_index);
+
+        switch (statement) {
+            .parallel => return true,
+            .branch => |branch| if (parallel(branch.yes) or parallel(branch.no)) return true,
+            .switch_stmt => |selection| for (0..selection.cases.len) |case_index| {
+                const case = selection.cases.at(case_index);
+
+                if (parallel(case.body)) return true;
+            },
+            else => {},
+        }
+    }
 
     return false;
 }

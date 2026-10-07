@@ -136,7 +136,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         .output_ownership = if (function) |value| value.output_ownership else .borrowed,
         .symbols = if (function) |value| value.symbols else .{},
         .expressions = if (function) |value| value.expressions else .{},
-        .body = if (function) |value| value.body else &.{},
+        .body = if (function) |value| value.body else .{},
         .contracts = if (function) |value| value.contracts else &.{},
         .exports = exports,
         .stores = stores,

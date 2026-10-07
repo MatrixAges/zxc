@@ -45,7 +45,7 @@ pub fn load(allocator: std.mem.Allocator, entry: External, module: ir.NativeModu
         .output_type = output_type,
         .symbols = .{},
         .expressions = .{},
-        .body = &.{},
+        .body = .{},
         .external = .{
             .module = module,
             .member = members.items,

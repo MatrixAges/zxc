@@ -74,7 +74,7 @@ pub fn checkTable(self: *Self, table: ir.TypeTable, accepted: bool, structural: 
         .expressions = .{},
         .input_type = scalar(.void),
         .output_type = scalar(.void),
-        .body = &.{},
+        .body = .{},
         .type_only = true,
         .native_modules = if (has_native) &modules else &.{},
     };

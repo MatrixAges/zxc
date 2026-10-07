@@ -8,7 +8,7 @@ const inlineValue = @import("expression.zig").inlineValue;
 
 pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.Call) Builder.Error!void {
     for (sequence) |step| {
-        if (ir.terminates(builder.body.items)) return error.UnreachableFlow;
+        if (builder.control.terminates(builder.body.items)) return error.UnreachableFlow;
 
         switch (step) {
             .call => |index| try call(builder, calls[index]),
@@ -75,12 +75,14 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
     }
 }
 
-fn block(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.Call) Builder.Error![]const ir.Statement {
+fn block(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.Call) Builder.Error!ir.BlockId {
     const parent = builder.body;
     const count = builder.bindings.items.len;
     builder.body = .empty;
 
     defer {
+        builder.body.deinit(builder.allocator);
+
         builder.body = parent;
 
         builder.bindings.shrinkRetainingCapacity(count);
@@ -88,7 +90,7 @@ fn block(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.C
 
     try lower(builder, sequence, calls);
 
-    return builder.body.items;
+    return builder.control.appendBlock(builder.allocator, builder.body.items);
 }
 
 fn call(builder: *Builder, invocation: Module.Call) Builder.Error!void {

@@ -27,7 +27,7 @@ pub fn run(allocator: std.mem.Allocator, case: Case) !void {
 
         try std.testing.expect(try compiler.validateIr(allocator, program) == null);
 
-        const value = program.body[program.body.len - 1].result.?;
+        const value = program.body.block().at(program.body.block().len - 1).result.?;
         const span = program.expressions.at(@backingInt(value)).span;
 
         try std.testing.expectEqual(start, span.start);

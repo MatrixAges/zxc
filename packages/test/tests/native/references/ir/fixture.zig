@@ -47,7 +47,7 @@ pub fn nativeOnly(program: ir.Program) ir.Program {
     result.type_only = true;
     result.symbols = .{};
     result.expressions = .{};
-    result.body = &.{};
+    result.body = .{};
 
     return result;
 }

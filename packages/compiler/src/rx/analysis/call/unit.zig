@@ -13,6 +13,6 @@ pub fn create(allocator: std.mem.Allocator, owner: []const u8, types: zx.ir.Type
         .output_type = void_type,
         .symbols = try zx.ir.SymbolTable.fromValues(allocator, &.{.{ .name = "$in", .type_id = void_type, .span = span }}),
         .expressions = try zx.ir.ExpressionTable.fromValues(allocator, &.{.{ .type_id = void_type, .span = span, .value = .unit }}),
-        .body = try allocator.dupe(zx.ir.Statement, &.{.{ .result = @fromBackingInt(@intCast(0)) }}),
+        .body = try zx.ir.ControlBody.fromValues(allocator, &.{.{ .result = @fromBackingInt(@intCast(0)) }}),
     };
 }

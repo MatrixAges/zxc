@@ -27,7 +27,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Func
     @memset(self.bindings, null);
     @memset(self.iterations, null);
 
-    try self.block(function.body);
+    try self.block(function.body.block());
 
     for (0..function.expressions.count()) |expression_index| {
         const expression = function.expressions.at(expression_index);
@@ -86,21 +86,27 @@ pub fn lane(self: *Self, output: []const u32) Error!?flow.Lane {
     };
 }
 
-fn block(self: *Self, statements: []const ir.Statement) Error!void {
-    for (statements) |statement| switch (statement) {
-        .constant => |binding| self.bindings[@backingInt(binding.symbol)] = binding.value,
-        .result => |value| if (value) |id| {
-            try self.results.append(self.allocator, id);
-        },
-        .branch => |branch| {
-            try self.block(branch.yes);
-            try self.block(branch.no);
-        },
-        .switch_stmt => |selection| for (selection.cases) |case| {
-            try self.block(case.body);
-        },
-        else => {},
-    };
+fn block(self: *Self, statements: ir.Block) Error!void {
+    for (0..statements.len) |statement_index| {
+        const statement = statements.at(statement_index);
+
+        switch (statement) {
+            .constant => |binding| self.bindings[@backingInt(binding.symbol)] = binding.value,
+            .result => |value| if (value) |id| {
+                try self.results.append(self.allocator, id);
+            },
+            .branch => |branch| {
+                try self.block(branch.yes);
+                try self.block(branch.no);
+            },
+            .switch_stmt => |selection| for (0..selection.cases.len) |case_index| {
+                const case = selection.cases.at(case_index);
+
+                try self.block(case.body);
+            },
+            else => {},
+        }
+    }
 }
 
 pub fn trace(self: *Self, id: ir.ExprId, path: []const u32) Error!?[]const u32 {

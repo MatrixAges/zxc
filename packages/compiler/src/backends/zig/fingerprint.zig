@@ -32,7 +32,7 @@ pub fn createPrepared(allocator: std.mem.Allocator, program: ir.Program, names: 
     const state_plan = facts.state;
     var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions, .state_plan = state_plan };
 
-    self.bytes("zxc.zig.input.v29");
+    self.bytes("zxc.zig.input.v30");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -91,6 +91,15 @@ fn write(self: *Self, value: anytype) void {
     const T = @TypeOf(value);
 
     if (T == @FieldType(ir.ExpressionRow, "span")) return;
+    if (T == ir.ControlBody) return self.write(value.block());
+
+    if (T == ir.Block or T == @FieldType(ir.StatementRow, "parallel") or T == @FieldType(@FieldType(ir.StatementRow, "destructure"), "symbols") or T == @FieldType(@FieldType(ir.StatementRow, "switch_stmt"), "cases")) {
+        self.write(value.len);
+
+        for (0..value.len) |index| self.write(value.at(index));
+
+        return;
+    }
 
     if (T == ir.ExpressionTable or T == ir.SymbolTable) {
         self.write(value.count());

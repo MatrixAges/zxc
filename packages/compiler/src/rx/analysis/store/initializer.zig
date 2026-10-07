@@ -56,7 +56,7 @@ pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Fi
         .expressions = builder.expressions.view(),
         .input_type = input,
         .output_type = output,
-        .body = try allocator.dupe(zx.ir.Statement, &.{.{ .result = object }}),
+        .body = try zx.ir.ControlBody.fromValues(allocator, &.{.{ .result = object }}),
     };
 
     program.output_ownership = try frontend.analyzeOwnership(allocator, program, reporter);

@@ -20,7 +20,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
         const input = program.typeOf(function.input_type);
 
         if (input == .scalar and input.scalar == .void) continue;
-        if (!statements(function.body)) continue;
+        if (!statements(function.body.block())) continue;
 
         var cost = function.expressions.count() + function.symbols.count() + 1;
 
@@ -58,15 +58,21 @@ fn primitive(program: ir.Program, id: ir.TypeId) bool {
     };
 }
 
-fn statements(items: []const ir.Statement) bool {
-    for (items) |item| switch (item) {
-        .constant, .evaluate, .destructure, .result => {},
-        .branch => |branch| if (!statements(branch.yes) or !statements(branch.no)) return false,
-        .switch_stmt => |selection| for (selection.cases) |case| {
-            if (!statements(case.body)) return false;
-        },
-        .parallel, .store_set => return false,
-    };
+fn statements(items: ir.Block) bool {
+    for (0..items.len) |item_index| {
+        const item = items.at(item_index);
+
+        switch (item) {
+            .constant, .evaluate, .destructure, .result => {},
+            .branch => |branch| if (!statements(branch.yes) or !statements(branch.no)) return false,
+            .switch_stmt => |selection| for (0..selection.cases.len) |case_index| {
+                const case = selection.cases.at(case_index);
+
+                if (!statements(case.body)) return false;
+            },
+            .parallel, .store_set => return false,
+        }
+    }
 
     return true;
 }

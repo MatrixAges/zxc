@@ -58,7 +58,7 @@ pub fn valid(table: ir.TypeTable) !void {
         .expressions = .{},
         .input_type = @fromBackingInt(0),
         .output_type = @fromBackingInt(0),
-        .body = &.{},
+        .body = .{},
         .type_only = true,
     };
 

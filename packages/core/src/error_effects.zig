@@ -16,7 +16,7 @@ pub fn program(allocator: std.mem.Allocator, value: ir.Program) std.mem.Allocato
 
     if (value.stores.len != 0) self.unknown = true;
     try self.contracts(value.contracts);
-    try self.statements(value.expressions, value.body);
+    try self.statements(value.expressions, value.body.block());
 
     return self.finish();
 }
@@ -86,7 +86,7 @@ pub fn call(self: *Self, id: ir.FunctionId) std.mem.Allocator.Error!void {
 
     if (function.stores.len != 0) self.unknown = true;
     try self.contracts(function.contracts);
-    try self.statements(function.expressions, function.body);
+    try self.statements(function.expressions, function.body.block());
 }
 
 fn contracts(self: *Self, values: []const ir.Contract) std.mem.Allocator.Error!void {
@@ -97,8 +97,10 @@ fn contracts(self: *Self, values: []const ir.Contract) std.mem.Allocator.Error!v
     }
 }
 
-fn statements(self: *Self, values: ir.ExpressionTable, body: []const ir.Statement) std.mem.Allocator.Error!void {
-    for (body) |statement| {
+fn statements(self: *Self, values: ir.ExpressionTable, body: ir.Block) std.mem.Allocator.Error!void {
+    for (0..body.len) |statement_index| {
+        const statement = body.at(statement_index);
+
         switch (statement) {
             .evaluate => |id| try self.visit(values, id),
             .constant => |binding| try self.visit(values, binding.value),
@@ -116,7 +118,11 @@ fn statements(self: *Self, values: ir.ExpressionTable, body: []const ir.Statemen
             .parallel => |calls| {
                 self.unknown = true;
 
-                for (calls) |invocation| try self.visit(values, invocation.value);
+                for (0..calls.len) |invocation_index| {
+                    const invocation = calls.at(invocation_index);
+
+                    try self.visit(values, invocation.value);
+                }
             },
             .branch => |branch| {
                 try self.visit(values, branch.condition);
@@ -126,13 +132,15 @@ fn statements(self: *Self, values: ir.ExpressionTable, body: []const ir.Statemen
             .switch_stmt => |selection| {
                 try self.visit(values, selection.subject);
 
-                for (selection.cases) |case| {
+                for (0..selection.cases.len) |case_index| {
+                    const case = selection.cases.at(case_index);
+
                     if (case.value) |id| try self.visit(values, id);
                     try self.statements(values, case.body);
                 }
             },
         }
 
-        if (ir.terminates(&.{statement})) return;
+        if (ir.terminates(.{ .control = body.control, .first = body.first + statement_index, .len = 1 })) return;
     }
 }

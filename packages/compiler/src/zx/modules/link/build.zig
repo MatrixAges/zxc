@@ -142,7 +142,7 @@ fn importExternal(self: *Self, signature: model.Signature, input: ir.TypeId, out
 
     const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.items.len));
 
-    try self.functions.append(self.allocator, .{ .file_name = try self.allocator.dupe(u8, signature.file_name), .input_type = input, .output_type = output, .output_ownership = signature.output_ownership, .external = implementation, .symbols = .{}, .expressions = .{}, .body = &.{} });
+    try self.functions.append(self.allocator, .{ .file_name = try self.allocator.dupe(u8, signature.file_name), .input_type = input, .output_type = output, .output_ownership = signature.output_ownership, .external = implementation, .symbols = .{}, .expressions = .{}, .body = .{} });
 
     return id;
 }

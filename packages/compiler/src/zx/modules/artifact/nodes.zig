@@ -34,7 +34,7 @@ pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
     result.output_type = try self.types.include(value.output_type);
     result.symbols = try self.symbols(value.symbols);
     result.expressions = try self.expressions(value.expressions);
-    result.body = try self.statements(value.body, 0);
+    result.body = try self.body(value.body);
     const stores = try self.allocator.dupe(ir.StoreSlot, value.stores);
     result.stores = stores;
 
@@ -103,26 +103,19 @@ fn expressions(self: *Self, values: ir.ExpressionTable) Error!ir.ExpressionTable
     return result;
 }
 
-fn statements(self: *Self, values: []const ir.Statement, depth: usize) Error![]const ir.Statement {
-    if (depth > 256) return error.InvalidIr;
+fn body(self: *Self, value: ir.ControlBody) Error!ir.ControlBody {
+    if (!try value.validStructure(self.allocator)) return error.InvalidModule;
+    if (value.root == null) return .{};
 
-    const result = try self.allocator.dupe(ir.Statement, values);
+    const table = try self.allocator.create(ir.ControlTable);
 
-    for (result) |*item| item.* = switch (item.*) {
-        .constant, .evaluate, .store_set, .result => item.*,
-        .parallel => |invocations| .{ .parallel = try self.allocator.dupe(ir.ParallelCall, invocations) },
-        .destructure => |binding| .{ .destructure = .{ .symbols = try self.allocator.dupe(?ir.SymbolId, binding.symbols), .value = binding.value } },
-        .branch => |branch| .{ .branch = .{ .condition = branch.condition, .yes = try self.statements(branch.yes, depth + 1), .no = try self.statements(branch.no, depth + 1) } },
-        .switch_stmt => |selection| blk: {
-            const cases = try self.allocator.dupe(ir.SwitchCase, selection.cases);
+    inline for (@typeInfo(ir.ControlTable).@"struct".field_names) |name| {
+        const source = @field(value.control, name);
 
-            for (cases) |*case| case.body = try self.statements(case.body, depth + 1);
+        @field(table, name) = try self.allocator.dupe(@typeInfo(@TypeOf(source)).pointer.child, source);
+    }
 
-            break :blk .{ .switch_stmt = .{ .subject = selection.subject, .cases = cases, .exhaustive = selection.exhaustive } };
-        },
-    };
-
-    return result;
+    return .{ .control = table, .root = value.root };
 }
 
 pub fn external(self: *Self, value: ir.External) Error!ir.External {

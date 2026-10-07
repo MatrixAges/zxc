@@ -46,7 +46,7 @@ pub fn check(trace: *Trace, lane: Lane) Error!bool {
     self.state.symbols[0] = try self.state.seed(program.input_type, input);
     var results: std.ArrayList(statements.Result) = .empty;
 
-    if (!try statements.evaluate(&self.state, program.body, &results) or !self.state.valid) return false;
+    if (!try statements.evaluate(&self.state, program.body.block(), &results) or !self.state.valid) return false;
     for (results.items) |result| if (!facts.retains(result.value, self.output, result.version)) return false;
 
     return results.items.len != 0;

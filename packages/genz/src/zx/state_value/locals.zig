@@ -2,15 +2,23 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const Lower = @import("../lower.zig");
 
-pub fn statements(self: *Lower, values: []const ir.Statement) Lower.Error![]const ir.SymbolId {
+pub fn statements(self: *Lower, values: ir.Block) Lower.Error![]const ir.SymbolId {
     var symbols: std.ArrayList(ir.SymbolId) = .empty;
 
-    if (self.state_active) for (values) |value| switch (value) {
-        .constant => |binding| try add(self, &symbols, binding.symbol),
-        .destructure => |binding| for (binding.symbols) |symbol| if (symbol) |id| {
-            try add(self, &symbols, id);
-        },
-        else => {},
+    if (self.state_active) for (0..values.len) |value_index| {
+        const value = values.at(value_index);
+
+        switch (value) {
+            .constant => |binding| try add(self, &symbols, binding.symbol),
+            .destructure => |binding| for (0..binding.symbols.len) |symbol_index| {
+                const symbol = binding.symbols.at(symbol_index);
+
+                if (symbol) |id| {
+                    try add(self, &symbols, id);
+                }
+            },
+            else => {},
+        }
     };
 
     return symbols.toOwnedSlice(self.allocator);

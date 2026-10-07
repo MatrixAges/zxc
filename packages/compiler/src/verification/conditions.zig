@@ -59,7 +59,7 @@ pub fn generate(self: *Self) zx.Error!Query {
 
     environment[0] = self.input;
 
-    const remaining = try self.block(self.program.body, environment, precondition);
+    const remaining = try self.block(self.program.body.block(), environment, precondition);
 
     if (self.program.typeOf(self.program.output_type) == .scalar and self.program.typeOf(self.program.output_type).scalar == .void) {
         try self.postconditions(remaining, .{ .fields = &.{} });
@@ -112,11 +112,13 @@ fn parameter(self: *Self, type_id: ir.TypeId, path: []const u8) zx.Error!Value {
     return .{ .scalar = name };
 }
 
-fn block(self: *Self, statements: []const ir.Statement, environment: []?Value, initial: []const u8) zx.Error![]const u8 {
+fn block(self: *Self, statements: ir.Block, environment: []?Value, initial: []const u8) zx.Error![]const u8 {
     var path = initial;
     var evaluator = Expressions{ .allocator = self.allocator, .program = self.program, .environment = environment, .graph = self.graph.?, .reporter = self.reporter, .call_depth = self.call_depth };
 
-    for (statements) |statement| {
+    for (0..statements.len) |statement_index| {
+        const statement = statements.at(statement_index);
+
         switch (statement) {
             .evaluate => |id| {
                 const value = try evaluator.evaluate(id);
@@ -141,7 +143,9 @@ fn block(self: *Self, statements: []const ir.Statement, environment: []?Value, i
 
                 path = try self.conjunction(path, value.safe);
 
-                for (binding.symbols, value.value.fields) |symbol, field| {
+                for (0..binding.symbols.len, value.value.fields) |symbol_index, field| {
+                    const symbol = binding.symbols.at(symbol_index);
+
                     if (symbol) |id| environment[@backingInt(id)] = field;
                 }
             },
@@ -173,9 +177,11 @@ fn block(self: *Self, statements: []const ir.Statement, environment: []?Value, i
                 path = try self.conjunction(path, subject.safe);
                 var unmatched: []const u8 = "true";
                 var continuation: []const u8 = "false";
-                var fallback: ?[]const ir.Statement = null;
+                var fallback: ?ir.Block = null;
 
-                for (selection.cases) |case| {
+                for (0..selection.cases.len) |case_index| {
+                    const case = selection.cases.at(case_index);
+
                     if (case.value) |id| {
                         const label = try evaluator.evaluate(id);
                         const matches = try terms.binary(self.allocator, "=", subject.value.scalar, label.value.scalar);
@@ -199,10 +205,11 @@ fn block(self: *Self, statements: []const ir.Statement, environment: []?Value, i
     return path;
 }
 
-fn parallel(self: *Self, evaluator: *Expressions, invocations: []const ir.ParallelCall, initial: []const u8) zx.Error![]const u8 {
+fn parallel(self: *Self, evaluator: *Expressions, invocations: @FieldType(ir.StatementRow, "parallel"), initial: []const u8) zx.Error![]const u8 {
     var parameter_path = initial;
 
-    for (invocations) |invocation| {
+    for (0..invocations.len) |invocation_index| {
+        const invocation = invocations.at(invocation_index);
         const argument = self.program.expression(invocation.value).value.call.argument;
         const value = try evaluator.evaluate(argument);
 
@@ -217,7 +224,9 @@ fn parallel(self: *Self, evaluator: *Expressions, invocations: []const ir.Parall
 
     defer self.allocator.free(values);
 
-    for (invocations, values) |invocation, *value| {
+    for (0..invocations.len, values) |invocation_index, *value| {
+        const invocation = invocations.at(invocation_index);
+
         value.* = try evaluator.evaluate(invocation.value);
 
         try self.require(launch_path, value.safe);
@@ -225,7 +234,9 @@ fn parallel(self: *Self, evaluator: *Expressions, invocations: []const ir.Parall
         joined_path = try self.conjunction(joined_path, value.safe);
     }
 
-    for (invocations, values) |invocation, value| {
+    for (0..invocations.len, values) |invocation_index, value| {
+        const invocation = invocations.at(invocation_index);
+
         if (invocation.symbol) |symbol| evaluator.environment[@backingInt(symbol)] = value.value;
     }
 
@@ -312,7 +323,7 @@ pub fn call(self: *Self) zx.Error!terms.Evaluation {
 
     environment[0] = self.input;
 
-    const remaining = try self.block(self.program.body, environment, path);
+    const remaining = try self.block(self.program.body.block(), environment, path);
 
     if (self.program.typeOf(self.program.output_type) == .scalar and self.program.typeOf(self.program.output_type).scalar == .void) {
         const unit = Value{ .fields = &.{} };

@@ -4,9 +4,9 @@ const Builder = @import("builder.zig");
 const Mapping = @import("mapping.zig");
 
 pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.ExprId {
-    if (program.body.len == 0) return error.InvalidModule;
+    if (program.body.block().len == 0) return error.InvalidModule;
 
-    const count = program.body.len - 1;
+    const count = program.body.block().len - 1;
 
     if (program.functions.len != 0 or program.stores.len != 0) return error.InvalidModule;
     if (program.symbols.count() < count + 1) return error.InvalidModule;
@@ -23,7 +23,9 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
     @memset(mapping.expressions, null);
     @memset(projections, false);
 
-    for (program.body[0..count], 0..) |statement, index| {
+    for (0..program.body.block().prefix(count).len) |index| {
+        const statement = program.body.block().prefix(count).at(index);
+
         if (statement != .constant) return error.InvalidModule;
 
         const source = statement.constant;
@@ -60,7 +62,9 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
 
         var environment_binding = false;
 
-        for (program.body[0..count]) |statement| {
+        for (0..program.body.block().prefix(count).len) |statement_index| {
+            const statement = program.body.block().prefix(count).at(statement_index);
+
             if (@backingInt(statement.constant.symbol) == index) environment_binding = true;
         }
 
@@ -78,7 +82,7 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
         mapping.expressions[index] = try builder.expression(try mapping.expression(expression));
     }
 
-    const returned = program.body[count];
+    const returned = program.body.block().at(count);
 
     if (returned != .result or returned.result == null) return error.InvalidModule;
 

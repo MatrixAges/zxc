@@ -5,8 +5,10 @@ const facts = @import("fact.zig");
 const Error = std.mem.Allocator.Error;
 pub const Result = struct { value: facts.Value, version: usize };
 
-pub fn evaluate(state: *State, statements: []const ir.Statement, results: *std.ArrayList(Result)) Error!bool {
-    for (statements) |statement| {
+pub fn evaluate(state: *State, statements: ir.Block, results: *std.ArrayList(Result)) Error!bool {
+    for (0..statements.len) |statement_index| {
+        const statement = statements.at(statement_index);
+
         if (!state.valid) return true;
 
         switch (statement) {
@@ -15,9 +17,13 @@ pub fn evaluate(state: *State, statements: []const ir.Statement, results: *std.A
             .destructure => |binding| {
                 const value = try state.expression(binding.value);
 
-                for (binding.symbols, 0..) |symbol, index| if (symbol) |id| {
-                    state.symbols[@backingInt(id)] = facts.field(value, @intCast(index));
-                };
+                for (0..binding.symbols.len) |index| {
+                    const symbol = binding.symbols.at(index);
+
+                    if (symbol) |id| {
+                        state.symbols[@backingInt(id)] = facts.field(value, @intCast(index));
+                    }
+                }
             },
             .result => |id| {
                 const value = if (id) |value| try state.expression(value) else facts.Value.none;
@@ -47,7 +53,9 @@ pub fn evaluate(state: *State, statements: []const ir.Statement, results: *std.A
                 const before = try state.snapshot();
                 var combined: ?@TypeOf(before) = if (selection.exhaustive) null else before;
 
-                for (selection.cases) |case| {
+                for (0..selection.cases.len) |case_index| {
+                    const case = selection.cases.at(case_index);
+
                     state.restore(before);
 
                     if (try evaluate(state, case.body, results)) continue;

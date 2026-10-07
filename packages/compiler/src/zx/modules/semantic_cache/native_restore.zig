@@ -43,10 +43,10 @@ pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: N
         if (external.module != @as(ir.NativeModuleId, @fromBackingInt(@intCast(0))) or external.member.len != entry.namespace.len + 1) return error.InvalidModule;
         if (!native.stringsEqual(external.member[0..entry.namespace.len], entry.namespace) or !std.mem.eql(u8, external.member[entry.namespace.len], external.exportName()) or !std.mem.eql(u8, binding.name, external.exportName())) return error.InvalidModule;
 
-        function.* = .{ .file_name = signature.file_name, .input_type = signature.input_type, .output_type = signature.output_type, .output_ownership = signature.output_ownership, .external = external, .symbols = .{}, .expressions = .{}, .body = &.{} };
+        function.* = .{ .file_name = signature.file_name, .input_type = signature.input_type, .output_type = signature.output_type, .output_ownership = signature.output_ownership, .external = external, .symbols = .{}, .expressions = .{}, .body = .{} };
     }
 
-    const program = ir.Program{ .file_name = entry.path, .types = artifact.types, .input_type = @fromBackingInt(@intCast(0)), .output_type = @fromBackingInt(@intCast(0)), .symbols = .{}, .expressions = .{}, .body = &.{}, .exports = artifact.exports, .native_modules = artifact.native_modules, .functions = functions, .type_only = true };
+    const program = ir.Program{ .file_name = entry.path, .types = artifact.types, .input_type = @fromBackingInt(@intCast(0)), .output_type = @fromBackingInt(@intCast(0)), .symbols = .{}, .expressions = .{}, .body = .{}, .exports = artifact.exports, .native_modules = artifact.native_modules, .functions = functions, .type_only = true };
 
     if (try @import("../../ir/validate.zig").validate(allocator, program) != null) return error.InvalidIr;
 

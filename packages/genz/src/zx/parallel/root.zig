@@ -4,7 +4,7 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const standardField = @import("../intrinsics.zig").standardField;
 
-pub fn lower(self: *Lower, invocations: []const ir.ParallelCall) Lower.Error![]const node.Statement {
+pub fn lower(self: *Lower, invocations: @FieldType(ir.StatementRow, "parallel")) Lower.Error![]const node.Statement {
     self.uses_parallel = true;
     self.uses_allocator = true;
 
@@ -15,7 +15,8 @@ pub fn lower(self: *Lower, invocations: []const ir.ParallelCall) Lower.Error![]c
 
     try output.append(self.allocator, .{ .variable = .{ .name = shared, .value = try self.builder.expression(.{ .object = .{ .type_expr = try self.builder.identifier("zx_parallel_allocator"), .fields = try self.allocator.dupe(node.Field, &.{.{ .name = "child", .value = try self.builder.identifier("allocator") }}) } }) } });
 
-    for (invocations, workers) |invocation, *worker| {
+    for (0..invocations.len, workers) |invocation_index, *worker| {
+        const invocation = invocations.at(invocation_index);
         const call = self.program.expression(invocation.value).value.call;
         const type_name = try self.fresh("ParallelWorker");
         const input_name = try self.fresh("parallel_input");
@@ -42,7 +43,8 @@ pub fn lower(self: *Lower, invocations: []const ir.ParallelCall) Lower.Error![]c
 
     try output.append(self.allocator, .{ .scope = try spawning.toOwnedSlice(self.allocator) });
 
-    for (invocations, workers) |invocation, worker| {
+    for (0..invocations.len, workers) |invocation_index, worker| {
+        const invocation = invocations.at(invocation_index);
         const value = try self.builder.expression(.{ .try_value = try self.field(try self.builder.identifier(worker), "result") });
         const name = if (invocation.symbol) |symbol| if (self.used[@backingInt(symbol)]) self.names[@backingInt(symbol)] else null else null;
 

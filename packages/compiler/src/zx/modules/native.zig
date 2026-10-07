@@ -122,7 +122,7 @@ fn analyzeView(allocator: std.mem.Allocator, entry: Native, module: ir.NativeMod
             .output_type = output,
             .symbols = .{},
             .expressions = .{},
-            .body = &.{},
+            .body = .{},
             .external = .{ .input = try @import("native_types.zig").parameters(allocator, type_view, declaration.parameters, reporter), .module = module, .member = path, .export_name = path[entry.namespace.len], .allocator_argument = declaration.allocator_argument, .io_argument = declaration.io_argument, .process_argument = declaration.process_argument, .expand_tuple = parameters.len > 1, .fallible = declaration.fallible, .errors = errors, .concurrent = declaration.concurrent },
         } };
     }

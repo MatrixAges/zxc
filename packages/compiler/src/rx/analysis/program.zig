@@ -19,6 +19,9 @@ pub const Result = struct { program: ir.Program, store_initializers: []const @im
 
 pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Result {
     var builder = Builder{ .allocator = allocator, .types = contract.types, .native_modules = contract.native_modules };
+
+    defer builder.body.deinit(allocator);
+
     const start = zx.Span{ .start = 0, .end = 0 };
 
     if (contract.captures) |captures| {
@@ -31,10 +34,12 @@ pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Resu
 
     try @import("program/statements.zig").lower(&builder, contract.steps, contract.calls);
 
-    if (!ir.terminates(builder.body.items)) {
+    if (!builder.control.terminates(builder.body.items)) {
         if (@backingInt(contract.output_type) != @backingInt(ir.Scalar.void)) return error.IncompleteFlow;
         try builder.body.append(allocator, .{ .result = null });
     }
+
+    const root = try builder.control.appendBlock(allocator, builder.body.items);
 
     return .{ .store_initializers = builder.store_initializers.items, .program = .{
         .file_name = try allocator.dupe(u8, contract.owner),
@@ -43,7 +48,7 @@ pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Resu
         .expressions = builder.expressions.view(),
         .input_type = contract.input_type,
         .output_type = contract.output_type,
-        .body = builder.body.items,
+        .body = try builder.control.finish(allocator, root),
         .functions = builder.functions.items,
         .stores = builder.stores.items,
         .store_mode = .orchestration,

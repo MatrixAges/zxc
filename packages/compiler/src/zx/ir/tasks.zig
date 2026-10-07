@@ -42,7 +42,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
         }
     }
 
-    if (!bindings(program, program.body, uses)) return false;
+    if (!bindings(program, program.body.block(), uses)) return false;
 
     for (0..program.expressions.count(), uses) |expression_index, count| {
         const expression = program.expressions.at(expression_index);
@@ -53,24 +53,30 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
     return true;
 }
 
-fn bindings(program: ir.Program, statements: []const ir.Statement, uses: []usize) bool {
-    for (statements) |statement| switch (statement) {
-        .constant => |binding| {
-            const expression = program.expression(binding.value);
+fn bindings(program: ir.Program, statements: ir.Block, uses: []usize) bool {
+    for (0..statements.len) |statement_index| {
+        const statement = statements.at(statement_index);
 
-            if (program.typeOf(expression.type_id) != .task) continue;
-            if (expression.value != .task) return false;
+        switch (statement) {
+            .constant => |binding| {
+                const expression = program.expression(binding.value);
 
-            uses[@backingInt(binding.value)] += 1;
-        },
-        .branch => |branch| {
-            if (!bindings(program, branch.yes, uses) or !bindings(program, branch.no, uses)) return false;
-        },
-        .switch_stmt => |selection| for (selection.cases) |case| {
-            if (!bindings(program, case.body, uses)) return false;
-        },
-        else => {},
-    };
+                if (program.typeOf(expression.type_id) != .task) continue;
+                if (expression.value != .task) return false;
+
+                uses[@backingInt(binding.value)] += 1;
+            },
+            .branch => |branch| {
+                if (!bindings(program, branch.yes, uses) or !bindings(program, branch.no, uses)) return false;
+            },
+            .switch_stmt => |selection| for (0..selection.cases.len) |case_index| {
+                const case = selection.cases.at(case_index);
+
+                if (!bindings(program, case.body, uses)) return false;
+            },
+            else => {},
+        }
+    }
 
     return true;
 }

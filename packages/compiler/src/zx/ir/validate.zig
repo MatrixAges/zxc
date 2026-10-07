@@ -4,10 +4,10 @@ const ir = zx.ir;
 
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!?zx.Diagnostic {
     if (program.version != zx.ir_version or !@import("type_rules.zig").validate(program.types)) return invalid();
-    if (!program.expressions.validStructure() or !program.symbols.validStructure() or !contractTables(program.contracts)) return invalid();
+    if (!try program.body.validStructure(allocator) or !program.expressions.validStructure() or !program.symbols.validStructure() or !contractTables(program.contracts)) return invalid();
 
     for (program.functions) |item| {
-        if (!item.expressions.validStructure() or !item.symbols.validStructure() or !contractTables(item.contracts)) return invalid();
+        if (!try item.body.validStructure(allocator) or !item.expressions.validStructure() or !item.symbols.validStructure() or !contractTables(item.contracts)) return invalid();
     }
 
     if (!@import("native_modules.zig").validate(program)) return invalid();
@@ -24,7 +24,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 
         if (item.external) |external| {
             if (item.stores.len != 0 or item.store_mode != .transaction or item.contracts.len != 0 or item.output_ownership != .borrowed) return invalid();
-            if (@backingInt(external.module) >= program.native_modules.len or external.member.len == 0 or item.symbols.count() != 0 or item.expressions.count() != 0 or item.body.len != 0 or @backingInt(item.input_type) >= program.types.count() or @backingInt(item.output_type) >= program.types.count()) return invalid();
+            if (@backingInt(external.module) >= program.native_modules.len or external.member.len == 0 or item.symbols.count() != 0 or item.expressions.count() != 0 or item.body.root != null or @backingInt(item.input_type) >= program.types.count() or @backingInt(item.output_type) >= program.types.count()) return invalid();
 
             for (external.member) |part| {
                 if (part.len == 0 or std.mem.indexOfScalar(u8, part, 0) != null or !std.unicode.utf8ValidateSlice(part)) return invalid();
@@ -77,7 +77,7 @@ fn function(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
     if (!program.symbols.validStructure()) return false;
     if (!try @import("stores.zig").validate(allocator, program)) return false;
     if (@backingInt(program.input_type) >= program.types.count() or @backingInt(program.output_type) >= program.types.count()) return false;
-    if (program.type_only) return @backingInt(program.input_type) == 0 and @backingInt(program.output_type) == 0 and program.symbols.count() == 0 and program.expressions.count() == 0 and program.body.len == 0 and program.contracts.len == 0;
+    if (program.type_only) return @backingInt(program.input_type) == 0 and @backingInt(program.output_type) == 0 and program.symbols.count() == 0 and program.expressions.count() == 0 and program.body.root == null and program.contracts.len == 0;
     if (!@import("contracts.zig").validate(program)) return false;
     if (program.symbols.count() == 0 or program.symbols.at(0).type_id != program.input_type) return false;
 

@@ -4,7 +4,7 @@ const Span = @import("zx").Span;
 const Mapping = @import("mapping.zig");
 const Error = Mapping.Error;
 
-pub fn lower(mapping: *Mapping, statements: []const ir.Statement, continuation: ?ir.ExprId, type_id: ir.TypeId, span: Span) Error!ir.ExprId {
+pub fn lower(mapping: *Mapping, statements: ir.Block, continuation: ?ir.ExprId, type_id: ir.TypeId, span: Span) Error!ir.ExprId {
     const unit = mapping.unit;
 
     if (unit.depth == 128) return error.ExpansionLimit;
@@ -21,7 +21,7 @@ pub fn lower(mapping: *Mapping, statements: []const ir.Statement, continuation: 
     while (index != 0) {
         index -= 1;
 
-        switch (statements[index]) {
+        switch (statements.at(index)) {
             .result => |value| result = if (value) |id| try mapping.expression(id) else try unit.append(.{ .type_id = type_id, .span = span, .value = .unit }),
             .constant => |binding| result = try bind(mapping, try mapping.value(ir.ScopeBinding, .{ .symbol = binding.symbol, .value = binding.value }), result.?, type_id, span),
             .evaluate => |value| result = try bind(mapping, .{ .symbol = null, .value = try mapping.expression(value) }, result.?, type_id, span),
@@ -35,7 +35,7 @@ pub fn lower(mapping: *Mapping, statements: []const ir.Statement, continuation: 
 
                 while (position != 0) {
                     position -= 1;
-                    const target = binding.symbols[position] orelse continue;
+                    const target = binding.symbols.at(position) orelse continue;
                     const field = try unit.append(.{ .type_id = tuple.at(position), .span = span, .value = .{ .tuple_field = .{ .target = reference, .index = @intCast(position) } } });
 
                     result = try bind(mapping, .{ .symbol = try mapping.value(ir.SymbolId, target), .value = field }, result.?, type_id, span);
@@ -55,7 +55,9 @@ pub fn lower(mapping: *Mapping, statements: []const ir.Statement, continuation: 
                 result = if (continuing) try bind(mapping, .{ .symbol = null, .value = value }, result.?, type_id, span) else value;
             },
             .switch_stmt => |selection| {
-                const continuing = for (selection.cases) |case| {
+                const continuing = for (0..selection.cases.len) |case_index| {
+                    const case = selection.cases.at(case_index);
+
                     if (returns(case.body)) break false;
                 } else true;
 
@@ -90,7 +92,7 @@ pub fn bind(mapping: *Mapping, binding: ir.ScopeBinding, result: ir.ExprId, type
     } } });
 }
 
-fn select(mapping: *Mapping, selection: @FieldType(ir.Statement, "switch_stmt"), continuation: ?ir.ExprId, type_id: ir.TypeId, span: Span) Error!ir.ExprId {
+fn select(mapping: *Mapping, selection: @FieldType(ir.StatementRow, "switch_stmt"), continuation: ?ir.ExprId, type_id: ir.TypeId, span: Span) Error!ir.ExprId {
     const unit = mapping.unit;
     const subject = try mapping.expression(selection.subject);
     const subject_type = mapping.source.at(@backingInt(selection.subject)).type_id;
@@ -99,11 +101,16 @@ fn select(mapping: *Mapping, selection: @FieldType(ir.Statement, "switch_stmt"),
     var fallback = continuation;
     var arms: std.ArrayList(ir.MatchArm) = .empty;
 
-    for (selection.cases) |case| if (case.value == null) {
-        fallback = try lower(mapping, case.body, continuation, type_id, span);
-    };
+    for (0..selection.cases.len) |case_index| {
+        const case = selection.cases.at(case_index);
 
-    for (selection.cases, 0..) |case, index| {
+        if (case.value == null) {
+            fallback = try lower(mapping, case.body, continuation, type_id, span);
+        }
+    }
+
+    for (0..selection.cases.len) |index| {
+        const case = selection.cases.at(index);
         const value = case.value orelse continue;
         const body = try lower(mapping, case.body, continuation, type_id, span);
 
@@ -122,7 +129,7 @@ fn select(mapping: *Mapping, selection: @FieldType(ir.Statement, "switch_stmt"),
         try arms.append(unit.allocator, .{ .condition = condition, .result = body });
     }
 
-    const last = fallback orelse try lower(mapping, &.{}, null, type_id, span);
+    const last = fallback orelse try lower(mapping, (ir.ControlBody{}).block(), null, type_id, span);
     const result = try unit.append(.{ .type_id = type_id, .span = span, .value = .{ .match_expr = .{ .subject = null, .arms = try arms.toOwnedSlice(unit.allocator), .fallback = last } } });
 
     return bind(mapping, .{ .symbol = symbol, .value = subject }, result, type_id, span);
@@ -138,15 +145,21 @@ fn scalarType(program: ir.Program, kind: ir.Scalar) ir.TypeId {
     unreachable;
 }
 
-fn returns(statements: []const ir.Statement) bool {
-    for (statements) |statement| switch (statement) {
-        .result => return true,
-        .branch => |branch| if (returns(branch.yes) or returns(branch.no)) return true,
-        .switch_stmt => |selection| for (selection.cases) |case| {
-            if (returns(case.body)) return true;
-        },
-        else => {},
-    };
+fn returns(statements: ir.Block) bool {
+    for (0..statements.len) |statement_index| {
+        const statement = statements.at(statement_index);
+
+        switch (statement) {
+            .result => return true,
+            .branch => |branch| if (returns(branch.yes) or returns(branch.no)) return true,
+            .switch_stmt => |selection| for (0..selection.cases.len) |case_index| {
+                const case = selection.cases.at(case_index);
+
+                if (returns(case.body)) return true;
+            },
+            else => {},
+        }
+    }
 
     return false;
 }

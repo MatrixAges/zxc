@@ -76,7 +76,7 @@ pub fn evaluate(state: *State, id: ir.ExprId, argument: facts.Value) std.mem.All
     child.symbols[0] = argument;
 
     var results: std.ArrayList(statements.Result) = .empty;
-    const returns = try statements.evaluate(&child, program.body, &results);
+    const returns = try statements.evaluate(&child, program.body.block(), &results);
 
     if (!returns or !child.valid or child.serial != state.serial or results.items.len == 0) {
         state.valid = false;

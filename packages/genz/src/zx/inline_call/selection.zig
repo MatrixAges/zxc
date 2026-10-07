@@ -8,7 +8,7 @@ allocator: std.mem.Allocator,
 program: ir.Program,
 marked: []bool,
 seen: []bool,
-pub fn create(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, body: []const ir.Statement, plan: Plan) Error!?[]bool {
+pub fn create(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, body: ir.ControlBody, plan: Plan) Error!?[]bool {
     const marked = try allocator.alloc(bool, expressions.count());
     const seen = try allocator.alloc(bool, expressions.count());
     var program = plan.program;
@@ -19,7 +19,7 @@ pub fn create(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, bod
     @memset(marked, false);
     @memset(seen, false);
 
-    try self.statements(body);
+    try self.statements(body.block());
 
     var cost: usize = 0;
 
@@ -34,39 +34,49 @@ pub fn create(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, bod
     return if (cost != 0 and cost <= Plan.limit) marked else null;
 }
 
-fn statements(self: *Self, items: []const ir.Statement) Error!void {
-    if (items.len >= 2 and items[items.len - 1] == .result and items[items.len - 2] == .constant) {
-        if (items[items.len - 1].result) |result| {
-            const binding = items[items.len - 2].constant;
+fn statements(self: *Self, items: ir.Block) Error!void {
+    if (items.len >= 2 and items.at(items.len - 1) == .result and items.at(items.len - 2) == .constant) {
+        if (items.at(items.len - 1).result) |result| {
+            const binding = items.at(items.len - 2).constant;
 
             try self.consume(binding.symbol, binding.value, result);
         }
     }
 
-    for (items) |item| switch (item) {
-        .evaluate => |id| {
-            try self.iteration(id);
-            try self.find(id);
-        },
-        .branch => |branch| {
-            try self.find(branch.condition);
-            try self.statements(branch.yes);
-            try self.statements(branch.no);
-        },
-        .switch_stmt => |selection| {
-            try self.find(selection.subject);
+    for (0..items.len) |item_index| {
+        const item = items.at(item_index);
 
-            for (selection.cases) |case| {
-                if (case.value) |value| try self.find(value);
-                try self.statements(case.body);
-            }
-        },
-        .constant => |binding| try self.find(binding.value),
-        .parallel => |calls| for (calls) |call| try self.find(call.value),
-        .destructure => |binding| try self.find(binding.value),
-        .store_set => |setter| try self.find(setter.value),
-        .result => |value| if (value) |id| try self.find(id),
-    };
+        switch (item) {
+            .evaluate => |id| {
+                try self.iteration(id);
+                try self.find(id);
+            },
+            .branch => |branch| {
+                try self.find(branch.condition);
+                try self.statements(branch.yes);
+                try self.statements(branch.no);
+            },
+            .switch_stmt => |selection| {
+                try self.find(selection.subject);
+
+                for (0..selection.cases.len) |case_index| {
+                    const case = selection.cases.at(case_index);
+
+                    if (case.value) |value| try self.find(value);
+                    try self.statements(case.body);
+                }
+            },
+            .constant => |binding| try self.find(binding.value),
+            .parallel => |calls| for (0..calls.len) |call_index| {
+                const call = calls.at(call_index);
+
+                try self.find(call.value);
+            },
+            .destructure => |binding| try self.find(binding.value),
+            .store_set => |setter| try self.find(setter.value),
+            .result => |value| if (value) |id| try self.find(id),
+        }
+    }
 }
 
 fn consume(self: *Self, symbol: ir.SymbolId, value: ir.ExprId, result: ir.ExprId) Error!void {
