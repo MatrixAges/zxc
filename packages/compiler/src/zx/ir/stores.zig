@@ -32,6 +32,8 @@ pub fn call(program: ir.Program, invocation: @FieldType(@FieldType(ir.Expression
         .available = borrow.pointer(@FieldType(Input, "available"), &program.stores),
         .required = borrow.pointer(@FieldType(Input, "required"), target),
         .slots = invocation.stores,
+        .first = 0,
+        .count = invocation.stores.len,
         .orchestration = program.store_mode == .orchestration,
     };
 

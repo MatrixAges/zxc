@@ -1,0 +1,74 @@
+import integers from "zig:integers"
+
+import kind from "../../../../analysis/semantic/types/kind"
+import { Kind } from "../../../../analysis/semantic/types/model"
+import { ExpressionKind } from "../kinds"
+import access from "./access"
+import atoms from "./atoms"
+import calls from "./calls"
+import control from "./control"
+import iteration from "./iteration"
+import objects from "./objects"
+import operation from "./operation"
+import operators from "./operators"
+import parallel from "./parallel"
+import scope from "./scope"
+import sequences from "./sequences"
+import tasks from "./tasks"
+import transform from "./transform"
+
+import type { Context } from "./model"
+
+export type Input = Context
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.index >= in.expressions.types.length) {
+        return false
+    }
+
+    const type_id = in.expressions.types[in.index]
+
+    if (integers.widen(type_id) >= in.table.kinds.length) {
+        return false
+    }
+
+    const target = kind(in.table.kinds[integers.widen(type_id)])
+    const expression_kind = in.expressions.kinds[in.index]
+
+    if (target == Kind.Task && expression_kind != ExpressionKind.Task && expression_kind != ExpressionKind.Reference) {
+        return false
+    }
+
+    const check = { context: in, type_id: type_id, target: target, kind: expression_kind, payload: integers.widen(in.expressions.payloads[in.index]) }
+
+    return match expression_kind {
+        ExpressionKind.Some => access(check),
+        ExpressionKind.OptionalValue => access(check),
+        ExpressionKind.Field => access(check),
+        ExpressionKind.TupleField => access(check),
+        ExpressionKind.Index => access(check),
+        ExpressionKind.Length => access(check),
+        ExpressionKind.Task => tasks(check),
+        ExpressionKind.AwaitTask => tasks(check),
+        ExpressionKind.CancelTask => tasks(check),
+        ExpressionKind.Capture => tasks(check),
+        ExpressionKind.Parallel => parallel(check),
+        ExpressionKind.List => sequences(check),
+        ExpressionKind.Tuple => sequences(check),
+        ExpressionKind.Template => sequences(check),
+        ExpressionKind.Object => objects(check),
+        ExpressionKind.Unary => operators(check),
+        ExpressionKind.Binary => operators(check),
+        ExpressionKind.Conditional => control(check),
+        ExpressionKind.Match => control(check),
+        ExpressionKind.Call => calls(check),
+        ExpressionKind.Transform => transform(check),
+        ExpressionKind.Iteration => iteration(check),
+        ExpressionKind.ListUpdate => iteration(check),
+        ExpressionKind.Scope => scope(check),
+        ExpressionKind.ListOperation => operation(check),
+        _ => atoms(check)
+    }
+}

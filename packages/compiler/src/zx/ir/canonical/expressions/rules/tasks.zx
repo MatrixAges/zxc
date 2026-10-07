@@ -1,0 +1,90 @@
+import integers from "zig:integers"
+
+import kind from "../../../../analysis/semantic/types/kind"
+import { Kind } from "../../../../analysis/semantic/types/model"
+import { ExpressionKind } from "../kinds"
+import typed from "./typed"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const context = in.context
+    const expressions = context.expressions
+    const table = context.table
+
+    if (in.kind == ExpressionKind.Task) {
+        if (in.target != Kind.Task || !typed({ expressions: expressions, index: context.index, id: expressions.task_bodies[in.payload], type_id: table.first[integers.widen(in.type_id)] })) {
+            return false
+        }
+
+        const captures = loop({ context: context, first: integers.widen(expressions.task_capture_first[in.payload]), count: integers.widen(expressions.task_capture_count[in.payload]), index: 0, valid: true }, {
+            while: current => current.valid && current.index < current.count,
+            next: current => {
+                const context = current.context
+                const symbol = context.expressions.task_captures[current.first + current.index]
+                const symbol_index = integers.widen(symbol)
+
+                if (symbol_index >= context.symbols.types.length || kind(context.table.kinds[integers.widen(context.symbols.types[symbol_index])]) == Kind.Task) {
+                    current.valid = false
+                } else {
+                    const duplicate = loop({ captures: context.expressions.task_captures, first: current.first, limit: current.index, symbol: symbol, index: 0, found: false }, {
+                        while: previous => !previous.found && previous.index < previous.limit,
+                        next: previous => {
+                            previous.found = previous.captures[previous.first + previous.index] == previous.symbol
+                            previous.index += 1
+                        }
+                    })
+
+                    current.valid = !duplicate.found
+                }
+
+                current.index += 1
+            }
+        })
+
+        return captures.valid
+    }
+
+    const child = match in.kind {
+        ExpressionKind.AwaitTask => expressions.awaits[in.payload],
+        ExpressionKind.CancelTask => expressions.cancellations[in.payload],
+        _ => expressions.captures[in.payload]
+    }
+
+    const child_index = integers.widen(child)
+
+    if (child_index >= context.index) {
+        return false
+    }
+
+    const child_type = expressions.types[child_index]
+    const child_type_index = integers.widen(child_type)
+
+    if (in.kind == ExpressionKind.AwaitTask) {
+        return kind(table.kinds[child_type_index]) == Kind.Task && table.first[child_type_index] == in.type_id
+    }
+
+    if (in.kind == ExpressionKind.CancelTask) {
+        return in.type_id == 0 && kind(table.kinds[child_type_index]) == Kind.Task
+    }
+
+    const type_index = integers.widen(in.type_id)
+
+    if (in.target != Kind.Tuple || table.second[type_index] != 2) {
+        return false
+    }
+
+    const first = integers.widen(table.first[type_index])
+    const errors = integers.widen(table.children[first])
+    const result = table.children[first + 1]
+
+    if (kind(table.kinds[errors]) != Kind.Optional || kind(table.kinds[integers.widen(table.first[errors])]) != Kind.ErrorSet) {
+        return false
+    }
+
+    return child_type == 0 ? result == 0 : kind(table.kinds[integers.widen(result)]) == Kind.Optional && typed({ expressions: expressions, index: context.index, id: child, type_id: table.first[integers.widen(result)] })
+}

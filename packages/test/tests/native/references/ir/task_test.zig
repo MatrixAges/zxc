@@ -8,9 +8,7 @@ fn beforeTask(allocator: std.mem.Allocator, program: f.ir.Program) !void {
     try std.testing.expect(frontend.validateTypes(program.types));
 
     for (0..program.expressions.count()) |index| {
-        const expression = program.expressions.at(index);
-
-        try std.testing.expect(checks.expressions.validate(program, expression, index));
+        try std.testing.expect(checks.expressions.validate(program, index));
     }
 
     try std.testing.expect(try checks.scopes.validate(allocator, program));

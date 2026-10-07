@@ -1,0 +1,39 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import typed from "./typed"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const context = in.context
+    const expressions = context.expressions
+
+    const result = loop({ context: context, first: integers.widen(expressions.scope_first[in.payload]), count: integers.widen(expressions.scope_count[in.payload]), index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const context = current.context
+            const position = current.first + current.index
+            const value = context.expressions.scope_values[position]
+            const symbol = context.expressions.scope_symbols[position]
+
+            if (integers.widen(value) >= context.index) {
+                current.valid = false
+            } else if (symbol != null) {
+                const index = integers.widen(symbol)
+
+                current.valid = index < context.symbols.types.length && typed({ expressions: context.expressions, index: context.index, id: value, type_id: context.symbols.types[index] })
+            } else {
+                current.valid = typed({ expressions: context.expressions, index: context.index, id: value, type_id: 0 }) || context.expressions.kinds[integers.widen(value)] == ExpressionKind.Iteration
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.valid && typed({ expressions: expressions, index: context.index, id: expressions.scope_results[in.payload], type_id: in.type_id })
+}

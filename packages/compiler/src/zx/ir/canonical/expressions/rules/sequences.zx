@@ -1,0 +1,61 @@
+import integers from "zig:integers"
+
+import kind from "../../../../analysis/semantic/types/kind"
+import { Kind } from "../../../../analysis/semantic/types/model"
+import { ExpressionKind } from "../kinds"
+import typed from "./typed"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.context.expressions
+    const table = in.context.table
+    const count = integers.widen(expressions.sequence_count[in.payload])
+
+    if (in.kind == ExpressionKind.List && in.target != Kind.List) {
+        return false
+    }
+
+    if (in.kind == ExpressionKind.Tuple && (in.target != Kind.Tuple || integers.widen(table.second[integers.widen(in.type_id)]) != count)) {
+        return false
+    }
+
+    if (in.kind == ExpressionKind.Template && in.type_id != 10) {
+        return false
+    }
+
+    const result = loop({ check: in, first: integers.widen(expressions.sequence_first[in.payload]), count: count, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const check = current.check
+            const context = check.context
+            const table = context.table
+            const item = context.expressions.sequence_items[current.first + current.index]
+            const first = table.first[integers.widen(check.type_id)]
+
+            if (check.kind == ExpressionKind.Template) {
+                const index = integers.widen(item)
+
+                if (index >= context.index) {
+                    current.valid = false
+                } else {
+                    const type_id = context.expressions.types[index]
+
+                    current.valid = type_id != 0 && kind(table.kinds[integers.widen(type_id)]) == Kind.Scalar
+                }
+            } else {
+                const expected = check.kind == ExpressionKind.List ? first : table.children[integers.widen(first) + current.index]
+
+                current.valid = typed({ expressions: context.expressions, index: context.index, id: item, type_id: expected })
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

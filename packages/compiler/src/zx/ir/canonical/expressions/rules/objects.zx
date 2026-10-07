@@ -1,0 +1,64 @@
+import integers from "zig:integers"
+
+import kind from "../../../../analysis/semantic/types/kind"
+import { Kind } from "../../../../analysis/semantic/types/model"
+import typed from "./typed"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const context = in.context
+    const expressions = context.expressions
+    const count = integers.widen(expressions.object_count[in.payload])
+    const type_index = integers.widen(in.type_id)
+
+    if (in.target != Kind.Object || integers.widen(context.table.second[type_index]) != count) {
+        return false
+    }
+
+    const evaluation = loop({ context: context, first: integers.widen(expressions.object_evaluation_first[in.payload]), count: integers.widen(expressions.object_evaluation_count[in.payload]), index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const context = current.context
+            const item = integers.widen(context.expressions.object_evaluation_values[current.first + current.index])
+
+            current.valid = item < context.index && kind(context.table.kinds[integers.widen(context.expressions.types[item])]) != Kind.Task
+            current.index += 1
+        }
+    })
+
+    if (!evaluation.valid) {
+        return false
+    }
+
+    const fields = loop({ context: context, first: integers.widen(expressions.object_first[in.payload]), type_first: integers.widen(context.table.first[type_index]), count: count, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const context = current.context
+            const position = current.first + current.index
+            const field = integers.widen(context.expressions.object_field_indices[position])
+
+            if (field >= current.count || !typed({ expressions: context.expressions, index: context.index, id: context.expressions.object_field_values[position], type_id: context.table.field_types[current.type_first + field] })) {
+                current.valid = false
+            } else {
+                const duplicate = loop({ indices: context.expressions.object_field_indices, first: current.first, limit: current.index, field: field, index: 0, found: false }, {
+                    while: previous => !previous.found && previous.index < previous.limit,
+                    next: previous => {
+                        previous.found = integers.widen(previous.indices[previous.first + previous.index]) == previous.field
+                        previous.index += 1
+                    }
+                })
+
+                current.valid = !duplicate.found
+            }
+
+            current.index += 1
+        }
+    })
+
+    return fields.valid
+}

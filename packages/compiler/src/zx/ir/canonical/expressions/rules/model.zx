@@ -1,0 +1,13 @@
+import type { Kind, Table } from "../../../../analysis/semantic/types/model"
+import type { Stores } from "../../stores/model"
+import type { Symbols } from "../../symbols"
+import type { ExpressionKind } from "../kinds"
+import type { Expressions } from "../model"
+
+export type Functions = { input_types: u32[], output_types: u32[], stores: Stores[] }
+
+export type Context = { table: Table, expressions: Expressions, symbols: Symbols, stores: Stores, functions: Functions, index: u64, orchestration: bool }
+
+export type Check = { context: Context, type_id: u32, target: Kind, kind: ExpressionKind, payload: u64 }
+
+export enum Numeric { Other, Integer, Signed, Float }

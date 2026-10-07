@@ -1,0 +1,20 @@
+import integers from "zig:integers"
+
+import call from "../../stores/call"
+import typed from "./typed"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const context = in.context
+    const expressions = context.expressions
+    const function_index = integers.widen(expressions.call_functions[in.payload])
+
+    return function_index < context.functions.input_types.length && in.type_id == context.functions.output_types[function_index] &&
+        typed({ expressions: expressions, index: context.index, id: expressions.call_arguments[in.payload], type_id: context.functions.input_types[function_index] }) &&
+        call({ available: context.stores, required: context.functions.stores[function_index], slots: expressions.call_stores, first: integers.widen(expressions.call_store_first[in.payload]), count: integers.widen(expressions.call_store_count[in.payload]), orchestration: context.orchestration })
+}

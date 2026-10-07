@@ -4,28 +4,28 @@ import validate from "./validate"
 
 import type { Stores } from "./model"
 
-export type Input = { available: Stores, required: Stores, slots: u32[], orchestration: bool }
+export type Input = { available: Stores, required: Stores, slots: u32[], first: u64, count: u64, orchestration: bool }
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    if (!validate(in.available) || !validate(in.required) || in.slots.length != in.required.paths.length || (in.slots.length != 0 && !in.orchestration)) {
+    if (!validate(in.available) || !validate(in.required) || in.first > in.slots.length || in.count > in.slots.length - in.first || in.count != in.required.paths.length || (in.count != 0 && !in.orchestration)) {
         return false
     }
 
-    const result = loop({ available: in.available, required: in.required, slots: in.slots, index: 0, valid: true }, {
-        while: current => current.valid && current.index < current.slots.length,
+    const result = loop({ available: in.available, required: in.required, slots: in.slots, first: in.first, count: in.count, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
         next: current => {
-            const id = current.slots[current.index]
+            const id = current.slots[current.first + current.index]
             const index = integers.widen(id)
 
             if (index >= current.available.paths.length) {
                 current.valid = false
             } else {
-                const duplicate = loop({ slots: current.slots, limit: current.index, index: 0, id: id, found: false }, {
+                const duplicate = loop({ slots: current.slots, first: current.first, limit: current.index, index: 0, id: id, found: false }, {
                     while: previous => previous.index < previous.limit && !previous.found,
                     next: previous => {
-                        previous.found = previous.slots[previous.index] == previous.id
+                        previous.found = previous.slots[previous.first + previous.index] == previous.id
                         previous.index += 1
                     }
                 })

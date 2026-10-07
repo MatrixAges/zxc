@@ -92,9 +92,7 @@ fn function(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
     }
 
     for (0..program.expressions.count()) |index| {
-        const expression = program.expressions.at(index);
-
-        if (!@import("expression_rules.zig").validate(program, expression, index)) return false;
+        if (!@import("expression_rules.zig").validate(program, index)) return false;
     }
 
     if (!try @import("scopes.zig").validate(allocator, program)) return false;

@@ -1,0 +1,69 @@
+import integers from "zig:integers"
+
+import kind from "../../../../analysis/semantic/types/kind"
+import { Kind } from "../../../../analysis/semantic/types/model"
+import { BinaryOperator, ExpressionKind, UnaryOperator } from "../kinds"
+import comparable from "./comparable"
+import { Numeric } from "./model"
+import numeric from "./numeric"
+import typed from "./typed"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const context = in.context
+    const expressions = context.expressions
+
+    if (in.kind == ExpressionKind.Unary) {
+        const number = numeric(in.type_id)
+
+        return typed({ expressions: expressions, index: context.index, id: expressions.unary_operands[in.payload], type_id: in.type_id }) &&
+            (expressions.unary_operators[in.payload] == UnaryOperator.Not ? in.type_id == 1 : number == Numeric.Signed || number == Numeric.Float)
+    }
+
+    const left_index = integers.widen(expressions.binary_left[in.payload])
+    const right_index = integers.widen(expressions.binary_right[in.payload])
+
+    if (left_index >= context.index || right_index >= context.index) {
+        return false
+    }
+
+    const left = expressions.types[left_index]
+    const right = expressions.types[right_index]
+    const target = kind(context.table.kinds[integers.widen(left)])
+    const operator = expressions.binary_operators[in.payload]
+
+    if (operator == BinaryOperator.Coalesce) {
+        return target == Kind.Optional && context.table.first[integers.widen(left)] == right && in.type_id == right
+    }
+
+    if (left != right) {
+        return false
+    }
+
+    const equality = operator == BinaryOperator.Equal || operator == BinaryOperator.NotEqual
+
+    if (equality && target == Kind.Optional && !comparable({ table: context.table, type_id: left }) && expressions.kinds[left_index] != ExpressionKind.None && expressions.kinds[right_index] != ExpressionKind.None) {
+        return false
+    }
+
+    const number = numeric(left) != Numeric.Other
+
+    if (equality) {
+        return (number || left == 1 || left == 10 || target == Kind.Enumeration || target == Kind.ErrorSet || target == Kind.Optional) && in.type_id == 1
+    }
+
+    return match operator {
+        BinaryOperator.LogicalAnd => left == 1 && in.type_id == 1,
+        BinaryOperator.LogicalOr => left == 1 && in.type_id == 1,
+        BinaryOperator.Less => number && in.type_id == 1,
+        BinaryOperator.LessEqual => number && in.type_id == 1,
+        BinaryOperator.Greater => number && in.type_id == 1,
+        BinaryOperator.GreaterEqual => number && in.type_id == 1,
+        _ => number && in.type_id == left
+    }
+}

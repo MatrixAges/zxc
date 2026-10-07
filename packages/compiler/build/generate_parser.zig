@@ -30,6 +30,11 @@ pub fn main(init: std.process.Init) !void {
     for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
 
     const interfaces = [_]compiler.project.NativeInterface{ .{
+        .specifier = "zig:floats",
+        .path = "zx/analysis/semantic/native/floats.d.zx",
+        .source = @embedFile("semantic_floats"),
+        .module = "floats",
+    }, .{
         .specifier = "zig:integers",
         .path = "zx/analysis/semantic/native/integers.d.zx",
         .source = @embedFile("semantic_integers"),
@@ -192,6 +197,11 @@ pub fn main(init: std.process.Init) !void {
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[42 + entries.len], .data = ir_program_pure.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[43 + entries.len], .data = ir_program_pure.types });
+
+    const ir_expressions = try generate(allocator, inputs, sources.items, "zx/ir/canonical/expressions_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[44 + entries.len], .data = ir_expressions.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[45 + entries.len], .data = ir_expressions.types });
 
     const naming = try generate(allocator, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 

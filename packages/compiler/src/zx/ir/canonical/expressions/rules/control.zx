@@ -1,0 +1,50 @@
+import integers from "zig:integers"
+
+import kind from "../../../../analysis/semantic/types/kind"
+import { Kind } from "../../../../analysis/semantic/types/model"
+import { ExpressionKind } from "../kinds"
+import typed from "./typed"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const context = in.context
+    const expressions = context.expressions
+
+    if (in.kind == ExpressionKind.Conditional) {
+        return typed({ expressions: expressions, index: context.index, id: expressions.conditional_conditions[in.payload], type_id: 1 }) &&
+            typed({ expressions: expressions, index: context.index, id: expressions.conditional_yes[in.payload], type_id: in.type_id }) &&
+            typed({ expressions: expressions, index: context.index, id: expressions.conditional_no[in.payload], type_id: in.type_id })
+    }
+
+    const subject = expressions.match_subjects[in.payload]
+
+    if (subject != null && integers.widen(subject) >= context.index) {
+        return false
+    }
+
+    const condition_type = subject == null ? 1 : expressions.types[integers.widen(subject)]
+    const target = kind(context.table.kinds[integers.widen(condition_type)])
+
+    if (subject != null && ((target != Kind.Scalar && target != Kind.Enumeration && target != Kind.ErrorSet) || condition_type == 0)) {
+        return false
+    }
+
+    const result = loop({ context: context, condition_type: condition_type, result_type: in.type_id, first: integers.widen(expressions.match_first[in.payload]), count: integers.widen(expressions.match_count[in.payload]), index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const context = current.context
+            const position = current.first + current.index
+
+            current.valid = typed({ expressions: context.expressions, index: context.index, id: context.expressions.match_conditions[position], type_id: current.condition_type }) &&
+                typed({ expressions: context.expressions, index: context.index, id: context.expressions.match_results[position], type_id: current.result_type })
+            current.index += 1
+        }
+    })
+
+    return result.valid && typed({ expressions: expressions, index: context.index, id: expressions.match_fallbacks[in.payload], type_id: in.type_id })
+}

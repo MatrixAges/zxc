@@ -1,0 +1,57 @@
+import integers from "zig:integers"
+
+import kind from "../../../../analysis/semantic/types/kind"
+import { Kind } from "../../../../analysis/semantic/types/model"
+import { TransformKind } from "../kinds"
+import typed from "./typed"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const context = in.context
+    const expressions = context.expressions
+    const table = context.table
+    const source_index = integers.widen(expressions.transform_targets[in.payload])
+    const body = expressions.transform_bodies[in.payload]
+
+    if (source_index >= context.index || integers.widen(body) >= context.index) {
+        return false
+    }
+
+    const source_id = expressions.types[source_index]
+    const source_type = integers.widen(source_id)
+    const operation = expressions.transform_kinds[in.payload]
+    const count = integers.widen(expressions.transform_count[in.payload])
+
+    if (kind(table.kinds[source_type]) != Kind.List || count != (operation == TransformKind.Reduce ? 2 : 1)) {
+        return false
+    }
+
+    const parameters = loop({ context: context, first: integers.widen(expressions.transform_first[in.payload]), count: count, operation: operation, result: in.type_id, element: table.first[source_type], index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const symbol = integers.widen(current.context.expressions.transform_parameters[current.first + current.index])
+            const expected = current.operation == TransformKind.Reduce && current.index == 0 ? current.result : current.element
+
+            current.valid = symbol < current.context.symbols.types.length && current.context.symbols.types[symbol] == expected
+            current.index += 1
+        }
+    })
+
+    if (!parameters.valid) {
+        return false
+    }
+
+    const initial = expressions.transform_initials[in.payload]
+
+    return match operation {
+        TransformKind.Map => initial == null && in.target == Kind.List && typed({ expressions: expressions, index: context.index, id: body, type_id: table.first[integers.widen(in.type_id)] }),
+        TransformKind.Filter => initial == null && in.type_id == source_id && typed({ expressions: expressions, index: context.index, id: body, type_id: 1 }),
+        TransformKind.Reduce => initial != null && typed({ expressions: expressions, index: context.index, id: initial, type_id: in.type_id }) && typed({ expressions: expressions, index: context.index, id: body, type_id: in.type_id }),
+        _ => initial == null && in.type_id == 1 && typed({ expressions: expressions, index: context.index, id: body, type_id: 1 })
+    }
+}

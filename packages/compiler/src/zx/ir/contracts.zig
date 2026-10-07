@@ -33,7 +33,7 @@ pub fn validate(program: ir.Program) bool {
                 else => {},
             }
 
-            if (!@import("expression_rules.zig").validate(view, expression, index)) return false;
+            if (!@import("expression_rules.zig").validate(view, index)) return false;
         }
     }
 

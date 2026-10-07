@@ -1,0 +1,67 @@
+import floats from "zig:floats"
+import integers from "zig:integers"
+
+import { Kind } from "../../../../analysis/semantic/types/model"
+import { ExpressionKind } from "../kinds"
+import { Numeric } from "./model"
+import numeric from "./numeric"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.context.expressions
+
+    if (in.kind == ExpressionKind.Integer || in.kind == ExpressionKind.NegativeInteger) {
+        const number = numeric(in.type_id)
+        const negative = in.kind == ExpressionKind.NegativeInteger
+
+        if ((number != Numeric.Integer && number != Numeric.Signed) || (negative && number != Numeric.Signed)) {
+            return false
+        }
+
+        const maximum = match in.type_id {
+            2 => 255,
+            3 => 65535,
+            4 => 4294967295,
+            5 => 18446744073709551615,
+            6 => negative ? 2147483648 : 2147483647,
+            _ => negative ? 9223372036854775808 : 9223372036854775807
+        }
+
+        const magnitude = negative ? expressions.negative_integers[in.payload] : expressions.integers[in.payload]
+
+        return magnitude <= maximum
+    }
+
+    if (in.kind == ExpressionKind.Float) {
+        const value = expressions.floats[in.payload]
+
+        return numeric(in.type_id) == Numeric.Float && floats.isFinite(value) && (in.type_id != 8 || floats.widen(floats.narrow(value)) == value)
+    }
+
+    if (in.kind == ExpressionKind.StoreGet) {
+        const slot = integers.widen(expressions.stores[in.payload])
+
+        return slot < in.context.stores.paths.length && in.context.stores.readable[slot] && in.context.stores.types[slot] == in.type_id
+    }
+
+    if (in.kind == ExpressionKind.Reference) {
+        const symbol = integers.widen(expressions.references[in.payload])
+
+        return symbol < in.context.symbols.names.length && in.context.symbols.types[symbol] == in.type_id
+    }
+
+    return match in.kind {
+        ExpressionKind.String => in.type_id == 10,
+        ExpressionKind.Boolean => in.type_id == 1,
+        ExpressionKind.Unit => in.type_id == 0,
+        ExpressionKind.None => in.target == Kind.Optional,
+        ExpressionKind.EnumValue => in.target == Kind.Enumeration && expressions.enumerations[in.payload] < in.context.table.second[integers.widen(in.type_id)],
+        ExpressionKind.ErrorValue => in.target == Kind.ErrorSet && expressions.errors[in.payload] < in.context.table.second[integers.widen(in.type_id)],
+        _ => false
+    }
+}

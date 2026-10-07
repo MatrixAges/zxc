@@ -1,0 +1,17 @@
+import { Numeric } from "./model"
+
+export type Input = u32
+
+export type Output = Numeric
+
+export default function (in: Input): Output {
+    if (in >= 2 && in <= 5) {
+        return Numeric.Integer
+    }
+
+    if (in == 6 || in == 7) {
+        return Numeric.Signed
+    }
+
+    return in == 8 || in == 9 ? Numeric.Float : Numeric.Other
+}

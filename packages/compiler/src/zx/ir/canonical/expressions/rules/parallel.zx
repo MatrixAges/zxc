@@ -1,0 +1,68 @@
+import integers from "zig:integers"
+
+import kind from "../../../../analysis/semantic/types/kind"
+import { Kind } from "../../../../analysis/semantic/types/model"
+import { ExpressionKind } from "../kinds"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.target != Kind.Object && in.type_id != 0) {
+        return false
+    }
+
+    const context = in.context
+    const expressions = context.expressions
+
+    const result = loop({ check: in, first: integers.widen(expressions.parallel_first[in.payload]), count: integers.widen(expressions.parallel_count[in.payload]), index: 0, fields: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const check = current.check
+            const context = check.context
+            const expressions = context.expressions
+            const table = context.table
+            const position = current.first + current.index
+            const task = expressions.parallel_tasks[position]
+            const task_index = integers.widen(task)
+
+            if (task_index >= context.index || expressions.kinds[task_index] != ExpressionKind.Task || kind(table.kinds[integers.widen(expressions.types[task_index])]) != Kind.Task) {
+                current.valid = false
+            } else {
+                const result = table.first[integers.widen(expressions.types[task_index])]
+                const field = expressions.parallel_fields[position]
+                const type_index = integers.widen(check.type_id)
+
+                if (field != null) {
+                    const field_index = integers.widen(field)
+
+                    current.valid = check.target == Kind.Object && field_index < integers.widen(table.second[type_index]) && table.field_types[integers.widen(table.first[type_index]) + field_index] == result
+                    current.fields += 1
+                } else {
+                    current.valid = result == 0
+                }
+
+                const duplicate = loop({ tasks: expressions.parallel_tasks, fields: expressions.parallel_fields, first: current.first, limit: current.index, task: task, field: field, index: 0, found: false }, {
+                    while: previous => !previous.found && previous.index < previous.limit,
+                    next: previous => {
+                        const position = previous.first + previous.index
+
+                        previous.found = previous.tasks[position] == previous.task || (previous.field != null && previous.fields[position] == previous.field)
+                        previous.index += 1
+                    }
+                })
+
+                current.valid = current.valid && !duplicate.found
+            }
+
+            current.index += 1
+        }
+    })
+
+    const expected = in.target == Kind.Object ? integers.widen(context.table.second[integers.widen(in.type_id)]) : 0
+
+    return result.valid && result.fields == expected
+}

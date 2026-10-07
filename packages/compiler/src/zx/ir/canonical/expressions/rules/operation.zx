@@ -1,0 +1,78 @@
+import integers from "zig:integers"
+
+import kind from "../../../../analysis/semantic/types/kind"
+import { Kind } from "../../../../analysis/semantic/types/model"
+import { CollectionKind } from "../kinds"
+import { Numeric } from "./model"
+import numeric from "./numeric"
+import typed from "./typed"
+
+import type { Check } from "./model"
+
+export type Input = Check
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const context = in.context
+    const expressions = context.expressions
+    const table = context.table
+    const source_index = integers.widen(expressions.collection_targets[in.payload])
+    const type_index = integers.widen(in.type_id)
+
+    if (source_index >= context.index || in.target != Kind.Tuple || table.second[type_index] != 2) {
+        return false
+    }
+
+    const source_id = expressions.types[source_index]
+    const source_type = integers.widen(source_id)
+    const first = integers.widen(table.first[type_index])
+
+    if (kind(table.kinds[source_type]) != Kind.List || table.children[first] != source_id) {
+        return false
+    }
+
+    const operation = expressions.collection_kinds[in.payload]
+    const count = integers.widen(expressions.collection_count[in.payload])
+
+    const expected = match operation {
+        CollectionKind.Push => 1,
+        CollectionKind.Concat => 1,
+        CollectionKind.Splice => 3,
+        _ => 0
+    }
+
+    if (count != expected) {
+        return false
+    }
+
+    const element = table.first[source_type]
+
+    const arguments = loop({ context: context, first: integers.widen(expressions.collection_first[in.payload]), count: count, operation: operation, element: element, source: source_id, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const hint = match current.operation {
+                CollectionKind.Push => current.element,
+                CollectionKind.Splice => current.index < 2 ? 5 : current.source,
+                _ => current.source
+            }
+            const context = current.context
+
+            current.valid = typed({ expressions: context.expressions, index: context.index, id: context.expressions.collection_arguments[current.first + current.index], type_id: hint })
+            current.index += 1
+        }
+    })
+
+    if (!arguments.valid) {
+        return false
+    }
+
+    const business = table.children[first + 1]
+
+    return match operation {
+        CollectionKind.Pop => kind(table.kinds[integers.widen(business)]) == Kind.Optional && table.first[integers.widen(business)] == element,
+        CollectionKind.Splice => business == source_id,
+        CollectionKind.Sort => business == 0 && (numeric(element) != Numeric.Other || element == 10),
+        _ => business == 0
+    }
+}
