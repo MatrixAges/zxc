@@ -8,7 +8,7 @@ input_types: std.ArrayList(u32) = .empty,
 output_types: std.ArrayList(u32) = .empty,
 ownership: std.ArrayList(ir.SymbolTable.Ownership) = .empty,
 store_modes: std.ArrayList(ir.StoreMode) = .empty,
-contracts: std.ArrayList([]const ir.Contract) = .empty,
+contracts: std.ArrayList(*const ir.ContractTable) = .empty,
 native_inputs: std.ArrayList(?ir.NativeType) = .empty,
 native_modules: std.ArrayList(?u32) = .empty,
 native_members: std.ArrayList([]const []const u8) = .empty,
@@ -49,6 +49,10 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std
     const stores = try descriptor(allocator, value.stores);
 
     errdefer allocator.destroy(stores);
+
+    const contracts = try descriptor(allocator, value.contracts);
+
+    errdefer allocator.destroy(contracts);
     self.files.appendAssumeCapacity(value.file_name);
     self.input_types.appendAssumeCapacity(@backingInt(value.input_type));
     self.output_types.appendAssumeCapacity(@backingInt(value.output_type));
@@ -60,7 +64,7 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std
     });
 
     self.store_modes.appendAssumeCapacity(value.store_mode);
-    self.contracts.appendAssumeCapacity(value.contracts);
+    self.contracts.appendAssumeCapacity(contracts);
     self.native_inputs.appendAssumeCapacity(if (value.external) |external| external.input else null);
     self.native_modules.appendAssumeCapacity(if (value.external) |external| @backingInt(external.module) else null);
     self.native_members.appendAssumeCapacity(if (value.external) |external| external.member else &.{});
@@ -94,6 +98,7 @@ pub fn finish(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Error
         for (result.symbols) |value| allocator.destroy(value);
         for (result.expressions) |value| allocator.destroy(value);
         for (result.stores) |value| allocator.destroy(value);
+        for (result.contracts) |value| allocator.destroy(value);
 
         inline for (@typeInfo(Table).@"struct".field_names) |name| allocator.free(@field(result, name));
         self.deinit(allocator);
@@ -108,6 +113,7 @@ pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     for (self.symbols.items) |value| allocator.destroy(value);
     for (self.expressions.items) |value| allocator.destroy(value);
     for (self.stores.items) |value| allocator.destroy(value);
+    for (self.contracts.items) |value| allocator.destroy(value);
 
     inline for (@typeInfo(Self).@"struct".field_names) |name| @field(self, name).deinit(allocator);
 
@@ -123,6 +129,7 @@ pub fn pop(self: *Self, allocator: std.mem.Allocator) ?ir.Function {
     allocator.destroy(self.symbols.items[index]);
     allocator.destroy(self.expressions.items[index]);
     allocator.destroy(self.stores.items[index]);
+    allocator.destroy(self.contracts.items[index]);
     inline for (@typeInfo(Self).@"struct".field_names) |name| _ = @field(self, name).pop();
 
     return value;

@@ -13,7 +13,7 @@ pub fn start(self: *Lower, id: ir.ExprId, concurrent: bool) Lower.Error!*const n
     try arguments.append(self.allocator, try self.builder.identifier("allocator"));
     try arguments.append(self.allocator, try self.builder.identifier("io"));
 
-    const process = @import("../capabilities.zig").uses(self.program.expressions, &.{}, self.process_functions);
+    const process = @import("../capabilities.zig").uses(self.program.expressions, .{}, self.process_functions);
 
     if (process) {
         self.uses_process = true;

@@ -1,0 +1,52 @@
+import integers from "zig:integers"
+
+import expression from "../expressions/rules/validate"
+import allowed from "./allowed"
+import { ContractKind } from "./model"
+
+import type { Functions } from "../expressions/rules/model"
+import type { Stores } from "../stores/model"
+import type { Program } from "./model"
+
+export type Input = { program: Program, index: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.program
+    const contracts = program.contracts
+    const symbols = contracts.symbols[in.index]
+    const expressions = contracts.expressions[in.index]
+    const predicate = integers.widen(contracts.predicates[in.index])
+    const parameters = contracts.kinds[in.index] == ContractKind.Requires ? 1 : 2
+
+    if (symbols.names.length != parameters || predicate >= expressions.kinds.length) {
+        return false
+    }
+
+    if (symbols.names[0] != "in" || symbols.types[0] != program.input_type) {
+        return false
+    }
+
+    if (parameters == 2 && (symbols.names[1] != "out" || symbols.types[1] != program.output_type)) {
+        return false
+    }
+
+    if (expressions.types[predicate] != 1) {
+        return false
+    }
+
+    const stores: Stores = { paths: [], types: [], handles: [], readable: [], writable: [] }
+    const functions: Functions = { input_types: [], output_types: [], stores: [] }
+
+    const result = loop({ table: program.table, symbols: symbols, expressions: expressions, stores: stores, functions: functions, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.expressions.kinds.length,
+        next: current => {
+            current.valid = allowed(current.expressions.kinds[current.index]) &&
+                expression({ table: current.table, expressions: current.expressions, symbols: current.symbols, stores: current.stores, functions: current.functions, index: current.index, orchestration: false })
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

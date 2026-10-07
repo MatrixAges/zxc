@@ -3,6 +3,10 @@ const std = @import("std");
 pub const Sources = struct {
     ownership: std.Build.LazyPath,
     ownership_abi: std.Build.LazyPath,
+    ir_contracts: std.Build.LazyPath,
+    ir_contracts_abi: std.Build.LazyPath,
+    ir_contract_tables: std.Build.LazyPath,
+    ir_contract_tables_abi: std.Build.LazyPath,
     ir_expressions: std.Build.LazyPath,
     ir_expressions_abi: std.Build.LazyPath,
     ir_functions: std.Build.LazyPath,
@@ -183,13 +187,17 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const ir_program_pure_abi = run.addOutputFileArg("ir_program_pure_abi.zig");
     const ir_expressions = run.addOutputFileArg("ir_expressions.zig");
     const ir_expressions_abi = run.addOutputFileArg("ir_expressions_abi.zig");
+    const ir_contracts = run.addOutputFileArg("ir_contracts.zig");
+    const ir_contracts_abi = run.addOutputFileArg("ir_contracts_abi.zig");
+    const ir_contract_tables = run.addOutputFileArg("ir_contract_tables.zig");
+    const ir_contract_tables_abi = run.addOutputFileArg("ir_contract_tables_abi.zig");
     const naming = run.addOutputFileArg("naming.zig");
     const naming_root = lint_dependency.path("src/naming");
 
     run.addDirectoryArg2(naming_root, .{});
     trackSources(b, run, naming_root, lint_dependency.builder.root.joinString(b.allocator, "src/naming") catch @panic("out of memory")) catch @panic("unable to track lint naming sources");
 
-    return .{ .ir_expressions = ir_expressions, .ir_expressions_abi = ir_expressions_abi, .ownership = ownership, .ownership_abi = ownership_abi, .ir_functions = ir_functions, .ir_functions_abi = ir_functions_abi, .ir_task_call = ir_task_call, .ir_task_call_abi = ir_task_call_abi, .ir_program_pure = ir_program_pure, .ir_program_pure_abi = ir_program_pure_abi, .ir_tasks = ir_tasks, .ir_tasks_abi = ir_tasks_abi, .ir_body = ir_body, .ir_body_abi = ir_body_abi, .ir_stores = ir_stores, .ir_stores_abi = ir_stores_abi, .ir_store_call = ir_store_call, .ir_store_call_abi = ir_store_call_abi, .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .type_remap = type_remap, .remap_abi = remap_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_extract = type_extract, .extract_abi = extract_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
+    return .{ .ir_contracts = ir_contracts, .ir_contracts_abi = ir_contracts_abi, .ir_contract_tables = ir_contract_tables, .ir_contract_tables_abi = ir_contract_tables_abi, .ir_expressions = ir_expressions, .ir_expressions_abi = ir_expressions_abi, .ownership = ownership, .ownership_abi = ownership_abi, .ir_functions = ir_functions, .ir_functions_abi = ir_functions_abi, .ir_task_call = ir_task_call, .ir_task_call_abi = ir_task_call_abi, .ir_program_pure = ir_program_pure, .ir_program_pure_abi = ir_program_pure_abi, .ir_tasks = ir_tasks, .ir_tasks_abi = ir_tasks_abi, .ir_body = ir_body, .ir_body_abi = ir_body_abi, .ir_stores = ir_stores, .ir_stores_abi = ir_stores_abi, .ir_store_call = ir_store_call, .ir_store_call_abi = ir_store_call_abi, .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .type_remap = type_remap, .remap_abi = remap_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_extract = type_extract, .extract_abi = extract_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath, absolute: []const u8) !void {
@@ -223,6 +231,7 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
 
 pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources) @import("compiler.zig").ParserModules {
     const integers = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.zig"), .target = target, .optimize = optimize });
+    const floats = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/floats.zig"), .target = target, .optimize = optimize });
     const lookup = b.createModule(.{ .root_source_file = source.type_lookup, .target = target, .optimize = optimize });
 
     lookup.addImport("integers", integers);
@@ -393,6 +402,27 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         },
     });
 
+    const ir_contracts = b.createModule(.{
+        .root_source_file = source.ir_contracts,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_contracts_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+            .{ .name = "floats", .module = floats },
+        },
+    });
+
+    const ir_contract_tables = b.createModule(.{
+        .root_source_file = source.ir_contract_tables,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_contract_tables_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+        },
+    });
+
     const ir_expressions = b.createModule(.{
         .root_source_file = source.ir_expressions,
         .target = target,
@@ -400,7 +430,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .imports = &.{
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_expressions_abi, .target = target, .optimize = optimize }) },
             .{ .name = "integers", .module = integers },
-            .{ .name = "floats", .module = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/floats.zig"), .target = target, .optimize = optimize }) },
+            .{ .name = "floats", .module = floats },
         },
     });
 
@@ -478,6 +508,8 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .ownership = ownership,
         .ir_body = ir_body,
         .ir_tasks = ir_tasks,
+        .ir_contracts = ir_contracts,
+        .ir_contract_tables = ir_contract_tables,
         .ir_expressions = ir_expressions,
         .ir_functions = ir_functions,
         .ir_task_call = ir_task_call,

@@ -103,7 +103,7 @@ fn contains(program: ir.Program, child: ir.TypeId, root: ir.TypeId) bool {
     return child == root or containsDescendant(program, child, root);
 }
 
-fn calls(expressions: ir.ExpressionTable, contracts: []const ir.Contract, pure: []const bool) bool {
+fn calls(expressions: ir.ExpressionTable, contracts: ir.ContractTable, pure: []const bool) bool {
     for (0..expressions.count()) |expression_index| {
         const expression = expressions.at(expression_index);
 
@@ -114,7 +114,7 @@ fn calls(expressions: ir.ExpressionTable, contracts: []const ir.Contract, pure: 
         }
     }
 
-    for (contracts) |contract| if (!calls(contract.expressions, &.{}, pure)) return false;
+    for (contracts.expressions) |expressions_table| if (!calls(expressions_table.*, .{}, pure)) return false;
 
     return true;
 }

@@ -43,7 +43,9 @@ pub fn generate(self: *Self) zx.Error!Query {
 
     var precondition: []const u8 = "true";
 
-    for (self.program.contracts) |contract| {
+    for (0..self.program.contracts.count()) |contract_index| {
+        const contract = self.program.contracts.at(contract_index);
+
         if (contract.kind != .requires) continue;
 
         const evaluated = try self.evaluateContract(contract, null);
@@ -263,7 +265,9 @@ fn evaluateContract(self: *Self, clause: ir.Contract, output: ?Value) zx.Error!t
 fn postconditions(self: *Self, path: []const u8, value: Value) zx.Error!void {
     var remaining = path;
 
-    for (self.program.contracts) |clause| {
+    for (0..self.program.contracts.count()) |contract_index| {
+        const clause = self.program.contracts.at(contract_index);
+
         if (clause.kind != .ensures) continue;
 
         const evaluated = try self.evaluateContract(clause, value);
@@ -306,7 +310,9 @@ pub fn call(self: *Self) zx.Error!terms.Evaluation {
 
     var path: []const u8 = "true";
 
-    for (self.program.contracts) |contract| {
+    for (0..self.program.contracts.count()) |contract_index| {
+        const contract = self.program.contracts.at(contract_index);
+
         if (contract.kind != .requires) continue;
 
         const evaluated = try self.evaluateContract(contract, null);

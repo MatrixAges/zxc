@@ -20,11 +20,11 @@ test "contract IR has scoped bool predicates and emission requires proof" {
 
     const program = analyzed.value.ir;
 
-    try std.testing.expectEqual(@as(usize, 2), program.contracts.len);
-    try std.testing.expectEqual(.requires, program.contracts[0].kind);
-    try std.testing.expectEqual(.ensures, program.contracts[1].kind);
-    try std.testing.expectEqual(@as(usize, 1), program.contracts[0].symbols.count());
-    try std.testing.expectEqual(@as(usize, 2), program.contracts[1].symbols.count());
+    try std.testing.expectEqual(@as(usize, 2), program.contracts.count());
+    try std.testing.expectEqual(.requires, program.contracts.at(0).kind);
+    try std.testing.expectEqual(.ensures, program.contracts.at(1).kind);
+    try std.testing.expectEqual(@as(usize, 1), program.contracts.at(0).symbols.count());
+    try std.testing.expectEqual(@as(usize, 2), program.contracts.at(1).symbols.count());
     try std.testing.expect(try compiler.validateIr(std.testing.allocator, program) == null);
     try std.testing.expectError(error.UnverifiedContracts, compiler.zig.emit(std.testing.allocator, program));
 }

@@ -146,6 +146,9 @@ pub const External = struct {
     }
 };
 
+pub const ContractTable = @import("contract_table/root.zig");
+pub const ContractStorage = @import("contract_table/storage.zig");
+
 pub const Contract = struct {
     kind: @import("syntax.zig").ContractKind,
     symbols: SymbolTable,
@@ -158,7 +161,7 @@ pub const Function = struct {
     stores: StoreTable = .{},
     store_mode: StoreMode = .transaction,
     output_ownership: Ownership = .borrowed,
-    contracts: []const Contract = &.{},
+    contracts: ContractTable = .{},
     external: ?External = null,
     file_name: []const u8,
     input_type: TypeId,
@@ -170,9 +173,9 @@ pub const Function = struct {
 
 pub const Program = struct {
     output_ownership: Ownership = .borrowed,
-    version: u32 = 31,
+    version: u32 = 32,
     store_mode: StoreMode = .transaction,
-    contracts: []const Contract = &.{},
+    contracts: ContractTable = .{},
     file_name: []const u8,
     types: TypeTable,
     symbols: SymbolTable,

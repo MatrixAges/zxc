@@ -5,7 +5,9 @@ const Lower = @import("lower.zig");
 pub fn preconditions(self: *Lower) Lower.Error![]const node.Statement {
     var statements: std.ArrayList(node.Statement) = .empty;
 
-    for (self.program.contracts) |contract| {
+    for (0..self.program.contracts.count()) |contract_index| {
+        const contract = self.program.contracts.at(contract_index);
+
         if (contract.kind != .requires) continue;
 
         var predicate = self.*;

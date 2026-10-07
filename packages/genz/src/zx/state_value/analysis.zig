@@ -145,7 +145,7 @@ pub fn nested(self: Self, program: ir.Program, id: ir.TypeId) bool {
     };
 }
 
-fn comparisons(program: ir.Program, boxed: []bool, expressions: ir.ExpressionTable, contracts: []const ir.Contract) void {
+fn comparisons(program: ir.Program, boxed: []bool, expressions: ir.ExpressionTable, contracts: ir.ContractTable) void {
     for (0..expressions.count()) |expression_index| {
         const expression = expressions.at(expression_index);
 
@@ -164,7 +164,7 @@ fn comparisons(program: ir.Program, boxed: []bool, expressions: ir.ExpressionTab
         }
     }
 
-    for (contracts) |contract| comparisons(program, boxed, contract.expressions, &.{});
+    for (contracts.expressions) |expressions_table| comparisons(program, boxed, expressions_table.*, .{});
 }
 
 fn mark(program: ir.Program, boxed: []bool, id: ir.TypeId) void {

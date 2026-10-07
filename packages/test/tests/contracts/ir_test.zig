@@ -19,10 +19,11 @@ test "invalid contract IR cannot reach code generation" {
 
     for (std.enums.values(Mutation)) |mutation| {
         var program = analyzed.value.ir;
-        const contracts = try allocator.dupe(compiler.ir.Contract, program.contracts);
+        var arena = std.heap.ArenaAllocator.init(allocator);
 
-        defer allocator.free(contracts);
+        defer arena.deinit();
 
+        var contracts = [_]compiler.ir.Contract{ program.contracts.at(0), program.contracts.at(1) };
         const input_names = try allocator.dupe([]const u8, contracts[0].symbols.names);
 
         defer allocator.free(input_names);
@@ -48,7 +49,6 @@ test "invalid contract IR cannot reach code generation" {
         contracts[1].symbols.names = output_names;
         contracts[1].symbols.types = output_types;
         contracts[0].expressions.types = expression_types;
-        program.contracts = contracts;
         const predicate: usize = @backingInt(contracts[0].predicate);
         const bool_type: compiler.ir.TypeId = @fromBackingInt(expression_types[predicate]);
 
@@ -62,6 +62,8 @@ test "invalid contract IR cannot reach code generation" {
             .output_type => output_types[1] = @backingInt(bool_type),
             .predicate_type => expression_types[predicate] = @backingInt(program.input_type),
         }
+
+        program.contracts = try compiler.ir.ContractTable.fromValues(arena.allocator(), &contracts);
 
         errdefer std.debug.print("Contract mutation: {t}\n", .{mutation});
 

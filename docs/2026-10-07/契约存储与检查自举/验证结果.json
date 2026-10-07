@@ -1,0 +1,125 @@
+{
+    "基线": "029acd6f99b3d32acb20e67bd4c57c260c062904",
+    "IR版本": 32,
+    "生成指纹": "zxc.zig.input.v37",
+    "源码": {
+        "packages/cli/src/cli/fpga.zig": "111eb8f422098b7ed7514bd6b37914bf5cbc5ca298f3e4b6a84ff85449e78620",
+        "packages/compiler/build/compiler.zig": "40e643219cc53aaaf142a9bbda2f72e3975d5289d5e384892aa73e12ccfa65a9",
+        "packages/compiler/build/generate_parser.zig": "30c179671fb6d6ce33aeb12daf9083540e606d51a44a6b0b503b8905aeb3b215",
+        "packages/compiler/build/parser.zig": "c1fae9a2713c846fa733531322ab017940f02d178d19337aaf27feec28edbbff",
+        "packages/compiler/src/backends/zig.zig": "7246e65fd3fa1f13918b1efd3dd1335f505cb36c793e362c439517acb332eb54",
+        "packages/compiler/src/backends/zig/fingerprint.zig": "686b3186fff613a87ac450015bc7e4b1e8a97226ef114ccf9a6f97509686c490",
+        "packages/compiler/src/backends/zig/references.zig": "6a2a82935a7c545dca05b3be504c32ddc23469e2925314ec8e52f745c7ea2c34",
+        "packages/compiler/src/backends/zig/store_initializers.zig": "c3971d2282fcff92641d796ae516e8cba3145ba9f705ca9f373122477de35144",
+        "packages/compiler/src/library/initializers.zig": "00bc00e2606851f27e1df19534693ffeded2a736dfafe71a70883125fffde617",
+        "packages/compiler/src/verification/conditions.zig": "00fdf085a373997c18248cee62ea61885df1b26080b9969fae157707658a842a",
+        "packages/compiler/src/verified_compile.zig": "da3c98e142d874f94c67e9495c6478eff73503d5accda5eef7fa25138d227ad3",
+        "packages/compiler/src/zx/analysis/analyzer.zig": "061859477244026bff849174c6316ab156b52bc5145170e1ef8a61ca749ad99b",
+        "packages/compiler/src/zx/analysis/contracts.zig": "39e3092777ff981fccfbb61d070a8f846a9e679994d9966be038809893d63d62",
+        "packages/compiler/src/zx/ir/canonical/contract_tables_check.rx": "182ef59fd6ebc5905af59c874b67419946b0ded2f65be2f9d6c44bfc7f19d5fe",
+        "packages/compiler/src/zx/ir/canonical/contracts/allowed.zx": "17d4a72c23038b410daed0250985605e9b9cab9fc0e3bb91fad7a5ba09ea82e0",
+        "packages/compiler/src/zx/ir/canonical/contracts/model.zx": "65df740499e6b35647c9a1a1b49313dc250bc824dc914d3b3884a786ca974ec3",
+        "packages/compiler/src/zx/ir/canonical/contracts/predicate.zx": "450560f3f6b2161782142eb9cc0e8b4d43e144f9b1cb37a4e5edfa4b9d774c67",
+        "packages/compiler/src/zx/ir/canonical/contracts/tables.zx": "b5c98adc1dc19f3b3a5edd0859073ee319c6df3002a5aab4365070173670f49d",
+        "packages/compiler/src/zx/ir/canonical/contracts/validate.zx": "14897dd578aa7ef5c19f93cfb9cc334368168eccb090e0cbcd2f69ad0b58e7a1",
+        "packages/compiler/src/zx/ir/canonical/contracts_check.rx": "1669c467be6d75aea4dd511a49bf106e933387f12b141e9555ea78b0a401e4e6",
+        "packages/compiler/src/zx/ir/contracts.zig": "73295cf8aaa315a8a2e66a2b2535a0be89f653b2092f722b013c3178adf6cd24",
+        "packages/compiler/src/zx/ir/seed_contracts.zig": "bf69e3fe6b1daa44848e9d4e3731e827670c94411c34854503221eb495578659",
+        "packages/compiler/src/zx/ir/validate.zig": "2794a2d5b16c718b8ae0a6eb64f128a458c454bffe1439657aa8cb72df9ed2df",
+        "packages/compiler/src/zx/modules/artifact/nodes.zig": "dc7c796d590cb08c49aa8e95124357c32157f3ed68e1d55a243310d94a2b6956",
+        "packages/compiler/src/zx/modules/artifact/roots.zig": "7f2216a27ece7b14602b300fa6e5d15108218bca027800dbc7f44e60cb0f0710",
+        "packages/compiler/src/zx/modules/compiled/initializers.zig": "2cc5e8b8854240a27b8c0e100f3daf3d36bdb3354325ec2344c3eecea09b33e9",
+        "packages/compiler/src/zx/modules/link.zig": "63dbafe959ccdab6422948f773f76a332cf2e5f7c11f6a56cfc0aa317422720c",
+        "packages/compiler/src/zx/modules/semantic_cache/codec.zig": "50bd7ddfd04d485c3d1eb4af21895621d27a2f7d926836c31f6638a871c2df9f",
+        "packages/compiler/src/zx/modules/semantic_cache/restore.zig": "d961fd5c3a55ab1bb886885a7c61bd69d78045ac1e035526323690c7450dfba6",
+        "packages/core/src/contract_table/root.zig": "f5732c7abbbe3d5fc231216cb95f910a29665410e071c52ad3d944a393fc4adb",
+        "packages/core/src/contract_table/storage.zig": "d01eb5bf100319666459e592de982b5d87023bbf495494cdf92557ce6f07cd22",
+        "packages/core/src/error_effects.zig": "a030399be6800ed019c318d7c00cfb40c57e0fcfc880bb8365837868a0609668",
+        "packages/core/src/function_table/root.zig": "d9a27699bfd76286155c273b323fbbcdc2a6ea0a5ff3ac22360315febc811187",
+        "packages/core/src/function_table/storage.zig": "02df8eea74113988b422afc6720c8354a83fbe9a983de07284a97c1ea27b7307",
+        "packages/core/src/ir.zig": "f353f37872d484c49d09899e37db973ce6459770b265166871c21c62aa7bd855",
+        "packages/core/src/root.zig": "82ec6eeeec14c96079b9e0308f7301150242c415668d96c63f4251bb84f85cad",
+        "packages/genz/src/zx/buffer_call/analysis/audit.zig": "16daafe9d0b48f3a7458ece4fe59c061dd946d86f6811d26544c9ea05463ca45",
+        "packages/genz/src/zx/capabilities.zig": "5a162ee03018f4ea18e78855e1183d4cca1e2204d14e38c593d26f3da1a5bdf2",
+        "packages/genz/src/zx/contracts.zig": "1ae2703b9b9aeb95f053926ce1e9807a998b27ea478f3c7ba9a16faff6781e35",
+        "packages/genz/src/zx/inline_call/plan.zig": "338b3fa64caa95395505fb40c5c7aaaf3b1a0d3255690d7b35913aaf2b02f70a",
+        "packages/genz/src/zx/io.zig": "68220dca7a2e14ed332d93be10383f27372c744d54f26690ad25705d80a33e72",
+        "packages/genz/src/zx/iteration_buffer/borrowing/call.zig": "89276e7def8854cef5a5c811706ea4eff2d53a14c9d2b2d9b766d8eda19209a4",
+        "packages/genz/src/zx/state_value/analysis.zig": "2e05dd1d53c834062a323af91f8d74d4839faddfe00e56ee8dbaf496e8dac997",
+        "packages/genz/src/zx/tasks/root.zig": "8b555190f9c03bce3da8d6217efccca3888cf4cd01ef78512c319e92aec3fcff",
+        "packages/genz/src/zx/value_call/analysis.zig": "26380ac6dc69d669a548b143932abc046b8285438b930cb52bcaccdb84d066cd",
+        "packages/test/tests/contracts/contracts_test.zig": "e78c7c08946e1ccfa34c58f8ef9b4941dd01dd2661b4950e87bbf871a32aa92e",
+        "packages/test/tests/contracts/ir_test.zig": "4fc8ec2c9a2bcefdfbcbeef8407ba3d316016cbf63dfc3a487a8189b4163aa58",
+        "packages/test/tests/library_publish/contract_artifact.ts": "d31ff4854bc5a46dacb6778d30b244be823f8692ed5aaed6bf0f04c3f82e4a02"
+    },
+    "检查": [
+        {
+            "名称": "根构建",
+            "目录": ".",
+            "命令": "zig build -j3 --summary all",
+            "退出码": 0,
+            "摘要": ["Build Summary: 35/35 steps succeeded"],
+            "日志": "根构建.log.gz",
+            "原始SHA256": "bb9c2cb12b11067bddd4ba44e9af78a7a509bbc0ae8445d5330bf52373ff834f"
+        },
+        {
+            "名称": "编译器包",
+            "目录": "packages/compiler",
+            "命令": "zig build test -j2 --summary all",
+            "退出码": 0,
+            "摘要": ["Build Summary: 28/28 steps succeeded; 372/372 tests passed"],
+            "日志": "编译器包.log.gz",
+            "原始SHA256": "aa60c8e13cd9ea983ca274bf56a0f913c48b74a92c389189d1bb7b3a28145b89"
+        },
+        {
+            "名称": "契约与编解码",
+            "目录": "packages/test",
+            "命令": "zig build test-contracts test-verification-resources test-library-codec test-cache-codec test-module-generation -j3 --summary all",
+            "退出码": 0,
+            "摘要": ["Build Summary: 59/59 steps succeeded; 113/113 tests passed"],
+            "日志": "契约与编解码.log.gz",
+            "原始SHA256": "caaab78f0f27585a6065e74e6dfdbaeaf4c4552c7e9f9e1df1b3c14042e590af"
+        },
+        {
+            "名称": "真实求证",
+            "目录": "packages/test",
+            "命令": "ZXC_TEST_SOLVER=/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3 zig build test-verification test-library-compiled-contract -j2 --summary all",
+            "退出码": 0,
+            "摘要": ["Build Summary: 37/37 steps succeeded"],
+            "日志": "真实求证.log.gz",
+            "原始SHA256": "4bd4eb97266dde40c216404811c27dfba10e417d7a9637f6229e08709e6be02e"
+        },
+        {
+            "名称": "库契约复核",
+            "目录": "packages/test",
+            "命令": "ZXC_TEST_SOLVER=/tmp/zxc-z3-5.1.0/z3-5.1.0-x64-osx-13.3/bin/z3 zig build test-library-compiled-contract -j2 --summary all",
+            "退出码": 0,
+            "摘要": ["Build Summary: 31/31 steps succeeded"],
+            "日志": "库契约复核.log.gz",
+            "原始SHA256": "e385a6f355c376389aa75baed9af00e22c5a523e58d566e66ec1f965b5635e0d"
+        }
+    ],
+    "生成物": [
+        {
+            "来源": ".zig-cache/o/f93852363dd122c56dfd21ac0fc461f2/ir_contracts.zig",
+            "归档": "契约语义.zig.gz",
+            "SHA256": "24ded4ea8cd31dc69ae23220a23a90dba767979bcd57b45a902dbc5e5ddb0b13"
+        },
+        {
+            "来源": ".zig-cache/o/f93852363dd122c56dfd21ac0fc461f2/ir_contracts_abi.zig",
+            "归档": "契约语义接口.zig.gz",
+            "SHA256": "add50870f46d9bc3effbc771ad540812d70d55583173ab0634c241737b717ea3"
+        },
+        {
+            "来源": ".zig-cache/o/f93852363dd122c56dfd21ac0fc461f2/ir_contract_tables.zig",
+            "归档": "契约结构.zig.gz",
+            "SHA256": "e7943044466ef75a71f008c24724a1a3f057bd5003d4847cfc810025dab209bf"
+        },
+        {
+            "来源": ".zig-cache/o/f93852363dd122c56dfd21ac0fc461f2/ir_contract_tables_abi.zig",
+            "归档": "契约结构接口.zig.gz",
+            "SHA256": "b23f954586c4324bb0f1cf8ae5c993822a69889cdce25648417a153794001dd6"
+        }
+    ],
+    "零分配边界": "语义14create与结构1create均为origin保护的不可达恢复备用分支；空数组dupe长度0。零FBA实际专项通过。"
+}

@@ -14,7 +14,7 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) (std.mem.All
         const input_type = program.typeOf(function.input_type);
 
         if (input_type != .scalar or input_type.scalar != .void or program.typeOf(function.output_type) != .object) return error.InvalidLibrary;
-        if (function.external != null or function.stores.count() != 0 or function.contracts.len != 0) return error.InvalidLibrary;
+        if (function.external != null or function.stores.count() != 0 or function.contracts.count() != 0) return error.InvalidLibrary;
 
         for (0..function.expressions.count()) |expression_index| {
             const expression = function.expressions.at(expression_index);

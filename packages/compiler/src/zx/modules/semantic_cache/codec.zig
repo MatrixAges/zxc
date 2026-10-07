@@ -62,8 +62,11 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
 
     if (parsed.module.function) |function| {
         if (!function.stores.validStructure() or !try function.body.validStructure(allocator) or !function.symbols.validStructure() or !function.expressions.validStructure()) return error.InvalidCache;
+        if (!function.contracts.validStructure()) return error.InvalidCache;
 
-        for (function.contracts) |contract| {
+        for (0..function.contracts.count()) |contract_index| {
+            const contract = function.contracts.at(contract_index);
+
             if (!contract.symbols.validStructure() or !contract.expressions.validStructure()) return error.InvalidCache;
         }
     }

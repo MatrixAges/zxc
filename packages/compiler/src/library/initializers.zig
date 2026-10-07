@@ -35,7 +35,7 @@ pub fn append(self: *Self, value: Entry) Error!void {
 pub fn source(self: *Self, initial: model.Initializer, origins: @FieldType(frontend.AnalysisResult, "nominal_types")) Error!void {
     const program = initial.program;
 
-    if (program.type_only or program.functions.count() != 0 or program.native_modules.len != 0 or program.stores.count() != 0 or program.contracts.len != 0) return error.InvalidInitializer;
+    if (program.type_only or program.functions.count() != 0 or program.native_modules.len != 0 or program.stores.count() != 0 or program.contracts.count() != 0) return error.InvalidInitializer;
     if (try frontend.validateIr(self.scratch, program) != null) return error.InvalidInitializer;
     if (program.typeOf(program.input_type) != .scalar or program.typeOf(program.input_type).scalar != .void or program.typeOf(program.output_type) != .object) return error.InvalidInitializer;
 

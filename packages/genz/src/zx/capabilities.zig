@@ -17,7 +17,7 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program, kind: Kind) 
     return required;
 }
 
-pub fn uses(expressions: ir.ExpressionTable, contracts: []const ir.Contract, required: []const bool) bool {
+pub fn uses(expressions: ir.ExpressionTable, contracts: ir.ContractTable, required: []const bool) bool {
     for (0..expressions.count()) |expression_index| {
         const expression = expressions.at(expression_index);
 
@@ -27,7 +27,7 @@ pub fn uses(expressions: ir.ExpressionTable, contracts: []const ir.Contract, req
         }
     }
 
-    for (contracts) |contract| if (uses(contract.expressions, &.{}, required)) return true;
+    for (contracts.expressions) |expressions_table| if (uses(expressions_table.*, .{}, required)) return true;
 
     return false;
 }

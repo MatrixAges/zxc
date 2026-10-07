@@ -2,7 +2,7 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const capabilities = @import("capabilities.zig");
 
-pub fn uses(expressions: ir.ExpressionTable, contracts: []const ir.Contract, required: []const bool) bool {
+pub fn uses(expressions: ir.ExpressionTable, contracts: ir.ContractTable, required: []const bool) bool {
     for (0..expressions.count()) |expression_index| {
         const expression = expressions.at(expression_index);
 

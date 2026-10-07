@@ -129,12 +129,12 @@ fn checkProgram(allocator: std.mem.Allocator, options: Options, program: compile
 }
 
 fn requiresVerification(program: compiler.ir.Program, solver: ?[]const u8) bool {
-    if (program.contracts.len != 0 or solver != null) return true;
+    if (program.contracts.count() != 0 or solver != null) return true;
 
     for (0..program.functions.count()) |function_row| {
         const function = program.functions.at(function_row);
 
-        if (function.contracts.len != 0) return true;
+        if (function.contracts.count() != 0) return true;
     }
 
     return false;

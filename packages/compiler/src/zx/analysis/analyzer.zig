@@ -99,7 +99,7 @@ const Output = struct {
     exports: []const ir.Export,
     type_only: bool,
     body: ?ir.BlockId = null,
-    contracts: []const ir.Contract = &.{},
+    contracts: ir.ContractTable = .{},
 };
 
 fn finish(self: *Self, output: Output) zx.Error!ir.Program {

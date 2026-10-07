@@ -11,7 +11,7 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
 
     trace.proven.clearRetainingCapacity();
 
-    if (trace.function.contracts.len != 0) return .contracts;
+    if (trace.function.contracts.count() != 0) return .contracts;
     if (parallel(trace.function.body.block())) return .parallel;
 
     for (0..trace.function.expressions.count()) |position| {

@@ -4,17 +4,19 @@ const ir = zx.ir;
 const Analyzer = @import("analyzer.zig");
 const Types = @import("types.zig");
 
-pub fn analyze(owner: *Analyzer, source: anytype, input_type: ir.TypeId, exports: []const ir.Export) zx.Error![]const ir.Contract {
-    if (source.len == 0) return &.{};
+pub fn analyze(owner: *Analyzer, source: anytype, input_type: ir.TypeId, exports: []const ir.Export) zx.Error!ir.ContractTable {
+    if (source.len == 0) return .{};
 
     const aliases = try owner.allocator.alloc(ir.Export, owner.types.aliases.len + exports.len);
 
     @memcpy(aliases[0..owner.types.aliases.len], owner.types.aliases);
     @memcpy(aliases[owner.types.aliases.len..], exports);
 
-    const contracts = try owner.allocator.alloc(ir.Contract, source.len);
+    var contracts: ir.ContractStorage = .{};
 
-    for (contracts, 0..) |*contract, index| {
+    errdefer contracts.deinit(owner.allocator);
+
+    for (0..source.len) |index| {
         const item = syntax.item(source, index);
 
         var analyzer = Analyzer{
@@ -42,14 +44,14 @@ pub fn analyze(owner: *Analyzer, source: anytype, input_type: ir.TypeId, exports
 
         owner.types.items = analyzer.types.items;
 
-        contract.* = .{
+        try contracts.append(owner.allocator, .{
             .kind = item.kind,
             .symbols = try analyzer.symbols.finish(owner.allocator),
             .expressions = try analyzer.nodes.finish(owner.allocator),
             .predicate = predicate,
             .span = item.span,
-        };
+        });
     }
 
-    return contracts;
+    return contracts.finish(owner.allocator);
 }

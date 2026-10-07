@@ -131,7 +131,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         .symbols = if (function) |value| value.symbols else .{},
         .expressions = if (function) |value| value.expressions else .{},
         .body = if (function) |value| value.body else .{},
-        .contracts = if (function) |value| value.contracts else &.{},
+        .contracts = if (function) |value| value.contracts else .{},
         .exports = exports,
         .stores = stores,
         .store_mode = if (function) |value| value.store_mode else .transaction,

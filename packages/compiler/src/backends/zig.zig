@@ -50,11 +50,11 @@ pub fn emitBundle(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem
 
 fn validate(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts })!void {
     if (try @import("frontend").validateIr(allocator, program) != null) return error.InvalidIr;
-    if (program.contracts.len != 0) return error.UnverifiedContracts;
+    if (program.contracts.count() != 0) return error.UnverifiedContracts;
 
     for (0..program.functions.count()) |function_row| {
         const function = program.functions.at(function_row);
 
-        if (function.contracts.len != 0) return error.UnverifiedContracts;
+        if (function.contracts.count() != 0) return error.UnverifiedContracts;
     }
 }

@@ -89,8 +89,10 @@ pub fn call(self: *Self, id: ir.FunctionId) std.mem.Allocator.Error!void {
     try self.statements(function.expressions, function.body.block());
 }
 
-fn contracts(self: *Self, values: []const ir.Contract) std.mem.Allocator.Error!void {
-    for (values) |contract| {
+fn contracts(self: *Self, values: ir.ContractTable) std.mem.Allocator.Error!void {
+    for (0..values.count()) |contract_index| {
+        const contract = values.at(contract_index);
+
         if (contract.kind != .requires) continue;
         try self.add("PreconditionFailed");
         try self.visit(contract.expressions, contract.predicate);

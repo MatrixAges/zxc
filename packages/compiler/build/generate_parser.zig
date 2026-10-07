@@ -203,6 +203,16 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[44 + entries.len], .data = ir_expressions.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[45 + entries.len], .data = ir_expressions.types });
 
+    const ir_contracts = try generate(allocator, inputs, sources.items, "zx/ir/canonical/contracts_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[46 + entries.len], .data = ir_contracts.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[47 + entries.len], .data = ir_contracts.types });
+
+    const ir_contract_tables = try generate(allocator, inputs, sources.items, "zx/ir/canonical/contract_tables_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[48 + entries.len], .data = ir_contract_tables.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[49 + entries.len], .data = ir_contract_tables.types });
+
     const naming = try generate(allocator, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 2], .data = naming.source });

@@ -1,0 +1,28 @@
+import { ContractKind } from "./model"
+import predicate from "./predicate"
+import tables from "./tables"
+
+import type { Program } from "./model"
+
+export type Input = Program
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!tables({ contracts: in.contracts, max_offset: in.max_offset })) {
+        return false
+    }
+
+    const result = loop({ program: in, index: 0, has_ensures: false, valid: true }, {
+        while: current => current.valid && current.index < current.program.contracts.kinds.length,
+        next: current => {
+            const kind = current.program.contracts.kinds[current.index]
+
+            current.valid = !(kind == ContractKind.Requires && current.has_ensures) && predicate({ program: current.program, index: current.index })
+            current.has_ensures = current.has_ensures || kind == ContractKind.Ensures
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

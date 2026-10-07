@@ -36,15 +36,23 @@ pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
     result.expressions = try self.expressions(value.expressions);
     result.body = try self.body(value.body);
     result.stores = try self.stores(value.stores);
-    const contracts = try self.allocator.alloc(ir.Contract, value.contracts.len);
-    result.contracts = contracts;
 
-    for (value.contracts, contracts) |contract, *owned| {
-        owned.* = contract;
-        owned.symbols = try self.symbols(contract.symbols);
-        owned.expressions = try self.expressions(contract.expressions);
+    var contracts: ir.ContractStorage = .{};
+
+    errdefer contracts.deinit(self.allocator);
+
+    if (!value.contracts.validStructure()) return error.InvalidModule;
+
+    for (0..value.contracts.count()) |index| {
+        var contract = value.contracts.at(index);
+
+        contract.symbols = try self.symbols(contract.symbols);
+        contract.expressions = try self.expressions(contract.expressions);
+
+        try contracts.append(self.allocator, contract);
     }
 
+    result.contracts = try contracts.finish(self.allocator);
     result.external = if (value.external) |entry| try self.external(entry) else null;
 
     return result;

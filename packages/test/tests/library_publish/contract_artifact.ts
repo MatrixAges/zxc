@@ -17,7 +17,7 @@ type FunctionTable = {
         references: Array<number>
         integers: Array<number>
     }>
-    contracts: Array<Array<{ kind: string }>>
+    contracts: Array<{ kinds: Array<string> }>
 }
 type Artifact = {
     exports: Array<{ name: string; function: number | null }>
@@ -36,7 +36,7 @@ export default function breakIdentity(encoded: Buffer): Buffer {
     const functions = payload.program.functions
     const function_index = exported.function!
 
-    assert.ok(functions.contracts[function_index].some(contract => contract.kind === 'ensures'))
+    assert.ok(functions.contracts[function_index].kinds.includes('Ensures'))
 
     const root = functions.roots[function_index]
     const control = functions.control[function_index]

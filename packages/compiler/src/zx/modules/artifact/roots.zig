@@ -107,8 +107,8 @@ fn nativeModule(self: *Self, id: ir.NativeModuleId) Error!void {
     for (self.program.native_modules[@backingInt(id)].types) |item| try self.mark(item.type_id);
 }
 
-fn nodes(self: *Self, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, contracts: []const ir.Contract) Error!void {
-    if (!symbols.validStructure() or !expressions.validStructure()) return error.InvalidModule;
+fn nodes(self: *Self, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, contracts: ir.ContractTable) Error!void {
+    if (!symbols.validStructure() or !expressions.validStructure() or !contracts.validStructure()) return error.InvalidModule;
     for (symbols.types) |type_id| try self.mark(@fromBackingInt(type_id));
 
     for (0..expressions.count()) |expression_index| {
@@ -117,7 +117,9 @@ fn nodes(self: *Self, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, 
         try self.mark(expression.type_id);
     }
 
-    for (contracts) |contract| {
+    for (0..contracts.count()) |contract_index| {
+        const contract = contracts.at(contract_index);
+
         if (!contract.symbols.validStructure() or !contract.expressions.validStructure()) return error.InvalidModule;
         for (contract.symbols.types) |type_id| try self.mark(@fromBackingInt(type_id));
 
