@@ -1,0 +1,17 @@
+import host from "zig:host"
+
+import type { Payload } from "zig:host"
+import type { Read } from "./model"
+
+export type Input = Payload
+
+export type Output = Read
+
+export default function (in: Input): Output {
+  const first = host.first(in)
+  const payload = host.echo(in)
+  const second = host.second(payload)
+  const allocated = host.allocated(payload)
+
+  return { payload, score: first + second + allocated }
+}

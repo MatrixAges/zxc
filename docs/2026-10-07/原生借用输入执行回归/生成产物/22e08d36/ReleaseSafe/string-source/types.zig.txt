@@ -1,0 +1,88 @@
+pub const zx_type_4035ed76eb1d5009c263c43ce5f8b82be77e4ce6d369211449a86528815efed7 = struct {
+    payload: []const u8,
+    seed: []const u64,
+    steps: []const u64,
+};
+
+pub const zx_type_de217e0cf2669de9d94b2c89c0f4a861a3d864d4c5e09f275575331ca7cee578 = struct {
+    last: u64,
+    payload: []const u8,
+    scores: []const u64,
+};
+
+pub const zx_type_176f4a9b9bfc0db908c5b2e9f4d4d5b975084bb0afe6a487c709db25ebf42c1c = struct {
+    payload: []const u8,
+    score: u64,
+};
+
+pub const zx_type_0d3cfc83ec6a569d814e0111703e1e00e772ca120cfc9d76fa438764069a056e = struct {
+    item: u64,
+    state: *const zx_type_de217e0cf2669de9d94b2c89c0f4a861a3d864d4c5e09f275575331ca7cee578,
+};
+
+pub const zx_type_a65ca64a5081ce73d932d5efbadd7371a7d5d6b792897c2e7113be9121cba7bc = struct { []const u64, void, };
+
+pub const value_zx_type_4035ed76eb1d5009c263c43ce5f8b82be77e4ce6d369211449a86528815efed7_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = struct {
+    payload: []const u8,
+    seed: []const u64,
+    steps: []const u64,
+    zx_origin: ?*const zx_type_4035ed76eb1d5009c263c43ce5f8b82be77e4ce6d369211449a86528815efed7 = null,
+};
+
+pub const value_zx_type_de217e0cf2669de9d94b2c89c0f4a861a3d864d4c5e09f275575331ca7cee578_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = struct {
+    last: u64,
+    payload: []const u8,
+    scores: []const u64,
+    zx_origin: ?*const zx_type_de217e0cf2669de9d94b2c89c0f4a861a3d864d4c5e09f275575331ca7cee578 = null,
+};
+
+pub const value_zx_type_176f4a9b9bfc0db908c5b2e9f4d4d5b975084bb0afe6a487c709db25ebf42c1c_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    payload: []const u8,
+    score: u64,
+    zx_origin: ?*const zx_type_176f4a9b9bfc0db908c5b2e9f4d4d5b975084bb0afe6a487c709db25ebf42c1c = null,
+};
+
+pub const value_zx_type_0d3cfc83ec6a569d814e0111703e1e00e772ca120cfc9d76fa438764069a056e_cdc1f61d62011c24c95af10831445b895443795508d45a3efbae896fbe93578d = struct {
+    item: u64,
+    state: value_zx_type_de217e0cf2669de9d94b2c89c0f4a861a3d864d4c5e09f275575331ca7cee578_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292,
+    zx_origin: ?*const zx_type_0d3cfc83ec6a569d814e0111703e1e00e772ca120cfc9d76fa438764069a056e = null,
+};
+
+pub const value_zx_type_a65ca64a5081ce73d932d5efbadd7371a7d5d6b792897c2e7113be9121cba7bc_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct { []const u64, void, ?*const zx_type_a65ca64a5081ce73d932d5efbadd7371a7d5d6b792897c2e7113be9121cba7bc, };
+
+pub const native = struct {
+    pub const @"zig:host" = struct {
+        pub const Payload = []const u8;
+        pub const first = struct {
+            pub const Input = []const u8;
+            pub const Output = u64;
+            pub const InputValue = []const u8;
+            pub const OutputValue = u64;
+        };
+        pub const echo = struct {
+            pub const Input = []const u8;
+            pub const Output = []const u8;
+            pub const InputValue = []const u8;
+            pub const OutputValue = []const u8;
+        };
+        pub const second = struct {
+            pub const Input = []const u8;
+            pub const Output = u64;
+            pub const InputValue = []const u8;
+            pub const OutputValue = u64;
+        };
+        pub const allocated = struct {
+            pub const Input = []const u8;
+            pub const Output = u64;
+            pub const InputValue = []const u8;
+            pub const OutputValue = u64;
+        };
+    };
+};
+
+pub const layouts = struct {
+    pub const @"zig:host" = struct {
+        pub const Payload = []const u8;
+    };
+};
+

@@ -1,0 +1,121 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_c2efeccb61e25d10be5d9f5d297aefeb53e278a42a64a71db017429da4b8deb3) error{ NativeFailure, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a {
+    @setRuntimeSafety(true);
+
+    const value_1: *const (zx_abi).zx_type_dde8149b7632748db2b6f7e450fc951af9a062a943adeebfd437e4ed06c582dd = (try (@import("zxc_module_8d49f4a61de31e856b53078304dc41669fe7bb692b7e423a80204a9f7276ac71")).call(allocator, ((in).state).payload));
+    const value_2: u64 = ((value_1).score + (in).item);
+
+    return block_10: {
+        const operand_1 = (value_1).payload;
+        const operand_2 = (block_6: {
+            const operand_3 = ((in).state).scores;
+            const operand_4 = value_2;
+            const operand_5 = (try (allocator).alloc(u64, (try ((std).math).add(usize, (operand_3).len, 1))));
+
+            @memcpy((operand_5)[0..(operand_3).len], operand_3);
+
+            (operand_5)[(operand_3).len] = operand_4;
+
+            break :block_6 @as((zx_abi).zx_type_a65ca64a5081ce73d932d5efbadd7371a7d5d6b792897c2e7113be9121cba7bc, .{ operand_5, {}, });
+        }).@"0";
+        const operand_7 = value_2;
+
+        break :block_10 block_9: {
+            const operand_8 = (try (allocator).create((zx_abi).zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a));
+
+            (operand_8).* = @as((zx_abi).zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a, (zx_abi).zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a{ .payload = operand_1, .scores = operand_2, .last = operand_7, });
+
+            break :block_9 @as(*const (zx_abi).zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a, operand_8);
+        };
+    };
+}
+
+pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_c2efeccb61e25d10be5d9f5d297aefeb53e278a42a64a71db017429da4b8deb3_cdc1f61d62011c24c95af10831445b895443795508d45a3efbae896fbe93578d) error{ NativeFailure, OutOfMemory, Overflow, }!(zx_abi).value_zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 {
+    @setRuntimeSafety(true);
+
+    const value_1: (zx_abi).value_zx_type_dde8149b7632748db2b6f7e450fc951af9a062a943adeebfd437e4ed06c582dd_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = block_21: {
+        break :block_21 (try (@import("zxc_module_8d49f4a61de31e856b53078304dc41669fe7bb692b7e423a80204a9f7276ac71")).callValue(allocator, ((in).state).payload));
+    };
+    const value_2: u64 = ((value_1).score + (in).item);
+
+    return block_20: {
+        const operand_11 = (value_1).payload;
+        const operand_12 = (block_17: {
+            const operand_13 = ((in).state).scores;
+            const operand_15 = block_14: {
+                break :block_14 value_2;
+            };
+            const operand_16 = (try (allocator).alloc(u64, (try ((std).math).add(usize, (operand_13).len, 1))));
+
+            @memcpy((operand_16)[0..(operand_13).len], operand_13);
+
+            (operand_16)[(operand_13).len] = operand_15;
+
+            break :block_17 @as((zx_abi).value_zx_type_a65ca64a5081ce73d932d5efbadd7371a7d5d6b792897c2e7113be9121cba7bc_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814, .{ operand_16, {}, null, });
+        }).@"0";
+        const operand_18 = block_19: {
+            break :block_19 value_2;
+        };
+
+        break :block_20 @as((zx_abi).value_zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .payload = operand_11, .scores = operand_12, .last = operand_18, });
+    };
+}
+
+pub fn callBuffered(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_c2efeccb61e25d10be5d9f5d297aefeb53e278a42a64a71db017429da4b8deb3_cdc1f61d62011c24c95af10831445b895443795508d45a3efbae896fbe93578d, buffers: struct {
+    lane_0: ?struct {
+        buffer: *(std).ArrayList(u64),
+        started: *bool,
+    },
+}) error{ NativeFailure, OutOfMemory, Overflow, }!(zx_abi).value_zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 {
+    @setRuntimeSafety(true);
+
+    const value_1: (zx_abi).value_zx_type_dde8149b7632748db2b6f7e450fc951af9a062a943adeebfd437e4ed06c582dd_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = block_36: {
+        break :block_36 (try (@import("zxc_module_8d49f4a61de31e856b53078304dc41669fe7bb692b7e423a80204a9f7276ac71")).callValue(allocator, ((in).state).payload));
+    };
+    const value_2: u64 = ((value_1).score + (in).item);
+
+    return block_35: {
+        const operand_22 = (value_1).payload;
+        const operand_23 = @as([]const u64, (if (((buffers).lane_0 != null)) block_27: {
+            const operand_24 = ((in).state).scores;
+            const operand_26 = block_25: {
+                break :block_25 value_2;
+            };
+
+            _ = (try ((std).math).add(usize, (operand_24).len, 1));
+
+            if ((!(((buffers).lane_0.?).started).*)) {
+                (try ((((buffers).lane_0.?).buffer).*).appendSlice(allocator, operand_24));
+
+                (((buffers).lane_0.?).started).* = true;
+            } else {
+                (((((buffers).lane_0.?).buffer).*).items).len = (operand_24).len;
+            }
+
+            (try ((((buffers).lane_0.?).buffer).*).append(allocator, operand_26));
+
+            break :block_27 ((((buffers).lane_0.?).buffer).*).items;
+        } else (block_32: {
+            const operand_28 = ((in).state).scores;
+            const operand_30 = block_29: {
+                break :block_29 value_2;
+            };
+            const operand_31 = (try (allocator).alloc(u64, (try ((std).math).add(usize, (operand_28).len, 1))));
+
+            @memcpy((operand_31)[0..(operand_28).len], operand_28);
+
+            (operand_31)[(operand_28).len] = operand_30;
+
+            break :block_32 @as((zx_abi).value_zx_type_a65ca64a5081ce73d932d5efbadd7371a7d5d6b792897c2e7113be9121cba7bc_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814, .{ operand_31, {}, null, });
+        }).@"0"));
+        const operand_33 = block_34: {
+            break :block_34 value_2;
+        };
+
+        break :block_35 @as((zx_abi).value_zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_e76a9489041a46573c285431cfacaa0fcd28fea2ff8379389720abda48e6993a_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .payload = operand_22, .scores = operand_23, .last = operand_33, });
+    };
+}
+

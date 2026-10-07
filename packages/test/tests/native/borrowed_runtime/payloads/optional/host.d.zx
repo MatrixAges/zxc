@@ -1,0 +1,9 @@
+export type Payload = string?
+
+export declare function first(payload: Payload): u64 throws { NativeFailure }
+
+export declare function echo(payload: Payload): Payload throws { NativeFailure }
+
+export declare function second(payload: Payload): u64 throws { NativeFailure }
+
+export declare function allocated(allocator, payload: Payload): u64 throws { NativeFailure, OutOfMemory }

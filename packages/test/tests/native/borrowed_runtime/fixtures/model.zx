@@ -1,0 +1,11 @@
+import type { Payload } from "zig:host"
+
+export type Input = { payload: Payload, seed: u64[], steps: u64[] }
+
+export type State = { payload: Payload, scores: u64[], last: u64 }
+
+export type Output = State
+
+export type Read = { payload: Payload, score: u64 }
+
+export type Step = { state: State, item: u64 }

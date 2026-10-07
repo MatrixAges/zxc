@@ -1,0 +1,14 @@
+import step from "./step"
+
+import type { Payload } from "zig:host"
+import type { State } from "./model"
+
+export type Input = { payload: Payload, seed: u64[], steps: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const initial: State = { payload: in.payload, scores: in.seed, last: 17 }
+
+  return in.steps.reduce((state, item) => step({ state, item }), initial)
+}

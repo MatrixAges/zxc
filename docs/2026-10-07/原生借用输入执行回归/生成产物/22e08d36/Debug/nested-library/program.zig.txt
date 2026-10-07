@@ -1,0 +1,60 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_ca62746c5850260ab61b728ed84800515958b685b59531557d2ff69d47a830db;
+
+pub const Output = *const (zx_abi).zx_type_75afc575860c0f05362f8db02a77c530a5eb5e1119a5db48c6c7b31a08ded1f2;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_12 = .{ .kind = .list, .child = zx_shape_11, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .payload = zx_shape_12, .seed = zx_shape_11, .steps = zx_shape_11, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .last = zx_shape_5, .payload = zx_shape_12, .scores = zx_shape_11, }, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .payload = zx_shape_12, .score = zx_shape_5, }, };
+
+const zx_shape_16 = .{ .kind = .object, .fields = .{ .item = zx_shape_5, .state = zx_shape_14, }, };
+
+const zx_shape_17 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_11, .@"1" = zx_shape_0, }, };
+
+pub const input_shape = zx_shape_13;
+
+pub const output_shape = zx_shape_14;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_ca62746c5850260ab61b728ed84800515958b685b59531557d2ff69d47a830db) error{ NativeFailure, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_75afc575860c0f05362f8db02a77c530a5eb5e1119a5db48c6c7b31a08ded1f2 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return (try (@import("zxc_module_047cdcb12ed82cf199194cf206262d164431c608eb4b3f970a3ad875d7f1337d")).call(allocator, in));
+}
+

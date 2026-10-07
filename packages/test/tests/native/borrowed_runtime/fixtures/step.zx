@@ -1,0 +1,14 @@
+import read from "./read"
+
+import type { State, Step } from "./model"
+
+export type Input = Step
+
+export type Output = State
+
+export default function (in: Input): Output {
+  const result = read(in.state.payload)
+  const score = result.score + in.item
+
+  return { payload: result.payload, scores: in.state.scores.push(score)[0], last: score }
+}
