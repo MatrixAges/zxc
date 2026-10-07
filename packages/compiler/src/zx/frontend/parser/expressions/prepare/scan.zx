@@ -8,9 +8,18 @@ export type Input = Token[]
 export type Output = Hint[]
 
 export default function (in: Input): Output {
-  const reversed = in.map(token => { kind: token.kind, symbol: token.symbol, word: token.word }).reverse()[0]
-  const hints: Hint[] = []
-  const result = reversed.reduce((state, token) => step({ state: state, kind: token.kind, symbol: token.symbol, word: token.word }), { arrow: false, parameter_start: false, after_identifier: false, hints: hints })
+    const hints: Hint[] = []
 
-  return result.hints.reverse()[0]
+    const result = loop({ tokens: in, remaining: in.length, state: { arrow: false, parameter_start: false, after_identifier: false, hints: hints } }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            const index = current.remaining - 1
+            const token = current.tokens[index]
+
+            current.state = step({ state: current.state, kind: token.kind, symbol: token.symbol, word: token.word })
+            current.remaining = index
+        }
+    })
+
+    return result.state.hints.reverse()[0]
 }

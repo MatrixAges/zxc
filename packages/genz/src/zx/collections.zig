@@ -46,9 +46,10 @@ fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(
             result = try self.builder.expression(.{ .conditional = .{ .condition = try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), .yes = try pair(self, source, try self.builder.expression(.null_value)), .no = nonempty } });
         },
         .reverse, .sort => {
-            const mutable = try allocate(self, &body, child_type, length);
+            const reuse = operation.kind == .reverse and try @import("collections/ownership.zig").consumable(self, operation.target);
+            const mutable = if (reuse) try self.builtin(.constCast, &.{source}) else try allocate(self, &body, child_type, length);
 
-            try copy(self, &body, mutable, source);
+            if (!reuse) try copy(self, &body, mutable, source);
 
             const call = if (operation.kind == .reverse) try intrinsic.standard(self, &.{ "mem", "reverse" }, &.{ child_type, mutable }, false) else blk: {
                 var found = false;
