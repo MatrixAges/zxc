@@ -1,0 +1,31 @@
+{
+    "revision": "7ab7fafa0003f73fc85c1b95d88094d33f7eb8bd",
+    "source_root": "/tmp/zxc-test262-reference/test262-7ab7fafa0003f73fc85c1b95d88094d33f7eb8bd",
+    "archive_sha256": "1d497a1e7430094a41d06f38db775df4a63db5d587b2a8b08aba6fad5de19585",
+    "files": [
+        {
+            "name": "original_count",
+            "path": "test/built-ins/Array/prototype/reduce/15.4.4.21-9-c-ii-9.js",
+            "sha256": "f7b845d4f0aafdc89eff07582b23770232883bc6cd57dc8370df3db15db36848",
+            "items": [11, 12],
+            "seed": 1,
+            "reason": "保留原输入 [11,12]、seed 1 和调用次数 2 的完整断言；每次真实回调追加一个观察记录，完整轨迹长度因此验证次数。零形式参数命名函数改为固定两参数内联回调，undefined 返回改为 current；原文只断言次数，不归因新增的 previous/current 值断言，也不声称支持原形式参数声明。"
+        },
+        {
+            "name": "original_first",
+            "path": "test/built-ins/Array/prototype/reduce/15.4.4.21-9-c-ii-10.js",
+            "sha256": "0bd329ae32bddb516258d269fccf6f87c9f3c4e219a2ec08f62648f6bc0382d3",
+            "items": [11],
+            "seed": 1,
+            "reason": "保留原输入 [11]、seed 1 和首次 prevVal===1 的断言；完整唯一观察为 previous 1/current 11。外部 result 改为记录观察；原 undefined 返回只发生在唯一观察之后，改为 current 不改变原被断言值。空输入、不同 seed 和多元素输入是 zxc 补充控制，不声称属于原文的 undefined 累加语义。"
+        },
+        {
+            "name": "original_chain",
+            "path": "test/built-ins/Array/prototype/reduce/15.4.4.21-9-c-ii-17.js",
+            "sha256": "e28f9b78f94b6631fca42c9b7e0d03630c81bd3dcf874e101a48392243329ec3",
+            "items": [11, 12, 13],
+            "seed": 1,
+            "reason": "保留原输入 [11,12,13]、seed 1、回调返回 current 和每次累加值为上次返回的语义。外部 preIteration/result/accessed 改为逐次完整轨迹 [1->11,11->12,12->13]；精确 previous/current 比较同时验证原 result=true，非空三次轨迹验证原 accessed=true。未使用的 idx/obj 删除，固定两参数表达式回调属于适配。"
+        }
+    ]
+}
