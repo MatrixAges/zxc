@@ -1,0 +1,14 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+const zx_native = @import("host");
+
+pub fn call(allocator: ((std).mem).Allocator, in: u64) error{ AmountFailure, }!u64 {
+    const native_result = (try (zx_native).amount(in));
+
+    _ = allocator;
+
+    return native_result;
+}
+

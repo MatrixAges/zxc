@@ -1,0 +1,19 @@
+1/18 root.test.empty reduce never calls subject...OK
+2/18 root.test.zero arm calls subject once and keeps original alias...OK
+3/18 root.test.first update observes old accumulator...OK
+4/18 root.test.fallback and spread updates have distinct results...OK
+5/18 root.test.mixed subjects preserve exact call order and values...OK
+6/18 root.test.all zero subjects suppress patterns and values...OK
+7/18 root.test.effectful match allocation remains bounded as source grows...OK
+8/18 root.test.bounded effectful match does not require in place resize...OK
+9/18 root.test.mixed effectful branches release all failed allocations...OK
+10/18 root.test.unchanged effectful branches release all failed allocations...OK
+11/18 failure.test.subject failure stops exactly at each invocation and recovers...OK
+12/18 failure.test.pattern failure stops before amount and recovers...OK
+13/18 failure.test.amount failure stops before later subjects and recovers...OK
+14/18 failure.test.selected zero arm suppresses failing pattern...OK
+15/18 failure.test.selected zero arm suppresses failing update value...OK
+16/18 failure.test.subject error and recovery release failed allocations...OK
+17/18 failure.test.pattern error and recovery release failed allocations...OK
+18/18 failure.test.amount error and recovery release failed allocations...OK
+All 18 tests passed.

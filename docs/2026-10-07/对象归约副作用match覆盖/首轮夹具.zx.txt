@@ -1,0 +1,15 @@
+import { subject, pattern, amount } from "zig:host"
+
+export type State = { count: u64, total: u64, text: string }
+
+export type Input = { seed: State, steps: u64[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return in.steps.reduce((state, item) => match subject(item) {
+        0 => state,
+        pattern(1) => ({...state, count: state.count + 1, total: state.total + state.count + amount(item)}),
+        _ => ({count: state.count + 2, total: state.total + state.count + amount(item) + 10, text: state.text})
+    }, in.seed)
+}

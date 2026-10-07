@@ -1,0 +1,122 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const State = *const (zx_abi).zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2;
+
+pub const Input = *const (zx_abi).zx_type_39eb9387ed555dfdc8172fa58268af00d10e0c678f2dc2b4b96a7adf3b534055;
+
+pub const Output = *const (zx_abi).zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .text = zx_shape_10, .total = zx_shape_5, }, };
+
+const zx_shape_12 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .seed = zx_shape_11, .steps = zx_shape_12, }, };
+
+pub const input_shape = zx_shape_13;
+
+pub const output_shape = zx_shape_11;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_39eb9387ed555dfdc8172fa58268af00d10e0c678f2dc2b4b96a7adf3b534055) error{ AmountFailure, OutOfMemory, PatternFailure, SubjectFailure, }!*const (zx_abi).zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return block_27: {
+        const operand_1 = (in).steps;
+        const operand_2 = (in).seed;
+
+        var value_1: (zx_abi).value_zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = (zx_abi).value_zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .count = (operand_2).count, .text = (operand_2).text, .total = (operand_2).total, .zx_origin = operand_2, };
+
+        var state_changed_3 = false;
+
+        for (operand_1) |value_2| {
+            const operand_7 = block_6: {
+                const operand_5 = block_4: {
+                    break :block_4 value_2;
+                };
+
+                break :block_6 (try (@import("zxc_module_3e1093577e990875191c2682ee5f4a5eff8a7824b7683d8dd21094344b4779f6")).call(allocator, operand_5));
+            };
+
+            if ((operand_7 == @as(u64, 0))) {
+            } else {
+                if ((operand_7 == block_16: {
+                    const operand_15 = @as(u64, 1);
+
+                    break :block_16 (try (@import("zxc_module_ff50eead669f07c76c132120cb9720e677120f84c744cb8ccdf6f455a6525026")).call(allocator, operand_15));
+                })) {
+                    value_1 = block_23: {
+                        const operand_17 = value_1;
+                        const operand_18 = ((value_1).count + @as(u64, 1));
+                        const operand_19 = (((value_1).total + (value_1).count) + block_22: {
+                            const operand_21 = block_20: {
+                                break :block_20 value_2;
+                            };
+
+                            break :block_22 (try (@import("zxc_module_a3abca9615b61a134cd89ce24b64959abf409449cda0e6920ecd0dcafdf99021")).call(allocator, operand_21));
+                        });
+
+                        break :block_23 @as((zx_abi).value_zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .count = operand_18, .text = (operand_17).text, .total = operand_19, });
+                    };
+
+                    state_changed_3 = true;
+                } else {
+                    value_1 = block_14: {
+                        const operand_8 = ((value_1).count + @as(u64, 2));
+                        const operand_9 = ((((value_1).total + (value_1).count) + block_12: {
+                            const operand_11 = block_10: {
+                                break :block_10 value_2;
+                            };
+
+                            break :block_12 (try (@import("zxc_module_a3abca9615b61a134cd89ce24b64959abf409449cda0e6920ecd0dcafdf99021")).call(allocator, operand_11));
+                        }) + @as(u64, 10));
+                        const operand_13 = (value_1).text;
+
+                        break :block_14 @as((zx_abi).value_zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .count = operand_8, .total = operand_9, .text = operand_13, });
+                    };
+
+                    state_changed_3 = true;
+                }
+            }
+        }
+
+        break :block_27 (if (state_changed_3) block_26: {
+            break :block_26 (if (((value_1).zx_origin != null)) (value_1).zx_origin.? else block_25: {
+                const operand_24 = (try (allocator).create((zx_abi).zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2));
+
+                (operand_24).* = (zx_abi).zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2{ .count = (value_1).count, .text = (value_1).text, .total = (value_1).total, };
+
+                break :block_25 @as(*const (zx_abi).zx_type_84be521dff29d334c6b22d607c1a2d54c1da29ace52bd524b0cdd41c376af8f2, operand_24);
+            });
+        } else operand_2);
+    };
+}
+
