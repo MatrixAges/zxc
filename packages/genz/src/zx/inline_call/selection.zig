@@ -57,7 +57,11 @@ fn statements(self: *Self, items: []const ir.Statement) Error!void {
                 try self.statements(case.body);
             }
         },
-        else => try self.walk(item, false),
+        .constant => |binding| try self.find(binding.value),
+        .parallel => |calls| for (calls) |call| try self.find(call.value),
+        .destructure => |binding| try self.find(binding.value),
+        .store_set => |setter| try self.find(setter.value),
+        .result => |value| if (value) |id| try self.find(id),
     };
 }
 
@@ -113,21 +117,13 @@ fn mark(self: *Self, id: ir.ExprId) Error!void {
     try self.walk(self.program.expression(id).value, true);
 }
 
-fn walk(self: *Self, value: anytype, marking: bool) Error!void {
-    const T = @TypeOf(value);
+fn walk(self: *Self, value: @FieldType(ir.Expression, "value"), marking: bool) Error!void {
+    const children = @import("children.zig").init(value);
 
-    if (T == ir.ExprId) return if (marking) self.mark(value) else self.find(value);
+    for (0..children.len) |index| {
+        const id = children.at(index);
 
-    switch (@typeInfo(T)) {
-        .@"struct" => |info| inline for (info.field_names) |name| try self.walk(@field(value, name), marking),
-        .@"union" => |info| inline for (info.field_names) |name| {
-            if (std.mem.eql(u8, @tagName(value), name)) try self.walk(@field(value, name), marking);
-        },
-        .optional => if (value) |child| try self.walk(child, marking),
-        .pointer => |info| if (info.size == .slice and info.child != u8) {
-            for (value) |child| try self.walk(child, marking);
-        },
-        else => {},
+        if (marking) try self.mark(id) else try self.find(id);
     }
 }
 

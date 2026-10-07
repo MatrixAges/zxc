@@ -41,12 +41,30 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!ir.ExprId {
 
         break :blk try @import("block.zig").bind(&child, .{ .symbol = input, .value = argument }, returned, item.type_id, item.span);
     } else blk: {
-        item.value = try self.value(@TypeOf(item.value), item.value);
+        item.value = try self.expressionValue(item.value);
 
         break :blk try self.unit.append(item);
     };
 
     self.ids[@backingInt(id)] = result;
+
+    return result;
+}
+
+fn expressionValue(self: *Self, source: @FieldType(ir.Expression, "value")) Error!@FieldType(ir.Expression, "value") {
+    return switch (source) {
+        .parallel => |items| .{ .parallel = try self.records(ir.ParallelBranch, items) },
+        .scope => |item| .{ .scope = .{ .bindings = try self.records(ir.ScopeBinding, item.bindings), .result = try self.expression(item.result) } },
+        .match_expr => |item| .{ .match_expr = .{ .subject = try self.value(?ir.ExprId, item.subject), .arms = try self.records(ir.MatchArm, item.arms), .fallback = try self.expression(item.fallback) } },
+        .object => |item| .{ .object = .{ .fields = try self.records(ir.ObjectField, item.fields), .evaluation = try self.value([]const ir.ExprId, item.evaluation) } },
+        inline else => |item, tag| @unionInit(@FieldType(ir.Expression, "value"), @tagName(tag), try self.value(@TypeOf(item), item)),
+    };
+}
+
+fn records(self: *Self, comptime Item: type, items: []const Item) Error![]const Item {
+    const result = try self.unit.allocator.alloc(Item, items.len);
+
+    for (items, result) |item, *mapped| mapped.* = try self.value(Item, item);
 
     return result;
 }
