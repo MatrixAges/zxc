@@ -1,0 +1,18 @@
+tests/language/expressions/match/scalars/string.jsonl: 729 named cases
+file:///Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/src/shared/catalog.ts:12
+		if (!readFileSync(output).equals(Buffer.from(content))) throw new Error(`outdated catalog: ${output}`)
+		                                                              ^
+
+Error: outdated catalog: /Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/language/expressions/match/scalars/enum.zx
+    at writeOutput (file:///Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/src/shared/catalog.ts:12:65)
+    at file:///Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/src/generate_match_scalars.ts:85:5
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v25.8.1
+test
++- test
+   +- run node failure
+error: process exited with code 1
+failed command: node ./packages/test/src/generate_match_scalars.ts --check

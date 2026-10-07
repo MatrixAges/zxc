@@ -1,0 +1,100 @@
+{
+    "source_commit": "dd909e006261883e88375779c94ada8d4b33c836",
+    "cli": "/tmp/zxc-canonical-expression-safe-cache/o/d2e94981d3bc19252092cdd57460365c/zxc",
+    "cli_sha256": "bc75fe4aeea4f350ac25487e3178408e7c2a79e5e949696a7c90261eaebbb9c6",
+    "records": [
+        {
+            "command": [
+                "/tmp/zxc-canonical-expression-safe-cache/o/d2e94981d3bc19252092cdd57460365c/zxc",
+                "packages/test/tests/language/expressions/match/scalars/enum.zx",
+                "--out",
+                "/tmp/zxc-match-enum-generator-proof/program.zig"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": [
+                "node",
+                "packages/test/src/emit_control_tests.ts",
+                "packages/test/tests/language/expressions/match/scalars/enum.jsonl",
+                "/tmp/zxc-match-enum-generator-proof/cases.zig"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": [
+                "zig",
+                "test",
+                "-Odebug",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/tmp/zxc-match-enum-generator-proof/cases.zig",
+                "-Odebug",
+                "-Msupport=/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/support/control.zig",
+                "-Odebug",
+                "-Mprogram=/tmp/zxc-match-enum-generator-proof/program.zig",
+                "-femit-bin=/tmp/zxc-match-enum-generator-proof/enum-debug"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "1/27 cases.test.language/expressions/match/scalars/enum/0/0/0...OK\n2/27 cases.test.language/expressions/match/scalars/enum/0/0/1...OK\n3/27 cases.test.language/expressions/match/scalars/enum/0/0/2...OK\n4/27 cases.test.language/expressions/match/scalars/enum/0/1/0...OK\n5/27 cases.test.language/expressions/match/scalars/enum/0/1/1...OK\n6/27 cases.test.language/expressions/match/scalars/enum/0/1/2...OK\n7/27 cases.test.language/expressions/match/scalars/enum/0/2/0...OK\n8/27 cases.test.language/expressions/match/scalars/enum/0/2/1...OK\n9/27 cases.test.language/expressions/match/scalars/enum/0/2/2...OK\n10/27 cases.test.language/expressions/match/scalars/enum/1/0/0...OK\n11/27 cases.test.language/expressions/match/scalars/enum/1/0/1...OK\n12/27 cases.test.language/expressions/match/scalars/enum/1/0/2...OK\n13/27 cases.test.language/expressions/match/scalars/enum/1/1/0...OK\n14/27 cases.test.language/expressions/match/scalars/enum/1/1/1...OK\n15/27 cases.test.language/expressions/match/scalars/enum/1/1/2...OK\n16/27 cases.test.language/expressions/match/scalars/enum/1/2/0...OK\n17/27 cases.test.language/expressions/match/scalars/enum/1/2/1...OK\n18/27 cases.test.language/expressions/match/scalars/enum/1/2/2...OK\n19/27 cases.test.language/expressions/match/scalars/enum/2/0/0...OK\n20/27 cases.test.language/expressions/match/scalars/enum/2/0/1...OK\n21/27 cases.test.language/expressions/match/scalars/enum/2/0/2...OK\n22/27 cases.test.language/expressions/match/scalars/enum/2/1/0...OK\n23/27 cases.test.language/expressions/match/scalars/enum/2/1/1...OK\n24/27 cases.test.language/expressions/match/scalars/enum/2/1/2...OK\n25/27 cases.test.language/expressions/match/scalars/enum/2/2/0...OK\n26/27 cases.test.language/expressions/match/scalars/enum/2/2/1...OK\n27/27 cases.test.language/expressions/match/scalars/enum/2/2/2...OK\nAll 27 tests passed.\n"
+        },
+        {
+            "label": "Debug",
+            "binary": "/tmp/zxc-match-enum-generator-proof/enum-debug",
+            "sha256": "79bf410a80d76a80a73987bef9099a242bcd0a07ca52bef7b19deb89e12f0f6b",
+            "replay": "日志/枚举-Debug复跑.txt",
+            "replay_sha256": "a8aa6badd7872744b3e42f2fd5f1a6c3719887db88db6af0b9b8952d3f8c8353",
+            "exit_code": 0,
+            "checks": 27
+        },
+        {
+            "command": [
+                "zig",
+                "test",
+                "-Osafe",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/tmp/zxc-match-enum-generator-proof/cases.zig",
+                "-Osafe",
+                "-Msupport=/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/support/control.zig",
+                "-Osafe",
+                "-Mprogram=/tmp/zxc-match-enum-generator-proof/program.zig",
+                "-femit-bin=/tmp/zxc-match-enum-generator-proof/enum-safe"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "1/27 cases.test.language/expressions/match/scalars/enum/0/0/0...OK\n2/27 cases.test.language/expressions/match/scalars/enum/0/0/1...OK\n3/27 cases.test.language/expressions/match/scalars/enum/0/0/2...OK\n4/27 cases.test.language/expressions/match/scalars/enum/0/1/0...OK\n5/27 cases.test.language/expressions/match/scalars/enum/0/1/1...OK\n6/27 cases.test.language/expressions/match/scalars/enum/0/1/2...OK\n7/27 cases.test.language/expressions/match/scalars/enum/0/2/0...OK\n8/27 cases.test.language/expressions/match/scalars/enum/0/2/1...OK\n9/27 cases.test.language/expressions/match/scalars/enum/0/2/2...OK\n10/27 cases.test.language/expressions/match/scalars/enum/1/0/0...OK\n11/27 cases.test.language/expressions/match/scalars/enum/1/0/1...OK\n12/27 cases.test.language/expressions/match/scalars/enum/1/0/2...OK\n13/27 cases.test.language/expressions/match/scalars/enum/1/1/0...OK\n14/27 cases.test.language/expressions/match/scalars/enum/1/1/1...OK\n15/27 cases.test.language/expressions/match/scalars/enum/1/1/2...OK\n16/27 cases.test.language/expressions/match/scalars/enum/1/2/0...OK\n17/27 cases.test.language/expressions/match/scalars/enum/1/2/1...OK\n18/27 cases.test.language/expressions/match/scalars/enum/1/2/2...OK\n19/27 cases.test.language/expressions/match/scalars/enum/2/0/0...OK\n20/27 cases.test.language/expressions/match/scalars/enum/2/0/1...OK\n21/27 cases.test.language/expressions/match/scalars/enum/2/0/2...OK\n22/27 cases.test.language/expressions/match/scalars/enum/2/1/0...OK\n23/27 cases.test.language/expressions/match/scalars/enum/2/1/1...OK\n24/27 cases.test.language/expressions/match/scalars/enum/2/1/2...OK\n25/27 cases.test.language/expressions/match/scalars/enum/2/2/0...OK\n26/27 cases.test.language/expressions/match/scalars/enum/2/2/1...OK\n27/27 cases.test.language/expressions/match/scalars/enum/2/2/2...OK\nAll 27 tests passed.\n"
+        },
+        {
+            "label": "ReleaseSafe",
+            "binary": "/tmp/zxc-match-enum-generator-proof/enum-safe",
+            "sha256": "5198e7e14dcb8083b89268871d723e8afb468f90365229f751781633332c19ba",
+            "replay": "日志/枚举-ReleaseSafe复跑.txt",
+            "replay_sha256": "a8aa6badd7872744b3e42f2fd5f1a6c3719887db88db6af0b9b8952d3f8c8353",
+            "exit_code": 0,
+            "checks": 27
+        }
+    ],
+    "independent_replay_checks": 54,
+    "artifacts": [
+        {
+            "path": "生成物/program.zig.txt",
+            "executed_source": "/tmp/zxc-match-enum-generator-proof/program.zig",
+            "sha256": "908ca93ebe9d9c877d49a066a40869c1e5eddcc784a949cf83b8e8ad297c6521"
+        },
+        {
+            "path": "生成物/cases.zig.txt",
+            "executed_source": "/tmp/zxc-match-enum-generator-proof/cases.zig",
+            "sha256": "e4da66af24589e878dc562d8f23cbee07e29f475332f11800136a857c68d32ed"
+        }
+    ]
+}
