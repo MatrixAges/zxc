@@ -2,12 +2,15 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const Trace = @import("trace.zig");
 pub const Call = struct { expression: ir.ExprId, lane: usize };
+pub const Iteration = struct { expression: ir.ExprId, path: []const u32 };
 
 pub const Lane = struct {
     input: []const u32,
     output: []const u32,
     appends: []const ir.ExprId,
     pops: []const ir.ExprId,
+    updates: []const ir.ExprId = &.{},
+    iterations: []const Iteration = &.{},
     calls: []const Call,
     rejection: ?@import("audit.zig").Rejection = null,
 };
@@ -23,7 +26,7 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program, value_functi
     for (program.functions, 0..) |function, index| {
         summaries[index] = &.{};
 
-        if (!value_functions[index]) continue;
+        if (!value_functions[index] and !(pure_functions[index] and function.external == null and program.typeOf(function.output_type) == .list)) continue;
 
         var paths: std.ArrayList([]const u32) = .empty;
 

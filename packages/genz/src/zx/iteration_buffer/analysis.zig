@@ -19,6 +19,7 @@ valid: bool = true,
 updates: std.ArrayList(ir.ExprId) = .empty,
 calls: ?Calls = null,
 inferred: std.ArrayList(flow.Call) = .empty,
+loops: []const flow.Iteration = &.{},
 borrowing: bool = false,
 const Snapshot = struct { symbols: []Value, cached: []?Value, current: usize };
 
@@ -321,7 +322,13 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!Value {
 
             break :blk .{ .aggregate = values };
         },
-        .iteration => |iteration| if (self.borrowing) @import("borrowing/iteration.zig").evaluate(self, iteration) else self.independentIteration(iteration),
+        .iteration => |iteration| blk: {
+            for (self.loops) |loop| if (loop.expression == id) {
+                break :blk try @import("updating.zig").evaluate(self, iteration, loop.path);
+            };
+
+            break :blk if (self.borrowing) try @import("borrowing/iteration.zig").evaluate(self, iteration) else try self.independentIteration(iteration);
+        },
         .transform => blk: {
             self.valid = false;
 

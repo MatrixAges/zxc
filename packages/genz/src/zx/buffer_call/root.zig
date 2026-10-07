@@ -16,13 +16,17 @@ pub fn available(lanes: []const Lane) bool {
 pub fn declaration(lowering: *Lower, name: []const u8, lanes: []const Lane) Lower.Error!node.Declaration {
     const previous_calls = lowering.buffer_calls;
     const previous_appends = lowering.append_overrides;
+    const previous_updates = lowering.list_update_buffers;
+
     lowering.buffer_calls = .empty;
     lowering.append_overrides = .empty;
+    lowering.list_update_buffers = .empty;
     lowering.buffered_type = try context.typeOf(lowering, lanes);
 
     defer {
         lowering.buffer_calls = previous_calls;
         lowering.append_overrides = previous_appends;
+        lowering.list_update_buffers = previous_updates;
         lowering.buffered_type = null;
     }
 
@@ -32,15 +36,22 @@ pub fn declaration(lowering: *Lower, name: []const u8, lanes: []const Lane) Lowe
         const builder = try context.builder(lowering, index);
 
         for (lane.appends) |id| try lowering.append_overrides.put(lowering.allocator, id, builder);
+
+        for (lane.updates) |id| {
+            const capacity = @import("../iteration_buffer/capacity.zig"){ .buffer = builder.buffer, .started = builder.started };
+
+            try lowering.list_update_buffers.put(lowering.allocator, id, .{ .buffer = try capacity.items(lowering), .started = builder.started, .capacity = capacity, .enabled = builder.enabled });
+        }
+
         for (lane.calls) |call| try bind(lowering, call.expression, call.lane, builder);
     }
 
-    return lowering.functionValue(name);
+    return if (lowering.program.typeOf(lowering.program.output_type) == .list) lowering.function(name, false) else lowering.functionValue(name);
 }
 
 pub fn bind(lowering: *Lower, id: ir.ExprId, index: usize, builder: Builder) Lower.Error!void {
     const call = lowering.program.expression(id).value.call;
-    const slots = try lowering.allocator.alloc(?Builder, lowering.buffer_functions[@intFromEnum(call.function)].len);
+    const slots = try lowering.allocator.alloc(?Builder, lowering.buffer_functions[@backingInt(call.function)].len);
 
     if (lowering.buffer_calls.get(id)) |previous| @memcpy(slots, previous) else @memset(slots, null);
 
@@ -53,7 +64,7 @@ pub fn bind(lowering: *Lower, id: ir.ExprId, index: usize, builder: Builder) Low
 
 pub fn invocation(lowering: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
     const call = lowering.program.expression(id).value.call;
-    const lanes = lowering.buffer_functions[@intFromEnum(call.function)];
+    const lanes = lowering.buffer_functions[@backingInt(call.function)];
     const argument = try context.argument(lowering, lanes, lowering.buffer_calls.get(id).?);
 
     return @import("../value_call/root.zig").invocation(lowering, call, argument);

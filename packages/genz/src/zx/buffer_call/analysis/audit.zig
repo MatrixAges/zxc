@@ -7,6 +7,10 @@ const Error = std.mem.Allocator.Error;
 pub const Rejection = enum { stale_version, contracts, parallel, nested_transform, duplicate, container_escape, element_read, unsupported_read, unsupported_operation, detached_append, detached_pop, cached_append, unsupported_call, detached_call };
 
 pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
+    trace.selected_loops = lane.iterations;
+
+    trace.proven.clearRetainingCapacity();
+
     if (trace.function.contracts.len != 0) return .contracts;
     if (parallel(trace.function.body)) return .parallel;
 
@@ -15,9 +19,18 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
 
         switch (expression.value) {
             .transform => return .nested_transform,
-            .iteration => if (!try @import("independent.zig").prove(trace, id, lane.input)) return .nested_transform,
+            .iteration => {
+                const selected = for (lane.iterations) |iteration| {
+                    if (iteration.expression == id) break true;
+                } else false;
+
+                if (!selected and !try @import("independent.zig").prove(trace, id, lane.input)) return .nested_transform;
+            },
             .capture, .task, .await_task, .cancel_task, .parallel => return .unsupported_operation,
-            .list_update => |value| if (try count(trace, value.target, lane) != 0 or try count(trace, value.value, lane) != 0) return .unsupported_operation,
+            .list_update => |value| {
+                if (try count(trace, value.value, lane) != 0) return .container_escape;
+                if (try count(trace, value.target, lane) != 0 and std.mem.indexOfScalar(ir.ExprId, lane.updates, id) == null) return .unsupported_operation;
+            },
             .index => |value| if (!flow.detached(trace.program, expression.type_id) and try count(trace, value.target, lane) != 0) return .element_read,
             .some, .optional_value => |value| if (try count(trace, value, lane) != 0) return .container_escape,
             .list => |values| for (values) |value| {

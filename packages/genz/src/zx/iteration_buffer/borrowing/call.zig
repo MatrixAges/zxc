@@ -36,7 +36,7 @@ pub fn evaluate(state: *State, id: ir.ExprId, argument: facts.Value) std.mem.All
         if (index < calls.readers.len and calls.readers[index]) return .none;
 
         for (calls.summaries[index]) |lane| {
-            if (lane.rejection != null or (lane.appends.len == 0 and lane.pops.len == 0 and lane.calls.len == 0)) continue;
+            if (lane.rejection != null or (lane.appends.len == 0 and lane.pops.len == 0 and lane.updates.len == 0 and lane.calls.len == 0)) continue;
 
             var source = argument;
 

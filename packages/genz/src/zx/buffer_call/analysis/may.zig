@@ -22,15 +22,26 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
     if (flow.detached(trace.program, selected) or trace.program.typeOf(selected) == .native_reference) return false;
 
     return switch (expression.value) {
-        .iteration => |value| if (try independent.prove(trace, id, origin)) false else try contains(trace, value.initial, &.{}, origin) or try contains(trace, value.body, &.{}, origin),
+        .iteration => |value| blk: {
+            for (trace.selected_loops) |loop| if (loop.expression == id) {
+                break :blk try contains(trace, value.initial, path, origin);
+            };
+
+            break :blk if (try independent.prove(trace, id, origin)) false else try contains(trace, value.initial, &.{}, origin) or try contains(trace, value.body, &.{}, origin);
+        },
         .list_update => |value| try contains(trace, value.target, &.{}, origin) or try contains(trace, value.value, &.{}, origin),
         .scope => |scope| contains(trace, scope.result, path, origin),
         .reference => |symbol| if (@backingInt(symbol) == 0)
             prefix(path, origin) or prefix(origin, path)
         else if (trace.bindings[@backingInt(symbol)]) |binding|
             contains(trace, binding, path, origin)
-        else
-            !try independent.parameter(trace, symbol, origin),
+        else blk: {
+            if (trace.iterations[@backingInt(symbol)]) |iteration_id| for (trace.selected_loops) |loop| {
+                if (loop.expression == iteration_id) break :blk try contains(trace, trace.function.expressions[@backingInt(iteration_id)].value.iteration.initial, path, origin);
+            };
+
+            break :blk !try independent.parameter(trace, symbol, origin);
+        },
         .conditional => |value| try contains(trace, value.yes, path, origin) or try contains(trace, value.no, path, origin),
         .match_expr => |value| blk: {
             if (try contains(trace, value.fallback, path, origin)) break :blk true;

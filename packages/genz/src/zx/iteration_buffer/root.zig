@@ -5,6 +5,7 @@ const Lower = @import("../lower.zig");
 const Capacity = @import("capacity.zig");
 const Self = @This();
 const Builder = @import("../object_reduce/append/builder.zig");
+const SavedUpdate = struct { id: ir.ExprId, storage: @import("../list_update.zig").Storage };
 const SavedCall = struct { id: ir.ExprId, previous: ?[]const ?Builder };
 const Field = struct { path: []const usize, element: ir.TypeId, storage: Capacity, rebuild: bool };
 
@@ -12,6 +13,7 @@ lowering: *Lower,
 overrides: std.ArrayList(ir.ExprId) = .empty,
 fields: std.ArrayList(Field) = .empty,
 calls: std.ArrayList(SavedCall) = .empty,
+saved_updates: std.ArrayList(SavedUpdate) = .empty,
 readers: []const bool = &.{},
 mutable_state: bool,
 pub fn init(lowering: *Lower, iteration: ir.Iteration, body: *std.ArrayList(node.Statement), enabled: bool, mutable_state: bool) Lower.Error!Self {
@@ -69,19 +71,25 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
 
     for (result.calls) |call| if (lowering.buffer_calls.get(call.expression)) |slots| if (slots[call.lane] != null) return;
 
-    const overlap = for (updates) |update| {
-        if (lowering.list_update_buffers.contains(update) or lowering.collection_buffers.contains(update)) break true;
-    } else false;
+    var fallback = false;
 
-    if (overlap) return;
+    for (updates) |update| {
+        if (lowering.collection_buffers.contains(update)) return;
+
+        if (lowering.list_update_buffers.get(update)) |shared| {
+            if (shared.enabled == null or shared.fallback_capacity != null) return;
+
+            fallback = true;
+        }
+    }
 
     if (lowering.iteration_value) |context| if (context.inline_lists and @import("../iteration_layout.zig").represented(lowering.program, child)) {
-        try self.installCapacity(body, child, path, updates, result.calls);
+        try self.installCapacity(body, child, path, updates, result.calls, fallback);
 
         return;
     };
 
-    var dynamic = result.calls.len != 0;
+    var dynamic = result.calls.len != 0 or fallback;
     var writes = result.calls.len != 0;
 
     for (updates) |update| switch (lowering.program.expression(update).value) {
@@ -94,7 +102,7 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
     };
 
     if (dynamic) {
-        if (self.mutable_state and writes) try self.installCapacity(body, child, path, updates, result.calls);
+        if (self.mutable_state and writes) try self.installCapacity(body, child, path, updates, result.calls, fallback);
 
         return;
     }
@@ -121,11 +129,11 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
     }
 }
 
-fn installCapacity(self: *Self, body: *std.ArrayList(node.Statement), child: ir.TypeId, path: []const usize, updates: []const ir.ExprId, calls: []const @import("../buffer_call/analysis/flow.zig").Call) Lower.Error!void {
+fn installCapacity(self: *Self, body: *std.ArrayList(node.Statement), child: ir.TypeId, path: []const usize, updates: []const ir.ExprId, calls: []const @import("../buffer_call/analysis/flow.zig").Call, fallback: bool) Lower.Error!void {
     const lowering = self.lowering;
     const capacity = try Capacity.create(lowering, body, try @import("../iteration_value/types.zig").element(lowering, child));
 
-    try self.fields.append(lowering.allocator, .{ .path = try lowering.allocator.dupe(usize, path), .element = child, .storage = capacity, .rebuild = calls.len != 0 });
+    try self.fields.append(lowering.allocator, .{ .path = try lowering.allocator.dupe(usize, path), .element = child, .storage = capacity, .rebuild = calls.len != 0 or fallback });
 
     for (calls) |call| {
         const saved = for (self.calls.items) |previous| {
@@ -140,7 +148,14 @@ fn installCapacity(self: *Self, body: *std.ArrayList(node.Statement), child: ir.
         try self.overrides.append(lowering.allocator, update);
 
         if (lowering.program.expression(update).value == .list_update) {
-            try lowering.list_update_buffers.put(lowering.allocator, update, .{ .buffer = try capacity.items(lowering), .started = capacity.started, .capacity = capacity });
+            if (lowering.list_update_buffers.get(update)) |previous| {
+                try self.saved_updates.append(lowering.allocator, .{ .id = update, .storage = previous });
+
+                var shared = previous;
+                shared.fallback_capacity = capacity;
+
+                try lowering.list_update_buffers.put(lowering.allocator, update, shared);
+            } else try lowering.list_update_buffers.put(lowering.allocator, update, .{ .buffer = try capacity.items(lowering), .started = capacity.started, .capacity = capacity });
         } else try lowering.collection_buffers.put(lowering.allocator, update, capacity);
     }
 }
@@ -211,6 +226,10 @@ pub fn restore(self: *Self) void {
     }
 
     self.overrides.clearRetainingCapacity();
+
+    for (self.saved_updates.items) |saved| self.lowering.list_update_buffers.put(self.lowering.allocator, saved.id, saved.storage) catch unreachable;
+
+    self.saved_updates.clearRetainingCapacity();
 }
 
 fn element(program: ir.Program, id: ir.TypeId) bool {

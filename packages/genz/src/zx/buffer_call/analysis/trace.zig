@@ -17,6 +17,9 @@ proven: std.ArrayList(independent.Proof) = .empty,
 results: std.ArrayList(ir.ExprId) = .empty,
 appends: std.ArrayList(ir.ExprId) = .empty,
 pops: std.ArrayList(ir.ExprId) = .empty,
+updates: std.ArrayList(ir.ExprId) = .empty,
+loops: std.ArrayList(flow.Iteration) = .empty,
+selected_loops: []const flow.Iteration = &.{},
 calls: std.ArrayList(flow.Call) = .empty,
 pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Function, summaries: []const []const flow.Lane) Error!Self {
     var self = Self{ .allocator = allocator, .program = program, .function = function, .summaries = summaries, .bindings = try allocator.alloc(?ir.ExprId, function.symbols.len), .iterations = try allocator.alloc(?ir.ExprId, function.symbols.len) };
@@ -46,6 +49,8 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Func
 pub fn lane(self: *Self, output: []const u32) Error!?flow.Lane {
     self.appends.clearRetainingCapacity();
     self.pops.clearRetainingCapacity();
+    self.updates.clearRetainingCapacity();
+    self.loops.clearRetainingCapacity();
     self.calls.clearRetainingCapacity();
 
     var input: ?[]const u32 = null;
@@ -63,6 +68,8 @@ pub fn lane(self: *Self, output: []const u32) Error!?flow.Lane {
         .output = output,
         .appends = try self.allocator.dupe(ir.ExprId, self.appends.items),
         .pops = try self.allocator.dupe(ir.ExprId, self.pops.items),
+        .updates = try self.allocator.dupe(ir.ExprId, self.updates.items),
+        .iterations = try self.allocator.dupe(flow.Iteration, self.loops.items),
         .calls = try self.allocator.dupe(flow.Call, self.calls.items),
     };
 }
@@ -93,6 +100,8 @@ pub fn trace(self: *Self, id: ir.ExprId, path: []const u32) Error!?[]const u32 {
             path
         else if (self.bindings[@backingInt(symbol)]) |binding|
             self.trace(binding, path)
+        else if (self.iterations[@backingInt(symbol)]) |iteration|
+            self.trace(self.function.expressions[@backingInt(iteration)].value.iteration.initial, path)
         else
             null,
         .field, .tuple_field => |projection| blk: {
@@ -125,6 +134,26 @@ pub fn trace(self: *Self, id: ir.ExprId, path: []const u32) Error!?[]const u32 {
             break :blk null;
         },
         .tuple => |items| if (path.len != 0 and path[0] < items.len) self.trace(items[path[0]], path[1..]) else null,
+        .iteration => |iteration| blk: {
+            const initial = try self.trace(iteration.initial, path) orelse break :blk null;
+            const result = try self.trace(iteration.body, path) orelse break :blk null;
+
+            if (!std.mem.eql(u32, initial, result)) break :blk null;
+
+            const present = for (self.loops.items) |loop| {
+                if (loop.expression == id and std.mem.eql(u32, loop.path, path)) break true;
+            } else false;
+
+            if (!present) try self.loops.append(self.allocator, .{ .expression = id, .path = try self.allocator.dupe(u32, path) });
+
+            break :blk initial;
+        },
+        .list_update => |update| blk: {
+            if (path.len != 0) break :blk null;
+            if (std.mem.indexOfScalar(ir.ExprId, self.updates.items, id) == null) try self.updates.append(self.allocator, id);
+
+            break :blk try self.trace(update.target, &.{});
+        },
         .list_operation => |operation| blk: {
             if (path.len == 1 and path[0] == 1 and @import("prefix.zig").matches(self.function.expressions, id)) {
                 break :blk try self.trace(operation.target, &.{});

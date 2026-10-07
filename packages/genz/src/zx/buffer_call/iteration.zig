@@ -41,7 +41,7 @@ pub fn init(lowering: *Lower, selected_call: ?ir.ExprId, body: *std.ArrayList(no
 
     for (lowering.buffer_functions[@backingInt(call.function)], 0..) |lane, index| {
         if (lane.rejection != null or !std.mem.eql(u32, lane.input, lane.output)) continue;
-        if (lane.appends.len == 0 and lane.calls.len == 0) continue;
+        if (lane.appends.len == 0 and lane.updates.len == 0 and lane.calls.len == 0) continue;
         if (self.previous) |slots| if (slots[index] != null) continue;
 
         var selected = function.output_type;

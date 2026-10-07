@@ -218,7 +218,13 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
     }
 
     if (self.append_overrides.get(id)) |override| return override.lower(self, id);
-    if (self.buffer_calls.contains(id)) return self.construct(self.program.expression(id).type_id, try @import("buffer_call/root.zig").invocation(self, id));
+
+    if (self.buffer_calls.contains(id)) {
+        const type_id = self.program.expression(id).type_id;
+        const result = try @import("buffer_call/root.zig").invocation(self, id);
+
+        return if (self.program.typeOf(type_id) == .list) result else self.construct(type_id, result);
+    }
 
     const value = self.program.expression(id);
     const value_type = self.types[@backingInt(value.type_id)];
