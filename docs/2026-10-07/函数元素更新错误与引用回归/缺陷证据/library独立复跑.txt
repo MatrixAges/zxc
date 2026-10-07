@@ -1,0 +1,92 @@
+1/25 root.test.function update effects: source index value after in order...OK
+2/25 root.test.function update effects: single round...OK
+3/25 root.test.function update effects: repeated calls...OK
+4/25 root.test.function update effects: zero outer skips all native calls...OK
+5/25 root.test.function update effects: zero inner skips all native calls...OK
+6/25 root.test.function update effects: empty list zero rounds...OK
+7/25 root.test.function update effects: last element...OK
+8/25 root.test.function update effects: negative delta...OK
+9/25 root.test.function update effects: source fails first...OK
+10/25 root.test.function update effects: index fails before value...OK
+11/25 root.test.function update effects: value fails before later statements...OK
+12/25 root.test.function update effects: after failure...OK
+13/25 root.test.function update effects: later source failure...OK
+14/25 root.test.function update effects: later index failure...OK
+15/25 root.test.function update effects: later value failure...OK
+16/25 root.test.function update effects: later after failure...OK
+17/25 root.test.function update effects: unreached failure...OK
+18/25 root.test.function update effects: empty write bounds...expected 3, found 2
+FAIL (TestExpectedEqual)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:128:25: 0x1073e05f7 in function_4 (root)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:212:47: 0x1073dfa17 in function_5 (root)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:356:13: 0x1073df0c3 in execute (root)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1073d88c9 in expectEqualInner__func_1013 (root)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1073d8d6d in expectEqual (root)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/check.zig:46:5: 0x1073d8de4 in expectTrace (root)
+    try std.testing.expectEqual(count, probe.calls);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/check.zig:80:13: 0x1073d9808 in run (root)
+            try expectTrace(case, expected);
+            ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/root.zig:74:5: 0x1073e29a1 in test.function update effects: empty write bounds (root)
+    try h.run(std.testing.allocator, .{ .empty = true });
+    ^
+19/25 root.test.function update effects: invalid index bounds...expected 3, found 2
+FAIL (TestExpectedEqual)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:128:25: 0x1073e05f7 in function_4 (root)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:212:47: 0x1073dfa17 in function_5 (root)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:356:13: 0x1073df0c3 in execute (root)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1073d88c9 in expectEqualInner__func_1013 (root)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1073d8d6d in expectEqual (root)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/check.zig:46:5: 0x1073d8de4 in expectTrace (root)
+    try std.testing.expectEqual(count, probe.calls);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/check.zig:80:13: 0x1073d9808 in run (root)
+            try expectTrace(case, expected);
+            ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/root.zig:78:5: 0x1073e2941 in test.function update effects: invalid index bounds (root)
+    try h.run(std.testing.allocator, .{ .selected = 3 });
+    ^
+20/25 root.test.function update effects: invalid index and source failure...OK
+21/25 root.test.function update effects: invalid index and index failure...OK
+22/25 root.test.function update effects: invalid index and value failure...FAIL (IndexOutOfBounds)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:128:25: 0x1073e05f7 in function_4 (root)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:212:47: 0x1073dfa17 in function_5 (root)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:356:13: 0x1073df0c3 in execute (root)
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/check.zig:85:9: 0x1073d983f in run (root)
+        return err;
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/root.zig:90:5: 0x1073e2821 in test.function update effects: invalid index and value failure (root)
+    try h.run(std.testing.allocator, .{ .selected = 3, .failure = .{ .stage = .value } });
+    ^
+23/25 root.test.function update effects: invalid index skips after...expected 3, found 2
+FAIL (TestExpectedEqual)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:128:25: 0x1073e05f7 in function_4 (root)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:212:47: 0x1073dfa17 in function_5 (root)
+.zig-cache/o/50d38dde212d8da014fcd3eff0613e33/library.zig:356:13: 0x1073df0c3 in execute (root)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1073d88c9 in expectEqualInner__func_1013 (root)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1073d8d6d in expectEqual (root)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/check.zig:46:5: 0x1073d8de4 in expectTrace (root)
+    try std.testing.expectEqual(count, probe.calls);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/check.zig:80:13: 0x1073d9808 in run (root)
+            try expectTrace(case, expected);
+            ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/effects/root.zig:94:5: 0x1073e27c1 in test.function update effects: invalid index skips after (root)
+    try h.run(std.testing.allocator, .{ .selected = 3, .failure = .{ .stage = .after } });
+    ^
+24/25 root.test.function update effects clean every allocation failure...OK
+25/25 root.test.function update effects clean allocation failures before native value failure...OK
+21 passed; 0 skipped; 4 failed.
