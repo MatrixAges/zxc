@@ -1,0 +1,25 @@
+--- a/packages/test/tests/collections/function_updates/effects/probe.zig
++++ b/packages/test/tests/collections/function_updates/effects/probe.zig
+@@ -6,11 +6,11 @@
+ pub var calls: usize = 0;
+ var counts: [5]usize = undefined;
+ var failure: Failure = .{};
+-var selected: usize = 0;
++var selected_index: usize = 0;
+ 
+ pub fn reset(requested: Failure, index_value: usize) void {
+     failure = requested;
+-    selected = index_value;
++    selected_index = index_value;
+     counts = .{ 0, 0, 0, 0, 0 };
+     calls = 0;
+ }
+@@ -27,7 +27,7 @@
+ }
+ 
+ pub fn source(values: []const i64) error{SourceFailure}![]const i64 {
+-    if (record(.source, @intCast(values.len), if (selected < values.len) values[selected] else 0)) return error.SourceFailure;
++    if (record(.source, @intCast(values.len), if (selected_index < values.len) values[selected_index] else 0)) return error.SourceFailure;
+ 
+     return values;
+ }

@@ -78,7 +78,7 @@ fn statement(self: *Self, source: anytype) zx.Error!void {
                 return;
             }
 
-            const place = try @import("update.zig").prepare(self, location);
+            const place = try @import("update.zig").prepare(self, location, update.operator != null);
             const target = place.value;
             const type_id = analyzer.node(target).type_id;
             const right = try analyzer.expression(update.value, type_id);

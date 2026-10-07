@@ -9,7 +9,7 @@ pub const Place = struct {
     projection: union(enum) { root, field: u32, tuple_field: u32, index: ir.ExprId },
 };
 
-pub fn prepare(block: *Block, target: ir.ExprId) zx.Error!*const Place {
+pub fn prepare(block: *Block, target: ir.ExprId, read_value: bool) zx.Error!*const Place {
     const analyzer = block.analyzer;
     const source = analyzer.node(target);
     var place: Place = undefined;
@@ -21,7 +21,7 @@ pub fn prepare(block: *Block, target: ir.ExprId) zx.Error!*const Place {
             place = .{ .value = target, .parent = null, .projection = .root };
         },
         .field, .tuple_field => |field| {
-            const parent = try prepare(block, field.target);
+            const parent = try prepare(block, field.target, true);
             const projected = ir.Projection{ .target = parent.value, .index = field.index };
             const value = try analyzer.append(.{ .span = source.span, .type_id = source.type_id, .value = if (source.value == .field) .{ .field = projected } else .{ .tuple_field = projected } });
 
@@ -30,7 +30,7 @@ pub fn prepare(block: *Block, target: ir.ExprId) zx.Error!*const Place {
         .index => |item| {
             if (analyzer.types.get(analyzer.node(item.target).type_id) != .list) return analyzer.reporter.fail(.ownership, source.span, "string bytes are immutable");
 
-            const parent = try prepare(block, item.target);
+            const parent = try prepare(block, item.target, true);
             const index = try block.temporary(item.index);
             const value = try analyzer.append(.{ .span = source.span, .type_id = source.type_id, .value = .{ .index = .{ .target = parent.value, .index = index } } });
 
@@ -39,7 +39,8 @@ pub fn prepare(block: *Block, target: ir.ExprId) zx.Error!*const Place {
         else => return analyzer.reporter.fail(.ownership, source.span, "state updates require a field, index or the state parameter"),
     }
 
-    place.value = try block.temporary(place.value);
+    if (read_value) place.value = try block.temporary(place.value);
+
     const result = try analyzer.allocator.create(Place);
 
     result.* = place;
