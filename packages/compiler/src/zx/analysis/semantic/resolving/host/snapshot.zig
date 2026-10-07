@@ -7,17 +7,12 @@ resolved: model.Cache,
 aliases: model.Cache,
 visiting: []const []const u8,
 pub fn init(allocator: std.mem.Allocator, types: *const Types) std.mem.Allocator.Error!Self {
-    const resolved_names = try allocator.alloc([]const u8, types.resolved.count());
-    const resolved_ids = try allocator.alloc(u32, types.resolved.count());
-    var resolved = types.resolved.iterator();
+    const Id = @import("zx").ir.TypeId;
 
-    for (resolved_names, resolved_ids) |*name, *id| {
-        const item = resolved.next().?;
+    if (@typeInfo(Id).@"enum".tag_type != u32 or @sizeOf(Id) != @sizeOf(u32) or @alignOf(Id) != @alignOf(u32)) @compileError("Incompatible resolved type ID representation");
 
-        name.* = item.key_ptr.*;
-        id.* = @backingInt(item.value_ptr.*);
-    }
-
+    const values = types.resolved.values();
+    const resolved_ids = @as([*]const u32, @ptrCast(values.ptr))[0..values.len];
     const alias_names = try allocator.alloc([]const u8, types.aliases.len);
     const alias_ids = try allocator.alloc(u32, types.aliases.len);
 
@@ -32,7 +27,7 @@ pub fn init(allocator: std.mem.Allocator, types: *const Types) std.mem.Allocator
     for (visiting) |*name| name.* = keys.next().?.*;
 
     return .{
-        .resolved = .{ .names = resolved_names, .ids = resolved_ids },
+        .resolved = .{ .names = types.resolved.keys(), .ids = resolved_ids },
         .aliases = .{ .names = alias_names, .ids = alias_ids },
         .visiting = visiting,
     };

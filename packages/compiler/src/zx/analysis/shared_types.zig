@@ -20,9 +20,7 @@ pub fn resolve(types: *Types, first: usize, shared: Shared) zx.Error!void {
         return types.reporter.fail(.type_mismatch, .{ .start = 0, .end = 0 }, "shared nominal declaration has incompatible identity or members");
     };
 
-    var resolved = types.resolved.valueIterator();
-
-    while (resolved.next()) |id| id.* = mapping[@backingInt(id.*)];
+    for (types.resolved.values()) |*id| id.* = mapping[@backingInt(id.*)];
 
     types.items = pool.items;
     shared.origins.* = pool.origins;
