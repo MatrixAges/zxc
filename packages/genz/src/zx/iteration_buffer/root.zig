@@ -23,9 +23,12 @@ pub fn init(lowering: *Lower, iteration: ir.Iteration, body: *std.ArrayList(node
 
     if (!enabled) return self;
 
-    const readers = try lowering.allocator.alloc(bool, lowering.program.functions.len);
+    const readers = try lowering.allocator.alloc(bool, lowering.program.functions.count());
 
-    for (lowering.program.functions, 0..) |function, index| readers[index] = index < lowering.pure_functions.len and lowering.pure_functions[index] and @import("../buffer_call/analysis/flow.zig").detached(lowering.program, function.output_type);
+    for (0..lowering.program.functions.count()) |index| {
+        const function = lowering.program.functions.at(index);
+        readers[index] = index < lowering.pure_functions.len and lowering.pure_functions[index] and @import("../buffer_call/analysis/flow.zig").detached(lowering.program, function.output_type);
+    }
 
     self.readers = readers;
 

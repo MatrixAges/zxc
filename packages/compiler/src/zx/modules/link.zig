@@ -55,7 +55,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
             if (module.stores.count() != 0) return error.InvalidModule;
 
             if (function) |value| {
-                function_ids[index] = @fromBackingInt(@intCast(builder.functions.items.len));
+                function_ids[index] = @fromBackingInt(@intCast(builder.functions.count()));
 
                 try builder.functions.append(owned, value);
             }
@@ -84,7 +84,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         .body = if (root) |value| value.body else .{},
         .contracts = if (root) |value| value.contracts else &.{},
         .exports = exports,
-        .functions = builder.functions.items,
+        .functions = builder.functions.view(),
         .native_modules = builder.native_modules.items,
         .stores = stores,
         .store_mode = if (root) |value| value.store_mode else .transaction,

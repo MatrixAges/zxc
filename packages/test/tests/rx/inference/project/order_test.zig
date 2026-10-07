@@ -47,7 +47,7 @@ fn check(order: [3]usize) !void {
 
     try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = .u64 }, contract.types.get(contract.input_type));
     try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = .u64 }, contract.types.get(contract.output_type));
-    try std.testing.expect(contract.program.functions.len > 0);
+    try std.testing.expect(contract.program.functions.count() > 0);
     try std.testing.expect(try compiler.validateIr(std.testing.allocator, contract.program) == null);
 }
 

@@ -47,7 +47,8 @@ pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
             }
         }
 
-        for (self.program.functions) |function| {
+        for (0..self.program.functions.count()) |function_row| {
+            const function = self.program.functions.at(function_row);
             const external = function.external orelse continue;
             const implementation = self.program.native_modules[@intFromEnum(external.module)];
 

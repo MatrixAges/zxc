@@ -67,7 +67,7 @@ test "all decoded artifacts relink after original analysis and encoded bytes are
     defer linked.deinit();
 
     try std.testing.expect(try f.compiler.validateIr(std.testing.allocator, linked.program) == null);
-    try std.testing.expectEqual(@as(usize, 2), linked.program.functions.len);
+    try std.testing.expectEqual(@as(usize, 2), linked.program.functions.count());
     try std.testing.expectEqual(@as(usize, 1), linked.nominal_types.count());
 
     const generated = try f.compiler.zig.emit(std.testing.allocator, linked.program);

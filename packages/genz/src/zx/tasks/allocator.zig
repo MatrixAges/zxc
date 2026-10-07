@@ -4,11 +4,15 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 
 pub fn required(allocator: std.mem.Allocator, program: ir.Program) Lower.Error!bool {
-    const functions = try allocator.alloc(bool, program.functions.len);
+    const functions = try allocator.alloc(bool, program.functions.count());
 
     defer allocator.free(functions);
 
-    for (program.functions, 0..) |function, index| functions[index] = uses(function.expressions, functions[0..index]);
+    for (0..program.functions.count()) |index| {
+        const function = program.functions.at(index);
+
+        functions[index] = uses(function.expressions, functions[0..index]);
+    }
 
     return uses(program.expressions, functions);
 }

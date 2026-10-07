@@ -20,9 +20,9 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
     for (record.type_imports) |item| try self.mark(item.type_id);
 
     for (record.function_imports) |binding| {
-        if (@backingInt(binding.id) >= program.functions.len) return error.InvalidModule;
+        if (@backingInt(binding.id) >= program.functions.count()) return error.InvalidModule;
 
-        const function = program.functions[@backingInt(binding.id)];
+        const function = program.functions.at(@backingInt(binding.id));
 
         try self.mark(binding.input_type);
         try self.mark(binding.output_type);
@@ -58,9 +58,9 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
             }
         },
         .function => |id| {
-            if (@backingInt(id) >= program.functions.len) return error.InvalidModule;
+            if (@backingInt(id) >= program.functions.count()) return error.InvalidModule;
 
-            const function = program.functions[@backingInt(id)];
+            const function = program.functions.at(@backingInt(id));
 
             try self.mark(function.input_type);
             try self.mark(function.output_type);

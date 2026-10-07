@@ -22,7 +22,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
 
     const scratch = temporary.allocator();
     var types = try Types.init(owned);
-    var functions: std.ArrayList(ir.Function) = .empty;
+    var functions: ir.FunctionStorage = .{};
     var native_modules: std.ArrayList(ir.NativeModule) = .empty;
     var initializers = Initializers{ .allocator = owned, .scratch = scratch, .types = &types, .functions = &functions };
     const exports = try owned.alloc(model.Export, inputs.len);
@@ -39,17 +39,22 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         if (try frontend.validateIr(scratch, program) != null) return error.InvalidIr;
 
         const type_mapping = try types.appendFrom(scratch, program.types, input.analysis.nominal_types, 0);
-        const function_mapping = try scratch.alloc(?ir.FunctionId, program.functions.len);
+        const function_mapping = try scratch.alloc(?ir.FunctionId, program.functions.count());
         const native_mapping = try scratch.alloc(?ir.NativeModuleId, program.native_modules.len);
 
-        for (function_mapping, 0..) |*id, index| id.* = @fromBackingInt(@intCast(functions.items.len + index));
+        for (function_mapping, 0..) |*id, index| id.* = @fromBackingInt(@intCast(functions.count() + index));
 
         @memset(native_mapping, null);
 
         var nodes = Nodes{ .allocator = owned, .types = .{ .mapped = type_mapping }, .functions = function_mapping, .native_modules = native_mapping };
 
         for (program.native_modules, native_mapping) |native, *id| id.* = try artifact.native_link.append(owned, &native_modules, native, &nodes);
-        for (program.functions) |function| try functions.append(owned, try nodes.function(function));
+
+        for (0..program.functions.count()) |function_row| {
+            const function = program.functions.at(function_row);
+
+            try functions.append(owned, try nodes.function(function));
+        }
 
         for (input.analysis.store_initializers) |initial| try initializers.append(.{
             .identity = initial.identity,
@@ -62,7 +67,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         var function_id: ?ir.FunctionId = null;
 
         if (!program.type_only) {
-            function_id = @fromBackingInt(@intCast(functions.items.len));
+            function_id = @fromBackingInt(@intCast(functions.count()));
 
             try functions.append(owned, try nodes.function(.{
                 .file_name = program.file_name,
@@ -100,14 +105,18 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types.items };
     }
 
-    for (functions.items) |function| for (0..function.stores.count()) |store_index| {
-        const slot = function.stores.at(store_index);
-        const entry = try stores.getOrPut(scratch, slot.path);
+    for (0..functions.count()) |function_row| {
+        const function = functions.at(function_row);
 
-        if (entry.found_existing and entry.value_ptr.* != slot.type_id) return error.ConflictingStore;
+        for (0..function.stores.count()) |store_index| {
+            const slot = function.stores.at(store_index);
+            const entry = try stores.getOrPut(scratch, slot.path);
 
-        entry.value_ptr.* = slot.type_id;
-    };
+            if (entry.found_existing and entry.value_ptr.* != slot.type_id) return error.ConflictingStore;
+
+            entry.value_ptr.* = slot.type_id;
+        }
+    }
 
     const program = ir.Program{
         .file_name = "library",
@@ -117,7 +126,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         .symbols = .{},
         .expressions = .{},
         .body = .{},
-        .functions = functions.items,
+        .functions = functions.view(),
         .native_modules = native_modules.items,
         .type_only = true,
     };

@@ -34,23 +34,26 @@ pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: N
         if (item.origin != .native or !std.mem.eql(u8, item.origin.native, entry.key())) return error.InvalidModule;
     }
 
-    const functions = try allocator.alloc(ir.Function, artifact.functions.len);
+    var functions: ir.FunctionStorage = .{};
 
-    for (artifact.functions, artifact.function_imports, functions, 0..) |signature, binding, *function, index| {
+    defer functions.deinit(allocator);
+
+    for (artifact.functions, artifact.function_imports, 0..) |signature, binding, index| {
         const external = signature.external orelse return error.InvalidModule;
 
         if (!std.mem.eql(u8, signature.file_name, entry.path) or @backingInt(binding.id) != index or binding.namespace != null or binding.input_type != signature.input_type or binding.output_type != signature.output_type) return error.InvalidModule;
         if (external.module != @as(ir.NativeModuleId, @fromBackingInt(@intCast(0))) or external.member.len != entry.namespace.len + 1) return error.InvalidModule;
         if (!native.stringsEqual(external.member[0..entry.namespace.len], entry.namespace) or !std.mem.eql(u8, external.member[entry.namespace.len], external.exportName()) or !std.mem.eql(u8, binding.name, external.exportName())) return error.InvalidModule;
-
-        function.* = .{ .file_name = signature.file_name, .input_type = signature.input_type, .output_type = signature.output_type, .output_ownership = signature.output_ownership, .external = external, .symbols = .{}, .expressions = .{}, .body = .{} };
+        try functions.append(allocator, .{ .file_name = signature.file_name, .input_type = signature.input_type, .output_type = signature.output_type, .output_ownership = signature.output_ownership, .external = external, .symbols = .{}, .expressions = .{}, .body = .{} });
     }
 
-    const program = ir.Program{ .file_name = entry.path, .types = artifact.types, .input_type = @fromBackingInt(@intCast(0)), .output_type = @fromBackingInt(@intCast(0)), .symbols = .{}, .expressions = .{}, .body = .{}, .exports = artifact.exports, .native_modules = artifact.native_modules, .functions = functions, .type_only = true };
+    const program = ir.Program{ .file_name = entry.path, .types = artifact.types, .input_type = @fromBackingInt(@intCast(0)), .output_type = @fromBackingInt(@intCast(0)), .symbols = .{}, .expressions = .{}, .body = .{}, .exports = artifact.exports, .native_modules = artifact.native_modules, .functions = functions.view(), .type_only = true };
 
     if (try @import("../../ir/validate.zig").validate(allocator, program) != null) return error.InvalidIr;
 
-    for (functions, artifact.function_imports) |function, binding| {
+    for (artifact.function_imports, 0..) |binding, index| {
+        const function = functions.at(index);
+
         if (function.external.?.expand_tuple) {
             const positional = binding.positional_types orelse return error.InvalidModule;
 
@@ -77,9 +80,12 @@ pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: N
         item.type_id = try nodes.types.include(item.type_id);
     }
 
-    const members = try allocator.alloc(Loaded.Member, functions.len);
+    const members = try allocator.alloc(Loaded.Member, functions.count());
 
-    for (functions, members) |function, *member| member.* = .{ .name = try allocator.dupe(u8, function.external.?.exportName()), .function = try nodes.function(function) };
+    for (members, 0..) |*member, index| {
+        const function = functions.at(index);
+        member.* = .{ .name = try allocator.dupe(u8, function.external.?.exportName()), .function = try nodes.function(function) };
+    }
 
     return .{ .types = types.items.view(), .exports = exports, .members = members };
 }

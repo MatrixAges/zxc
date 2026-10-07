@@ -33,17 +33,18 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
     errdefer allocator.free(state.selected);
     errdefer allocator.free(state.keys);
 
-    const pure = try allocator.alloc(bool, program.functions.len);
+    const pure = try allocator.alloc(bool, program.functions.count());
 
     errdefer allocator.free(pure);
 
-    const local = try allocator.alloc(bool, program.functions.len);
+    const local = try allocator.alloc(bool, program.functions.count());
 
     errdefer allocator.free(local);
 
-    const eligible = try allocator.alloc(bool, program.functions.len);
+    const eligible = try allocator.alloc(bool, program.functions.count());
 
-    for (program.functions, 0..) |function, index| {
+    for (0..program.functions.count()) |index| {
+        const function = program.functions.at(index);
         pure[index] = if (function.external != null) @import("../native_value.zig").valueBoundary(program, function) else function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, pure[0..index]);
         local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, local[0..index]);
         eligible[index] = local[index] and (program.typeOf(function.output_type) == .object or state.represented(program, function.output_type));

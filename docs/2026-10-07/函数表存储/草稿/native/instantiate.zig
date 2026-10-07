@@ -30,9 +30,13 @@ export fn instantiate(arena: *std.heap.ArenaAllocator, source: *const Source) bo
 
 export fn buildColumns(arena: *std.heap.ArenaAllocator, input: [*]const ir.Function, len: usize) bool {
     const allocator = arena.allocator();
-    var storage: @import("storage.zig") = .{};
+    var storage: ir.FunctionStorage = .{};
 
     for (input[0..len]) |value| storage.append(allocator, value) catch return false;
+
+    _ = storage.pop(allocator);
+
+    if (len != 0) storage.append(allocator, input[len - 1]) catch return false;
 
     const table = storage.finish(allocator) catch return false;
     const snapshot = table.snapshot(allocator) catch return false;

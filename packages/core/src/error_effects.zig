@@ -4,7 +4,7 @@ const Self = @This();
 
 allocator: std.mem.Allocator,
 types: ir.TypeTable,
-functions: []const ir.Function,
+functions: ir.FunctionTable,
 names: std.StringHashMapUnmanaged(void) = .empty,
 visited: std.AutoHashMapUnmanaged(usize, void) = .empty,
 called: std.AutoHashMapUnmanaged(ir.FunctionId, void) = .empty,
@@ -21,7 +21,7 @@ pub fn program(allocator: std.mem.Allocator, value: ir.Program) std.mem.Allocato
     return self.finish();
 }
 
-pub fn expression(allocator: std.mem.Allocator, types: ir.TypeTable, functions: []const ir.Function, values: ir.ExpressionTable, id: ir.ExprId) std.mem.Allocator.Error!?[]const []const u8 {
+pub fn expression(allocator: std.mem.Allocator, types: ir.TypeTable, functions: ir.FunctionTable, values: ir.ExpressionTable, id: ir.ExprId) std.mem.Allocator.Error!?[]const []const u8 {
     var self = Self{ .allocator = allocator, .types = types, .functions = functions };
 
     defer self.deinit();
@@ -72,7 +72,7 @@ pub fn call(self: *Self, id: ir.FunctionId) std.mem.Allocator.Error!void {
 
     if (entry.found_existing) return;
 
-    const function = self.functions[@backingInt(id)];
+    const function = self.functions.at(@backingInt(id));
 
     if (function.external) |external| {
         if (!external.fallible) return;

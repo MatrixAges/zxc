@@ -80,7 +80,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: @Field
         type_names[index] = try std.fmt.allocPrint(allocator, "zx_type_{s}", .{std.fmt.bytesToHex(digests[index], .lower)});
     }
 
-    const functions = try allocator.alloc([]const u8, program.functions.len);
+    const functions = try allocator.alloc([]const u8, program.functions.count());
     const io_functions = try @import("genz").zx.io.functions(allocator, program);
 
     defer allocator.free(io_functions);
@@ -89,7 +89,8 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: @Field
 
     defer allocator.free(process_functions);
 
-    for (program.functions, functions, io_functions, process_functions) |function, *name, needs_io, needs_process| {
+    for (0..program.functions.count(), functions, io_functions, process_functions) |function_row, *name, needs_io, needs_process| {
+        const function = program.functions.at(function_row);
         var hash = Hash.init(.{});
 
         field(&hash, "zxc.zig.function.v1");

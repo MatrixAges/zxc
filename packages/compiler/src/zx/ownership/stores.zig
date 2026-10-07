@@ -7,11 +7,12 @@ pub fn check(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocato
     if (try @import("../ir/validate.zig").validate(allocator, program) != null) return false;
     if (!try independent(allocator, program)) return false;
 
-    for (program.functions) |function| {
+    for (0..program.functions.count()) |function_row| {
+        const function = program.functions.at(function_row);
+
         if (function.external != null or function.stores.count() == 0) continue;
 
         var child = program;
-
         child.type_only = false;
         child.input_type = function.input_type;
         child.output_type = function.output_type;

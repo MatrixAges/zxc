@@ -154,7 +154,7 @@ fn deepOperation(program: ir.Program, expression: ir.ExpressionRow) bool {
         .list_update => |update| !represented(program, program.expression(update.value).type_id),
         .list_operation => |operation| !represented(program, program.typeOf(program.expression(operation.target).type_id).list),
         .call => |call| blk: {
-            const function = program.functions[@backingInt(call.function)];
+            const function = program.functions.at(@backingInt(call.function));
 
             break :blk !listEscape(program, function.input_type, function.output_type);
         },

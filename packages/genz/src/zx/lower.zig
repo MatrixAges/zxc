@@ -78,7 +78,9 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
         if (!exported) try output.append(self.allocator, .{ .constant = .{ .name = contract_name, .value = self.types[@backingInt(type_id)], .exported = true } });
     }
 
-    if (self.function_modules == null) for (self.program.functions, 0..) |module_function, index| {
+    if (self.function_modules == null) for (0..self.program.functions.count()) |index| {
+        const module_function = self.program.functions.at(index);
+
         if (module_function.external != null) {
             try output.append(self.allocator, try @import("external.zig").lower(self, module_function, index));
 
@@ -290,7 +292,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
         .list_update => |update| @import("list_update.zig").lower(self, update, self.list_update_buffers.get(id)),
         .call => |invocation| blk: {
             var body: std.ArrayList(node.Statement) = .empty;
-            const callee_function = self.program.functions[@backingInt(invocation.function)];
+            const callee_function = self.program.functions.at(@backingInt(invocation.function));
 
             if (self.state_active and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").invocation(self, invocation, null);
             if (!self.state_active and self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);

@@ -1,5 +1,5 @@
 const std = @import("std");
-const ir = @import("core").ir;
+const ir = @import("../ir.zig");
 const Self = @This();
 
 files: []const []const u8 = &.{},
@@ -23,7 +23,11 @@ pub fn at(self: Self, index: usize) ir.Function {
         .file_name = self.files[index],
         .input_type = @fromBackingInt(self.input_types[index]),
         .output_type = @fromBackingInt(self.output_types[index]),
-        .output_ownership = switch (self.ownership[index]) { .Copy => .copy, .Borrowed => .borrowed, .Owned => .owned },
+        .output_ownership = switch (self.ownership[index]) {
+            .Copy => .copy,
+            .Borrowed => .borrowed,
+            .Owned => .owned,
+        },
         .store_mode = self.store_modes[index],
         .contracts = self.contracts[index],
         .external = self.external[index],
@@ -66,4 +70,18 @@ pub fn snapshot(self: Self, allocator: std.mem.Allocator) std.mem.Allocator.Erro
     }
 
     return result;
+}
+
+pub fn get(self: Self, id: ir.FunctionId) ir.Function {
+    return self.at(@backingInt(id));
+}
+
+pub fn fromValues(allocator: std.mem.Allocator, values: []const ir.Function) std.mem.Allocator.Error!Self {
+    var storage: @import("storage.zig") = .{};
+
+    errdefer storage.deinit(allocator);
+
+    for (values) |value| try storage.append(allocator, value);
+
+    return storage.finish(allocator);
 }

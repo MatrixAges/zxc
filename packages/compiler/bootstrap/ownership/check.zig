@@ -357,7 +357,8 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
             defer self.allocator.free(before);
             defer self.releaseLoans(before);
 
-            const function = self.program.functions[@backingInt(call.function)];
+            const function = self.program.functions.get(call.function);
+
             _ = try self.value(call.argument, .read);
             const ownership = function.output_ownership;
             var escapes = container and ownership == .borrowed;

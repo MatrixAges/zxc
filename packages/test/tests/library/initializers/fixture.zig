@@ -41,7 +41,7 @@ pub fn check(value: *const compiler.library.Result, count: usize) !void {
     try std.testing.expectEqual(count, value.store_initializers.len);
 
     for (value.store_initializers) |initial| {
-        const function = value.program.functions[@backingInt(initial.function)];
+        const function = value.program.functions.at(@backingInt(initial.function));
 
         try std.testing.expectEqual(@as(u32, 1), initial.schema_version);
         try std.testing.expectEqual(.void, value.program.typeOf(function.input_type).scalar);
@@ -49,14 +49,18 @@ pub fn check(value: *const compiler.library.Result, count: usize) !void {
 
         var matched = false;
 
-        for (value.program.functions) |owner| for (0..owner.stores.count()) |store_index| {
-            const slot = owner.stores.at(store_index);
+        for (0..value.program.functions.count()) |owner_row| {
+            const owner = value.program.functions.at(owner_row);
 
-            if (!std.mem.eql(u8, slot.path, initial.identity)) continue;
-            try std.testing.expectEqual(slot.type_id, function.output_type);
+            for (0..owner.stores.count()) |store_index| {
+                const slot = owner.stores.at(store_index);
 
-            matched = true;
-        };
+                if (!std.mem.eql(u8, slot.path, initial.identity)) continue;
+                try std.testing.expectEqual(slot.type_id, function.output_type);
+
+                matched = true;
+            }
+        }
 
         try std.testing.expect(matched);
 

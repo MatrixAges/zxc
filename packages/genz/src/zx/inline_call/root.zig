@@ -12,28 +12,36 @@ control: ir.ControlStorage = .{},
 costs: std.ArrayList(usize) = .empty,
 symbols: ir.SymbolStorage = .{},
 pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!ir.Program {
-    if (program.functions.len == 0) return program;
+    if (program.functions.count() == 0) return program;
 
     const plan = try Plan.init(allocator, program);
     var result = program;
-    const functions = try allocator.dupe(ir.Function, program.functions);
+    var functions: ir.FunctionStorage = .{};
 
-    for (functions) |*function| {
-        if (function.stores.count() != 0) continue;
+    errdefer functions.deinit(allocator);
 
-        const selected = try @import("selection.zig").create(allocator, function.expressions, function.body, plan) orelse continue;
+    for (0..program.functions.count()) |index| {
+        var function = program.functions.at(index);
 
-        const transformed = rebuild(allocator, plan, function.symbols, function.expressions, function.body, selected) catch |err| switch (err) {
-            error.ExpansionLimit => continue,
-            error.OutOfMemory => return error.OutOfMemory,
-        };
+        transform: {
+            if (function.stores.count() != 0) break :transform;
 
-        function.body = transformed.body;
-        function.expressions = transformed.expressions;
-        function.symbols = transformed.symbols;
+            const selected = try @import("selection.zig").create(allocator, function.expressions, function.body, plan) orelse break :transform;
+
+            const transformed = rebuild(allocator, plan, function.symbols, function.expressions, function.body, selected) catch |err| switch (err) {
+                error.ExpansionLimit => break :transform,
+                error.OutOfMemory => return error.OutOfMemory,
+            };
+
+            function.body = transformed.body;
+            function.expressions = transformed.expressions;
+            function.symbols = transformed.symbols;
+        }
+
+        try functions.append(allocator, function);
     }
 
-    result.functions = functions;
+    result.functions = try functions.finish(allocator);
 
     if (program.stores.count() != 0) return result;
 

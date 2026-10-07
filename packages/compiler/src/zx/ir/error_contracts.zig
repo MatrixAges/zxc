@@ -5,7 +5,9 @@ const ir = zx.ir;
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
     if (!try expressions(allocator, program, program.expressions)) return false;
 
-    for (program.functions) |function| {
+    for (0..program.functions.count()) |function_row| {
+        const function = program.functions.at(function_row);
+
         if (!try expressions(allocator, program, function.expressions)) return false;
     }
 

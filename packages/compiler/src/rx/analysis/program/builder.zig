@@ -10,7 +10,7 @@ types: ir.TypeTable,
 native_modules: []const ir.NativeModule,
 symbols: ir.SymbolStorage = .{},
 expressions: ir.ExpressionStorage = .{},
-functions: std.ArrayList(ir.Function) = .empty,
+functions: ir.FunctionStorage = .{},
 store_initializers: std.ArrayList(StoreInitializer) = .empty,
 stores: ir.StoreStorage = .{},
 body: std.ArrayList(ir.Statement) = .empty,
@@ -34,16 +34,17 @@ pub fn expression(self: *Self, value: ir.Expression) std.mem.Allocator.Error!ir.
 pub fn importFunction(self: *Self, program: ir.Program, initializers: []const StoreInitializer) Error!ir.FunctionId {
     const Nodes = @import("frontend").ArtifactNodes;
     const types = try self.allocator.alloc(ir.TypeId, self.types.count());
-    const functions = try self.allocator.alloc(?ir.FunctionId, program.functions.len);
+    const functions = try self.allocator.alloc(?ir.FunctionId, program.functions.count());
     const native_modules = try self.allocator.alloc(?ir.NativeModuleId, self.native_modules.len);
 
     for (types, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
-    for (functions, 0..) |*id, index| id.* = @fromBackingInt(@intCast(self.functions.items.len + index));
+    for (functions, 0..) |*id, index| id.* = @fromBackingInt(@intCast(self.functions.count() + index));
     for (native_modules, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
 
     var nodes = Nodes{ .allocator = self.allocator, .types = .{ .mapped = types }, .functions = functions, .native_modules = native_modules };
 
-    for (program.functions) |function| {
+    for (0..program.functions.count()) |function_row| {
+        const function = program.functions.at(function_row);
         const copied = nodes.function(function) catch |err| return if (err == error.OutOfMemory) error.OutOfMemory else error.InvalidModule;
 
         try self.functions.append(self.allocator, copied);
@@ -62,11 +63,11 @@ pub fn importFunction(self: *Self, program: ir.Program, initializers: []const St
             if (!std.mem.eql(u8, previous.identity, mapped.identity)) continue;
             if (previous.schema_version != mapped.schema_version) return error.InvalidModule;
 
-            const before = try std.json.Stringify.valueAlloc(self.allocator, self.functions.items[@backingInt(previous.function)], .{});
+            const before = try std.json.Stringify.valueAlloc(self.allocator, self.functions.at(@backingInt(previous.function)), .{});
 
             defer self.allocator.free(before);
 
-            const after = try std.json.Stringify.valueAlloc(self.allocator, self.functions.items[@backingInt(mapped.function)], .{});
+            const after = try std.json.Stringify.valueAlloc(self.allocator, self.functions.at(@backingInt(mapped.function)), .{});
 
             defer self.allocator.free(after);
 
@@ -80,7 +81,7 @@ pub fn importFunction(self: *Self, program: ir.Program, initializers: []const St
         if (!found) try self.store_initializers.append(self.allocator, mapped);
     }
 
-    const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.items.len));
+    const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.count()));
 
     const main = nodes.function(.{
         .file_name = program.file_name,

@@ -6,14 +6,18 @@ pub const Mode = enum { missing, extra, renamed, guard };
 
 pub fn apply(value: *f.compiler.library.Result, mode: Mode) !void {
     const allocator = value.arena.allocator();
-    const functions = try allocator.dupe(ir.Function, value.program.functions);
-    value.program.functions = functions;
+    const functions = value.program.functions;
+    const tables = try allocator.alloc(*const ir.ExpressionTable, functions.count());
     var changed: usize = 0;
     value.program.expressions = try expressions(allocator, &value.program.types, value.program.expressions, mode, &changed);
 
-    for (functions) |*function| {
-        function.expressions = try expressions(allocator, &value.program.types, function.expressions, mode, &changed);
+    for (functions.expressions, tables) |original, *table| {
+        const updated = try allocator.create(ir.ExpressionTable);
+        updated.* = try expressions(allocator, &value.program.types, original.*, mode, &changed);
+        table.* = updated;
     }
+
+    value.program.functions.expressions = tables;
 
     try std.testing.expectEqual(@as(usize, 1), changed);
 }

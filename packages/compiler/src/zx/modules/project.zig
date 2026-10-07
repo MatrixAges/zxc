@@ -45,7 +45,7 @@ const Project = struct {
     types: ir.TypeTable = .{},
     nominal_origins: NominalOrigins,
     modules: std.ArrayList(ModuleRecord) = .empty,
-    functions: std.ArrayList(ir.Function) = .empty,
+    functions: ir.FunctionStorage = .{},
     native_modules: std.ArrayList(ir.NativeModule) = .empty,
     native_units: std.StringHashMapUnmanaged(NativeUnit) = .empty,
     store_initializers: std.ArrayList(compiled.StoreInitializer) = .empty,
@@ -178,7 +178,7 @@ const Project = struct {
                     .allocator = self.allocator,
                     .types = self.types,
                     .nominal_types = self.nominal_origins.items.view(),
-                    .functions = self.functions.items,
+                    .functions = self.functions.view(),
                     .native_modules = self.native_modules.items,
                     .aliases = aliases.items,
                     .imports = imports.items,
@@ -204,7 +204,7 @@ const Project = struct {
                 .reporter = self.reporter,
                 .types = .{ .allocator = self.allocator, .reporter = self.reporter, .declarations = &.{}, .aliases = aliases.items, .shared = .{ .origins = &self.nominal_origins, .origin = .{ .source = unit.path } } },
                 .function_imports = imports.items,
-                .functions = self.functions.items,
+                .functions = self.functions.view(),
                 .store_bindings = if (std.mem.eql(u8, unit.path, self.options.entry)) self.options.context.stores else &.{},
                 .store_type_count = self.options.context.types.count(),
             };
@@ -212,7 +212,7 @@ const Project = struct {
             try analyzer.types.items.appendDelta(self.allocator, self.types);
 
             var analyzed = try input.analyze(&analyzer, unit.path);
-            analyzed.functions = try self.allocator.dupe(ir.Function, self.functions.items);
+            analyzed.functions = try self.functions.view().snapshot(self.allocator);
             analyzed.output_ownership = try @import("../ownership/check.zig").analyze(self.allocator, analyzed, self.reporter);
 
             break :analyze_block analyzed;
@@ -221,7 +221,7 @@ const Project = struct {
         self.types = program.types;
 
         if (!program.type_only) {
-            unit.function = @fromBackingInt(@intCast(self.functions.items.len));
+            unit.function = @fromBackingInt(@intCast(self.functions.count()));
 
             try self.functions.append(self.allocator, .{ .stores = program.stores, .store_mode = program.store_mode, .output_ownership = program.output_ownership, .file_name = program.file_name, .input_type = program.input_type, .output_type = program.output_type, .symbols = program.symbols, .expressions = program.expressions, .body = program.body, .contracts = program.contracts });
         }
@@ -283,7 +283,7 @@ const Project = struct {
         for (loaded.exports) |exported| {
             if (!std.mem.eql(u8, exported.name, target.name)) continue;
 
-            const function = if (exported.function) |id| self.functions.items[@backingInt(id)] else null;
+            const function = if (exported.function) |id| self.functions.at(@backingInt(id)) else null;
 
             return .{
                 .function = exported.function,
@@ -358,7 +358,7 @@ const Project = struct {
             self.types = loaded.types;
 
             for (loaded.members, members) |member, *binding| {
-                const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.items.len));
+                const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.count()));
 
                 try self.functions.append(self.allocator, member.function);
 
@@ -426,7 +426,7 @@ const Project = struct {
 
             self.types = imported.types;
 
-            const function_id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.items.len));
+            const function_id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.count()));
 
             try self.functions.append(self.allocator, imported.function);
 
@@ -515,7 +515,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
 
     program.types = project.types;
     program.native_modules = project.native_modules.items;
-    program.functions = try temporary.dupe(ir.Function, project.functions.items[0 .. project.functions.items.len - @intFromBool(!program.type_only)]);
+    program.functions = try project.functions.view().prefix(project.functions.count() - @intFromBool(!program.type_only)).snapshot(temporary);
 
     if (try @import("../ir/validate.zig").validate(allocator, program)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };
 

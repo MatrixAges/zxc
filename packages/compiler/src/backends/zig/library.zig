@@ -33,7 +33,7 @@ pub fn createCached(allocator: std.mem.Allocator, library: *const model.Result, 
     const owned = arena.allocator();
     const program = try @import("genz").zx.prepare(owned, library.program);
     const identities = try names.create(owned, program, library.nominal_types);
-    const needed = try owned.alloc(bool, program.functions.len);
+    const needed = try owned.alloc(bool, program.functions.count());
     const public_modules = try owned.alloc(PublicModule, library.exports.len);
 
     @memset(needed, false);

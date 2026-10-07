@@ -55,7 +55,7 @@ pub fn lower(self: *Lower, invocations: @FieldType(ir.StatementRow, "parallel"))
 }
 
 fn workerType(self: *Lower, id: ir.FunctionId) Lower.Error!*const node.Expression {
-    const function = self.program.functions[@backingInt(id)];
+    const function = self.program.functions.at(@backingInt(id));
     const instance = try self.builder.identifier("self");
 
     const fields = try self.allocator.dupe(node.Field, &.{

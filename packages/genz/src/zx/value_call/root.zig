@@ -53,7 +53,7 @@ pub fn pointerInvocation(self: *Lower, value: @FieldType(@FieldType(ir.Expressio
 }
 
 fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call"), buffers: ?*const node.Expression, borrowed: bool, result_mode: @import("../state_value/conversion.zig").Mode) Lower.Error!*const node.Expression {
-    const function = self.program.functions[@backingInt(value.function)];
+    const function = self.program.functions.at(@backingInt(value.function));
     const can_stack = !containsDescendant(self.program, function.output_type, function.input_type);
 
     var argument = if (result_mode != .pointer and !self.state_active and can_stack and self.program.expression(value.argument).value == .object and !self.cache.contains(value.argument)) temporary: {

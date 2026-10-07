@@ -21,7 +21,7 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
             return self.builder.expression(.{ .address_of = value });
         },
         .call => |invocation| {
-            const function = self.program.functions[@backingInt(invocation.function)];
+            const function = self.program.functions.at(@backingInt(invocation.function));
 
             if (!self.value_functions[@backingInt(invocation.function)] or !fresh(function.expressions, function.body.block())) return existing(self, body, id);
 

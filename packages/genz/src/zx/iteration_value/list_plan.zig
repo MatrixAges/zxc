@@ -143,7 +143,7 @@ fn expression(self: *Self, id: ir.ExprId) bool {
         .list_update => |item| self.expression(item.target) and self.expression(item.index) and self.expression(item.value),
         .list_operation => |item| (item.kind == .push or item.kind == .pop or item.kind == .concat) and self.expression(item.target) and self.all(item.arguments),
         .call => |call| blk: {
-            const function = program.functions[@backingInt(call.function)];
+            const function = program.functions.at(@backingInt(call.function));
 
             break :blk self.lowering.pure_functions[@backingInt(call.function)] and primitive(program, function.input_type) and primitive(program, function.output_type) and self.expression(call.argument);
         },

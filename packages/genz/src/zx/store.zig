@@ -19,7 +19,7 @@ pub fn declaration(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower
 pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!*const node.Expression {
     self.uses_context = true;
     const mapping = invocation.stores;
-    const slots = self.program.functions[@backingInt(invocation.function)].stores;
+    const slots = self.program.functions.at(@backingInt(invocation.function)).stores;
     var readable: usize = 0;
 
     for (slots.readable) |allowed| if (allowed) {

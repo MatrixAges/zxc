@@ -15,20 +15,21 @@ pub fn check(allocator: std.mem.Allocator, library: *compiler.library.Result, or
     try std.testing.expect(try compiler.validateIr(allocator, try control.module(0)) == null);
 
     const original = library.program.functions;
-    const functions = try allocator.dupe(compiler.ir.Function, original);
+    const ownership = try allocator.dupe(compiler.ir.SymbolTable.Ownership, original.ownership);
 
-    defer allocator.free(functions);
+    defer allocator.free(ownership);
 
-    library.program.functions = functions;
+    library.program.functions.ownership = ownership;
     defer library.program.functions = original;
     var changed: usize = 0;
 
-    for (functions) |*function| {
+    for (0..original.count()) |index| {
+        const function = original.at(index);
+
         if (!std.mem.eql(u8, std.fs.path.basename(function.file_name), "make.zx")) continue;
         try std.testing.expectEqual(.borrowed, function.output_ownership);
 
-        function.output_ownership = .owned;
-
+        ownership[index] = .Owned;
         changed += 1;
     }
 

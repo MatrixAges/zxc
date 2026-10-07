@@ -12,7 +12,7 @@ pub const Current = struct {
     allocator: std.mem.Allocator,
     types: ir.TypeTable,
     nominal_types: Origins.Table,
-    functions: []const ir.Function,
+    functions: ir.FunctionTable,
     native_modules: []const ir.NativeModule,
     aliases: []const ir.Export,
     imports: []const FunctionImport,
@@ -89,7 +89,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
 
         const index = @backingInt(previous.id);
 
-        if (index >= function_mapping.len or @backingInt(binding.id) >= current.functions.len) return error.InvalidModule;
+        if (index >= function_mapping.len or @backingInt(binding.id) >= current.functions.count()) return error.InvalidModule;
 
         if (function_mapping[index]) |mapped| {
             if (mapped != binding.id) return error.InvalidModule;
@@ -99,7 +99,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
     }
 
     for (module.functions, function_mapping) |signature, id| {
-        const function = current.functions[@backingInt(id orelse return error.InvalidModule)];
+        const function = current.functions.at(@backingInt(id orelse return error.InvalidModule));
 
         if (!std.mem.eql(u8, signature.file_name, function.file_name) or try nodes.types.include(signature.input_type) != function.input_type or try nodes.types.include(signature.output_type) != function.output_type or signature.output_ownership != function.output_ownership) return error.InvalidModule;
 
@@ -135,7 +135,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         .exports = exports,
         .stores = stores,
         .store_mode = if (function) |value| value.store_mode else .transaction,
-        .functions = try allocator.dupe(ir.Function, current.functions),
+        .functions = try current.functions.snapshot(allocator),
         .native_modules = current.native_modules,
         .type_only = function == null,
     } };

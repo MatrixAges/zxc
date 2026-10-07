@@ -12,13 +12,13 @@ pub fn evaluate(state: *State, id: ir.ExprId, argument: facts.Value) std.mem.All
     const call = state.program.expression(id).value.call;
     const index = @backingInt(call.function);
 
-    if (!state.valid or index >= state.program.functions.len or call.stores.len != 0) {
+    if (!state.valid or index >= state.program.functions.count() or call.stores.len != 0) {
         state.valid = false;
 
         return .none;
     }
 
-    const function = state.program.functions[index];
+    const function = state.program.functions.at(index);
 
     if (function.external != null or function.stores.count() != 0 or function.contracts.len != 0) {
         state.valid = false;
@@ -57,7 +57,7 @@ pub fn evaluate(state: *State, id: ir.ExprId, argument: facts.Value) std.mem.All
     program.symbols = function.symbols;
     program.expressions = function.expressions;
     program.body = function.body;
-    program.functions = program.functions[0..index];
+    program.functions = program.functions.prefix(index);
 
     var child = State{
         .allocator = state.allocator,

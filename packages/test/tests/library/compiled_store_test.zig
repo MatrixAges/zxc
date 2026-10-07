@@ -71,12 +71,16 @@ test "compiled Store instances keep valid distinct state paths" {
 
     defer paths.deinit(std.testing.allocator);
 
-    for (result.value.ir.functions) |function| for (0..function.stores.count()) |store_index| {
-        const slot = function.stores.at(store_index);
+    for (0..result.value.ir.functions.count()) |function_row| {
+        const function = result.value.ir.functions.at(function_row);
 
-        try std.testing.expect(std.mem.startsWith(u8, slot.path, "store."));
-        try paths.put(std.testing.allocator, slot.path, {});
-    };
+        for (0..function.stores.count()) |store_index| {
+            const slot = function.stores.at(store_index);
+
+            try std.testing.expect(std.mem.startsWith(u8, slot.path, "store."));
+            try paths.put(std.testing.allocator, slot.path, {});
+        }
+    }
 
     try std.testing.expectEqual(@as(usize, 2), paths.count());
 }

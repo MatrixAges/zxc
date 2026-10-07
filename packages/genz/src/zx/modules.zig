@@ -59,7 +59,7 @@ fn typesPrepared(allocator: std.mem.Allocator, program: ir.Program, names: Names
 }
 
 fn functionPrepared(allocator: std.mem.Allocator, program: ir.Program, id: ir.FunctionId, names: Names) Error![]u8 {
-    if (@backingInt(id) >= program.functions.len) return error.InvalidFunction;
+    if (@backingInt(id) >= program.functions.count()) return error.InvalidFunction;
 
     var arena = std.heap.ArenaAllocator.init(allocator);
 
@@ -67,7 +67,7 @@ fn functionPrepared(allocator: std.mem.Allocator, program: ir.Program, id: ir.Fu
 
     const temporary = arena.allocator();
     var lower = try initialize(temporary, program, names);
-    const selected = lower.program.functions[@backingInt(id)];
+    const selected = lower.program.functions.at(@backingInt(id));
 
     lower.program.symbols = selected.symbols;
     lower.program.expressions = selected.expressions;
@@ -134,7 +134,7 @@ fn functionPrepared(allocator: std.mem.Allocator, program: ir.Program, id: ir.Fu
 }
 
 fn initialize(allocator: std.mem.Allocator, program: ir.Program, names: Names) Error!Lower {
-    if (names.types.len != program.types.count() or names.functions.len != program.functions.len) return error.InvalidNames;
+    if (names.types.len != program.types.count() or names.functions.len != program.functions.count()) return error.InvalidNames;
 
     var lower = try @import("render.zig").initializePrepared(allocator, program);
 

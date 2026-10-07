@@ -48,7 +48,7 @@ pub fn validate(program: ir.Program) bool {
 }
 
 pub fn validateExport(program: ir.Program, index: usize) bool {
-    const function = program.functions[index];
+    const function = program.functions.at(index);
     const external = function.external.?;
     const name = external.exportName();
     const module = program.native_modules[@backingInt(external.module)];
@@ -75,7 +75,8 @@ pub fn validateExport(program: ir.Program, index: usize) bool {
         }
     }
 
-    for (program.functions[0..index]) |previous| {
+    for (0..index) |previous_index| {
+        const previous = program.functions.at(previous_index);
         const other = previous.external orelse continue;
 
         if (!std.mem.eql(u8, program.native_modules[@backingInt(other.module)].key(), module.key())) continue;

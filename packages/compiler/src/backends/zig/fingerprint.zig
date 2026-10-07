@@ -32,7 +32,7 @@ pub fn createPrepared(allocator: std.mem.Allocator, program: ir.Program, names: 
     const state_plan = facts.state;
     var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions, .state_plan = state_plan };
 
-    self.bytes("zxc.zig.input.v32");
+    self.bytes("zxc.zig.input.v33");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -42,7 +42,7 @@ pub fn createPrepared(allocator: std.mem.Allocator, program: ir.Program, names: 
         .function => |id| {
             self.write(value_functions[@backingInt(id)]);
             self.write(buffer_functions[@backingInt(id)]);
-            self.write(program.functions[@backingInt(id)]);
+            self.write(program.functions.at(@backingInt(id)));
         },
         .entry => self.write(.{
             .file_name = program.file_name,
@@ -68,15 +68,23 @@ pub fn createPrepared(allocator: std.mem.Allocator, program: ir.Program, names: 
 
             var count: usize = 0;
 
-            for (program.functions) |function| if (function.external != null) {
-                count += 1;
-            };
+            for (0..program.functions.count()) |function_row| {
+                const function = program.functions.at(function_row);
+
+                if (function.external != null) {
+                    count += 1;
+                }
+            }
 
             self.write(count);
 
-            for (program.functions) |function| if (function.external) |external| {
-                self.write(.{ .input_type = function.input_type, .output_type = function.output_type, .external = external });
-            };
+            for (0..program.functions.count()) |function_row| {
+                const function = program.functions.at(function_row);
+
+                if (function.external) |external| {
+                    self.write(.{ .input_type = function.input_type, .output_type = function.output_type, .external = external });
+                }
+            }
         },
     }
 
@@ -118,13 +126,13 @@ fn write(self: *Self, value: anytype) void {
 
     if (T == ir.FunctionId) {
         self.bytes(self.names.functions[@backingInt(value)]);
-        self.write(self.program.functions[@backingInt(value)].stores);
+        self.write(self.program.functions.at(@backingInt(value)).stores);
         self.write(self.value_functions[@backingInt(value)]);
         self.write(self.pure_functions[@backingInt(value)]);
         self.write(self.local_functions[@backingInt(value)]);
         self.write(self.buffer_functions[@backingInt(value)]);
 
-        const function = self.program.functions[@backingInt(value)];
+        const function = self.program.functions.at(@backingInt(value));
 
         self.write(function.input_type);
         self.write(function.output_type);

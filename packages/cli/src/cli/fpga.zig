@@ -20,7 +20,11 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, sources: []const compiler.p
 pub fn runProgram(io: std.Io, allocator: std.mem.Allocator, program: compiler.ir.Program, sources: []const compiler.project.Source, entry: []const u8, options: Options, writer: *std.Io.Writer) !bool {
     var requires_verification = program.contracts.len != 0 or options.solver != null;
 
-    for (program.functions) |function| requires_verification = requires_verification or function.contracts.len != 0;
+    for (0..program.functions.count()) |function_row| {
+        const function = program.functions.at(function_row);
+        requires_verification = requires_verification or function.contracts.len != 0;
+    }
+
     if (requires_verification and !try compiler.verification.check(io, allocator, program, sources, entry, .{ .solver = options.solver }, writer)) return false;
 
     var generated = try compiler.hardware.generate(allocator, program);

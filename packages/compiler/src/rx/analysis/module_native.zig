@@ -17,13 +17,13 @@ pub fn merge(allocator: std.mem.Allocator, calls: []Module.Call, types: zx.ir.Ty
 
         for (call.callee.native_modules, native_mapping) |module, *id| id.* = try native.append(allocator, &modules, module, &nodes);
 
-        const functions = try allocator.dupe(zx.ir.Function, call.callee.functions);
+        const external = try allocator.dupe(?zx.ir.External, call.callee.functions.external);
 
-        for (functions) |*function| {
-            if (function.external) |*external| external.module = native_mapping[@backingInt(external.module)];
+        for (external) |*value| {
+            if (value.*) |*item| item.module = native_mapping[@backingInt(item.module)];
         }
 
-        call.callee.functions = functions;
+        call.callee.functions.external = external;
     }
 
     for (calls) |*call| call.callee.native_modules = modules.items;

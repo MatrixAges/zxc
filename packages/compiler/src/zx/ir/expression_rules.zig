@@ -208,7 +208,7 @@ pub fn validate(program: ir.Program, expression: ir.ExpressionRow, index: usize)
 
             break :blk check.typed(selection.fallback, type_id);
         },
-        .call => |call| @backingInt(call.function) < program.functions.len and type_id == program.functions[@backingInt(call.function)].output_type and check.typed(call.argument, program.functions[@backingInt(call.function)].input_type) and @import("stores.zig").call(program, call),
+        .call => |call| @backingInt(call.function) < program.functions.count() and type_id == program.functions.at(@backingInt(call.function)).output_type and check.typed(call.argument, program.functions.at(@backingInt(call.function)).input_type) and @import("stores.zig").call(program, call),
         .transform => |transform| check.transform(transform, type_id),
         .list_update => |update| target == .list and check.typed(update.target, type_id) and check.typed(update.index, Types.scalarId(.u64)) and check.typed(update.value, target.list),
         .iteration => |iteration| type_id != void_type and check.typed(iteration.initial, type_id) and check.typed(iteration.body, type_id) and check.typed(iteration.condition, bool_type) and

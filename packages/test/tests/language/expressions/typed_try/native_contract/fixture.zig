@@ -35,7 +35,8 @@ pub fn accepted(allocator: std.mem.Allocator, case: Contract) !void {
 
     var count: usize = 0;
 
-    for (result.value.ir.functions) |function| {
+    for (0..result.value.ir.functions.count()) |function_row| {
+        const function = result.value.ir.functions.at(function_row);
         const external = function.external orelse continue;
 
         count += 1;

@@ -10,7 +10,7 @@ allocator: std.mem.Allocator,
 temporary: std.mem.Allocator,
 modules: []const model.Module,
 type_mappings: []const []const ir.TypeId,
-functions: std.ArrayList(ir.Function) = .empty,
+functions: ir.FunctionStorage = .{},
 native_modules: std.ArrayList(ir.NativeModule) = .empty,
 module_functions: []?ir.FunctionId,
 pub fn module(self: *Self, index: usize) Error!?ir.Function {
@@ -43,7 +43,7 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
             if (!sourceDependency(value, signature.file_name)) return error.InvalidModule;
 
             const target_id = self.module_functions[target] orelse return error.InvalidModule;
-            const callee = self.functions.items[@backingInt(target_id)];
+            const callee = self.functions.at(@backingInt(target_id));
 
             if (callee.input_type != input or callee.output_type != output or callee.output_ownership != signature.output_ownership) return error.ConflictingInterface;
 
@@ -67,7 +67,7 @@ fn imports(self: *Self, index: usize, nodes: *Nodes) Error!void {
 
     for (value.function_imports) |binding| {
         const id = try nodes.functionId(binding.id);
-        const function = self.functions.items[@backingInt(id)];
+        const function = self.functions.at(@backingInt(id));
 
         if (try nodes.types.include(binding.input_type) != function.input_type or try nodes.types.include(binding.output_type) != function.output_type) return error.ConflictingInterface;
     }
@@ -130,7 +130,8 @@ fn checkExports(values: []const ir.Export, mapping: Nodes.TypeMap) Error!void {
 }
 
 fn importExternal(self: *Self, signature: model.Signature, input: ir.TypeId, output: ir.TypeId, implementation: ir.External) Error!ir.FunctionId {
-    for (self.functions.items, 0..) |existing, index| {
+    for (0..self.functions.count()) |index| {
+        const existing = self.functions.at(index);
         const other = existing.external orelse continue;
 
         if (!std.mem.eql(u8, self.native_modules.items[@backingInt(other.module)].key(), self.native_modules.items[@backingInt(implementation.module)].key())) continue;
@@ -140,7 +141,7 @@ fn importExternal(self: *Self, signature: model.Signature, input: ir.TypeId, out
         return @fromBackingInt(@intCast(index));
     }
 
-    const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.items.len));
+    const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.count()));
 
     try self.functions.append(self.allocator, .{ .file_name = try self.allocator.dupe(u8, signature.file_name), .input_type = input, .output_type = output, .output_ownership = signature.output_ownership, .external = implementation, .symbols = .{}, .expressions = .{}, .body = .{} });
 

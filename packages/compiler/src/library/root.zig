@@ -30,7 +30,7 @@ pub const Result = struct {
         result.exports = exported.types;
 
         if (exported.function) |id| {
-            const function = result.functions[@backingInt(id)];
+            const function = result.functions.at(@backingInt(id));
             result.type_only = false;
             result.input_type = function.input_type;
             result.output_type = function.output_type;

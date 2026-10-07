@@ -7,7 +7,7 @@ const Conditions = @import("conditions.zig");
 
 pub fn evaluate(self: *Expressions, expression: ir.ExpressionRow) zx.Error!terms.Evaluation {
     const invocation = expression.value.call;
-    const function = self.program.functions[@backingInt(invocation.function)];
+    const function = self.program.functions.at(@backingInt(invocation.function));
 
     if (function.stores.count() != 0) return self.reporter.fail(.unsupported, expression.span, "verification does not model Store calls");
     if (function.external != null) return self.reporter.fail(.unsupported, expression.span, "verification requires a ZX body for each executed call; external semantics are not modeled");

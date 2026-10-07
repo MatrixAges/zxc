@@ -15,7 +15,7 @@ nodes: ir.ExpressionStorage = .{},
 control: ir.ControlStorage = .{},
 output_type: ir.TypeId = undefined,
 function_imports: []const FunctionImport = &.{},
-functions: []const ir.Function = &.{},
+functions: ir.FunctionTable = .{},
 stores: ir.StoreTable = .{},
 store_bindings: []const @import("analyze.zig").StoreBinding = &.{},
 store_type_count: usize = 0,
@@ -153,7 +153,7 @@ pub fn append(self: *Self, value: ir.Expression) zx.Error!ir.ExprId {
 }
 
 pub fn node(self: *const Self, id: ir.ExprId) ir.ExpressionRow {
-    return self.nodes.view().at(@backingInt(id));
+    return self.nodes.at(@backingInt(id));
 }
 
 pub fn lookup(self: *const Self, name: []const u8) ?ir.SymbolId {

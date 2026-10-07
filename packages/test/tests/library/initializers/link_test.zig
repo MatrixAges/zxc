@@ -25,7 +25,9 @@ test "duplicate public modules deduplicate the same Store initializer" {
 
     var count: usize = 0;
 
-    for (result.program.functions) |function| {
+    for (0..result.program.functions.count()) |function_row| {
+        const function = result.program.functions.at(function_row);
+
         if (std.mem.eql(u8, function.file_name, f.identity)) count += 1;
     }
 

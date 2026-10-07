@@ -49,7 +49,7 @@ pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Resu
         .input_type = contract.input_type,
         .output_type = contract.output_type,
         .body = try builder.control.finish(allocator, root),
-        .functions = builder.functions.items,
+        .functions = builder.functions.view(),
         .stores = builder.stores.view(),
         .store_mode = .orchestration,
         .native_modules = contract.native_modules,

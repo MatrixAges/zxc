@@ -81,12 +81,14 @@ fn bindings(program: ir.Program, statements: ir.Block, uses: []usize) bool {
     return true;
 }
 
-pub fn callSafe(allocator: std.mem.Allocator, functions: []const ir.Function, id: ir.FunctionId) std.mem.Allocator.Error!bool {
-    const safe = try allocator.alloc(bool, functions.len);
+pub fn callSafe(allocator: std.mem.Allocator, functions: ir.FunctionTable, id: ir.FunctionId) std.mem.Allocator.Error!bool {
+    const safe = try allocator.alloc(bool, functions.count());
 
     defer allocator.free(safe);
 
-    for (functions, 0..) |function, index| {
+    for (0..functions.count()) |index| {
+        const function = functions.at(index);
+
         safe[index] = function.stores.count() == 0;
 
         if (function.external) |external| {

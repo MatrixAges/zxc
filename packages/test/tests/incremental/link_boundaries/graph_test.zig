@@ -85,13 +85,12 @@ test "type only entry excludes unrelated broken dependency graph" {
     var dependency = fixture.modules[1].dependencies[0];
     dependency.target = .{ .source = "/project/absent.zx" };
     fixture.modules[3].dependencies = (&dependency)[0..1];
-
     var result = try linker.link(std.testing.allocator, &fixture.modules, "/project/shared.zx");
 
     defer result.deinit();
 
     try std.testing.expect(result.program.type_only);
-    try std.testing.expectEqual(@as(usize, 0), result.program.functions.len);
+    try std.testing.expectEqual(@as(usize, 0), result.program.functions.count());
     try std.testing.expectEqual(@as(usize, 2), result.program.exports.len);
     try std.testing.expect(try compiler.validateIr(std.testing.allocator, result.program) == null);
 }

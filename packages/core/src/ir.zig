@@ -12,6 +12,8 @@ pub const ControlStorage = @import("control_table/storage.zig");
 pub const Block = @import("control_table/read.zig").Block;
 pub const StatementRow = @import("control_table/read.zig").Statement;
 pub const FunctionId = enum(u32) { _ };
+pub const FunctionTable = @import("function_table/root.zig");
+pub const FunctionStorage = @import("function_table/storage.zig");
 pub const NativeModuleId = enum(u32) { _ };
 pub const Ownership = enum { copy, borrowed, owned };
 pub const Scalar = @import("type_table/model.zig").Scalar;
@@ -168,7 +170,7 @@ pub const Function = struct {
 
 pub const Program = struct {
     output_ownership: Ownership = .borrowed,
-    version: u32 = 29,
+    version: u32 = 30,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,
@@ -179,7 +181,7 @@ pub const Program = struct {
     output_type: TypeId,
     body: ControlBody,
     exports: []const Export = &.{},
-    functions: []const Function = &.{},
+    functions: FunctionTable = .{},
     native_modules: []const NativeModule = &.{},
     stores: StoreTable = .{},
     type_only: bool = false,

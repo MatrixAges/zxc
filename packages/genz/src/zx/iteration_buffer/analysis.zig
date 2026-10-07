@@ -218,7 +218,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!Value {
 
             if (self.borrowing) break :blk try @import("borrowing/call.zig").evaluate(self, id, argument);
 
-            const function = self.program.functions[@backingInt(call.function)];
+            const function = self.program.functions.at(@backingInt(call.function));
 
             if (self.calls) |calls| {
                 if (!facts.contains(argument)) break :blk .none;

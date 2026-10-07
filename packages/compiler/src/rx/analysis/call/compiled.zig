@@ -29,7 +29,7 @@ pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Alloc
         library = candidate;
     }
 
-    var functions: std.ArrayList(zx.ir.Function) = .empty;
+    var functions: zx.ir.FunctionStorage = .{};
     var native_modules: std.ArrayList(zx.ir.NativeModule) = .fromOwnedSlice(try frontend.native_context.copy(allocator, options.project.context.native_modules));
 
     const loaded = frontend.project.compiled.load(allocator, .{
@@ -48,7 +48,7 @@ pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Alloc
         if (!std.mem.eql(u8, exported.name, selected.name)) continue;
 
         const id = exported.function orelse return fail(allocator, options, "module", "Call.module requires an executable public module");
-        const function = functions.items[@backingInt(id)];
+        const function = functions.at(@backingInt(id));
 
         if (options.setter != null) return fail(allocator, options, "capability", "Call.module cannot grant a setter; Store authorization belongs inside the published RX module");
         if (function.stores.count() != 0 and function.store_mode != .orchestration) return fail(allocator, options, "capability", "compiled Store transactions require an explicit authorized RX module");
@@ -77,7 +77,7 @@ pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Alloc
             .symbols = symbols,
             .expressions = expressions,
             .body = try zx.ir.ControlBody.fromValues(allocator, &.{.{ .result = @fromBackingInt(@intCast(1)) }}),
-            .functions = functions.items,
+            .functions = functions.view(),
             .native_modules = native_modules.items,
         };
 

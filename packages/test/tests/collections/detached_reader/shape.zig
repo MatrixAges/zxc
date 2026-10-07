@@ -8,7 +8,9 @@ pub fn check(source: []const u8, program: ir.Program) !void {
     var found = false;
     var buffer: [48]u8 = undefined;
 
-    for (program.functions, 0..) |function, index| {
+    for (0..program.functions.count(), 0..) |function_row, index| {
+        const function = program.functions.at(function_row);
+
         if (function.external != null or !std.mem.endsWith(u8, function.file_name, "read.zx")) continue;
 
         found = true;

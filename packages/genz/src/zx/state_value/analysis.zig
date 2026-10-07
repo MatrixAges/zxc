@@ -24,7 +24,9 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
     comparisons(program, boxed, program.expressions, program.contracts);
 
-    for (program.functions) |function| {
+    for (0..program.functions.count()) |function_row| {
+        const function = program.functions.at(function_row);
+
         comparisons(program, boxed, function.expressions, function.contracts);
 
         for (0..function.stores.count()) |store_index| {

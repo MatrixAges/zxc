@@ -20,7 +20,7 @@ pub fn statement(self: *Lower, statements: ir.Block, index: usize) Lower.Error!?
         switch (expression) {
             .store_get => |slot| try append(self, &slots, slot),
             .call => |call| {
-                const target = self.program.functions[@backingInt(call.function)];
+                const target = self.program.functions.at(@backingInt(call.function));
 
                 if (target.store_mode == .transaction) for (call.stores) |slot| try append(self, &slots, slot);
 

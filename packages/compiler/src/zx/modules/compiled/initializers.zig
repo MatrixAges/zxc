@@ -8,9 +8,9 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) (std.mem.All
     for (library.store_initializers) |initial| {
         if (!std.mem.startsWith(u8, initial.identity, "store.") or initial.identity.len == "store.".len or std.mem.indexOfScalar(u8, initial.identity, 0) != null or !std.unicode.utf8ValidateSlice(initial.identity)) return error.InvalidLibrary;
         if ((try identities.getOrPut(allocator, initial.identity)).found_existing) return error.InvalidLibrary;
-        if (@backingInt(initial.function) >= program.functions.len) return error.InvalidLibrary;
+        if (@backingInt(initial.function) >= program.functions.count()) return error.InvalidLibrary;
 
-        const function = program.functions[@backingInt(initial.function)];
+        const function = program.functions.at(@backingInt(initial.function));
         const input_type = program.typeOf(function.input_type);
 
         if (input_type != .scalar or input_type.scalar != .void or program.typeOf(function.output_type) != .object) return error.InvalidLibrary;
@@ -24,14 +24,18 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) (std.mem.All
 
         var found = false;
 
-        for (program.functions) |owner| for (0..owner.stores.count()) |store_index| {
-            const slot = owner.stores.at(store_index);
+        for (0..program.functions.count()) |owner_row| {
+            const owner = program.functions.at(owner_row);
 
-            if (!std.mem.eql(u8, slot.path, initial.identity)) continue;
-            if (slot.type_id != function.output_type) return error.InvalidLibrary;
+            for (0..owner.stores.count()) |store_index| {
+                const slot = owner.stores.at(store_index);
 
-            found = true;
-        };
+                if (!std.mem.eql(u8, slot.path, initial.identity)) continue;
+                if (slot.type_id != function.output_type) return error.InvalidLibrary;
+
+                found = true;
+            }
+        }
 
         if (!found) return error.InvalidLibrary;
     }

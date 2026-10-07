@@ -2,19 +2,19 @@ const std = @import("std");
 const ir = @import("zx").ir;
 
 pub fn reachable(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]const bool {
-    const needed = try allocator.alloc(bool, program.functions.len);
+    const needed = try allocator.alloc(bool, program.functions.count());
 
     @memset(needed, false);
     mark(needed, program.expressions, program.contracts);
 
-    var index = program.functions.len;
+    var index = program.functions.count();
 
     while (index != 0) {
         index -= 1;
 
         if (!needed[index]) continue;
 
-        const function = program.functions[index];
+        const function = program.functions.at(index);
 
         mark(needed, function.expressions, function.contracts);
     }

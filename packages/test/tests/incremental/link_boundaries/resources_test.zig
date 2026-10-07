@@ -57,5 +57,5 @@ fn run(allocator: std.mem.Allocator, mode: Mode) !void {
 
     try std.testing.expectEqual(Mode.valid, mode);
     try std.testing.expect(try compiler.validateIr(std.testing.allocator, result.program) == null);
-    try std.testing.expectEqual(@as(usize, 2), result.program.functions.len);
+    try std.testing.expectEqual(@as(usize, 2), result.program.functions.count());
 }

@@ -19,7 +19,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 }
 
 pub fn call(program: ir.Program, invocation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) bool {
-    const target = program.functions[@backingInt(invocation.function)];
+    const target = program.functions.at(@backingInt(invocation.function));
 
     if (invocation.stores.len != target.stores.count()) return false;
     if (target.stores.count() != 0 and program.store_mode != .orchestration) return false;

@@ -120,7 +120,7 @@ test "ir: foreign self-recursion cannot bypass source module cycle checks" {
 
     const functions = [_]zx.ir.Function{.{ .file_name = "foreign.zx", .input_type = program.input_type, .output_type = program.output_type, .symbols = program.symbols, .expressions = expressions, .body = program.body }};
 
-    program.functions = &functions;
+    program.functions = try zx.ir.FunctionTable.fromValues(analyzed.arena.allocator(), &functions);
 
     try expectInvalid(program);
 }

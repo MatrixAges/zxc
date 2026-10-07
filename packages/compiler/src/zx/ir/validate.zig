@@ -3,17 +3,21 @@ const zx = @import("zx");
 const ir = zx.ir;
 
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!?zx.Diagnostic {
-    if (program.version != zx.ir_version or !@import("type_rules.zig").validate(program.types)) return invalid();
+    if (program.version != zx.ir_version or !program.functions.validStructure() or !@import("type_rules.zig").validate(program.types)) return invalid();
     if (!try @import("body_structure.zig").valid(allocator, program) or !contractTables(program.contracts)) return invalid();
 
-    for (program.functions) |item| {
+    for (0..program.functions.count()) |item_row| {
+        const item = program.functions.at(item_row);
+
         if (!try @import("body_structure.zig").valid(allocator, item) or !contractTables(item.contracts)) return invalid();
     }
 
     if (!@import("native_modules.zig").validate(program)) return invalid();
     if (!try function(allocator, program)) return invalid();
 
-    for (program.functions, 0..) |item, function_index| {
+    for (0..program.functions.count()) |function_index| {
+        const item = program.functions.at(function_index);
+
         if (!item.symbols.validStructure()) return invalid();
 
         for (0..item.expressions.count()) |expression_index| {

@@ -5,7 +5,9 @@ fn helperCount(source: []const u8, program: ir.Program) !usize {
     var count: usize = 0;
     var buffer: [32]u8 = undefined;
 
-    for (program.functions, 0..) |function, index| {
+    for (0..program.functions.count(), 0..) |function_row, index| {
+        const function = program.functions.at(function_row);
+
         if (function.external != null) continue;
 
         const name = try std.fmt.bufPrint(&buffer, "function_{d}", .{index});

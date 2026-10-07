@@ -59,9 +59,9 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
         if ((try names.getOrPut(scratch, exported.name)).found_existing) return error.InvalidLibrary;
 
         if (exported.function) |id| {
-            if (@backingInt(id) >= program.functions.len) return error.InvalidLibrary;
+            if (@backingInt(id) >= program.functions.count()) return error.InvalidLibrary;
 
-            const function = program.functions[@backingInt(id)];
+            const function = program.functions.at(@backingInt(id));
 
             if (function.external != null or !std.mem.eql(u8, function.file_name, exported.path)) return error.InvalidLibrary;
         }
@@ -72,7 +72,7 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
             if (!text(item.name) or @backingInt(item.type_id) >= program.types.count()) return error.InvalidLibrary;
 
             if (exported.function) |id| {
-                const function = program.functions[@backingInt(id)];
+                const function = program.functions.at(@backingInt(id));
 
                 if (std.mem.eql(u8, item.name, "Input") and item.type_id != function.input_type) return error.InvalidLibrary;
                 if (std.mem.eql(u8, item.name, "Output") and item.type_id != function.output_type) return error.InvalidLibrary;
@@ -84,14 +84,18 @@ pub fn validate(allocator: std.mem.Allocator, library: model.Graph) Error!void {
 
     var stores: std.StringHashMapUnmanaged(ir.TypeId) = .empty;
 
-    for (program.functions) |function| for (0..function.stores.count()) |store_index| {
-        const slot = function.stores.at(store_index);
-        const entry = try stores.getOrPut(scratch, slot.path);
+    for (0..program.functions.count()) |function_row| {
+        const function = program.functions.at(function_row);
 
-        if (entry.found_existing and entry.value_ptr.* != slot.type_id) return error.InvalidLibrary;
+        for (0..function.stores.count()) |store_index| {
+            const slot = function.stores.at(store_index);
+            const entry = try stores.getOrPut(scratch, slot.path);
 
-        entry.value_ptr.* = slot.type_id;
-    };
+            if (entry.found_existing and entry.value_ptr.* != slot.type_id) return error.InvalidLibrary;
+
+            entry.value_ptr.* = slot.type_id;
+        }
+    }
 }
 
 fn text(value: []const u8) bool {

@@ -51,7 +51,9 @@ pub fn inspect(program: compiler.ir.Program, expected: []const []const u8, narro
 
     try expressions(program, program.expressions, expected, &captures, &proofs);
 
-    for (program.functions) |function| {
+    for (0..program.functions.count()) |function_row| {
+        const function = program.functions.at(function_row);
+
         try expressions(program, function.expressions, expected, &captures, &proofs);
 
         if (function.external) |external| {

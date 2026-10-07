@@ -7,8 +7,7 @@ const Types = std.meta.Child(@FieldType(Input, "types"));
 const Symbols = std.meta.Child(@FieldType(Input, "symbols"));
 const Expressions = std.meta.Child(@FieldType(Input, "expressions"));
 const Control = std.meta.Child(@FieldType(Input, "control"));
-const Function = std.meta.Child(std.meta.Elem(@FieldType(Input, "functions")));
-const Stores = std.meta.Child(@FieldType(Function, "stores"));
+const Functions = std.meta.Child(@FieldType(Input, "functions"));
 
 pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program) !generated.Output {
     const types = ir.TypeTable.borrow(Types, program.types);
@@ -16,35 +15,20 @@ pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program) !generated.
     const expressions = borrow.pointer(*const Expressions, &program.expressions);
     const control = borrow.pointer(*const Control, program.body.control);
 
+    const functions: Functions = .{
+        .ownership = borrow.slice(@FieldType(Functions, "ownership"), program.functions.ownership),
+        .stores = borrow.slice(@FieldType(Functions, "stores"), program.functions.stores),
+    };
+
     const input: Input = .{
         .types = &types,
         .symbols = symbols,
         .expressions = expressions,
         .control = control,
         .body = if (program.body.root) |root| @backingInt(root) else null,
-        .functions = try functions(arena.allocator(), program.functions),
+        .functions = &functions,
         .type_only = program.type_only,
     };
 
     return generated.execute(arena, &input);
-}
-
-fn functions(allocator: std.mem.Allocator, source: []const ir.Function) std.mem.Allocator.Error![]const *const Function {
-    const values = try allocator.alloc(Function, source.len);
-    const pointers = try allocator.alloc(*const Function, source.len);
-
-    for (source, values, pointers) |*item, *value, *pointer| {
-        value.* = .{
-            .output_ownership = switch (item.output_ownership) {
-                .copy => .Copy,
-                .borrowed => .Borrowed,
-                .owned => .Owned,
-            },
-            .stores = borrow.pointer(*const Stores, &item.stores),
-        };
-
-        pointer.* = value;
-    }
-
-    return pointers;
 }

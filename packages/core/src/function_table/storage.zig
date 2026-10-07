@@ -1,7 +1,7 @@
 const std = @import("std");
-const ir = @import("core").ir;
+const ir = @import("../ir.zig");
 const Self = @This();
-const Table = @import("table.zig");
+const Table = @import("root.zig");
 
 files: std.ArrayList([]const u8) = .empty,
 input_types: std.ArrayList(u32) = .empty,
@@ -42,7 +42,13 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std
     self.files.appendAssumeCapacity(value.file_name);
     self.input_types.appendAssumeCapacity(@backingInt(value.input_type));
     self.output_types.appendAssumeCapacity(@backingInt(value.output_type));
-    self.ownership.appendAssumeCapacity(switch (value.output_ownership) { .copy => .Copy, .borrowed => .Borrowed, .owned => .Owned });
+
+    self.ownership.appendAssumeCapacity(switch (value.output_ownership) {
+        .copy => .Copy,
+        .borrowed => .Borrowed,
+        .owned => .Owned,
+    });
+
     self.store_modes.appendAssumeCapacity(value.store_mode);
     self.contracts.appendAssumeCapacity(value.contracts);
     self.external.appendAssumeCapacity(value.external);
@@ -86,6 +92,20 @@ pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     inline for (@typeInfo(Self).@"struct".field_names) |name| @field(self, name).deinit(allocator);
 
     self.* = .{};
+}
+
+pub fn pop(self: *Self, allocator: std.mem.Allocator) ?ir.Function {
+    if (self.count() == 0) return null;
+
+    const index = self.count() - 1;
+    const value = self.at(index);
+
+    allocator.destroy(self.symbols.items[index]);
+    allocator.destroy(self.expressions.items[index]);
+    allocator.destroy(self.stores.items[index]);
+    inline for (@typeInfo(Self).@"struct".field_names) |name| _ = @field(self, name).pop();
+
+    return value;
 }
 
 fn descriptor(allocator: std.mem.Allocator, value: anytype) std.mem.Allocator.Error!*const @TypeOf(value) {

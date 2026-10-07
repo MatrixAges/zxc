@@ -101,7 +101,7 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
                 if (std.mem.eql(u32, lane.output, path) and try contains(trace, call.argument, lane.input, origin)) break :blk true;
             };
 
-            const callee = trace.program.functions[index];
+            const callee = trace.program.functions.at(index);
 
             if (callee.external != null or callee.stores.count() != 0 or index >= trace.summaries.len) break :blk try contains(trace, call.argument, &.{}, origin);
 

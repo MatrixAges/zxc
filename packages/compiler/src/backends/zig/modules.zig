@@ -97,7 +97,9 @@ pub fn functionFilesPrepared(owned: std.mem.Allocator, program: @import("zx").ir
     var files: std.ArrayList(File) = .empty;
     var seen: std.StringHashMapUnmanaged(usize) = .empty;
 
-    for (program.functions, 0..) |function, index| {
+    for (0..program.functions.count()) |index| {
+        const function = program.functions.at(index);
+
         if (!needed[index]) continue;
 
         const source = try emitPrepared(owned, program, identities, .{ .function = @fromBackingInt(@intCast(index)) }, cache);

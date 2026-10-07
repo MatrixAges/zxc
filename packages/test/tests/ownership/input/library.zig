@@ -86,7 +86,7 @@ test "republished immutable wrapper retains nested functions" {
 
     const module = try restored.module(0);
 
-    try std.testing.expect(module.functions.len >= 2);
+    try std.testing.expect(module.functions.count() >= 2);
     try checkConsumer(&restored, borrowed_call, true);
 }
 

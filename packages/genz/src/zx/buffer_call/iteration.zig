@@ -16,7 +16,7 @@ pub fn candidate(lowering: *Lower, iteration: ir.Iteration) Lower.Error!?ir.Expr
     const id = forwardedCall(lowering.program, iteration.body) orelse return null;
     const expression = lowering.program.expression(id);
     const call = expression.value.call;
-    const function = lowering.program.functions[@backingInt(call.function)];
+    const function = lowering.program.functions.at(@backingInt(call.function));
     const argument = lowering.program.expression(call.argument);
 
     if (!lowering.value_functions[@backingInt(call.function)]) return null;
@@ -34,7 +34,7 @@ pub fn init(lowering: *Lower, selected_call: ?ir.ExprId, body: *std.ArrayList(no
 
     const id = selected_call orelse return self;
     const call = lowering.program.expression(id).value.call;
-    const function = lowering.program.functions[@backingInt(call.function)];
+    const function = lowering.program.functions.at(@backingInt(call.function));
 
     self.call = id;
     self.previous = lowering.buffer_calls.get(id);

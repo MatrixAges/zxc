@@ -17,7 +17,9 @@ pub fn check(allocator: std.mem.Allocator, program: compiler.ir.Program, case: C
     var native_count: usize = 0;
     var ordinary_count: usize = 0;
 
-    for (program.functions, 0..) |function, index| {
+    for (0..program.functions.count(), 0..) |function_row, index| {
+        const function = program.functions.at(function_row);
+
         try std.testing.expectEqual(case.pure, summary.pure[index]);
         try std.testing.expectEqual(case.local, summary.local[index]);
 

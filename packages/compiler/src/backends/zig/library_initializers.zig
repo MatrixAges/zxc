@@ -11,7 +11,7 @@ pub fn create(allocator: std.mem.Allocator, library: *const model.Result, names:
     const entries = try allocator.alloc(modules.StoreInitializer, library.store_initializers.len);
 
     for (library.store_initializers, files, entries) |initial, *file, *entry| {
-        const function = library.program.functions[@backingInt(initial.function)];
+        const function = library.program.functions.at(@backingInt(initial.function));
         var digest: [32]u8 = undefined;
 
         std.crypto.hash.sha2.Sha256.hash(initial.identity, &digest, .{});

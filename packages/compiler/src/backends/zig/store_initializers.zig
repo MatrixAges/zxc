@@ -31,9 +31,9 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
         } else false;
 
         if (!needed) continue;
-        if (@backingInt(initial.function) >= application.functions.len) return error.InvalidInitializer;
+        if (@backingInt(initial.function) >= application.functions.count()) return error.InvalidInitializer;
 
-        const function = application.functions[@backingInt(initial.function)];
+        const function = application.functions.at(@backingInt(initial.function));
 
         if (function.external != null) return error.InvalidInitializer;
 
@@ -59,7 +59,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
     for (initializers.items) |initial| {
         var program = initial.program;
 
-        if (program.type_only or program.functions.len != 0 or program.stores.count() != 0 or program.contracts.len != 0) return error.InvalidInitializer;
+        if (program.type_only or program.functions.count() != 0 or program.stores.count() != 0 or program.contracts.len != 0) return error.InvalidInitializer;
         if (try frontend.validateIr(allocator, program) != null) return error.InvalidInitializer;
         if (program.types.at(@backingInt(program.input_type)) != .scalar or program.types.at(@backingInt(program.input_type)).scalar != .void) return error.InvalidInitializer;
         if (program.types.at(@backingInt(program.output_type)) != .object) return error.InvalidInitializer;

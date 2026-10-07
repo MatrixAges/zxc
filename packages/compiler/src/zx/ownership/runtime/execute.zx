@@ -553,9 +553,9 @@ export default function (in: Input): Output {
                     current.value = borrowed ? State.Borrowed : State.Owned
                 } else if (frame.action == WorkAction.CallResult) {
                     const call = integers.widen(current.program.expressions.payloads[frame.subject])
-                    const function_info = current.program.functions[integers.widen(current.program.expressions.call_functions[call])]
+                    const function_index = integers.widen(current.program.expressions.call_functions[call])
                     const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
-                    const escapes = loop({ slots: function_info.stores, index: 0, found: container && function_info.output_ownership == Ownership.Borrowed }, {
+                    const escapes = loop({ slots: current.program.functions.stores[function_index], index: 0, found: container && current.program.functions.ownership[function_index] == Ownership.Borrowed }, {
                         while: slot => slot.index < slot.slots.writable.length && !slot.found,
                         next: slot => {
                             slot.found = slot.slots.writable[slot.index]
@@ -569,7 +569,7 @@ export default function (in: Input): Output {
 
                     current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.ReleaseNewLoans })
                     current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
-                    current.value = match function_info.output_ownership {
+                    current.value = match current.program.functions.ownership[function_index] {
                         Ownership.Copy => State.Copy,
                         Ownership.Owned => State.Owned,
                         _ => State.Borrowed

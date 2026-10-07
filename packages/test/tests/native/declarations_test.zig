@@ -22,9 +22,9 @@ fn analyze(allocator: std.mem.Allocator, declaration: []const u8, expected: ?Cod
     } else {
         try std.testing.expect(result.value == .ir);
         try std.testing.expect(try compiler.validateIr(allocator, result.value.ir) == null);
-        try std.testing.expectEqual(@as(usize, 1), result.value.ir.functions.len);
+        try std.testing.expectEqual(@as(usize, 1), result.value.ir.functions.count());
 
-        const external = result.value.ir.functions[0].external.?;
+        const external = result.value.ir.functions.at(0).external.?;
 
         try std.testing.expect(external.allocator_argument);
         try std.testing.expect(external.fallible);
@@ -86,7 +86,7 @@ test "native declaration arity and namespace retain invocation attributes" {
         try std.testing.expect(result.value == .ir);
         try std.testing.expect(try compiler.validateIr(std.testing.allocator, result.value.ir) == null);
 
-        const external = result.value.ir.functions[0].external.?;
+        const external = result.value.ir.functions.at(0).external.?;
 
         try std.testing.expectEqual(case.allocating, external.allocator_argument);
         try std.testing.expectEqual(case.fallible, external.fallible);

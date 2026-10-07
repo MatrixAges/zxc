@@ -2,9 +2,10 @@ const std = @import("std");
 const ir = @import("zx").ir;
 
 pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]bool {
-    const pure = try allocator.alloc(bool, program.functions.len);
+    const pure = try allocator.alloc(bool, program.functions.count());
 
-    for (program.functions, 0..) |function, index| {
+    for (0..program.functions.count()) |index| {
+        const function = program.functions.at(index);
         pure[index] = function.external == null and function.stores.count() == 0 and calls(function.expressions, pure[0..index]);
     }
 

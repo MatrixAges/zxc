@@ -16,14 +16,20 @@ pub const Lane = struct {
 };
 
 pub fn functions(allocator: std.mem.Allocator, program: ir.Program, value_functions: []const bool, pure_functions: []const bool) std.mem.Allocator.Error![]const []const Lane {
-    const summaries = try allocator.alloc([]const Lane, program.functions.len);
-    const readers = try allocator.alloc(bool, program.functions.len);
+    const summaries = try allocator.alloc([]const Lane, program.functions.count());
+    const readers = try allocator.alloc(bool, program.functions.count());
 
     defer allocator.free(readers);
 
-    for (program.functions, pure_functions, readers) |function, pure, *reader| reader.* = pure and detached(program, function.output_type);
+    for (0..program.functions.count(), pure_functions, readers) |function_row, pure, *reader| {
+        const function = program.functions.at(function_row);
 
-    for (program.functions, 0..) |function, index| {
+        reader.* = pure and detached(program, function.output_type);
+    }
+
+    for (0..program.functions.count()) |index| {
+        const function = program.functions.at(index);
+
         summaries[index] = &.{};
 
         if (!value_functions[index] and !(pure_functions[index] and function.external == null and program.typeOf(function.output_type) == .list)) continue;

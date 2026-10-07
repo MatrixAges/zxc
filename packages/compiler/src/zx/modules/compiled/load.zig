@@ -10,7 +10,7 @@ pub const Options = struct {
     library: model.Library,
     types: ir.TypeTable,
     nominal_types: Origins.Table,
-    functions: *std.ArrayList(ir.Function),
+    functions: *ir.FunctionStorage,
     native_modules: *std.ArrayList(ir.NativeModule),
 };
 
@@ -43,10 +43,10 @@ pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
     }
 
     const type_mapping = try types.appendFrom(allocator, program.types, origins.view(), 0);
-    const function_mapping = try allocator.alloc(?ir.FunctionId, program.functions.len);
+    const function_mapping = try allocator.alloc(?ir.FunctionId, program.functions.count());
     const native_mapping = try allocator.alloc(?ir.NativeModuleId, program.native_modules.len);
 
-    for (function_mapping, 0..) |*id, index| id.* = @fromBackingInt(@intCast(options.functions.items.len + index));
+    for (function_mapping, 0..) |*id, index| id.* = @fromBackingInt(@intCast(options.functions.count() + index));
 
     @memset(native_mapping, null);
 
@@ -63,7 +63,8 @@ pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
         id.* = try @import("../link/native.zig").append(allocator, options.native_modules, rebound, &nodes);
     }
 
-    for (program.functions) |function| {
+    for (0..program.functions.count()) |function_row| {
+        const function = program.functions.at(function_row);
         var mapped = try nodes.function(function);
         mapped.file_name = try identity.scope(allocator, library.instance, function.file_name);
         const paths = try allocator.alloc([]const u8, mapped.stores.count());

@@ -8,7 +8,7 @@ test "records are unique reachable modules in dependency completion order" {
     defer result.deinit();
 
     try f.check(result);
-    try std.testing.expectEqual(@as(usize, 2), result.value.ir.functions.len);
+    try std.testing.expectEqual(@as(usize, 2), result.value.ir.functions.count());
 }
 
 test "module bodies identify type entry and correct surviving function ids" {
@@ -23,7 +23,7 @@ test "module bodies identify type entry and correct surviving function ids" {
     for (result.modules[1..3]) |record| {
         try std.testing.expect(record.body == .function);
 
-        const function = result.value.ir.functions[@backingInt(record.body.function)];
+        const function = result.value.ir.functions.at(@backingInt(record.body.function));
 
         try std.testing.expectEqualStrings(record.path, function.file_name);
     }
@@ -126,7 +126,7 @@ test "pure type entry has types body and no phantom function" {
     try std.testing.expect(result.value.ir.type_only);
     try std.testing.expectEqual(@as(usize, 1), result.modules.len);
     try std.testing.expect(result.modules[0].body == .types);
-    try std.testing.expectEqual(@as(usize, 0), result.value.ir.functions.len);
+    try std.testing.expectEqual(@as(usize, 0), result.value.ir.functions.count());
 }
 
 test "records remain readable after parse cache destruction" {

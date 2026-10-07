@@ -6,7 +6,7 @@ test "only called helper gets an independent file and entry dependency" {
 
     defer analysis.deinit();
 
-    try std.testing.expectEqual(@as(usize, 2), analysis.value.ir.functions.len);
+    try std.testing.expectEqual(@as(usize, 2), analysis.value.ir.functions.count());
 
     var bundle = try f.compiler.zig.emitModules(std.testing.allocator, &analysis);
 

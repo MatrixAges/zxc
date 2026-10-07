@@ -32,7 +32,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!ir.ExprId {
     const result = if (selected and item.value == .call and self.unit.plan.accepts(item.value.call.function)) blk: {
         const call = item.value.call;
         const argument = try self.expression(call.argument);
-        const function = self.unit.plan.program.functions[@backingInt(call.function)];
+        const function = self.unit.plan.program.functions.at(@backingInt(call.function));
         var child = try init(self.unit, function.symbols, function.expressions, null);
         const returned = try @import("block.zig").lower(&child, function.body.block(), null, function.output_type, item.span);
         const input: ir.SymbolId = @fromBackingInt(@intCast(child.symbol_offset));

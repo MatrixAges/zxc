@@ -49,11 +49,13 @@ pub fn check(result: artifact.linker.Result) !void {
     try std.testing.expectEqual(@as(usize, 1), result.nominal_types.count());
     try std.testing.expectEqualStrings("zig:choice", result.nominal_types.at(0).origin.native);
     try std.testing.expectEqualStrings("Mode", result.nominal_types.at(0).name);
-    try std.testing.expectEqual(@as(usize, 2), result.program.functions.len);
+    try std.testing.expectEqual(@as(usize, 2), result.program.functions.count());
 
     var external_count: usize = 0;
 
-    for (result.program.functions) |function| {
+    for (0..result.program.functions.count()) |function_row| {
+        const function = result.program.functions.at(function_row);
+
         if (function.external) |external| {
             external_count += 1;
 

@@ -22,7 +22,7 @@ fn check(prefix: []const u8) !void {
 
     try std.testing.expect(try compiler.validateIr(std.testing.allocator, program) == null);
     try std.testing.expectEqual(@as(usize, 3), result.modules.len);
-    try std.testing.expectEqual(@as(usize, 1), program.functions.len);
+    try std.testing.expectEqual(@as(usize, 1), program.functions.count());
     try std.testing.expectEqual(compiler.ir.Type{ .scalar = .u8 }, program.typeOf(program.input_type));
     try std.testing.expectEqual(compiler.ir.Type{ .scalar = .u64 }, program.typeOf(program.output_type));
 

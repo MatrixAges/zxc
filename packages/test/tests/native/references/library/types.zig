@@ -21,7 +21,7 @@ pub fn library(allocator: std.mem.Allocator) !compiler.library.Result {
 pub fn inspect(value: *const compiler.library.Result) !void {
     const program = value.program;
 
-    try std.testing.expectEqual(@as(usize, 0), program.functions.len);
+    try std.testing.expectEqual(@as(usize, 0), program.functions.count());
     try std.testing.expectEqual(@as(usize, 1), program.native_modules.len);
     try std.testing.expectEqual(@as(usize, 1), value.nominal_types.count());
     try std.testing.expectEqual(@as(usize, 1), value.exports.len);

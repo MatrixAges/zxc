@@ -18,7 +18,7 @@ functions: std.ArrayList(model.Signature) = .empty,
 native_modules: std.ArrayList(ir.NativeModule) = .empty,
 pub fn init(allocator: std.mem.Allocator, temporary: std.mem.Allocator, analysis: *const Analysis.Result) Error!Self {
     const program = analysis.value.ir;
-    const functions = try temporary.alloc(?ir.FunctionId, program.functions.len);
+    const functions = try temporary.alloc(?ir.FunctionId, program.functions.count());
     const native_modules = try temporary.alloc(?ir.NativeModuleId, program.native_modules.len);
 
     @memset(functions, null);
@@ -65,9 +65,9 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
     for (function_imports) |*binding| {
         const index = @backingInt(binding.id);
 
-        if (index >= self.program.functions.len) return error.InvalidModule;
+        if (index >= self.program.functions.count()) return error.InvalidModule;
 
-        const function = self.program.functions[index];
+        const function = self.program.functions.at(index);
 
         if (binding.input_type != function.input_type or binding.output_type != function.output_type) return error.InvalidModule;
 
@@ -89,7 +89,7 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
     const exported = try self.exports(record.exports);
     const function = try self.copyFunction(record);
     var nodes = self.nodeCopier();
-    const stores = try nodes.stores(if (record.body == .entry) self.program.stores else if (record.body == .function) self.program.functions[@backingInt(record.body.function)].stores else .{});
+    const stores = try nodes.stores(if (record.body == .entry) self.program.stores else if (record.body == .function) self.program.functions.at(@backingInt(record.body.function)).stores else .{});
     const dependencies = try self.allocator.dupe(Record.Import, record.imports);
 
     for (dependencies) |*dependency| {
@@ -129,9 +129,9 @@ fn copyFunction(self: *Self, record: Record) Error!?ir.Function {
             break :blk .{ .stores = self.program.stores, .store_mode = self.program.store_mode, .file_name = self.program.file_name, .input_type = self.program.input_type, .output_type = self.program.output_type, .output_ownership = self.program.output_ownership, .symbols = self.program.symbols, .expressions = self.program.expressions, .body = self.program.body, .contracts = self.program.contracts };
         },
         .function => |id| blk: {
-            if (@backingInt(id) >= self.program.functions.len) return error.InvalidModule;
+            if (@backingInt(id) >= self.program.functions.count()) return error.InvalidModule;
 
-            const value = self.program.functions[@backingInt(id)];
+            const value = self.program.functions.at(@backingInt(id));
 
             if (value.external != null or !std.mem.eql(u8, record.path, value.file_name)) return error.InvalidModule;
 
@@ -147,10 +147,10 @@ fn copyFunction(self: *Self, record: Record) Error!?ir.Function {
 fn importFunction(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
     const index = @backingInt(id);
 
-    if (index >= self.program.functions.len) return error.InvalidModule;
+    if (index >= self.program.functions.count()) return error.InvalidModule;
     if (self.function_mapping[index]) |mapped| return mapped;
 
-    const value = self.program.functions[index];
+    const value = self.program.functions.at(index);
 
     if (value.external) |external| try self.nativeModule(external.module);
 

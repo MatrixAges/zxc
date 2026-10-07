@@ -20,7 +20,9 @@ pub fn check(result: compiler.AnalysisResult) !void {
 pub fn increment(result: compiler.AnalysisResult, expected: u64) !void {
     var count: usize = 0;
 
-    for (result.value.ir.functions) |function| {
+    for (0..result.value.ir.functions.count()) |function_row| {
+        const function = result.value.ir.functions.at(function_row);
+
         for (0..function.expressions.count()) |expression_index| {
             const expression = function.expressions.at(expression_index);
 

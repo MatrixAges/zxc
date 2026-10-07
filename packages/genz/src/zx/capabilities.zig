@@ -3,9 +3,11 @@ const ir = @import("zx").ir;
 pub const Kind = enum { io, process };
 
 pub fn functions(allocator: std.mem.Allocator, program: ir.Program, kind: Kind) std.mem.Allocator.Error![]bool {
-    const required = try allocator.alloc(bool, program.functions.len);
+    const required = try allocator.alloc(bool, program.functions.count());
 
-    for (program.functions, 0..) |function, index| {
+    for (0..program.functions.count()) |index| {
+        const function = program.functions.at(index);
+
         required[index] = if (function.external) |external| switch (kind) {
             .io => external.io_argument,
             .process => external.process_argument,

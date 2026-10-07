@@ -30,17 +30,21 @@ pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, 
 
     const native_modules = try owned.alloc(ir.NativeModule, 1);
     native_modules[0] = .{ .specifier = try owned.dupe(u8, entry.specifier), .identity = if (entry.identity) |key| try owned.dupe(u8, key) else null, .import_name = try owned.dupe(u8, entry.module), .type_namespace = namespace, .types = loaded.exports };
-    const functions = try owned.alloc(ir.Function, loaded.members.len);
+
+    var functions: ir.FunctionStorage = .{};
     const signatures = try owned.alloc(Artifact.Signature, loaded.members.len);
     const bindings = try owned.alloc(FunctionImport, loaded.members.len);
 
-    for (loaded.members, functions, signatures, bindings, 0..) |member, *function, *signature, *binding, index| {
-        function.* = member.function;
+    for (loaded.members, signatures, bindings, 0..) |member, *signature, *binding, index| {
+        const function = member.function;
+
+        try functions.append(owned, function);
+
         signature.* = .{ .file_name = function.file_name, .input_type = function.input_type, .output_type = function.output_type, .output_ownership = function.output_ownership, .external = function.external };
         binding.* = .{ .name = member.name, .id = @fromBackingInt(@intCast(index)), .input_type = function.input_type, .output_type = function.output_type, .positional_types = if (function.external.?.expand_tuple) loaded.types.at(@backingInt(function.input_type)).tuple else null };
     }
 
-    const program = ir.Program{ .file_name = entry.path, .types = loaded.types, .input_type = @fromBackingInt(@intCast(0)), .output_type = @fromBackingInt(@intCast(0)), .symbols = .{}, .expressions = .{}, .body = .{}, .exports = loaded.exports, .native_modules = native_modules, .functions = functions, .type_only = true };
+    const program = ir.Program{ .file_name = entry.path, .types = loaded.types, .input_type = @fromBackingInt(@intCast(0)), .output_type = @fromBackingInt(@intCast(0)), .symbols = .{}, .expressions = .{}, .body = .{}, .exports = loaded.exports, .native_modules = native_modules, .functions = functions.view(), .type_only = true };
 
     if (try @import("../../ir/validate.zig").validate(owned, program) != null) return reporter.fail(.module, span, "native declarations produced invalid interface IR");
 

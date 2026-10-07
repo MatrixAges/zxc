@@ -17,7 +17,7 @@ test "normalized relative and root imports share one module function and cache e
 
     try std.testing.expect(result.value == .ir);
     try std.testing.expectEqual(@as(usize, 2), result.modules.len);
-    try std.testing.expectEqual(@as(usize, 1), result.value.ir.functions.len);
+    try std.testing.expectEqual(@as(usize, 1), result.value.ir.functions.count());
     try std.testing.expectEqual(@as(usize, 2), cache.parsed);
     try std.testing.expectEqualStrings("/project/app/helper.zx", result.modules[0].path);
     try std.testing.expectEqual(@as(usize, 3), result.modules[1].imports.len);

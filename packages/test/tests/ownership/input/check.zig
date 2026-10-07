@@ -49,7 +49,9 @@ pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
 
         var found = false;
 
-        for (result.value.ir.functions) |function| {
+        for (0..result.value.ir.functions.count()) |function_row| {
+            const function = result.value.ir.functions.at(function_row);
+
             if (!std.mem.endsWith(u8, function.file_name, "/consume.zx")) continue;
 
             found = true;

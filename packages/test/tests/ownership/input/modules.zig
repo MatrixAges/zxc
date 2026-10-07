@@ -42,7 +42,9 @@ fn roundtrip(allocator: std.mem.Allocator, owned: bool) !void {
 
     var found = false;
 
-    for (linked.program.functions) |function| {
+    for (0..linked.program.functions.count()) |function_row| {
+        const function = linked.program.functions.at(function_row);
+
         if (!std.mem.endsWith(u8, function.file_name, "/consume.zx")) continue;
         try std.testing.expectEqual(.owned, function.output_ownership);
 
