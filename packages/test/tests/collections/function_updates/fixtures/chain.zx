@@ -1,0 +1,13 @@
+import patch from "./flat"
+
+import type { PatchInput } from "./types"
+
+export type Input = PatchInput
+
+export type Output = i64[]
+
+export default function (in: Input): Output {
+    const first = patch(in)
+
+    return patch({ ...in, values: first })
+}

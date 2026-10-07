@@ -1,0 +1,165 @@
+1/20 root.test.function updates: zero outer calls...OK
+2/20 root.test.function updates: zero inner rounds...OK
+3/20 root.test.function updates: first write...expected -4, found -6
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/root.zig:14:9: 0x104a004ed in test.function updates: first write (function-update-wrong-increment)
+    _ = try h.run(std.testing.allocator, .{ .outer = 1, .inner = 1 });
+        ^
+4/20 root.test.function updates: captures across second rounds...expected -1, found -9
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/root.zig:18:9: 0x104a0044d in test.function updates: captures across second rounds (function-update-wrong-increment)
+    _ = try h.run(std.testing.allocator, .{ .outer = 2, .inner = 2 });
+        ^
+5/20 root.test.function updates: distinct versions across many calls...expected 46, found -56
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/root.zig:22:9: 0x104a003ad in test.function updates: distinct versions across many calls (function-update-wrong-increment)
+    _ = try h.run(std.testing.allocator, .{ .outer = 17, .inner = 3 });
+        ^
+6/20 root.test.function updates: long inner loops...expected 766, found -776
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/root.zig:26:9: 0x104a0030d in test.function updates: long inner loops (function-update-wrong-increment)
+    _ = try h.run(std.testing.allocator, .{ .outer = 3, .inner = 257 });
+        ^
+7/20 root.test.function updates: negative increments and middle indices...expected -39, found 45
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/root.zig:30:9: 0x104a0026d in test.function updates: negative increments and middle indices (function-update-wrong-increment)
+    _ = try h.run(std.testing.allocator, .{ .selected = 8, .delta = -7 });
+        ^
+8/20 root.test.function updates: last valid element...expected 4, found -8
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/root.zig:34:9: 0x104a001cd in test.function updates: last valid element (function-update-wrong-increment)
+    _ = try h.run(std.testing.allocator, .{ .selected = 16 });
+        ^
+9/20 root.test.function updates: disabled conditional writes...expected 1, found -11
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/root.zig:38:9: 0x104a0012d in test.function updates: disabled conditional writes (function-update-wrong-increment)
+    _ = try h.run(std.testing.allocator, .{ .enabled = false });
+        ^
+10/20 root.test.function updates: empty lists without writes...OK
+11/20 root.test.function updates: empty list indexing errors...OK
+12/20 root.test.function updates: indices past the last element...OK
+13/20 root.test.function updates: disabled out of bounds writes...OK
+14/20 root.test.function updates: rejected arena resizing...expected 1, found -11
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/root.zig:58:9: 0x1049ffe0d in test.function updates: rejected arena resizing (function-update-wrong-increment)
+    _ = try h.run(std.testing.allocator, .{ .forbid_resize = true });
+        ^
+15/20 root.test.function updates clean every allocation failure...expected 7, found -17
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:93:9: 0x1049fe3d5 in failures (function-update-wrong-increment)
+    _ = try run(memory, case);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/support/allocation_testing.zig:12:13: 0x1049ffd71 in run (function-update-wrong-increment)
+            try @call(.auto, test_fn, .{memory} ++ args);
+            ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:1154:9: 0x1049ff7b3 in checkAllAllocationFailures__func_1066 (function-update-wrong-increment)
+        try @call(.auto, test_fn, .{failing_allocator_inst.allocator()} ++ extra_args);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/support/allocation_testing.zig:16:5: 0x1049ffc52 in checkAllAllocationFailures__func_1065 (function-update-wrong-increment)
+    try std.testing.checkAllAllocationFailures(allocator, Checked.run, .{extra_args});
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/root.zig:62:5: 0x1049ffcaa in test.function updates clean every allocation failure (function-update-wrong-increment)
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, h.failures, .{h.Case{ .outer = 4, .inner = 3 }});
+    ^
+16/20 root.test.function updates clean allocation failures without writes...OK
+17/20 root.test.function updates preserve values with zero increments...OK
+18/20 root.test.function updates skip indexing with zero caller iterations...OK
+19/20 retained.test.function updates retain earlier outputs across calls in one arena...OK
+20/20 capacity.test.function updates bound list payload allocations across repeated writes...expected 1083, found -1093
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x1049f2ce9 in expectEqualInner__func_1018 (function-update-wrong-increment)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x1049f4e13 in expectEqual (function-update-wrong-increment)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/check.zig:77:9: 0x1049f4f16 in run (function-update-wrong-increment)
+        try std.testing.expectEqual(original + if (index == case.selected) updates * case.delta else 0, updated);
+        ^
+/Users/xiewendao/.codex/worktrees/function-update-conformance/zxc/packages/test/tests/collections/function_updates/capacity.zig:6:19: 0x1049fd592 in test.function updates bound list payload allocations across repeated writes (function-update-wrong-increment)
+    const bytes = try h.run(std.testing.allocator, .{ .length = length, .outer = if (h.isMode("mixed")) 2 else 17, .inner = 64, .forbid_resize = true });
+                  ^
+10 passed; 0 skipped; 10 failed.
+error: the following test command failed with exit code 1:
+.zig-cache/o/37641578a4a8ba72b5eeea78280706f9/function-update-wrong-increment --seed=0xb893f076

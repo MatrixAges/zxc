@@ -1,0 +1,7 @@
+export type DataInput = { values: i64[], outer: u64, inner: u64, selected: u64, delta: i64, enabled: bool }
+
+export type DataOutput = { original: i64[], values: i64[], mirror: i64[], seen: i64, steps: u64 }
+
+export type PatchInput = { values: i64[], count: u64, selected: u64, delta: i64, enabled: bool }
+
+export type PatchOutput = { values: i64[], mirror: i64[], seen: i64 }

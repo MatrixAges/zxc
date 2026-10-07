@@ -1,0 +1,13 @@
+import patch from "./step"
+
+import type { DataInput, DataOutput } from "./types"
+
+export type Input = DataInput
+
+export type Output = DataOutput
+
+export default function (in: Input): Output {
+    const values = patch({ values: in.values, count: in.inner, selected: in.selected, delta: in.delta, enabled: in.enabled })
+
+    return { original: in.values, values, mirror: in.values, seen: 0, steps: in.inner }
+}
