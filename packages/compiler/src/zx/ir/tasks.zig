@@ -32,35 +32,19 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 }
 
 pub fn callSafe(allocator: std.mem.Allocator, functions: ir.FunctionTable, id: ir.FunctionId) std.mem.Allocator.Error!bool {
-    const safe = try allocator.alloc(bool, functions.count());
+    if (comptime !options.generated_parser) return @import("seed_tasks.zig").callSafe(allocator, functions, id);
 
-    defer allocator.free(safe);
+    const generated = @import("generated_ir_task_call");
+    const Input = std.meta.Child(generated.Input);
+    const Functions = std.meta.Child(@FieldType(Input, "functions"));
+    const values = @import("canonical/functions/input.zig").view(Functions, functions);
+    const input: Input = .{ .functions = &values, .id = @backingInt(id) };
+    var arena = std.heap.ArenaAllocator.init(allocator);
 
-    for (0..functions.count()) |index| {
-        const function = functions.at(index);
+    defer arena.deinit();
 
-        safe[index] = function.stores.count() == 0;
-
-        if (function.external) |external| {
-            safe[index] = safe[index] and external.concurrent;
-
-            continue;
-        }
-
-        for (0..function.expressions.count()) |expression_index| {
-            const expression = function.expressions.at(expression_index);
-
-            switch (expression.value) {
-                .store_get => safe[index] = false,
-                .call => |call| {
-                    const target = @backingInt(call.function);
-
-                    if (target >= index or !safe[target] or call.stores.len != 0) safe[index] = false;
-                },
-                else => {},
-            }
-        }
-    }
-
-    return @backingInt(id) < safe.len and safe[@backingInt(id)];
+    return generated.execute(&arena, &input) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        else => return false,
+    };
 }

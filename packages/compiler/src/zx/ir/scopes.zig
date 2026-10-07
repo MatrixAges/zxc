@@ -11,7 +11,7 @@ program: ir.Program,
 active: []bool,
 declared: []bool,
 declaration_owner: []?ir.ExprId,
-pure_functions: ?[]const bool = null,
+pure_functions: ?@import("parallel.zig").Result = null,
 callback_depth: usize = 0,
 task_depth: usize = 0,
 refinement: zx.Refinement = .{},
@@ -36,7 +36,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 
     var self = Self{ .allocator = allocator, .program = program, .active = active, .declared = declared, .declaration_owner = declaration_owner };
 
-    defer if (self.pure_functions) |pure| allocator.free(pure);
+    defer if (self.pure_functions) |*pure| pure.deinit();
     defer self.refinement.deinit(allocator);
 
     if (!try self.block(program.body.block(), 0)) return false;
@@ -92,7 +92,7 @@ fn block(self: *Self, statements: ir.Block, depth: usize) std.mem.Allocator.Erro
 
                     const value = self.program.expression(invocation.value).value;
 
-                    if (value != .call or !self.pure_functions.?[@backingInt(value.call.function)]) return false;
+                    if (value != .call or !self.pure_functions.?.values[@backingInt(value.call.function)]) return false;
                 }
 
                 for (0..invocations.len) |invocation_index| {

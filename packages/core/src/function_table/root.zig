@@ -8,7 +8,17 @@ output_types: []const u32 = &.{},
 ownership: []const ir.SymbolTable.Ownership = &.{},
 store_modes: []const ir.StoreMode = &.{},
 contracts: []const []const ir.Contract = &.{},
-external: []const ?ir.External = &.{},
+native_inputs: []const ?ir.NativeType = &.{},
+native_modules: []const ?u32 = &.{},
+native_members: []const []const []const u8 = &.{},
+native_exports: []const ?[]const u8 = &.{},
+native_allocators: []const bool = &.{},
+native_io: []const bool = &.{},
+native_process: []const bool = &.{},
+native_tuples: []const bool = &.{},
+native_fallible: []const bool = &.{},
+native_errors: []const ?[]const []const u8 = &.{},
+native_concurrent: []const bool = &.{},
 symbols: []const *const ir.SymbolTable = &.{},
 expressions: []const *const ir.ExpressionTable = &.{},
 control: []const *const ir.ControlTable = &.{},
@@ -30,7 +40,19 @@ pub fn at(self: Self, index: usize) ir.Function {
         },
         .store_mode = self.store_modes[index],
         .contracts = self.contracts[index],
-        .external = self.external[index],
+        .external = if (self.native_modules[index]) |module| .{
+            .module = @fromBackingInt(module),
+            .input = self.native_inputs[index],
+            .member = self.native_members[index],
+            .export_name = self.native_exports[index],
+            .allocator_argument = self.native_allocators[index],
+            .io_argument = self.native_io[index],
+            .process_argument = self.native_process[index],
+            .expand_tuple = self.native_tuples[index],
+            .fallible = self.native_fallible[index],
+            .errors = self.native_errors[index],
+            .concurrent = self.native_concurrent[index],
+        } else null,
         .symbols = self.symbols[index].*,
         .expressions = self.expressions[index].*,
         .body = .{ .control = self.control[index], .root = if (self.roots[index]) |id| @fromBackingInt(id) else null },
@@ -51,6 +73,11 @@ pub fn validStructure(self: Self) bool {
 
     inline for (@typeInfo(Self).@"struct".field_names) |name| {
         if (@field(self, name).len != self.count()) return false;
+    }
+
+    for (self.native_modules, 0..) |module, index| {
+        if (module != null) continue;
+        if (self.native_inputs[index] != null or self.native_members[index].len != 0 or self.native_exports[index] != null or self.native_allocators[index] or self.native_io[index] or self.native_process[index] or self.native_tuples[index] or self.native_fallible[index] or self.native_errors[index] != null or self.native_concurrent[index]) return false;
     }
 
     return true;

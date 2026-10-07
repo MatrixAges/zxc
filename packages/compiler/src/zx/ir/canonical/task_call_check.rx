@@ -1,0 +1,7 @@
+<Module>
+    <Call fn="./functions/analyze" in={{ functions: $in.functions, concurrent: true }} />
+
+    <Call fn="./functions/selected" in={{ values: $ctx.analyze, id: $in.id }} />
+
+    <Return value={$ctx.selected} />
+</Module>

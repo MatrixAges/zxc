@@ -1,0 +1,26 @@
+import calls from "./calls"
+
+import type { Functions } from "./model"
+
+export type Input = { functions: Functions, concurrent: bool }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const values: bool[] = in.functions.native_modules.map(value => false)
+
+    const result = loop({ functions: in.functions, concurrent: in.concurrent, values: values, index: 0 }, {
+        while: current => current.index < current.values.length,
+        next: current => {
+            const allowed = current.functions.stores[current.index].paths.length == 0 &&
+                (current.functions.native_modules[current.index] != null ?
+                    current.concurrent && current.functions.native_concurrent[current.index] :
+                    calls({ expressions: current.functions.expressions[current.index], allowed: current.values, limit: current.index, concurrent: current.concurrent }))
+
+            current.values[current.index] = allowed
+            current.index += 1
+        }
+    })
+
+    return result.values
+}

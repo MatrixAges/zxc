@@ -9,7 +9,17 @@ output_types: std.ArrayList(u32) = .empty,
 ownership: std.ArrayList(ir.SymbolTable.Ownership) = .empty,
 store_modes: std.ArrayList(ir.StoreMode) = .empty,
 contracts: std.ArrayList([]const ir.Contract) = .empty,
-external: std.ArrayList(?ir.External) = .empty,
+native_inputs: std.ArrayList(?ir.NativeType) = .empty,
+native_modules: std.ArrayList(?u32) = .empty,
+native_members: std.ArrayList([]const []const u8) = .empty,
+native_exports: std.ArrayList(?[]const u8) = .empty,
+native_allocators: std.ArrayList(bool) = .empty,
+native_io: std.ArrayList(bool) = .empty,
+native_process: std.ArrayList(bool) = .empty,
+native_tuples: std.ArrayList(bool) = .empty,
+native_fallible: std.ArrayList(bool) = .empty,
+native_errors: std.ArrayList(?[]const []const u8) = .empty,
+native_concurrent: std.ArrayList(bool) = .empty,
 symbols: std.ArrayList(*const ir.SymbolTable) = .empty,
 expressions: std.ArrayList(*const ir.ExpressionTable) = .empty,
 control: std.ArrayList(*const ir.ControlTable) = .empty,
@@ -51,7 +61,17 @@ pub fn append(self: *Self, allocator: std.mem.Allocator, value: ir.Function) std
 
     self.store_modes.appendAssumeCapacity(value.store_mode);
     self.contracts.appendAssumeCapacity(value.contracts);
-    self.external.appendAssumeCapacity(value.external);
+    self.native_inputs.appendAssumeCapacity(if (value.external) |external| external.input else null);
+    self.native_modules.appendAssumeCapacity(if (value.external) |external| @backingInt(external.module) else null);
+    self.native_members.appendAssumeCapacity(if (value.external) |external| external.member else &.{});
+    self.native_exports.appendAssumeCapacity(if (value.external) |external| external.export_name else null);
+    self.native_allocators.appendAssumeCapacity(if (value.external) |external| external.allocator_argument else false);
+    self.native_io.appendAssumeCapacity(if (value.external) |external| external.io_argument else false);
+    self.native_process.appendAssumeCapacity(if (value.external) |external| external.process_argument else false);
+    self.native_tuples.appendAssumeCapacity(if (value.external) |external| external.expand_tuple else false);
+    self.native_fallible.appendAssumeCapacity(if (value.external) |external| external.fallible else false);
+    self.native_errors.appendAssumeCapacity(if (value.external) |external| external.errors else null);
+    self.native_concurrent.appendAssumeCapacity(if (value.external) |external| external.concurrent else false);
     self.symbols.appendAssumeCapacity(symbols);
     self.expressions.appendAssumeCapacity(expressions);
     self.control.appendAssumeCapacity(value.body.control);

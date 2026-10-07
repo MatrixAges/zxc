@@ -9,13 +9,15 @@ pub fn apply(allocator: std.mem.Allocator, original: ir.Program, mode: Mode) !ir
     const bindings = try allocator.dupe(ir.Export, modules[0].types);
     const input_types = try allocator.dupe(u32, original.functions.input_types);
     const output_types = try allocator.dupe(u32, original.functions.output_types);
-    const external = try allocator.dupe(?ir.External, original.functions.external);
+    const native_inputs = try allocator.dupe(?ir.NativeType, original.functions.native_inputs);
+    const native_concurrent = try allocator.dupe(bool, original.functions.native_concurrent);
     const labels = try allocator.dupe([]const u8, original.types.labels);
     const reference = bindings[0].type_id;
     program.native_modules = modules;
     program.functions.input_types = input_types;
     program.functions.output_types = output_types;
-    program.functions.external = external;
+    program.functions.native_inputs = native_inputs;
+    program.functions.native_concurrent = native_concurrent;
     program.types.labels = labels;
     modules[0].types = bindings;
 
@@ -38,26 +40,26 @@ pub fn apply(allocator: std.mem.Allocator, original: ir.Program, mode: Mode) !ir
         else => {
             program = f.nativeOnly(program);
 
-            for (external, 0..) |*value, index| {
-                if (value.* == null) continue;
+            for (original.functions.native_modules, 0..) |module, index| {
+                if (module == null) continue;
 
                 switch (mode) {
-                    .unnamed_input => value.*.?.input = .{},
-                    .mismatched_input => value.*.?.input = .{ .name = "Other" },
-                    .concurrent => value.*.?.concurrent = true,
+                    .unnamed_input => native_inputs[index] = .{},
+                    .mismatched_input => native_inputs[index] = .{ .name = "Other" },
+                    .concurrent => native_concurrent[index] = true,
                     .scalar_source => {
                         input_types[index] = @backingInt(ir.Scalar.u64);
-                        value.*.?.input = .{};
+                        native_inputs[index] = .{};
                     },
                     .nested_concurrent => {
                         input_types[index] = @backingInt(original.output_type);
-                        value.*.?.input = null;
+                        native_inputs[index] = null;
                         output_types[index] = @backingInt(ir.Scalar.u64);
-                        value.*.?.concurrent = true;
+                        native_concurrent[index] = true;
                     },
                     .nested_scalar_source => {
                         input_types[index] = @backingInt(ir.Scalar.u64);
-                        value.*.?.input = .{};
+                        native_inputs[index] = .{};
                         output_types[index] = @backingInt(original.output_type);
                     },
                     else => unreachable,

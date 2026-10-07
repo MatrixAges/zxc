@@ -1,0 +1,20 @@
+import analyze from "./analyze"
+import calls from "./calls"
+
+import type { Expressions } from "../expressions/model"
+import type { Stores } from "../stores/model"
+import type { Functions } from "./model"
+
+export type Input = { functions: Functions, stores: Stores, expressions: Expressions }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.stores.paths.length != 0) {
+        return false
+    }
+
+    const allowed = analyze({ functions: in.functions, concurrent: false })
+
+    return calls({ expressions: in.expressions, allowed: allowed, limit: allowed.length, concurrent: false })
+}

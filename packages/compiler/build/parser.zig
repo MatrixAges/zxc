@@ -3,6 +3,12 @@ const std = @import("std");
 pub const Sources = struct {
     ownership: std.Build.LazyPath,
     ownership_abi: std.Build.LazyPath,
+    ir_functions: std.Build.LazyPath,
+    ir_functions_abi: std.Build.LazyPath,
+    ir_task_call: std.Build.LazyPath,
+    ir_task_call_abi: std.Build.LazyPath,
+    ir_program_pure: std.Build.LazyPath,
+    ir_program_pure_abi: std.Build.LazyPath,
     ir_tasks: std.Build.LazyPath,
     ir_tasks_abi: std.Build.LazyPath,
     ir_body: std.Build.LazyPath,
@@ -166,13 +172,19 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const ir_store_call_abi = run.addOutputFileArg("ir_store_call_abi.zig");
     const ir_tasks = run.addOutputFileArg("ir_tasks.zig");
     const ir_tasks_abi = run.addOutputFileArg("ir_tasks_abi.zig");
+    const ir_functions = run.addOutputFileArg("ir_functions.zig");
+    const ir_functions_abi = run.addOutputFileArg("ir_functions_abi.zig");
+    const ir_task_call = run.addOutputFileArg("ir_task_call.zig");
+    const ir_task_call_abi = run.addOutputFileArg("ir_task_call_abi.zig");
+    const ir_program_pure = run.addOutputFileArg("ir_program_pure.zig");
+    const ir_program_pure_abi = run.addOutputFileArg("ir_program_pure_abi.zig");
     const naming = run.addOutputFileArg("naming.zig");
     const naming_root = lint_dependency.path("src/naming");
 
     run.addDirectoryArg2(naming_root, .{});
     trackSources(b, run, naming_root, lint_dependency.builder.root.joinString(b.allocator, "src/naming") catch @panic("out of memory")) catch @panic("unable to track lint naming sources");
 
-    return .{ .ownership = ownership, .ownership_abi = ownership_abi, .ir_tasks = ir_tasks, .ir_tasks_abi = ir_tasks_abi, .ir_body = ir_body, .ir_body_abi = ir_body_abi, .ir_stores = ir_stores, .ir_stores_abi = ir_stores_abi, .ir_store_call = ir_store_call, .ir_store_call_abi = ir_store_call_abi, .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .type_remap = type_remap, .remap_abi = remap_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_extract = type_extract, .extract_abi = extract_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
+    return .{ .ownership = ownership, .ownership_abi = ownership_abi, .ir_functions = ir_functions, .ir_functions_abi = ir_functions_abi, .ir_task_call = ir_task_call, .ir_task_call_abi = ir_task_call_abi, .ir_program_pure = ir_program_pure, .ir_program_pure_abi = ir_program_pure_abi, .ir_tasks = ir_tasks, .ir_tasks_abi = ir_tasks_abi, .ir_body = ir_body, .ir_body_abi = ir_body_abi, .ir_stores = ir_stores, .ir_stores_abi = ir_stores_abi, .ir_store_call = ir_store_call, .ir_store_call_abi = ir_store_call_abi, .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .type_remap = type_remap, .remap_abi = remap_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_extract = type_extract, .extract_abi = extract_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath, absolute: []const u8) !void {
@@ -376,6 +388,36 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         },
     });
 
+    const ir_functions = b.createModule(.{
+        .root_source_file = source.ir_functions,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_functions_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+        },
+    });
+
+    const ir_task_call = b.createModule(.{
+        .root_source_file = source.ir_task_call,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_task_call_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+        },
+    });
+
+    const ir_program_pure = b.createModule(.{
+        .root_source_file = source.ir_program_pure,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_program_pure_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+        },
+    });
+
     const ir_tasks = b.createModule(.{
         .root_source_file = source.ir_tasks,
         .target = target,
@@ -420,6 +462,9 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .ownership = ownership,
         .ir_body = ir_body,
         .ir_tasks = ir_tasks,
+        .ir_functions = ir_functions,
+        .ir_task_call = ir_task_call,
+        .ir_program_pure = ir_program_pure,
         .ir_stores = ir_stores,
         .ir_store_call = ir_store_call,
         .type_construction = type_construction,

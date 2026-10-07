@@ -1,0 +1,33 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../expressions/kinds"
+
+import type { Expressions } from "../expressions/model"
+
+export type Input = { expressions: Expressions, allowed: bool[], limit: u64, concurrent: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ expressions: in.expressions, allowed: in.allowed, limit: in.limit, concurrent: in.concurrent, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.expressions.kinds.length,
+        next: current => {
+            const kind = current.expressions.kinds[current.index]
+
+            if (kind == ExpressionKind.StoreGet) {
+                current.valid = false
+            } else if (!current.concurrent && (kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask || kind == ExpressionKind.Parallel)) {
+                current.valid = false
+            } else if (kind == ExpressionKind.Call) {
+                const payload = integers.widen(current.expressions.payloads[current.index])
+                const target = integers.widen(current.expressions.call_functions[payload])
+
+                current.valid = current.expressions.call_store_count[payload] == 0 && target < current.limit && current.allowed[target]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

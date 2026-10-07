@@ -178,6 +178,21 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[36 + entries.len], .data = ir_tasks.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[37 + entries.len], .data = ir_tasks.types });
 
+    const ir_functions = try generate(allocator, inputs, sources.items, "zx/ir/canonical/functions_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[38 + entries.len], .data = ir_functions.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[39 + entries.len], .data = ir_functions.types });
+
+    const ir_task_call = try generate(allocator, inputs, sources.items, "zx/ir/canonical/task_call_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[40 + entries.len], .data = ir_task_call.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[41 + entries.len], .data = ir_task_call.types });
+
+    const ir_program_pure = try generate(allocator, inputs, sources.items, "zx/ir/canonical/program_pure_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[42 + entries.len], .data = ir_program_pure.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[43 + entries.len], .data = ir_program_pure.types });
+
     const naming = try generate(allocator, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 2], .data = naming.source });

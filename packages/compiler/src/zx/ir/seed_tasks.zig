@@ -81,3 +81,36 @@ fn bindings(program: ir.Program, statements: ir.Block, uses: []usize) bool {
     return true;
 }
 
+pub fn callSafe(allocator: std.mem.Allocator, functions: ir.FunctionTable, id: ir.FunctionId) std.mem.Allocator.Error!bool {
+    const safe = try allocator.alloc(bool, functions.count());
+
+    defer allocator.free(safe);
+
+    for (0..functions.count()) |index| {
+        const function = functions.at(index);
+
+        safe[index] = function.stores.count() == 0;
+
+        if (function.external) |external| {
+            safe[index] = safe[index] and external.concurrent;
+
+            continue;
+        }
+
+        for (0..function.expressions.count()) |expression_index| {
+            const expression = function.expressions.at(expression_index);
+
+            switch (expression.value) {
+                .store_get => safe[index] = false,
+                .call => |call| {
+                    const target = @backingInt(call.function);
+
+                    if (target >= index or !safe[target] or call.stores.len != 0) safe[index] = false;
+                },
+                else => {},
+            }
+        }
+    }
+
+    return @backingInt(id) < safe.len and safe[@backingInt(id)];
+}
