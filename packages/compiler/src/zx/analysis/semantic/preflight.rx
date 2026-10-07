@@ -1,5 +1,35 @@
 <Module>
-  <Call fn="merging/preflight" in={$in} />
+    <Call fn="types/nominal/shape" in={{ origins: $in.origins, names: $in.names }} />
 
-  <Return value={$ctx.preflight} />
+    <Switch on={$ctx.shape}>
+        <Case value={true}>
+            <Call fn="merging/preflight/origins" in={{ source: $in.source, origins: $in.origins, names: $in.names, workspace: $in.workspace }} />
+
+            <Switch on={$ctx.origins}>
+                <Case value={true}>
+                    <Call fn="merging/preflight/bounds" in={{ source: $in.source, target: $in.target, first: $in.first }} />
+
+                    <Switch on={$ctx.bounds}>
+                        <Case value={true}>
+                            <Call fn="merging/preflight/prefix" in={{ source: $in.source, target: $in.target, first: $in.first, workspace: $in.workspace }} />
+
+                            <Return value={$ctx.prefix} />
+                        </Case>
+
+                        <Default>
+                            <Return value={false} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
 </Module>

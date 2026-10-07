@@ -1,5 +1,15 @@
 <Module>
-  <Call fn="types/nominal/validate" in={$in} />
+    <Call fn="types/nominal/shape" in={{ origins: $in.origins, names: $in.names }} />
 
-  <Return value={$ctx.validate} />
+    <Switch on={$ctx.shape}>
+        <Case value={true}>
+            <Call fn="types/nominal/validate" in={$in} />
+
+            <Return value={$ctx.validate} />
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
 </Module>

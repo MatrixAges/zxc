@@ -1,0 +1,20 @@
+import count from "../source/count"
+import declared from "./declared"
+
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const result = loop({ state: in, index: 0, count: count(in.context.source) }, {
+        while: current => current.index < current.count && current.state.diagnostic.message == "",
+        next: current => {
+            current.state = declared({ state: current.state, index: current.index })
+            current.index += 1
+        }
+    })
+
+    return result.state
+}
