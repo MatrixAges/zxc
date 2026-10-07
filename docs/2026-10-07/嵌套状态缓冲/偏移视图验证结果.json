@@ -1,0 +1,54 @@
+{
+    "status": "passed",
+    "base_commit": "22e08d36",
+    "generation_fingerprint": "zxc.zig.input.v22",
+    "source_files": [
+        {
+            "path": "packages/genz/src/zx/iteration_buffer/fact.zig",
+            "sha256": "1e74d1613a708f381b8f3270789222365c06979c8317b7e06b58f7859ff16b70"
+        },
+        {
+            "path": "packages/genz/src/zx/iteration_buffer/analysis.zig",
+            "sha256": "635f3e3d061c019793aff6fbb1c7f149d385282a29aaca1a1f7ee0805e5e1d65"
+        },
+        {
+            "path": "packages/genz/src/zx/buffer_call/analysis/audit.zig",
+            "sha256": "80bb71c4764d2977a89f5321ee440d7ea060a78b0d9ff31259348b36933024ae"
+        },
+        {
+            "path": "packages/genz/src/zx/buffer_call/analysis/flow.zig",
+            "sha256": "944cfd1170a1883f3d84bf47633e3506d171a4c62a5cd94a51b99d12807bb398"
+        },
+        {
+            "path": "packages/genz/src/zx/buffer_call/analysis/trace.zig",
+            "sha256": "9e0b210b1edec47e58875f0a1f8b73a290ab5a398436bd5391e6c93381be1cb8"
+        },
+        {
+            "path": "packages/compiler/src/backends/zig/fingerprint.zig",
+            "sha256": "18c5c607ac1061ade88bb463acb18a191ca75a3bf730436bca023e6280a21be0"
+        }
+    ],
+    "observation_input_sha256": "e01170889e8d8091145f37498432e4720e9ccf3b587d79b4f9b3e47a4148e7e3",
+    "observation_sha256": "9be804fea01bf8e27976be6c72e7026304ca140eee3bceacacc63a50d6d328a3",
+    "scratch_rejections": {
+        "finish": "duplicate",
+        "step": "unsupported_call"
+    },
+    "limits": [
+        "borrowed view may be observed but not advanced or retained as buffer root",
+        "prefix of borrowed view remains borrowed",
+        "multiple aliases in call arguments remain rejected",
+        "scratch buffer reuse is not complete"
+    ],
+    "checks": {
+        "observer_build": "23/23 steps passed",
+        "release_build": "35/35 steps passed",
+        "self_compile": "passed",
+        "focused_regressions": "341/341 steps succeeded; 2638/2638 tests passed; library republish check passed"
+    },
+    "generated": {
+        "raw_sha256": "f481eb8f51342da0dc44e58429bbb7217760855ffed4389c8955c3b209d9b4d3",
+        "unchanged_from_prefix": true,
+        "step_buffered": true
+    }
+}
