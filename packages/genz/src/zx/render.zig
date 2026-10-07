@@ -70,6 +70,7 @@ pub fn initializePrepared(temporary: std.mem.Allocator, program: zx.ir.Program) 
         .process_functions = try capabilities.functions(temporary, program, .process),
         .value_functions = value_functions,
         .pure_functions = function_facts.pure,
+        .allocated_functions = try @import("iteration_buffer/ownership/allocation.zig").functions(temporary, program, function_facts.pure),
         .local_functions = function_facts.local,
         .buffer_functions = try buffer_call.analysis.functions(temporary, program, value_functions, function_facts.pure),
     };

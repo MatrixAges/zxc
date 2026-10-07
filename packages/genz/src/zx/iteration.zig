@@ -68,7 +68,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     defer if (state_scope) |scope| scope.restore();
 
     const changed_name = if (local and !by_value and mode != .discard) try self.fresh("state_changed") else "";
-    var buffers = try @import("iteration_buffer/root.zig").init(self, iteration, &body, pure, local or self.program.typeOf(type_id) == .list);
+    var buffers = try @import("iteration_buffer/root.zig").init(self, iteration, &body, true, local or self.program.typeOf(type_id) == .list);
 
     defer buffers.restore();
 

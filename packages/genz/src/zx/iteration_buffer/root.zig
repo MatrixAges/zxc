@@ -116,7 +116,7 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
     const storage = @import("../list_update.zig").Storage{
         .buffer = try lowering.builder.identifier(buffer_name),
         .started = try lowering.builder.identifier(started_name),
-        .transfer = try @import("ownership/root.zig").check(lowering.allocator, lowering.program, iteration.initial, path),
+        .transfer = try @import("ownership/root.zig").check(lowering.allocator, lowering.program, iteration.initial, path, lowering.allocated_functions),
     };
 
     try body.append(lowering.allocator, .{ .variable = .{

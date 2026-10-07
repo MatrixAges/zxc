@@ -2,7 +2,7 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const Graph = @import("graph.zig");
 
-pub fn check(allocator: std.mem.Allocator, program: ir.Program, initial: ir.ExprId, path: []const usize) std.mem.Allocator.Error!bool {
+pub fn check(allocator: std.mem.Allocator, program: ir.Program, initial: ir.ExprId, path: []const usize, allocated_functions: []const bool) std.mem.Allocator.Error!bool {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
@@ -42,6 +42,7 @@ pub fn check(allocator: std.mem.Allocator, program: ir.Program, initial: ir.Expr
                 remaining = remaining[1..];
             },
             .scope => |scope| current = scope.result,
+            .call => |call| return remaining.len == 0 and @backingInt(call.function) < allocated_functions.len and allocated_functions[@backingInt(call.function)],
             .transform => |transform| return remaining.len == 0 and (transform.kind == .map or transform.kind == .filter),
             else => return false,
         }
