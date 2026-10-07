@@ -1,0 +1,13 @@
+import type { Diagnostic, Result } from "./model"
+import type { Token, Span } from "./token_model"
+
+export type Input = Diagnostic
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const tokens: Token[] = []
+    const comments: Span[] = []
+
+    return { tokens: tokens, comments: comments, diagnostic: in }
+}

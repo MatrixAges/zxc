@@ -1,0 +1,32 @@
+<Module>
+    <Call fn="utf8/validate" in={$in} />
+
+    <Switch on={$ctx.validate}>
+        <Case value={true}>
+            <Call fn="initial" in={{ start: 0, end: $in.length }} />
+            <Call fn="bytes" in={{ source: $in, state: $ctx.initial }} />
+            <Call fn="flush" in={$ctx.bytes} />
+            <Call fn="finish" in={$ctx.flush} />
+
+            <Switch on={$ctx.finish.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Call fn="publish" in={$ctx.finish} />
+
+                    <Return value={$ctx.publish} />
+                </Case>
+
+                <Default>
+                    <Call fn="failure" in={$ctx.finish.diagnostic} />
+
+                    <Return value={$ctx.failure} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Call fn="failure" in={{ code: "lexical", start: 0, end: $in.length, message: "source must be valid UTF-8" }} />
+
+            <Return value={$ctx.failure} />
+        </Default>
+    </Switch>
+</Module>

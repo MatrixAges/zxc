@@ -80,7 +80,6 @@ pub const Sources = struct {
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const target = b.graph.host;
     const core = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core");
-    const dsl = b.dependency("dsl", .{ .target = target, .optimize = optimize }).module("dsl");
     const lint_dependency = b.dependency("lint", .{ .target = target, .optimize = optimize, .seed = true });
     const lint = lint_dependency.module("lint");
 
@@ -92,39 +91,13 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     });
 
     const seed = @import("compiler.zig").create(b, target, optimize, lexer, null, lint);
-
-    const rx = b.createModule(.{
-        .root_source_file = b.path("src/rx/root.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{ .{ .name = "dsl", .module = dsl }, .{ .name = "frontend", .module = seed.frontend } },
-    });
-
-    const rx_options = b.addOptions();
-
-    rx_options.addOption(bool, "generated_paths", false);
-    rx_options.addOption(bool, "generated_graph", false);
-    rx_options.addOption(bool, "generated_rules", false);
-    rx.addOptions("rx_options", rx_options);
-
-    const analysis = b.createModule(.{
-        .root_source_file = b.path("src/rx/analysis/root.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{
-            .{ .name = "rx", .module = rx },
-            .{ .name = "dsl", .module = dsl },
-            .{ .name = "zx", .module = core },
-            .{ .name = "frontend", .module = seed.frontend },
-            .{ .name = "lint", .module = lint },
-        },
-    });
+    const flow = @import("seed_rx.zig").create(b, target, optimize, seed.frontend, lint);
 
     const executable = b.addExecutable(.{ .name = "generate-parser", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_parser.zig"),
         .target = target,
         .optimize = optimize,
-        .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = rx }, .{ .name = "rx_analysis", .module = analysis } },
+        .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = flow.syntax }, .{ .name = "rx_analysis", .module = flow.analysis } },
     }) });
 
     executable.root_module.addAnonymousImport("merge_writer_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/merge_writer.d.zx") });

@@ -2,6 +2,7 @@ const std = @import("std");
 const compiler = @import("compiler");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
+const collection = @import("source_collection.zig");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
@@ -9,11 +10,11 @@ pub fn main(init: std.process.Init) !void {
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
 
-    try collect(init.io, allocator, args[1], "", &sources, &modules);
-    try collect(init.io, allocator, args[args.len - 1], "lint/naming/", &sources, &modules);
+    try collection.collect(init.io, allocator, args[1], "", &sources, &modules);
+    try collection.collect(init.io, allocator, args[args.len - 1], "lint/naming/", &sources, &modules);
 
-    std.mem.sort(compiler.project.Source, sources.items, {}, lessSource);
-    std.mem.sort(rx.TextSource, modules.items, {}, lessModule);
+    std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
+    std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
 
     var parsed = try rx.parseModules(allocator, modules.items);
 
@@ -253,14 +254,6 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 2], .data = naming.source });
 }
 
-fn lessSource(_: void, left: compiler.project.Source, right: compiler.project.Source) bool {
-    return std.mem.lessThan(u8, left.path, right.path);
-}
-
-fn lessModule(_: void, left: rx.TextSource, right: rx.TextSource) bool {
-    return std.mem.lessThan(u8, left.path, right.path);
-}
-
 fn generate(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const compiler.project.Source, entry: []const u8, shared_abi: bool, interfaces: []const compiler.project.NativeInterface) !compiler.zig.Bundle {
     const selected = try @import("parser_inputs.zig").reachable(allocator, modules, entry);
 
@@ -289,33 +282,4 @@ fn generate(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sour
     if (shared_abi) return compiler.zig.emitBundle(allocator, analyzed.value.contract.program);
 
     return .{ .source = try compiler.zig.emit(allocator, analyzed.value.contract.program), .types = &.{} };
-}
-
-fn collect(io: std.Io, allocator: std.mem.Allocator, root: []const u8, prefix: []const u8, sources: *std.ArrayList(compiler.project.Source), modules: *std.ArrayList(rx.TextSource)) !void {
-    var directory = try std.Io.Dir.cwd().openDir(io, root, .{ .iterate = true });
-
-    defer directory.close(io);
-
-    var walker = try directory.walk(allocator);
-
-    defer walker.deinit();
-
-    while (try walker.next(io)) |entry| {
-        if (entry.kind != .file) continue;
-
-        const is_zx = std.mem.endsWith(u8, entry.path, ".zx");
-        const is_rx = std.mem.endsWith(u8, entry.path, ".rx");
-
-        if (!is_zx and !is_rx) continue;
-
-        const path = try std.mem.concat(allocator, u8, &.{ prefix, entry.path });
-
-        if (std.fs.path.sep == '\\') for (path) |*byte| if (byte.* == '\\') {
-            byte.* = '/';
-        };
-
-        const source = try directory.readFileAlloc(io, entry.path, allocator, .unlimited);
-
-        if (is_zx) try sources.append(allocator, .{ .path = path, .source = source }) else try modules.append(allocator, .{ .path = path, .source = source });
-    }
 }

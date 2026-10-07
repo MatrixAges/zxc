@@ -1,0 +1,7 @@
+<Module>
+    <Call module="scan" in={$in} />
+
+    <Call fn="legacy" in={$ctx.scan} />
+
+    <Return value={$ctx.legacy} />
+</Module>

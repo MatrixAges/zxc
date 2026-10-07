@@ -10,13 +10,15 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) std.Build.Laz
         .imports = &.{.{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") }},
     });
 
-    const compiler = @import("compiler.zig").create(b, target, optimize, seed, null, b.dependency("lint", .{ .target = target, .optimize = optimize, .seed = true }).module("lint")).compiler;
+    const lint = b.dependency("lint", .{ .target = target, .optimize = optimize, .seed = true }).module("lint");
+    const compiler = @import("compiler.zig").create(b, target, optimize, seed, null, lint);
+    const flow = @import("seed_rx.zig").create(b, target, optimize, compiler.frontend, lint);
 
     const executable = b.addExecutable(.{ .name = "generate-lexer", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_lexer.zig"),
         .target = target,
         .optimize = optimize,
-        .imports = &.{.{ .name = "compiler", .module = compiler }},
+        .imports = &.{ .{ .name = "compiler", .module = compiler.compiler }, .{ .name = "rx", .module = flow.syntax }, .{ .name = "rx_analysis", .module = flow.analysis } },
     }) });
 
     const run = b.addRunArtifact(executable);
@@ -44,7 +46,7 @@ fn trackSources(b: *std.Build, run: *std.Build.Step.Run) !void {
     while (try walker.next(b.graph.io)) |entry| {
         if (entry.kind == .directory) {
             b.dependOnDirectoryContents(root.path(b, entry.path));
-        } else if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".zx")) {
+        } else if (entry.kind == .file and (std.mem.endsWith(u8, entry.path, ".zx") or std.mem.endsWith(u8, entry.path, ".rx"))) {
             try paths.append(b.allocator, try b.allocator.dupe(u8, entry.path));
         }
     }

@@ -5,10 +5,10 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
     const resources_step = b.step("test-type-parser-resources", "Validate generated ZX type parser allocation failure cleanup and result lifetime");
     const parity_step = b.step("test-type-parser-parity", "Compare generated ZX type grammar with the native parser");
 
-    for ([_][]const u8{ "zx", "rx" }) |route| {
+    for ([_][]const u8{ "plain", "template" }) |route| {
         const generate = b.addRunArtifact(cli.artifact("zxc"));
 
-        generate.addFileArg(if (std.mem.eql(u8, route, "rx")) compiler.path("src/zx/frontend/parser/type.rx") else b.path("tests/bootstrap/type_parser/source.zx"));
+        generate.addFileArg(if (std.mem.eql(u8, route, "template")) compiler.path("src/zx/frontend/parser/type.rx") else b.path("tests/bootstrap/type_parser/source.rx"));
         generate.addArg("--out");
 
         const source = generate.addOutputFileArg(b.fmt("type_parser_{s}.zig", .{route}));
@@ -19,10 +19,12 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
             @import("source_inputs.zig").add(b, generate, compiler, path) catch @panic("unable to track type parser sources");
         }
 
-        if (std.mem.eql(u8, route, "rx")) {
+        if (std.mem.eql(u8, route, "template")) {
             generate.setCwd(compiler.path("."));
             generate.addFileInput(compiler.path("src/zx/frontend/lexical.rx"));
             @import("source_inputs.zig").add(b, generate, compiler, "src/zx/frontend/parser/templates") catch @panic("unable to track template sources");
+        } else {
+            generate.setCwd(b.path("../.."));
         }
 
         const program = b.createModule(.{ .root_source_file = source, .target = target, .optimize = optimize });

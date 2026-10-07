@@ -1,9 +1,8 @@
 <Module>
-  <Call fn="../lexer/scan" in={$in} />
+    <Call module="../lexer/scan" in={$in} />
 
-  <Call fn="native/parse" in={$ctx.scan} />
+    <Call fn="native/parse" in={$ctx.scan} />
+    <Call fn="native/finish" in={$ctx.parse} />
 
-  <Call fn="native/finish" in={$ctx.parse} />
-
-  <Return value={$ctx.finish} />
+    <Return value={$ctx.finish} />
 </Module>

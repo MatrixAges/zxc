@@ -1,0 +1,16 @@
+import legacyKind from "./legacy_kind"
+
+import type { Diagnostic, Result } from "./model"
+import type { Span } from "./token_model"
+
+export type Token = { kind: string, span: Span }
+
+export type Input = Result
+
+export type Output = { tokens: Token[], comments: Span[], diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const tokens = in.tokens.map(token => { kind: legacyKind(token.kind), span: token.span })
+
+    return { tokens: tokens, comments: in.comments, diagnostic: in.diagnostic }
+}

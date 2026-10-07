@@ -17,7 +17,7 @@ pub fn add(b: *std.Build, run: *std.Build.Step.Run, compiler: *std.Build.Depende
     while (try walker.next(b.graph.io)) |entry| {
         if (entry.kind == .directory) {
             b.dependOnDirectoryContents(root.path(b, entry.path));
-        } else if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".zx")) {
+        } else if (entry.kind == .file and (std.mem.endsWith(u8, entry.path, ".zx") or std.mem.endsWith(u8, entry.path, ".rx"))) {
             try paths.append(b.allocator, try b.allocator.dupe(u8, entry.path));
         }
     }

@@ -6,7 +6,7 @@ ZX 源码 → 索引语法 → 类型与所有权检查 → IR → genz → Zig�
 
 提供可独立调用的声明式前端、开放 IR 和 Zig 后端，同时执行命名与 AST 空行门禁。第三方后端依赖 compiler 的 frontend 模块与 core 数据模型。RX/ZX 语言实现在 src/rx、src/zx；命令与系统交互位于独立 cli 包。
 
-主词法扫描已由 `src/zx/frontend/lexer/scan.zx` 及其 helper 实现，内部 token 使用枚举与字节位置；`lex.zx` 保留旧词法结果形状。构建用 `bootstrap/lexer/` 宿主种子生成词法模块，正式 frontend 通过适配层调用生成结果；不依赖 docs 或预装 zxc。完整类型语法已有独立 ZX 状态机，详见 [类型语法参考](../../docs/2026-10-05/类型语法参考.md)；生产 Parser 已接入 RX/ZX 生成实现，语义分析与后端仍未完成迁移；词法边界详见 [正式词法前端参考](../../docs/2026-10-05/正式词法前端参考.md)。
+主词法扫描由 `src/zx/frontend/lexer/scan.rx` 编排 UTF-8 校验、字节扫描与结果收尾，ZX 原子实现扫描算法，内部 token 使用枚举与字节位置；`lex.rx` 保留旧词法结果形状。构建用 `bootstrap/lexer/` 宿主种子生成词法模块，正式 frontend 通过适配层调用生成结果；不依赖 docs 或预装 zxc。完整类型语法已有独立 ZX 状态机，详见 [类型语法参考](../../docs/2026-10-05/类型语法参考.md)；生产 Parser 已接入 RX/ZX 生成实现，语义分析与后端仍未完成迁移；词法边界详见 [正式词法前端参考](../../docs/2026-10-05/正式词法前端参考.md)。
 
 模块导入分类由 `src/zx/modules/specifier/classify.rx` 编排 ZX 扫描与分类，生产 frontend 静态调用生成模块；构建 seed 保留原生 Zig 分类。输入字节借用、输出为枚举，分类过程不分配内存；路径解析、接口注册和链接仍由各自模块负责。实施与验证边界见 [模块导入分类自举](../../docs/2026-10-06/模块导入分类自举/实施计划.md)。
 

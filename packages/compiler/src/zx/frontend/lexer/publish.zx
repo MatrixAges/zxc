@@ -1,0 +1,14 @@
+import { Keyword } from "./keyword_model"
+import { Kind, Symbol } from "./token_model"
+
+import type { LexerState, Result } from "./model"
+
+export type Input = LexerState
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const line_break = in.tokens.length != 0 && in.line_break
+
+    return { tokens: in.tokens.push({ kind: Kind.Eof, word: Keyword.Root, symbol: Symbol.None, span: { start: in.source_length, end: in.source_length }, line_break: line_break, dollar: false })[0], comments: in.comments, diagnostic: in.diagnostic }
+}

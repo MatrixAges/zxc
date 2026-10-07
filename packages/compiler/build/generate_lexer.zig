@@ -1,48 +1,56 @@
 const std = @import("std");
 const compiler = @import("compiler");
+const rx = @import("rx");
+const analysis = @import("rx_analysis");
+const collection = @import("source_collection.zig");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
     const args = try init.minimal.args.toSlice(allocator);
-    var directory = try std.Io.Dir.cwd().openDir(init.io, args[1], .{ .iterate = true });
-
-    defer directory.close(init.io);
-
-    var walker = try directory.walk(allocator);
-
-    defer walker.deinit();
-
     var sources: std.ArrayList(compiler.project.Source) = .empty;
+    var modules: std.ArrayList(rx.TextSource) = .empty;
 
-    while (try walker.next(init.io)) |entry| {
-        if (entry.kind != .file or !std.mem.endsWith(u8, entry.path, ".zx")) continue;
+    try collection.collect(init.io, allocator, args[1], "", &sources, &modules);
 
-        const path = try allocator.dupe(u8, entry.path);
+    std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
+    std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
 
-        if (std.fs.path.sep == '\\') for (path) |*byte| if (byte.* == '\\') {
-            byte.* = '/';
-        };
+    var parsed = try rx.parseModules(allocator, modules.items);
 
-        try sources.append(allocator, .{ .path = path, .source = try directory.readFileAlloc(init.io, entry.path, allocator, .unlimited) });
+    defer parsed.deinit();
+
+    if (parsed.value == .diagnostic) {
+        const issue = parsed.value.diagnostic;
+
+        std.debug.print("{s}: {s}\n", .{ modules.items[issue.source_index].path, issue.issue.message });
+
+        return error.InvalidLexerModule;
     }
 
-    std.mem.sort(compiler.project.Source, sources.items, {}, lessThan);
+    const inputs = try allocator.alloc(rx.ModuleSource, modules.items.len);
 
-    var analyzed = try compiler.analyzeProject(allocator, sources.items, .{ .entry = "scan.zx" });
+    for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
+
+    const selected = try @import("parser_inputs.zig").reachable(allocator, inputs, "scan.rx");
+
+    var analyzed = try analysis.project.infer(allocator, .{
+        .entry = "scan.rx",
+        .modules = selected,
+        .sources = sources.items,
+        .project = .{ .entry = "" },
+    });
 
     defer analyzed.deinit();
 
     if (analyzed.value == .diagnostic) {
-        std.debug.print("{s}\n", .{analyzed.value.diagnostic.message});
+        const issue = analyzed.value.diagnostic;
+
+        std.debug.print("{s}: {s}\n", .{ issue.path, issue.message });
 
         return error.InvalidLexerSource;
     }
 
-    const output = try compiler.zig.emit(allocator, analyzed.value.ir);
+    const output = try compiler.zig.emit(allocator, analyzed.value.contract.program);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[2], .data = output });
-}
-
-fn lessThan(_: void, left: compiler.project.Source, right: compiler.project.Source) bool {
-    return std.mem.lessThan(u8, left.path, right.path);
 }
