@@ -1,0 +1,31 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const zx_pending = struct {
+    store_0: ?*const (zx_abi).zx_type_afed71d5ee9f52305f75a8d30ad33beac6f153f92f6984fbfd46697e96e3e9cf,
+};
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_c61e2fac4059a77f6ad4bddc686f4efd6019aebec1a65a6088f84f24d4777179, context: anytype) anyerror!void {
+    @setRuntimeSafety(true);
+
+    var pending: zx_pending = zx_pending{ .store_0 = null, };
+
+    (pending).store_0 = block_5: {
+        const operand_1 = (in).value;
+        const operand_2 = (((in).state).count + @as(u64, 1));
+
+        break :block_5 block_4: {
+            const operand_3 = (try (allocator).create((zx_abi).zx_type_afed71d5ee9f52305f75a8d30ad33beac6f153f92f6984fbfd46697e96e3e9cf));
+
+            (operand_3).* = @as((zx_abi).zx_type_afed71d5ee9f52305f75a8d30ad33beac6f153f92f6984fbfd46697e96e3e9cf, (zx_abi).zx_type_afed71d5ee9f52305f75a8d30ad33beac6f153f92f6984fbfd46697e96e3e9cf{ .text = operand_1, .count = operand_2, });
+
+            break :block_4 @as(*const (zx_abi).zx_type_afed71d5ee9f52305f75a8d30ad33beac6f153f92f6984fbfd46697e96e3e9cf, operand_3);
+        };
+    };
+
+    (try (context).commit(pending));
+
+    return;
+}
+

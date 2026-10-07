@@ -1,0 +1,20 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_afed71d5ee9f52305f75a8d30ad33beac6f153f92f6984fbfd46697e96e3e9cf) error{ }!*const (zx_abi).zx_type_afed71d5ee9f52305f75a8d30ad33beac6f153f92f6984fbfd46697e96e3e9cf {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return in;
+}
+
+pub fn callValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_afed71d5ee9f52305f75a8d30ad33beac6f153f92f6984fbfd46697e96e3e9cf) error{ }!(zx_abi).zx_type_afed71d5ee9f52305f75a8d30ad33beac6f153f92f6984fbfd46697e96e3e9cf {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return (in).*;
+}
+

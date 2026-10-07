@@ -1,0 +1,12 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+const zx_native = @import("zxc_standard");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_ea459508738299e01d5c0b329952f0278c38aa83ecd144acdf2dc9c538b2f805, io: (std).Io) error{ AccessDenied, AntivirusInterference, BadPathName, Canceled, ConnectionResetByPeer, DeviceBusy, FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput, InvalidPath, InvalidUtf8, IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir, NotOpenForReading, OutOfMemory, PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded, ReadOnlyFileSystem, SocketUnconnected, StreamTooLong, SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected, WouldBlock, }![]const u8 {
+    const native_result = (try ((zx_native).fs).readText(allocator, io, in));
+
+    return native_result;
+}
+

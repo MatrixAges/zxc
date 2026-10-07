@@ -1,0 +1,38 @@
+{
+    "source_commit": "c5085a970d1e89626330f0d6a7e7e790c7f6c480",
+    "worktree": "/Users/xiewendao/Documents/MatrixAges/zxc",
+    "runs": [
+        {
+            "mode": "Debug",
+            "session_id": 88803,
+            "log": "/tmp/zxc-object-store-io-debug.log",
+            "status": "completed",
+            "exit_code": 1,
+            "summary": "Build Summary: 102/105 steps succeeded (2 failed); 188/192 tests passed (4 failed)",
+            "store_zig_tests": 39,
+            "node_test_blocks": 7
+        },
+        {
+            "mode": "ReleaseSafe",
+            "session_id": 14592,
+            "log": "/tmp/zxc-object-store-io-safe.log",
+            "status": "completed",
+            "exit_code": 1,
+            "summary": "Build Summary: 102/105 steps succeeded (2 failed); 188/192 tests passed (4 failed)",
+            "store_zig_tests": 39,
+            "node_test_blocks": 7
+        }
+    ],
+    "steps": ["test-object-reduce", "test-rx-store-io"],
+    "source_constraint": "Both original aggregate gates terminal; package source SHA unchanged. Only nested capacity failure remains in this scope.",
+    "observed_at": "2026-10-07T10:53:18.055479+00:00",
+    "notification": {
+        "thread_id": "01a1017f-f09f-7001-95ef-8e966ebd6aee",
+        "defect": "current nested match object-reduce capacity",
+        "source_commit": "c5085a970d1e89626330f0d6a7e7e790c7f6c480",
+        "reported_mode": "Debug",
+        "reported_scope": "two original consumers, observed count=128 only",
+        "message_sent": true,
+        "correction": "ReleaseSafe normal resize capacity differs from Debug; exact observed statistics captured per log."
+    }
+}
