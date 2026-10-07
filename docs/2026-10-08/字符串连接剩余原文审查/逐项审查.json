@@ -1,0 +1,160 @@
+{
+    "assertion_count": 19,
+    "proposed_status": "excluded for all four: implicit ToString and typeof are outside the current static contract; explicit interpolation is a separate control, never semantic equivalence",
+    "cases": [
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A1_T2.js",
+            "check": 1,
+            "expression": "undefined + \"\"",
+            "expected": "\"undefined\"",
+            "proposed_phase": "analyze",
+            "proposed_diagnostic": "name"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A1_T2.js",
+            "check": 2,
+            "expression": "void 0 + \"\"",
+            "expected": "\"undefined\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A1_T2.js",
+            "check": 3,
+            "expression": "eval(\"var x\") + \"\"",
+            "expected": "\"undefined\"",
+            "proposed_phase": "analyze",
+            "proposed_diagnostic": "name"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A2_T2.js",
+            "check": 1,
+            "expression": "null + \"\"",
+            "expected": "\"null\"",
+            "proposed_phase": "analyze",
+            "proposed_diagnostic": "type_mismatch"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A4_T2.js",
+            "check": 1,
+            "expression": "x1 + \"\"",
+            "expected": "x1",
+            "proposed_phase": "analyze",
+            "proposed_diagnostic": "type_mismatch"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A4_T2.js",
+            "check": 2,
+            "expression": "typeof x2 + \"\"",
+            "expected": "typeof x2",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 1,
+            "expression": "new Number() + \"\"",
+            "expected": "\"0\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 2,
+            "expression": "new Number(0) + \"\"",
+            "expected": "\"0\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 3,
+            "expression": "new Number(Number.NaN) + \"\"",
+            "expected": "\"NaN\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 4,
+            "expression": "new Number(null) + \"\"",
+            "expected": "\"0\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 5,
+            "expression": "new Number(void 0) + \"\"",
+            "expected": "\"NaN\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 6,
+            "expression": "new Number(true) + \"\"",
+            "expected": "\"1\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 7,
+            "expression": "new Number(false) + \"\"",
+            "expected": "\"0\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 8,
+            "expression": "new Boolean(true) + \"\"",
+            "expected": "\"true\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 9,
+            "expression": "new Boolean(false) + \"\"",
+            "expected": "\"false\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 10,
+            "expression": "new Array(2,4,8,16,32) + \"\"",
+            "expected": "\"2,4,8,16,32\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 11,
+            "expression": "myobj1 + \"\"",
+            "expected": "\"[object MyObj]\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 12,
+            "expression": "myobj2 + \"\"",
+            "expected": "\"67890\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        },
+        {
+            "path": "test/language/expressions/concatenation/S9.8_A5_T2.js",
+            "check": 13,
+            "expression": "myobj3 + \"\"",
+            "expected": "\"[object Object]\"",
+            "proposed_phase": "parse",
+            "proposed_diagnostic": "syntax"
+        }
+    ],
+    "execution_verified": true,
+    "final_status": "excluded for all four; actual static diagnostics verified; independent explicit-string control remains separate"
+}

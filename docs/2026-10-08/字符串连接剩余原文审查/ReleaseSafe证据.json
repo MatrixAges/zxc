@@ -1,0 +1,505 @@
+{
+    "label": "ReleaseSafe",
+    "source_commit": "9c177db5d659475fad17c892f729e9e2c7c72a27",
+    "input_count": 5665,
+    "exit_code": 0,
+    "summary": "Build Summary: 51/51 steps succeeded; 6688/6688 tests passed",
+    "passed": true,
+    "tests_passed": 6688,
+    "tests_total": 6688,
+    "commands": [
+        {
+            "line": 1,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib --name configurer -fsingle-threaded --dep @build --dep @dependencies -Mroot=/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/configurer.zig --dep compiler=../compiler --dep core=../core --dep lint=../lint --dep pkgs=../pkgs --dep dsl=../dsl --dep genz=../genz --dep napi=../napi -M../cli=../cli/build.zig --dep dsl=../dsl --dep core=../core --dep genz=../genz --dep lint=../lint -M../compiler=../compiler/build.zig -M../core=../core/build.zig -M../dsl=../dsl/build.zig --dep core=../core -M../genz=../genz/build.zig --dep dsl=../dsl --dep core=../core -M../lint=../lint/build.zig --dep core=../core -M../napi=../napi/build.zig -M../pkgs=../pkgs/build.zig --dep ../cli --dep ../compiler --dep ../core --dep ../dsl --dep ../genz --dep ../lint --dep ../napi --dep ../pkgs -M@dependencies=/tmp/zxc-map-observations-safe-cache/o/664cc024bcb41b8d2365c77c6ca93203/dependencies.zig --dep cli=../cli --dep compiler=../compiler --dep pkgs=../pkgs -M@build=build.zig --listen=-"
+        },
+        {
+            "line": 2,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 3,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 4,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/854bdbf437e2eac15041bd0c4339cb3c/standard-catalog /tmp/zxc-map-observations-safe-cache/o/f9a904ebdabc6ec3fe99c56ed64ecac6/catalog.json /tmp/zxc-map-observations-safe-cache/o/9828dc4a184fbfc6bb50cb5d8bc42fa0/catalog.zig"
+        },
+        {
+            "line": 5,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Osafe --dep compiler --dep rx --dep rx_analysis --dep merge_writer_interface --dep extract_workspace_interface --dep merge_workspace_interface --dep references_interface --dep origin_writer_interface --dep named_columns_interface --dep flow_state_interface --dep semantic_floats --dep semantic_integers -Mroot=../compiler/build/generate_parser.zig -Osafe --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Osafe --dep dsl --dep frontend --dep rx_options -Mrx=../compiler/src/rx/root.zig -Osafe --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Mmerge_writer_interface=../compiler/src/zx/analysis/semantic/native/merge_writer.d.zx -Mextract_workspace_interface=../compiler/src/zx/analysis/semantic/native/extract_workspace.d.zx -Mmerge_workspace_interface=../compiler/src/zx/analysis/semantic/native/merge_workspace.d.zx -Mreferences_interface=../compiler/src/zx/analysis/semantic/native/references.d.zx -Morigin_writer_interface=../compiler/src/zx/analysis/semantic/native/origin_writer.d.zx -Mnamed_columns_interface=../compiler/src/zx/analysis/semantic/ordering/columns.d.zx -Mflow_state_interface=../compiler/src/zx/analysis/semantic/native/flow_state.d.zx -Msemantic_floats=../compiler/src/zx/analysis/semantic/native/floats.d.zx -Msemantic_integers=../compiler/src/zx/analysis/semantic/native/integers.d.zx -Osafe --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep ownership_seed -Mfrontend=../compiler/src/zx/frontend.zig -Osafe -Mdsl=../dsl/src/root.zig -Osafe -Mzx=../core/src/root.zig -Osafe --dep zx -Mgenz=../genz/src/root.zig -Osafe --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Mrx_options=/tmp/zxc-map-observations-safe-cache/o/77c1f5e6d2a04327be93efeeeb45b750/options.zig -Osafe --dep zx -Mlexer=../compiler/bootstrap/lexer/lex.zig -Mstandard_interfaces=/tmp/zxc-map-observations-safe-cache/o/03f1d0f0fbaa6dbf214c72a441b679f0/catalog.zig -Mparser_options=/tmp/zxc-map-observations-safe-cache/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig -Osafe --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Osafe --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Osafe --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Osafe --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Osafe --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Osafe -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Osafe --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Osafe --dep zx -Mownership_seed=../compiler/bootstrap/ownership/check.zig -Osafe -Mnaming=../lint/bootstrap/naming.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name generate-parser --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 6,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Osafe --dep compiler --dep rx --dep rx_analysis -Mroot=../compiler/build/generate_lexer.zig -Osafe --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Osafe --dep dsl --dep frontend --dep rx_options -Mrx=../compiler/src/rx/root.zig -Osafe --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Osafe --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep ownership_seed -Mfrontend=../compiler/src/zx/frontend.zig -Osafe -Mdsl=../dsl/src/root.zig -Osafe -Mzx=../core/src/root.zig -Osafe --dep zx -Mgenz=../genz/src/root.zig -Osafe --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Mrx_options=/tmp/zxc-map-observations-safe-cache/o/77c1f5e6d2a04327be93efeeeb45b750/options.zig -Osafe --dep zx -Mlexer=../compiler/bootstrap/lexer/lex.zig -Mstandard_interfaces=/tmp/zxc-map-observations-safe-cache/o/03f1d0f0fbaa6dbf214c72a441b679f0/catalog.zig -Mparser_options=/tmp/zxc-map-observations-safe-cache/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig -Osafe --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Osafe --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Osafe --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Osafe --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Osafe --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Osafe -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Osafe --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Osafe --dep zx -Mownership_seed=../compiler/bootstrap/ownership/check.zig -Osafe -Mnaming=../lint/bootstrap/naming.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name generate-lexer --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 7,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/5b1eb81c628f58793ebdc4fd8f52b151/generate-lexer ./../compiler/src/zx/frontend/lexer /tmp/zxc-map-observations-safe-cache/o/7d6ff0518575ec348f62b2bdcfefb13b/lexer.zig"
+        },
+        {
+            "line": 8,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 9,
+            "command": "node ./src/emit_frontend_tests.ts ./tests/language/lexical/comments/regexp_boundary/invalid.jsonl ./tests/language/lexical/primitive_literals/cases.jsonl ./tests/language/lexical/numeric/exponent_names/cases.jsonl ./tests/language/expressions/call_spread_protocols/cases.jsonl ./tests/language/expressions/call_arguments/syntax.jsonl ./tests/language/expressions/optional_chain_remaining/cases.jsonl ./tests/language/expressions/optional_chain_boundary/cases.jsonl ./tests/language/expressions/call_whitespace/unicode.jsonl ./tests/language/expressions/property_whitespace/unicode.jsonl ./tests/language/expressions/property_lookup/syntax.jsonl ./tests/language/expressions/coalesce_mixing/cases.jsonl ./tests/language/expressions/grouping_values/unicode.jsonl ./tests/language/lexical/template_continuations/cases.jsonl ./tests/language/lexical/template_escapes/cases.jsonl ./tests/language/types/template_members/cases.jsonl ./tests/language/statements/bare_blocks/cases.jsonl ./tests/language/statements/block_syntax/cases.jsonl ./tests/language/statements/switch_redeclarations/cases.jsonl ./tests/language/statements/switch_declarations/cases.jsonl ./tests/language/statements/switch_environment/cases.jsonl ./tests/language/statements/switch_nested/cases.jsonl ./tests/language/statements/switch_scope/cases.jsonl ./tests/language/statements/switch_scalars/cases.jsonl ./tests/language/statements/switch/cases.jsonl ./tests/language/statements/return_top_level/cases.jsonl ./tests/language/statements/return/cases.jsonl ./tests/language/statements/if_remaining/cases.jsonl ./tests/language/statements/if_declarations/cases.jsonl ./tests/language/statements/if_truthiness/cases.jsonl ./tests/language/statements/if_nested/cases.jsonl ./tests/language/statements/if/cases.jsonl ./tests/language/types/object_computed/cases.jsonl ./tests/language/types/object_shorthand/cases.jsonl ./tests/language/types/object_fields/cases.jsonl ./tests/language/types/array_spread_protocols/cases.jsonl ./tests/language/types/array_spread_errors/cases.jsonl ./tests/language/types/array_spread/cases.jsonl ./tests/language/types/object_duplicate/cases.jsonl ./tests/language/types/object_construction/source_preservation.jsonl ./tests/language/types/array_literal/single_elision.jsonl ./tests/language/types/array_literal/cases.jsonl ./tests/language/types/optional_enum/cases.jsonl ./tests/language/types/boolean_inequality/cases.jsonl ./tests/language/types/equality_conversion/cases.jsonl ./tests/language/types/optional_equality/cases.jsonl ./tests/language/types/aggregate_equality/cases.jsonl ./tests/language/types/equality_whitespace/cases.jsonl ./tests/language/types/equality_assignment/cases.jsonl ./tests/language/types/equality_names/cases.jsonl ./tests/language/types/relational_names/cases.jsonl ./tests/language/types/relational_strings/cases.jsonl ./tests/language/lexical/numeric/invalid.jsonl ./tests/language/lexical/numeric/valid.jsonl ./tests/language/types/operators/add.jsonl ./tests/language/types/operators/subtract.jsonl ./tests/language/types/operators/multiply.jsonl ./tests/language/types/operators/divide.jsonl ./tests/language/types/operators/remainder.jsonl ./tests/language/types/operators/less.jsonl ./tests/language/types/operators/less_equal.jsonl ./tests/language/types/operators/greater.jsonl ./tests/language/types/operators/greater_equal.jsonl ./tests/language/types/operators/equal.jsonl ./tests/language/types/operators/not_equal.jsonl ./tests/language/types/operators/and.jsonl ./tests/language/types/operators/or.jsonl ./tests/ownership/propagation/cases.jsonl ./tests/ownership/consumption/cases.jsonl ./tests/language/expressions/static_names/cases.jsonl ./tests/language/lexical/string/cases.jsonl ./tests/language/lexical/utf8/cases.jsonl ./tests/language/lexical/numeric/boundaries.jsonl ./tests/language/types/unary_minus/cases.jsonl ./tests/language/lexical/comments/cases.jsonl ./tests/language/lexical/comments/block/structure.jsonl ./tests/language/lexical/comments/block/unicode.jsonl ./tests/language/types/logical_not/cases.jsonl ./tests/language/expressions/multiplication/names/cases.jsonl ./tests/language/expressions/mixed_equality/cases.jsonl ./tests/ownership/deep_copy/rejected.jsonl ./tests/language/types/logical_binary/cases.jsonl ./tests/language/types/logical_assignment/cases.jsonl ./tests/language/types/conditional/cases.jsonl ./tests/language/types/coalesce_chain/cases.jsonl ./tests/language/types/coalesce_logical/cases.jsonl ./tests/language/types/coalesce_values/cases.jsonl ./tests/language/expressions/match/frontend.jsonl ./tests/language/expressions/match/scalar_types.jsonl ./tests/language/types/subtraction_names/cases.jsonl ./tests/language/types/subtraction_assignment/cases.jsonl ./tests/language/types/subtraction_conversion/cases.jsonl ./tests/language/types/subtraction_whitespace/cases.jsonl ./tests/language/types/multiplication_conversion/cases.jsonl ./tests/language/types/multiplication_whitespace/cases.jsonl ./tests/language/types/multiplication_assignment/cases.jsonl ./tests/language/types/division_conversion/cases.jsonl ./tests/language/types/division_whitespace/cases.jsonl ./tests/language/types/division_assignment/cases.jsonl ./tests/language/expressions/division/names/cases.jsonl ./tests/language/types/modulus_conversion/cases.jsonl ./tests/language/types/modulus_whitespace/cases.jsonl ./tests/language/types/modulus_assignment/cases.jsonl ./tests/language/expressions/modulus/names/cases.jsonl ./tests/language/expressions/addition/names/cases.jsonl ./tests/language/types/addition_whitespace/cases.jsonl ./tests/language/types/addition_assignment/cases.jsonl ./tests/language/types/addition_strings/cases.jsonl ./tests/language/types/addition_conversion/cases.jsonl ./tests/language/types/relational_whitespace/cases.jsonl ./tests/language/types/less_than_conversion/cases.jsonl ./tests/language/types/relational_conversion/greater/cases.jsonl ./tests/language/types/relational_conversion/less_equal/cases.jsonl ./tests/language/types/relational_conversion/greater_equal/cases.jsonl ./tests/language/types/relational_string_conversion/less/cases.jsonl ./tests/language/types/relational_string_conversion/greater/cases.jsonl ./tests/language/types/relational_string_conversion/less_equal/cases.jsonl ./tests/language/types/relational_string_conversion/greater_equal/cases.jsonl ./tests/language/types/relational_assignment/cases.jsonl ./tests/language/types/relational_string_order/greater/cases.jsonl ./tests/language/types/relational_string_order/less_equal/cases.jsonl ./tests/language/types/relational_string_order/greater_equal/cases.jsonl ./tests/language/types/unary_plus_boundary/cases.jsonl ./tests/language/types/member_base/cases.jsonl ./tests/language/lexical/whitespace/rejections/cases.jsonl ./tests/language/lexical/strings/terminators/cases.jsonl ./tests/language/lexical/comments/exposure/cases.jsonl ./tests/language/lexical/identifiers/keywords/cases.jsonl ./tests/language/statements/const_initializers/cases.jsonl ./tests/language/types/string_index/cases.jsonl ./tests/language/types/list_range/cases.jsonl ./tests/language/statements/assignment_boundaries/frontend.jsonl ./tests/language/types/compound_whitespace/cases.jsonl ./tests/language/types/compound_references/cases.jsonl ./tests/language/types/concatenation_remaining/cases.jsonl /tmp/zxc-map-observations-safe-cache/o/bd54d63a428e476ea5a3ad9408e5e453/cases.zig"
+        },
+        {
+            "line": 10,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/db42c2624635267b6a1305313b7b0fe9/generate-parser ./../compiler/src /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/parser.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/expression.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/xml.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/paths.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/graph.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/attribute_role.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/attribute_content.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/call_rule.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/path_kind.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/file_kind.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/specifier.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/integer.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_lookup.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/semantic_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/nominal_lookup.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/nominal_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/name_sort.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ordering_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origin_validation.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origins_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origin_production.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/production_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_remap.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/remap_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/merge_preflight.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/preflight_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_extract.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/extract_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_merge.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/merge_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_validation.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/validation_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_resolution.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/resolution_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_construction.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/construction_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_query.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/query_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ownership.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ownership_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_body.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_body_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_stores.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_stores_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_store_call.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_store_call_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_tasks.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_tasks_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_functions.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_functions_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_task_call.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_task_call_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_program_pure.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_program_pure_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_expressions.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_expressions_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contracts.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contracts_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contract_tables.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contract_tables_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_scopes.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_scopes_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_assume.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_assume_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_bind.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_bind_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_type.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_type_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_modules.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_modules_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_export.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_export_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_type.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_type_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_names.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_names_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_validation.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_validation_abi.zig /tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/naming.zig ./../lint/src/naming"
+        },
+        {
+            "line": 11,
+            "command": "node ./src/emit_control_tests.ts ./tests/language/expressions/template_primitives/bool.jsonl /tmp/zxc-map-observations-safe-cache/o/78a327f00d10a3c1664925940d9eef7e/cases.zig"
+        },
+        {
+            "line": 12,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../cli/build/toolchain/pack.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name bundle-zig --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 13,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support -Mroot=/tmp/zxc-map-observations-safe-cache/o/bd54d63a428e476ea5a3ad9408e5e453/cases.zig -Osafe --dep compiler -Msupport=tests/support/frontend.zig -Osafe --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Osafe --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep generated_native_validation --dep generated_native_names --dep generated_native_type --dep generated_native_modules --dep generated_native_export --dep generated_ir_scopes --dep generated_refinement_assume --dep generated_refinement_bind --dep generated_refinement_type --dep generated_ownership --dep generated_ir_body --dep generated_ir_tasks --dep generated_ir_functions --dep generated_ir_expressions --dep generated_ir_contracts --dep generated_ir_contract_tables --dep generated_ir_task_call --dep generated_ir_program_pure --dep generated_ir_stores --dep generated_ir_store_call --dep generated_type_resolution --dep generated_type_construction --dep generated_type_query --dep generated_parser --dep generated_expression --dep generated_xml --dep generated_specifier --dep generated_integer --dep generated_native --dep generated_type_lookup --dep generated_nominal_lookup --dep generated_origin_validation --dep generated_origin_production --dep origin_writer --dep generated_name_sort --dep generated_type_remap --dep generated_merge_preflight --dep generated_type_extract --dep generated_type_merge --dep generated_type_validation --dep merge_writer_view --dep extract_workspace_view -Mfrontend=../compiler/src/zx/frontend.zig -Osafe -Mdsl=../dsl/src/root.zig -Osafe -Mzx=../core/src/root.zig -Osafe --dep zx -Mgenz=../genz/src/root.zig -Osafe --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Osafe --dep zx --dep generated -Mlexer=../compiler/src/zx/frontend/lex.zig -Mstandard_interfaces=/tmp/zxc-map-observations-safe-cache/o/03f1d0f0fbaa6dbf214c72a441b679f0/catalog.zig -Mparser_options=/tmp/zxc-map-observations-safe-cache/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig -Osafe --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Osafe --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Osafe --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Osafe --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Osafe --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Osafe -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Osafe --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Osafe --dep integers --dep zxc_standard --dep zxc_abi -Mgenerated_native_validation=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_validation.zig -Osafe --dep zxc_standard --dep zxc_abi=zxc_abi0 -Mgenerated_native_names=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_names.zig -Osafe --dep integers --dep zxc_abi=zxc_abi1 -Mgenerated_native_type=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_type.zig -Osafe --dep zxc_abi=zxc_abi2 --dep integers -Mgenerated_native_modules=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_modules.zig -Osafe --dep zxc_abi=zxc_abi3 --dep integers -Mgenerated_native_export=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_export.zig -Osafe --dep zxc_abi=zxc_abi4 --dep integers --dep flow_state -Mgenerated_ir_scopes=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_scopes.zig -Osafe --dep zxc_abi=zxc_abi5 --dep integers --dep flow_state -Mgenerated_refinement_assume=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_assume.zig -Osafe --dep zxc_abi=zxc_abi6 --dep integers --dep flow_state -Mgenerated_refinement_bind=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_bind.zig -Osafe --dep zxc_abi=zxc_abi7 --dep integers --dep flow_state -Mgenerated_refinement_type=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_type.zig -Osafe --dep zxc_abi=zxc_abi8 --dep integers -Mgenerated_ownership=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ownership.zig -Osafe --dep zxc_abi=zxc_abi9 --dep integers -Mgenerated_ir_body=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_body.zig -Osafe --dep zxc_abi=zxc_abi10 --dep integers -Mgenerated_ir_tasks=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_tasks.zig -Osafe --dep zxc_abi=zxc_abi11 --dep integers -Mgenerated_ir_functions=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_functions.zig -Osafe --dep zxc_abi=zxc_abi12 --dep integers --dep floats -Mgenerated_ir_expressions=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_expressions.zig -Osafe --dep zxc_abi=zxc_abi13 --dep integers --dep floats -Mgenerated_ir_contracts=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contracts.zig -Osafe --dep zxc_abi=zxc_abi14 --dep integers -Mgenerated_ir_contract_tables=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contract_tables.zig -Osafe --dep zxc_abi=zxc_abi15 --dep integers -Mgenerated_ir_task_call=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_task_call.zig -Osafe --dep zxc_abi=zxc_abi16 --dep integers -Mgenerated_ir_program_pure=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_program_pure.zig -Osafe --dep zxc_abi=zxc_abi17 --dep integers -Mgenerated_ir_stores=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_stores.zig -Osafe --dep zxc_abi=zxc_abi18 --dep integers -Mgenerated_ir_store_call=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_store_call.zig -Osafe --dep zxc_standard --dep zxc_abi=zxc_abi19 --dep integers -Mgenerated_type_resolution=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_resolution.zig -Osafe --dep zxc_abi=zxc_abi20 --dep integers -Mgenerated_type_construction=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_construction.zig -Osafe --dep zxc_abi=zxc_abi21 --dep integers -Mgenerated_type_query=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_query.zig -Osafe -Mgenerated_parser=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/parser.zig -Osafe -Mgenerated_expression=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/expression.zig -Osafe -Mgenerated_xml=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/xml.zig -Osafe -Mgenerated_specifier=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/specifier.zig -Osafe -Mgenerated_integer=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/integer.zig -Osafe -Mgenerated_native=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native.zig -Osafe --dep integers --dep zxc_abi=zxc_abi22 -Mgenerated_type_lookup=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_lookup.zig -Osafe --dep integers --dep zxc_abi=zxc_abi23 -Mgenerated_nominal_lookup=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/nominal_lookup.zig -Osafe --dep integers --dep zxc_abi=zxc_abi24 -Mgenerated_origin_validation=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origin_validation.zig -Osafe --dep origin_writer --dep zxc_abi=zxc_abi25 -Mgenerated_origin_production=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origin_production.zig -Osafe --dep nominal_data --dep zxc_abi=zxc_abi25 -Morigin_writer=../compiler/src/zx/analysis/semantic/native/origin_writer.zig -Osafe --dep zxc_abi=zxc_abi26 --dep named_columns -Mgenerated_name_sort=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/name_sort.zig -Osafe --dep references --dep integers --dep zxc_abi=zxc_abi27 -Mgenerated_type_remap=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_remap.zig -Osafe --dep merge_workspace --dep integers --dep zxc_abi=zxc_abi28 -Mgenerated_merge_preflight=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/merge_preflight.zig -Osafe --dep extract_workspace --dep references --dep integers --dep zxc_abi=zxc_abi29 -Mgenerated_type_extract=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_extract.zig -Osafe --dep merge_writer --dep references --dep integers --dep zxc_abi=zxc_abi30 -Mgenerated_type_merge=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_merge.zig -Osafe --dep integers --dep zxc_abi=zxc_abi31 -Mgenerated_type_validation=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_validation.zig -Osafe --dep zx --dep reference_view --dep nominal_data -Mmerge_writer_view=../compiler/src/zx/analysis/semantic/merging/writer.zig -Osafe --dep zx --dep reference_view --dep nominal_data -Mextract_workspace_view=../compiler/src/zx/analysis/semantic/extracting/workspace.zig -Osafe --dep generated=generated0 -Mnaming=../lint/src/naming/root.zig -Osafe -Mgenerated=/tmp/zxc-map-observations-safe-cache/o/7d6ff0518575ec348f62b2bdcfefb13b/lexer.zig -Osafe -Mintegers=../compiler/src/zx/analysis/semantic/native/integers.zig -Osafe --dep zxc_abi=zxc_abi19 -Mzxc_standard=../compiler/standard/src/root.zig -Osafe -Mzxc_abi=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_validation_abi.zig -Osafe -Mzxc_abi0=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_names_abi.zig -Osafe -Mzxc_abi1=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_type_abi.zig -Osafe -Mzxc_abi2=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_modules_abi.zig -Osafe -Mzxc_abi3=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_export_abi.zig -Osafe -Mzxc_abi4=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_scopes_abi.zig -Osafe --dep flow_workspace -Mflow_state=../compiler/src/zx/analysis/semantic/native/flow_state.zig -Osafe -Mzxc_abi5=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_assume_abi.zig -Osafe -Mzxc_abi6=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_bind_abi.zig -Osafe -Mzxc_abi7=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_type_abi.zig -Osafe -Mzxc_abi8=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ownership_abi.zig -Osafe -Mzxc_abi9=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_body_abi.zig -Osafe -Mzxc_abi10=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_tasks_abi.zig -Osafe -Mzxc_abi11=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_functions_abi.zig -Osafe -Mzxc_abi12=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_expressions_abi.zig -Osafe -Mfloats=../compiler/src/zx/analysis/semantic/native/floats.zig -Osafe -Mzxc_abi13=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contracts_abi.zig -Osafe -Mzxc_abi14=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contract_tables_abi.zig -Osafe -Mzxc_abi15=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_task_call_abi.zig -Osafe -Mzxc_abi16=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_program_pure_abi.zig -Osafe -Mzxc_abi17=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_stores_abi.zig -Osafe -Mzxc_abi18=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_store_call_abi.zig -Osafe -Mzxc_abi19=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/resolution_abi.zig -Osafe -Mzxc_abi20=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/construction_abi.zig -Osafe -Mzxc_abi21=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/query_abi.zig -Osafe -Mzxc_abi22=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/semantic_abi.zig -Osafe -Mzxc_abi23=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/nominal_abi.zig -Osafe -Mzxc_abi24=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origins_abi.zig -Osafe -Mzxc_abi25=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/production_abi.zig -Osafe -Mzxc_abi26=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ordering_abi.zig -Osafe --dep zxc_abi=zxc_abi26 --dep named_view -Mnamed_columns=../compiler/src/zx/analysis/semantic/ordering/columns.zig -Osafe --dep reference_view -Mreferences=../compiler/src/zx/analysis/semantic/native/references.zig -Osafe -Mzxc_abi27=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/remap_abi.zig -Osafe --dep merge_workspace_view --dep zx --dep zxc_abi=zxc_abi28 -Mmerge_workspace=../compiler/src/zx/analysis/semantic/native/merge_workspace.zig -Osafe -Mzxc_abi28=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/preflight_abi.zig -Osafe --dep extract_workspace_view --dep reference_view --dep nominal_data --dep zx --dep zxc_abi=zxc_abi29 -Mextract_workspace=../compiler/src/zx/analysis/semantic/native/extract_workspace.zig -Osafe -Mzxc_abi29=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/extract_abi.zig -Osafe --dep merge_writer_view --dep reference_view --dep nominal_data --dep zxc_abi=zxc_abi30 -Mmerge_writer=../compiler/src/zx/analysis/semantic/native/merge_writer.zig -Osafe -Mzxc_abi30=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/merge_abi.zig -Osafe -Mzxc_abi31=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/validation_abi.zig -Osafe -Mgenerated0=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/naming.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name conformance-frontend --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 14,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/a5ee5f7d20bf5f617b22af385c9e3060/bundle-zig /tmp/zxc-map-observations-safe-cache/o/bca2522d9c2765d7fd03abdd2f3d8214/bundle_manifest.json ./../pkgs/index.json /tmp/zig-x86_64-macos-0.17.0.tar.xz /tmp/zxc-map-observations-safe-cache/o/38d09c032fa4a23e2ba72316e7087b56/bundle"
+        },
+        {
+            "line": 15,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig translate-c -lc --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig -Osafe -D YAML_DECLARE_STATIC=1 zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/include/yaml.h --listen=-"
+        },
+        {
+            "line": 16,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-lib -cflags -DYAML_DECLARE_STATIC -DYAML_VERSION_MAJOR=0 -DYAML_VERSION_MINOR=2 -DYAML_VERSION_PATCH=5 \"-DYAML_VERSION_STRING=\\\"0.2.5\\\"\" -- zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/api.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/reader.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/scanner.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/parser.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/loader.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/writer.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/emitter.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/dumper.c -Osafe -I zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/include -Mroot -lc --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name yaml -static --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 17,
+            "command": "node ./src/emit_control_tests.ts ./tests/language/expressions/template_primitives/dynamic.jsonl /tmp/zxc-map-observations-safe-cache/o/052a1e941e8a89904be161cfb59f4f48/cases.zig"
+        },
+        {
+            "line": 18,
+            "command": "node ./src/emit_control_tests.ts ./tests/language/expressions/template_primitives/original.jsonl /tmp/zxc-map-observations-safe-cache/o/4beb67f59ff4e383633b301c295a51d3/cases.zig"
+        },
+        {
+            "line": 19,
+            "command": "node ./src/emit_control_tests.ts ./tests/language/expressions/concatenation/string_identity.jsonl /tmp/zxc-map-observations-safe-cache/o/8b9329f3319689158a70423becc725de/cases.zig"
+        },
+        {
+            "line": 20,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/b60e78e129e3f4b86cdfe05f7b2284b3/conformance-frontend --cache-dir=/tmp/zxc-map-observations-safe-cache --seed=0xdd107263 --listen=-"
+        },
+        {
+            "line": 21,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe /tmp/zxc-map-observations-safe-cache/o/b743323aac2df50efbee0ebca1862c60/libyaml.a -Osafe -I /tmp/zxc-map-observations-safe-cache/o/99643627a011968f089148bb3544ce0e --dep rx --dep rx_analysis --dep lint --dep pkgs --dep compiler --dep napi_resources --dep napi_declarations --dep zx --dep yaml --dep cache_identity --dep bundle -Mroot=../cli/src/main.zig -Osafe --dep dsl --dep frontend --dep rx_options --dep generated_paths --dep generated_graph --dep generated_attribute_role --dep generated_attribute_content --dep generated_call_rule --dep generated_path_kind --dep generated_file_kind -Mrx=../compiler/src/rx/root.zig -Osafe --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Osafe --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Osafe -Mpkgs=../pkgs/src/root.zig -Osafe --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Osafe -Mnapi_resources=../napi/src/resources.zig -Osafe --dep zx -Mnapi_declarations=../napi/src/declarations.zig -Osafe -Mzx=../core/src/root.zig -Osafe -Myaml=/tmp/zxc-map-observations-safe-cache/o/0b695127e11f1e24eddeefc3905e907b/yaml.zig -Mcache_identity=/tmp/zxc-map-observations-safe-cache/o/9dce17d5ec175ea34065c6d36c98984c/options.zig -Mbundle=/tmp/zxc-map-observations-safe-cache/o/38d09c032fa4a23e2ba72316e7087b56/bundle/resources.zig -Osafe -Mdsl=../dsl/src/root.zig -Osafe --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep generated_native_validation --dep generated_native_names --dep generated_native_type --dep generated_native_modules --dep generated_native_export --dep generated_ir_scopes --dep generated_refinement_assume --dep generated_refinement_bind --dep generated_refinement_type --dep generated_ownership --dep generated_ir_body --dep generated_ir_tasks --dep generated_ir_functions --dep generated_ir_expressions --dep generated_ir_contracts --dep generated_ir_contract_tables --dep generated_ir_task_call --dep generated_ir_program_pure --dep generated_ir_stores --dep generated_ir_store_call --dep generated_type_resolution --dep generated_type_construction --dep generated_type_query --dep generated_parser --dep generated_expression --dep generated_xml --dep generated_specifier --dep generated_integer --dep generated_native --dep generated_type_lookup --dep generated_nominal_lookup --dep generated_origin_validation --dep generated_origin_production --dep origin_writer --dep generated_name_sort --dep generated_type_remap --dep generated_merge_preflight --dep generated_type_extract --dep generated_type_merge --dep generated_type_validation --dep merge_writer_view --dep extract_workspace_view -Mfrontend=../compiler/src/zx/frontend.zig -Mrx_options=/tmp/zxc-map-observations-safe-cache/o/7de9bbf52d4ca3eb01b99f66cdc276b5/options.zig -Osafe -Mgenerated_paths=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/paths.zig -Osafe -Mgenerated_graph=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/graph.zig -Osafe -Mgenerated_attribute_role=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/attribute_role.zig -Osafe -Mgenerated_attribute_content=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/attribute_content.zig -Osafe -Mgenerated_call_rule=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/call_rule.zig -Osafe -Mgenerated_path_kind=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/path_kind.zig -Osafe -Mgenerated_file_kind=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/file_kind.zig -Osafe --dep generated -Mnaming=../lint/src/naming/root.zig -Osafe --dep zx -Mgenz=../genz/src/root.zig -Osafe --dep zx --dep generated=generated0 -Mlexer=../compiler/src/zx/frontend/lex.zig -Mstandard_interfaces=/tmp/zxc-map-observations-safe-cache/o/03f1d0f0fbaa6dbf214c72a441b679f0/catalog.zig -Mparser_options=/tmp/zxc-map-observations-safe-cache/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig -Osafe --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Osafe --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Osafe --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Osafe --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Osafe --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Osafe -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Osafe --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Osafe --dep integers --dep zxc_standard --dep zxc_abi -Mgenerated_native_validation=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_validation.zig -Osafe --dep zxc_standard --dep zxc_abi=zxc_abi0 -Mgenerated_native_names=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_names.zig -Osafe --dep integers --dep zxc_abi=zxc_abi1 -Mgenerated_native_type=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_type.zig -Osafe --dep zxc_abi=zxc_abi2 --dep integers -Mgenerated_native_modules=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_modules.zig -Osafe --dep zxc_abi=zxc_abi3 --dep integers -Mgenerated_native_export=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_export.zig -Osafe --dep zxc_abi=zxc_abi4 --dep integers --dep flow_state -Mgenerated_ir_scopes=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_scopes.zig -Osafe --dep zxc_abi=zxc_abi5 --dep integers --dep flow_state -Mgenerated_refinement_assume=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_assume.zig -Osafe --dep zxc_abi=zxc_abi6 --dep integers --dep flow_state -Mgenerated_refinement_bind=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_bind.zig -Osafe --dep zxc_abi=zxc_abi7 --dep integers --dep flow_state -Mgenerated_refinement_type=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_type.zig -Osafe --dep zxc_abi=zxc_abi8 --dep integers -Mgenerated_ownership=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ownership.zig -Osafe --dep zxc_abi=zxc_abi9 --dep integers -Mgenerated_ir_body=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_body.zig -Osafe --dep zxc_abi=zxc_abi10 --dep integers -Mgenerated_ir_tasks=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_tasks.zig -Osafe --dep zxc_abi=zxc_abi11 --dep integers -Mgenerated_ir_functions=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_functions.zig -Osafe --dep zxc_abi=zxc_abi12 --dep integers --dep floats -Mgenerated_ir_expressions=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_expressions.zig -Osafe --dep zxc_abi=zxc_abi13 --dep integers --dep floats -Mgenerated_ir_contracts=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contracts.zig -Osafe --dep zxc_abi=zxc_abi14 --dep integers -Mgenerated_ir_contract_tables=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contract_tables.zig -Osafe --dep zxc_abi=zxc_abi15 --dep integers -Mgenerated_ir_task_call=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_task_call.zig -Osafe --dep zxc_abi=zxc_abi16 --dep integers -Mgenerated_ir_program_pure=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_program_pure.zig -Osafe --dep zxc_abi=zxc_abi17 --dep integers -Mgenerated_ir_stores=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_stores.zig -Osafe --dep zxc_abi=zxc_abi18 --dep integers -Mgenerated_ir_store_call=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_store_call.zig -Osafe --dep zxc_standard --dep zxc_abi=zxc_abi19 --dep integers -Mgenerated_type_resolution=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_resolution.zig -Osafe --dep zxc_abi=zxc_abi20 --dep integers -Mgenerated_type_construction=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_construction.zig -Osafe --dep zxc_abi=zxc_abi21 --dep integers -Mgenerated_type_query=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_query.zig -Osafe -Mgenerated_parser=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/parser.zig -Osafe -Mgenerated_expression=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/expression.zig -Osafe -Mgenerated_xml=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/xml.zig -Osafe -Mgenerated_specifier=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/specifier.zig -Osafe -Mgenerated_integer=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/integer.zig -Osafe -Mgenerated_native=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native.zig -Osafe --dep integers --dep zxc_abi=zxc_abi22 -Mgenerated_type_lookup=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_lookup.zig -Osafe --dep integers --dep zxc_abi=zxc_abi23 -Mgenerated_nominal_lookup=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/nominal_lookup.zig -Osafe --dep integers --dep zxc_abi=zxc_abi24 -Mgenerated_origin_validation=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origin_validation.zig -Osafe --dep origin_writer --dep zxc_abi=zxc_abi25 -Mgenerated_origin_production=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origin_production.zig -Osafe --dep nominal_data --dep zxc_abi=zxc_abi25 -Morigin_writer=../compiler/src/zx/analysis/semantic/native/origin_writer.zig -Osafe --dep zxc_abi=zxc_abi26 --dep named_columns -Mgenerated_name_sort=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/name_sort.zig -Osafe --dep references --dep integers --dep zxc_abi=zxc_abi27 -Mgenerated_type_remap=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_remap.zig -Osafe --dep merge_workspace --dep integers --dep zxc_abi=zxc_abi28 -Mgenerated_merge_preflight=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/merge_preflight.zig -Osafe --dep extract_workspace --dep references --dep integers --dep zxc_abi=zxc_abi29 -Mgenerated_type_extract=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_extract.zig -Osafe --dep merge_writer --dep references --dep integers --dep zxc_abi=zxc_abi30 -Mgenerated_type_merge=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_merge.zig -Osafe --dep integers --dep zxc_abi=zxc_abi31 -Mgenerated_type_validation=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_validation.zig -Osafe --dep zx --dep reference_view --dep nominal_data -Mmerge_writer_view=../compiler/src/zx/analysis/semantic/merging/writer.zig -Osafe --dep zx --dep reference_view --dep nominal_data -Mextract_workspace_view=../compiler/src/zx/analysis/semantic/extracting/workspace.zig -Osafe -Mgenerated=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/naming.zig -Osafe -Mgenerated0=/tmp/zxc-map-observations-safe-cache/o/7d6ff0518575ec348f62b2bdcfefb13b/lexer.zig -Osafe -Mintegers=../compiler/src/zx/analysis/semantic/native/integers.zig -Osafe --dep zxc_abi=zxc_abi19 -Mzxc_standard=../compiler/standard/src/root.zig -Osafe -Mzxc_abi=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_validation_abi.zig -Osafe -Mzxc_abi0=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_names_abi.zig -Osafe -Mzxc_abi1=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_type_abi.zig -Osafe -Mzxc_abi2=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_modules_abi.zig -Osafe -Mzxc_abi3=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_export_abi.zig -Osafe -Mzxc_abi4=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_scopes_abi.zig -Osafe --dep flow_workspace -Mflow_state=../compiler/src/zx/analysis/semantic/native/flow_state.zig -Osafe -Mzxc_abi5=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_assume_abi.zig -Osafe -Mzxc_abi6=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_bind_abi.zig -Osafe -Mzxc_abi7=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_type_abi.zig -Osafe -Mzxc_abi8=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ownership_abi.zig -Osafe -Mzxc_abi9=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_body_abi.zig -Osafe -Mzxc_abi10=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_tasks_abi.zig -Osafe -Mzxc_abi11=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_functions_abi.zig -Osafe -Mzxc_abi12=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_expressions_abi.zig -Osafe -Mfloats=../compiler/src/zx/analysis/semantic/native/floats.zig -Osafe -Mzxc_abi13=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contracts_abi.zig -Osafe -Mzxc_abi14=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contract_tables_abi.zig -Osafe -Mzxc_abi15=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_task_call_abi.zig -Osafe -Mzxc_abi16=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_program_pure_abi.zig -Osafe -Mzxc_abi17=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_stores_abi.zig -Osafe -Mzxc_abi18=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_store_call_abi.zig -Osafe -Mzxc_abi19=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/resolution_abi.zig -Osafe -Mzxc_abi20=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/construction_abi.zig -Osafe -Mzxc_abi21=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/query_abi.zig -Osafe -Mzxc_abi22=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/semantic_abi.zig -Osafe -Mzxc_abi23=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/nominal_abi.zig -Osafe -Mzxc_abi24=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origins_abi.zig -Osafe -Mzxc_abi25=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/production_abi.zig -Osafe -Mzxc_abi26=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ordering_abi.zig -Osafe --dep zxc_abi=zxc_abi26 --dep named_view -Mnamed_columns=../compiler/src/zx/analysis/semantic/ordering/columns.zig -Osafe --dep reference_view -Mreferences=../compiler/src/zx/analysis/semantic/native/references.zig -Osafe -Mzxc_abi27=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/remap_abi.zig -Osafe --dep merge_workspace_view --dep zx --dep zxc_abi=zxc_abi28 -Mmerge_workspace=../compiler/src/zx/analysis/semantic/native/merge_workspace.zig -Osafe -Mzxc_abi28=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/preflight_abi.zig -Osafe --dep extract_workspace_view --dep reference_view --dep nominal_data --dep zx --dep zxc_abi=zxc_abi29 -Mextract_workspace=../compiler/src/zx/analysis/semantic/native/extract_workspace.zig -Osafe -Mzxc_abi29=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/extract_abi.zig -Osafe --dep merge_writer_view --dep reference_view --dep nominal_data --dep zxc_abi=zxc_abi30 -Mmerge_writer=../compiler/src/zx/analysis/semantic/native/merge_writer.zig -Osafe -Mzxc_abi30=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/merge_abi.zig -Osafe -Mzxc_abi31=/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/validation_abi.zig -lc --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zxc --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 22,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/7d0152ec431ad4d7a75628443315e79e/zxc ./tests/language/expressions/template_primitives/bool.zx --out /tmp/zxc-map-observations-safe-cache/o/7ac008dbf19e797fc9a3ed1a2ff4f663/program.zig"
+        },
+        {
+            "line": 23,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/tmp/zxc-map-observations-safe-cache/o/78a327f00d10a3c1664925940d9eef7e/cases.zig -Osafe -Msupport=tests/support/control.zig -Osafe -Mprogram=/tmp/zxc-map-observations-safe-cache/o/7ac008dbf19e797fc9a3ed1a2ff4f663/program.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name template-primitives-bool --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 24,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/1108a253df65df475723d029f499e222/template-primitives-bool --cache-dir=/tmp/zxc-map-observations-safe-cache --seed=0xdd107263 --listen=-"
+        },
+        {
+            "line": 25,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/7d0152ec431ad4d7a75628443315e79e/zxc ./tests/language/expressions/template_primitives/dynamic.zx --out /tmp/zxc-map-observations-safe-cache/o/292ca0b15bfd56ed7c250db8e12cb0db/program.zig"
+        },
+        {
+            "line": 26,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/tmp/zxc-map-observations-safe-cache/o/052a1e941e8a89904be161cfb59f4f48/cases.zig -Osafe -Msupport=tests/support/control.zig -Osafe -Mprogram=/tmp/zxc-map-observations-safe-cache/o/292ca0b15bfd56ed7c250db8e12cb0db/program.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name template-primitives-dynamic --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 27,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/5e3d9c0838acceb01ee7740b4f3d6f1f/template-primitives-dynamic --cache-dir=/tmp/zxc-map-observations-safe-cache --seed=0xdd107263 --listen=-"
+        },
+        {
+            "line": 28,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/7d0152ec431ad4d7a75628443315e79e/zxc ./tests/language/expressions/template_primitives/original.zx --out /tmp/zxc-map-observations-safe-cache/o/68baa17daad0384f5c7884463052a81a/program.zig"
+        },
+        {
+            "line": 29,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/tmp/zxc-map-observations-safe-cache/o/4beb67f59ff4e383633b301c295a51d3/cases.zig -Osafe -Msupport=tests/support/control.zig -Osafe -Mprogram=/tmp/zxc-map-observations-safe-cache/o/68baa17daad0384f5c7884463052a81a/program.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name template-primitives-original --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 30,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/5c84329b010a41cd82e4d54ee51ef4ba/template-primitives-original --cache-dir=/tmp/zxc-map-observations-safe-cache --seed=0xdd107263 --listen=-"
+        },
+        {
+            "line": 31,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/7d0152ec431ad4d7a75628443315e79e/zxc ./tests/language/expressions/concatenation/string_identity.zx --out /tmp/zxc-map-observations-safe-cache/o/056f654577f1471fed6dc03c9cd1e08f/program.zig"
+        },
+        {
+            "line": 32,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/tmp/zxc-map-observations-safe-cache/o/8b9329f3319689158a70423becc725de/cases.zig -Osafe -Msupport=tests/support/control.zig -Osafe -Mprogram=/tmp/zxc-map-observations-safe-cache/o/056f654577f1471fed6dc03c9cd1e08f/program.zig --cache-dir /tmp/zxc-map-observations-safe-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name template-primitives-concatenation-string-identity --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 33,
+            "command": "/tmp/zxc-map-observations-safe-cache/o/f8ea14b169d50090a3f9a08c4c4f8b7d/template-primitives-concatenation-string-identity --cache-dir=/tmp/zxc-map-observations-safe-cache --seed=0xdd107263 --listen=-"
+        }
+    ],
+    "actual_executions": [
+        {
+            "line": 20,
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/b60e78e129e3f4b86cdfe05f7b2284b3/conformance-frontend",
+            "sha256": "f9410983818d78fbf2c5ced495640c8bedaca5daf9bf3f2ad9019e998faf6a74",
+            "compiled": {
+                "compile_line": 13,
+                "name": "conformance-frontend",
+                "root": "/tmp/zxc-map-observations-safe-cache/o/bd54d63a428e476ea5a3ad9408e5e453/cases.zig",
+                "parser_options": "/private/tmp/zxc-map-observations-safe-cache/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig"
+            },
+            "association": "single pending compile"
+        },
+        {
+            "line": 24,
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/1108a253df65df475723d029f499e222/template-primitives-bool",
+            "sha256": "61d29919ecf524079845547b7a7d7f9c212a62bd03a47b414e8529287f2d7d3f",
+            "compiled": {
+                "compile_line": 23,
+                "name": "template-primitives-bool",
+                "root": "/tmp/zxc-map-observations-safe-cache/o/78a327f00d10a3c1664925940d9eef7e/cases.zig",
+                "parser_options": null
+            },
+            "association": "single pending compile"
+        },
+        {
+            "line": 27,
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/5e3d9c0838acceb01ee7740b4f3d6f1f/template-primitives-dynamic",
+            "sha256": "382c1eea5da25a9cb670a74cefdb43e381daf0bf301bb47ec45fd4d858469f1d",
+            "compiled": {
+                "compile_line": 26,
+                "name": "template-primitives-dynamic",
+                "root": "/tmp/zxc-map-observations-safe-cache/o/052a1e941e8a89904be161cfb59f4f48/cases.zig",
+                "parser_options": null
+            },
+            "association": "single pending compile"
+        },
+        {
+            "line": 30,
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/5c84329b010a41cd82e4d54ee51ef4ba/template-primitives-original",
+            "sha256": "4720fd9c4e4bc402c595aa233068f4221f1c60ebbe9a571b49326ade7da84c74",
+            "compiled": {
+                "compile_line": 29,
+                "name": "template-primitives-original",
+                "root": "/tmp/zxc-map-observations-safe-cache/o/4beb67f59ff4e383633b301c295a51d3/cases.zig",
+                "parser_options": null
+            },
+            "association": "single pending compile"
+        },
+        {
+            "line": 33,
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/f8ea14b169d50090a3f9a08c4c4f8b7d/template-primitives-concatenation-string-identity",
+            "sha256": "4fdbf275fc57abc7cae38c0d555748a9fc828950d70542b79f485add4076ba04",
+            "compiled": {
+                "compile_line": 32,
+                "name": "template-primitives-concatenation-string-identity",
+                "root": "/tmp/zxc-map-observations-safe-cache/o/8b9329f3319689158a70423becc725de/cases.zig",
+                "parser_options": null
+            },
+            "association": "single pending compile"
+        }
+    ],
+    "generated_source": [
+        {
+            "path": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/configurer.zig",
+            "sha256": "a35ab2a8cf040ba1fb3fd2b52884b8265ec4998d0e297c6061c280ded614f5ff"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig",
+            "sha256": "4ec77bb3007bb875a3ad1e17d75b8ae76f1871b049d559603f7a19fbb5e88fde",
+            "saved": "生成源码/4ec77bb3007bb875a3ad1e17d75b8ae76f1871b049d559603f7a19fbb5e88fde.zig.txt"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/bd54d63a428e476ea5a3ad9408e5e453/cases.zig",
+            "sha256": "b1d26f26ae26c9b879df8f89789c47a74a54d272bedc3098b9ac49626f783c67"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig",
+            "sha256": "741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3",
+            "saved": "生成源码/741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3.zig.txt"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_validation.zig",
+            "sha256": "feb4e586a053395a5be0bd5373f9209e575029af4b7cdea20fc14d23aac8c125"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_names.zig",
+            "sha256": "b4856ae8689724e08f1da44656e21beaa4bc15172ae277932ab5323ce5da4fce",
+            "saved": "生成源码/b4856ae8689724e08f1da44656e21beaa4bc15172ae277932ab5323ce5da4fce.zig.gz",
+            "compression": "gzip"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_type.zig",
+            "sha256": "4a22333531fac7cc5019208682fd2b77397b85ccc8dbeb4d509234350b170e75",
+            "saved": "生成源码/4a22333531fac7cc5019208682fd2b77397b85ccc8dbeb4d509234350b170e75.zig.gz",
+            "compression": "gzip"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_modules.zig",
+            "sha256": "17f7e03723754d6a4d484a5e7f80c59a5641c10672a06e33f2a05d5c6cecf558"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_export.zig",
+            "sha256": "8ac9abe86a6daa3f5dcadf7ba0885e617a647707487bc75d2a2305de9e61bd5a"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_scopes.zig",
+            "sha256": "97a76d82dfdb2e7316e2075440cbea707982c77e1a92dfdbf63bf6be06693ab7"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_assume.zig",
+            "sha256": "3dede5c4fd883c5f661a4e30ce0d06c7029e089fc234ab2585ef5e0214b88f66"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_bind.zig",
+            "sha256": "d2aaa82ac8138080ddb0a46818c2254e2351faa72649a00801b58bb22e24e0f8"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/refinement_type.zig",
+            "sha256": "d0b16c67ec06bd83f46cb17f01dd61b629cd43528b892d6a9d7a8d951698b7f0"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ownership.zig",
+            "sha256": "2c903d58f6d2cf85de4d2aab24f48935712db6a23429fa25eb2e978a9ab28214"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_body.zig",
+            "sha256": "77792e344fecad4185e691bd273c9ca3b2c8685056bdffe96970c6218338294c"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_tasks.zig",
+            "sha256": "40c57370730781ac0e82fcfafbc2d5c14a3ecea6883bbaa36b9f43016fe7c201"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_functions.zig",
+            "sha256": "48317666d1b4a248a532d9478a2209ed57e77eb781ae6616221421feb90aa7ad"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_expressions.zig",
+            "sha256": "bca1a90e30c8f49bea64c0ef8ac548933d2b75c7fa76c42ac784fc57edc8229e"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contracts.zig",
+            "sha256": "b1ff4903f3d28cac9d8b87d5611cf021821510b863f5dea48d0a4f487e353f3c"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_contract_tables.zig",
+            "sha256": "a3fe6779518175f326348dff9c2e2f1d20f08273367ab04dee15823362acc9fa"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_task_call.zig",
+            "sha256": "b991fe4dde7da81380630af7ea38599cc0c0a3d7d5596292855ab2ac04604e54"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_program_pure.zig",
+            "sha256": "03f2a8e9d06b1d41789d55c960fc1d139da4212f292f434ea10e6aeecffd441e"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_stores.zig",
+            "sha256": "55f1ec043022dc08377711eef92409c2fa284af6edaba31d2dc5059be19b77a3"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/ir_store_call.zig",
+            "sha256": "01eb868a81802f9e42d1ad1ab863cd091330764c78639730a31731b308ddf99f"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_resolution.zig",
+            "sha256": "6e637bb2ff9bef67b781a04d1872997bd184437e31a12ebaeaff79b704557d6c"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_construction.zig",
+            "sha256": "6ed43e67accb40f2363680a6ab98a02b3e3bead09593a0991723a9d2c5c1cfef"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_query.zig",
+            "sha256": "dc4b8a9c35f935804ec6c9762eaffca5a3d92dd5b2b78e8736ff6452c3f00e69"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/parser.zig",
+            "sha256": "c833a059999ead77b93bdc38c7da96f2982809f1bfae70f70d6abb4379c682fb"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/expression.zig",
+            "sha256": "d120c989b30ec5d2cb70921b0e8562d28664b8835e08dcb6cc0ab159466a4d84"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/xml.zig",
+            "sha256": "e26ee26294728b82866e096d13827f048c45b95b54844caed09af3706cfa6475"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/specifier.zig",
+            "sha256": "f03dd2025b963d8afc6bfd8706d5f4c4a1f2661c852c976c27b316343d2de3ba"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/integer.zig",
+            "sha256": "ca50295f21e67d2d400a2fe5ecc75aee3688558cfcee554cf3280e16b2a39c24"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native.zig",
+            "sha256": "d929bf711256553fc09bab257769376465fba0499692695844c57ec4edaba34c",
+            "saved": "生成源码/d929bf711256553fc09bab257769376465fba0499692695844c57ec4edaba34c.zig.gz",
+            "compression": "gzip"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_lookup.zig",
+            "sha256": "bf4a9c2004d0c313bae978a3ed36c45588303f33470e444080f65267a5a250a9"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/nominal_lookup.zig",
+            "sha256": "027368db5b9ba2f89d4998e33c76e68ddc3fc3ee4e9c1122701489ffdc4db785"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origin_validation.zig",
+            "sha256": "9fc3a15c8519e2fbcfd5d330b53da3b712ca9f4d2cd79df76a7b35b300326720"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/origin_production.zig",
+            "sha256": "eb9ab45ee68b3f771d56ef12ef9ca92ebafc8cdcb8fd6719bb560c4ff74df716"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/name_sort.zig",
+            "sha256": "80252cdd8abd1b8003726aec122ec340501febeb9d8506630a8145ba501816c5"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_remap.zig",
+            "sha256": "533a4156dd41de330e9ee5bf31d34644410a648b74b8211619bdaa471e9e83a7"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/merge_preflight.zig",
+            "sha256": "7ea59e6bf41fac9e77beb01959f2e37d774fe1615c4f570424f7f991ae4007c2"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_extract.zig",
+            "sha256": "8c34673716771fb18c52242f075ab2d9950032499e594f866e51e66c7ddeb043"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_merge.zig",
+            "sha256": "d4a9294217815c53fdfd88c9474b2a9f8ba2fb9286e6d2886d877ba4536ed672"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/type_validation.zig",
+            "sha256": "b60d5bd8f40717b7636a9027b3a66d4e64d5172c39d0ec8787ba7a2b30e2f864"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/7d6ff0518575ec348f62b2bdcfefb13b/lexer.zig",
+            "sha256": "c5d085d214644fa9ff64077977e143386253afd05fd66656cd51dfe173b7f7e4"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/native_validation_abi.zig",
+            "sha256": "e7f38978ea8953e99ad64e8e2e38bb151dafd5739d91f13be9eb5cd2cfdd6bef"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/naming.zig",
+            "sha256": "9935448b5134c27b7a55e6b23e0b09d24700bb2b98f31d4e7a86b5b5dc90a2a8"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/paths.zig",
+            "sha256": "cfaa67572719b2bd5db3d0c5324d26a9bf056ada99a8a6979c2df5aa45473577"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/graph.zig",
+            "sha256": "82fdaf7345f8bbbebfd42585a9fbeac148e65a3a08539d4abd53622b0e97f03a"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/attribute_role.zig",
+            "sha256": "9b73b5c951d57ca0859c5d2ac217a8886a3623d426bb1cd78bada472a352c9ad"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/attribute_content.zig",
+            "sha256": "95424bbae013b177bc5ab6ae640f7722672dd9e7c831bd6a2f953f3498838c8c"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/call_rule.zig",
+            "sha256": "07050cfd1d8cdcc896d3c33ab251ff6a49a0839d6156f0bd6d3993504b3a5cfc"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/path_kind.zig",
+            "sha256": "a25b43a33fb1020b9cf0aea9e0a87c10ceb7754325131f8e426474d253ed7ac7"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/149bc7a947f519d11bb06cb8ffee3a4f/file_kind.zig",
+            "sha256": "e043739c4d9e736c8a56bed0ae35d7938c6e583e32b9c6b5f86cd40d66081773"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/78a327f00d10a3c1664925940d9eef7e/cases.zig",
+            "sha256": "8e824b16ad397a2577930c2cade81dedfca6974a9389087d0c6a674b60ec1f7e"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/7ac008dbf19e797fc9a3ed1a2ff4f663/program.zig",
+            "sha256": "2960fccded80040aed19a6ff89af9dc470a0d7837f037f2a650865392dd8abbd"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/052a1e941e8a89904be161cfb59f4f48/cases.zig",
+            "sha256": "85b1138154585e9894aaf6860d44e11bc4f638aced0f53aec76738485af9acad"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/292ca0b15bfd56ed7c250db8e12cb0db/program.zig",
+            "sha256": "0f3692f0b487d7ceaf36c927036bee736a07c3a4acc57eb575e837e17f4a3f52"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/4beb67f59ff4e383633b301c295a51d3/cases.zig",
+            "sha256": "bee7f1c12037505e6fbd8c6103938a2878f4ffdd1dcfa772e9ee93440ebbb6a9"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/68baa17daad0384f5c7884463052a81a/program.zig",
+            "sha256": "939811d615e2f41d7c5b5b036f71f98dc3dffe5b5b278110c49a6dfe08d45bcc"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/8b9329f3319689158a70423becc725de/cases.zig",
+            "sha256": "4b4ca461469655e676e0f881ff8527a6d813c5e66ce6b48ff34c337058731467"
+        },
+        {
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/056f654577f1471fed6dc03c9cd1e08f/program.zig",
+            "sha256": "eb12889045e623ab267a69ea5deeece491a6e19a7606579b5cb75353e96b6c89"
+        }
+    ],
+    "formal_parser_options": [
+        {
+            "test": "conformance-frontend",
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig",
+            "sha256": "741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3",
+            "generated_parser": true
+        },
+        {
+            "test": "zxc",
+            "path": "/private/tmp/zxc-map-observations-safe-cache/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig",
+            "sha256": "741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3",
+            "generated_parser": true
+        }
+    ],
+    "cached_entries": [
+        "|           +- WriteFile cached",
+        "|           |  +- WriteFile bundle_manifest.json cached",
+        "|           +- options cached",
+        "|           |     +- options cached",
+        "|           |     |     +- WriteFile catalog.json cached",
+        "|           |     +- options cached",
+        "|           +- WriteFile interfaces/0.d.zx cached",
+        "|           |  +- run exe standard-catalog (catalog.zig) cached",
+        "|           |     +- compile exe standard-catalog fast native cached 51ms MaxRSS:21M",
+        "|           |     +- WriteFile catalog.json cached",
+        "|           +- options cached",
+        "|           |     +- options cached",
+        "|           |     +- WriteFile interfaces/0.d.zx cached",
+        "|           |     |  +- run exe standard-catalog (catalog.zig) cached",
+        "|           |     |     +- compile exe standard-catalog fast native cached 62ms MaxRSS:21M",
+        "|           |     |     +- WriteFile catalog.json cached",
+        "|           |     +- options cached"
+    ],
+    "native_summaries": [
+        "+- run test template-primitives-original 6 pass (6 total) 2ms MaxRSS:1M",
+        "+- run test template-primitives-dynamic 18 pass (18 total) 2ms MaxRSS:1M",
+        "+- run test template-primitives-bool 2 pass (2 total) 2ms MaxRSS:1M",
+        "+- run test template-primitives-concatenation-string-identity 1 pass (1 total) 2ms MaxRSS:1M",
+        "+- run test conformance-frontend 6661 pass (6661 total) 13s MaxRSS:7M"
+    ],
+    "node_summary_lines": [],
+    "errors": [],
+    "log": "日志/ReleaseSafe.txt",
+    "log_sha256": "520f21462ac42758cc701ce19c84c5d394545947872ae4536aa918c5f47b80cd",
+    "scope": "19 original concatenation diagnostic observations and explicit string control, plus complete frontend and template-primitives; initial Debug uses a documented frontend filter."
+}
