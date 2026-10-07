@@ -1,0 +1,28 @@
+import text from "../text"
+
+import type { Modules } from "../model"
+
+export type Input = Modules
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ modules: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.modules.specifiers.length,
+        next: current => {
+            const parts = loop({ names: current.modules.type_namespaces[current.index], index: 0, valid: true }, {
+                while: part => part.valid && part.index < part.names.length,
+                next: part => {
+                    part.valid = text(part.names[part.index])
+                    part.index += 1
+                }
+            })
+
+            current.valid = parts.valid
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

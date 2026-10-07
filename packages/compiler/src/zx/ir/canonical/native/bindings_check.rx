@@ -1,0 +1,25 @@
+<Module>
+    <Call fn="./bindings/binding_values" in={$in} />
+
+    <Switch on={$ctx.binding_values}>
+        <Case value={true}>
+            <Call fn="./bindings/bindings_unique" in={$in.modules} />
+
+            <Switch on={$ctx.bindings_unique}>
+                <Case value={true}>
+                    <Call fn="./bindings/bindings_consistent" in={$in.modules} />
+
+                    <Return value={$ctx.bindings_consistent} />
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

@@ -1,0 +1,30 @@
+import integers from "zig:integers"
+
+import text from "../text"
+
+import type { Context } from "../model"
+
+export type Input = Context
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ modules: in.modules, type_count: in.table.kinds.length, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.modules.specifiers.length,
+        next: current => {
+            const bindings = loop({ names: current.modules.type_names[current.index], ids: current.modules.type_ids[current.index], type_count: current.type_count, index: 0, valid: true }, {
+                while: binding => binding.valid && binding.index < binding.names.length,
+                next: binding => {
+                    binding.valid = integers.widen(binding.ids[binding.index]) < binding.type_count && text(binding.names[binding.index])
+                    binding.index += 1
+                }
+            })
+
+            current.valid = bindings.valid
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

@@ -1,0 +1,25 @@
+<Module>
+    <Call fn="./declarations/declarations" in={$in} />
+
+    <Switch on={$ctx.declarations}>
+        <Case value={true}>
+            <Call fn="./declarations/namespaces" in={$in} />
+
+            <Switch on={$ctx.namespaces}>
+                <Case value={true}>
+                    <Call fn="./declarations/imports_unique" in={$in} />
+
+                    <Return value={$ctx.imports_unique} />
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

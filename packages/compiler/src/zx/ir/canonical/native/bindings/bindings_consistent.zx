@@ -1,0 +1,47 @@
+import key from "../key"
+
+import type { Modules } from "../model"
+
+export type Input = Modules
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ modules: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.modules.specifiers.length,
+        next: current => {
+            const bindings = loop({ modules: current.modules, module: current.index, owner: key({ modules: current.modules, index: current.index }), index: 0, valid: true }, {
+                while: binding => binding.valid && binding.index < binding.modules.type_names[binding.module].length,
+                next: binding => {
+                    const shared = loop({ modules: binding.modules, count: binding.module, owner: binding.owner, name: binding.modules.type_names[binding.module][binding.index], type_id: binding.modules.type_ids[binding.module][binding.index], index: 0, valid: true }, {
+                        while: previous => previous.valid && previous.index < previous.count,
+                        next: previous => {
+                            if (key({ modules: previous.modules, index: previous.index }) == previous.owner) {
+                                const matches = loop({ names: previous.modules.type_names[previous.index], ids: previous.modules.type_ids[previous.index], name: previous.name, type_id: previous.type_id, index: 0, valid: true }, {
+                                    while: other => other.valid && other.index < other.names.length,
+                                    next: other => {
+                                        other.valid = other.names[other.index] != other.name || other.ids[other.index] == other.type_id
+                                        other.index += 1
+                                    }
+                                })
+
+                                previous.valid = matches.valid
+                            }
+
+                            previous.index += 1
+                        }
+                    })
+
+                    binding.valid = shared.valid
+                    binding.index += 1
+                }
+            })
+
+            current.valid = bindings.valid
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}
