@@ -1,0 +1,15 @@
+import integers from "zig:integers"
+
+import key from "../key"
+
+import type { ExportContext } from "../model"
+
+export type Input = ExportContext
+
+export type Output = string?
+
+    export default function (in: Input): Output {
+        const module = in.functions.native_modules[in.index]
+
+        return module == null ? null : key({ modules: in.modules, index: integers.widen(module) })
+    }

@@ -19,8 +19,10 @@ pub fn lower(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId, result: ir.Exp
         const selected = Consumer{ .symbol = symbol, .result = result, .layout = layout };
 
         if (!try @import("iteration_value/result.zig").eligible(self, selected)) return null;
+        if (try @import("iteration_value/local.zig").lower(self, self.program.expression(value).value.iteration, selected)) |local| return local;
+        if (self.program.typeOf(self.program.expression(result).type_id) != .list) return null;
 
-        return @import("iteration_value/local.zig").lower(self, self.program.expression(value).value.iteration, selected);
+        return @import("iteration.zig").consume(self, value, selected);
     }
 
     if (!projection(self.program, result, symbol)) return null;

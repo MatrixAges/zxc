@@ -20,6 +20,7 @@ loaded: []const Module.Loaded,
 results: []const Module.Binding,
 tasks: []const TaskType = &.{},
 bindings: std.ArrayList(frontend.expressions.Binding) = .empty,
+nonnull: std.ArrayList([]const u8) = .empty,
 calls: std.ArrayList(Module.Call) = .empty,
 next_binding: usize = 0,
 unit_input: bool = false,
@@ -92,8 +93,18 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
 
                 for (selection.cases, cases) |case, *item| {
                     const label = if (case.value) |attribute| try self.value(attribute, subject.output_type) else null;
+                    const facts = self.nonnull.items.len;
+
+                    if (try @import("condition.zig").truth(self.allocator, self.owner, case.value, selection.cases)) |truth| {
+                        @import("condition.zig").assume(self.allocator, self.owner, selection.subject, truth, self) catch |err| switch (err) {
+                            error.OutOfMemory => return error.OutOfMemory,
+                            else => return error.InvalidFlow,
+                        };
+                    }
+
                     const body = try self.steps(case.body);
 
+                    self.nonnull.shrinkRetainingCapacity(facts);
                     self.bindings.shrinkRetainingCapacity(count);
 
                     item.* = .{ .value = label, .body = body };
@@ -116,7 +127,7 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
 }
 
 fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {
-    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .native_modules = self.native_modules, .bindings = self.bindings.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
+    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .native_modules = self.native_modules, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
 
     if (compiled.value == .diagnostic) {
         self.issue = compiled.value.diagnostic;
@@ -154,4 +165,16 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
     try self.calls.append(self.allocator, .{ .callee = loaded.function.program, .store_initializers = loaded.function.store_initializers, .argument = argument, .input_omitted = target.optionalAttribute(loaded.node, "in") == null, .out = out, .getters = loaded.getters });
 
     return index;
+}
+
+pub fn assumeNonNull(self: *Self, expression_value: anytype) zx.Error!void {
+    for (self.bindings.items) |binding| {
+        if (@import("condition.zig").matches(expression_value, binding.name)) try self.nonnull.append(self.allocator, binding.name);
+    }
+}
+
+pub fn isNonNull(self: *const Self, name: []const u8) bool {
+    for (self.nonnull.items) |fact| if (std.mem.eql(u8, fact, name)) return true;
+
+    return false;
 }

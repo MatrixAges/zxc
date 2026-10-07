@@ -41,6 +41,10 @@ pub fn deep(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Ite
     return analyze(allocator, program, &.{ iteration.condition, iteration.body }, functions, true);
 }
 
+pub fn initialValue(allocator: std.mem.Allocator, program: ir.Program, value: ir.ExprId, functions: []const bool) std.mem.Allocator.Error!bool {
+    return analyze(allocator, program, &.{value}, functions, true);
+}
+
 pub fn aggregate(program: ir.Program, id: ir.TypeId) bool {
     return switch (program.typeOf(id)) {
         .object, .tuple => true,

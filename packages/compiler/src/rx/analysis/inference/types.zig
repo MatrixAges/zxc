@@ -24,6 +24,7 @@ binding_lookups: std.ArrayList(@import("bindings.zig").Lookup) = .empty,
 assignments: std.ArrayList(Assignment.Edge) = .empty,
 constructions: std.ArrayList(@import("construction.zig").Object) = .empty,
 sequences: std.ArrayList(@import("sequences.zig").Sequence) = .empty,
+nonnull: std.ArrayList(@import("non_null.zig").Projection) = .empty,
 known_types: std.AutoHashMapUnmanaged(zx.ir.TypeId, Id) = .empty,
 revision: usize = 0,
 pub fn init(allocator: std.mem.Allocator, reporter: *zx.Reporter, existing: zx.ir.TypeTable) zx.Error!Self {
@@ -207,6 +208,7 @@ pub fn finish(self: *Self) zx.Error!void {
         for (self.value_uses.items) |use| try self.checkValue(use);
 
         try @import("bindings.zig").propagate(self, false);
+        try @import("non_null.zig").propagate(self, false);
         for (self.sequences.items) |sequence| try @import("sequences.zig").propagate(self, sequence);
         for (self.constructions.items) |object| try @import("construction.zig").propagate(self, object, false);
 
@@ -234,6 +236,8 @@ pub fn finish(self: *Self) zx.Error!void {
         try Assignment.materialize(self, base);
         if (revision != self.revision) continue;
         if (try @import("index.zig").defaultLists(self)) continue;
+        try @import("non_null.zig").propagate(self, true);
+        if (revision != self.revision) continue;
         for (self.constructions.items) |object| try @import("construction.zig").propagate(self, object, true);
         if (revision != self.revision) continue;
 

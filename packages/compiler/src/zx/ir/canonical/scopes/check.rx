@@ -1,0 +1,35 @@
+<Module>
+    <Call fn="./initialize" in={$in.program} />
+
+    <Switch on={$ctx.initialize}>
+        <Case value={true}>
+            <Call fn="./walk" in={$in} />
+
+            <Switch on={$ctx.walk}>
+                <Case value={true}>
+                    <Call fn="./declared" in={$in.program} />
+
+                    <Switch on={$ctx.declared}>
+                        <Case value={true}>
+                            <Call fn="./returned" in={$in} />
+
+                            <Return value={$ctx.returned} />
+                        </Case>
+
+                        <Default>
+                            <Return value={false} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

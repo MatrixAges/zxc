@@ -1,0 +1,51 @@
+<Module>
+    <Task name="stores" out={$ctx.validate}>
+        <Call fn="../stores/validate" in={$in.body.stores} />
+    </Task>
+
+    <Switch on={$ctx.task.stores}>
+        <Case value={true}>
+            <Call fn="./symbols" in={{ symbols: $in.body.symbols, max_offset: $in.max_offset }} />
+
+            <Switch on={$ctx.symbols}>
+                <Case value={true}>
+                    <Task name="expressions" out={$ctx.validate}>
+                        <Call fn="../expressions/validation/validate" in={{ table: $in.body.expressions, max_offset: $in.max_offset }} />
+                    </Task>
+
+                    <Switch on={$ctx.task.expressions}>
+                        <Case value={true}>
+                            <Task name="control" out={$ctx.validate}>
+                                <Call fn="../control/validate" in={$in.body.control} />
+                            </Task>
+
+                            <Switch on={$ctx.task.control}>
+                                <Case value={true}>
+                                    <Call fn="./tree" in={{ control: $in.body.control, root: $in.body.root }} />
+
+                                    <Return value={$ctx.tree} />
+                                </Case>
+
+                                <Default>
+                                    <Return value={false} />
+                                </Default>
+                            </Switch>
+                        </Case>
+
+                        <Default>
+                            <Return value={false} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

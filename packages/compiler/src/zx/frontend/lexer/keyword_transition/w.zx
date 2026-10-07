@@ -1,0 +1,27 @@
+import { Keyword } from "../keyword_model"
+
+export type Input = { keyword: Keyword, byte: u8 }
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+    switch (in.keyword) {
+        case Keyword.W: return match {
+            in.byte == 104 => Keyword.Wh,
+            _ => Keyword.Dead
+        }
+        case Keyword.Wh: return match {
+            in.byte == 105 => Keyword.Whi,
+            _ => Keyword.Dead
+        }
+        case Keyword.Whi: return match {
+            in.byte == 108 => Keyword.Whil,
+            _ => Keyword.Dead
+        }
+        case Keyword.Whil: return match {
+            in.byte == 101 => Keyword.While,
+            _ => Keyword.Dead
+        }
+        default: return Keyword.Dead
+    }
+}

@@ -2,8 +2,6 @@ import integers from "zig:integers"
 
 import kind from "../../../analysis/semantic/types/kind"
 import { Kind } from "../../../analysis/semantic/types/model"
-import consumption from "./consumption"
-import references from "./references"
 
 import type { Program } from "./model"
 
@@ -12,9 +10,5 @@ export type Input = Program
 export type Output = bool
 
 export default function (in: Input): Output {
-    if (kind(in.table.kinds[integers.widen(in.input_type)]) == Kind.Task || kind(in.table.kinds[integers.widen(in.output_type)]) == Kind.Task) {
-        return false
-    }
-
-    return references(in) && consumption(in)
+    return kind(in.table.kinds[integers.widen(in.input_type)]) != Kind.Task && kind(in.table.kinds[integers.widen(in.output_type)]) != Kind.Task
 }

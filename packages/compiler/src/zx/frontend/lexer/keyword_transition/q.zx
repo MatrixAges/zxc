@@ -1,0 +1,52 @@
+import { Keyword } from "../keyword_model"
+
+export type Input = { keyword: Keyword, byte: u8 }
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+    switch (in.keyword) {
+        case Keyword.Q: return match {
+            in.byte == 117 => Keyword.Qu,
+            _ => Keyword.Dead
+        }
+        case Keyword.Qu: return match {
+            in.byte == 101 => Keyword.Que,
+            _ => Keyword.Dead
+        }
+        case Keyword.Que: return match {
+            in.byte == 114 => Keyword.Quer,
+            _ => Keyword.Dead
+        }
+        case Keyword.Quer: return match {
+            in.byte == 121 => Keyword.Query,
+            _ => Keyword.Dead
+        }
+        case Keyword.Query: return match {
+            in.byte == 77 => Keyword.QueryM,
+            in.byte == 79 => Keyword.QueryO,
+            _ => Keyword.Dead
+        }
+        case Keyword.QueryM: return match {
+            in.byte == 97 => Keyword.QueryMa,
+            _ => Keyword.Dead
+        }
+        case Keyword.QueryMa: return match {
+            in.byte == 110 => Keyword.QueryMan,
+            _ => Keyword.Dead
+        }
+        case Keyword.QueryMan: return match {
+            in.byte == 121 => Keyword.QueryMany,
+            _ => Keyword.Dead
+        }
+        case Keyword.QueryO: return match {
+            in.byte == 110 => Keyword.QueryOn,
+            _ => Keyword.Dead
+        }
+        case Keyword.QueryOn: return match {
+            in.byte == 101 => Keyword.QueryOne,
+            _ => Keyword.Dead
+        }
+        default: return Keyword.Dead
+    }
+}

@@ -1,5 +1,46 @@
 <Module>
-    <Call fn="./native/exports" in={$in} />
+    <Call fn="./native/exports/owner" in={$in} />
 
-    <Return value={$ctx.exports} />
+    <Switch on={$ctx.owner != null}>
+        <Case value={true}>
+            <Call fn="./native/export_name" in={{ functions: $in.functions, index: $in.index }} />
+            <Call fn="./native/text" in={$ctx.export_name} />
+
+            <Switch on={$ctx.text}>
+                <Case value={true}>
+                    <Call fn="./native/exports/effects" in={{ members: $in.functions.native_errors[$in.index], fallible: $in.functions.native_fallible[$in.index] }} />
+
+                    <Switch on={$ctx.effects}>
+                        <Case value={true}>
+                            <Call fn="./native/exports/unoccupied" in={{ modules: $in.modules, owner: $ctx.owner, name: $ctx.export_name }} />
+
+                            <Switch on={$ctx.unoccupied}>
+                                <Case value={true}>
+                                    <Call fn="./native/exports/compatible" in={{ context: $in, owner: $ctx.owner, name: $ctx.export_name }} />
+
+                                    <Return value={$ctx.compatible} />
+                                </Case>
+
+                                <Default>
+                                    <Return value={false} />
+                                </Default>
+                            </Switch>
+                        </Case>
+
+                        <Default>
+                            <Return value={false} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
 </Module>

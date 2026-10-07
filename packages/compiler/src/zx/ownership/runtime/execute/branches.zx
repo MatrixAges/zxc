@@ -1,0 +1,169 @@
+import integers from "zig:integers"
+
+import { BinaryOperator } from "../../../ir/canonical/expressions/kinds"
+import { State } from "../../places/model"
+import apply from "../snapshots/apply"
+import drop from "../snapshots/drop"
+import { Action } from "../snapshots/model"
+import { Capture } from "../snapshots/model"
+import save from "../snapshots/save"
+import update from "../snapshots/update"
+import { WorkAction } from "../work/model"
+import pop from "../work/pop"
+import push from "../work/push"
+import top from "../work/top"
+import family from "./family"
+import { Family } from "./model"
+
+import type { Machine } from "./model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Branches,
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.BranchCondition) {
+                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                const branch = frame.subject
+
+                current.snapshots = captured.stack
+                current.work = push({ work: current.work, frame: { action: WorkAction.BranchYes, subject: frame.subject, moving: false, index: captured.frame } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: integers.widen(current.program.control.branch_yes[branch]), moving: false, index: 0 } })
+            } else if (frame.action == WorkAction.BranchYes) {
+                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                const branch = frame.subject
+
+                current.snapshots = captured.stack
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                current.work = push({ work: current.work, frame: { action: WorkAction.BranchNo, subject: frame.subject, moving: false, index: frame.index } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: integers.widen(current.program.control.branch_no[branch]), moving: false, index: 0 } })
+            } else if (frame.action == WorkAction.BranchNo) {
+                const branch = frame.subject
+
+                if (current.returns[integers.widen(current.program.control.branch_yes[branch])]) {
+                    if (current.returns[integers.widen(current.program.control.branch_no[branch])]) {
+                        current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                    }
+                } else {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index + 1, action: current.returns[integers.widen(current.program.control.branch_no[branch])] ? Action.RestoreStates : Action.MergeStates })
+                }
+
+                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+            } else if (frame.action == WorkAction.SwitchSubject) {
+                const before = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                const combined = save({ memory: current.memory, stack: before.stack, capture: Capture.States })
+
+                current.snapshots = combined.stack
+                current.work = push({ work: current.work, frame: { action: WorkAction.SwitchCase, subject: frame.subject, moving: !current.program.control.selection_exhaustive[frame.subject], index: 0 } })
+            } else if (frame.action == WorkAction.SwitchCase) {
+                const selection = frame.subject
+                const before = current.snapshots.state_first.length - 2
+
+                if (frame.index < integers.widen(current.program.control.selection_count[selection])) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before, action: Action.RestoreStates })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.SwitchResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: integers.widen(current.program.control.case_bodies[integers.widen(current.program.control.selection_first[selection]) + frame.index]), moving: false, index: 0 } })
+                } else {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before + 1, action: Action.RestoreStates })
+                    current.snapshots = drop({ stack: current.snapshots, frame: before })
+                }
+            } else if (frame.action == WorkAction.SwitchResult) {
+                const selection = frame.subject
+                const continuing = !current.returns[integers.widen(current.program.control.case_bodies[integers.widen(current.program.control.selection_first[selection]) + frame.index])]
+
+                if (continuing) {
+                    current.snapshots = update({ stack: current.snapshots, frame: current.snapshots.state_first.length - 1, states: current.memory.states, merge: frame.moving })
+                }
+
+                current.work = push({ work: current.work, frame: { action: WorkAction.SwitchCase, subject: frame.subject, moving: frame.moving || continuing, index: frame.index + 1 } })
+            } else if (frame.action == WorkAction.MatchSubject) {
+                const before = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                const combined = save({ memory: current.memory, stack: before.stack, capture: Capture.States })
+
+                current.snapshots = combined.stack
+                current.values = current.values.push(State.Owned)[0]
+                current.work = push({ work: current.work, frame: { action: WorkAction.MatchFinish, subject: frame.subject, moving: false, index: before.frame } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.MatchArm, subject: frame.subject, moving: frame.moving, index: 0 } })
+            } else if (frame.action == WorkAction.MatchArm) {
+                const selection = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                if (frame.index < integers.widen(current.program.expressions.match_count[selection])) {
+                    current.work = push({ work: current.work, frame: { action: WorkAction.MatchCondition, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.match_conditions[integers.widen(current.program.expressions.match_first[selection]) + frame.index]), moving: false, index: 0 } })
+                } else {
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.match_fallbacks[selection]), moving: frame.moving, index: 0 } })
+                }
+            } else if (frame.action == WorkAction.MatchCondition) {
+                const selection = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                current.snapshots = update({ stack: current.snapshots, frame: current.snapshots.state_first.length - 2, states: current.memory.states, merge: false })
+                current.work = push({ work: current.work, frame: { action: WorkAction.MatchResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.match_results[integers.widen(current.program.expressions.match_first[selection]) + frame.index]), moving: frame.moving, index: 0 } })
+            } else if (frame.action == WorkAction.MatchResult) {
+                if (current.value == State.Borrowed) {
+                    current.values[current.values.length - 1] = State.Borrowed
+                }
+
+                current.snapshots = update({ stack: current.snapshots, frame: current.snapshots.state_first.length - 1, states: current.memory.states, merge: frame.index != 0 })
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: current.snapshots.state_first.length - 2, action: Action.RestoreStates })
+                current.work = push({ work: current.work, frame: { action: WorkAction.MatchArm, subject: frame.subject, moving: frame.moving, index: frame.index + 1 } })
+            } else if (frame.action == WorkAction.MatchFinish) {
+                const selection = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                if (integers.widen(current.program.expressions.match_count[selection]) != 0) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index + 1, action: Action.MergeStates })
+                }
+
+                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                current.value = current.value == State.Borrowed || current.values[current.values.length - 1] == State.Borrowed ? State.Borrowed : State.Owned
+                current.values = current.values.pop()[0]
+            } else if (frame.action == WorkAction.BinaryLeft) {
+                const binary = integers.widen(current.program.expressions.payloads[frame.subject])
+                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                current.snapshots = captured.stack
+                current.values = current.values.push(current.value)[0]
+                current.work = push({ work: current.work, frame: { action: WorkAction.BinaryRight, subject: frame.subject, moving: false, index: captured.frame } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.binary_right[binary]), moving: frame.moving, index: 0 } })
+            } else if (frame.action == WorkAction.BinaryRight) {
+                const binary = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                if (current.program.expressions.binary_operators[binary] == BinaryOperator.LogicalAnd || current.program.expressions.binary_operators[binary] == BinaryOperator.LogicalOr || current.program.expressions.binary_operators[binary] == BinaryOperator.Coalesce) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.MergeStates })
+                }
+
+                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                current.value = current.value == State.Borrowed || current.values[current.values.length - 1] == State.Borrowed ? State.Borrowed : State.Owned
+                current.values = current.values.pop()[0]
+            } else if (frame.action == WorkAction.ConditionalCondition) {
+                const conditional = integers.widen(current.program.expressions.payloads[frame.subject])
+                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                current.snapshots = captured.stack
+                current.work = push({ work: current.work, frame: { action: WorkAction.ConditionalYes, subject: frame.subject, moving: frame.moving, index: captured.frame } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.conditional_yes[conditional]), moving: frame.moving, index: 0 } })
+            } else if (frame.action == WorkAction.ConditionalYes) {
+                const conditional = integers.widen(current.program.expressions.payloads[frame.subject])
+                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                current.snapshots = captured.stack
+                current.values = current.values.push(current.value)[0]
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                current.work = push({ work: current.work, frame: { action: WorkAction.ConditionalNo, subject: frame.subject, moving: false, index: frame.index } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.conditional_no[conditional]), moving: frame.moving, index: 0 } })
+            } else if (frame.action == WorkAction.ConditionalNo) {
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index + 1, action: Action.MergeStates })
+                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                current.value = current.value == State.Borrowed || current.values[current.values.length - 1] == State.Borrowed ? State.Borrowed : State.Owned
+                current.values = current.values.pop()[0]
+            }
+        }
+    })
+}

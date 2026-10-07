@@ -151,7 +151,12 @@ fn block(self: *Self, statements: ir.Block, depth: usize) std.mem.Allocator.Erro
                         return false;
                     };
 
+                    const before = self.refinement.mark();
+
+                    if (switchTruth(self.program, selection, case.value)) |truth| try self.refinement.assume(self.allocator, self.program.expressions, selection.subject, truth);
                     if (!try self.block(case.body, depth + 1)) return false;
+
+                    self.refinement.restore(before);
                 }
             },
             .store_set => |setter| {
@@ -420,4 +425,31 @@ fn same(left: @FieldType(ir.ExpressionRow, "value"), right: @FieldType(ir.Expres
         .error_value => |value| value == right.error_value,
         else => false,
     };
+}
+
+fn switchTruth(program: ir.Program, selection: @FieldType(ir.StatementRow, "switch_stmt"), value: ?ir.ExprId) ?bool {
+    if (program.expression(selection.subject).type_id != Types.scalarId(.bool)) return null;
+
+    if (value) |id| {
+        const expression_value = program.expression(id).value;
+
+        return if (expression_value == .boolean) expression_value.boolean else null;
+    }
+
+    var yes = false;
+    var no = false;
+
+    for (0..selection.cases.len) |index| {
+        const id = selection.cases.at(index).value orelse continue;
+        const expression_value = program.expression(id).value;
+
+        if (expression_value != .boolean) return null;
+
+        const truth = expression_value.boolean;
+
+        yes = yes or truth;
+        no = no or !truth;
+    }
+
+    return if (yes != no) !yes else null;
 }

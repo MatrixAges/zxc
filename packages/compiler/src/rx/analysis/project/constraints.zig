@@ -145,8 +145,15 @@ const Walker = struct {
                         _ = try inferAttribute(expression, self.module.source.path, attribute, subject);
                     }
 
+                    const facts = expression.nonnull.items.len;
+
+                    if (try @import("../condition.zig").truth(expression.graph.allocator, self.module.source.path, case.value, selection.cases)) |truth| {
+                        try @import("../condition.zig").assume(expression.graph.allocator, self.module.source.path, selection.subject, truth, expression);
+                    }
+
                     try self.steps(case.body);
 
+                    expression.nonnull.shrinkRetainingCapacity(facts);
                     expression.bindings.shrinkRetainingCapacity(count);
                 }
             },

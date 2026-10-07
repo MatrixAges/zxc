@@ -1,0 +1,74 @@
+import { Keyword } from "../keyword_model"
+
+export type Input = { keyword: Keyword, byte: u8 }
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+    switch (in.keyword) {
+        case Keyword.C: return match {
+            in.byte == 97 => Keyword.Ca,
+            in.byte == 111 => Keyword.Co,
+            _ => Keyword.Dead
+        }
+        case Keyword.Ca: return match {
+            in.byte == 110 => Keyword.Can,
+            in.byte == 115 => Keyword.Cas,
+            _ => Keyword.Dead
+        }
+        case Keyword.Can: return match {
+            in.byte == 99 => Keyword.Canc,
+            _ => Keyword.Dead
+        }
+        case Keyword.Canc: return match {
+            in.byte == 101 => Keyword.Cance,
+            _ => Keyword.Dead
+        }
+        case Keyword.Cance: return match {
+            in.byte == 108 => Keyword.Cancel,
+            _ => Keyword.Dead
+        }
+        case Keyword.Cas: return match {
+            in.byte == 101 => Keyword.Case,
+            _ => Keyword.Dead
+        }
+        case Keyword.Co: return match {
+            in.byte == 110 => Keyword.Con,
+            _ => Keyword.Dead
+        }
+        case Keyword.Con: return match {
+            in.byte == 99 => Keyword.Conc,
+            in.byte == 115 => Keyword.Cons,
+            _ => Keyword.Dead
+        }
+        case Keyword.Conc: return match {
+            in.byte == 117 => Keyword.Concu,
+            _ => Keyword.Dead
+        }
+        case Keyword.Concu: return match {
+            in.byte == 114 => Keyword.Concur,
+            _ => Keyword.Dead
+        }
+        case Keyword.Concur: return match {
+            in.byte == 114 => Keyword.Concurr,
+            _ => Keyword.Dead
+        }
+        case Keyword.Concurr: return match {
+            in.byte == 101 => Keyword.Concurre,
+            _ => Keyword.Dead
+        }
+        case Keyword.Concurre: return match {
+            in.byte == 110 => Keyword.Concurren,
+            _ => Keyword.Dead
+        }
+        case Keyword.Concurren: return match {
+            in.byte == 116 => Keyword.Concurrent,
+            _ => Keyword.Dead
+        }
+        case Keyword.Cons: return match {
+            in.byte == 116 => Keyword.Const,
+            _ => Keyword.Dead
+        }
+        default: return Keyword.Dead
+    }
+}

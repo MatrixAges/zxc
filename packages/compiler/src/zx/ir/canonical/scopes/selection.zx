@@ -1,7 +1,9 @@
+import state from "zig:flow_state"
 import integers from "zig:integers"
 
 import { Phase } from "./model"
 import schedule from "./schedule"
+import switchTruth from "./switch_truth"
 import valid from "./switch_valid"
 
 import type { Step } from "./model"
@@ -18,7 +20,10 @@ export default function (in: Input): Output {
         return false
     }
 
-    loop({ program: program, first: integers.widen(control.selection_first[in.frame.a]), index: integers.widen(control.selection_count[in.frame.a]), depth: in.frame.b + 1 }, {
+    const facts = state.factMark(program.writer)
+    const captures = state.captureMark(program.writer)
+
+    loop({ program: program, payload: in.frame.a, facts: facts, captures: captures, first: integers.widen(control.selection_first[in.frame.a]), index: integers.widen(control.selection_count[in.frame.a]), depth: in.frame.b + 1 }, {
         while: current => current.index != 0,
         next: current => {
             current.index -= 1
@@ -26,7 +31,14 @@ export default function (in: Input): Output {
             const position = current.first + current.index
             const control = current.program.body.control
 
+            const truth = switchTruth({ program: current.program, payload: current.payload, position: position })
+
+            schedule({ writer: current.program.writer, frame: { phase: Phase.RestoreFacts, a: current.facts, b: current.captures, c: 0 } })
             schedule({ writer: current.program.writer, frame: { phase: Phase.Block, a: integers.widen(control.case_bodies[position]), b: current.depth, c: 0 } })
+
+            if (truth != null) {
+                schedule({ writer: current.program.writer, frame: { phase: Phase.Assume, a: integers.widen(control.selection_subjects[current.payload]), b: truth ? 1 : 0, c: 0 } })
+            }
 
             const value = control.case_values[position]
 

@@ -28,7 +28,9 @@ pub fn argument(allocator: std.mem.Allocator, owner: []const u8, types: ir.TypeT
         for (environment, builder.bindings.items) |binding, symbol| {
             if (!std.mem.eql(u8, binding.name, capture.name)) continue;
 
-            value.* = try builder.expression(.{ .type_id = capture.type_id, .span = span, .value = .{ .reference = symbol } });
+            const reference = try builder.expression(.{ .type_id = binding.type_id, .span = span, .value = .{ .reference = symbol } });
+
+            value.* = if (binding.type_id == capture.type_id) reference else try builder.expression(.{ .type_id = capture.type_id, .span = span, .value = .{ .optional_value = reference } });
 
             break;
         } else unreachable;

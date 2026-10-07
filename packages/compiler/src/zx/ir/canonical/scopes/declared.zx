@@ -1,0 +1,19 @@
+import state from "zig:flow_state"
+
+import type { Program } from "./model"
+
+export type Input = Program
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ writer: in.writer, index: 0, count: in.body.symbols.names.length, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            current.valid = state.declared(current.writer, current.index)
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

@@ -1,5 +1,16 @@
 <Module>
-    <Call fn="./functions/program" in={$in} />
+    <Call fn="./stores/absent" in={$in.stores} />
 
-    <Return value={$ctx.program} />
+    <Switch on={$ctx.absent}>
+        <Case value={true}>
+            <Call fn="./functions/analyze" in={{ functions: $in.functions, concurrent: false }} />
+            <Call fn="./functions/calls" in={{ expressions: $in.expressions, allowed: $ctx.analyze, limit: $ctx.analyze.length, concurrent: false }} />
+
+            <Return value={$ctx.calls} />
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
 </Module>

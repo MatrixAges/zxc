@@ -1,0 +1,23 @@
+import state from "zig:flow_state"
+
+import dispatch from "./dispatch"
+import take from "./take"
+
+import type { Context } from "./model"
+
+export type Input = Context
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ context: in, valid: true }, {
+        while: current => current.valid && state.eventCount(current.context.program.writer) != 0,
+        next: current => {
+            const frame = take(current.context.program.writer)
+
+            current.valid = dispatch({ context: current.context, frame: frame })
+        }
+    })
+
+    return result.valid
+}

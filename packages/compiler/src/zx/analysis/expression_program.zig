@@ -88,6 +88,20 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
         try body.append(allocator, .{ .constant = .{ .symbol = symbol, .value = value } });
     }
 
+    if (options.nonnull_bindings.len != 0) {
+        if (!linking) return reporter.fail(.contract, span, "external branch facts require expression linking");
+
+        for (options.nonnull_bindings) |name| {
+            for (options.bindings, analyzer.expression_bindings.items) |binding, symbol| {
+                if (std.mem.eql(u8, name, binding.name)) {
+                    try analyzer.refinement.state.nonnull.append(allocator, symbol);
+
+                    break;
+                }
+            } else return reporter.fail(.contract, span, "branch fact requires a visible binding");
+        }
+    }
+
     const result = try analyzer.expression(parsed.expression, options.expected);
     const output_type = analyzer.node(result).type_id;
 

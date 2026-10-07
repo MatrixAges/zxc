@@ -1,11 +1,21 @@
 <Module>
-    <Call fn="./body/validate" in={$in} />
+    <Call module="./body/structure" in={$in} />
 
-    <Switch on={$ctx.validate}>
+    <Switch on={$ctx.structure}>
         <Case value={true}>
-            <Call fn="./body/references" in={$in.body} />
+            <Call fn="./body/references/expressions" in={$in.body} />
 
-            <Return value={$ctx.references} />
+            <Switch on={$ctx.expressions}>
+                <Case value={true}>
+                    <Call fn="./body/references/control" in={$in.body} />
+
+                    <Return value={$ctx.control} />
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
         </Case>
 
         <Default>

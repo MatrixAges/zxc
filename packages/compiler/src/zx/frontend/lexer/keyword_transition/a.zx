@@ -1,0 +1,69 @@
+import { Keyword } from "../keyword_model"
+
+export type Input = { keyword: Keyword, byte: u8 }
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+    switch (in.keyword) {
+        case Keyword.A: return match {
+            in.byte == 108 => Keyword.Al,
+            in.byte == 115 => Keyword.As,
+            in.byte == 119 => Keyword.Aw,
+            _ => Keyword.Dead
+        }
+        case Keyword.Al: return match {
+            in.byte == 108 => Keyword.All,
+            _ => Keyword.Dead
+        }
+        case Keyword.All: return match {
+            in.byte == 111 => Keyword.Allo,
+            _ => Keyword.Dead
+        }
+        case Keyword.Allo: return match {
+            in.byte == 99 => Keyword.Alloc,
+            _ => Keyword.Dead
+        }
+        case Keyword.Alloc: return match {
+            in.byte == 97 => Keyword.Alloca,
+            _ => Keyword.Dead
+        }
+        case Keyword.Alloca: return match {
+            in.byte == 116 => Keyword.Allocat,
+            _ => Keyword.Dead
+        }
+        case Keyword.Allocat: return match {
+            in.byte == 111 => Keyword.Allocato,
+            _ => Keyword.Dead
+        }
+        case Keyword.Allocato: return match {
+            in.byte == 114 => Keyword.Allocator,
+            _ => Keyword.Dead
+        }
+        case Keyword.As: return match {
+            in.byte == 121 => Keyword.Asy,
+            _ => Keyword.Dead
+        }
+        case Keyword.Asy: return match {
+            in.byte == 110 => Keyword.Asyn,
+            _ => Keyword.Dead
+        }
+        case Keyword.Asyn: return match {
+            in.byte == 99 => Keyword.Async,
+            _ => Keyword.Dead
+        }
+        case Keyword.Aw: return match {
+            in.byte == 97 => Keyword.Awa,
+            _ => Keyword.Dead
+        }
+        case Keyword.Awa: return match {
+            in.byte == 105 => Keyword.Awai,
+            _ => Keyword.Dead
+        }
+        case Keyword.Awai: return match {
+            in.byte == 116 => Keyword.Await,
+            _ => Keyword.Dead
+        }
+        default: return Keyword.Dead
+    }
+}

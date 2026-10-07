@@ -1,0 +1,43 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../expressions/kinds"
+
+import type { Program } from "./model"
+
+export type Input = { program: Program, payload: u64, position: u64 }
+
+export type Output = bool?
+
+    export default function (in: Input): Output {
+        const control = in.program.body.control
+        const expressions = in.program.body.expressions
+        const subject = integers.widen(control.selection_subjects[in.payload])
+
+        if (expressions.types[subject] != 1) {
+            return null
+        }
+
+        const value = control.case_values[in.position]
+
+        if (value != null) {
+            return expressions.booleans[integers.widen(expressions.payloads[integers.widen(value)])]
+        }
+
+        const result = loop({ control: control, expressions: expressions, first: integers.widen(control.selection_first[in.payload]), count: integers.widen(control.selection_count[in.payload]), index: 0, yes: false, no: false, valid: true }, {
+            while: current => current.valid && current.index < current.count,
+            next: current => {
+                const value = current.control.case_values[current.first + current.index]
+
+                if (value != null) {
+                    const truth = current.expressions.booleans[integers.widen(current.expressions.payloads[integers.widen(value)])]
+
+                    current.yes = current.yes || truth
+                    current.no = current.no || !truth
+                }
+
+                current.index += 1
+            }
+        })
+
+        return result.valid && result.yes != result.no ? !result.yes : null
+    }

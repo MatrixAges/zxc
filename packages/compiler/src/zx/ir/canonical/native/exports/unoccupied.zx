@@ -1,0 +1,30 @@
+import key from "../key"
+
+import type { Modules } from "../model"
+
+export type Input = { modules: Modules, owner: string, name: string }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const bindings = loop({ modules: in.modules, owner: in.owner, name: in.name, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.modules.specifiers.length,
+        next: current => {
+            if (key({ modules: current.modules, index: current.index }) == current.owner) {
+                const duplicate = loop({ names: current.modules.type_names[current.index], name: current.name, index: 0, found: false }, {
+                    while: other => !other.found && other.index < other.names.length,
+                    next: other => {
+                        other.found = other.names[other.index] == other.name
+                        other.index += 1
+                    }
+                })
+
+                current.valid = !duplicate.found
+            }
+
+            current.index += 1
+        }
+    })
+
+    return bindings.valid
+}

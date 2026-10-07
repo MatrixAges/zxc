@@ -1,5 +1,15 @@
 <Module>
-    <Call fn="./contracts/validate" in={$in} />
+    <Call module="./contract_tables_check" in={{ contracts: $in.contracts, max_offset: $in.max_offset }} />
 
-    <Return value={$ctx.validate} />
+    <Switch on={$ctx.contract_tables_check}>
+        <Case value={true}>
+            <Call fn="./contracts/predicates" in={$in} />
+
+            <Return value={$ctx.predicates} />
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
 </Module>

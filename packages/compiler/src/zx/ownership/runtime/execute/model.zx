@@ -1,0 +1,28 @@
+import type { Program } from "../../ir/input_model"
+import type { Built } from "../../layout/model"
+import type { State } from "../../places/model"
+import type { Memory } from "../model"
+import type { Stack } from "../snapshots/model"
+import type { Work } from "../work/model"
+
+export enum Family { Statements, Values, Callbacks, Branches, Calls, Collections, Objects, Scope, Tasks, Expression, Invalid }
+
+export type Machine = {
+    program: Program
+    references: bool[]
+    returns: bool[]
+    layout: Built
+
+    memory: Memory
+    snapshots: Stack
+    work: Work
+
+    value: State
+    values: State[]
+    returned: State
+    stores_owned: bool
+    failed: bool
+    complete: bool
+    expression: u64
+    active: bool
+}

@@ -1,0 +1,50 @@
+import { Keyword } from "../keyword_model"
+
+export type Input = { keyword: Keyword, byte: u8 }
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+    switch (in.keyword) {
+        case Keyword.I: return match {
+            in.byte == 102 => Keyword.If,
+            in.byte == 109 => Keyword.Im,
+            in.byte == 110 => Keyword.In,
+            in.byte == 111 => Keyword.Io,
+            _ => Keyword.Dead
+        }
+        case Keyword.Im: return match {
+            in.byte == 112 => Keyword.Imp,
+            _ => Keyword.Dead
+        }
+        case Keyword.Imp: return match {
+            in.byte == 111 => Keyword.Impo,
+            _ => Keyword.Dead
+        }
+        case Keyword.Impo: return match {
+            in.byte == 114 => Keyword.Impor,
+            _ => Keyword.Dead
+        }
+        case Keyword.Impor: return match {
+            in.byte == 116 => Keyword.Import,
+            _ => Keyword.Dead
+        }
+        case Keyword.In: return match {
+            in.byte == 115 => Keyword.Ins,
+            _ => Keyword.Dead
+        }
+        case Keyword.Ins: return match {
+            in.byte == 101 => Keyword.Inse,
+            _ => Keyword.Dead
+        }
+        case Keyword.Inse: return match {
+            in.byte == 114 => Keyword.Inser,
+            _ => Keyword.Dead
+        }
+        case Keyword.Inser: return match {
+            in.byte == 116 => Keyword.Insert,
+            _ => Keyword.Dead
+        }
+        default: return Keyword.Dead
+    }
+}

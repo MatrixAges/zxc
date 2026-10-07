@@ -11,13 +11,16 @@ graph: *Graph,
 input: Graph.Id,
 input_used: bool = false,
 bindings: std.ArrayList(Binding) = .empty,
+nonnull: std.ArrayList([]const u8) = .empty,
 attribute: rx.ast.Attribute,
 span_offset: usize = 0,
 pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Graph.Id {
     const node = syntax.value(expression);
     const span = self.sourceSpan(expression.span);
 
-    if (try self.lookup(expression)) |binding| {
+    if (try self.lookup(expression)) |original| {
+        const binding = try self.refined(expression, original);
+
         try self.graph.requireValue(binding, span);
         if (expected) |hint| try self.graph.expect(binding, hint, span);
 
@@ -94,9 +97,11 @@ pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Gra
         .call, .lambda, .state_block, .capture, .task, .await_task, .cancel_task => return self.graph.reporter.fail(.unsupported, span, @import("../value_rules.zig").message),
     };
 
-    if (expected) |target| try self.graph.expect(value, target, span);
+    const narrowed = try self.refined(expression, value);
 
-    return expected orelse value;
+    if (expected) |target| try self.graph.expect(narrowed, target, span);
+
+    return expected orelse narrowed;
 }
 
 pub fn payload(self: *Self, expected: ?Graph.Id) zx.Error!?Graph.Id {
@@ -140,7 +145,7 @@ fn lookup(self: *Self, expression: anytype) zx.Error!?Graph.Id {
     defer candidates.deinit(self.graph.allocator);
 
     for (self.bindings.items) |binding| {
-        if (!matches(expression, binding.name) or @import("bindings.zig").isVoid(self.graph, binding.value)) continue;
+        if (!@import("../condition.zig").matches(expression, binding.name) or @import("bindings.zig").isVoid(self.graph, binding.value)) continue;
 
         if (selected) |previous| {
             if (candidates.items.len == 0) try candidates.append(self.graph.allocator, previous);
@@ -155,13 +160,24 @@ fn lookup(self: *Self, expression: anytype) zx.Error!?Graph.Id {
     return try @import("bindings.zig").lookup(self.graph, candidates.items, self.sourceSpan(expression.span));
 }
 
-fn matches(expression: anytype, name: []const u8) bool {
-    const node = syntax.value(expression);
+pub fn assumeNonNull(self: *Self, expression: anytype) zx.Error!void {
+    const matches = @import("../condition.zig").matches;
 
-    if (node == .identifier) return std.mem.eql(u8, node.identifier.text, name);
-    if (node != .field) return false;
+    if (matches(expression, "$in")) {
+        try self.nonnull.append(self.graph.allocator, "$in");
 
-    const separator = std.mem.lastIndexOfScalar(u8, name, '.') orelse return false;
+        return;
+    }
 
-    return std.mem.eql(u8, node.field.name.text, name[separator + 1 ..]) and matches(node.field.target, name[0..separator]);
+    for (self.bindings.items) |binding| {
+        if (matches(expression, binding.name)) try self.nonnull.append(self.graph.allocator, binding.name);
+    }
+}
+
+fn refined(self: *Self, expression: anytype, value: Graph.Id) zx.Error!Graph.Id {
+    for (self.nonnull.items) |name| {
+        if (@import("../condition.zig").matches(expression, name)) return @import("non_null.zig").read(self.graph, value, self.sourceSpan(expression.span));
+    }
+
+    return value;
 }

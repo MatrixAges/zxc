@@ -8,9 +8,16 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
     const node = branch.node;
     const allocator = parent.allocator;
     const captures = try allocator.dupe(frontend.expressions.Binding, parent.bindings.items);
+    const environment = parent.bindings.items;
     const children = try allocator.alloc(zx.ir.TypeId, captures.len);
 
-    for (captures, children) |capture, *child| child.* = capture.type_id;
+    for (captures, children) |*capture, *child| {
+        child.* = capture.type_id;
+
+        const target_type = parent.types.at(@backingInt(capture.type_id));
+
+        if (parent.isNonNull(capture.name) and target_type == .optional) capture.type_id = target_type.optional;
+    }
 
     var reporter: zx.Reporter = .{};
     var types = frontend.types{ .allocator = allocator, .reporter = &reporter, .declarations = &.{} };
@@ -94,7 +101,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     if (try frontend.validateIr(allocator, program)) |issue| return failure(parent, node, issue);
 
-    const argument = try @import("program/capture.zig").argument(allocator, parent.owner, parent.types, environment_type, captures, input_type, selected, .{ .start = node.location.offset, .end = node.location.offset });
+    const argument = try @import("program/capture.zig").argument(allocator, parent.owner, parent.types, environment_type, environment, input_type, selected, .{ .start = node.location.offset, .end = node.location.offset });
     var out: ?[]const u8 = null;
     const binding = parent.results[parent.next_binding];
 

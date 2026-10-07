@@ -1,0 +1,66 @@
+import { Keyword } from "../keyword_model"
+
+export type Input = { keyword: Keyword, byte: u8 }
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+    switch (in.keyword) {
+        case Keyword.D: return match {
+            in.byte == 101 => Keyword.De,
+            in.byte == 111 => Keyword.Do,
+            _ => Keyword.Dead
+        }
+        case Keyword.De: return match {
+            in.byte == 99 => Keyword.Dec,
+            in.byte == 102 => Keyword.Def,
+            in.byte == 108 => Keyword.Del,
+            _ => Keyword.Dead
+        }
+        case Keyword.Dec: return match {
+            in.byte == 108 => Keyword.Decl,
+            _ => Keyword.Dead
+        }
+        case Keyword.Decl: return match {
+            in.byte == 97 => Keyword.Decla,
+            _ => Keyword.Dead
+        }
+        case Keyword.Decla: return match {
+            in.byte == 114 => Keyword.Declar,
+            _ => Keyword.Dead
+        }
+        case Keyword.Declar: return match {
+            in.byte == 101 => Keyword.Declare,
+            _ => Keyword.Dead
+        }
+        case Keyword.Def: return match {
+            in.byte == 97 => Keyword.Defa,
+            _ => Keyword.Dead
+        }
+        case Keyword.Defa: return match {
+            in.byte == 117 => Keyword.Defau,
+            _ => Keyword.Dead
+        }
+        case Keyword.Defau: return match {
+            in.byte == 108 => Keyword.Defaul,
+            _ => Keyword.Dead
+        }
+        case Keyword.Defaul: return match {
+            in.byte == 116 => Keyword.Default,
+            _ => Keyword.Dead
+        }
+        case Keyword.Del: return match {
+            in.byte == 101 => Keyword.Dele,
+            _ => Keyword.Dead
+        }
+        case Keyword.Dele: return match {
+            in.byte == 116 => Keyword.Delet,
+            _ => Keyword.Dead
+        }
+        case Keyword.Delet: return match {
+            in.byte == 101 => Keyword.Delete,
+            _ => Keyword.Dead
+        }
+        default: return Keyword.Dead
+    }
+}

@@ -1,0 +1,13 @@
+<Module>
+    <Call fn="../control/terminates" in={$in.body.control} />
+
+    <Task name="pure" out={$ctx.conditional}>
+        <Call module="../functions/conditional" in={{ functions: $in.functions, concurrent: false, enabled: $in.body.control.parallel_first.length != 0 }} />
+    </Task>
+
+    <Task name="concurrent" out={$ctx.conditional}>
+        <Call module="../functions/conditional" in={{ functions: $in.functions, concurrent: true, enabled: $in.body.expressions.task_bodies.length != 0 }} />
+    </Task>
+
+    <Return value={{ returns: $ctx.terminates, pure: $ctx.task.pure, concurrent: $ctx.task.concurrent }} />
+</Module>

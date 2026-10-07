@@ -1,5 +1,25 @@
 <Module>
-    <Call fn="./tasks/validate" in={$in} />
+    <Call fn="./tasks/interface" in={$in} />
 
-    <Return value={$ctx.validate} />
+    <Switch on={$ctx.interface}>
+        <Case value={true}>
+            <Call fn="./tasks/references" in={$in} />
+
+            <Switch on={$ctx.references}>
+                <Case value={true}>
+                    <Call fn="./tasks/consumption" in={$in} />
+
+                    <Return value={$ctx.consumption} />
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
 </Module>

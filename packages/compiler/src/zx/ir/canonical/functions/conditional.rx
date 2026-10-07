@@ -1,0 +1,13 @@
+<Module>
+    <Switch on={$in.enabled}>
+        <Case value={true}>
+            <Call fn="./analyze" in={{ functions: $in.functions, concurrent: $in.concurrent }} />
+
+            <Return value={$ctx.analyze} />
+        </Case>
+
+        <Default>
+            <Return value={[]} />
+        </Default>
+    </Switch>
+</Module>

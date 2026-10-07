@@ -1,0 +1,66 @@
+import { Keyword } from "../keyword_model"
+
+export type Input = { keyword: Keyword, byte: u8 }
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+    switch (in.keyword) {
+        case Keyword.E: return match {
+            in.byte == 108 => Keyword.El,
+            in.byte == 110 => Keyword.En,
+            in.byte == 120 => Keyword.Ex,
+            _ => Keyword.Dead
+        }
+        case Keyword.El: return match {
+            in.byte == 115 => Keyword.Els,
+            _ => Keyword.Dead
+        }
+        case Keyword.Els: return match {
+            in.byte == 101 => Keyword.Else,
+            _ => Keyword.Dead
+        }
+        case Keyword.En: return match {
+            in.byte == 115 => Keyword.Ens,
+            in.byte == 117 => Keyword.Enu,
+            _ => Keyword.Dead
+        }
+        case Keyword.Ens: return match {
+            in.byte == 117 => Keyword.Ensu,
+            _ => Keyword.Dead
+        }
+        case Keyword.Ensu: return match {
+            in.byte == 114 => Keyword.Ensur,
+            _ => Keyword.Dead
+        }
+        case Keyword.Ensur: return match {
+            in.byte == 101 => Keyword.Ensure,
+            _ => Keyword.Dead
+        }
+        case Keyword.Ensure: return match {
+            in.byte == 115 => Keyword.Ensures,
+            _ => Keyword.Dead
+        }
+        case Keyword.Enu: return match {
+            in.byte == 109 => Keyword.Enum,
+            _ => Keyword.Dead
+        }
+        case Keyword.Ex: return match {
+            in.byte == 112 => Keyword.Exp,
+            _ => Keyword.Dead
+        }
+        case Keyword.Exp: return match {
+            in.byte == 111 => Keyword.Expo,
+            _ => Keyword.Dead
+        }
+        case Keyword.Expo: return match {
+            in.byte == 114 => Keyword.Expor,
+            _ => Keyword.Dead
+        }
+        case Keyword.Expor: return match {
+            in.byte == 116 => Keyword.Export,
+            _ => Keyword.Dead
+        }
+        default: return Keyword.Dead
+    }
+}
