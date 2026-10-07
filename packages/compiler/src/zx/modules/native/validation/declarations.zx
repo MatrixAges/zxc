@@ -1,0 +1,26 @@
+import checkName from "lint/naming"
+import { NameKind } from "lint/naming/model"
+
+import text from "../../../analysis/semantic/resolving/source/text"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = loop({ input: in, index: 0, code: "", message: "", start: 0, end: 0 }, {
+        while: current => current.message == "" && current.index < current.input.declarations.length,
+        next: current => {
+            const name = text({ source: current.input.source, span: current.input.declarations[current.index].name })
+
+            if (!checkName({ name: name.text, kind: NameKind.TypeDecl })) {
+                current.code = "naming"
+                current.message = "type names must use PascalCase"
+                current.start = name.start
+                current.end = name.end
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { code: result.code, message: result.message, start: result.start, end: result.end }
+}

@@ -1,0 +1,36 @@
+import encoding from "std:encoding"
+import integers from "zig:integers"
+
+export type Input = { slots: string?[], name: string }
+
+export type Output = { index: u64, found: bool }
+
+export default function (in: Input): Output {
+    const bytes = encoding.encodeUtf8(in.name)
+
+    const hashed = loop({ bytes: bytes, index: 0, value: 0 }, {
+        while: current => current.index < current.bytes.length,
+        next: current => {
+            current.value = (current.value * 131 + integers.widenByte(current.bytes[current.index])) % 4294967291
+            current.index += 1
+        }
+    })
+
+    const result = loop({ slots: in.slots, name: in.name, index: hashed.value % in.slots.length, active: true, found: false }, {
+        while: current => current.active,
+        next: current => {
+            const name = current.slots[current.index]
+
+            if (name == null) {
+                current.active = false
+            } else if (name == current.name) {
+                current.found = true
+                current.active = false
+            } else {
+                current.index = current.index + 1 == current.slots.length ? 0 : current.index + 1
+            }
+        }
+    })
+
+    return { index: result.index, found: result.found }
+}

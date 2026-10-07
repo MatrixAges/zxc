@@ -26,11 +26,17 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!*const 
         _ = self.stack_symbols.remove(symbol);
     };
 
-    if (layout and analysis.flat(self.program, self.program.expression(scope.result).type_id)) {
+    const flat = layout and analysis.flat(self.program, self.program.expression(scope.result).type_id);
+    const projected = self.state_active and self.value_output;
+
+    if (projected and self.projected_symbols == null) self.projected_symbols = try @import("value_call/projections.zig").symbols(self.allocator, self.program);
+
+    if (flat or projected) {
         for (0..scope.bindings.len) |record_index| {
             const binding = scope.bindings.at(record_index);
 
             if (binding.symbol) |symbol| {
+                if (!flat and !self.projected_symbols.?[@backingInt(symbol)]) continue;
                 if (@import("state_value/root.zig").selected(self, self.program.symbols.at(@backingInt(symbol)).type_id)) continue;
                 if (!analysis.flat(self.program, self.program.symbols.at(@backingInt(symbol)).type_id) or self.stack_symbols.contains(symbol)) continue;
                 try stacked.append(self.allocator, symbol);

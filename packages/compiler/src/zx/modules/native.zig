@@ -50,7 +50,7 @@ fn analyze(arena: *std.heap.ArenaAllocator, entry: Native, module: ir.NativeModu
             .types = .{ .source = entry.source, .storage = output },
         };
 
-        try @import("native/validate.zig").check(scratch.allocator(), view, reporter);
+        try @import("native/validate.zig").check(&scratch, view, reporter);
 
         return analyzeView(arena, entry, module, existing, origins, reporter, view);
     }

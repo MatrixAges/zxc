@@ -1,0 +1,44 @@
+import checkName from "lint/naming"
+import { NameKind } from "lint/naming/model"
+
+import text from "../../../analysis/semantic/resolving/source/text"
+import slot from "./slot"
+import slots from "./slots"
+
+import type { Native, Output } from "./model"
+
+export type Input = { native: Native, first: u64, count: u64, parameter: bool }
+
+export default function (in: Input): Output {
+    const result = loop({ input: in, index: 0, slots: slots(in.count), code: "", message: "", start: 0, end: 0 }, {
+        while: current => current.message == "" && current.index < current.input.count,
+        next: current => {
+            const position = current.input.first + current.index
+            const span = current.input.parameter ? current.input.native.parameters[position].name : current.input.native.errors[position]
+            const name = text({ source: current.input.native.source, span: span })
+            const kind = current.input.parameter ? NameKind.Value : NameKind.TypeDecl
+
+            if (!checkName({ name: name.text, kind: kind })) {
+                current.code = "naming"
+                current.message = current.input.parameter ? "parameter names must use snake_case" : "error names must use PascalCase"
+                current.start = name.start
+                current.end = name.end
+            } else {
+                const selected = slot({ slots: current.slots, name: name.text })
+
+                if (selected.found) {
+                    current.code = "name"
+                    current.message = current.input.parameter ? "duplicate native parameter name" : "duplicate native error name"
+                    current.start = name.start
+                    current.end = name.end
+                } else {
+                    current.slots[selected.index] = name.text
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { code: result.code, message: result.message, start: result.start, end: result.end }
+}

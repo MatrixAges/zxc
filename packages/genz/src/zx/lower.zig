@@ -44,6 +44,7 @@ allocated_functions: []const bool = &.{},
 local_functions: []const bool = &.{},
 value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
+projected_symbols: ?[]const bool = null,
 iteration_value: ?*@import("iteration_value/root.zig") = null,
 uses_context: bool = false,
 uses_parallel: bool = false,
@@ -139,6 +140,7 @@ pub fn functionValue(self: *Self, name: []const u8) Error!node.Declaration {
 }
 
 pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declaration {
+    self.projected_symbols = null;
     self.uses_allocator = false;
     self.uses_context = false;
     self.uses_io = false;
@@ -297,6 +299,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!*const node.Expression {
 
             if (self.state_active and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").invocation(self, invocation, null);
             if (!self.state_active and self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
+            if (self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and @import("value_call/fresh.zig").check(callee_function.expressions, callee_function.body.block())) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
 
             const scalar = switch (self.program.typeOf(callee_function.output_type)) {
                 .scalar, .enumeration, .error_set => true,

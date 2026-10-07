@@ -40,7 +40,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
     const local_calls = pure or try layout_analysis.eligible(self.allocator, self.program, iteration, self.local_functions);
     const selected_call = try @import("buffer_call/iteration.zig").candidate(self, iteration);
     const type_id = self.program.expression(id).type_id;
-    const selected_state = self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null or (mode != .reference and pure));
+    const selected_state = self.state_plan.represented(self.program, type_id) and (self.state_active or selected_call != null or (mode != .reference and local_calls));
     const layout = selected_state or selected_call != null or (local_calls and layout_analysis.flat(self.program, type_id));
     const by_value = mode != .reference and layout;
 

@@ -106,6 +106,9 @@ fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @F
     if (state_callee and !self.state_active) {
         result = try aggregate.bind(self, body, result);
         result = try @import("../state_value/conversion.zig").convert(self, body, function.output_type, result, result_mode);
+    } else if (!state_callee and result_mode == .pointer) {
+        result = try aggregate.bind(self, body, result);
+        result = try self.construct(function.output_type, result);
     }
 
     return result;

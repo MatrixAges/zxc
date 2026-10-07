@@ -1,0 +1,43 @@
+{
+    "生成路径": ".zig-cache/o/ff8431a9f26aa6877520525b620ecfef/native_validation.zig",
+    "sha256": "feb4e586a053395a5be0bd5373f9209e575029af4b7cdea20fc14d23aac8c125",
+    "最终源码边界": "scope.result 一律观察，禁止将局部记录根地址带出块后读取。",
+    "实际入口": ["execute -> function_8_value", "execute -> function_23_value -> function_22_value"],
+    "值函数": {
+        "function_8_value": {
+            "首行": 692,
+            "create行": [907],
+            "create性质": "只存在输入 origin 非空时不执行的 ABI 转换分支；初始 origin 来自函数输入指针，全部循环步骤保留 input。"
+        },
+        "function_22_value": {
+            "首行": 1931,
+            "create行": [2244, 2247],
+            "create性质": "只存在输入 origin 非空时不执行的 ABI 转换分支；初始 origin 来自函数输入指针，全部循环步骤保留 input。"
+        },
+        "function_23_value": {
+            "首行": 2724,
+            "create行": [3101],
+            "create性质": "只存在输入 origin 非空时不执行的 ABI 转换分支；初始 origin 来自函数输入指针，全部循环步骤保留 input。"
+        }
+    },
+    "槽表转交": [
+        {
+            "行": 1876,
+            "代码": "state_items_19 = @constCast(operand_90);"
+        },
+        {
+            "行": 2212,
+            "代码": "state_items_143 = @constCast(operand_215);"
+        },
+        {
+            "行": 2576,
+            "代码": "state_items_19 = @constCast(operand_127);"
+        },
+        {
+            "行": 2988,
+            "代码": "state_items_177 = @constCast(operand_283);"
+        }
+    ],
+    "稳定ABI结果": "execute 为 RX 接口分配根 Diagnostic；声明失败时1个，继续函数校验时2个。",
+    "限定": "逐轮状态、Name、逐项Diagnostic不再堆分配；不是整个函数零分配，槽表本身仍需语义要求的存储。"
+}

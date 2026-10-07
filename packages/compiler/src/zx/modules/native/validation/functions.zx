@@ -1,0 +1,49 @@
+import checkName from "lint/naming"
+import { NameKind } from "lint/naming/model"
+
+import text from "../../../analysis/semantic/resolving/source/text"
+import members from "./members"
+import slot from "./slot"
+import slots from "./slots"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    const result = loop({ input: in, index: 0, slots: slots(in.functions.length), code: "", message: "", start: 0, end: 0 }, {
+        while: current => current.message == "" && current.index < current.input.functions.length,
+        next: current => {
+            const declaration = current.input.functions[current.index]
+            const name = text({ source: current.input.source, span: declaration.name })
+
+            if (!checkName({ name: name.text, kind: NameKind.Callable })) {
+                current.code = "naming"
+                current.message = "function names must use camelCase"
+                current.start = name.start
+                current.end = name.end
+            } else {
+                const selected = slot({ slots: current.slots, name: name.text })
+
+                if (selected.found) {
+                    current.code = "name"
+                    current.message = "duplicate native function declaration"
+                    current.start = name.start
+                    current.end = name.end
+                } else {
+                    current.slots[selected.index] = name.text
+
+                    const parameters = members({ native: current.input, first: declaration.first_parameter, count: declaration.count, parameter: true })
+                    const diagnostic = parameters.message == "" ? members({ native: current.input, first: declaration.first_error, count: declaration.error_count, parameter: false }) : parameters
+
+                    current.code = diagnostic.code
+                    current.message = diagnostic.message
+                    current.start = diagnostic.start
+                    current.end = diagnostic.end
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { code: result.code, message: result.message, start: result.start, end: result.end }
+}

@@ -23,7 +23,7 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
         .call => |invocation| {
             const function = self.program.functions.at(@backingInt(invocation.function));
 
-            if (!self.value_functions[@backingInt(invocation.function)] or !fresh(function.expressions, function.body.block())) return existing(self, body, id);
+            if (!self.value_functions[@backingInt(invocation.function)] or !@import("fresh.zig").check(function.expressions, function.body.block())) return existing(self, body, id);
 
             const argument = try borrow(self, body, invocation.argument);
             const cached = self.cache.get(invocation.argument);
@@ -110,30 +110,4 @@ fn existing(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) L
     const bound = try aggregate.bind(self, body, value);
 
     return @import("../state_value/conversion.zig").convert(self, body, type_id, bound, .borrow);
-}
-
-fn fresh(expressions: ir.ExpressionTable, statements: ir.Block) bool {
-    for (0..statements.len) |statement_index| {
-        const statement = statements.at(statement_index);
-
-        switch (statement) {
-            .result => |result| {
-                const id = result orelse return false;
-
-                switch (expressions.at(@backingInt(id)).value) {
-                    .object, .tuple => {},
-                    else => return false,
-                }
-            },
-            .branch => |branch| if (!fresh(expressions, branch.yes) or !fresh(expressions, branch.no)) return false,
-            .switch_stmt => |selection| for (0..selection.cases.len) |case_index| {
-                const case = selection.cases.at(case_index);
-
-                if (!fresh(expressions, case.body)) return false;
-            },
-            else => {},
-        }
-    }
-
-    return true;
 }

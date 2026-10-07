@@ -1,0 +1,10 @@
+import type { Diagnostic } from "../../../frontend/lexer/model"
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Declaration } from "../../../frontend/parser/declarations/model"
+import type { Function, Parameter } from "../../../frontend/parser/native/model"
+
+export type Native = { source: u8[], declarations: Declaration[], functions: Function[], parameters: Parameter[], errors: Span[] }
+
+export type Input = Native
+
+export type Output = Diagnostic
