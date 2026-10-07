@@ -1,0 +1,31 @@
+export type Input = { left: f64, right: f64, shape: u8 }
+
+export type Output = { scalar: f64, field: f64, element: f64 }
+
+export default function (in: Input): Output {
+    const initial = { scalar: in.left, box: { value: in.left }, values: [in.left], right: in.right, round: 0, shape: in.shape }
+
+    const result = loop(initial, {
+        while: state => state.round < 1,
+        next: state => {
+            switch (state.shape) {
+                case 6:
+                    state.scalar-= state.right
+                    state.box.value-= state.right
+                    state.values[0]-= state.right
+                case 7:
+                    state.scalar -=state.right
+                    state.box.value -=state.right
+                    state.values[0] -=state.right
+                case 8:
+                    state.scalar-=state.right
+                    state.box.value-=state.right
+                    state.values[0]-=state.right
+            }
+
+            state.round += 1
+        }
+    })
+
+    return { scalar: result.scalar, field: result.box.value, element: result.values[0] }
+}

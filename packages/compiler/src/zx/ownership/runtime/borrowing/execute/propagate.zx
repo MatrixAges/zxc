@@ -1,0 +1,58 @@
+import combine from "../../../places/combine"
+import { State } from "../../../places/model"
+import { Phase } from "./model"
+
+import type { Session } from "./model"
+
+export type Input = Session
+
+export type Output = Session
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && (current.phase == Phase.Enter || current.phase == Phase.Leave || current.phase == Phase.Parents || current.phase == Phase.Advance),
+        next: current => {
+            if (current.phase == Phase.Enter) {
+                const state = current.states[current.node]
+                const child = current.layout.tree.children[current.node]
+
+                if (state == State.Owned || (current.permanent && state == State.Loaned)) {
+                    current.states[current.node] = current.permanent ? State.Borrowed : State.Loaned
+                }
+
+                if (child == 0) {
+                    current.phase = Phase.Leave
+                } else {
+                    current.node = child - 1
+                }
+            } else if (current.phase == Phase.Leave) {
+                current.ancestor = current.layout.tree.parents[current.node]
+                current.propagated = current.states[current.node]
+                current.phase = Phase.Parents
+            } else if (current.phase == Phase.Parents) {
+                if (current.ancestor == 0) {
+                    current.phase = Phase.Advance
+                } else {
+                    const parent = current.ancestor - 1
+
+                    current.states[parent] = combine({ left: current.states[parent], right: current.propagated })
+                    current.ancestor = current.layout.tree.parents[parent]
+                }
+            } else if (current.phase == Phase.Advance) {
+                if (current.node == current.root) {
+                    current.phase = Phase.Done
+                } else {
+                    const sibling = current.layout.tree.siblings[current.node]
+
+                    if (sibling == 0) {
+                        current.node = current.layout.tree.parents[current.node] - 1
+                        current.phase = Phase.Leave
+                    } else {
+                        current.node = sibling - 1
+                        current.phase = Phase.Enter
+                    }
+                }
+            }
+        }
+    })
+}

@@ -1,103 +1,38 @@
+import tab from "./remainder/tab"
+import verticalTab from "./remainder/vertical_tab"
+import formFeed from "./remainder/form_feed"
+import space from "./remainder/space"
+import lineFeed from "./remainder/line_feed"
+import carriageReturn from "./remainder/carriage_return"
+
 export type Input = { left: f64, right: f64, shape: u8 }
 
 export type Output = { scalar: f64, field: f64, element: f64 }
 
 export default function (in: Input): Output {
-    const initial = { scalar: in.left, box: { value: in.left }, values: [in.left], right: in.right, round: 0, shape: in.shape }
+    if (in.shape >= 0 && in.shape < 3) {
+        return tab(in)
+    }
 
-    const result = loop(initial, {
-        while: state => state.round < 1,
-        next: state => {
-            switch (state.shape) {
-                case 0:
-                    state.scalar	%= state.right
-                    state.box.value	%= state.right
-                    state.values[0]	%= state.right
-                case 1:
-                    state.scalar %=	state.right
-                    state.box.value %=	state.right
-                    state.values[0] %=	state.right
-                case 2:
-                    state.scalar	%=	state.right
-                    state.box.value	%=	state.right
-                    state.values[0]	%=	state.right
-                case 3:
-                    state.scalar%= state.right
-                    state.box.value%= state.right
-                    state.values[0]%= state.right
-                case 4:
-                    state.scalar %=state.right
-                    state.box.value %=state.right
-                    state.values[0] %=state.right
-                case 5:
-                    state.scalar%=state.right
-                    state.box.value%=state.right
-                    state.values[0]%=state.right
-                case 6:
-                    state.scalar%= state.right
-                    state.box.value%= state.right
-                    state.values[0]%= state.right
-                case 7:
-                    state.scalar %=state.right
-                    state.box.value %=state.right
-                    state.values[0] %=state.right
-                case 8:
-                    state.scalar%=state.right
-                    state.box.value%=state.right
-                    state.values[0]%=state.right
-                case 9:
-                    state.scalar %= state.right
-                    state.box.value %= state.right
-                    state.values[0] %= state.right
-                case 10:
-                    state.scalar %= state.right
-                    state.box.value %= state.right
-                    state.values[0] %= state.right
-                case 11:
-                    state.scalar %= state.right
-                    state.box.value %= state.right
-                    state.values[0] %= state.right
-                case 12:
-                    state.scalar
-%= state.right
-                    state.box.value
-%= state.right
-                    state.values[0]
-%= state.right
-                case 13:
-                    state.scalar %=
-state.right
-                    state.box.value %=
-state.right
-                    state.values[0] %=
-state.right
-                case 14:
-                    state.scalar
-%=
-state.right
-                    state.box.value
-%=
-state.right
-                    state.values[0]
-%=
-state.right
-                case 15:
-                    state.scalar%= state.right
-                    state.box.value%= state.right
-                    state.values[0]%= state.right
-                case 16:
-                    state.scalar %=state.right
-                    state.box.value %=state.right
-                    state.values[0] %=state.right
-                case 17:
-                    state.scalar%=state.right
-                    state.box.value%=state.right
-                    state.values[0]%=state.right
-            }
+    if (in.shape >= 3 && in.shape < 6) {
+        return verticalTab(in)
+    }
 
-            state.round += 1
-        }
-    })
+    if (in.shape >= 6 && in.shape < 9) {
+        return formFeed(in)
+    }
 
-    return { scalar: result.scalar, field: result.box.value, element: result.values[0] }
+    if (in.shape >= 9 && in.shape < 12) {
+        return space(in)
+    }
+
+    if (in.shape >= 12 && in.shape < 15) {
+        return lineFeed(in)
+    }
+
+    if (in.shape >= 15 && in.shape < 18) {
+        return carriageReturn(in)
+    }
+
+    return { scalar: in.left, field: in.left, element: in.left }
 }

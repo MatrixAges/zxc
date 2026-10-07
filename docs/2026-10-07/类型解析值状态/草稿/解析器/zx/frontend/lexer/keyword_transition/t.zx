@@ -1,0 +1,81 @@
+export type Input = { state: u64, byte: u8 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    switch (in.state) {
+        case 184: return match {
+            in.byte == 104 => 185,
+            in.byte == 114 => 190,
+            in.byte == 121 => 203,
+            _ => 1
+        }
+        case 185: return match {
+            in.byte == 114 => 186,
+            _ => 1
+        }
+        case 186: return match {
+            in.byte == 111 => 187,
+            _ => 1
+        }
+        case 187: return match {
+            in.byte == 119 => 188,
+            _ => 1
+        }
+        case 188: return match {
+            in.byte == 115 => 189,
+            _ => 1
+        }
+        case 190: return match {
+            in.byte == 97 => 191,
+            in.byte == 117 => 200,
+            in.byte == 121 => 202,
+            _ => 1
+        }
+        case 191: return match {
+            in.byte == 110 => 192,
+            _ => 1
+        }
+        case 192: return match {
+            in.byte == 115 => 193,
+            _ => 1
+        }
+        case 193: return match {
+            in.byte == 97 => 194,
+            _ => 1
+        }
+        case 194: return match {
+            in.byte == 99 => 195,
+            _ => 1
+        }
+        case 195: return match {
+            in.byte == 116 => 196,
+            _ => 1
+        }
+        case 196: return match {
+            in.byte == 105 => 197,
+            _ => 1
+        }
+        case 197: return match {
+            in.byte == 111 => 198,
+            _ => 1
+        }
+        case 198: return match {
+            in.byte == 110 => 199,
+            _ => 1
+        }
+        case 200: return match {
+            in.byte == 101 => 201,
+            _ => 1
+        }
+        case 203: return match {
+            in.byte == 112 => 204,
+            _ => 1
+        }
+        case 204: return match {
+            in.byte == 101 => 205,
+            _ => 1
+        }
+        default: return 1
+    }
+}

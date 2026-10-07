@@ -1,428 +1,68 @@
+import integerDigit from "./累计数值程序/integer_digit"
+import integerDecimal2Digits from "./累计数值程序/integer_decimal_2_digits"
+import integerLowerExponentUnsigned from "./累计数值程序/integer_lower_exponent_unsigned"
+import integerUpperExponentUnsigned from "./累计数值程序/integer_upper_exponent_unsigned"
+import integerLowerExponentNegative from "./累计数值程序/integer_lower_exponent_negative"
+import integerUpperExponentNegative from "./累计数值程序/integer_upper_exponent_negative"
+import integerLowerExponentPositive from "./累计数值程序/integer_lower_exponent_positive"
+import integerUpperExponentPositive from "./累计数值程序/integer_upper_exponent_positive"
+import fraction from "./累计数值程序/fraction"
+import fractionExponentUnsigned from "./累计数值程序/fraction_exponent_unsigned"
+import fractionExponentNegative from "./累计数值程序/fraction_exponent_negative"
+import fractionExponentPositive from "./累计数值程序/fraction_exponent_positive"
+
 export type Input = u64
 
 export type Output = f64
 
 export default function (in: Input): Output {
-  switch (in) {
-    case 0:
-      return 0
-    case 1:
-      return 1
-    case 2:
-      return 2
-    case 3:
-      return 3
-    case 4:
-      return 4
-    case 5:
-      return 5
-    case 6:
-      return 6
-    case 7:
-      return 7
-    case 8:
-      return 8
-    case 9:
-      return 9
-    case 10:
-      return 11
-    case 11:
-      return 22
-    case 12:
-      return 33
-    case 13:
-      return 44
-    case 14:
-      return 55
-    case 15:
-      return 66
-    case 16:
-      return 77
-    case 17:
-      return 88
-    case 18:
-      return 99
-    case 19:
-      return 0e1
-    case 20:
-      return 1e1
-    case 21:
-      return 2e1
-    case 22:
-      return 3e1
-    case 23:
-      return 4e1
-    case 24:
-      return 5e1
-    case 25:
-      return 6e1
-    case 26:
-      return 7e1
-    case 27:
-      return 8e1
-    case 28:
-      return 9e1
-    case 29:
-      return 0E1
-    case 30:
-      return 1E1
-    case 31:
-      return 2E1
-    case 32:
-      return 3E1
-    case 33:
-      return 4E1
-    case 34:
-      return 5E1
-    case 35:
-      return 6E1
-    case 36:
-      return 7E1
-    case 37:
-      return 8E1
-    case 38:
-      return 9E1
-    case 39:
-      return 0e-1
-    case 40:
-      return 1e-1
-    case 41:
-      return 2e-1
-    case 42:
-      return 3e-1
-    case 43:
-      return 4e-1
-    case 44:
-      return 5e-1
-    case 45:
-      return 6e-1
-    case 46:
-      return 7e-1
-    case 47:
-      return 8e-1
-    case 48:
-      return 9e-1
-    case 49:
-      return 0E-1
-    case 50:
-      return 1E-1
-    case 51:
-      return 2E-1
-    case 52:
-      return 3E-1
-    case 53:
-      return 4E-1
-    case 54:
-      return 5E-1
-    case 55:
-      return 6E-1
-    case 56:
-      return 7E-1
-    case 57:
-      return 8E-1
-    case 58:
-      return 9E-1
-    case 59:
-      return 0e+1
-    case 60:
-      return 1e+1
-    case 61:
-      return 2e+1
-    case 62:
-      return 3e+1
-    case 63:
-      return 4e+1
-    case 64:
-      return 5e+1
-    case 65:
-      return 6e+1
-    case 66:
-      return 7e+1
-    case 67:
-      return 8e+1
-    case 68:
-      return 9e+1
-    case 69:
-      return 0E+1
-    case 70:
-      return 1E+1
-    case 71:
-      return 2E+1
-    case 72:
-      return 3E+1
-    case 73:
-      return 4E+1
-    case 74:
-      return 5E+1
-    case 75:
-      return 6E+1
-    case 76:
-      return 7E+1
-    case 77:
-      return 8E+1
-    case 78:
-      return 9E+1
-    case 79:
-      return 0e0
-    case 80:
-      return 1e0
-    case 81:
-      return 2e0
-    case 82:
-      return 3e0
-    case 83:
-      return 4e0
-    case 84:
-      return 5e0
-    case 85:
-      return 6e0
-    case 86:
-      return 7e0
-    case 87:
-      return 8e0
-    case 88:
-      return 9e0
-    case 89:
-      return 0E0
-    case 90:
-      return 1E0
-    case 91:
-      return 2E0
-    case 92:
-      return 3E0
-    case 93:
-      return 4E0
-    case 94:
-      return 5E0
-    case 95:
-      return 6E0
-    case 96:
-      return 7E0
-    case 97:
-      return 8E0
-    case 98:
-      return 9E0
-    case 99:
-      return 0.0
-    case 100:
-      return 1.0
-    case 101:
-      return 2.0
-    case 102:
-      return 3.0
-    case 103:
-      return 4.0
-    case 104:
-      return 5.0
-    case 105:
-      return 6.0
-    case 106:
-      return 7.0
-    case 107:
-      return 8.0
-    case 108:
-      return 9.0
-    case 109:
-      return 0.00
-    case 110:
-      return 1.00
-    case 111:
-      return 2.00
-    case 112:
-      return 3.00
-    case 113:
-      return 4.00
-    case 114:
-      return 5.00
-    case 115:
-      return 6.00
-    case 116:
-      return 7.00
-    case 117:
-      return 8.00
-    case 118:
-      return 9.00
-    case 119:
-      return 0.0
-    case 120:
-      return 1.1
-    case 121:
-      return 2.2
-    case 122:
-      return 3.3
-    case 123:
-      return 4.4
-    case 124:
-      return 5.5
-    case 125:
-      return 6.6
-    case 126:
-      return 7.7
-    case 127:
-      return 8.8
-    case 128:
-      return 9.9
-    case 129:
-      return 0.0e1
-    case 130:
-      return 1.1e1
-    case 131:
-      return 2.2e1
-    case 132:
-      return 3.3e1
-    case 133:
-      return 4.4e1
-    case 134:
-      return 5.5e1
-    case 135:
-      return 6.6e1
-    case 136:
-      return 7.7e1
-    case 137:
-      return 8.8e1
-    case 138:
-      return 9.9e1
-    case 139:
-      return 0.0E1
-    case 140:
-      return 1.1E1
-    case 141:
-      return 2.2E1
-    case 142:
-      return 3.3E1
-    case 143:
-      return 4.4E1
-    case 144:
-      return 5.5E1
-    case 145:
-      return 6.6E1
-    case 146:
-      return 7.7E1
-    case 147:
-      return 8.8E1
-    case 148:
-      return 9.9E1
-    case 149:
-      return 0.0e-1
-    case 150:
-      return 1.1e-1
-    case 151:
-      return 2.2e-1
-    case 152:
-      return 3.3e-1
-    case 153:
-      return 4.4e-1
-    case 154:
-      return 5.5e-1
-    case 155:
-      return 6.6e-1
-    case 156:
-      return 7.7e-1
-    case 157:
-      return 8.8e-1
-    case 158:
-      return 9.9e-1
-    case 159:
-      return 0.0E-1
-    case 160:
-      return 1.1E-1
-    case 161:
-      return 2.2E-1
-    case 162:
-      return 3.3E-1
-    case 163:
-      return 4.4E-1
-    case 164:
-      return 5.5E-1
-    case 165:
-      return 6.6E-1
-    case 166:
-      return 7.7E-1
-    case 167:
-      return 8.8E-1
-    case 168:
-      return 9.9E-1
-    case 169:
-      return 0.0e+1
-    case 170:
-      return 1.1e+1
-    case 171:
-      return 2.2e+1
-    case 172:
-      return 3.3e+1
-    case 173:
-      return 4.4e+1
-    case 174:
-      return 5.5e+1
-    case 175:
-      return 6.6e+1
-    case 176:
-      return 7.7e+1
-    case 177:
-      return 8.8e+1
-    case 178:
-      return 9.9e+1
-    case 179:
-      return 0.0E+1
-    case 180:
-      return 1.1E+1
-    case 181:
-      return 2.2E+1
-    case 182:
-      return 3.3E+1
-    case 183:
-      return 4.4E+1
-    case 184:
-      return 5.5E+1
-    case 185:
-      return 6.6E+1
-    case 186:
-      return 7.7E+1
-    case 187:
-      return 8.8E+1
-    case 188:
-      return 9.9E+1
-    case 189:
-      return 0.0e0
-    case 190:
-      return 1.1e0
-    case 191:
-      return 2.2e0
-    case 192:
-      return 3.3e0
-    case 193:
-      return 4.4e0
-    case 194:
-      return 5.5e0
-    case 195:
-      return 6.6e0
-    case 196:
-      return 7.7e0
-    case 197:
-      return 8.8e0
-    case 198:
-      return 9.9e0
-    case 199:
-      return 0.0E0
-    case 200:
-      return 1.1E0
-    case 201:
-      return 2.2E0
-    case 202:
-      return 3.3E0
-    case 203:
-      return 4.4E0
-    case 204:
-      return 5.5E0
-    case 205:
-      return 6.6E0
-    case 206:
-      return 7.7E0
-    case 207:
-      return 8.8E0
-    case 208:
-      return 9.9E0
-    default:
-      return 0
-  }
+    if ((in >= 0 && in <= 9)) {
+        return integerDigit(in)
+    }
+
+    if ((in >= 10 && in <= 18)) {
+        return integerDecimal2Digits(in)
+    }
+
+    if ((in >= 19 && in <= 28) || (in >= 79 && in <= 88)) {
+        return integerLowerExponentUnsigned(in)
+    }
+
+    if ((in >= 29 && in <= 38) || (in >= 89 && in <= 98)) {
+        return integerUpperExponentUnsigned(in)
+    }
+
+    if ((in >= 39 && in <= 48)) {
+        return integerLowerExponentNegative(in)
+    }
+
+    if ((in >= 49 && in <= 58)) {
+        return integerUpperExponentNegative(in)
+    }
+
+    if ((in >= 59 && in <= 68)) {
+        return integerLowerExponentPositive(in)
+    }
+
+    if ((in >= 69 && in <= 78)) {
+        return integerUpperExponentPositive(in)
+    }
+
+    if ((in >= 99 && in <= 128)) {
+        return fraction(in)
+    }
+
+    if ((in >= 129 && in <= 148) || (in >= 189 && in <= 208)) {
+        return fractionExponentUnsigned(in)
+    }
+
+    if ((in >= 149 && in <= 168)) {
+        return fractionExponentNegative(in)
+    }
+
+    if ((in >= 169 && in <= 188)) {
+        return fractionExponentPositive(in)
+    }
+
+    return 0
 }

@@ -1,0 +1,73 @@
+import { WorkAction } from "../work/model"
+import { Family } from "./model"
+
+export type Input = WorkAction
+
+export type Output = Family
+
+export default function (in: Input): Output {
+    switch (in) {
+        case WorkAction.Block: return Family.Statements
+        case WorkAction.Release: return Family.Statements
+        case WorkAction.Statement: return Family.Statements
+        case WorkAction.Constant: return Family.Statements
+        case WorkAction.Result: return Family.Statements
+        case WorkAction.Store: return Family.Statements
+        case WorkAction.Destructure: return Family.Statements
+        case WorkAction.Finish: return Family.Values
+        case WorkAction.Copy: return Family.Values
+        case WorkAction.Borrowed: return Family.Values
+        case WorkAction.Borrow: return Family.Values
+        case WorkAction.Aggregate: return Family.Values
+        case WorkAction.Sequence: return Family.Values
+        case WorkAction.SequenceResult: return Family.Values
+        case WorkAction.IndexTarget: return Family.Values
+        case WorkAction.IndexResult: return Family.Values
+        case WorkAction.IterationInitial: return Family.Callbacks
+        case WorkAction.IterationCondition: return Family.Callbacks
+        case WorkAction.IterationBody: return Family.Callbacks
+        case WorkAction.IterationFinish: return Family.Callbacks
+        case WorkAction.TransformTarget: return Family.Callbacks
+        case WorkAction.TransformInitial: return Family.Callbacks
+        case WorkAction.TransformParameter: return Family.Callbacks
+        case WorkAction.TransformBody: return Family.Callbacks
+        case WorkAction.TransformFinish: return Family.Callbacks
+        case WorkAction.BranchCondition: return Family.Branches
+        case WorkAction.BranchYes: return Family.Branches
+        case WorkAction.BranchNo: return Family.Branches
+        case WorkAction.SwitchSubject: return Family.Branches
+        case WorkAction.SwitchCase: return Family.Branches
+        case WorkAction.SwitchResult: return Family.Branches
+        case WorkAction.MatchSubject: return Family.Branches
+        case WorkAction.MatchArm: return Family.Branches
+        case WorkAction.MatchCondition: return Family.Branches
+        case WorkAction.MatchResult: return Family.Branches
+        case WorkAction.MatchFinish: return Family.Branches
+        case WorkAction.BinaryLeft: return Family.Branches
+        case WorkAction.BinaryRight: return Family.Branches
+        case WorkAction.ConditionalCondition: return Family.Branches
+        case WorkAction.ConditionalYes: return Family.Branches
+        case WorkAction.ConditionalNo: return Family.Branches
+        case WorkAction.Invocation: return Family.Calls
+        case WorkAction.InvocationResult: return Family.Calls
+        case WorkAction.CallResult: return Family.Calls
+        case WorkAction.CollectionTarget: return Family.Collections
+        case WorkAction.CollectionArgument: return Family.Collections
+        case WorkAction.CollectionResult: return Family.Collections
+        case WorkAction.CollectionFreeze: return Family.Collections
+        case WorkAction.UpdateResult: return Family.Collections
+        case WorkAction.ObjectEvaluation: return Family.Objects
+        case WorkAction.ObjectCached: return Family.Objects
+        case WorkAction.ObjectField: return Family.Objects
+        case WorkAction.ObjectFieldResult: return Family.Objects
+        case WorkAction.ObjectFinish: return Family.Objects
+        case WorkAction.ScopeBinding: return Family.Scope
+        case WorkAction.ScopeResult: return Family.Scope
+        case WorkAction.ScopeFinish: return Family.Scope
+        case WorkAction.TaskCapture: return Family.Tasks
+        case WorkAction.TaskFinish: return Family.Tasks
+        case WorkAction.ParallelBranch: return Family.Tasks
+        case WorkAction.Value: return Family.Expression
+        default: return Family.Invalid
+    }
+}

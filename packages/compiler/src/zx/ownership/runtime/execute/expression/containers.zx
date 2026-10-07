@@ -1,0 +1,43 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../../ir/canonical/expressions/kinds"
+import { State } from "../../../places/model"
+import { Capture } from "../../snapshots/model"
+import save from "../../snapshots/save"
+import { WorkAction } from "../../work/model"
+import push from "../../work/push"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.kind == ExpressionKind.ListOperation) {
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.CollectionTarget, subject: in.frame.subject, moving: false, index: 0 } })
+
+        return { ...in.machine, work: push({ work: work, frame: { action: WorkAction.Value, subject: integers.widen(in.machine.program.expressions.collection_targets[in.payload]), moving: false, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Object) {
+        const captured = save({ memory: in.machine.memory, stack: in.machine.snapshots, capture: Capture.Memo })
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.ObjectFinish, subject: in.frame.subject, moving: false, index: captured.frame } })
+
+        return { ...in.machine, snapshots: captured.stack, values: in.machine.values.push(State.Owned)[0], work: push({ work: work, frame: { action: WorkAction.ObjectEvaluation, subject: in.frame.subject, moving: in.frame.moving, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Task || in.kind == ExpressionKind.Parallel) {
+        return { ...in.machine, work: push({ work: in.machine.work, frame: { action: in.kind == ExpressionKind.Task ? WorkAction.TaskCapture : WorkAction.ParallelBranch, subject: in.frame.subject, moving: false, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.ListUpdate) {
+        const result = push({ work: in.machine.work, frame: { action: WorkAction.UpdateResult, subject: in.frame.subject, moving: false, index: 0 } })
+        const value = push({ work: result, frame: { action: WorkAction.Value, subject: integers.widen(in.machine.program.expressions.update_values[in.payload]), moving: true, index: 0 } })
+        const index = push({ work: value, frame: { action: WorkAction.Value, subject: integers.widen(in.machine.program.expressions.update_indices[in.payload]), moving: false, index: 0 } })
+
+        return { ...in.machine, work: push({ work: index, frame: { action: WorkAction.Value, subject: integers.widen(in.machine.program.expressions.update_targets[in.payload]), moving: false, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.List || in.kind == ExpressionKind.Tuple || in.kind == ExpressionKind.Template) {
+        return { ...in.machine, values: in.machine.values.push(State.Owned)[0], work: push({ work: in.machine.work, frame: { action: WorkAction.Sequence, subject: in.frame.subject, moving: in.frame.moving, index: 0 } }) }
+    }
+
+    return { ...in.machine, complete: false }
+}

@@ -1,0 +1,58 @@
+export declare function frameCount(workspace: Workspace): u64
+
+export declare function operation(workspace: Workspace): u64
+
+export declare function frameIndex(workspace: Workspace): u64
+
+export declare function waiting(workspace: Workspace): bool
+
+export declare function isList(workspace: Workspace): bool
+
+export declare function result(workspace: Workspace): u64
+
+export declare function name(workspace: Workspace): string
+
+export declare function nameStart(workspace: Workspace): u64
+
+export declare function nameEnd(workspace: Workspace): u64
+
+export declare function declaredStart(workspace: Workspace): u64
+
+export declare function declaredEnd(workspace: Workspace): u64
+
+export declare function setOperation(workspace: Workspace, value: u64): void
+
+export declare function setIndex(workspace: Workspace, value: u64): void
+
+export declare function setPosition(workspace: Workspace, value: u64): void
+
+export declare function setWaiting(workspace: Workspace, value: bool): void
+
+export declare function setList(workspace: Workspace, value: bool): void
+
+export declare function setResult(workspace: Workspace, value: u64): void
+
+export declare function pop(workspace: Workspace): void
+
+export declare function pushChild(workspace: Workspace): void throws { OutOfMemory }
+
+export declare function pushItem(workspace: Workspace): void throws { OutOfMemory }
+
+export declare function pushField(workspace: Workspace): void throws { OutOfMemory }
+
+export declare function pushValue(workspace: Workspace): void throws { OutOfMemory }
+
+export declare function pushDeclaration(workspace: Workspace, index: u64): void throws { OutOfMemory }
+
+export declare function resolved(workspace: Workspace): u64
+
+export declare function visiting(workspace: Workspace): bool
+
+export declare function visitingCount(workspace: Workspace): u64
+
+export declare function enter(workspace: Workspace): void throws { OutOfMemory }
+
+export declare function leave(workspace: Workspace): void
+
+export declare function cacheResult(workspace: Workspace): void throws { OutOfMemory }
+

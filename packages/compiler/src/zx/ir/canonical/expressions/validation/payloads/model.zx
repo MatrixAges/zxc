@@ -1,0 +1,41 @@
+import type { ExpressionKind } from "../../kinds"
+import type { Expressions } from "../../model"
+
+export type State = {
+    table: Expressions,
+    index: u64,
+    valid: bool,
+    integers: u64,
+    negative_integers: u64,
+    floats: u64,
+    strings: u64,
+    booleans: u64,
+    some: u64,
+    captures: u64,
+    tasks: u64,
+    awaits: u64,
+    cancellations: u64,
+    parallels: u64,
+    optional_values: u64,
+    enumerations: u64,
+    errors: u64,
+    references: u64,
+    stores: u64,
+    projections: u64,
+    indices: u64,
+    lengths: u64,
+    sequences: u64,
+    collections: u64,
+    transforms: u64,
+    scopes: u64,
+    iterations: u64,
+    updates: u64,
+    calls: u64,
+    unary: u64,
+    binary: u64,
+    conditionals: u64,
+    matches: u64,
+    objects: u64,
+}
+
+export type Row = { state: State, kind: ExpressionKind, payload: u64 }

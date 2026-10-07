@@ -1,0 +1,53 @@
+export declare function allocateChildren(workspace: Workspace, count: u64): void throws { OutOfMemory }
+
+export declare function allocateFields(workspace: Workspace, count: u64): void throws { OutOfMemory }
+
+export declare function allocateMembers(workspace: Workspace, count: u64): void throws { OutOfMemory }
+
+export declare function saveChild(workspace: Workspace): void
+
+export declare function saveField(workspace: Workspace): void throws { OutOfMemory }
+
+export declare function saveMember(workspace: Workspace, index: u64): void throws { OutOfMemory }
+
+export declare function references(workspace: Workspace): u32[]
+
+export declare function fieldNames(workspace: Workspace): string[]
+
+export declare function fieldTypes(workspace: Workspace): u32[]
+
+export declare function sortFields(workspace: Workspace): void throws { OutOfMemory }
+
+export declare function kinds(workspace: Workspace): u8[]
+
+export declare function first(workspace: Workspace): u32[]
+
+export declare function second(workspace: Workspace): u32[]
+
+export declare function labels(workspace: Workspace): string[]
+
+export declare function children(workspace: Workspace): u32[]
+
+export declare function allFieldTypes(workspace: Workspace): u32[]
+
+export declare function allFieldNames(workspace: Workspace): string[]
+
+export declare function names(workspace: Workspace): string[]
+
+export declare function typeCount(workspace: Workspace): u64
+
+export declare function typeKind(workspace: Workspace, index: u64): u64
+
+export declare function appendScalar(workspace: Workspace, index: u64): void throws { OutOfMemory }
+
+export declare function appendOptional(workspace: Workspace): u64 throws { OutOfMemory }
+
+export declare function appendList(workspace: Workspace): u64 throws { OutOfMemory }
+
+export declare function appendTuple(workspace: Workspace): u64 throws { OutOfMemory }
+
+export declare function appendObject(workspace: Workspace): u64 throws { OutOfMemory }
+
+export declare function appendEnumeration(workspace: Workspace): u64 throws { OutOfMemory }
+
+export declare function appendNative(workspace: Workspace): u64 throws { OutOfMemory }

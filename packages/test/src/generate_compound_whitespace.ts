@@ -116,7 +116,41 @@ for (const original of originals) {
     }
 
     writeCatalog(`tests/${base}.jsonl`, runtime)
-    writeOutput(`tests/${base}.zx`, runtimeSource({ operator: original.operator, shapes }))
+    const imports: Array<string> = []
+    const branches: Array<string> = []
+    let first = 0
+
+    for (const group of original.groups) {
+        const gap = Buffer.from(group.gap_hex, 'hex').toString('utf8')
+
+        if ([...gap].some(character => character.charCodeAt(0) > 127)) continue
+
+        const symbol = group.name.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
+
+        writeOutput(
+            `tests/${base}/${group.name}.zx`,
+            runtimeSource({ operator: original.operator, shapes: shapes.slice(first, first + 3), first })
+        )
+        imports.push(`import ${symbol} from "./${original.name}/${group.name}"`)
+        branches.push(`    if (in.shape >= ${first} && in.shape < ${first + 3}) {\n        return ${symbol}(in)\n    }`)
+        first += 3
+    }
+
+    writeOutput(
+        `tests/${base}.zx`,
+        `${imports.sort().join('\n')}
+
+export type Input = { left: f64, right: f64, shape: u8 }
+
+export type Output = { scalar: f64, field: f64, element: f64 }
+
+export default function (in: Input): Output {
+${branches.join('\n\n')}
+
+    return { scalar: in.left, field: in.left, element: in.left }
+}
+`
+    )
     reviews.push({
         path: original.path,
         sha256: original.sha256,

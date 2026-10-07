@@ -1,0 +1,76 @@
+import integers from "zig:integers"
+
+import { Ownership } from "../../ir/input_model"
+import optionalId from "../../ir/widen_optional"
+import place from "../../places/execute"
+import { Operation, State } from "../../places/model"
+import borrow from "../borrowing/execute"
+import apply from "../snapshots/apply"
+import drop from "../snapshots/drop"
+import { Action } from "../snapshots/model"
+import { WorkAction } from "../work/model"
+import pop from "../work/pop"
+import push from "../work/push"
+import top from "../work/top"
+import family from "./family"
+import { Family } from "./model"
+
+import type { Machine } from "./model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Calls,
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.Invocation) {
+                const invocations = { first: integers.widen(current.program.control.parallel_first[frame.subject]), count: integers.widen(current.program.control.parallel_count[frame.subject]) }
+
+                if (frame.index < invocations.count) {
+                    current.work = push({ work: current.work, frame: { action: WorkAction.InvocationResult, subject: frame.subject, moving: false, index: frame.index } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.parallel_values[invocations.first + frame.index]), moving: false, index: 0 } })
+                }
+            } else if (frame.action == WorkAction.InvocationResult) {
+                const invocation = integers.widen(current.program.control.parallel_first[frame.subject]) + frame.index
+                const symbol = optionalId(current.program.control.parallel_symbols[invocation])
+                const call = integers.widen(current.program.expressions.payloads[integers.widen(current.program.control.parallel_values[invocation])])
+
+                if (symbol != null) {
+                    current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: symbol, operation: Operation.Assign, value: current.value }) }
+                }
+
+                current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.call_arguments[call]), permanent: true })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Invocation, subject: frame.subject, moving: false, index: frame.index + 1 } })
+            } else if (frame.action == WorkAction.CallResult) {
+                const call = integers.widen(current.program.expressions.payloads[frame.subject])
+                const function_info = current.program.functions[integers.widen(current.program.expressions.call_functions[call])]
+                const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                const escapes = loop({ slots: function_info.stores, index: 0, found: container && function_info.output_ownership == Ownership.Borrowed }, {
+                    while: slot => slot.index < slot.slots.length && !slot.found,
+                    next: slot => {
+                        slot.found = slot.slots[slot.index].writable
+                        slot.index += 1
+                    }
+                })
+
+                if (escapes.found) {
+                    current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.call_arguments[call]), permanent: true })
+                }
+
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.ReleaseNewLoans })
+                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                current.value = match function_info.output_ownership {
+                    Ownership.Copy => State.Copy,
+                    Ownership.Owned => State.Owned,
+                    _ => State.Borrowed
+                }
+            }
+        }
+    })
+}

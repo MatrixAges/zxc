@@ -1,0 +1,34 @@
+import branches from "./branches"
+import callbacks from "./callbacks"
+import calls from "./calls"
+import collections from "./collections"
+import expression from "./expression"
+import family from "./family"
+import { Family } from "./model"
+import objects from "./objects"
+import scope from "./scope"
+import statements from "./statements"
+import tasks from "./tasks"
+import values from "./values"
+
+import type { Machine } from "./model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    switch (family(in.work.actions[in.work.actions.length - 1])) {
+        case Family.Statements: return statements(in)
+        case Family.Values: return values(in)
+        case Family.Callbacks: return callbacks(in)
+        case Family.Branches: return branches(in)
+        case Family.Calls: return calls(in)
+        case Family.Collections: return collections(in)
+        case Family.Objects: return objects(in)
+        case Family.Scope: return scope(in)
+        case Family.Tasks: return tasks(in)
+        case Family.Expression: return expression(in)
+        default: return { ...in, complete: false }
+    }
+}

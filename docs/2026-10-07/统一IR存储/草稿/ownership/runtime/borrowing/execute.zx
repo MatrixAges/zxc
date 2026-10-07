@@ -1,134 +1,45 @@
-import integers from "zig:integers"
-
-import { ExpressionKind } from "../../../expressions/kinds"
-import lookup from "../../layout/lookup"
-import projection from "../../layout/projection"
-import combine from "../../places/combine"
 import { State } from "../../places/model"
-import edge from "./edge"
+import { Phase } from "./execute/model"
+import propagate from "./execute/propagate"
+import query from "./execute/query"
 
 import type { Expressions } from "../../../expressions/model"
 import type { Built } from "../../layout/model"
 import type { Memory } from "../model"
-
-export enum Phase { Next, Query, Descend, Expand, Enter, Leave, Parents, Advance, Done }
+import type { Session } from "./execute/model"
 
 export type Input = { expressions: Expressions, layout: Built, memory: Memory, expression: u64, permanent: bool }
 
 export type Output = Memory
 
 export default function (in: Input): Output {
-    const result = loop({ expressions: in.expressions, layout: in.layout, memo: in.memory.memo, permanent: in.permanent, states: in.memory.states, trail: in.memory.trail, work: [in.expression], cursors: [0], expression: 0, query: 0, position: 0, root: 0, node: 0, ancestor: 0, propagated: State.Copy, phase: Phase.Next, active: true }, {
+    const initial: Session = {
+        expressions: in.expressions,
+        layout: in.layout,
+        memo: in.memory.memo,
+        permanent: in.permanent,
+        states: in.memory.states,
+        trail: in.memory.trail,
+        work: [in.expression],
+        cursors: [0],
+        expression: 0,
+        query: 0,
+        position: 0,
+        root: 0,
+        node: 0,
+        ancestor: 0,
+        propagated: State.Copy,
+        phase: Phase.Next,
+        active: true,
+    }
+
+    const result = loop(initial, {
         while: current => current.active,
         next: current => {
-            if (current.phase == Phase.Next) {
-                if (current.work.length == 0) {
-                    current.active = false
-                } else {
-                    const last = current.work.length - 1
-
-                    current.expression = current.work[last]
-
-                    if (current.cursors[last] == 0) {
-                        current.cursors[last] = 1
-                        current.query = current.expression
-                        current.trail = current.trail.splice(0, 0, [])[1]
-                        current.phase = Phase.Query
-                    } else {
-                        current.phase = Phase.Expand
-                    }
-                }
-            } else if (current.phase == Phase.Query) {
-                const cached = current.memo[current.query]
-                const kind = current.expressions.kinds[current.query]
-
-                if (cached != 0) {
-                    current.position = cached - 1
-                    current.phase = Phase.Descend
-                } else if (kind == ExpressionKind.Reference) {
-                    current.position = integers.widen(current.expressions.references[integers.widen(current.expressions.payloads[current.query])])
-                    current.phase = Phase.Descend
-                } else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
-                    const field = projection({ expressions: current.expressions, id: current.query })
-
-                    current.trail = current.trail.push(integers.widen(field.index))[0]
-                    current.query = field.target
-                } else {
-                    current.phase = Phase.Expand
-                }
-            } else if (current.phase == Phase.Descend) {
-                if (current.trail.length == 0) {
-                    current.root = current.position
-                    current.node = current.position
-                    current.phase = Phase.Enter
-                } else {
-                    const field = current.trail[current.trail.length - 1]
-                    const child = lookup({ index: { slots: current.layout.slots, parents: current.layout.parents, fields: current.layout.fields, values: current.layout.values }, key: { parent: current.position, field: field } })
-
-                    current.trail = current.trail.pop()[0]
-
-                    if (child.found) {
-                        current.position = child.value
-                    } else {
-                        current.phase = Phase.Expand
-                    }
-                }
-            } else if (current.phase == Phase.Expand) {
-                const last = current.work.length - 1
-                const child = edge({ expressions: current.expressions, expression: current.expression, index: current.cursors[last] - 1, permanent: current.permanent })
-
-                if (child.found) {
-                    current.cursors[last] += 1
-                    current.work = current.work.push(child.expression)[0]
-                    current.cursors = current.cursors.push(0)[0]
-                    current.phase = Phase.Next
-                } else {
-                    current.phase = Phase.Done
-                }
-            } else if (current.phase == Phase.Enter) {
-                const state = current.states[current.node]
-                const child = current.layout.tree.children[current.node]
-
-                if (state == State.Owned || (current.permanent && state == State.Loaned)) {
-                    current.states[current.node] = current.permanent ? State.Borrowed : State.Loaned
-                }
-
-                if (child == 0) {
-                    current.phase = Phase.Leave
-                } else {
-                    current.node = child - 1
-                }
-            } else if (current.phase == Phase.Leave) {
-                current.ancestor = current.layout.tree.parents[current.node]
-                current.propagated = current.states[current.node]
-                current.phase = Phase.Parents
-            } else if (current.phase == Phase.Parents) {
-                if (current.ancestor == 0) {
-                    current.phase = Phase.Advance
-                } else {
-                    const parent = current.ancestor - 1
-
-                    current.states[parent] = combine({ left: current.states[parent], right: current.propagated })
-                    current.ancestor = current.layout.tree.parents[parent]
-                }
-            } else if (current.phase == Phase.Advance) {
-                if (current.node == current.root) {
-                    current.phase = Phase.Done
-                } else {
-                    const sibling = current.layout.tree.siblings[current.node]
-
-                    if (sibling == 0) {
-                        current.node = current.layout.tree.parents[current.node] - 1
-                        current.phase = Phase.Leave
-                    } else {
-                        current.node = sibling - 1
-                        current.phase = Phase.Enter
-                    }
-                }
-            } else {
-                current.work = current.work.pop()[0]
-                current.cursors = current.cursors.pop()[0]
-                current.phase = Phase.Next
+            if (current.phase == Phase.Next || current.phase == Phase.Query || current.phase == Phase.Descend || current.phase == Phase.Expand || current.phase == Phase.Done) {
+                current = query(current)
+            } else if (current.phase == Phase.Enter || current.phase == Phase.Leave || current.phase == Phase.Parents || current.phase == Phase.Advance) {
+                current = propagate(current)
             }
         }
     })

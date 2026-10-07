@@ -1,0 +1,20 @@
+import { ExpressionKind } from "../../kinds"
+
+import type { Row, State } from "./model"
+
+export type Input = Row
+
+export type Output = State
+
+export default function (in: Input): Output {
+    switch (in.kind) {
+        case ExpressionKind.List: return { ...in.state, valid: in.payload == in.state.sequences && in.payload < in.state.table.sequence_first.length, sequences: in.state.sequences + 1 }
+        case ExpressionKind.Tuple: return { ...in.state, valid: in.payload == in.state.sequences && in.payload < in.state.table.sequence_first.length, sequences: in.state.sequences + 1 }
+        case ExpressionKind.Template: return { ...in.state, valid: in.payload == in.state.sequences && in.payload < in.state.table.sequence_first.length, sequences: in.state.sequences + 1 }
+        case ExpressionKind.ListOperation: return { ...in.state, valid: in.payload == in.state.collections && in.payload < in.state.table.collection_kinds.length, collections: in.state.collections + 1 }
+        case ExpressionKind.Transform: return { ...in.state, valid: in.payload == in.state.transforms && in.payload < in.state.table.transform_kinds.length, transforms: in.state.transforms + 1 }
+        case ExpressionKind.ListUpdate: return { ...in.state, valid: in.payload == in.state.updates && in.payload < in.state.table.update_targets.length, updates: in.state.updates + 1 }
+        case ExpressionKind.Object: return { ...in.state, valid: in.payload == in.state.objects && in.payload < in.state.table.object_first.length, objects: in.state.objects + 1 }
+        default: return in.state
+    }
+}

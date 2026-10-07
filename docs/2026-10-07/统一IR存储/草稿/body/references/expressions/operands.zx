@@ -1,0 +1,75 @@
+import required from "../required"
+
+import type { Body } from "../../../body_model"
+
+export type Input = Body
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!required({ values: in.expressions.some, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.captures, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.awaits, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.cancellations, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.optional_values, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.lengths, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.sequence_items, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.projection_targets, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.index_targets, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.index_values, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.task_bodies, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.parallel_tasks, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.collection_targets, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.collection_arguments, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.transform_targets, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.transform_bodies, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    return true
+}

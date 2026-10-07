@@ -66,7 +66,7 @@ pub fn main(init: std.process.Init) !void {
     }, .{
         .specifier = "zig:resolution",
         .path = "zx/analysis/semantic/native/resolution.d.zx",
-        .source = @embedFile("resolution_interface"),
+        .source = @import("resolution_interface").source,
         .module = "resolution",
     }, .{
         .specifier = "zig:integers",

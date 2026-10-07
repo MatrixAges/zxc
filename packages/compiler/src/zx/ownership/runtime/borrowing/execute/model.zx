@@ -1,0 +1,25 @@
+import type { Expressions } from "../../../../ir/canonical/expressions/model"
+import type { Built } from "../../../layout/model"
+import type { State } from "../../../places/model"
+
+export enum Phase { Next, Query, Descend, Expand, Enter, Leave, Parents, Advance, Done }
+
+export type Session = {
+    expressions: Expressions,
+    layout: Built,
+    memo: u64[],
+    permanent: bool,
+    states: State[],
+    trail: u64[],
+    work: u64[],
+    cursors: u64[],
+    expression: u64,
+    query: u64,
+    position: u64,
+    root: u64,
+    node: u64,
+    ancestor: u64,
+    propagated: State,
+    phase: Phase,
+    active: bool
+}

@@ -1,0 +1,33 @@
+import type { Program } from "../../ir/input_model"
+import type { Cached } from "../model"
+
+export enum Phase { Expression, AncestorStart, Ancestor, Root, Path, Ensure, Grow, Clear, Rehash }
+
+export type Session = {
+    program: Program,
+    references: bool[],
+    cached: Cached,
+    heads: u64[],
+    next: u64[],
+    parents: u64[],
+    children: u64[],
+    siblings: u64[],
+    reference_flags: bool[],
+    bindings: u64[],
+    slots: u64[],
+    key_parents: u64[],
+    key_fields: u64[],
+    values: u64[],
+    path: u64[],
+    phase: Phase,
+    expression: u64,
+    ancestor: u64,
+    record: u64,
+    path_index: u64,
+    parent: u64,
+    child_expression: u64,
+    direct: bool,
+    capacity: u64,
+    cursor: u64,
+    active: bool
+}

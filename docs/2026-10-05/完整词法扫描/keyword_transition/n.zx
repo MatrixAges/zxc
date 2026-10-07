@@ -1,0 +1,28 @@
+import { Keyword } from "../keyword_model.zx"
+
+export type Input = { keyword: Keyword, byte: u8 }
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+  switch (in.keyword) {
+    case Keyword.N: return match {
+      in.byte == 101 => Keyword.Ne,
+      in.byte == 117 => Keyword.Nu,
+      _ => Keyword.Dead
+    }
+    case Keyword.Ne: return match {
+      in.byte == 119 => Keyword.New,
+      _ => Keyword.Dead
+    }
+    case Keyword.Nu: return match {
+      in.byte == 108 => Keyword.Nul,
+      _ => Keyword.Dead
+    }
+    case Keyword.Nul: return match {
+      in.byte == 108 => Keyword.Null,
+      _ => Keyword.Dead
+    }
+    default: return Keyword.Dead
+  }
+}

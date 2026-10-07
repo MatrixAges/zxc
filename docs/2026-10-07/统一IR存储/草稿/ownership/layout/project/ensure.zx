@@ -1,0 +1,55 @@
+import integers from "zig:integers"
+
+import lookup from "../lookup"
+import projection from "../projection"
+import { Phase } from "./model"
+
+import type { Session } from "./model"
+
+export type Input = Session
+
+export type Output = Session
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && (current.phase == Phase.Ensure),
+        next: current => {
+            if (current.phase == Phase.Ensure) {
+                const field = projection({ expressions: current.program.expressions, id: current.child_expression })
+                const field_index = integers.widen(field.index)
+                const location = lookup({ index: { slots: current.slots, parents: current.key_parents, fields: current.key_fields, values: current.values }, key: { parent: current.parent, field: field_index } })
+
+                if (!location.found && (current.slots.length == 0 || current.values.length >= current.slots.length / 2)) {
+                    current.capacity = current.slots.length == 0 ? 16 : current.slots.length * 2
+                    current.phase = Phase.Grow
+                } else {
+                    const child = location.found ? location.value : current.parents.length
+
+                    if (!location.found) {
+                        const sibling = current.children[current.parent]
+                        const type_id = current.program.expressions.types[current.child_expression]
+
+                        current.parents = current.parents.push(current.parent + 1)[0]
+                        current.children = current.children.push(0)[0]
+                        current.siblings = current.siblings.push(sibling)[0]
+                        current.reference_flags = current.reference_flags.push(current.references[integers.widen(type_id)])[0]
+                        current.children[current.parent] = child + 1
+                        current.key_parents = current.key_parents.push(current.parent)[0]
+                        current.key_fields = current.key_fields.push(field_index)[0]
+                        current.values = current.values.push(child)[0]
+                        current.slots[location.slot] = current.values.length
+                    }
+
+                    if (current.direct) {
+                        current.bindings = current.bindings.push(child + 1)[0]
+                        current.phase = Phase.AncestorStart
+                    } else {
+                        current.parent = child
+                        current.path_index -= 1
+                        current.phase = Phase.Path
+                    }
+                }
+            }
+        }
+    })
+}

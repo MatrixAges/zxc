@@ -1,0 +1,90 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../../ir/canonical/expressions/kinds"
+import lookup from "../../../layout/lookup"
+import projection from "../../../layout/projection"
+import edge from "../edge"
+import { Phase } from "./model"
+
+import type { Session } from "./model"
+
+export type Input = Session
+
+export type Output = Session
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && (current.phase == Phase.Next || current.phase == Phase.Query || current.phase == Phase.Descend || current.phase == Phase.Expand || current.phase == Phase.Done),
+        next: current => {
+            if (current.phase == Phase.Next) {
+                if (current.work.length == 0) {
+                    current.active = false
+                } else {
+                    const last = current.work.length - 1
+
+                    current.expression = current.work[last]
+
+                    if (current.cursors[last] == 0) {
+                        current.cursors[last] = 1
+                        current.query = current.expression
+                        current.trail = current.trail.splice(0, 0, [])[1]
+                        current.phase = Phase.Query
+                    } else {
+                        current.phase = Phase.Expand
+                    }
+                }
+            } else if (current.phase == Phase.Query) {
+                const cached = current.memo[current.query]
+                const kind = current.expressions.kinds[current.query]
+
+                if (cached != 0) {
+                    current.position = cached - 1
+                    current.phase = Phase.Descend
+                } else if (kind == ExpressionKind.Reference) {
+                    current.position = integers.widen(current.expressions.references[integers.widen(current.expressions.payloads[current.query])])
+                    current.phase = Phase.Descend
+                } else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+                    const field = projection({ expressions: current.expressions, id: current.query })
+
+                    current.trail = current.trail.push(integers.widen(field.index))[0]
+                    current.query = field.target
+                } else {
+                    current.phase = Phase.Expand
+                }
+            } else if (current.phase == Phase.Descend) {
+                if (current.trail.length == 0) {
+                    current.root = current.position
+                    current.node = current.position
+                    current.phase = Phase.Enter
+                } else {
+                    const field = current.trail[current.trail.length - 1]
+                    const child = lookup({ index: { slots: current.layout.slots, parents: current.layout.parents, fields: current.layout.fields, values: current.layout.values }, key: { parent: current.position, field: field } })
+
+                    current.trail = current.trail.pop()[0]
+
+                    if (child.found) {
+                        current.position = child.value
+                    } else {
+                        current.phase = Phase.Expand
+                    }
+                }
+            } else if (current.phase == Phase.Expand) {
+                const last = current.work.length - 1
+                const child = edge({ expressions: current.expressions, expression: current.expression, index: current.cursors[last] - 1, permanent: current.permanent })
+
+                if (child.found) {
+                    current.cursors[last] += 1
+                    current.work = current.work.push(child.expression)[0]
+                    current.cursors = current.cursors.push(0)[0]
+                    current.phase = Phase.Next
+                } else {
+                    current.phase = Phase.Done
+                }
+            } else {
+                current.work = current.work.pop()[0]
+                current.cursors = current.cursors.pop()[0]
+                current.phase = Phase.Next
+            }
+        }
+    })
+}

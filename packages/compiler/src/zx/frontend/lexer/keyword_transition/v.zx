@@ -1,19 +1,17 @@
-import { Keyword } from "../keyword_model"
+export type Input = { state: u64, byte: u8 }
 
-export type Input = { keyword: Keyword, byte: u8 }
-
-export type Output = Keyword
+export type Output = u64
 
 export default function (in: Input): Output {
-    switch (in.keyword) {
-        case Keyword.V: return match {
-            in.byte == 97 => Keyword.Va,
-            _ => Keyword.Dead
+    switch (in.state) {
+        case 207: return match {
+            in.byte == 97 => 208,
+            _ => 1
         }
-        case Keyword.Va: return match {
-            in.byte == 114 => Keyword.Var,
-            _ => Keyword.Dead
+        case 208: return match {
+            in.byte == 114 => 209,
+            _ => 1
         }
-        default: return Keyword.Dead
+        default: return 1
     }
 }

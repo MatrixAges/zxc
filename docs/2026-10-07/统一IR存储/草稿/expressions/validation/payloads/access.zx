@@ -1,0 +1,21 @@
+import { ExpressionKind } from "../../kinds"
+
+import type { Row, State } from "./model"
+
+export type Input = Row
+
+export type Output = State
+
+export default function (in: Input): Output {
+    switch (in.kind) {
+        case ExpressionKind.Some: return { ...in.state, valid: in.payload == in.state.some && in.payload < in.state.table.some.length, some: in.state.some + 1 }
+        case ExpressionKind.OptionalValue: return { ...in.state, valid: in.payload == in.state.optional_values && in.payload < in.state.table.optional_values.length, optional_values: in.state.optional_values + 1 }
+        case ExpressionKind.Reference: return { ...in.state, valid: in.payload == in.state.references && in.payload < in.state.table.references.length, references: in.state.references + 1 }
+        case ExpressionKind.StoreGet: return { ...in.state, valid: in.payload == in.state.stores && in.payload < in.state.table.stores.length, stores: in.state.stores + 1 }
+        case ExpressionKind.Field: return { ...in.state, valid: in.payload == in.state.projections && in.payload < in.state.table.projection_targets.length, projections: in.state.projections + 1 }
+        case ExpressionKind.TupleField: return { ...in.state, valid: in.payload == in.state.projections && in.payload < in.state.table.projection_targets.length, projections: in.state.projections + 1 }
+        case ExpressionKind.Index: return { ...in.state, valid: in.payload == in.state.indices && in.payload < in.state.table.index_targets.length, indices: in.state.indices + 1 }
+        case ExpressionKind.Length: return { ...in.state, valid: in.payload == in.state.lengths && in.payload < in.state.table.lengths.length, lengths: in.state.lengths + 1 }
+        default: return in.state
+    }
+}

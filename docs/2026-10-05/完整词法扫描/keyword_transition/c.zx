@@ -1,0 +1,36 @@
+import { Keyword } from "../keyword_model.zx"
+
+export type Input = { keyword: Keyword, byte: u8 }
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+  switch (in.keyword) {
+    case Keyword.C: return match {
+      in.byte == 97 => Keyword.Ca,
+      in.byte == 111 => Keyword.Co,
+      _ => Keyword.Dead
+    }
+    case Keyword.Ca: return match {
+      in.byte == 115 => Keyword.Cas,
+      _ => Keyword.Dead
+    }
+    case Keyword.Cas: return match {
+      in.byte == 101 => Keyword.Case,
+      _ => Keyword.Dead
+    }
+    case Keyword.Co: return match {
+      in.byte == 110 => Keyword.Con,
+      _ => Keyword.Dead
+    }
+    case Keyword.Con: return match {
+      in.byte == 115 => Keyword.Cons,
+      _ => Keyword.Dead
+    }
+    case Keyword.Cons: return match {
+      in.byte == 116 => Keyword.Const,
+      _ => Keyword.Dead
+    }
+    default: return Keyword.Dead
+  }
+}

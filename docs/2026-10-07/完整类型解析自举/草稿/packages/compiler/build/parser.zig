@@ -87,7 +87,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
         .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = rx }, .{ .name = "rx_analysis", .module = analysis } },
     }) });
 
-    executable.root_module.addAnonymousImport("resolution_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/resolution.d.zx") });
+    executable.root_module.addAnonymousImport("resolution_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/resolution_source.zig") });
     executable.root_module.addAnonymousImport("type_names_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/type_names.d.zx") });
     executable.root_module.addAnonymousImport("merge_writer_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/merge_writer.d.zx") });
     executable.root_module.addAnonymousImport("extract_workspace_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/extract_workspace.d.zx") });

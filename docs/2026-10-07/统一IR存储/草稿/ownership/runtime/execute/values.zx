@@ -1,0 +1,72 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../expressions/kinds"
+import { State } from "../../places/model"
+import borrow from "../borrowing/execute"
+import { WorkAction } from "../work/model"
+import pop from "../work/pop"
+import push from "../work/push"
+import top from "../work/top"
+import family from "./family"
+import { Family } from "./model"
+
+import type { Machine } from "./model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Values,
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.Finish) {
+                if (!current.references[integers.widen(current.program.expressions.types[frame.subject])]) {
+                    current.value = State.Copy
+                }
+            } else if (frame.action == WorkAction.Copy) {
+                current.value = State.Copy
+            } else if (frame.action == WorkAction.Borrowed) {
+                current.value = State.Borrowed
+            } else if (frame.action == WorkAction.Borrow) {
+                if (!frame.moving && current.references[integers.widen(current.program.expressions.types[frame.subject])]) {
+                    current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: frame.subject, permanent: false })
+                }
+            } else if (frame.action == WorkAction.Aggregate) {
+                current.work = push({ work: current.work, frame: { action: WorkAction.Borrow, subject: frame.subject, moving: frame.moving, index: 0 } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: frame.subject, moving: frame.moving, index: 0 } })
+            } else if (frame.action == WorkAction.Sequence) {
+                const kind = current.program.expressions.kinds[frame.subject]
+                const payload = integers.widen(current.program.expressions.payloads[frame.subject])
+                const items = { first: integers.widen(current.program.expressions.sequence_first[payload]), count: integers.widen(current.program.expressions.sequence_count[payload]) }
+
+                if (frame.index < items.count) {
+                    current.work = push({ work: current.work, frame: { action: WorkAction.SequenceResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                    current.work = push({ work: current.work, frame: { action: kind == ExpressionKind.Template ? WorkAction.Value : WorkAction.Aggregate, subject: integers.widen(current.program.expressions.sequence_items[items.first + frame.index]), moving: kind == ExpressionKind.Template ? false : frame.moving, index: 0 } })
+                } else {
+                    current.value = kind == ExpressionKind.Template ? State.Copy : current.values[current.values.length - 1]
+                    current.values = current.values.pop()[0]
+                }
+            } else if (frame.action == WorkAction.SequenceResult) {
+                if (current.value == State.Borrowed) {
+                    current.values[current.values.length - 1] = State.Borrowed
+                }
+
+                current.work = push({ work: current.work, frame: { action: WorkAction.Sequence, subject: frame.subject, moving: frame.moving, index: frame.index + 1 } })
+            } else if (frame.action == WorkAction.IndexTarget) {
+                const item = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                current.values = current.values.push(current.value)[0]
+                current.work = push({ work: current.work, frame: { action: WorkAction.IndexResult, subject: 0, moving: false, index: 0 } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.index_values[item]), moving: false, index: 0 } })
+            } else if (frame.action == WorkAction.IndexResult) {
+                current.value = current.values[current.values.length - 1]
+                current.values = current.values.pop()[0]
+            }
+        }
+    })
+}

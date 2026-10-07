@@ -1,0 +1,58 @@
+import n from "./n"
+import o from "./o"
+import p from "./p"
+import q from "./q"
+import r from "./r"
+import s from "./s"
+import t from "./t"
+import u from "./u"
+import v from "./v"
+import w from "./w"
+
+export type Input = { state: u64, byte: u8 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.state >= 130 && in.state <= 137) {
+        return n(in)
+    }
+
+    if (in.state >= 138 && in.state <= 142) {
+        return o(in)
+    }
+
+    if (in.state >= 143 && in.state <= 149) {
+        return p(in)
+    }
+
+    if (in.state >= 150 && in.state <= 161) {
+        return q(in)
+    }
+
+    if (in.state >= 162 && in.state <= 173) {
+        return r(in)
+    }
+
+    if (in.state >= 174 && in.state <= 183) {
+        return s(in)
+    }
+
+    if (in.state >= 184 && in.state <= 205) {
+        return t(in)
+    }
+
+    if (in.state >= 206 && in.state <= 211) {
+        return u(in)
+    }
+
+    if (in.state >= 212 && in.state <= 214) {
+        return v(in)
+    }
+
+    if (in.state >= 215 && in.state <= 219) {
+        return w(in)
+    }
+
+    return 1
+}

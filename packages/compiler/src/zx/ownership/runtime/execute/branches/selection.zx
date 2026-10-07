@@ -1,0 +1,58 @@
+import integers from "zig:integers"
+
+import apply from "../../snapshots/apply"
+import drop from "../../snapshots/drop"
+import { Action } from "../../snapshots/model"
+import { Capture } from "../../snapshots/model"
+import save from "../../snapshots/save"
+import update from "../../snapshots/update"
+import { WorkAction } from "../../work/model"
+import pop from "../../work/pop"
+import push from "../../work/push"
+import top from "../../work/top"
+
+import type { Machine } from "../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.SwitchSubject || current.work.actions[current.work.actions.length - 1] == WorkAction.SwitchCase || current.work.actions[current.work.actions.length - 1] == WorkAction.SwitchResult),
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.SwitchSubject) {
+                const before = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                const combined = save({ memory: current.memory, stack: before.stack, capture: Capture.States })
+
+                current.snapshots = combined.stack
+                current.work = push({ work: current.work, frame: { action: WorkAction.SwitchCase, subject: frame.subject, moving: !current.program.control.selection_exhaustive[frame.subject], index: 0 } })
+            } else if (frame.action == WorkAction.SwitchCase) {
+                const selection = frame.subject
+                const before = current.snapshots.state_first.length - 2
+
+                if (frame.index < integers.widen(current.program.control.selection_count[selection])) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before, action: Action.RestoreStates })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.SwitchResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: integers.widen(current.program.control.case_bodies[integers.widen(current.program.control.selection_first[selection]) + frame.index]), moving: false, index: 0 } })
+                } else {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before + 1, action: Action.RestoreStates })
+                    current.snapshots = drop({ stack: current.snapshots, frame: before })
+                }
+            } else if (frame.action == WorkAction.SwitchResult) {
+                const selection = frame.subject
+                const continuing = !current.returns[integers.widen(current.program.control.case_bodies[integers.widen(current.program.control.selection_first[selection]) + frame.index])]
+
+                if (continuing) {
+                    current.snapshots = update({ stack: current.snapshots, frame: current.snapshots.state_first.length - 1, states: current.memory.states, merge: frame.moving })
+                }
+
+                current.work = push({ work: current.work, frame: { action: WorkAction.SwitchCase, subject: frame.subject, moving: frame.moving || continuing, index: frame.index + 1 } })
+            }
+        }
+    })
+}

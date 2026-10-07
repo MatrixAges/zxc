@@ -1,0 +1,72 @@
+import integers from "zig:integers"
+
+import { TransformKind } from "../../../../expressions/kinds"
+import optionalId from "../../../ir/widen_optional"
+import { State } from "../../../places/model"
+import borrow from "../../borrowing/execute"
+import apply from "../../snapshots/apply"
+import drop from "../../snapshots/drop"
+import { Action } from "../../snapshots/model"
+import { WorkAction } from "../../work/model"
+import pop from "../../work/pop"
+import push from "../../work/push"
+import top from "../../work/top"
+
+import type { Machine } from "../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.TransformBody || current.work.actions[current.work.actions.length - 1] == WorkAction.TransformFinish),
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.TransformBody) {
+                const transform = integers.widen(current.program.expressions.payloads[frame.subject])
+                const initial = current.values[current.values.length - 1]
+
+                current.values = current.values.push(current.value)[0]
+                current.work = push({ work: current.work, frame: { action: WorkAction.TransformFinish, subject: frame.subject, moving: false, index: 0 } })
+
+                if (current.program.expressions.transform_kinds[transform] == TransformKind.Reduce && current.value == State.Borrowed && initial != State.Borrowed) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: current.snapshots.state_first.length - 1, action: Action.RestoreStates })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.TransformParameter, subject: frame.subject, moving: true, index: 0 } })
+                }
+            } else if (frame.action == WorkAction.TransformFinish) {
+                const transform = integers.widen(current.program.expressions.payloads[frame.subject])
+                const initial_state = current.values[current.values.length - 2]
+                const result = current.values[current.values.length - 1]
+                const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.transform_targets[transform])])
+                const element = integers.widen(current.program.types.first[type_id])
+                const predicate = current.program.expressions.transform_kinds[transform] == TransformKind.Every || current.program.expressions.transform_kinds[transform] == TransformKind.Some
+                const borrowed = !predicate && ((current.program.expressions.transform_kinds[transform] == TransformKind.Filter && current.references[element]) || result == State.Borrowed || initial_state == State.Borrowed)
+                const before = current.snapshots.state_first.length - 2
+
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before + 1, action: Action.RestoreStates })
+
+                if (borrowed) {
+                    const initial = optionalId(current.program.expressions.transform_initials[transform])
+
+                    current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.transform_targets[transform]), permanent: true })
+
+                    if (initial != null) {
+                        current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: initial, permanent: true })
+                    }
+                }
+
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before, action: Action.ReleaseNewLoans })
+                current.snapshots = drop({ stack: current.snapshots, frame: before })
+                current.values = current.values.pop()[0]
+                current.values = current.values.pop()[0]
+                const output = borrowed ? State.Borrowed : State.Owned
+
+                current.value = predicate ? State.Copy : output
+            }
+        }
+    })
+}

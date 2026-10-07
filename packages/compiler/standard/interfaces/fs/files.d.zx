@@ -1,0 +1,46 @@
+export declare function readFile(allocator, io, in: { path: string, max_bytes: u64 }): u8[] throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, ConnectionResetByPeer,
+  DeviceBusy, FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput,
+  InvalidPath, InvalidUtf8, IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice,
+  NoSpaceLeft, NotDir, NotOpenForReading, OutOfMemory, PathAlreadyExists,
+  PermissionDenied, PipeBusy, ProcessFdQuotaExceeded, ReadOnlyFileSystem,
+  SocketUnconnected, StreamTooLong, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
+  Unexpected, WouldBlock
+} concurrent
+
+export declare function readText(allocator, io, in: { path: string, max_bytes: u64 }): string throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, ConnectionResetByPeer,
+  DeviceBusy, FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput,
+  InvalidPath, InvalidUtf8, IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice,
+  NoSpaceLeft, NotDir, NotOpenForReading, OutOfMemory, PathAlreadyExists,
+  PermissionDenied, PipeBusy, ProcessFdQuotaExceeded, ReadOnlyFileSystem,
+  SocketUnconnected, StreamTooLong, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
+  Unexpected, WouldBlock
+} concurrent
+
+export declare function writeFile(io, in: { path: string, data: u8[] }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled, DeviceBusy,
+  DiskQuota, FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput,
+  InvalidPath, InvalidUtf8, IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice,
+  NoSpaceLeft, NotDir, NotOpenForWriting, PathAlreadyExists, PermissionDenied, PipeBusy,
+  ProcessFdQuotaExceeded, ReadOnlyFileSystem, SymLinkLoop, SystemFdQuotaExceeded,
+  SystemResources, Unexpected, WouldBlock
+} concurrent
+
+export declare function writeText(io, in: { path: string, text: string }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled, DeviceBusy,
+  DiskQuota, FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput,
+  InvalidPath, InvalidUtf8, IsDir, LockViolation, NameTooLong, NetworkNotFound, NoDevice,
+  NoSpaceLeft, NotDir, NotOpenForWriting, PathAlreadyExists, PermissionDenied, PipeBusy,
+  ProcessFdQuotaExceeded, ReadOnlyFileSystem, SymLinkLoop, SystemFdQuotaExceeded,
+  SystemResources, Unexpected, WouldBlock
+} concurrent
+
+export declare function truncate(io, in: { path: string, length: u64 }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
+  FileLocksUnsupported, FileNotFound, FileTooBig, InputOutput, InvalidPath, InvalidUtf8,
+  IsDir, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NonResizable, NotDir,
+  PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
+  ReadOnlyFileSystem, SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected,
+  WouldBlock
+} concurrent

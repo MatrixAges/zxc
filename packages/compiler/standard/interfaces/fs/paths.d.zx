@@ -1,0 +1,39 @@
+export declare function unlink(io, in: string): void throws {
+  AccessDenied, BadPathName, Canceled, FileBusy, FileNotFound, FileSystem, InvalidPath,
+  InvalidUtf8, IsDir, NameTooLong, NetworkNotFound, NotDir, PermissionDenied,
+  ReadOnlyFileSystem, SymLinkLoop, SystemResources, Unexpected
+} concurrent
+
+export declare function rename(io, in: { from: string, to: string }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, CrossDevice, DirNotEmpty,
+  DiskQuota, FileBusy, FileNotFound, HardwareFailure, InvalidPath, InvalidUtf8, IsDir,
+  LinkQuotaExceeded, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir,
+  PermissionDenied, PipeBusy, ReadOnlyFileSystem, SymLinkLoop, SystemResources,
+  Unexpected
+} concurrent
+
+export declare function copyFile(io, in: { from: string, to: string, exclusive: bool }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, BrokenPipe, Canceled,
+  ConnectionResetByPeer, CrossDevice, DeviceBusy, DirNotEmpty, DiskQuota, FileBusy,
+  FileLocksUnsupported, FileNotFound, FileTooBig, HardwareFailure, InputOutput,
+  InvalidFileName, InvalidPath, InvalidUtf8, IsDir, LinkQuotaExceeded, LockViolation,
+  NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir, NotOpenForReading,
+  NotOpenForWriting, OperationUnsupported, PathAlreadyExists, PermissionDenied, PipeBusy,
+  ProcessFdQuotaExceeded, ReadOnlyFileSystem, SocketUnconnected, Streaming, SymLinkLoop,
+  SystemFdQuotaExceeded, SystemResources, Unexpected, WouldBlock
+} concurrent
+
+export declare function realpath(allocator, io, in: string): string throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, FileBusy,
+  FileNotFound, FileSystem, FileTooBig, InputOutput, InvalidPath, InvalidUtf8, IsDir,
+  NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir, OperationUnsupported,
+  OutOfMemory, PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
+  SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected, UnrecognizedVolume
+} concurrent
+
+export declare function readlink(allocator, io, in: string): string throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, FileBusy, FileNotFound,
+  FileSystem, InvalidPath, InvalidUtf8, NameTooLong, NetworkNotFound, NotDir, NotLink,
+  OutOfMemory, PermissionDenied, SymLinkLoop, SystemResources, Unexpected,
+  UnsupportedReparsePointType
+} concurrent

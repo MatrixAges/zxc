@@ -1,0 +1,63 @@
+import { Keyword } from "./keyword_model"
+
+export type Input = u64
+
+export type Output = Keyword
+
+export default function (in: Input): Output {
+    switch (in) {
+        case 0: return Keyword.Root
+        case 6: return Keyword.UpperInput
+        case 12: return Keyword.UpperOutput
+        case 13: return Keyword.Underscore
+        case 22: return Keyword.Allocator
+        case 26: return Keyword.Async
+        case 30: return Keyword.Await
+        case 35: return Keyword.Break
+        case 41: return Keyword.Cancel
+        case 43: return Keyword.Case
+        case 52: return Keyword.Concurrent
+        case 54: return Keyword.Const
+        case 61: return Keyword.Declare
+        case 66: return Keyword.Default
+        case 70: return Keyword.Delete
+        case 71: return Keyword.Do
+        case 75: return Keyword.Else
+        case 81: return Keyword.Ensures
+        case 83: return Keyword.Enum
+        case 88: return Keyword.Export
+        case 93: return Keyword.False
+        case 95: return Keyword.For
+        case 98: return Keyword.From
+        case 105: return Keyword.Function
+        case 107: return Keyword.If
+        case 112: return Keyword.Import
+        case 113: return Keyword.In
+        case 117: return Keyword.Insert
+        case 118: return Keyword.Io
+        case 121: return Keyword.Let
+        case 124: return Keyword.Loop
+        case 129: return Keyword.Match
+        case 132: return Keyword.New
+        case 134: return Keyword.Next
+        case 137: return Keyword.Null
+        case 142: return Keyword.Owned
+        case 149: return Keyword.Process
+        case 158: return Keyword.QueryMany
+        case 161: return Keyword.QueryOne
+        case 169: return Keyword.Requires
+        case 173: return Keyword.Return
+        case 178: return Keyword.Store
+        case 183: return Keyword.Switch
+        case 188: return Keyword.Throw
+        case 189: return Keyword.Throws
+        case 199: return Keyword.Transaction
+        case 201: return Keyword.True
+        case 202: return Keyword.Try
+        case 205: return Keyword.Type
+        case 211: return Keyword.Update
+        case 214: return Keyword.Var
+        case 219: return Keyword.While
+        default: return Keyword.Dead
+    }
+}

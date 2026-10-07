@@ -1,0 +1,33 @@
+export type Input = { state: u64, byte: u8 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    switch (in.state) {
+        case 143: return match {
+            in.byte == 114 => 144,
+            _ => 1
+        }
+        case 144: return match {
+            in.byte == 111 => 145,
+            _ => 1
+        }
+        case 145: return match {
+            in.byte == 99 => 146,
+            _ => 1
+        }
+        case 146: return match {
+            in.byte == 101 => 147,
+            _ => 1
+        }
+        case 147: return match {
+            in.byte == 115 => 148,
+            _ => 1
+        }
+        case 148: return match {
+            in.byte == 115 => 149,
+            _ => 1
+        }
+        default: return 1
+    }
+}

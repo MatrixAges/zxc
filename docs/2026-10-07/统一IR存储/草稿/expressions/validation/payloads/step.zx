@@ -1,0 +1,57 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../kinds"
+import access from "./access"
+import collections from "./collections"
+import control from "./control"
+import literals from "./literals"
+
+import type { State, Row } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const row: Row = { state: in, kind: in.table.kinds[in.index], payload: integers.widen(in.table.payloads[in.index]) }
+
+    switch (row.kind) {
+        case ExpressionKind.None: return literals(row)
+        case ExpressionKind.Unit: return literals(row)
+        case ExpressionKind.Integer: return literals(row)
+        case ExpressionKind.NegativeInteger: return literals(row)
+        case ExpressionKind.Float: return literals(row)
+        case ExpressionKind.String: return literals(row)
+        case ExpressionKind.Boolean: return literals(row)
+        case ExpressionKind.Some: return access(row)
+        case ExpressionKind.Capture: return control(row)
+        case ExpressionKind.Task: return control(row)
+        case ExpressionKind.AwaitTask: return control(row)
+        case ExpressionKind.CancelTask: return control(row)
+        case ExpressionKind.Parallel: return control(row)
+        case ExpressionKind.OptionalValue: return access(row)
+        case ExpressionKind.EnumValue: return literals(row)
+        case ExpressionKind.ErrorValue: return literals(row)
+        case ExpressionKind.Reference: return access(row)
+        case ExpressionKind.StoreGet: return access(row)
+        case ExpressionKind.Field: return access(row)
+        case ExpressionKind.TupleField: return access(row)
+        case ExpressionKind.Index: return access(row)
+        case ExpressionKind.Length: return access(row)
+        case ExpressionKind.List: return collections(row)
+        case ExpressionKind.Tuple: return collections(row)
+        case ExpressionKind.Template: return collections(row)
+        case ExpressionKind.ListOperation: return collections(row)
+        case ExpressionKind.Transform: return collections(row)
+        case ExpressionKind.Scope: return control(row)
+        case ExpressionKind.Iteration: return control(row)
+        case ExpressionKind.ListUpdate: return collections(row)
+        case ExpressionKind.Call: return control(row)
+        case ExpressionKind.Unary: return control(row)
+        case ExpressionKind.Binary: return control(row)
+        case ExpressionKind.Conditional: return control(row)
+        case ExpressionKind.Match: return control(row)
+        case ExpressionKind.Object: return collections(row)
+        default: return in
+    }
+}

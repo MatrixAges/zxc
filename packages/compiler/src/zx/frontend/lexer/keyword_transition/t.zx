@@ -1,83 +1,81 @@
-import { Keyword } from "../keyword_model"
+export type Input = { state: u64, byte: u8 }
 
-export type Input = { keyword: Keyword, byte: u8 }
-
-export type Output = Keyword
+export type Output = u64
 
 export default function (in: Input): Output {
-    switch (in.keyword) {
-        case Keyword.T: return match {
-            in.byte == 104 => Keyword.Th,
-            in.byte == 114 => Keyword.Tr,
-            in.byte == 121 => Keyword.Ty,
-            _ => Keyword.Dead
+    switch (in.state) {
+        case 179: return match {
+            in.byte == 104 => 180,
+            in.byte == 114 => 185,
+            in.byte == 121 => 198,
+            _ => 1
         }
-        case Keyword.Th: return match {
-            in.byte == 114 => Keyword.Thr,
-            _ => Keyword.Dead
+        case 180: return match {
+            in.byte == 114 => 181,
+            _ => 1
         }
-        case Keyword.Thr: return match {
-            in.byte == 111 => Keyword.Thro,
-            _ => Keyword.Dead
+        case 181: return match {
+            in.byte == 111 => 182,
+            _ => 1
         }
-        case Keyword.Thro: return match {
-            in.byte == 119 => Keyword.Throw,
-            _ => Keyword.Dead
+        case 182: return match {
+            in.byte == 119 => 183,
+            _ => 1
         }
-        case Keyword.Throw: return match {
-            in.byte == 115 => Keyword.Throws,
-            _ => Keyword.Dead
+        case 183: return match {
+            in.byte == 115 => 184,
+            _ => 1
         }
-        case Keyword.Tr: return match {
-            in.byte == 97 => Keyword.Tra,
-            in.byte == 117 => Keyword.Tru,
-            in.byte == 121 => Keyword.Try,
-            _ => Keyword.Dead
+        case 185: return match {
+            in.byte == 97 => 186,
+            in.byte == 117 => 195,
+            in.byte == 121 => 197,
+            _ => 1
         }
-        case Keyword.Tra: return match {
-            in.byte == 110 => Keyword.Tran,
-            _ => Keyword.Dead
+        case 186: return match {
+            in.byte == 110 => 187,
+            _ => 1
         }
-        case Keyword.Tran: return match {
-            in.byte == 115 => Keyword.Trans,
-            _ => Keyword.Dead
+        case 187: return match {
+            in.byte == 115 => 188,
+            _ => 1
         }
-        case Keyword.Trans: return match {
-            in.byte == 97 => Keyword.Transa,
-            _ => Keyword.Dead
+        case 188: return match {
+            in.byte == 97 => 189,
+            _ => 1
         }
-        case Keyword.Transa: return match {
-            in.byte == 99 => Keyword.Transac,
-            _ => Keyword.Dead
+        case 189: return match {
+            in.byte == 99 => 190,
+            _ => 1
         }
-        case Keyword.Transac: return match {
-            in.byte == 116 => Keyword.Transact,
-            _ => Keyword.Dead
+        case 190: return match {
+            in.byte == 116 => 191,
+            _ => 1
         }
-        case Keyword.Transact: return match {
-            in.byte == 105 => Keyword.Transacti,
-            _ => Keyword.Dead
+        case 191: return match {
+            in.byte == 105 => 192,
+            _ => 1
         }
-        case Keyword.Transacti: return match {
-            in.byte == 111 => Keyword.Transactio,
-            _ => Keyword.Dead
+        case 192: return match {
+            in.byte == 111 => 193,
+            _ => 1
         }
-        case Keyword.Transactio: return match {
-            in.byte == 110 => Keyword.Transaction,
-            _ => Keyword.Dead
+        case 193: return match {
+            in.byte == 110 => 194,
+            _ => 1
         }
-        case Keyword.Tru: return match {
-            in.byte == 101 => Keyword.True,
-            _ => Keyword.Dead
+        case 195: return match {
+            in.byte == 101 => 196,
+            _ => 1
         }
-        case Keyword.Ty: return match {
-            in.byte == 112 => Keyword.Typ,
-            _ => Keyword.Dead
+        case 198: return match {
+            in.byte == 112 => 199,
+            _ => 1
         }
-        case Keyword.Typ: return match {
-            in.byte == 101 => Keyword.Type,
-            _ => Keyword.Dead
+        case 199: return match {
+            in.byte == 101 => 200,
+            _ => 1
         }
-        default: return Keyword.Dead
+        default: return 1
     }
 }

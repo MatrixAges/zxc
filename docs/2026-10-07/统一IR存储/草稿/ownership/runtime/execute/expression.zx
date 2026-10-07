@@ -1,0 +1,75 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../expressions/kinds"
+import place from "../../places/execute"
+import find from "../../places/find"
+import { Operation, State } from "../../places/model"
+import access from "../access"
+import { WorkAction } from "../work/model"
+import pop from "../work/pop"
+import push from "../work/push"
+import top from "../work/top"
+import containers from "./expression/containers"
+import control from "./expression/control"
+import group from "./expression/group"
+import { Group } from "./expression/model"
+import operands from "./expression/operands"
+import family from "./family"
+import { Family } from "./model"
+
+import type { Machine } from "./model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Expression,
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.Value) {
+                const kind = current.program.expressions.kinds[frame.subject]
+                const payload = integers.widen(current.program.expressions.payloads[frame.subject])
+                const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                const located = find({ expressions: current.program.expressions, layout: current.layout, memo: current.memory.memo, expression: frame.subject, trail: current.memory.trail })
+
+                current.expression = frame.subject
+                current.memory = { ...current.memory, trail: located.trail }
+
+                if (located.found) {
+                    const moving = current.memory.memo[frame.subject] != 0 || kind == ExpressionKind.Reference ? frame.moving : container && frame.moving
+                    const decision = access({ types: current.program.types, symbols: current.program.symbols, position: located.position, current: current.memory.states[located.position], moving: moving })
+
+                    current.failed = decision.failed
+                    current.value = decision.value
+
+                    if (decision.assign) {
+                        current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: located.position, operation: Operation.Assign, value: decision.assigned }) }
+                    }
+
+                    if (current.memory.memo[frame.subject] == 0 && !container) {
+                        current.value = State.Copy
+                    }
+                } else {
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Finish, subject: frame.subject, moving: false, index: 0 } })
+
+                    const context = { machine: current, frame: frame, kind: kind, payload: payload, container: container }
+
+                    const selected = group(kind)
+
+                    if (selected == Group.Operands) {
+                        current = operands(context)
+                    } else if (selected == Group.Containers) {
+                        current = containers(context)
+                    } else {
+                        current = control(context)
+                    }
+                }
+            }
+        }
+    })
+}

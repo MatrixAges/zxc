@@ -1,19 +1,19 @@
 import integers from "zig:integers"
 
 import { ExpressionKind } from "../../../ir/canonical/expressions/kinds"
-import optionalId from "../../ir/widen_optional"
-import projection from "../../layout/projection"
 import place from "../../places/execute"
 import find from "../../places/find"
 import { Operation, State } from "../../places/model"
 import access from "../access"
-import { Capture } from "../snapshots/model"
-import save from "../snapshots/save"
-import update from "../snapshots/update"
 import { WorkAction } from "../work/model"
 import pop from "../work/pop"
 import push from "../work/push"
 import top from "../work/top"
+import containers from "./expression/containers"
+import control from "./expression/control"
+import group from "./expression/group"
+import { Group } from "./expression/model"
+import operands from "./expression/operands"
 import family from "./family"
 import { Family } from "./model"
 
@@ -57,96 +57,16 @@ export default function (in: Input): Output {
                 } else {
                     current.work = push({ work: current.work, frame: { action: WorkAction.Finish, subject: frame.subject, moving: false, index: 0 } })
 
-                    if (kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger || kind == ExpressionKind.Float || kind == ExpressionKind.String || kind == ExpressionKind.Boolean || kind == ExpressionKind.None || kind == ExpressionKind.Unit || kind == ExpressionKind.EnumValue || kind == ExpressionKind.ErrorValue) {
-                        current.value = State.Copy
-                    } else if (kind == ExpressionKind.StoreGet) {
-                        current.value = State.Borrowed
-                    } else if (kind == ExpressionKind.Some || kind == ExpressionKind.Capture || kind == ExpressionKind.OptionalValue) {
-                        const child = match kind {
-                            ExpressionKind.Some => integers.widen(current.program.expressions.some[payload]),
-                            ExpressionKind.Capture => integers.widen(current.program.expressions.captures[payload]),
-                            _ => integers.widen(current.program.expressions.optional_values[payload])
-                        }
+                    const context = { machine: current, frame: frame, kind: kind, payload: payload, container: container }
 
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: child, moving: frame.moving, index: 0 } })
-                    } else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
-                        const field = projection({ expressions: current.program.expressions, id: frame.subject })
+                    const selected = group(kind)
 
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: field.target, moving: container && frame.moving, index: 0 } })
-                    } else if (kind == ExpressionKind.Index) {
-                        const item = payload
-
-                        current.work = push({ work: current.work, frame: { action: WorkAction.IndexTarget, subject: frame.subject, moving: false, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.index_targets[item]), moving: container && frame.moving, index: 0 } })
-                    } else if (kind == ExpressionKind.Length || kind == ExpressionKind.Unary || kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask) {
-                        const child = match kind {
-                            ExpressionKind.Length => integers.widen(current.program.expressions.lengths[payload]),
-                            ExpressionKind.Unary => integers.widen(current.program.expressions.unary_operands[payload]),
-                            ExpressionKind.AwaitTask => integers.widen(current.program.expressions.awaits[payload]),
-                            _ => integers.widen(current.program.expressions.cancellations[payload])
-                        }
-
-                        current.work = push({ work: current.work, frame: { action: kind == ExpressionKind.AwaitTask ? WorkAction.Borrowed : WorkAction.Copy, subject: 0, moving: false, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: child, moving: kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask, index: 0 } })
-                    } else if (kind == ExpressionKind.Iteration) {
-                        current.work = push({ work: current.work, frame: { action: WorkAction.IterationInitial, subject: frame.subject, moving: false, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.iteration_initials[payload]), moving: false, index: 0 } })
-                    } else if (kind == ExpressionKind.Transform) {
-                        const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
-
-                        current.snapshots = captured.stack
-                        current.work = push({ work: current.work, frame: { action: WorkAction.TransformTarget, subject: frame.subject, moving: false, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Aggregate, subject: integers.widen(current.program.expressions.transform_targets[payload]), moving: false, index: 0 } })
-                    } else if (kind == ExpressionKind.Match) {
-                        const subject = optionalId(current.program.expressions.match_subjects[payload])
-
-                        current.work = push({ work: current.work, frame: { action: WorkAction.MatchSubject, subject: frame.subject, moving: frame.moving, index: 0 } })
-
-                        if (subject != null) {
-                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: subject, moving: false, index: 0 } })
-                        }
-                    } else if (kind == ExpressionKind.ListOperation) {
-                        current.work = push({ work: current.work, frame: { action: WorkAction.CollectionTarget, subject: frame.subject, moving: false, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.collection_targets[payload]), moving: false, index: 0 } })
-                    } else if (kind == ExpressionKind.Object) {
-                        const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.Memo })
-
-                        current.snapshots = captured.stack
-                        current.values = current.values.push(State.Owned)[0]
-                        current.work = push({ work: current.work, frame: { action: WorkAction.ObjectFinish, subject: frame.subject, moving: false, index: captured.frame } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.ObjectEvaluation, subject: frame.subject, moving: frame.moving, index: 0 } })
-                    } else if (kind == ExpressionKind.Scope) {
-                        const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
-
-                        current.snapshots = captured.stack
-                        current.work = push({ work: current.work, frame: { action: WorkAction.ScopeFinish, subject: frame.subject, moving: false, index: captured.frame } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.ScopeBinding, subject: frame.subject, moving: frame.moving, index: 0 } })
-                    } else if (kind == ExpressionKind.Task || kind == ExpressionKind.Parallel) {
-                        current.work = push({ work: current.work, frame: { action: kind == ExpressionKind.Task ? WorkAction.TaskCapture : WorkAction.ParallelBranch, subject: frame.subject, moving: false, index: 0 } })
-                    } else if (kind == ExpressionKind.ListUpdate) {
-                        const update = payload
-
-                        current.work = push({ work: current.work, frame: { action: WorkAction.UpdateResult, subject: frame.subject, moving: false, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.update_values[update]), moving: true, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.update_indices[update]), moving: false, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.update_targets[update]), moving: false, index: 0 } })
-                    } else if (kind == ExpressionKind.Call) {
-                        const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
-
-                        current.snapshots = captured.stack
-                        current.work = push({ work: current.work, frame: { action: WorkAction.CallResult, subject: frame.subject, moving: false, index: captured.frame } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.call_arguments[payload]), moving: false, index: 0 } })
-                    } else if (kind == ExpressionKind.Binary) {
-                        current.work = push({ work: current.work, frame: { action: WorkAction.BinaryLeft, subject: frame.subject, moving: container && frame.moving, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.binary_left[payload]), moving: container && frame.moving, index: 0 } })
-                    } else if (kind == ExpressionKind.Conditional) {
-                        current.work = push({ work: current.work, frame: { action: WorkAction.ConditionalCondition, subject: frame.subject, moving: frame.moving, index: 0 } })
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.conditional_conditions[payload]), moving: false, index: 0 } })
-                    } else if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
-                        current.values = current.values.push(State.Owned)[0]
-                        current.work = push({ work: current.work, frame: { action: WorkAction.Sequence, subject: frame.subject, moving: frame.moving, index: 0 } })
+                    if (selected == Group.Operands) {
+                        current = operands(context)
+                    } else if (selected == Group.Containers) {
+                        current = containers(context)
                     } else {
-                        current.complete = false
+                        current = control(context)
                     }
                 }
             }

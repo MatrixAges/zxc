@@ -1,0 +1,20 @@
+export declare function mkdir(io, in: { path: string, recursive: bool }): void throws {
+  AccessDenied, AntivirusInterference, BadPathName, Canceled, DeviceBusy, DiskQuota,
+  FileBusy, FileLocksUnsupported, FileNotFound, FileTooBig, InvalidPath, InvalidUtf8,
+  IsDir, LinkQuotaExceeded, NameTooLong, NetworkNotFound, NoDevice, NoSpaceLeft, NotDir,
+  PathAlreadyExists, PermissionDenied, PipeBusy, ProcessFdQuotaExceeded,
+  ReadOnlyFileSystem, Streaming, SymLinkLoop, SystemFdQuotaExceeded, SystemResources,
+  Unexpected, WouldBlock
+} concurrent
+
+export declare function readdir(allocator, io, in: string): string[] throws {
+  AccessDenied, BadPathName, Canceled, FileNotFound, InvalidPath, InvalidUtf8,
+  NameTooLong, NetworkNotFound, NoDevice, NotDir, OutOfMemory, PermissionDenied,
+  ProcessFdQuotaExceeded, SymLinkLoop, SystemFdQuotaExceeded, SystemResources, Unexpected
+} concurrent
+
+export declare function rmdir(io, in: string): void throws {
+  AccessDenied, BadPathName, Canceled, DirNotEmpty, FileBusy, FileNotFound, FileSystem,
+  InvalidPath, InvalidUtf8, NameTooLong, NetworkNotFound, NotDir, PermissionDenied,
+  ReadOnlyFileSystem, SymLinkLoop, SystemResources, Unexpected
+} concurrent

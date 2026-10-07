@@ -1,44 +1,42 @@
-import { Keyword } from "../keyword_model"
+export type Input = { state: u64, byte: u8 }
 
-export type Input = { keyword: Keyword, byte: u8 }
-
-export type Output = Keyword
+export type Output = u64
 
 export default function (in: Input): Output {
-    switch (in.keyword) {
-        case Keyword.S: return match {
-            in.byte == 116 => Keyword.St,
-            in.byte == 119 => Keyword.Sw,
-            _ => Keyword.Dead
+    switch (in.state) {
+        case 169: return match {
+            in.byte == 116 => 170,
+            in.byte == 119 => 174,
+            _ => 1
         }
-        case Keyword.St: return match {
-            in.byte == 111 => Keyword.Sto,
-            _ => Keyword.Dead
+        case 170: return match {
+            in.byte == 111 => 171,
+            _ => 1
         }
-        case Keyword.Sto: return match {
-            in.byte == 114 => Keyword.Stor,
-            _ => Keyword.Dead
+        case 171: return match {
+            in.byte == 114 => 172,
+            _ => 1
         }
-        case Keyword.Stor: return match {
-            in.byte == 101 => Keyword.Store,
-            _ => Keyword.Dead
+        case 172: return match {
+            in.byte == 101 => 173,
+            _ => 1
         }
-        case Keyword.Sw: return match {
-            in.byte == 105 => Keyword.Swi,
-            _ => Keyword.Dead
+        case 174: return match {
+            in.byte == 105 => 175,
+            _ => 1
         }
-        case Keyword.Swi: return match {
-            in.byte == 116 => Keyword.Swit,
-            _ => Keyword.Dead
+        case 175: return match {
+            in.byte == 116 => 176,
+            _ => 1
         }
-        case Keyword.Swit: return match {
-            in.byte == 99 => Keyword.Switc,
-            _ => Keyword.Dead
+        case 176: return match {
+            in.byte == 99 => 177,
+            _ => 1
         }
-        case Keyword.Switc: return match {
-            in.byte == 104 => Keyword.Switch,
-            _ => Keyword.Dead
+        case 177: return match {
+            in.byte == 104 => 178,
+            _ => 1
         }
-        default: return Keyword.Dead
+        default: return 1
     }
 }

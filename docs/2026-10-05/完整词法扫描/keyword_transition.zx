@@ -1,4 +1,20 @@
 import { Keyword } from "./keyword_model.zx"
+import root from "./keyword_transition/root.zx"
+import a from "./keyword_transition/a.zx"
+import b from "./keyword_transition/b.zx"
+import c from "./keyword_transition/c.zx"
+import d from "./keyword_transition/d.zx"
+import e from "./keyword_transition/e.zx"
+import f from "./keyword_transition/f.zx"
+import i from "./keyword_transition/i.zx"
+import l from "./keyword_transition/l.zx"
+import m from "./keyword_transition/m.zx"
+import n from "./keyword_transition/n.zx"
+import r from "./keyword_transition/r.zx"
+import s from "./keyword_transition/s.zx"
+import t from "./keyword_transition/t.zx"
+import v from "./keyword_transition/v.zx"
+import w from "./keyword_transition/w.zx"
 
 export type Input = { keyword: Keyword, byte: u8 }
 
@@ -6,362 +22,89 @@ export type Output = Keyword
 
 export default function (in: Input): Output {
   switch (in.keyword) {
-    case Keyword.Root: return match {
-      in.byte == 97 => Keyword.A,
-      in.byte == 98 => Keyword.B,
-      in.byte == 99 => Keyword.C,
-      in.byte == 100 => Keyword.D,
-      in.byte == 101 => Keyword.E,
-      in.byte == 102 => Keyword.F,
-      in.byte == 105 => Keyword.I,
-      in.byte == 108 => Keyword.L,
-      in.byte == 109 => Keyword.M,
-      in.byte == 110 => Keyword.N,
-      in.byte == 114 => Keyword.R,
-      in.byte == 115 => Keyword.S,
-      in.byte == 116 => Keyword.T,
-      in.byte == 118 => Keyword.V,
-      in.byte == 119 => Keyword.W,
-      _ => Keyword.Dead
-    }
-    case Keyword.A: return match {
-      in.byte == 115 => Keyword.As,
-      in.byte == 119 => Keyword.Aw,
-      _ => Keyword.Dead
-    }
-    case Keyword.As: return match {
-      in.byte == 121 => Keyword.Asy,
-      _ => Keyword.Dead
-    }
-    case Keyword.Asy: return match {
-      in.byte == 110 => Keyword.Asyn,
-      _ => Keyword.Dead
-    }
-    case Keyword.Asyn: return match {
-      in.byte == 99 => Keyword.Async,
-      _ => Keyword.Dead
-    }
-    case Keyword.Aw: return match {
-      in.byte == 97 => Keyword.Awa,
-      _ => Keyword.Dead
-    }
-    case Keyword.Awa: return match {
-      in.byte == 105 => Keyword.Awai,
-      _ => Keyword.Dead
-    }
-    case Keyword.Awai: return match {
-      in.byte == 116 => Keyword.Await,
-      _ => Keyword.Dead
-    }
-    case Keyword.B: return match {
-      in.byte == 114 => Keyword.Br,
-      _ => Keyword.Dead
-    }
-    case Keyword.Br: return match {
-      in.byte == 101 => Keyword.Bre,
-      _ => Keyword.Dead
-    }
-    case Keyword.Bre: return match {
-      in.byte == 97 => Keyword.Brea,
-      _ => Keyword.Dead
-    }
-    case Keyword.Brea: return match {
-      in.byte == 107 => Keyword.Break,
-      _ => Keyword.Dead
-    }
-    case Keyword.C: return match {
-      in.byte == 97 => Keyword.Ca,
-      in.byte == 111 => Keyword.Co,
-      _ => Keyword.Dead
-    }
-    case Keyword.Ca: return match {
-      in.byte == 115 => Keyword.Cas,
-      _ => Keyword.Dead
-    }
-    case Keyword.Cas: return match {
-      in.byte == 101 => Keyword.Case,
-      _ => Keyword.Dead
-    }
-    case Keyword.Co: return match {
-      in.byte == 110 => Keyword.Con,
-      _ => Keyword.Dead
-    }
-    case Keyword.Con: return match {
-      in.byte == 115 => Keyword.Cons,
-      _ => Keyword.Dead
-    }
-    case Keyword.Cons: return match {
-      in.byte == 116 => Keyword.Const,
-      _ => Keyword.Dead
-    }
-    case Keyword.D: return match {
-      in.byte == 101 => Keyword.De,
-      _ => Keyword.Dead
-    }
-    case Keyword.De: return match {
-      in.byte == 102 => Keyword.Def,
-      _ => Keyword.Dead
-    }
-    case Keyword.Def: return match {
-      in.byte == 97 => Keyword.Defa,
-      _ => Keyword.Dead
-    }
-    case Keyword.Defa: return match {
-      in.byte == 117 => Keyword.Defau,
-      _ => Keyword.Dead
-    }
-    case Keyword.Defau: return match {
-      in.byte == 108 => Keyword.Defaul,
-      _ => Keyword.Dead
-    }
-    case Keyword.Defaul: return match {
-      in.byte == 116 => Keyword.Default,
-      _ => Keyword.Dead
-    }
-    case Keyword.E: return match {
-      in.byte == 108 => Keyword.El,
-      in.byte == 110 => Keyword.En,
-      in.byte == 120 => Keyword.Ex,
-      _ => Keyword.Dead
-    }
-    case Keyword.El: return match {
-      in.byte == 115 => Keyword.Els,
-      _ => Keyword.Dead
-    }
-    case Keyword.Els: return match {
-      in.byte == 101 => Keyword.Else,
-      _ => Keyword.Dead
-    }
-    case Keyword.En: return match {
-      in.byte == 117 => Keyword.Enu,
-      _ => Keyword.Dead
-    }
-    case Keyword.Enu: return match {
-      in.byte == 109 => Keyword.Enum,
-      _ => Keyword.Dead
-    }
-    case Keyword.Ex: return match {
-      in.byte == 112 => Keyword.Exp,
-      _ => Keyword.Dead
-    }
-    case Keyword.Exp: return match {
-      in.byte == 111 => Keyword.Expo,
-      _ => Keyword.Dead
-    }
-    case Keyword.Expo: return match {
-      in.byte == 114 => Keyword.Expor,
-      _ => Keyword.Dead
-    }
-    case Keyword.Expor: return match {
-      in.byte == 116 => Keyword.Export,
-      _ => Keyword.Dead
-    }
-    case Keyword.F: return match {
-      in.byte == 97 => Keyword.Fa,
-      in.byte == 111 => Keyword.Fo,
-      in.byte == 117 => Keyword.Fu,
-      _ => Keyword.Dead
-    }
-    case Keyword.Fa: return match {
-      in.byte == 108 => Keyword.Fal,
-      _ => Keyword.Dead
-    }
-    case Keyword.Fal: return match {
-      in.byte == 115 => Keyword.Fals,
-      _ => Keyword.Dead
-    }
-    case Keyword.Fals: return match {
-      in.byte == 101 => Keyword.False,
-      _ => Keyword.Dead
-    }
-    case Keyword.Fo: return match {
-      in.byte == 114 => Keyword.For,
-      _ => Keyword.Dead
-    }
-    case Keyword.Fu: return match {
-      in.byte == 110 => Keyword.Fun,
-      _ => Keyword.Dead
-    }
-    case Keyword.Fun: return match {
-      in.byte == 99 => Keyword.Func,
-      _ => Keyword.Dead
-    }
-    case Keyword.Func: return match {
-      in.byte == 116 => Keyword.Funct,
-      _ => Keyword.Dead
-    }
-    case Keyword.Funct: return match {
-      in.byte == 105 => Keyword.Functi,
-      _ => Keyword.Dead
-    }
-    case Keyword.Functi: return match {
-      in.byte == 111 => Keyword.Functio,
-      _ => Keyword.Dead
-    }
-    case Keyword.Functio: return match {
-      in.byte == 110 => Keyword.Function,
-      _ => Keyword.Dead
-    }
-    case Keyword.I: return match {
-      in.byte == 102 => Keyword.If,
-      in.byte == 109 => Keyword.Im,
-      _ => Keyword.Dead
-    }
-    case Keyword.Im: return match {
-      in.byte == 112 => Keyword.Imp,
-      _ => Keyword.Dead
-    }
-    case Keyword.Imp: return match {
-      in.byte == 111 => Keyword.Impo,
-      _ => Keyword.Dead
-    }
-    case Keyword.Impo: return match {
-      in.byte == 114 => Keyword.Impor,
-      _ => Keyword.Dead
-    }
-    case Keyword.Impor: return match {
-      in.byte == 116 => Keyword.Import,
-      _ => Keyword.Dead
-    }
-    case Keyword.L: return match {
-      in.byte == 101 => Keyword.Le,
-      _ => Keyword.Dead
-    }
-    case Keyword.Le: return match {
-      in.byte == 116 => Keyword.Let,
-      _ => Keyword.Dead
-    }
-    case Keyword.M: return match {
-      in.byte == 97 => Keyword.Ma,
-      _ => Keyword.Dead
-    }
-    case Keyword.Ma: return match {
-      in.byte == 116 => Keyword.Mat,
-      _ => Keyword.Dead
-    }
-    case Keyword.Mat: return match {
-      in.byte == 99 => Keyword.Matc,
-      _ => Keyword.Dead
-    }
-    case Keyword.Matc: return match {
-      in.byte == 104 => Keyword.Match,
-      _ => Keyword.Dead
-    }
-    case Keyword.N: return match {
-      in.byte == 101 => Keyword.Ne,
-      in.byte == 117 => Keyword.Nu,
-      _ => Keyword.Dead
-    }
-    case Keyword.Ne: return match {
-      in.byte == 119 => Keyword.New,
-      _ => Keyword.Dead
-    }
-    case Keyword.Nu: return match {
-      in.byte == 108 => Keyword.Nul,
-      _ => Keyword.Dead
-    }
-    case Keyword.Nul: return match {
-      in.byte == 108 => Keyword.Null,
-      _ => Keyword.Dead
-    }
-    case Keyword.R: return match {
-      in.byte == 101 => Keyword.Re,
-      _ => Keyword.Dead
-    }
-    case Keyword.Re: return match {
-      in.byte == 116 => Keyword.Ret,
-      _ => Keyword.Dead
-    }
-    case Keyword.Ret: return match {
-      in.byte == 117 => Keyword.Retu,
-      _ => Keyword.Dead
-    }
-    case Keyword.Retu: return match {
-      in.byte == 114 => Keyword.Retur,
-      _ => Keyword.Dead
-    }
-    case Keyword.Retur: return match {
-      in.byte == 110 => Keyword.Return,
-      _ => Keyword.Dead
-    }
-    case Keyword.S: return match {
-      in.byte == 119 => Keyword.Sw,
-      _ => Keyword.Dead
-    }
-    case Keyword.Sw: return match {
-      in.byte == 105 => Keyword.Swi,
-      _ => Keyword.Dead
-    }
-    case Keyword.Swi: return match {
-      in.byte == 116 => Keyword.Swit,
-      _ => Keyword.Dead
-    }
-    case Keyword.Swit: return match {
-      in.byte == 99 => Keyword.Switc,
-      _ => Keyword.Dead
-    }
-    case Keyword.Switc: return match {
-      in.byte == 104 => Keyword.Switch,
-      _ => Keyword.Dead
-    }
-    case Keyword.T: return match {
-      in.byte == 104 => Keyword.Th,
-      in.byte == 114 => Keyword.Tr,
-      in.byte == 121 => Keyword.Ty,
-      _ => Keyword.Dead
-    }
-    case Keyword.Th: return match {
-      in.byte == 114 => Keyword.Thr,
-      _ => Keyword.Dead
-    }
-    case Keyword.Thr: return match {
-      in.byte == 111 => Keyword.Thro,
-      _ => Keyword.Dead
-    }
-    case Keyword.Thro: return match {
-      in.byte == 119 => Keyword.Throw,
-      _ => Keyword.Dead
-    }
-    case Keyword.Tr: return match {
-      in.byte == 117 => Keyword.Tru,
-      _ => Keyword.Dead
-    }
-    case Keyword.Tru: return match {
-      in.byte == 101 => Keyword.True,
-      _ => Keyword.Dead
-    }
-    case Keyword.Ty: return match {
-      in.byte == 112 => Keyword.Typ,
-      _ => Keyword.Dead
-    }
-    case Keyword.Typ: return match {
-      in.byte == 101 => Keyword.Type,
-      _ => Keyword.Dead
-    }
-    case Keyword.V: return match {
-      in.byte == 97 => Keyword.Va,
-      _ => Keyword.Dead
-    }
-    case Keyword.Va: return match {
-      in.byte == 114 => Keyword.Var,
-      _ => Keyword.Dead
-    }
-    case Keyword.W: return match {
-      in.byte == 104 => Keyword.Wh,
-      _ => Keyword.Dead
-    }
-    case Keyword.Wh: return match {
-      in.byte == 105 => Keyword.Whi,
-      _ => Keyword.Dead
-    }
-    case Keyword.Whi: return match {
-      in.byte == 108 => Keyword.Whil,
-      _ => Keyword.Dead
-    }
-    case Keyword.Whil: return match {
-      in.byte == 101 => Keyword.While,
-      _ => Keyword.Dead
-    }
+    case Keyword.Root: return root(in)
+    case Keyword.A: return a(in)
+    case Keyword.As: return a(in)
+    case Keyword.Asy: return a(in)
+    case Keyword.Asyn: return a(in)
+    case Keyword.Aw: return a(in)
+    case Keyword.Awa: return a(in)
+    case Keyword.Awai: return a(in)
+    case Keyword.B: return b(in)
+    case Keyword.Br: return b(in)
+    case Keyword.Bre: return b(in)
+    case Keyword.Brea: return b(in)
+    case Keyword.C: return c(in)
+    case Keyword.Ca: return c(in)
+    case Keyword.Cas: return c(in)
+    case Keyword.Co: return c(in)
+    case Keyword.Con: return c(in)
+    case Keyword.Cons: return c(in)
+    case Keyword.D: return d(in)
+    case Keyword.De: return d(in)
+    case Keyword.Def: return d(in)
+    case Keyword.Defa: return d(in)
+    case Keyword.Defau: return d(in)
+    case Keyword.Defaul: return d(in)
+    case Keyword.E: return e(in)
+    case Keyword.El: return e(in)
+    case Keyword.Els: return e(in)
+    case Keyword.En: return e(in)
+    case Keyword.Enu: return e(in)
+    case Keyword.Ex: return e(in)
+    case Keyword.Exp: return e(in)
+    case Keyword.Expo: return e(in)
+    case Keyword.Expor: return e(in)
+    case Keyword.F: return f(in)
+    case Keyword.Fa: return f(in)
+    case Keyword.Fal: return f(in)
+    case Keyword.Fals: return f(in)
+    case Keyword.Fo: return f(in)
+    case Keyword.Fu: return f(in)
+    case Keyword.Fun: return f(in)
+    case Keyword.Func: return f(in)
+    case Keyword.Funct: return f(in)
+    case Keyword.Functi: return f(in)
+    case Keyword.Functio: return f(in)
+    case Keyword.I: return i(in)
+    case Keyword.Im: return i(in)
+    case Keyword.Imp: return i(in)
+    case Keyword.Impo: return i(in)
+    case Keyword.Impor: return i(in)
+    case Keyword.L: return l(in)
+    case Keyword.Le: return l(in)
+    case Keyword.M: return m(in)
+    case Keyword.Ma: return m(in)
+    case Keyword.Mat: return m(in)
+    case Keyword.Matc: return m(in)
+    case Keyword.N: return n(in)
+    case Keyword.Ne: return n(in)
+    case Keyword.Nu: return n(in)
+    case Keyword.Nul: return n(in)
+    case Keyword.R: return r(in)
+    case Keyword.Re: return r(in)
+    case Keyword.Ret: return r(in)
+    case Keyword.Retu: return r(in)
+    case Keyword.Retur: return r(in)
+    case Keyword.S: return s(in)
+    case Keyword.Sw: return s(in)
+    case Keyword.Swi: return s(in)
+    case Keyword.Swit: return s(in)
+    case Keyword.Switc: return s(in)
+    case Keyword.T: return t(in)
+    case Keyword.Th: return t(in)
+    case Keyword.Thr: return t(in)
+    case Keyword.Thro: return t(in)
+    case Keyword.Tr: return t(in)
+    case Keyword.Tru: return t(in)
+    case Keyword.Ty: return t(in)
+    case Keyword.Typ: return t(in)
+    case Keyword.V: return v(in)
+    case Keyword.Va: return v(in)
+    case Keyword.W: return w(in)
+    case Keyword.Wh: return w(in)
+    case Keyword.Whi: return w(in)
+    case Keyword.Whil: return w(in)
     default: return Keyword.Dead
   }
 }

@@ -1,0 +1,48 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../expressions/kinds"
+import projection from "../projection"
+import { Phase } from "./model"
+
+import type { Session } from "./model"
+
+export type Input = Session
+
+export type Output = Session
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && (current.phase == Phase.Expression),
+        next: current => {
+            if (current.phase == Phase.Expression) {
+                if (current.expression == current.program.expressions.kinds.length) {
+                    current.active = false
+                } else {
+                    const kind = current.program.expressions.kinds[current.expression]
+                    const payload = integers.widen(current.program.expressions.payloads[current.expression])
+
+                    if (kind == ExpressionKind.Reference) {
+                        current.bindings = current.bindings.push(integers.widen(current.program.expressions.references[payload]) + 1)[0]
+                        current.expression += 1
+                    } else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+                        const field = projection({ expressions: current.program.expressions, id: current.expression })
+                        const parent = current.bindings[field.target]
+
+                        if (parent == 0) {
+                            current.bindings = current.bindings.push(0)[0]
+                            current.phase = Phase.AncestorStart
+                        } else {
+                            current.parent = parent - 1
+                            current.child_expression = current.expression
+                            current.direct = true
+                            current.phase = Phase.Ensure
+                        }
+                    } else {
+                        current.bindings = current.bindings.push(0)[0]
+                        current.expression += 1
+                    }
+                }
+            }
+        }
+    })
+}

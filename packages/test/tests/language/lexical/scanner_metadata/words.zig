@@ -15,7 +15,7 @@ pub fn expected(allocator: std.mem.Allocator, text: []const u8) !f.Token {
     }
 
     for (recognized) |word| {
-        if (!std.mem.startsWith(u8, word, text)) continue;
+        if (!std.mem.eql(u8, word, text)) continue;
 
         token.word = if (text[0] == '_') "Underscore" else if (std.ascii.isUpper(text[0])) try std.fmt.allocPrint(allocator, "Upper{s}", .{text}) else try std.fmt.allocPrint(allocator, "{c}{s}", .{ std.ascii.toUpper(text[0]), text[1..] });
 

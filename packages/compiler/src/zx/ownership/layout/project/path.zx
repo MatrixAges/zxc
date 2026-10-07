@@ -1,0 +1,53 @@
+import { ExpressionKind } from "../../../ir/canonical/expressions/kinds"
+import projection from "../projection"
+import { Phase } from "./model"
+
+import type { Session } from "./model"
+
+export type Input = Session
+
+export type Output = Session
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && (current.phase == Phase.AncestorStart || current.phase == Phase.Ancestor || current.phase == Phase.Root || current.phase == Phase.Path),
+        next: current => {
+            if (current.phase == Phase.AncestorStart) {
+                current.ancestor = current.expression
+                current.path = current.path.splice(0, 0, [])[1]
+                current.phase = Phase.Ancestor
+            } else if (current.phase == Phase.Ancestor) {
+                const kind = current.program.expressions.kinds[current.ancestor]
+
+                if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+                    const field = projection({ expressions: current.program.expressions, id: current.ancestor })
+
+                    current.path = current.path.push(current.ancestor)[0]
+                    current.ancestor = field.target
+                    current.record = current.heads[field.target]
+                    current.phase = Phase.Root
+                } else {
+                    current.expression += 1
+                    current.phase = Phase.Expression
+                }
+            } else if (current.phase == Phase.Root) {
+                if (current.record == 0) {
+                    current.phase = Phase.Ancestor
+                } else {
+                    current.parent = current.cached.positions[current.record - 1]
+                    current.path_index = current.path.length
+                    current.phase = Phase.Path
+                }
+            } else if (current.phase == Phase.Path) {
+                if (current.path_index == 0) {
+                    current.record = current.next[current.record - 1]
+                    current.phase = Phase.Root
+                } else {
+                    current.child_expression = current.path[current.path_index - 1]
+                    current.direct = false
+                    current.phase = Phase.Ensure
+                }
+            }
+        }
+    })
+}

@@ -1,0 +1,100 @@
+import optional from "../optional"
+import required from "../required"
+
+import type { Body } from "../../../body_model"
+
+export type Input = Body
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!required({ values: in.expressions.scope_results, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.scope_values, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.iteration_initials, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.iteration_conditions, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.iteration_bodies, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.update_targets, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.update_indices, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.update_values, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.call_arguments, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.unary_operands, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.binary_left, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.binary_right, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.conditional_conditions, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.conditional_yes, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.conditional_no, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.match_fallbacks, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.match_conditions, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.match_results, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.object_field_values, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!required({ values: in.expressions.object_evaluation_values, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!optional({ values: in.expressions.transform_initials, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    if (!optional({ values: in.expressions.match_subjects, count: in.expressions.kinds.length })) {
+        return false
+    }
+
+    return true
+}

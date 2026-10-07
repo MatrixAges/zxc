@@ -1,0 +1,56 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../../ir/canonical/expressions/kinds"
+import projection from "../../../layout/projection"
+import { State } from "../../../places/model"
+import { WorkAction } from "../../work/model"
+import push from "../../work/push"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.kind == ExpressionKind.Integer || in.kind == ExpressionKind.NegativeInteger || in.kind == ExpressionKind.Float || in.kind == ExpressionKind.String || in.kind == ExpressionKind.Boolean || in.kind == ExpressionKind.None || in.kind == ExpressionKind.Unit || in.kind == ExpressionKind.EnumValue || in.kind == ExpressionKind.ErrorValue) {
+        return { ...in.machine, value: State.Copy }
+    }
+
+    if (in.kind == ExpressionKind.StoreGet) {
+        return { ...in.machine, value: State.Borrowed }
+    }
+
+    if (in.kind == ExpressionKind.Some || in.kind == ExpressionKind.Capture || in.kind == ExpressionKind.OptionalValue) {
+        const child = match in.kind {
+            ExpressionKind.Some => integers.widen(in.machine.program.expressions.some[in.payload]),
+            ExpressionKind.Capture => integers.widen(in.machine.program.expressions.captures[in.payload]),
+            _ => integers.widen(in.machine.program.expressions.optional_values[in.payload])
+        }
+
+        return { ...in.machine, work: push({ work: in.machine.work, frame: { action: WorkAction.Value, subject: child, moving: in.frame.moving, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Field || in.kind == ExpressionKind.TupleField) {
+        const field = projection({ expressions: in.machine.program.expressions, id: in.frame.subject })
+
+        return { ...in.machine, work: push({ work: in.machine.work, frame: { action: WorkAction.Value, subject: field.target, moving: in.container && in.frame.moving, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Index) {
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.IndexTarget, subject: in.frame.subject, moving: false, index: 0 } })
+
+        return { ...in.machine, work: push({ work: work, frame: { action: WorkAction.Value, subject: integers.widen(in.machine.program.expressions.index_targets[in.payload]), moving: in.container && in.frame.moving, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Length || in.kind == ExpressionKind.Unary || in.kind == ExpressionKind.AwaitTask || in.kind == ExpressionKind.CancelTask) {
+        const child = match in.kind {
+            ExpressionKind.Length => integers.widen(in.machine.program.expressions.lengths[in.payload]),
+            ExpressionKind.Unary => integers.widen(in.machine.program.expressions.unary_operands[in.payload]),
+            ExpressionKind.AwaitTask => integers.widen(in.machine.program.expressions.awaits[in.payload]),
+            _ => integers.widen(in.machine.program.expressions.cancellations[in.payload])
+        }
+
+        const work = push({ work: in.machine.work, frame: { action: in.kind == ExpressionKind.AwaitTask ? WorkAction.Borrowed : WorkAction.Copy, subject: 0, moving: false, index: 0 } })
+
+        return { ...in.machine, work: push({ work: work, frame: { action: WorkAction.Value, subject: child, moving: in.kind == ExpressionKind.AwaitTask || in.kind == ExpressionKind.CancelTask, index: 0 } }) }
+    }
+
+    return { ...in.machine, complete: false }
+}

@@ -1,0 +1,50 @@
+import integers from "zig:integers"
+
+import { BinaryOperator } from "../../../../expressions/kinds"
+import { State } from "../../../places/model"
+import apply from "../../snapshots/apply"
+import drop from "../../snapshots/drop"
+import { Action } from "../../snapshots/model"
+import { Capture } from "../../snapshots/model"
+import save from "../../snapshots/save"
+import { WorkAction } from "../../work/model"
+import pop from "../../work/pop"
+import push from "../../work/push"
+import top from "../../work/top"
+
+import type { Machine } from "../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.BinaryLeft || current.work.actions[current.work.actions.length - 1] == WorkAction.BinaryRight),
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.BinaryLeft) {
+                const binary = integers.widen(current.program.expressions.payloads[frame.subject])
+                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                current.snapshots = captured.stack
+                current.values = current.values.push(current.value)[0]
+                current.work = push({ work: current.work, frame: { action: WorkAction.BinaryRight, subject: frame.subject, moving: false, index: captured.frame } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.binary_right[binary]), moving: frame.moving, index: 0 } })
+            } else if (frame.action == WorkAction.BinaryRight) {
+                const binary = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                if (current.program.expressions.binary_operators[binary] == BinaryOperator.LogicalAnd || current.program.expressions.binary_operators[binary] == BinaryOperator.LogicalOr || current.program.expressions.binary_operators[binary] == BinaryOperator.Coalesce) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.MergeStates })
+                }
+
+                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                current.value = current.value == State.Borrowed || current.values[current.values.length - 1] == State.Borrowed ? State.Borrowed : State.Owned
+                current.values = current.values.pop()[0]
+            }
+        }
+    })
+}

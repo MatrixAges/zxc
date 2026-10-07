@@ -54,9 +54,11 @@ export function frontendSource(args: {
     return program({ body, mixed, selector: false })
 }
 
-export function runtimeSource(args: { operator: string; shapes: Array<Gaps> }): string {
-    const { operator, shapes } = args
-    const branches = shapes.map((gaps, shape) => `                case ${shape}:\n${updates({ operator, gaps })}`)
+export function runtimeSource(args: { operator: string; shapes: Array<Gaps>; first?: number }): string {
+    const { operator, shapes, first = 0 } = args
+    const branches = shapes.map(
+        (gaps, shape) => `                case ${first + shape}:\n${updates({ operator, gaps })}`
+    )
 
     return program({
         body: `            switch (state.shape) {\n${branches.join('\n')}\n            }`,

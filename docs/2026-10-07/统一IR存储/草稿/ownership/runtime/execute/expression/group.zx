@@ -1,0 +1,40 @@
+import { ExpressionKind } from "../../../../expressions/kinds"
+import { Group } from "./model"
+
+export type Input = ExpressionKind
+
+export type Output = Group
+
+export default function (in: Input): Output {
+    switch (in) {
+        case ExpressionKind.Integer: return Group.Operands
+        case ExpressionKind.NegativeInteger: return Group.Operands
+        case ExpressionKind.Float: return Group.Operands
+        case ExpressionKind.String: return Group.Operands
+        case ExpressionKind.Boolean: return Group.Operands
+        case ExpressionKind.None: return Group.Operands
+        case ExpressionKind.Unit: return Group.Operands
+        case ExpressionKind.EnumValue: return Group.Operands
+        case ExpressionKind.ErrorValue: return Group.Operands
+        case ExpressionKind.StoreGet: return Group.Operands
+        case ExpressionKind.Some: return Group.Operands
+        case ExpressionKind.Capture: return Group.Operands
+        case ExpressionKind.OptionalValue: return Group.Operands
+        case ExpressionKind.Field: return Group.Operands
+        case ExpressionKind.TupleField: return Group.Operands
+        case ExpressionKind.Index: return Group.Operands
+        case ExpressionKind.Length: return Group.Operands
+        case ExpressionKind.Unary: return Group.Operands
+        case ExpressionKind.AwaitTask: return Group.Operands
+        case ExpressionKind.CancelTask: return Group.Operands
+        case ExpressionKind.ListOperation: return Group.Containers
+        case ExpressionKind.Object: return Group.Containers
+        case ExpressionKind.Task: return Group.Containers
+        case ExpressionKind.Parallel: return Group.Containers
+        case ExpressionKind.ListUpdate: return Group.Containers
+        case ExpressionKind.List: return Group.Containers
+        case ExpressionKind.Tuple: return Group.Containers
+        case ExpressionKind.Template: return Group.Containers
+        default: return Group.Control
+    }
+}

@@ -1,0 +1,22 @@
+import { ExpressionKind } from "../../kinds"
+
+import type { Row, State } from "./model"
+
+export type Input = Row
+
+export type Output = State
+
+export default function (in: Input): Output {
+    switch (in.kind) {
+        case ExpressionKind.None: return { ...in.state, valid: in.payload == 0 }
+        case ExpressionKind.Unit: return { ...in.state, valid: in.payload == 0 }
+        case ExpressionKind.Integer: return { ...in.state, valid: in.payload == in.state.integers && in.payload < in.state.table.integers.length, integers: in.state.integers + 1 }
+        case ExpressionKind.NegativeInteger: return { ...in.state, valid: in.payload == in.state.negative_integers && in.payload < in.state.table.negative_integers.length, negative_integers: in.state.negative_integers + 1 }
+        case ExpressionKind.Float: return { ...in.state, valid: in.payload == in.state.floats && in.payload < in.state.table.floats.length, floats: in.state.floats + 1 }
+        case ExpressionKind.String: return { ...in.state, valid: in.payload == in.state.strings && in.payload < in.state.table.strings.length, strings: in.state.strings + 1 }
+        case ExpressionKind.Boolean: return { ...in.state, valid: in.payload == in.state.booleans && in.payload < in.state.table.booleans.length, booleans: in.state.booleans + 1 }
+        case ExpressionKind.EnumValue: return { ...in.state, valid: in.payload == in.state.enumerations && in.payload < in.state.table.enumerations.length, enumerations: in.state.enumerations + 1 }
+        case ExpressionKind.ErrorValue: return { ...in.state, valid: in.payload == in.state.errors && in.payload < in.state.table.errors.length, errors: in.state.errors + 1 }
+        default: return in.state
+    }
+}

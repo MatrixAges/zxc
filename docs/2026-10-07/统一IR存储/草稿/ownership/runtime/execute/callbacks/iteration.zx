@@ -1,0 +1,80 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../../expressions/kinds"
+import place from "../../../places/execute"
+import { Operation, State } from "../../../places/model"
+import borrow from "../../borrowing/execute"
+import apply from "../../snapshots/apply"
+import drop from "../../snapshots/drop"
+import { Action } from "../../snapshots/model"
+import { Capture } from "../../snapshots/model"
+import save from "../../snapshots/save"
+import { WorkAction } from "../../work/model"
+import pop from "../../work/pop"
+import push from "../../work/push"
+import top from "../../work/top"
+
+import type { Machine } from "../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.IterationInitial || current.work.actions[current.work.actions.length - 1] == WorkAction.IterationCondition || current.work.actions[current.work.actions.length - 1] == WorkAction.IterationBody || current.work.actions[current.work.actions.length - 1] == WorkAction.IterationFinish),
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.IterationInitial) {
+                const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+                const temporary = current.program.expressions.kinds[integers.widen(current.program.expressions.iteration_initials[iteration])] == ExpressionKind.Call && current.value == State.Owned
+                const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                current.snapshots = captured.stack
+                current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: integers.widen(current.program.expressions.iteration_condition_parameters[iteration]), operation: Operation.Assign, value: container ? State.Borrowed : State.Copy }) }
+                current.work = push({ work: current.work, frame: { action: WorkAction.IterationCondition, subject: frame.subject, moving: temporary, index: captured.frame } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.iteration_conditions[iteration]), moving: false, index: 0 } })
+            } else if (frame.action == WorkAction.IterationCondition) {
+                const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+                const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                const state = container ? State.Borrowed : State.Copy
+
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: integers.widen(current.program.expressions.iteration_parameters[iteration]), operation: Operation.Assign, value: frame.moving ? State.Owned : state }) }
+                current.work = push({ work: current.work, frame: { action: WorkAction.IterationBody, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.iteration_bodies[iteration]), moving: true, index: 0 } })
+            } else if (frame.action == WorkAction.IterationBody) {
+                const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+                const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+
+                current.values = current.values.push(current.value)[0]
+                current.work = push({ work: current.work, frame: { action: WorkAction.IterationFinish, subject: frame.subject, moving: frame.moving, index: frame.index } })
+
+                if (frame.moving && (current.value == State.Borrowed || current.value == State.Loaned)) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                    current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: integers.widen(current.program.expressions.iteration_parameters[iteration]), operation: Operation.Assign, value: container ? State.Borrowed : State.Copy }) }
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.iteration_bodies[iteration]), moving: true, index: 0 } })
+                }
+            } else if (frame.action == WorkAction.IterationFinish) {
+                const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+                const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                const result = current.values[current.values.length - 1]
+                const borrowed = container && ((!current.program.expressions.iteration_postconditions[iteration] && !frame.moving) || result == State.Borrowed || result == State.Loaned)
+
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+
+                if (borrowed) {
+                    current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.iteration_initials[iteration]), permanent: true })
+                }
+
+                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                current.values = current.values.pop()[0]
+                current.value = borrowed ? State.Borrowed : result
+            }
+        }
+    })
+}

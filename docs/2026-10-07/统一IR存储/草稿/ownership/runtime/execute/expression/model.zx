@@ -1,0 +1,9 @@
+import type { ExpressionKind } from "../../../../expressions/kinds"
+import type { Frame } from "../../work/model"
+import type { Machine } from "../model"
+
+export enum Group { Operands, Containers, Control }
+
+export type Input = { machine: Machine, frame: Frame, kind: ExpressionKind, payload: u64, container: bool }
+
+export type Output = Machine

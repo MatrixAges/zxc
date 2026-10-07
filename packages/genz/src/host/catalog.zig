@@ -6,6 +6,7 @@ pub const Module = struct {
     specifier: []const u8,
     path: []const u8,
     source: []const u8,
+    text: ?[]const u8 = null,
     module: []const u8,
     namespace: []const []const u8,
     implementation_path: []const u8,
@@ -33,7 +34,7 @@ pub fn render(allocator: std.mem.Allocator, modules: []const Module) std.mem.All
         try values.append(builder.allocator, try builder.object(&.{
             .{ .name = "specifier", .value = try builder.string(module.specifier) },
             .{ .name = "path", .value = try builder.string(module.path) },
-            .{ .name = "source", .value = try builder.builtin(.embedFile, &.{try builder.string(module.source)}) },
+            .{ .name = "source", .value = if (module.text) |text| try builder.string(text) else try builder.builtin(.embedFile, &.{try builder.string(module.source)}) },
             .{ .name = "module", .value = try builder.string(module.module) },
             .{ .name = "namespace", .value = try builder.expression(.{ .address_of = try builder.tuple(namespace.items) }) },
             .{ .name = "implementation_path", .value = try builder.string(module.implementation_path) },

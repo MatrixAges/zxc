@@ -1,0 +1,41 @@
+import emptySlot from "../empty_slot"
+import hash from "../hash"
+import { Phase } from "./model"
+
+import type { Session } from "./model"
+
+export type Input = Session
+
+export type Output = Session
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && (current.phase == Phase.Grow || current.phase == Phase.Clear || current.phase == Phase.Rehash),
+        next: current => {
+            if (current.phase == Phase.Grow) {
+                if (current.slots.length < current.capacity) {
+                    current.slots = current.slots.push(0)[0]
+                } else {
+                    current.cursor = 0
+                    current.phase = Phase.Clear
+                }
+            } else if (current.phase == Phase.Clear) {
+                if (current.cursor < current.slots.length) {
+                    current.slots[current.cursor] = 0
+                    current.cursor += 1
+                } else {
+                    current.cursor = 0
+                    current.phase = Phase.Rehash
+                }
+            } else if (current.cursor < current.values.length) {
+                const first = hash({ parent: current.key_parents[current.cursor], field: current.key_fields[current.cursor], capacity: current.slots.length })
+                const slot = emptySlot({ slots: current.slots, first: first })
+
+                current.slots[slot] = current.cursor + 1
+                current.cursor += 1
+            } else {
+                current.phase = Phase.Ensure
+            }
+        }
+    })
+}

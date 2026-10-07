@@ -1,3 +1,4 @@
+import injected from "./parameters/injected"
 import { Keyword } from "../../lexer/keyword_model"
 import { Kind, Symbol } from "../../lexer/token_model"
 import typeInitial from "../types/initial"
@@ -16,64 +17,7 @@ export default function (in: Input): Output {
     const token = current(in)
 
     if (in.control.phase == Phase.Inject) {
-        if (in.control.injected == 3) {
-            return advance({ state: in, phase: Phase.Parameter, count: 0 })
-        }
-
-        const expected = match {
-            in.control.injected == 0 => Keyword.Allocator,
-            in.control.injected == 1 => Keyword.Io,
-            _ => Keyword.Process
-        }
-
-        const named = token.word == expected
-        const next = named ? in.lexed.tokens[in.control.index + 1].symbol : Symbol.None
-        const injected = named && (next == Symbol.Comma || next == Symbol.CloseParen)
-
-        const current = {
-            name: in.control.current.name,
-            first_parameter: in.control.current.first_parameter,
-            count: in.control.current.count,
-            output: in.control.current.output,
-            fallible: in.control.current.fallible,
-            errors_present: in.control.current.errors_present,
-            first_error: in.control.current.first_error,
-            error_count: in.control.current.error_count,
-            concurrent: in.control.current.concurrent,
-            allocator_argument: in.control.current.allocator_argument || (injected && in.control.injected == 0),
-            io_argument: in.control.current.io_argument || (injected && in.control.injected == 1),
-            process_argument: in.control.current.process_argument || (injected && in.control.injected == 2)
-        }
-
-        const stage = in.control.injected + 1
-
-        const count = match {
-            injected => match {
-                next == Symbol.Comma => 2,
-                _ => 1
-            },
-            _ => 0
-        }
-
-        return advance({
-            state: {
-                lexed: in.lexed,
-                declarations: in.declarations,
-                functions: in.functions,
-                parameters: in.parameters,
-                errors: in.errors,
-                control: {
-                    phase: in.control.phase,
-                    index: in.control.index,
-                    parameter: in.control.parameter,
-                    diagnostic: in.control.diagnostic,
-                    current: current,
-                    injected: stage
-                }
-            },
-            phase: Phase.Inject,
-            count: count
-        })
+        return injected(in)
     }
 
     if (in.control.phase == Phase.Parameter) {

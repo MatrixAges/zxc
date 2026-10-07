@@ -1,3 +1,5 @@
+import name from "./header/name"
+import start from "./header/start"
 import { Keyword } from "../../lexer/keyword_model"
 import { Kind, Symbol } from "../../lexer/token_model"
 import advance from "./advance"
@@ -15,54 +17,7 @@ export default function (in: Input): Output {
   const token = current(in)
 
   if (in.control.phase == Phase.Start) {
-    if (token.kind == Kind.Eof) {
-      return advance({ state: in, phase: Phase.Done, count: 0 })
-    }
-
-    if (token.word != Keyword.Export) {
-      return fail({ state: in, code: "syntax", message: "expected export" })
-    }
-
-    const next = in.lexed.tokens[in.control.index + 1].word
-
-    if (next == Keyword.Type || next == Keyword.Enum) {
-      return fail({ state: in, code: "contract", message: "interface types must precede function declarations" })
-    }
-
-    const current = {
-      name: { start: 0, end: 0 },
-      first_parameter: in.parameters.length,
-      count: 0,
-      output: 0,
-      allocator_argument: false,
-      io_argument: false,
-      process_argument: false,
-      fallible: false,
-      errors_present: false,
-      first_error: in.errors.length,
-      error_count: 0,
-      concurrent: false
-    }
-
-    return advance({
-      state: {
-        lexed: in.lexed,
-        declarations: in.declarations,
-        functions: in.functions,
-        parameters: in.parameters,
-        errors: in.errors,
-        control: {
-          phase: in.control.phase,
-          index: in.control.index,
-          parameter: in.control.parameter,
-          diagnostic: in.control.diagnostic,
-          current: current,
-          injected: 0
-        }
-      },
-      phase: Phase.Declare,
-      count: 1
-    })
+    return start(in)
   }
 
   if (in.control.phase == Phase.Declare) {
@@ -82,44 +37,7 @@ export default function (in: Input): Output {
   }
 
   if (in.control.phase == Phase.Name) {
-    if (token.kind != Kind.Identifier) {
-      return fail({ state: in, code: "syntax", message: "expected an identifier" })
-    }
-
-    const name = { start: token.span.start, end: token.span.end }
-
-    return advance({
-      state: {
-        lexed: in.lexed,
-        declarations: in.declarations,
-        functions: in.functions,
-        parameters: in.parameters,
-        errors: in.errors,
-        control: {
-          phase: in.control.phase,
-          index: in.control.index,
-          injected: in.control.injected,
-          parameter: in.control.parameter,
-          diagnostic: in.control.diagnostic,
-          current: {
-            first_parameter: in.control.current.first_parameter,
-            count: in.control.current.count,
-            output: in.control.current.output,
-            allocator_argument: in.control.current.allocator_argument,
-            io_argument: in.control.current.io_argument,
-            process_argument: in.control.current.process_argument,
-            fallible: in.control.current.fallible,
-            errors_present: in.control.current.errors_present,
-            first_error: in.control.current.first_error,
-            error_count: in.control.current.error_count,
-            concurrent: in.control.current.concurrent,
-            name: name
-          }
-        }
-      },
-      phase: Phase.Open,
-      count: 1
-    })
+    return name(in)
   }
 
   if (token.symbol != Symbol.OpenParen) {

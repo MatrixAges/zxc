@@ -1,0 +1,63 @@
+import a from "./a"
+import b from "./b"
+import c from "./c"
+import d from "./d"
+import e from "./e"
+import f from "./f"
+import i from "./i"
+import l from "./l"
+import m from "./m"
+import upperI from "./upper_i"
+import upperO from "./upper_o"
+
+export type Input = { state: u64, byte: u8 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.state >= 2 && in.state <= 6) {
+        return upperI(in)
+    }
+
+    if (in.state >= 7 && in.state <= 12) {
+        return upperO(in)
+    }
+
+    if (in.state >= 14 && in.state <= 30) {
+        return a(in)
+    }
+
+    if (in.state >= 31 && in.state <= 35) {
+        return b(in)
+    }
+
+    if (in.state >= 36 && in.state <= 54) {
+        return c(in)
+    }
+
+    if (in.state >= 55 && in.state <= 71) {
+        return d(in)
+    }
+
+    if (in.state >= 72 && in.state <= 88) {
+        return e(in)
+    }
+
+    if (in.state >= 89 && in.state <= 105) {
+        return f(in)
+    }
+
+    if (in.state >= 106 && in.state <= 118) {
+        return i(in)
+    }
+
+    if (in.state >= 119 && in.state <= 124) {
+        return l(in)
+    }
+
+    if (in.state >= 125 && in.state <= 129) {
+        return m(in)
+    }
+
+    return 1
+}

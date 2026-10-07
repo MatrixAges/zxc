@@ -1,0 +1,35 @@
+import { Keyword } from "./keyword_model"
+
+export type Input = Keyword
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  return in == Keyword.Export ||
+    in == Keyword.Type ||
+    in == Keyword.Default ||
+    in == Keyword.Function ||
+    in == Keyword.Const ||
+    in == Keyword.If ||
+    in == Keyword.Else ||
+    in == Keyword.Return ||
+    in == Keyword.True ||
+    in == Keyword.False ||
+    in == Keyword.Import ||
+    in == Keyword.Enum ||
+    in == Keyword.Switch ||
+    in == Keyword.Null ||
+    in == Keyword.Let ||
+    in == Keyword.Var ||
+    in == Keyword.For ||
+    in == Keyword.While ||
+    in == Keyword.New ||
+    in == Keyword.Throw ||
+    in == Keyword.Async ||
+    in == Keyword.Await ||
+    in == Keyword.Case ||
+    in == Keyword.Break ||
+    in == Keyword.Match ||
+    in == Keyword.Try ||
+    in == Keyword.Cancel
+}

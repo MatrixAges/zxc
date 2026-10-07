@@ -1,0 +1,25 @@
+import { ExpressionKind } from "../../kinds"
+
+import type { Row, State } from "./model"
+
+export type Input = Row
+
+export type Output = State
+
+export default function (in: Input): Output {
+    switch (in.kind) {
+        case ExpressionKind.Capture: return { ...in.state, valid: in.payload == in.state.captures && in.payload < in.state.table.captures.length, captures: in.state.captures + 1 }
+        case ExpressionKind.Task: return { ...in.state, valid: in.payload == in.state.tasks && in.payload < in.state.table.task_bodies.length, tasks: in.state.tasks + 1 }
+        case ExpressionKind.AwaitTask: return { ...in.state, valid: in.payload == in.state.awaits && in.payload < in.state.table.awaits.length, awaits: in.state.awaits + 1 }
+        case ExpressionKind.CancelTask: return { ...in.state, valid: in.payload == in.state.cancellations && in.payload < in.state.table.cancellations.length, cancellations: in.state.cancellations + 1 }
+        case ExpressionKind.Parallel: return { ...in.state, valid: in.payload == in.state.parallels && in.payload < in.state.table.parallel_first.length, parallels: in.state.parallels + 1 }
+        case ExpressionKind.Scope: return { ...in.state, valid: in.payload == in.state.scopes && in.payload < in.state.table.scope_results.length, scopes: in.state.scopes + 1 }
+        case ExpressionKind.Iteration: return { ...in.state, valid: in.payload == in.state.iterations && in.payload < in.state.table.iteration_initials.length, iterations: in.state.iterations + 1 }
+        case ExpressionKind.Call: return { ...in.state, valid: in.payload == in.state.calls && in.payload < in.state.table.call_functions.length, calls: in.state.calls + 1 }
+        case ExpressionKind.Unary: return { ...in.state, valid: in.payload == in.state.unary && in.payload < in.state.table.unary_operands.length, unary: in.state.unary + 1 }
+        case ExpressionKind.Binary: return { ...in.state, valid: in.payload == in.state.binary && in.payload < in.state.table.binary_operators.length, binary: in.state.binary + 1 }
+        case ExpressionKind.Conditional: return { ...in.state, valid: in.payload == in.state.conditionals && in.payload < in.state.table.conditional_conditions.length, conditionals: in.state.conditionals + 1 }
+        case ExpressionKind.Match: return { ...in.state, valid: in.payload == in.state.matches && in.payload < in.state.table.match_subjects.length, matches: in.state.matches + 1 }
+        default: return in.state
+    }
+}

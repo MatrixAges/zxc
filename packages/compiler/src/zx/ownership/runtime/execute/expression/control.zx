@@ -1,0 +1,60 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../../ir/canonical/expressions/kinds"
+import optionalId from "../../../ir/widen_optional"
+import { Capture } from "../../snapshots/model"
+import save from "../../snapshots/save"
+import { WorkAction } from "../../work/model"
+import push from "../../work/push"
+
+import type { Input, Output } from "./model"
+
+export default function (in: Input): Output {
+    if (in.kind == ExpressionKind.Iteration) {
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.IterationInitial, subject: in.frame.subject, moving: false, index: 0 } })
+
+        return { ...in.machine, work: push({ work: work, frame: { action: WorkAction.Value, subject: integers.widen(in.machine.program.expressions.iteration_initials[in.payload]), moving: false, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Transform) {
+        const captured = save({ memory: in.machine.memory, stack: in.machine.snapshots, capture: Capture.States })
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.TransformTarget, subject: in.frame.subject, moving: false, index: 0 } })
+
+        return { ...in.machine, snapshots: captured.stack, work: push({ work: work, frame: { action: WorkAction.Aggregate, subject: integers.widen(in.machine.program.expressions.transform_targets[in.payload]), moving: false, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Match) {
+        const subject = optionalId(in.machine.program.expressions.match_subjects[in.payload])
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.MatchSubject, subject: in.frame.subject, moving: in.frame.moving, index: 0 } })
+
+        return { ...in.machine, work: subject != null ? push({ work: work, frame: { action: WorkAction.Value, subject: subject, moving: false, index: 0 } }) : work }
+    }
+
+    if (in.kind == ExpressionKind.Scope) {
+        const captured = save({ memory: in.machine.memory, stack: in.machine.snapshots, capture: Capture.States })
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.ScopeFinish, subject: in.frame.subject, moving: false, index: captured.frame } })
+
+        return { ...in.machine, snapshots: captured.stack, work: push({ work: work, frame: { action: WorkAction.ScopeBinding, subject: in.frame.subject, moving: in.frame.moving, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Call) {
+        const captured = save({ memory: in.machine.memory, stack: in.machine.snapshots, capture: Capture.States })
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.CallResult, subject: in.frame.subject, moving: false, index: captured.frame } })
+
+        return { ...in.machine, snapshots: captured.stack, work: push({ work: work, frame: { action: WorkAction.Value, subject: integers.widen(in.machine.program.expressions.call_arguments[in.payload]), moving: false, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Binary) {
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.BinaryLeft, subject: in.frame.subject, moving: in.container && in.frame.moving, index: 0 } })
+
+        return { ...in.machine, work: push({ work: work, frame: { action: WorkAction.Value, subject: integers.widen(in.machine.program.expressions.binary_left[in.payload]), moving: in.container && in.frame.moving, index: 0 } }) }
+    }
+
+    if (in.kind == ExpressionKind.Conditional) {
+        const work = push({ work: in.machine.work, frame: { action: WorkAction.ConditionalCondition, subject: in.frame.subject, moving: in.frame.moving, index: 0 } })
+
+        return { ...in.machine, work: push({ work: work, frame: { action: WorkAction.Value, subject: integers.widen(in.machine.program.expressions.conditional_conditions[in.payload]), moving: false, index: 0 } }) }
+    }
+
+    return { ...in.machine, complete: false }
+}

@@ -1,0 +1,70 @@
+import integers from "zig:integers"
+
+import place from "../../places/execute"
+import { Operation, State } from "../../places/model"
+import access from "../access"
+import apply from "../snapshots/apply"
+import drop from "../snapshots/drop"
+import { Action } from "../snapshots/model"
+import { Capture } from "../snapshots/model"
+import save from "../snapshots/save"
+import { WorkAction } from "../work/model"
+import pop from "../work/pop"
+import push from "../work/push"
+import top from "../work/top"
+import family from "./family"
+import { Family } from "./model"
+
+import type { Machine } from "./model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && family(current.work.actions[current.work.actions.length - 1]) == Family.Tasks,
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.TaskCapture) {
+                const task = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                current.expression = frame.subject
+
+                if (frame.index < integers.widen(current.program.expressions.task_capture_count[task])) {
+                    const symbol = integers.widen(current.program.expressions.task_captures[integers.widen(current.program.expressions.task_capture_first[task]) + frame.index])
+                    const decision = access({ types: current.program.types, symbols: current.program.symbols, position: symbol, current: current.memory.states[symbol], moving: false })
+
+                    current.failed = decision.failed
+
+                    if (!decision.failed) {
+                        current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: symbol, operation: Operation.Freeze, value: State.Copy }) }
+                        current.work = push({ work: current.work, frame: { action: WorkAction.TaskCapture, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                    }
+                } else {
+                    const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                    current.snapshots = captured.stack
+                    current.work = push({ work: current.work, frame: { action: WorkAction.TaskFinish, subject: frame.subject, moving: false, index: captured.frame } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.task_bodies[task]), moving: false, index: 0 } })
+                }
+            } else if (frame.action == WorkAction.TaskFinish) {
+                current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                current.value = State.Owned
+            } else if (frame.action == WorkAction.ParallelBranch) {
+                const branches = { first: integers.widen(current.program.expressions.parallel_first[integers.widen(current.program.expressions.payloads[frame.subject])]), count: integers.widen(current.program.expressions.parallel_count[integers.widen(current.program.expressions.payloads[frame.subject])]) }
+
+                if (frame.index < branches.count) {
+                    current.work = push({ work: current.work, frame: { action: WorkAction.ParallelBranch, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.parallel_tasks[branches.first + frame.index]), moving: true, index: 0 } })
+                } else {
+                    current.value = State.Borrowed
+                }
+            }
+        }
+    })
+}

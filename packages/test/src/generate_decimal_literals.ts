@@ -25,7 +25,7 @@ const branches: Array<string> = []
 
 for (const name of Array.from(groups.keys()).sort()) {
     const indices = groups.get(name)!
-    const symbol = name.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
+    const symbol = name.replace(/[\/_]([a-z0-9])/g, (_, letter: string) => letter.toUpperCase())
     const cases = indices
         .map(index => '        case ' + index + ':\n            return ' + entries[index].token)
         .join('\n')
@@ -84,13 +84,26 @@ writeCatalog(
 )
 
 function groupName(token: string): string {
-    if (token.includes('.')) return /[eE]/.test(token) ? 'fraction_exponent' : 'fraction'
-    if (token.includes('e')) return 'integer_lower_exponent'
-    if (token.includes('E')) return 'integer_upper_exponent'
+    const exponent = token.match(/[eE]([+-]?)/)
 
+    if (exponent) {
+        const family = token.includes('.')
+            ? 'fraction_exponent'
+            : token.includes('e')
+              ? 'integer_lower_exponent'
+              : 'integer_upper_exponent'
+        const sign = exponent[1] === '-' ? 'negative' : exponent[1] === '+' ? 'positive' : 'unsigned'
+
+        return family + '/' + sign
+    }
+
+    if (token.includes('.')) return 'fraction'
     if (/^[+-]/.test(token)) return 'integer_signed'
+    if (token.length === 1) return 'integer_digit'
 
-    return token.length === 1 ? 'integer_digit' : 'integer_multi_digit'
+    const prefix = token.startsWith('0') ? 'leading_zero' : 'decimal'
+
+    return 'integer_multi_digit/' + prefix + '_' + token.length + '_digits'
 }
 
 function ranges(indices: Array<number>): string {
@@ -116,7 +129,7 @@ function ranges(indices: Array<number>): string {
 function writeSource(path: string, source: string): void {
     const lines = source.endsWith('\n') ? source.split('\n').length - 1 : source.split('\n').length
 
-    if (lines > 240) throw new Error('ZX source exceeds 240 lines: ' + path)
+    if (lines > 120) throw new Error('ZX source exceeds 120 lines: ' + path)
 
     writeOutput(path, source)
 }
