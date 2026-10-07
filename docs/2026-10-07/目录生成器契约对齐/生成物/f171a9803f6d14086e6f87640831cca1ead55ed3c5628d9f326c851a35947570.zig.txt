@@ -1,0 +1,109 @@
+const std = @import("std");
+
+const zx_type_11 = enum { First, Second, Third, };
+
+const zx_type_13 = struct {
+    left: ?u8,
+    right: ?u8,
+};
+
+const zx_type_14 = struct {
+    different: bool,
+    equal: bool,
+    left_none: bool,
+    right_none: bool,
+};
+
+const value_zx_type_13_2789d3f55bb311738d281fbbc8f244b346ccc45b03bac34fd04f82ce117c4789 = struct {
+    left: ?u8,
+    right: ?u8,
+    zx_origin: ?*const zx_type_13 = null,
+};
+
+const value_zx_type_14_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 = struct {
+    different: bool,
+    equal: bool,
+    left_none: bool,
+    right_none: bool,
+    zx_origin: ?*const zx_type_14 = null,
+};
+
+pub const State = zx_type_11;
+
+pub const Input = *const zx_type_13;
+
+pub const Output = *const zx_type_14;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .scalar, };
+
+const zx_shape_12 = .{ .kind = .optional, .child = zx_shape_2, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .left = zx_shape_12, .right = zx_shape_12, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .different = zx_shape_1, .equal = zx_shape_1, .left_none = zx_shape_1, .right_none = zx_shape_1, }, };
+
+const zx_shape_15 = .{ .kind = .optional, .child = zx_shape_11, };
+
+pub const input_shape = zx_shape_13;
+
+pub const output_shape = zx_shape_14;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const zx_type_13) error{ OutOfMemory, }!*const zx_type_14 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_1: ?zx_type_11 = (if (((in).left == null)) @as(?zx_type_11, null) else (if ((((in).left orelse @as(u8, 0)) == @as(u8, 0))) @as(?zx_type_11, @as(zx_type_11, .First)) else (if ((((in).left orelse @as(u8, 0)) == @as(u8, 1))) @as(?zx_type_11, @as(zx_type_11, .Second)) else @as(?zx_type_11, @as(zx_type_11, .Third)))));
+    const value_2: ?zx_type_11 = (if (((in).right == null)) @as(?zx_type_11, null) else (if ((((in).right orelse @as(u8, 0)) == @as(u8, 0))) @as(?zx_type_11, @as(zx_type_11, .First)) else (if ((((in).right orelse @as(u8, 0)) == @as(u8, 1))) @as(?zx_type_11, @as(zx_type_11, .Second)) else @as(?zx_type_11, @as(zx_type_11, .Third)))));
+
+    return block_13: {
+        const operand_1 = block_4: {
+            const operand_2 = value_1;
+            const operand_3 = value_2;
+
+            break :block_4 (if (((operand_2 == null) or (operand_3 == null))) ((operand_2 == null) and (operand_3 == null)) else (operand_2.? == operand_3.?));
+        };
+        const operand_5 = (!block_8: {
+            const operand_6 = value_1;
+            const operand_7 = value_2;
+
+            break :block_8 (if (((operand_6 == null) or (operand_7 == null))) ((operand_6 == null) and (operand_7 == null)) else (operand_6.? == operand_7.?));
+        });
+        const operand_9 = (value_1 == null);
+        const operand_10 = (null == value_2);
+
+        break :block_13 block_12: {
+            const operand_11 = (try (allocator).create(zx_type_14));
+
+            (operand_11).* = @as(zx_type_14, zx_type_14{ .equal = operand_1, .different = operand_5, .left_none = operand_9, .right_none = operand_10, });
+
+            break :block_12 @as(*const zx_type_14, operand_11);
+        };
+    };
+}
+

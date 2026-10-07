@@ -1,0 +1,37 @@
+name: 'rx-schema-bootstrap-draft'
+version: '0.0.0'
+library: 'library.zxcir'
+
+exports:
+    .:
+        module: '.'
+
+native_modules:
+    - {
+          'name': 'rx_ast',
+          'path': 'native/rx_ast/source/native.zig',
+          'dependencies': ['dsl=dsl'],
+          'bundle_files': [],
+          'include_paths': [],
+          'abi_aliases':
+              [
+                  {
+                      'name': 'zig:rx_ast',
+                      'specifier': 'zig:zxc_native_cc8afdbd9436c3bed966cb878225efe1f82f2cb909997af6228473dd7a5b6910'
+                  }
+              ]
+      }
+    - {
+          'name': 'dsl',
+          'path': 'native/dsl/source/root.zig',
+          'dependencies': [],
+          'bundle_files': [],
+          'include_paths': [],
+          'abi_aliases':
+              [
+                  {
+                      'name': 'zig:rx_ast',
+                      'specifier': 'zig:zxc_native_cc8afdbd9436c3bed966cb878225efe1f82f2cb909997af6228473dd7a5b6910'
+                  }
+              ]
+      }

@@ -1,0 +1,37 @@
+import finish from "./finish"
+import flush from "./flush"
+import initial from "./initial"
+import { Keyword } from "./keyword_model"
+import tick from "./tick"
+import { Kind, Symbol } from "./token_model"
+import validateUtf8 from "./utf8/validate"
+
+import type { Result } from "./model"
+import type { Token, Span } from "./token_model"
+
+export type Input = u8[]
+
+export type Output = Result
+
+export default function (in: Input): Output {
+  const tokens: Token[] = []
+  const comments: Span[] = []
+
+  if (!validateUtf8(in)) {
+    return { tokens: tokens, comments: comments, diagnostic: { code: "lexical", start: 0, end: in.length, message: "source must be valid UTF-8" } }
+  }
+
+  const state = in.reduce((state, byte) => tick({ byte: byte, state: state }), initial({ start: 0, end: in.length }))
+  const completed = finish(flush(state))
+
+  if (completed.diagnostic.message != "") {
+    const empty_tokens: Token[] = []
+    const empty_comments: Span[] = []
+
+    return { tokens: empty_tokens, comments: empty_comments, diagnostic: completed.diagnostic }
+  }
+
+  const line_break = completed.tokens.length != 0 && completed.line_break
+
+  return { tokens: completed.tokens.push({ kind: Kind.Eof, word: Keyword.Root, symbol: Symbol.None, span: { start: in.length, end: in.length }, line_break: line_break, dollar: false })[0], comments: completed.comments, diagnostic: completed.diagnostic }
+}

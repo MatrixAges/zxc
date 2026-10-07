@@ -1,0 +1,25 @@
+const check = @import("support").check;
+
+test "language/statements/switch/scalars/string/0" {
+    try check(@import("program"), "", .{ .value = 0 });
+}
+
+test "language/statements/switch/scalars/string/1" {
+    try check(@import("program"), "a", .{ .value = 1 });
+}
+
+test "language/statements/switch/scalars/string/2" {
+    try check(@import("program"), "\n", .{ .value = 2 });
+}
+
+test "language/statements/switch/scalars/string/3" {
+    try check(@import("program"), "\t", .{ .value = 3 });
+}
+
+test "language/statements/switch/scalars/string/4" {
+    try check(@import("program"), "\xe6\xb1\x89", .{ .value = 4 });
+}
+
+test "language/statements/switch/scalars/string/5" {
+    try check(@import("program"), "missing", .{ .value = 9 });
+}

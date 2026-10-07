@@ -1,0 +1,100 @@
+{
+    "source_commit": "23def89ad18c12f8a4c0aa0db8675d5a48c65b38",
+    "cli": "/tmp/zxc-canonical-control-reduce-cache/o/7107b716d2237d8c600f69d819ca908c/zxc",
+    "cli_sha256": "1fc10545470a238a74f2c3b00eb503568afa57154694e7972f216dace28ee547",
+    "records": [
+        {
+            "command": [
+                "/tmp/zxc-canonical-control-reduce-cache/o/7107b716d2237d8c600f69d819ca908c/zxc",
+                "packages/test/tests/language/expressions/comparison/optional_enum/cases.zx",
+                "--out",
+                "/tmp/zxc-generator-optional-enum-proof/program.zig"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": [
+                "node",
+                "packages/test/src/emit_control_tests.ts",
+                "packages/test/tests/language/expressions/comparison/optional_enum/cases.jsonl",
+                "/tmp/zxc-generator-optional-enum-proof/cases.zig"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": ""
+        },
+        {
+            "command": [
+                "zig",
+                "test",
+                "-Odebug",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/tmp/zxc-generator-optional-enum-proof/cases.zig",
+                "-Odebug",
+                "-Msupport=/Users/xiewendao/.codex/worktrees/match-generator-publication/zxc/packages/test/tests/support/control.zig",
+                "-Odebug",
+                "-Mprogram=/tmp/zxc-generator-optional-enum-proof/program.zig",
+                "-femit-bin=/tmp/zxc-generator-optional-enum-proof/optional-enum-debug"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "1/16 cases.test.language/expressions/comparison/optional_enum/0/0...OK\n2/16 cases.test.language/expressions/comparison/optional_enum/0/1...OK\n3/16 cases.test.language/expressions/comparison/optional_enum/0/2...OK\n4/16 cases.test.language/expressions/comparison/optional_enum/0/3...OK\n5/16 cases.test.language/expressions/comparison/optional_enum/1/0...OK\n6/16 cases.test.language/expressions/comparison/optional_enum/1/1...OK\n7/16 cases.test.language/expressions/comparison/optional_enum/1/2...OK\n8/16 cases.test.language/expressions/comparison/optional_enum/1/3...OK\n9/16 cases.test.language/expressions/comparison/optional_enum/2/0...OK\n10/16 cases.test.language/expressions/comparison/optional_enum/2/1...OK\n11/16 cases.test.language/expressions/comparison/optional_enum/2/2...OK\n12/16 cases.test.language/expressions/comparison/optional_enum/2/3...OK\n13/16 cases.test.language/expressions/comparison/optional_enum/3/0...OK\n14/16 cases.test.language/expressions/comparison/optional_enum/3/1...OK\n15/16 cases.test.language/expressions/comparison/optional_enum/3/2...OK\n16/16 cases.test.language/expressions/comparison/optional_enum/3/3...OK\nAll 16 tests passed.\n"
+        },
+        {
+            "label": "Debug",
+            "binary": "/tmp/zxc-generator-optional-enum-proof/optional-enum-debug",
+            "sha256": "1ba0a8f7c7e9c41f791bb188a1b138d83f828883e75beea1ecae45645447ea08",
+            "checks": 16,
+            "replay": "复跑/Debug/可选枚举.txt",
+            "replay_sha256": "fb3bd34388ebdf17d4ffe8a80f0eec7fc2cba7d1e4a8823d9e3149670296e72c",
+            "exit_code": 0
+        },
+        {
+            "command": [
+                "zig",
+                "test",
+                "-Osafe",
+                "--dep",
+                "support",
+                "--dep",
+                "program",
+                "-Mroot=/tmp/zxc-generator-optional-enum-proof/cases.zig",
+                "-Osafe",
+                "-Msupport=/Users/xiewendao/.codex/worktrees/match-generator-publication/zxc/packages/test/tests/support/control.zig",
+                "-Osafe",
+                "-Mprogram=/tmp/zxc-generator-optional-enum-proof/program.zig",
+                "-femit-bin=/tmp/zxc-generator-optional-enum-proof/optional-enum-safe"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "1/16 cases.test.language/expressions/comparison/optional_enum/0/0...OK\n2/16 cases.test.language/expressions/comparison/optional_enum/0/1...OK\n3/16 cases.test.language/expressions/comparison/optional_enum/0/2...OK\n4/16 cases.test.language/expressions/comparison/optional_enum/0/3...OK\n5/16 cases.test.language/expressions/comparison/optional_enum/1/0...OK\n6/16 cases.test.language/expressions/comparison/optional_enum/1/1...OK\n7/16 cases.test.language/expressions/comparison/optional_enum/1/2...OK\n8/16 cases.test.language/expressions/comparison/optional_enum/1/3...OK\n9/16 cases.test.language/expressions/comparison/optional_enum/2/0...OK\n10/16 cases.test.language/expressions/comparison/optional_enum/2/1...OK\n11/16 cases.test.language/expressions/comparison/optional_enum/2/2...OK\n12/16 cases.test.language/expressions/comparison/optional_enum/2/3...OK\n13/16 cases.test.language/expressions/comparison/optional_enum/3/0...OK\n14/16 cases.test.language/expressions/comparison/optional_enum/3/1...OK\n15/16 cases.test.language/expressions/comparison/optional_enum/3/2...OK\n16/16 cases.test.language/expressions/comparison/optional_enum/3/3...OK\nAll 16 tests passed.\n"
+        },
+        {
+            "label": "ReleaseSafe",
+            "binary": "/tmp/zxc-generator-optional-enum-proof/optional-enum-safe",
+            "sha256": "b57426472d3b6911ec6bacb62723d2361541e0620a179897e437f594d0eb12f8",
+            "checks": 16,
+            "replay": "复跑/ReleaseSafe/可选枚举.txt",
+            "replay_sha256": "fb3bd34388ebdf17d4ffe8a80f0eec7fc2cba7d1e4a8823d9e3149670296e72c",
+            "exit_code": 0
+        }
+    ],
+    "artifacts": [
+        {
+            "path": "生成物/f171a9803f6d14086e6f87640831cca1ead55ed3c5628d9f326c851a35947570.zig.txt",
+            "executed_source": "/tmp/zxc-generator-optional-enum-proof/program.zig",
+            "sha256": "f171a9803f6d14086e6f87640831cca1ead55ed3c5628d9f326c851a35947570"
+        },
+        {
+            "path": "生成物/9166eed8e8aae479a5cf2451e2a824e3773ab4568b2576d79840dd560d1ebd5c.zig.txt",
+            "executed_source": "/tmp/zxc-generator-optional-enum-proof/cases.zig",
+            "sha256": "9166eed8e8aae479a5cf2451e2a824e3773ab4568b2576d79840dd560d1ebd5c"
+        }
+    ],
+    "independent_checks": 32
+}

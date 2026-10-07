@@ -1,0 +1,15 @@
+pub const encoding = @import("encoding.zig");
+pub const querystring = @import("querystring/root.zig");
+pub const zlib = @import("zlib/root.zig");
+pub const crypto = @import("crypto/root.zig");
+pub const path_posix = @import("path/root.zig").Module(false, @import("zxc_abi").native.@"std:path/posix");
+pub const path_win32 = @import("path/root.zig").Module(true, @import("zxc_abi").native.@"std:path/win32");
+pub const path = @import("path/root.zig").Module(@import("builtin").os.tag == .windows, @import("zxc_abi").native.@"std:path");
+pub const os = @import("os.zig");
+pub const url_search_params = @import("url/search_params/root.zig");
+pub const url = @import("url/root.zig");
+pub const url_api = @import("url/api/root.zig");
+pub const fs = @import("fs/root.zig");
+pub const child_process = @import("child_process/root.zig");
+pub const process = @import("process.zig");
+pub const http = @import("http/root.zig");

@@ -1,0 +1,26 @@
+[
+    {
+        "command": ["packages/test/node_modules/.bin/tsc", "--noEmit", "-p", "packages/test/tsconfig.json"],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    },
+    {
+        "command": [
+            "node_modules/.bin/prettier",
+            "--check",
+            "packages/test/src/generate_ownership.ts",
+            "packages/test/src/generate_switch_scalars.ts",
+            "packages/test/src/generate_optional_enum.ts"
+        ],
+        "exit_code": 0,
+        "stdout": "Checking formatting...\nAll matched files use Prettier code style!\n",
+        "stderr": ""
+    },
+    {
+        "command": ["git", "diff", "--check"],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+    }
+]

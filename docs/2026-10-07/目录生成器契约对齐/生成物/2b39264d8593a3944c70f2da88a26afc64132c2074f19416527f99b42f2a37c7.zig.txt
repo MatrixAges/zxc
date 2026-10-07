@@ -1,0 +1,9 @@
+const check = @import("support").check;
+
+test "language/statements/switch/scalars/boolean/0" {
+    try check(@import("program"), true, .{ .value = 1 });
+}
+
+test "language/statements/switch/scalars/boolean/1" {
+    try check(@import("program"), false, .{ .value = 2 });
+}

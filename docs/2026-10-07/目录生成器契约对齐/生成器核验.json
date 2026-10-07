@@ -1,0 +1,20 @@
+[
+    {
+        "command": ["node", "packages/test/src/generate_ownership.ts", "--check"],
+        "exit_code": 0,
+        "stdout": "tests/ownership/propagation/cases.jsonl: 156 named cases\ntests/ownership/consumption/cases.jsonl: 248 named cases\n",
+        "stderr": ""
+    },
+    {
+        "command": ["node", "packages/test/src/generate_switch_scalars.ts", "--check"],
+        "exit_code": 0,
+        "stdout": "tests/language/statements/switch/scalars/integer.jsonl: 4 named cases\ntests/language/statements/switch/scalars/string.jsonl: 6 named cases\ntests/language/statements/switch/scalars/boolean.jsonl: 2 named cases\ntests/language/statements/switch/scalars/enumeration.jsonl: 4 named cases\ntests/language/statements/switch_scalars/cases.jsonl: 11 named cases\n",
+        "stderr": ""
+    },
+    {
+        "command": ["node", "packages/test/src/generate_optional_enum.ts", "--check"],
+        "exit_code": 0,
+        "stdout": "tests/language/expressions/comparison/optional_enum/cases.jsonl: 16 named cases\ntests/language/types/optional_enum/cases.jsonl: 12 named cases\n",
+        "stderr": ""
+    }
+]

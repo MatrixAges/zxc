@@ -1,0 +1,20 @@
+const canonical = @import("zxc_abi_canonical");
+pub const zx_type_c1c800954997726f4ca3de2b3e16cff16b5469a4c35d4e8a5fbc2a1f82cafd79 = (canonical).zx_type_c1c800954997726f4ca3de2b3e16cff16b5469a4c35d4e8a5fbc2a1f82cafd79;
+pub const zx_type_3e29e88d0b453ed2cb49eb7a7573a475582f0c0de7e39559d6b85827eb30d697 = (canonical).zx_type_3e29e88d0b453ed2cb49eb7a7573a475582f0c0de7e39559d6b85827eb30d697;
+pub const zx_type_64c95aabc8ea1872667267e48818b2445e1de1d26d9a3bb7c32a2c2298ef401f = (canonical).zx_type_64c95aabc8ea1872667267e48818b2445e1de1d26d9a3bb7c32a2c2298ef401f;
+pub const zx_type_51f7d5a95ae51b446eabc0a5ea34a743cca32900a6d5b67c1cc21a8eaaf68010 = (canonical).zx_type_51f7d5a95ae51b446eabc0a5ea34a743cca32900a6d5b67c1cc21a8eaaf68010;
+pub const zx_type_e56b5671f1a714d0463912960f5561e52ce6f21e27fafade24d0dd85adb03ba1 = (canonical).zx_type_e56b5671f1a714d0463912960f5561e52ce6f21e27fafade24d0dd85adb03ba1;
+pub const zx_type_be89fb2b411515188d522f46aa8e8421d3fb4c8bcc6fb127b0fb70e1a64f402e = (canonical).zx_type_be89fb2b411515188d522f46aa8e8421d3fb4c8bcc6fb127b0fb70e1a64f402e;
+pub const zx_type_c1abe98383782fd72d7583df765b9e8b9f3e302ac1e4ff9b6624b24e975841ff = (canonical).zx_type_c1abe98383782fd72d7583df765b9e8b9f3e302ac1e4ff9b6624b24e975841ff;
+pub const zx_type_877f927949fa0e81ce427c2f47f9423014a1344003c8e9175d2f03aeb4383732 = (canonical).zx_type_877f927949fa0e81ce427c2f47f9423014a1344003c8e9175d2f03aeb4383732;
+pub const zx_type_fefefee69c6456cbdbbd2bfb46c23d9689ace6503fc5f0a169e2215a4cc6e147 = (canonical).zx_type_fefefee69c6456cbdbbd2bfb46c23d9689ace6503fc5f0a169e2215a4cc6e147;
+pub const zx_type_39692b9357a0cc5b2e0e22413b64ce3f3e6ea3c6a6788a57b7c34df62f99027d = (canonical).zx_type_39692b9357a0cc5b2e0e22413b64ce3f3e6ea3c6a6788a57b7c34df62f99027d;
+
+pub const native = struct {
+    pub const @"zig:rx_ast" = ((canonical).native_by_identity).@"zig:zxc_native_cc8afdbd9436c3bed966cb878225efe1f82f2cb909997af6228473dd7a5b6910";
+};
+
+pub const layouts = struct {
+    pub const @"zig:rx_ast" = ((canonical).layouts_by_identity).@"zig:zxc_native_cc8afdbd9436c3bed966cb878225efe1f82f2cb909997af6228473dd7a5b6910";
+};
+

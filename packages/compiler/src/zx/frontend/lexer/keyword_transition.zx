@@ -20,7 +20,6 @@ export default function (in: Input): Output {
       in.byte == 108 => Keyword.L,
       in.byte == 109 => Keyword.M,
       in.byte == 110 => Keyword.N,
-      in.byte == 111 => Keyword.O,
       in.byte == 112 => Keyword.P,
       in.byte == 113 => Keyword.Q,
       in.byte == 114 => Keyword.R,
@@ -461,22 +460,6 @@ export default function (in: Input): Output {
     }
     case Keyword.Nul: return match {
       in.byte == 108 => Keyword.Null,
-      _ => Keyword.Dead
-    }
-    case Keyword.O: return match {
-      in.byte == 119 => Keyword.Ow,
-      _ => Keyword.Dead
-    }
-    case Keyword.Ow: return match {
-      in.byte == 110 => Keyword.Own,
-      _ => Keyword.Dead
-    }
-    case Keyword.Own: return match {
-      in.byte == 101 => Keyword.Owne,
-      _ => Keyword.Dead
-    }
-    case Keyword.Owne: return match {
-      in.byte == 100 => Keyword.Owned,
       _ => Keyword.Dead
     }
     case Keyword.P: return match {

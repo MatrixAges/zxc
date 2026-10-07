@@ -1,0 +1,316 @@
+Usage: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build [steps] [options]
+
+Steps:
+  install (default)            Copy build artifacts to prefix path
+  uninstall                    Remove build artifacts from prefix path
+  test                         Run ZX conformance catalogs and their integrity checks
+  test-reduce-runtime          Execute owned reduce append and fallback paths with memory boundaries
+  test-multiple-append         Execute object reduce append semantics ownership and allocation growth
+  test-store-ownership-proof   Validate Store ownership proof across nested values and library encoding
+  test-store-reclamation       Validate independent Store region reclamation and conservative sharing
+  test-store-alias-lifetime    Validate retained Store references across request and slot replacement
+  test-cached-ownership        Validate cached ownership mutation gates and runtime spread semantics
+  test-field-ownership         Validate static ownership paths and overlapping borrow boundaries
+  test-object-append           Execute object reduce append semantics ownership and allocation growth
+  test-object-reduce           Execute object reduce layout ownership and allocation boundaries
+  test-owned-input             Validate explicit input consumption across source and library boundaries
+  test-process-entry           Execute Process forwarding and result policies in ZX RX and Store applications
+  test-url-api-library         Execute all URL API catalogs through published libraries and ZX consumers
+  test-url-api-native          Execute URL API catalogs from standalone Zig consumers of published libraries
+  test-wasm-protocol           Execute WebAssembly scalar JSON state lifecycle and WASI contracts
+  test-napi-protocol           Execute Node addon scalar collection exception and Worker contracts
+  test-napi-bindings           Validate Node module declarations loading and publication protection
+  test-simd-semantics          Execute floating-point SIMD tails scalar fallbacks and WASM targets
+  test-gateway                 Validate Gateway routes HTTP boundaries and shared application state
+  test-frontend                Verify conformance diagnostic phases and positions
+  test-runtime                 Run conformance cases through generated Zig
+  test-owned-collections       Run collection cases with locally constructed owners
+  test-floating                Run exact floating bit-pattern conformance cases
+  test-standard-runtime        Run standard interfaces through their shared ABI
+  test-logical-binary          Run logical AND and OR source and short circuit cases
+  test-zlib                    Run independent compressed input and decompression boundary cases
+  test-url-search-params       Execute immutable URL query list operations and encoding boundaries
+  test-url-api                 Execute all public URL APIs through ZX and shared native ABI
+  test-querystring             Run querystring semantic cases through the shared ABI
+  test-relational-whitespace   Run original relational whitespace expressions and numeric boundaries
+  test-call-object-spread      Execute object spread arguments across imported functions
+  test-call-arguments          Execute imported single-input calls with trailing commas
+  test-call-whitespace         Execute imported calls separated from arguments by whitespace
+  test-property-whitespace     Execute static member access with whitespace
+  test-property-lookup         Execute own property lookup assertions
+  test-property-primitives     Execute supported primitive property access assertions
+  test-arrow-bodies            Execute inline arrow expression bodies and post-arrow line endings
+  test-grouping-values         Execute grouping values and whitespace cases
+  test-template-segments       Execute empty and nonempty template text segments
+  test-template-calls          Execute function results in template interpolation positions
+  test-template-newlines       Execute raw template newline normalization and escape controls
+  test-template-members        Execute member values inside template interpolation
+  test-template-primitives     Execute primitive template interpolation values
+  test-template-delimiters     Execute quoted and commented interpolation boundaries
+  test-template-characters     Execute template escapes and literal interpolation markers
+  test-template-nesting        Execute original and dynamic nested template literals
+  test-nested-collections      Execute nested collection callbacks and restored scopes
+  test-switch-nested           Execute nested switch selection
+  test-switch-scope            Execute switch branch-local bindings
+  test-switch-scalars          Execute switch scalar and enum matching
+  test-return-statements       Execute return line terminator semantics
+  test-object-construction     Execute object spread merge and override values
+  test-array-literal           Execute original dense and nested array literal checks
+  test-whitespace-positions    Execute raw whitespace in code and strings
+  test-comment-terminators     Execute code immediately following comment line terminators
+  test-comment-characters      Execute original comment control and Unicode characters
+  test-regexp-comments         Execute comment boundaries found in regular expression cases
+  test-string-source           Execute original Unicode string source characters
+  test-identifier-digits       Execute digit positions and distinct identifier bindings
+  test-ascii-identifiers       Execute original ASCII identifier bindings
+  test-decimal-original        Execute original decimal and exponent literal values
+  test-strings                 Run string values and owned string collection cases
+  test-safety                  Check integer safety failures in isolated processes
+  test-stores                  Verify staged Store transactions and resource failures
+  test-template-evaluation-order Observe template calls and early failures
+  test-switch-evaluation-order Observe switch subject and branch calls
+  test-if-evaluation-order     Observe if branches, early returns and unused binding initializers
+  test-object-evaluation-order Observe object fields and spread evaluation order
+  test-array-evaluation-order  Observe array element calls and early failures
+  test-evaluation-order        Observe generated operand calls and early failure
+  test-expression-bindings     Validate standalone expression binding paths and programs
+  test-rx-runtime              Execute sequential RX programs through generated Zig
+  test-rx-store-runtime        Execute physical Store isolation and refresh boundaries
+  test-rx-memory-state         Execute compiler generated application memory State across calls
+  test-rx-store-io             Execute generated Store Request IO and commit lifetime boundaries
+  test-rx-io-runtime           Execute generated IO calls, discarded results and sequential filesystem failures
+  test-rx-io-library           Execute IO and pure entries after library replay, import and republication
+  test-rx-io                   Execute source and library IO workflows
+  test-rx-parallel-runtime     Execute native RX parallel calls and Tasks with observed worker threads
+  test-rx-owned-runtime        Execute owned inputs across RX parallel source and compiled library boundaries
+  test-rx-parallel-library     Execute parallel workflows replayed from unified library artifacts
+  test-rx-parallel-import      Execute parallel workflows imported and republished by RX and ZX consumers
+  test-rx-parallel             Execute source, archived and imported RX parallel workflows
+  test-rx-parallel-inference   Validate RX parallel binding and capability boundaries
+  test-expression-runtime      Execute standalone bound expression programs
+  test-contracts               Validate contract analysis and code generation gates
+  test-link-runtime            Execute original and independently relinked module artifacts
+  test-native-runtime          Execute original and relinked native ABI bundles
+  test-type-merge              Validate structural and nominal module type merging
+  test-library-link            Validate unified public module linkage identity ownership and failures
+  test-library-initializers    Validate Store initializer linkage codec compatibility import identity and resource cleanup
+  test-library-codec           Validate unified library encoding ownership integrity and semantic rejection
+  test-library-runtime         Execute unified public entries and nested dependency remapping
+  test-library-mixed           Execute linked RX orchestration and public ZX logic
+  test-library-replay          Execute unified library artifacts decoded in independent processes
+  test-library-import          Execute ZX imports from compiled public library modules
+  test-library-bundle          Execute unified Zig library bundles with public file tables
+  test-native-link             Validate native artifact linking identity ABI and resources
+  test-artifact-slots          Validate module artifact capability slots and ownership
+  test-module-artifacts        Validate local module extraction remapping and ownership
+  test-link-boundaries         Validate module link graph interface and allocation failure boundaries
+  test-module-generation       Validate split generation cache gates and ownership
+  test-cache-codec             Validate persistent semantic artifact encoding integrity and resources
+  test-backend-protocol        Validate backend framing ownership and malformed diagnostics
+  test-backend-publish         Validate real artifact publication gates and preserved outputs
+  test-backend-runtime         Build and publish through real backend protocol processes
+  test-watch-recovery          Validate CLI watch rebuilding failure preservation and recovery
+  test-watch-library           Consume watched library exports across updates and failures
+  test-watch-headers           Validate missing native headers retry and watch recovery
+  test-semantic-cache          Validate semantic cache reuse invalidation and result ownership
+  test-nominal-origins         Validate source native and external enum origins
+  test-module-records          Validate project module metadata ownership and dependencies
+  test-parse-cache             Validate parsing cache invalidation ownership and allocation failures
+  test-native-declarations     Validate native declaration diagnostics and allocation failures
+  test-match-module-types      Validate types and ownership in cross module match expressions
+  test-ownership-contracts     Validate function ownership summaries and forged IR rejection
+  test-verification            Validate formal verification with a real Z3 solver
+  test-public-verification     Verify every declared public ZX and RX library entry
+  test-enum-verification       Verify finite enum domains, counterexamples and infeasible preconditions
+  test-verification-resources  Validate verification allocation failures and invalid IR
+  test-build-modes             Install compiler and consume app and relocated library outputs
+  test-hardware-evaluation     Compare real RTL behavior using external Yosys
+  test-hardware-resources      Validate hardware graph boundaries and allocation cleanup
+  test-rx-inference            Validate inferred RX contracts through real XML
+  test-xml-expression          Validate XML expression source positions and ownership
+  test-rx-text                 Validate real RX text parsing and module diagnostics
+  test-rx-attributes           Validate RX string and braced expression attributes and resource cleanup
+  test-rx-attribute-runtime    Execute RX literal expression and extensionless path cases through the CLI
+  test-rx-attribute-rejections Reject empty expressions and quoted strings used as numeric RX values
+  test-rx-cli                  Validate RX command line file loading and diagnostics
+  test-rx-store-paths          Validate Store physical paths through the CLI
+  test-rx-state-app            Execute generated application lifetime Store state without persistence
+  test-rx-project-cli          Build and validate real RX disk projects
+  test-rx-watch                Validate RX watch dependency tracking and recovery
+  test-package-manifest        Validate package manifests and workspace discovery through public commands
+  test-library-publish         Publish unified public libraries and consume relocated artifacts through ZX and Zig
+  test-library-entry           Validate single entry normalization and preserved Zig compatibility
+  test-library-native-publish  Publish and republish scoped native ABI and resources
+  test-library-store-publish   Execute relocated and republished Store initialization modules
+  test-library-rx-compiled     Execute RX compiled Store calls with shared and distinct package instances
+  test-library-rx-boundary     Reject unauthorized compiled Store transactions and missing application initializers
+  test-library-compiled-manifest Verify and rebuild relocated compiled manifests directly
+  test-library-compiled-contract Revalidate compiled contracts with valid digests and preserve previous outputs
+  test-library-inventory       Retire managed outputs while preserving unlisted modified and external files
+  test-semantic-lint           Validate semantic lint scope diagnostics and read-only behavior
+  test-rx-formatting           Validate RX formatting CLI modes content preservation runtime equivalence and allocation cleanup
+  test-configuration-formatting Validate manifest index and lock formatting and read-only lint boundaries
+  test-compiled-packages       Execute CLI consumers of compiled package exports and reject invalid artifacts
+  test-package-manifest-resources Validate manifest exports ownership serialization and allocation failures
+  test-package-archive         Validate package archive integrity paths extraction and resources
+  test-package-install         Validate installed transitive versions real applications offline recovery and failure preservation
+  test-package-install-watch   Validate live watch recovery across install lock and mapping changes
+  test-native-packages         Validate installed native module isolation object ABI and republished libraries
+  test-native-aliases          Validate native ABI alias resolution canonical identity and rejection
+  test-package-index           Validate package indexes and release selection through public commands
+  test-package-store           Validate package store publication offline cache integrity and resources
+  test-package-http            Validate real HTTP package downloads and concurrent cache publication
+  test-package-lock-graphs     Validate locked dependency graph cycles depth order and resources
+  test-package-lock-parsing    Validate strict lock parsing source ownership and allocation failures
+  test-package-index-resources Validate package index allocation failures and owned data
+  test-json-enum               Validate generated application enum JSON input and output
+  test-json-integer            Validate exact integer JSON precision and range in applications
+  test-app-protocol            Validate generated application arguments output and failure protocol
+  test-toolchain               Build and run with only the relocated embedded compiler
+  test-toolchain-concurrency   Validate concurrent embedded toolchain extraction
+  test-persistent-cache        Validate cross process semantic cache persistence and recovery
+  test-generation-runtime      Execute split apps with persistent generation cache and recovery
+  test-native-generation       Execute native object ABI across generation cache reuse and type reordering
+  test-standard-resources      Validate standard library errors and allocation cleanup
+  test-url-file                Validate explicit platform file URL conversions and allocation cleanup
+  test-url-api-resources       Validate public URL record ownership and allocation failure propagation
+  test-url-parser              Validate complete pinned WPT URL parsing and serialization corpus
+  test-url-host                Validate special and opaque URL host parsing boundaries and resource cleanup
+  test-url-idna                Validate Unicode18 nontransitional IDNA profile and allocation cleanup
+  test-url-punycode            Validate RFC3492 encoding decoding invalid inputs and resource cleanup
+  test-url-nfc                 Validate Unicode18 NFC official conformance and allocation cleanup
+  test-url-primitives          Validate URL byte encoding and IP parsing normalization
+  test-standard-fs             Validate filesystem operations, limits, path rejection and allocation cleanup
+  test-child-input             Validate concurrent child process stdin and cleanup
+  test-child-process           Validate synchronous child process execution and cleanup
+  test-process-context         Validate process context APIs and independent IO capability forwarding
+  test-process-stdio           Validate standard stream boundaries and failure cleanup
+  test-http                    Validate bounded HTTP requests and response ownership
+  test-module-graphs           Validate synthetic RX module graphs
+
+Project-Specific Options:
+  -Dtarget=[string]            The CPU architecture, OS, and ABI to build for
+  -Dcpu=[string]               Target CPU features to add or subtract
+  -Dofmt=[string]              Target object format
+  -Ddynamic-linker=[string]    Path to interpreter on the target system
+  -Doptimize=[enum]            Prioritize performance, safety, or binary size
+                                 Supported Values:
+                                   debug
+                                   safe
+                                   fast
+                                   small
+  -Dfrontend-filter=[string]   Run frontend cases whose names contain this text
+
+System Integration Options:
+  --search-prefix [path]       Add a path to look for binaries, libraries, headers
+  --sysroot [path]             Set the system root directory (usually /)
+  --libc [file]                Provide a file which specifies libc paths
+
+  --system [pkgdir]            Disable package fetching; enable all integrations
+  -fsys=[name]                 Enable a system integration
+  -fno-sys=[name]              Disable a system integration
+
+  -fdarling,  -fno-darling     Integration with system-installed Darling to
+                               execute macOS programs on Linux hosts
+                               (default: no)
+  -fqemu,     -fno-qemu        Integration with system-installed QEMU to execute
+                               foreign-architecture programs on Linux hosts
+                               (default: no)
+  --libc-runtimes [path]       Enhances QEMU integration by providing dynamic libc
+                               (e.g. glibc or musl) built for multiple foreign
+                               architectures, allowing execution of non-native
+                               programs that link with libc.
+  -frosetta,  -fno-rosetta     Rely on Rosetta to execute x86_64 programs on
+                               ARM64 macOS hosts. (default: no)
+  -fwasmtime, -fno-wasmtime    Integration with system-installed wasmtime to
+                               execute WASI binaries. (default: no)
+  -fwine,     -fno-wine        Integration with system-installed Wine to execute
+                               Windows programs on Linux hosts. (default: no)
+
+  Available System Integrations:                Enabled:
+  (none)                                        -
+
+General Options:
+  -h, --help                   Print this help to stdout and exit
+  -l, --list-steps             Print available steps to stdout and exit
+
+  -p, --prefix [path]          Where to install files (default: zig-out)
+  --prefix-lib-dir [path]      Where to install libraries
+  --prefix-exe-dir [path]      Where to install executables
+  --prefix-include-dir [path]  Where to install C header files
+  --release[=mode]             Request release mode, optionally specifying a
+                               preferred optimization mode: fast, safe, small
+
+  --verbose                    Print commands before executing them
+  --color [auto|off|on]        Enable or disable colored error messages
+  --error-style [style]        Control how build errors are printed
+    verbose                    (Default) Report errors with full context
+    minimal                    Report errors after summary, excluding context like command lines
+    verbose_clear              Like 'verbose', but clear the terminal at the start of each update
+    minimal_clear              Like 'minimal', but clear the terminal at the start of each update
+  --multiline-errors [style]   Control how multi-line error messages are printed
+    indent                     (Default) Indent non-initial lines to align with initial line
+    newline                    Include a leading newline so that the error message is on its own lines
+    none                       Print as usual so the first line is misaligned
+  --summary [mode]             Control the printing of the build summary
+    all                        Print the build summary in its entirety
+    new                        Omit cached steps
+    failures                   (Default if short-lived) Only print failed steps
+    line                       (Default if long-lived) Only print the single-line summary
+    none                       Do not print the build summary
+  -j<N>                        Limit concurrent jobs (default is to use all CPU cores)
+  --maxrss <bytes>             Limit memory usage (default is to use available memory)
+  --skip-oom-steps             Instead of failing, skip steps that would exceed --maxrss
+  --test-timeout <timeout>     Limit execution time of unit tests, terminating if exceeded.
+                               The timeout must include a unit: ns, us, ms, s, m, h
+  --watch                      Continuously rebuild when source files are modified
+  --debounce <ms>              Delay before rebuilding after changed file detected
+  --webui[=ip]                 Enable the web interface on the given IP address
+  --fuzz[=limit]               Continuously search for unit test failures with an optional 
+                               limit to the max number of iterations. The argument supports
+                               an optional 'K', 'M', or 'G' suffix (e.g. '10K'). Implies
+                               '--webui' when no limit is specified.
+  --listen=-                   Enable the build server protocol on stdio
+  --time-report                Force full rebuild and provide detailed information on
+                               compilation time of Zig source code (implies '--webui')
+  -fincremental                Enable incremental compilation
+  -fno-incremental             Disable incremental compilation
+
+Package Management Options:
+  --fetch[=mode]               Fetch dependency tree (optionally choose laziness) and exit
+    needed                     (Default) Lazy dependencies are fetched as needed
+    all                        Lazy dependencies are always fetched
+  --fork=[path], --fork [path] Override one or more projects from dependency tree
+
+Advanced Options:
+  -freference-trace[=num]      How many lines of reference trace should be shown per compile error
+  -fno-reference-trace         Disable reference trace
+  -fallow-so-scripts           Allows .so files to be GNU ld scripts
+  -fno-allow-so-scripts        (default) .so files must be ELF files
+  --error-limit [num]          Set the maximum amount of distinct error values
+  --build-file [file]          Override path to build.zig
+  --cache-dir [path]           Override path to local Zig cache directory
+  --zig-lib=[arg]              Override path to Zig lib directory
+  --seed [integer]             For shuffling dependency traversal order (default: random)
+  --cache-poison[=mode]        Override configuration caching behavior
+      pure                     (default) Avoid false positive cache hits
+      poisoned                 Don't cache the configuration
+      disallowed               Panics when cache would be poisoned
+      ignored                  A little poison never hurt anybody
+  --print-configuration        Render configuration as .zon to stdout
+  --print-configuration-path   Print the path to the binary configuration file to stdout
+  --build-id[=style]           At a minor link-time expense, embeds a build ID in binaries
+      fast                     8-byte non-cryptographic hash (COFF, ELF, WASM)
+      sha1, tree               20-byte cryptographic hash (ELF, WASM)
+      md5                      16-byte cryptographic hash (ELF)
+      uuid                     16-byte random UUID (ELF, WASM)
+      0x[hexstring]            Constant ID, maximum 32 bytes (ELF, WASM)
+      none                     (default) No build ID
+  --debug-log [scope]          Enable debugging the compiler
+  --debug-pkg-config           Fail if unknown pkg-config flags encountered
+  --verbose-link               Enable compiler debug output for linking
+  --verbose-air                Enable compiler debug output for Zig AIR
+  --verbose-llvm-ir            Enable compiler debug output for LLVM IR
+  --verbose-cimport            Enable compiler debug output for C imports
+  --verbose-cc                 Enable compiler debug output for C compilation
+  --verbose-llvm-cpu-features  Enable compiler debug output for LLVM CPU features

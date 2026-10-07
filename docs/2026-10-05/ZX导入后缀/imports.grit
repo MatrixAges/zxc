@@ -1,0 +1,7 @@
+language js
+
+or {
+  `import $binding from "$path.zx"` => `import $binding from "$path"`,
+  `import type { $names } from "$path.zx"` => `import type { $names } from "$path"`,
+  `import { $names } from "$path.zx"` => `import { $names } from "$path"`
+}

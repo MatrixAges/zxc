@@ -1,7 +1,7 @@
 const std = @import("std");
 
 pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step {
-    const step = b.step("test-owned-input", "Validate explicit input consumption across source and library boundaries");
+    const step = b.step("test-owned-input", "Validate immutable inputs across source and library boundaries");
 
     for ([_][]const u8{ "analysis", "library", "modules" }) |name| {
         const tests = b.addTest(.{ .root_module = b.createModule(.{

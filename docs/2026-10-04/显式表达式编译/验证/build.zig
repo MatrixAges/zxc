@@ -15,7 +15,7 @@ pub fn build(b: *std.Build) void {
                 .optimize = optimize,
                 .imports = &.{
                     .{ .name = "compiler", .module = compiler.module("compiler") },
-                    .{ .name = "application", .module = compiler.module("application") },
+                    .{ .name = "rx_compiler", .module = compiler.module("rx_compiler") },
                     .{ .name = "rx", .module = rx.module("rx") },
                 },
             }),

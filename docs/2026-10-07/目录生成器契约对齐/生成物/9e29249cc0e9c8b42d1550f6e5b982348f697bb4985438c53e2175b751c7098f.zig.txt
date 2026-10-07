@@ -1,0 +1,110 @@
+const std = @import("std");
+
+const zx_type_12 = struct {
+    enabled: bool,
+    value: u64,
+    values: []const u64,
+};
+
+const zx_type_14 = struct {
+    seed: []const u64,
+    steps: []const *const zx_type_12,
+};
+
+const zx_type_15 = struct { []const u64, void, };
+
+const value_zx_type_14_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    seed: []const u64,
+    steps: []const *const zx_type_12,
+    zx_origin: ?*const zx_type_14 = null,
+};
+
+const value_zx_type_15_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct { []const u64, void, ?*const zx_type_15, };
+
+pub const Input = *const zx_type_14;
+
+pub const Output = []const u64;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .enabled = zx_shape_1, .value = zx_shape_5, .values = zx_shape_11, }, };
+
+const zx_shape_13 = .{ .kind = .list, .child = zx_shape_12, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .seed = zx_shape_11, .steps = zx_shape_13, }, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_11, .@"1" = zx_shape_0, }, };
+
+pub const input_shape = zx_shape_14;
+
+pub const output_shape = zx_shape_11;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const zx_type_14) error{ OutOfMemory, Overflow, }![]const u64 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_2: []const u64 = block_10: {
+        const operand_7 = (in).seed;
+        const operand_8 = (try (allocator).alloc(u64, (operand_7).len));
+
+        for (operand_7, 0..) |value_1, index_9| {
+            (operand_8)[index_9] = value_1;
+        }
+
+        break :block_10 operand_8;
+    };
+
+    return block_6: {
+        const operand_1 = (in).steps;
+        const operand_2 = value_2;
+
+        var append_items_3: (std).ArrayList(u64) = .empty;
+
+        var append_started_4 = false;
+
+        defer (append_items_3).deinit(allocator);
+
+        for (operand_1) |value_4| {
+            const operand_5 = (value_4).value;
+
+            _ = (try ((std).math).add(usize, ((if (append_started_4) (append_items_3).items else operand_2)).len, 1));
+
+            if ((!append_started_4)) {
+                (try (append_items_3).appendSlice(allocator, operand_2));
+
+                append_started_4 = true;
+            }
+
+            (try (append_items_3).append(allocator, operand_5));
+        }
+
+        break :block_6 (if (append_started_4) (try (append_items_3).toOwnedSlice(allocator)) else operand_2);
+    };
+}
+

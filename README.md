@@ -135,7 +135,7 @@ Remove the `requires` and verification fails with a concrete counterexample: the
 | `<Module>`   | Root of an `.rx` file; the module is identified by its file path |
 | `<Call>`     | Call a ZX function (`fn`) or another RX module (`module`)        |
 | `<Return>`   | Return a value from the module                                   |
-| `<Task>`     | Group steps into a named, scoped block                           |
+| `<Task>`     | Group steps; optional `out={...}` exposes `$ctx.task.<name>`     |
 | `<Switch>`   | Branch on a value                                                |
 | `<Case>`     | A branch of `Switch` matching one value                          |
 | `<Default>`  | The fallback branch of `Switch`                                  |
@@ -156,15 +156,19 @@ See the [RX Reference](packages/compiler/src/rx/README.md) for attributes and ne
 | Area         | What ZX offers                                                                                                                              |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Units        | One default-exported function per file, with typed `Input` and `Output`                                                                     |
-| Types        | `u8`–`u64`, `i32`, `i64`, `f32`, `f64`, `bool`, `string`, objects, enums, optionals, lists, tuples                                          |
+| Types        | `u8`–`u64`, `i32`, `i64`, `f32`, `f64`, `bool`, `string`, objects, enums, `T?` optionals, `T[]` lists, `[A, B]` tuples                      |
 | Bindings     | `const` only, destructuring and spread; no semicolons                                                                                       |
-| Control flow | `if`, `switch` and `match` expressions                                                                                                      |
+| Control flow | `if`, `switch`, `match` and `loop` expressions                                                                                              |
 | Collections  | Capture-free `map`, `filter`, `reduce`                                                                                                      |
+| Errors       | `const [err, res] = try expression`; finite error sets and checked success narrowing                                                        |
+| Concurrency  | `async expression`, `await task`, `cancel task` and `parallel({name: () => expression})`                                                    |
 | Ownership    | No pointers and no `clone`; the compiler decides how values move                                                                            |
 | Imports      | Relative paths, `@/` project paths and packages; imports must be acyclic                                                                    |
 | Standard lib | Encoding, crypto, paths, URLs, compression, target info, files, processes and HTTP; see the [module index](docs/2026-10-05/功能参考索引.md) |
 | Native code  | Explicitly declared `zig:` and `c:` interfaces                                                                                              |
 | Contracts    | `requires` / `ensures`, proven with an SMT solver                                                                                           |
+
+See [typed errors](docs/2026-10-06/类型化错误参考.md) and [ZX async and parallel](docs/2026-10-06/ZX异步参考.md) for examples. A task handle can be consumed at most once by `await` or `cancel`. `cancel` requests cooperative cancellation and waits for the task to finish. Task execution requires an I/O-capable host.
 
 ## CLI
 

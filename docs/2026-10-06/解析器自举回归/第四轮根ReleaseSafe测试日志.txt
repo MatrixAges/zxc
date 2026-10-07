@@ -1,0 +1,1092 @@
+tests/language/expressions/template_characters/literals.jsonl: 10 named cases
+tests/language/expressions/template_characters/escaped_interpolation.jsonl: 3 named cases
+upstream/reviews/language/expressions/template_characters.jsonl: 4 named cases
+tests/language/expressions/coalesce/identity/object.jsonl: 12 named cases
+tests/language/expressions/match/identity/object.jsonl: 12 named cases
+tests/built_ins/string/values/cases.jsonl: 484 named cases
+tests/built_ins/string/optional/cases.jsonl: 529 named cases
+tests/built_ins/string/sort/owned/0_0/cases.jsonl: 1 named cases
+tests/built_ins/string/sort/owned/1_0/cases.jsonl: 4 named cases
+tests/built_ins/string/sort/owned/2_0/cases.jsonl: 17 named cases
+tests/built_ins/string/sort/owned/3_0/cases.jsonl: 65 named cases
+tests/built_ins/string/sort/owned/26_0/cases.jsonl: 1 named cases
+tests/built_ins/string/sort/owned/33_0/cases.jsonl: 1 named cases
+tests/built_ins/string/concat_reverse/owned/0_0/cases.jsonl: 1 named cases
+tests/built_ins/string/concat_reverse/owned/0_1/cases.jsonl: 1 named cases
+tests/built_ins/string/concat_reverse/owned/0_2/cases.jsonl: 2 named cases
+tests/built_ins/string/concat_reverse/owned/1_0/cases.jsonl: 4 named cases
+tests/built_ins/string/concat_reverse/owned/1_1/cases.jsonl: 4 named cases
+tests/built_ins/string/concat_reverse/owned/1_2/cases.jsonl: 8 named cases
+tests/built_ins/string/concat_reverse/owned/2_0/cases.jsonl: 16 named cases
+tests/built_ins/string/concat_reverse/owned/2_1/cases.jsonl: 16 named cases
+tests/built_ins/string/concat_reverse/owned/2_2/cases.jsonl: 32 named cases
+tests/built_ins/string/concat_reverse/owned/3_0/cases.jsonl: 64 named cases
+tests/built_ins/string/concat_reverse/owned/3_1/cases.jsonl: 64 named cases
+tests/built_ins/string/concat_reverse/owned/3_2/cases.jsonl: 128 named cases
+tests/built_ins/string/reduce/cases.jsonl: 256 named cases
+tests/built_ins/string/literals/cases.jsonl: 15 named cases
+tests/language/expressions/template_primitives/original.jsonl: 6 named cases
+tests/language/expressions/template_primitives/dynamic.jsonl: 18 named cases
+upstream/reviews/language/expressions/template_primitives.jsonl: 3 named cases
+tests/built_ins/list/nested/nested_map.jsonl: 7 named cases
+tests/built_ins/list/nested/nested_initial.jsonl: 7 named cases
+tests/built_ins/list/nested/restored_row.jsonl: 7 named cases
+{
+  "upstream_files": 53597,
+  "metadata_files": 53597,
+  "reviewed": {
+    "adapted": 690,
+    "excluded": 1645,
+    "equivalent": 103
+  },
+  "unreviewed": 51159,
+  "catalog_cases": 80155,
+  "catalog_by_runner": {
+    "runtime": 62612,
+    "frontend": 5313,
+    "evaluation_order": 1084,
+    "safety": 464,
+    "module_graphs": 10446,
+    "stores": 236
+  },
+  "linked_cases": 4933,
+  "execution_status": "not measured by this audit; see zig build test results"
+}
+tests/language/expressions/comparison/bool.jsonl: 4 named cases
+tests/language/expressions/comparison/string_upstream.jsonl: 6 named cases
+tests/language/lexical/numeric/invalid.jsonl: 264 named cases
+tests/language/lexical/numeric/valid.jsonl: 10 named cases
+tests/language/expressions/optional_chain_boundary/cases.jsonl: 19 named cases
+upstream/reviews/language/expressions/optional_chain_boundary.jsonl: 13 named cases
+✔ real backend preserves outputs across cache reuse compile failure and prepublication input changes (46253.025268ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 46255.753459
+tests/language/expressions/addition/whitespace.jsonl: 54 named cases
+tests/language/types/addition_whitespace/cases.jsonl: 60 named cases
+tests/runtime/evaluation_order/multiplication.jsonl: 16 named cases
+tests/language/types/multiplication_assignment/cases.jsonl: 4 named cases
+tests/language/expressions/logical_not/source.jsonl: 14 named cases
+tests/language/types/logical_not/cases.jsonl: 50 named cases
+tests/language/expressions/logical_not/values.jsonl: 2 named cases
+tests/language/expressions/logical_not/precedence/not_left_and.jsonl: 4 named cases
+tests/language/expressions/logical_not/precedence/not_group_and.jsonl: 4 named cases
+tests/language/expressions/logical_not/precedence/not_left_or.jsonl: 4 named cases
+tests/language/expressions/logical_not/precedence/not_group_or.jsonl: 4 named cases
+tests/language/types/logical_assignment/cases.jsonl: 8 named cases
+tests/language/types/equality_conversion/cases.jsonl: 40 named cases
+tests/language/expressions/unary_minus/f32/direct.jsonl: 35 named cases
+tests/language/expressions/unary_minus/f32/binding.jsonl: 35 named cases
+tests/language/expressions/unary_minus/f32/double.jsonl: 35 named cases
+tests/language/expressions/unary_minus/f32/field.jsonl: 35 named cases
+tests/language/expressions/unary_minus/f64/direct.jsonl: 35 named cases
+tests/language/expressions/unary_minus/f64/binding.jsonl: 35 named cases
+tests/language/expressions/unary_minus/f64/double.jsonl: 35 named cases
+tests/language/expressions/unary_minus/f64/field.jsonl: 35 named cases
+tests/language/types/unary_minus/cases.jsonl: 26 named cases
+tests/language/expressions/unary_minus/f64/source_values.jsonl: 6 named cases
+tests/language/types/relational_string_order/greater/cases.jsonl: 35 named cases
+tests/language/types/relational_string_order/less_equal/cases.jsonl: 35 named cases
+tests/language/types/relational_string_order/greater_equal/cases.jsonl: 35 named cases
+upstream/reviews/language/expressions/relational_string_order.jsonl: 12 named cases
+✔ package HTTP / offline miss never requests an available archive (8.728698ms)
+✔ package HTTP / four cold writers publish one verified cache and reuse it offline (14.529788ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25.484634
+✔ package HTTP / direct response (15.83428ms)
+✔ package HTTP / chunked response (7.99742ms)
+✔ package HTTP / relative redirect (7.451034ms)
+✔ package HTTP / three redirects (7.672773ms)
+✔ package HTTP / four redirects rejected (3.629413ms)
+✔ package HTTP / redirect loop rejected (3.454421ms)
+✔ package HTTP / 404 rejected (3.225757ms)
+✔ package HTTP / 500 rejected (3.066371ms)
+✔ package HTTP / 204 rejected (3.155606ms)
+✔ package HTTP / content encoding rejected (3.084931ms)
+✔ package HTTP / declared oversized body rejected (2.996521ms)
+✔ package HTTP / downloaded gzip CRC rejected (3.495179ms)
+✔ package HTTP / download SHA mismatch rejected (2.895927ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.939347
+✔ package HTTP / rejects oversized headers before peer finishes body (11.359209ms)
+✔ package HTTP / rejects unavailable headers before peer finishes body (4.179053ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17.673373
+tests/rx/modules/graphs/3/call.jsonl: 512 named cases
+tests/rx/modules/graphs/3/import.jsonl: 512 named cases
+tests/rx/modules/graphs/3/case.jsonl: 512 named cases
+tests/rx/modules/graphs/3/parallel_task.jsonl: 512 named cases
+tests/rx/modules/graphs/4/call.jsonl: 4096 named cases
+tests/rx/modules/graphs/4/import.jsonl: 4096 named cases
+tests/rx/modules/resources/allocation.jsonl: 36 named cases
+tests/rx/modules/resources/stack.jsonl: 16 named cases
+tests/language/lexical/whitespace/rejections/cases.jsonl: 11 named cases
+upstream/reviews/language/lexical/whitespace_rejections.jsonl: 11 named cases
+tests/language/statements/block_syntax/cases.jsonl: 5 named cases
+upstream/reviews/language/statements/block_syntax.jsonl: 11 named cases
+tests/language/expressions/match/scalars/boolean.jsonl: 8 named cases
+tests/language/expressions/match/scalars/string.jsonl: 729 named cases
+tests/language/expressions/match/scalars/enum.jsonl: 27 named cases
+tests/language/expressions/match/scalars/u8.jsonl: 27 named cases
+tests/language/expressions/match/scalars/u16.jsonl: 27 named cases
+tests/language/expressions/match/scalars/u32.jsonl: 27 named cases
+tests/language/expressions/match/scalars/u64.jsonl: 27 named cases
+tests/language/expressions/match/scalars/i32.jsonl: 27 named cases
+tests/language/expressions/match/scalars/i64.jsonl: 27 named cases
+tests/language/expressions/match/default_only.jsonl: 3 named cases
+tests/language/expressions/match/nested.jsonl: 4 named cases
+tests/language/expressions/match/scalar_types.jsonl: 8 named cases
+tests/standard/decoding/errors.jsonl: 38 named cases
+tests/language/lexical/comments/block/structure.jsonl: 8 named cases
+tests/language/lexical/comments/block/unicode.jsonl: 2 named cases
+tests/language/lexical/comments/block/strings.jsonl: 5 named cases
+tests/runtime/evaluation_order/coalesce.jsonl: 144 named cases
+tests/language/types/coalesce_chain/cases.jsonl: 3 named cases
+tests/standard/crypto/aes-128-gcm/encrypt.jsonl: 27 named cases
+tests/standard/crypto/aes-128-gcm/decrypt.jsonl: 135 named cases
+tests/standard/crypto/aes-256-gcm/encrypt.jsonl: 27 named cases
+tests/standard/crypto/aes-256-gcm/decrypt.jsonl: 135 named cases
+tests/standard/crypto/chacha20-poly1305/encrypt.jsonl: 27 named cases
+tests/standard/crypto/chacha20-poly1305/decrypt.jsonl: 135 named cases
+tests/language/expressions/addition/f32.jsonl: 1521 named cases
+tests/language/expressions/addition/f64.jsonl: 1521 named cases
+tests/language/statements/tuple_bindings/scalar.jsonl: 5 named cases
+tests/language/statements/tuple_bindings/mixed.jsonl: 4 named cases
+tests/language/statements/tuple_bindings/discard.jsonl: 4 named cases
+tests/language/statements/if_remaining/cases.jsonl: 27 named cases
+upstream/reviews/language/statements/if_remaining.jsonl: 32 named cases
+tests/language/lexical/comments/exposure/cases.jsonl: 3 named cases
+upstream/reviews/language/lexical/comment_exposure.jsonl: 3 named cases
+tests/language/expressions/property_lookup/own_field.jsonl: 1 named cases
+tests/language/expressions/property_lookup/syntax.jsonl: 2 named cases
+upstream/reviews/language/expressions/property_lookup.jsonl: 4 named cases
+tests/language/statements/return/newline/lf.jsonl: 1 named cases
+tests/language/statements/return/newline/cr.jsonl: 1 named cases
+tests/language/statements/return/newline/crlf.jsonl: 1 named cases
+tests/language/statements/return/cases.jsonl: 13 named cases
+upstream/reviews/language/statements/return.jsonl: 5 named cases
+tests/language/expressions/multiplication/grouping/f32/default.jsonl: 225 named cases
+tests/language/expressions/multiplication/grouping/f32/left.jsonl: 225 named cases
+tests/language/expressions/multiplication/grouping/f32/right.jsonl: 225 named cases
+tests/language/expressions/multiplication/grouping/f64/default.jsonl: 225 named cases
+tests/language/expressions/multiplication/grouping/f64/left.jsonl: 225 named cases
+tests/language/expressions/multiplication/grouping/f64/right.jsonl: 225 named cases
+tests/standard/url/search_params/parse/cases.jsonl: 552 named cases
+tests/standard/url/search_params/stringify/cases.jsonl: 140 named cases
+tests/standard/url/search_params/sort/cases.jsonl: 140 named cases
+tests/standard/url/search_params/keys/cases.jsonl: 140 named cases
+tests/standard/url/search_params/values/cases.jsonl: 140 named cases
+tests/standard/url/search_params/size/cases.jsonl: 140 named cases
+tests/standard/url/search_params/get/cases.jsonl: 437 named cases
+tests/standard/url/search_params/get_all/cases.jsonl: 437 named cases
+tests/standard/url/search_params/has/cases.jsonl: 1509 named cases
+tests/standard/url/search_params/remove/cases.jsonl: 1509 named cases
+tests/standard/url/search_params/append/cases.jsonl: 1748 named cases
+tests/standard/url/search_params/set/cases.jsonl: 1748 named cases
+tests/language/lexical/string/cases.jsonl: 127 named cases
+tests/language/lexical/utf8/cases.jsonl: 42 named cases
+tests/language/expressions/object_construction/copy.jsonl: 2 named cases
+tests/language/types/array_spread/cases.jsonl: 3 named cases
+upstream/reviews/language/expressions/array_spread.jsonl: 5 named cases
+tests/language/expressions/object_construction/shorthand_duplicate.jsonl: 3 named cases
+tests/language/types/object_shorthand/cases.jsonl: 12 named cases
+upstream/reviews/language/expressions/object_shorthand.jsonl: 15 named cases
+tests/language/expressions/multiplication/source/values.jsonl: 5 named cases
+tests/language/expressions/multiplication/source/lines.jsonl: 1 named cases
+tests/language/expressions/multiplication/names/cases.jsonl: 4 named cases
+tests/language/expressions/comparison/whitespace/equal.jsonl: 36 named cases
+tests/language/expressions/comparison/whitespace/not_equal.jsonl: 36 named cases
+tests/language/types/equality_whitespace/cases.jsonl: 120 named cases
+tests/language/types/boolean_inequality/cases.jsonl: 13 named cases
+tests/language/expressions/match/frontend.jsonl: 16 named cases
+tests/language/statements/switch/scope/separate_bindings.jsonl: 2 named cases
+tests/language/statements/switch/scope/outer_binding.jsonl: 2 named cases
+tests/language/statements/switch_scope/cases.jsonl: 6 named cases
+tests/runtime/evaluation_order/match_condition.jsonl: 64 named cases
+tests/runtime/evaluation_order/match_value.jsonl: 48 named cases
+tests/standard/url/api/can_parse/cases.jsonl: 896 named cases
+tests/standard/url/api/try_parse/cases.jsonl: 896 named cases
+tests/standard/url/api/parse/cases.jsonl: 628 named cases
+tests/standard/url/api/resolve/cases.jsonl: 628 named cases
+tests/standard/url/api/stringify/cases.jsonl: 627 named cases
+tests/standard/url/api/pathname/cases.jsonl: 627 named cases
+tests/standard/url/api/origin/cases.jsonl: 414 named cases
+tests/standard/url/api/path_to_file_url/cases.jsonl: 347 named cases
+tests/standard/url/api/file_url_to_path/cases.jsonl: 551 named cases
+tests/standard/url/api/file_url_to_bytes/cases.jsonl: 551 named cases
+tests/standard/url/api/domain_to_ascii/cases.jsonl: 14 named cases
+tests/standard/url/api/domain_to_unicode/cases.jsonl: 14 named cases
+tests/language/expressions/call_spread_protocols/cases.jsonl: 6 named cases
+upstream/reviews/language/expressions/call_spread_protocols.jsonl: 28 named cases
+tests/language/expressions/logical_and/source.jsonl: 13 named cases
+tests/language/expressions/logical_or/source.jsonl: 13 named cases
+tests/language/types/logical_binary/cases.jsonl: 104 named cases
+tests/language/expressions/comparison/optional/u8.jsonl: 16 named cases
+tests/language/expressions/comparison/optional/u16.jsonl: 16 named cases
+tests/language/expressions/comparison/optional/u32.jsonl: 16 named cases
+tests/language/expressions/comparison/optional/u64.jsonl: 16 named cases
+tests/language/expressions/comparison/optional/i32.jsonl: 16 named cases
+tests/language/expressions/comparison/optional/i64.jsonl: 16 named cases
+tests/language/expressions/comparison/optional/f32.jsonl: 16 named cases
+tests/language/expressions/comparison/optional/f64.jsonl: 16 named cases
+tests/language/expressions/comparison/optional/bool.jsonl: 9 named cases
+tests/language/expressions/comparison/optional/string.jsonl: 25 named cases
+tests/language/expressions/comparison/optional/object.jsonl: 3 named cases
+tests/language/expressions/comparison/optional/list.jsonl: 4 named cases
+tests/language/expressions/comparison/optional/tuple.jsonl: 3 named cases
+tests/language/types/optional_equality/cases.jsonl: 12 named cases
+tests/language/types/addition_conversion/cases.jsonl: 36 named cases
+tests/language/expressions/division/grouping/f32/right.jsonl: 36 named cases
+tests/language/expressions/division/grouping/f32/left.jsonl: 36 named cases
+tests/language/expressions/division/grouping/f64/right.jsonl: 36 named cases
+tests/language/expressions/division/grouping/f64/left.jsonl: 36 named cases
+tests/runtime/evaluation_order/comparison.jsonl: 432 named cases
+tests/language/statements/switch/scalars/integer.jsonl: 4 named cases
+tests/language/statements/switch/scalars/string.jsonl: 6 named cases
+tests/language/statements/switch/scalars/boolean.jsonl: 2 named cases
+tests/language/statements/switch/scalars/enumeration.jsonl: 4 named cases
+tests/language/statements/switch_scalars/cases.jsonl: 11 named cases
+tests/language/expressions/comparison/names/less.jsonl: 13 named cases
+tests/language/expressions/comparison/names/greater.jsonl: 13 named cases
+tests/language/expressions/comparison/names/less_equal.jsonl: 13 named cases
+tests/language/expressions/comparison/names/greater_equal.jsonl: 13 named cases
+tests/language/types/relational_names/cases.jsonl: 20 named cases
+tests/language/statements/bare_blocks/cases.jsonl: 4 named cases
+tests/language/statements/switch/scope/case_default.jsonl: 2 named cases
+tests/language/statements/switch/scope/default_case.jsonl: 2 named cases
+tests/language/statements/switch_redeclarations/cases.jsonl: 4 named cases
+tests/language/expressions/static_names/cases.jsonl: 28 named cases
+tests/language/expressions/logical_and/basic.jsonl: 46 named cases
+tests/language/expressions/logical_or/basic.jsonl: 46 named cases
+tests/language/expressions/logical_and/nested_or.jsonl: 92 named cases
+tests/language/expressions/logical_or/nested_and.jsonl: 92 named cases
+tests/language/expressions/conditional/yes.jsonl: 46 named cases
+tests/language/expressions/conditional/no.jsonl: 46 named cases
+tests/language/expressions/coalesce/optional.jsonl: 92 named cases
+tests/ownership/propagation/cases.jsonl: 156 named cases
+tests/ownership/consumption/cases.jsonl: 248 named cases
+tests/language/types/unary_plus_boundary/cases.jsonl: 16 named cases
+upstream/reviews/language/expressions/unary_plus_boundary.jsonl: 3 named cases
+tests/language/types/relational_whitespace/cases.jsonl: 240 named cases
+tests/language/expressions/comparison/whitespace.jsonl: 216 named cases
+upstream/reviews/language/expressions/relational_whitespace.jsonl: 4 named cases
+tests/language/lexical/primitive_literals/cases.jsonl: 14 named cases
+tests/built_ins/list/pop/after_removal/cases.jsonl: 8 named cases
+upstream/reviews/built_ins/array/pop_empty.jsonl: 1 named cases
+tests/language/types/equality_assignment/cases.jsonl: 8 named cases
+tests/language/expressions/template_newlines/cases.jsonl: 14 named cases
+upstream/reviews/language/expressions/template_newlines.jsonl: 1 named cases
+tests/language/expressions/grouping_values/original/whitespace.jsonl: 6 named cases
+tests/language/expressions/grouping_values/original/boolean.jsonl: 1 named cases
+tests/language/expressions/grouping_values/original/number.jsonl: 1 named cases
+tests/language/expressions/grouping_values/original/string.jsonl: 2 named cases
+tests/language/expressions/grouping_values/original/null.jsonl: 1 named cases
+tests/language/expressions/grouping_values/dynamic/boolean.jsonl: 2 named cases
+tests/language/expressions/grouping_values/dynamic/integer.jsonl: 3 named cases
+tests/language/expressions/grouping_values/dynamic/string.jsonl: 3 named cases
+tests/language/expressions/grouping_values/dynamic/optional.jsonl: 3 named cases
+tests/language/expressions/grouping_values/unicode.jsonl: 4 named cases
+upstream/reviews/language/expressions/grouping_values.jsonl: 9 named cases
+tests/language/types/member_base/cases.jsonl: 14 named cases
+upstream/reviews/language/expressions/member_base.jsonl: 1 named cases
+tests/language/types/addition_strings/cases.jsonl: 36 named cases
+tests/language/expressions/addition/explicit_strings.jsonl: 9 named cases
+tests/language/expressions/call_whitespace/cases.jsonl: 12 named cases
+tests/language/expressions/call_whitespace/unicode.jsonl: 4 named cases
+upstream/reviews/language/expressions/call_basics.jsonl: 12 named cases
+tests/language/expressions/comparison/string_storage/cases.jsonl: 64 named cases
+upstream/reviews/language/expressions/call_remaining.jsonl: 29 named cases
+tests/language/expressions/comparison/source.jsonl: 32 named cases
+tests/standard/path/posix/resolve.jsonl: 12 named cases
+tests/standard/path/posix/relative.jsonl: 66 named cases
+tests/standard/path/win32/resolve.jsonl: 13 named cases
+tests/standard/path/win32/relative.jsonl: 1603 named cases
+tests/language/lexical/strings/terminators/cases.jsonl: 4 named cases
+upstream/reviews/language/lexical/string_terminators.jsonl: 4 named cases
+tests/runtime/evaluation_order/division.jsonl: 16 named cases
+tests/language/types/division_assignment/cases.jsonl: 4 named cases
+tests/language/expressions/subtraction/whitespace.jsonl: 54 named cases
+tests/language/types/subtraction_whitespace/cases.jsonl: 60 named cases
+tests/language/expressions/object_construction/copy_prefix.jsonl: 4 named cases
+tests/language/types/array_spread_protocols/cases.jsonl: 7 named cases
+upstream/reviews/language/expressions/array_spread_protocols.jsonl: 18 named cases
+tests/language/lexical/identifiers/ascii_lower/cases.jsonl: 104 named cases
+upstream/reviews/language/lexical/ascii_identifiers.jsonl: 1 named cases
+tests/language/types/array_literal/single_elision.jsonl: 1 named cases
+upstream/reviews/language/expressions/array_properties.jsonl: 3 named cases
+tests/runtime/evaluation_order/array/flat.jsonl: 12 named cases
+tests/runtime/evaluation_order/array/nested.jsonl: 12 named cases
+tests/language/expressions/subtraction/f32.jsonl: 1521 named cases
+tests/language/expressions/subtraction/f64.jsonl: 1849 named cases
+tests/language/expressions/addition/overflow_literals.jsonl: 2 named cases
+tests/standard/zlib/gunzip/cases.jsonl: 83 named cases
+tests/standard/zlib/inflate/cases.jsonl: 76 named cases
+tests/standard/zlib/inflate_raw/cases.jsonl: 72 named cases
+tests/language/expressions/comparison/optional_enum/cases.jsonl: 16 named cases
+tests/language/types/optional_enum/cases.jsonl: 12 named cases
+tests/language/lexical/numeric/exponent_names/cases.jsonl: 16 named cases
+tests/runtime/evaluation_order/if_statement/conditional.jsonl: 16 named cases
+tests/runtime/evaluation_order/if_statement/early_return.jsonl: 16 named cases
+tests/runtime/evaluation_order/if_statement/discarded.jsonl: 16 named cases
+tests/language/statements/if/cases.jsonl: 11 named cases
+upstream/reviews/language/statements/if.jsonl: 9 named cases
+tests/runtime/evaluation_order/if_statement/nested_full.jsonl: 16 named cases
+tests/runtime/evaluation_order/if_statement/nested_inner_partial.jsonl: 16 named cases
+tests/runtime/evaluation_order/if_statement/nested_outer_partial.jsonl: 16 named cases
+tests/runtime/evaluation_order/if_statement/nested_both_partial.jsonl: 16 named cases
+tests/runtime/evaluation_order/if_statement/nested_else_if.jsonl: 16 named cases
+tests/language/statements/if_nested/cases.jsonl: 15 named cases
+upstream/reviews/language/statements/if_nested.jsonl: 7 named cases
+tests/language/lexical/identifiers/digits/suffix.jsonl: 40 named cases
+tests/language/lexical/identifiers/digits/middle.jsonl: 40 named cases
+tests/language/lexical/identifiers/digits/underscore.jsonl: 40 named cases
+tests/language/expressions/property_primitives/string_length.jsonl: 1 named cases
+upstream/reviews/language/expressions/property_primitives.jsonl: 5 named cases
+tests/language/lexical/template_escapes/cases.jsonl: 50 named cases
+upstream/reviews/language/expressions/template_escapes.jsonl: 16 named cases
+tests/language/expressions/call_object_spread/merge/cases.jsonl: 3 named cases
+tests/language/expressions/call_object_spread/override/cases.jsonl: 3 named cases
+upstream/reviews/language/expressions/call_object_spread.jsonl: 13 named cases
+tests/language/expressions/addition/source/values.jsonl: 4 named cases
+tests/language/expressions/addition/names/cases.jsonl: 4 named cases
+tests/runtime/safety/integer/u8.jsonl: 11 named cases
+tests/runtime/safety/integer/u16.jsonl: 11 named cases
+tests/runtime/safety/integer/u32.jsonl: 11 named cases
+tests/runtime/safety/integer/u64.jsonl: 11 named cases
+tests/runtime/safety/integer/i32.jsonl: 208 named cases
+tests/runtime/safety/integer/i64.jsonl: 212 named cases
+tests/language/expressions/coalesce/values/number/direct.jsonl: 6 named cases
+tests/language/expressions/coalesce/values/number/nested.jsonl: 18 named cases
+tests/language/expressions/coalesce/values/number/index.jsonl: 12 named cases
+tests/language/expressions/coalesce/values/boolean/direct.jsonl: 6 named cases
+tests/language/expressions/coalesce/values/boolean/nested.jsonl: 18 named cases
+tests/language/expressions/coalesce/values/boolean/index.jsonl: 12 named cases
+tests/language/expressions/coalesce/values/string/direct.jsonl: 6 named cases
+tests/language/expressions/coalesce/values/string/nested.jsonl: 18 named cases
+tests/language/expressions/coalesce/values/string/index.jsonl: 12 named cases
+tests/language/types/coalesce_values/cases.jsonl: 9 named cases
+tests/language/types/multiplication_conversion/cases.jsonl: 72 named cases
+tests/language/types/relational_strings/cases.jsonl: 35 named cases
+tests/language/expressions/comparison/equality_names/equal.jsonl: 13 named cases
+tests/language/expressions/comparison/equality_names/not_equal.jsonl: 13 named cases
+tests/language/types/equality_names/cases.jsonl: 10 named cases
+tests/language/expressions/modulus/f32.jsonl: 1681 named cases
+tests/language/expressions/modulus/f64.jsonl: 1681 named cases
+tests/runtime/evaluation_order/logical.jsonl: 64 named cases
+tests/language/expressions/template_nested/no_sub.jsonl: 1 named cases
+tests/language/expressions/template_nested/literal_expr_template.jsonl: 1 named cases
+tests/language/expressions/template_nested/middle_list_one_expr_template.jsonl: 1 named cases
+tests/language/expressions/template_nested/middle_list_many_expr_template.jsonl: 1 named cases
+tests/language/expressions/template_nested/dynamic.jsonl: 8 named cases
+upstream/reviews/language/expressions/template_nested.jsonl: 4 named cases
+tests/language/lexical/numeric/literals_u64.jsonl: 12 named cases
+tests/language/lexical/numeric/literals_f64.jsonl: 3 named cases
+tests/language/expressions/modulus/source/values.jsonl: 4 named cases
+tests/language/expressions/modulus/source/lines.jsonl: 1 named cases
+tests/language/expressions/modulus/names/cases.jsonl: 4 named cases
+tests/language/expressions/match/modules/canonical.jsonl: 4 named cases
+tests/language/expressions/match/modules/reordered.jsonl: 4 named cases
+tests/language/expressions/match/modules/shared_pattern.jsonl: 4 named cases
+tests/language/expressions/match/modules/lazy.jsonl: 6 named cases
+tests/language/statements/return_top_level/cases.jsonl: 8 named cases
+upstream/reviews/language/statements/return_top_level.jsonl: 11 named cases
+tests/language/types/object_computed/cases.jsonl: 9 named cases
+upstream/reviews/language/expressions/object_computed.jsonl: 14 named cases
+tests/stores/transactions/staging.jsonl: 236 named cases
+tests/runtime/evaluation_order/addition.jsonl: 16 named cases
+tests/language/types/addition_assignment/cases.jsonl: 4 named cases
+tests/language/types/operators/add.jsonl: 144 named cases
+tests/language/types/operators/subtract.jsonl: 144 named cases
+tests/language/types/operators/multiply.jsonl: 144 named cases
+tests/language/types/operators/divide.jsonl: 144 named cases
+tests/language/types/operators/remainder.jsonl: 144 named cases
+tests/language/types/operators/less.jsonl: 144 named cases
+tests/language/types/operators/less_equal.jsonl: 144 named cases
+tests/language/types/operators/greater.jsonl: 144 named cases
+tests/language/types/operators/greater_equal.jsonl: 144 named cases
+tests/language/types/operators/equal.jsonl: 144 named cases
+tests/language/types/operators/not_equal.jsonl: 144 named cases
+tests/language/types/operators/and.jsonl: 144 named cases
+tests/language/types/operators/or.jsonl: 144 named cases
+tests/language/lexical/comments/regexp_boundary/lf.jsonl: 3 named cases
+tests/language/lexical/comments/regexp_boundary/cr.jsonl: 3 named cases
+tests/language/lexical/comments/regexp_boundary/crlf.jsonl: 3 named cases
+tests/language/lexical/comments/regexp_boundary/invalid.jsonl: 3 named cases
+upstream/reviews/language/literals/regexp_comments.jsonl: 4 named cases
+tests/language/expressions/comparison/optional_bits/f32.jsonl: 1521 named cases
+tests/language/expressions/comparison/optional_bits/f64.jsonl: 1521 named cases
+tests/language/lexical/comments/terminators/terminator_comment_single_cr.jsonl: 3 named cases
+tests/language/lexical/comments/terminators/terminator_comment_single_lf.jsonl: 3 named cases
+upstream/reviews/language/lexical/comment_terminators.jsonl: 2 named cases
+tests/language/expressions/comparison/f32.jsonl: 1225 named cases
+tests/language/expressions/comparison/f64.jsonl: 1230 named cases
+tests/language/expressions/comparison/f64_negated.jsonl: 1 named cases
+tests/language/lexical/comments/cases.jsonl: 94 named cases
+tests/language/lexical/comments/runtime.jsonl: 14 named cases
+tests/language/expressions/arrow/bodies/cases.jsonl: 60 named cases
+upstream/reviews/language/expressions/arrow_bodies.jsonl: 5 named cases
+tests/runtime/evaluation_order/subtraction.jsonl: 16 named cases
+tests/language/types/subtraction_assignment/cases.jsonl: 4 named cases
+file:///Users/xiewendao/.codex/worktrees/parser-lifetime-regression/zxc/packages/test/src/shared/catalog.ts:12
+		if (!readFileSync(output).equals(Buffer.from(content))) throw new Error(`outdated catalog: ${output}`)
+		                                                              ^
+
+Error: outdated catalog: /Users/xiewendao/.codex/worktrees/parser-lifetime-regression/zxc/packages/test/tests/rx/modules/paths/cases.jsonl
+    at writeOutput (file:///Users/xiewendao/.codex/worktrees/parser-lifetime-regression/zxc/packages/test/src/shared/catalog.ts:12:65)
+    at writeCatalog (file:///Users/xiewendao/.codex/worktrees/parser-lifetime-regression/zxc/packages/test/src/shared/catalog.ts:20:2)
+    at file:///Users/xiewendao/.codex/worktrees/parser-lifetime-regression/zxc/packages/test/src/generate_module_paths.ts:207:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v25.8.1
+test
++- test
+   +- run node failure
+error: process exited with code 1
+failed command: node ./packages/test/src/generate_module_paths.ts --check
+
+tests/runtime/evaluation_order/match_default.jsonl: 12 named cases
+tests/language/expressions/object_construction/duplicate.jsonl: 5 named cases
+tests/language/types/object_duplicate/cases.jsonl: 32 named cases
+upstream/reviews/language/expressions/object_duplicate.jsonl: 5 named cases
+tests/language/expressions/subtraction/names.jsonl: 21 named cases
+tests/language/types/subtraction_names/cases.jsonl: 5 named cases
+tests/language/statements/if_truthiness/cases.jsonl: 38 named cases
+upstream/reviews/language/statements/if_truthiness.jsonl: 4 named cases
+tests/language/types/division_conversion/cases.jsonl: 72 named cases
+tests/language/lexical/template_continuations/cases.jsonl: 10 named cases
+upstream/reviews/language/expressions/template_remaining.jsonl: 8 named cases
+tests/language/statements/switch_environment/cases.jsonl: 2 named cases
+upstream/reviews/language/statements/switch_environment.jsonl: 6 named cases
+tests/language/expressions/array_literal/empty/cases.jsonl: 1 named cases
+tests/language/expressions/array_literal/dense/cases.jsonl: 7 named cases
+tests/language/expressions/array_literal/nested/cases.jsonl: 13 named cases
+tests/language/types/array_literal/cases.jsonl: 5 named cases
+upstream/reviews/language/expressions/array_literal.jsonl: 8 named cases
+tests/language/expressions/multiplication/f32.jsonl: 1521 named cases
+tests/language/expressions/multiplication/f64.jsonl: 1521 named cases
+tests/language/lexical/numeric/decimal_original/cases.jsonl: 403 named cases
+upstream/reviews/language/literals/decimal_original.jsonl: 35 named cases
+tests/language/expressions/property_whitespace/cases.jsonl: 12 named cases
+tests/language/expressions/property_whitespace/unicode.jsonl: 4 named cases
+upstream/reviews/language/expressions/property_remaining.jsonl: 12 named cases
+tests/language/expressions/multiplication/errors/hex_base64.jsonl: 25 named cases
+tests/language/expressions/multiplication/errors/base64_hex.jsonl: 25 named cases
+tests/built_ins/list/callbacks/map/predicate/cases.jsonl: 7 named cases
+tests/built_ins/list/callbacks/filter/predicate/cases.jsonl: 9 named cases
+tests/built_ins/list/callbacks/reduce/empty/cases.jsonl: 9 named cases
+tests/built_ins/list/callbacks/reduce/order/cases.jsonl: 7 named cases
+tests/built_ins/list/callbacks/reduce/arguments/cases.jsonl: 6 named cases
+upstream/reviews/built_ins/array/callbacks.jsonl: 7 named cases
+tests/language/expressions/match/ownership/owned.jsonl: 6 named cases
+tests/language/expressions/match/ownership/mixed_read.jsonl: 18 named cases
+tests/language/types/relational_conversion/greater/cases.jsonl: 62 named cases
+tests/language/types/relational_conversion/less_equal/cases.jsonl: 62 named cases
+tests/language/types/relational_conversion/greater_equal/cases.jsonl: 62 named cases
+upstream/reviews/language/expressions/relational_conversion.jsonl: 36 named cases
+tests/language/lexical/comments/characters/mongolian_vowel_separator_multi/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/mongolian_vowel_separator_single_eval/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/mongolian_vowel_separator_single/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_form_feed/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_form_feed/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_horizontal_tab/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_horizontal_tab/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_nbsp/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_nbsp/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_space/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_space/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_vertical_tab/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_multi_vertical_tab/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_form_feed/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_form_feed/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_horizontal_tab/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_horizontal_tab/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_nbsp/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_nbsp/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_space/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_space/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_vertical_tab/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/comment_single_vertical_tab/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a3_1_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a3_2_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a3_3_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a3_4_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a3_5_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a4_1_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a4_2_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a4_3_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a4_4_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/s7_2_a4_5_t2/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/terminator_s7_3_a5_4/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/terminator_s7_3_a5_4/1.jsonl: 3 named cases
+tests/language/lexical/comments/characters/terminator_comment_multi_cr/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/terminator_comment_multi_lf/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/terminator_comment_multi_ls/0.jsonl: 3 named cases
+tests/language/lexical/comments/characters/terminator_comment_multi_ps/0.jsonl: 3 named cases
+upstream/reviews/language/lexical/comment_characters.jsonl: 28 named cases
+tests/standard/encoding_crypto/values.jsonl: 324 named cases
+tests/language/statements/switch_declarations/cases.jsonl: 6 named cases
+tests/language/lexical/identifiers/keywords/cases.jsonl: 42 named cases
+upstream/reviews/language/lexical/keyword_bindings.jsonl: 21 named cases
+tests/language/expressions/addition/grouping/f32/default.jsonl: 6 named cases
+tests/language/expressions/addition/grouping/f32/left.jsonl: 6 named cases
+tests/language/expressions/addition/grouping/f32/right.jsonl: 6 named cases
+tests/language/expressions/addition/grouping/f64/default.jsonl: 6 named cases
+tests/language/expressions/addition/grouping/f64/left.jsonl: 6 named cases
+tests/language/expressions/addition/grouping/f64/right.jsonl: 6 named cases
+tests/language/expressions/addition/grouping/strings.jsonl: 4 named cases
+tests/language/statements/if_declarations/cases.jsonl: 16 named cases
+upstream/reviews/language/statements/if_declarations.jsonl: 17 named cases
+tests/runtime/evaluation_order/switch_statement/default_first.jsonl: 8 named cases
+tests/runtime/evaluation_order/switch_statement/default_last.jsonl: 8 named cases
+tests/runtime/evaluation_order/switch_statement/empty.jsonl: 4 named cases
+tests/runtime/evaluation_order/switch_statement/default_only.jsonl: 8 named cases
+tests/runtime/evaluation_order/switch_statement/no_fallthrough.jsonl: 8 named cases
+tests/language/statements/switch/cases.jsonl: 9 named cases
+upstream/reviews/language/statements/switch.jsonl: 3 named cases
+tests/language/expressions/multiplication/whitespace.jsonl: 54 named cases
+tests/language/types/multiplication_whitespace/cases.jsonl: 60 named cases
+tests/language/expressions/object_construction/fields/bool_explicit.jsonl: 2 named cases
+tests/language/expressions/object_construction/fields/bool_shorthand.jsonl: 2 named cases
+tests/language/expressions/object_construction/fields/number_explicit.jsonl: 3 named cases
+tests/language/expressions/object_construction/fields/number_shorthand.jsonl: 3 named cases
+tests/language/expressions/object_construction/fields/string_explicit.jsonl: 3 named cases
+tests/language/expressions/object_construction/fields/string_shorthand.jsonl: 3 named cases
+tests/language/expressions/object_construction/fields/optional_explicit.jsonl: 3 named cases
+tests/language/expressions/object_construction/fields/optional_shorthand.jsonl: 3 named cases
+tests/language/expressions/object_construction/fields/name_undefined.jsonl: 2 named cases
+tests/language/types/object_fields/cases.jsonl: 7 named cases
+upstream/reviews/language/expressions/object_fields.jsonl: 9 named cases
+tests/language/expressions/template_delimiters/cases.jsonl: 10 named cases
+tests/language/expressions/division/whitespace.jsonl: 54 named cases
+tests/language/types/division_whitespace/cases.jsonl: 60 named cases
+tests/language/types/aggregate_equality/cases.jsonl: 30 named cases
+tests/built_ins/list/push/owned/0/i64.jsonl: 3 named cases
+tests/built_ins/list/push/owned/1/i64.jsonl: 9 named cases
+tests/built_ins/list/push/owned/2/i64.jsonl: 30 named cases
+tests/built_ins/list/push/owned/3/i64.jsonl: 81 named cases
+tests/built_ins/list/push/owned/4/i64.jsonl: 246 named cases
+tests/built_ins/list/push/owned/5/i64.jsonl: 3 named cases
+tests/built_ins/list/pop/owned/0/i64.jsonl: 1 named cases
+tests/built_ins/list/pop/owned/1/i64.jsonl: 3 named cases
+tests/built_ins/list/pop/owned/2/i64.jsonl: 11 named cases
+tests/built_ins/list/pop/owned/3/i64.jsonl: 28 named cases
+tests/built_ins/list/pop/owned/4/i64.jsonl: 82 named cases
+tests/built_ins/list/pop/owned/5/i64.jsonl: 1 named cases
+tests/built_ins/list/reverse/owned/0/i64.jsonl: 1 named cases
+tests/built_ins/list/reverse/owned/1/i64.jsonl: 3 named cases
+tests/built_ins/list/reverse/owned/2/i64.jsonl: 11 named cases
+tests/built_ins/list/reverse/owned/3/i64.jsonl: 28 named cases
+tests/built_ins/list/reverse/owned/4/i64.jsonl: 82 named cases
+tests/built_ins/list/reverse/owned/5/i64.jsonl: 1 named cases
+tests/built_ins/list/sort/owned/0/i64.jsonl: 1 named cases
+tests/built_ins/list/sort/owned/1/i64.jsonl: 3 named cases
+tests/built_ins/list/sort/owned/2/i64.jsonl: 11 named cases
+tests/built_ins/list/sort/owned/3/i64.jsonl: 28 named cases
+tests/built_ins/list/sort/owned/4/i64.jsonl: 82 named cases
+tests/built_ins/list/sort/owned/5/i64.jsonl: 1 named cases
+tests/built_ins/list/concat/owned/0/i64.jsonl: 5 named cases
+tests/built_ins/list/concat/owned/1/i64.jsonl: 15 named cases
+tests/built_ins/list/concat/owned/2/i64.jsonl: 50 named cases
+tests/built_ins/list/concat/owned/3/i64.jsonl: 135 named cases
+tests/built_ins/list/concat/owned/4/i64.jsonl: 410 named cases
+tests/built_ins/list/concat/owned/5/i64.jsonl: 5 named cases
+tests/built_ins/list/concat_reverse/owned/0/i64.jsonl: 5 named cases
+tests/built_ins/list/concat_reverse/owned/1/i64.jsonl: 15 named cases
+tests/built_ins/list/concat_reverse/owned/2/i64.jsonl: 50 named cases
+tests/built_ins/list/concat_reverse/owned/3/i64.jsonl: 135 named cases
+tests/built_ins/list/concat_reverse/owned/4/i64.jsonl: 410 named cases
+tests/built_ins/list/concat_reverse/owned/5/i64.jsonl: 5 named cases
+tests/built_ins/list/concat_three/owned/0/i64.jsonl: 26 named cases
+tests/built_ins/list/concat_three/owned/1/i64.jsonl: 50 named cases
+tests/built_ins/list/concat_three/owned/2/i64.jsonl: 25 named cases
+tests/built_ins/list/concat_three/owned/3/i64.jsonl: 25 named cases
+tests/built_ins/list/splice/owned/0/i64.jsonl: 9 named cases
+tests/built_ins/list/splice/owned/1/i64.jsonl: 60 named cases
+tests/built_ins/list/splice/owned/2/i64.jsonl: 350 named cases
+tests/built_ins/list/splice/owned/3/i64.jsonl: 1485 named cases
+tests/built_ins/list/splice/owned/4/i64.jsonl: 6561 named cases
+tests/built_ins/list/splice/owned/5/i64.jsonl: 110 named cases
+tests/built_ins/list/splice_reverse/owned/0/i64.jsonl: 9 named cases
+tests/built_ins/list/splice_reverse/owned/1/i64.jsonl: 20 named cases
+tests/built_ins/list/splice_reverse/owned/3/i64.jsonl: 55 named cases
+tests/built_ins/list/splice_reverse/owned/4/i64.jsonl: 80 named cases
+tests/built_ins/list/map_double/i64.jsonl: 124 named cases
+tests/built_ins/list/map_plus_ten/i64.jsonl: 124 named cases
+tests/built_ins/list/map_greater_ten/i64.jsonl: 4 named cases
+tests/built_ins/list/map_true/i64.jsonl: 4 named cases
+tests/built_ins/list/filter_odd/i64.jsonl: 124 named cases
+tests/built_ins/list/filter_true/i64.jsonl: 4 named cases
+tests/built_ins/list/reduce_sum/i64.jsonl: 372 named cases
+tests/built_ins/list/reduce_digits/i64.jsonl: 372 named cases
+tests/built_ins/list/index/i64.jsonl: 499 named cases
+tests/built_ins/list/map_index/i64.jsonl: 85 named cases
+tests/built_ins/list/filter_index/i64.jsonl: 85 named cases
+tests/built_ins/list/reduce_index/i64.jsonl: 255 named cases
+tests/language/types/relational_assignment/cases.jsonl: 16 named cases
+upstream/reviews/language/expressions/relational_assignment.jsonl: 16 named cases
+tests/language/lexical/numeric/boundaries.jsonl: 34 named cases
+tests/language/lexical/numeric/leading_zero.jsonl: 11 named cases
+tests/language/expressions/template_members/cases.jsonl: 12 named cases
+tests/language/types/template_members/cases.jsonl: 6 named cases
+upstream/reviews/language/expressions/template_members.jsonl: 9 named cases
+tests/language/expressions/conditional/boolean.jsonl: 14 named cases
+tests/language/expressions/conditional/number.jsonl: 4 named cases
+tests/language/expressions/conditional/string.jsonl: 4 named cases
+tests/language/expressions/conditional/optional.jsonl: 4 named cases
+tests/language/expressions/conditional/coalesce.jsonl: 6 named cases
+tests/language/types/conditional/cases.jsonl: 18 named cases
+tests/language/expressions/coalesce_mixing/cases.jsonl: 16 named cases
+upstream/reviews/language/expressions/coalesce_mixing.jsonl: 4 named cases
+tests/language/expressions/division/f32.jsonl: 1225 named cases
+tests/language/expressions/division/f64.jsonl: 1225 named cases
+tests/language/types/modulus_conversion/cases.jsonl: 72 named cases
+tests/language/statements/const_initializers/cases.jsonl: 6 named cases
+upstream/reviews/language/statements/const_initializers.jsonl: 1 named cases
+tests/language/types/subtraction_conversion/cases.jsonl: 72 named cases
+tests/runtime/evaluation_order/modulus.jsonl: 16 named cases
+tests/language/types/modulus_assignment/cases.jsonl: 4 named cases
+tests/standard/crypto/hmac_sha256/cases.jsonl: 52 named cases
+tests/standard/crypto/hkdf_sha256/cases.jsonl: 74 named cases
+tests/standard/crypto/pbkdf2_sha256/cases.jsonl: 109 named cases
+tests/standard/crypto/hmac_sha512/cases.jsonl: 52 named cases
+tests/standard/crypto/hkdf_sha512/cases.jsonl: 74 named cases
+tests/standard/crypto/pbkdf2_sha512/cases.jsonl: 109 named cases
+tests/standard/crypto/timing_safe_equal/cases.jsonl: 24 named cases
+tests/language/expressions/object_construction/merge.jsonl: 4 named cases
+tests/language/expressions/object_construction/override.jsonl: 2 named cases
+upstream/reviews/language/expressions/object_construction.jsonl: 2 named cases
+tests/language/types/object_construction/consumed.jsonl: 2 named cases
+tests/runtime/evaluation_order/object/forward.jsonl: 8 named cases
+tests/runtime/evaluation_order/object/reverse.jsonl: 8 named cases
+tests/runtime/evaluation_order/object/nested.jsonl: 8 named cases
+tests/runtime/evaluation_order/object/duplicate.jsonl: 4 named cases
+tests/runtime/evaluation_order/object/spread_first.jsonl: 4 named cases
+tests/runtime/evaluation_order/object/spread_last.jsonl: 4 named cases
+Native bundle: relocated ZX/Zig execution, file hashes, dependency options, dynamic assets and four path rejection scenarios passed
+Native declarations: 72 aggregate reference calls, native error propagation and two allocation failure traversals passed
+Native invocation: 25 inputs passed zero/multiple arguments, allocator and namespace execution
+Zlib compression: 264 independently decoded or rejected application calls passed
+Build modes: app, relocated Zig library and relocated ZX library passed
+✔ embedded toolchain / concurrent cold cache and stale staging (29325.92843ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29328.775139
+tests/language/lexical/whitespace/positions/between_form_feed/0.jsonl: 4 named cases
+tests/language/lexical/whitespace/positions/between_horizontal_tab/0.jsonl: 4 named cases
+tests/language/lexical/whitespace/positions/between_space/0.jsonl: 4 named cases
+tests/language/lexical/whitespace/positions/between_vertical_tab/0.jsonl: 4 named cases
+tests/language/lexical/whitespace/positions/string_nbsp/0.jsonl: 1 named cases
+tests/language/lexical/whitespace/positions/string_space/0.jsonl: 1 named cases
+tests/language/lexical/whitespace/positions/string_space/1.jsonl: 1 named cases
+tests/language/lexical/whitespace/positions/s7_2_a2_4_t2/0.jsonl: 1 named cases
+tests/language/lexical/whitespace/positions/s7_2_a2_5_t2/0.jsonl: 1 named cases
+tests/language/lexical/whitespace/positions/terminator_between_tokens_cr/0.jsonl: 4 named cases
+tests/language/lexical/whitespace/positions/terminator_between_tokens_lf/0.jsonl: 4 named cases
+upstream/reviews/language/lexical/whitespace_positions.jsonl: 10 named cases
+tests/language/expressions/match/floating/f32/comparison.jsonl: 1225 named cases
+tests/language/expressions/match/floating/f32/selection.jsonl: 105 named cases
+tests/language/expressions/match/floating/f64/comparison.jsonl: 1225 named cases
+tests/language/expressions/match/floating/f64/selection.jsonl: 105 named cases
+tests/language/expressions/coalesce/logical/and.jsonl: 36 named cases
+tests/language/expressions/coalesce/logical/or.jsonl: 36 named cases
+tests/language/types/coalesce_logical/cases.jsonl: 10 named cases
+tests/language/expressions/division/source/values.jsonl: 4 named cases
+tests/language/expressions/division/source/lines.jsonl: 1 named cases
+tests/language/expressions/division/names/cases.jsonl: 4 named cases
+tests/language/expressions/division/source/identifiers.jsonl: 1 named cases
+tests/language/expressions/template_segments/cases.jsonl: 23 named cases
+upstream/reviews/language/expressions/template_segments.jsonl: 5 named cases
+tests/language/types/array_spread_errors/cases.jsonl: 4 named cases
+upstream/reviews/language/expressions/array_spread_errors.jsonl: 16 named cases
+tests/language/expressions/optional_chain_remaining/cases.jsonl: 8 named cases
+upstream/reviews/language/expressions/optional_chain_remaining.jsonl: 25 named cases
+tests/standard/path/posix/values.jsonl: 44 named cases
+tests/standard/path/win32/values.jsonl: 44 named cases
+tests/language/statements/switch/nested/cases.jsonl: 4 named cases
+tests/language/statements/switch_nested/cases.jsonl: 3 named cases
+upstream/reviews/language/statements/switch_nested.jsonl: 4 named cases
+tests/standard/querystring/escape/cases.jsonl: 142 named cases
+tests/standard/querystring/unescape/cases.jsonl: 292 named cases
+tests/standard/querystring/parse/cases.jsonl: 23 named cases
+tests/standard/querystring/parse_with/cases.jsonl: 35 named cases
+tests/standard/querystring/stringify/cases.jsonl: 8 named cases
+tests/standard/querystring/stringify_with/cases.jsonl: 40 named cases
+tests/language/types/less_than_conversion/cases.jsonl: 62 named cases
+upstream/reviews/language/expressions/less_than_conversion.jsonl: 12 named cases
+tests/language/expressions/call_arguments/syntax.jsonl: 8 named cases
+tests/language/expressions/call_arguments/cases.jsonl: 8 named cases
+upstream/reviews/language/expressions/call_arguments.jsonl: 10 named cases
+tests/language/types/relational_string_conversion/less/cases.jsonl: 6 named cases
+tests/language/types/relational_string_conversion/greater/cases.jsonl: 6 named cases
+tests/language/types/relational_string_conversion/less_equal/cases.jsonl: 6 named cases
+tests/language/types/relational_string_conversion/greater_equal/cases.jsonl: 6 named cases
+upstream/reviews/language/expressions/relational_string_conversion.jsonl: 8 named cases
+tests/language/expressions/modulus/whitespace.jsonl: 54 named cases
+tests/language/types/modulus_whitespace/cases.jsonl: 60 named cases
+parsing: 70 cases
+schema: 78 cases
+tests/language/expressions/template_calls/literal_expr_function/original.jsonl: 1 named cases
+tests/language/expressions/template_calls/literal_expr_function/dynamic.jsonl: 4 named cases
+tests/language/expressions/template_calls/middle_list_one_expr_function/original.jsonl: 1 named cases
+tests/language/expressions/template_calls/middle_list_one_expr_function/dynamic.jsonl: 4 named cases
+tests/language/expressions/template_calls/middle_list_many_expr_function/original.jsonl: 1 named cases
+tests/language/expressions/template_calls/middle_list_many_expr_function/dynamic.jsonl: 4 named cases
+upstream/reviews/language/expressions/template_calls.jsonl: 3 named cases
+✔ JSON enum / scalar accepts "First" (3.510518ms)
+✔ JSON enum / scalar accepts 0 (2.234226ms)
+✔ JSON enum / scalar accepts "0" (2.070824ms)
+✔ JSON enum / scalar accepts "Second" (2.075469ms)
+✔ JSON enum / scalar accepts 1 (1.945903ms)
+✔ JSON enum / scalar accepts "1" (2.037875ms)
+✔ JSON enum / scalar accepts "Third" (1.96705ms)
+✔ JSON enum / scalar accepts 2 (1.911758ms)
+✔ JSON enum / scalar accepts "2" (1.939362ms)
+✔ JSON enum / scalar accepts null (2.183317ms)
+✔ JSON enum / scalar rejects tag "first" (2.030173ms)
+✔ JSON enum / scalar rejects tag "Missing" (1.882852ms)
+✔ JSON enum / scalar rejects tag 3 (1.906623ms)
+✔ JSON enum / scalar rejects tag -1 (1.943989ms)
+✔ JSON enum / scalar rejects tag 1.5 (1.814194ms)
+✔ JSON enum / scalar rejects tag "3" (1.847955ms)
+✔ JSON enum / scalar rejects tag "1.0" (1.805754ms)
+✔ JSON enum / scalar rejects token true (1.903126ms)
+✔ JSON enum / scalar rejects token {} (1.886441ms)
+✔ JSON enum / scalar rejects token [] (1.928104ms)
+✔ JSON enum / nested null and empty list (2.153644ms)
+✔ JSON enum / nested named values (2.152282ms)
+✔ JSON enum / nested numeric values normalize to names (1.856321ms)
+✔ JSON enum / nested mixed encodings (1.954834ms)
+✔ JSON enum / nested missing list (1.892466ms)
+✔ JSON enum / nested missing optional field (1.792521ms)
+✔ JSON enum / nested unknown field (1.798424ms)
+✔ JSON enum / nested null list item (1.83447ms)
+✔ JSON enum / nested unknown list tag (1.924256ms)
+✔ JSON enum / nested unknown optional tag (1.831274ms)
+✔ JSON enum / nested invalid optional token (1.850643ms)
+✔ JSON enum / nested invalid list token (1.904411ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15745.949058
+tests/language/lexical/string/source_characters/cases.jsonl: 4 named cases
+upstream/reviews/language/literals/source_characters.jsonl: 3 named cases
+✔ package install / outdated frozen lock preserves previous lock and mapping (25.384572ms)
+✔ package install / unavailable version preserves previous lock and mapping (20.700069ms)
+✔ package install / archive checksum mismatch preserves previous lock and mapping (19.741537ms)
+✔ package install / archive version identity mismatch preserves previous lock and mapping (20.072259ms)
+✔ package install / missing frozen lock creates no lock or mapping (7.159337ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.174558
+tests/runtime/evaluation_order/template/order.jsonl: 4 named cases
+tests/runtime/evaluation_order/template/first.jsonl: 4 named cases
+tests/runtime/evaluation_order/template/middle.jsonl: 4 named cases
+tests/runtime/evaluation_order/template/later.jsonl: 4 named cases
+upstream/reviews/language/expressions/template_order.jsonl: 4 named cases
+✔ installed package integrity / content corruption rejects compilation and recovers (13260.408493ms)
+✔ installed package integrity / mapping corruption rejects compilation and recovers (13393.094602ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26656.837157
+✔ installed package scopes / transitive dependency is not a direct dependency (20.931975ms)
+✔ installed package scopes / workspace root does not inherit member dependencies (17.401843ms)
+✔ installed package scopes / relative import cannot cross workspace members (16.009518ms)
+✔ installed package scopes / relative import cannot bypass installed archive boundary (16.355718ms)
+✔ installed package scopes / explicit direct dependency grants access (13309.434431ms)
+✔ installed package scopes / root alias remains relative to the importing member (13084.933713ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26468.247095
+✔ package install / highest compatible transitive versions execute and recover frozen offline (35898.154803ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35900.799054
+✔ ZX import order / compiler gate and static execution preserve call order (12946.440904ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12949.166242
+▶ embedded toolchain / isolated executable lifecycle
+  ✔ embedded index without installation neighbors (4.514507ms)
+  ✔ cold cache builds and runs an application (14273.635644ms)
+  ✔ warm cache builds and runs the embedded standard library (7790.298039ms)
+  ✔ relative cache location is rejected before building (4.022992ms)
+  ✔ incomplete cache / missing marker (3.534659ms)
+  ✔ incomplete cache / wrong marker (3.522231ms)
+  ✔ incomplete cache / missing executable (3.302978ms)
+✔ embedded toolchain / isolated executable lifecycle (22849.05767ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22852.359725
+✔ ZX import order / fixed value and type categories / LF (21.711915ms)
+✔ ZX import order / fixed value and type categories / CRLF (18.710884ms)
+✔ ZX import order / stable same path declarations and named bindings / LF (17.678966ms)
+✔ ZX import order / stable same path declarations and named bindings / CRLF (17.484042ms)
+✔ ZX import order / case sensitive UTF8 and external scoped package / LF (17.874804ms)
+✔ ZX import order / case sensitive UTF8 and external scoped package / CRLF (21.639278ms)
+✔ ZX import order / line comments stay attached / LF (23.275734ms)
+✔ ZX import order / line comments stay attached / CRLF (26.600722ms)
+✔ ZX import order / internal and trailing block comments stay attached / LF (22.536175ms)
+✔ ZX import order / internal and trailing block comments stay attached / CRLF (21.958942ms)
+✔ ZX import order / file header pins first import / LF (21.439079ms)
+✔ ZX import order / file header pins first import / CRLF (21.855687ms)
+✔ ZX import order / independent comment separates sorting sections / LF (21.514657ms)
+✔ ZX import order / independent comment separates sorting sections / CRLF (21.453767ms)
+✔ ZX import order / multiline trailing comment moves as one unit / LF (22.067604ms)
+✔ ZX import order / multiline trailing comment moves as one unit / CRLF (21.102427ms)
+✔ ZX import order / no imports / LF (21.995292ms)
+✔ ZX import order / no imports / CRLF (23.733049ms)
+✔ ZX import order / single import / LF (22.038563ms)
+✔ ZX import order / single import / CRLF (22.483775ms)
+✔ ZX import order / excess internal blank lines / LF (22.950312ms)
+✔ ZX import order / excess internal blank lines / CRLF (22.520729ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 478.913726
+bool: 8 scalar and JSON cases passed
+u8: 262 scalar and JSON cases passed
+u16: 13 scalar and JSON cases passed
+u32: 8 scalar and JSON cases passed
+u64: 9 scalar and JSON cases passed
+i32: 8 scalar and JSON cases passed
+i64: 9 scalar and JSON cases passed
+f32: 15 scalar and JSON cases passed
+f64: 15 scalar and JSON cases passed
+void: 3 scalar and JSON cases passed
+13 RX state lifecycle cases passed
+6 WASI command cases passed
+489 WASM scalar, JSON, lifecycle, state and WASI cases passed (safe)
+✔ split app executes cold warm changed and disabled generation (31262.948263ms)
+✔ corrupt generation files regenerate and execute correctly (16543.440298ms)
+✔ generation payload stored under another key is rejected before compilation (16038.650794ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 63848.288228
+✔ watch CLI preserves published artifacts and recovers from edited invalid and missing dependencies (53726.191496ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53728.350059
+✔ semantic lint / valid main.zx ignores unreachable invalid source (12.493879ms)
+✔ semantic lint / valid pkg.yaml ignores unreachable invalid source (6.766249ms)
+✔ semantic lint / type failure and selection / nested/increment.zx (12.341874ms)
+✔ semantic lint / type failure and selection / extra.zx (12.119235ms)
+✔ semantic lint / entry fallback (5.137866ms)
+✔ semantic lint / no public modules (4.784161ms)
+✔ semantic lint / missing import (4.272175ms)
+✔ semantic lint / reachable formatting (4.310794ms)
+✔ semantic lint / import cycle (4.492671ms)
+✔ semantic lint / explicit project path / pkg.yaml (4.938099ms)
+✔ semantic lint / explicit project path / ./pkg.yaml (4.676323ms)
+✔ semantic lint / explicit project path / nested/../pkg.yaml (4.872021ms)
+✔ semantic lint / explicit project path / absolute (4.588663ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 89.520987
+✔ semantic lint / invalid options / lint main.zx --semantic --semantic (11.817599ms)
+✔ semantic lint / invalid options / lint main.zx --project pkg.yaml (4.961388ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --kind manifest (3.646221ms)
+✔ semantic lint / invalid options / fmt main.zx --semantic (3.940328ms)
+✔ semantic lint / invalid options / lint main.zx --semantic --out output (3.702689ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.381021
+✔ compiled semantic lint / no original sources / lint main.zx --semantic (13.064351ms)
+✔ compiled semantic lint / no original sources / lint main.rx --semantic (5.385584ms)
+✔ compiled semantic lint / no original sources / lint pkg.yaml --semantic (4.766363ms)
+✔ compiled semantic lint / no original sources / lint pkgs/bundle/pkg.yaml --semantic (4.470718ms)
+✔ compiled semantic lint / no original sources / lint pkg.yaml --workspace (5.608141ms)
+✔ compiled semantic lint / dependency input type / main.zx (4.869905ms)
+✔ compiled semantic lint / dependency input type / pkg.yaml (4.779612ms)
+✔ compiled semantic lint / damaged digest / main.zx (4.642905ms)
+✔ compiled semantic lint / damaged digest / pkgs/bundle/pkg.yaml (4.689355ms)
+✔ compiled semantic lint / damaged digest / workspace (5.000082ms)
+✔ compiled semantic lint / missing public module / main.zx (9.39303ms)
+✔ compiled semantic lint / missing public module / pkgs/bundle/pkg.yaml (5.179903ms)
+✔ compiled semantic lint / missing public module / workspace (5.506307ms)
+✔ compiled semantic lint / explicit source has independent status / true (8.647333ms)
+✔ compiled semantic lint / explicit source has independent status / false (8.363137ms)
+✔ compiled semantic lint / explicit source does not consume its package archive (8.643427ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 106.762526
+✔ semantic lint / RX valid / main.gateway.rx (13.467459ms)
+✔ semantic lint / RX valid / empty.gateway.rx (5.481225ms)
+✔ semantic lint / RX valid / state.store.rx (4.558943ms)
+✔ semantic lint / RX valid / read.rx (5.074462ms)
+✔ semantic lint / RX valid / pkg.yaml (5.40627ms)
+✔ semantic lint / Store initial type / state.store.rx (7.82987ms)
+✔ semantic lint / Store initial type / read.rx (7.974767ms)
+✔ semantic lint / Store initial type / main.gateway.rx (7.891568ms)
+✔ semantic lint / Store initial type / pkg.yaml (7.824293ms)
+✔ semantic lint / Gateway rejects missing service (4.277611ms)
+✔ semantic lint / Gateway rejects duplicate route (4.381516ms)
+✔ semantic lint / Gateway rejects service type (5.219599ms)
+✔ semantic lint / reachable Store formatting / state.store.rx (4.164888ms)
+✔ semantic lint / reachable Store formatting / read.rx (4.89918ms)
+✔ semantic lint / reachable Store formatting / main.gateway.rx (5.125274ms)
+✔ semantic lint / reachable Store formatting / pkg.yaml (5.377049ms)
+✔ semantic lint / dedicated manifest entry / state.store.rx (4.502311ms)
+✔ semantic lint / dedicated manifest entry / empty.gateway.rx (4.593601ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.922916
+✔ workspace lint / declared scope / explicit semantic false (15.269119ms)
+✔ workspace lint / declared scope / explicit semantic true (7.817867ms)
+✔ workspace lint / independent member errors accumulate (8.169546ms)
+✔ workspace lint / rejects duplicate package name (5.973755ms)
+✔ workspace lint / rejects missing workspace dependency (5.829201ms)
+✔ workspace lint / rejects dependency cycle (5.66766ms)
+✔ workspace lint / rejects missing entry (7.160113ms)
+✔ workspace lint / rejects uninstalled external (6.235232ms)
+✔ workspace lint / rejects organization formatting (7.321176ms)
+✔ workspace lint / root manifest directory symlink (25.202546ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --workspace (6.413421ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --project pkg.yaml (5.360054ms)
+✔ workspace lint / invalid options / lint pkg.yaml --workspace --kind manifest (4.883544ms)
+✔ workspace lint / invalid options / fmt pkg.yaml --workspace (4.98759ms)
+✔ workspace lint / source input rejected (5.006009ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 125.058364
+33 TypeScript declaration checks passed
+NAPI async: 18 protocol, 42 ownership, 11 State, 12 Worker and 8 execution failure cases passed
+64 NAPI module binding cases passed (safe)
+ok 1: snapshot.zx default transfers raw argv, environment and cwd
+ok 2: snapshot.zx default uses current explicit environment
+ok 3: snapshot.zx json transfers raw argv, environment and cwd
+ok 4: snapshot.zx json uses current explicit environment
+ok 5: snapshot.zx discard accepts raw argv and discards result
+ok 6: typed json keeps raw JSON argument in Process argv
+ok 7: typed json rejects absent JSON input
+ok 8: typed json rejects multiple inputs despite Process capability
+ok 9: typed json does not suppress application failure
+ok 10: pure.zx json accepts no business arguments
+ok 11: pure.zx json rejects extra argv without Process capability
+ok 12: cwd.zx json accepts no business arguments
+ok 13: cwd.zx json rejects extra argv without Process capability
+ok 14: stdout json preserves business output separately from void result
+ok 15: stderr json preserves business output separately from void result
+ok 16: typed discard accepts JSON input and discards result
+ok 17: typed discard rejects absent JSON input
+ok 18: typed discard rejects multiple inputs despite Process capability
+ok 19: typed discard does not suppress application failure
+ok 20: pure.zx discard accepts no business arguments
+ok 21: pure.zx discard rejects extra argv without Process capability
+ok 22: cwd.zx discard accepts no business arguments
+ok 23: cwd.zx discard rejects extra argv without Process capability
+ok 24: stdout discard preserves business output separately from void result
+ok 25: stderr discard preserves business output separately from void result
+ok 26: same application path changes json to discard and back without stale policy
+ok 27: build rejects invalid result options --result yaml
+ok 28: build rejects invalid result options --result
+ok 29: build rejects invalid result options --result json --result discard
+ok 30: build rejects invalid result options --mode lib --result json
+ok 31: compile command rejects app result policy
+ok 32: workflow.rx default transfers raw argv, environment and cwd
+ok 33: workflow.rx default uses current explicit environment
+ok 34: workflow.rx json transfers raw argv, environment and cwd
+ok 35: workflow.rx json uses current explicit environment
+ok 36: workflow.rx discard accepts raw argv and discards result

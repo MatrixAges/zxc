@@ -1,0 +1,28 @@
+{
+    "format_version": 1,
+    "packages": [
+        {
+            "name": "parallel-task-consumer",
+            "version": "0.1.0",
+            "source": {
+                "workspace": "."
+            },
+            "dependencies": [
+                {
+                    "name": "parallel-tasks",
+                    "requirement": "workspace:*",
+                    "development": false,
+                    "target": 1
+                }
+            ]
+        },
+        {
+            "name": "parallel-tasks",
+            "version": "0.1.0",
+            "source": {
+                "workspace": "pkgs/parallel-tasks"
+            },
+            "dependencies": []
+        }
+    ]
+}

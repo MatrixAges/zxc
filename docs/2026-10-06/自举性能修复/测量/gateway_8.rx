@@ -1,0 +1,185 @@
+<Gateway name="gateway_test" listen="127.0.0.1:0" max_header_bytes={512} max_body_bytes={128}>
+  <Group prefix="/api/">
+    <Group prefix="/v1/">
+      <Route method="POST" path="/echo" service="basic/echo"/>
+      <Route method="GET" path="/echo" service="basic/echo"/>
+    </Group>
+  </Group>
+  <Route method="POST" path="/scalar" service="basic/scalar"/>
+  <Route method="POST" path="/text" service="basic/text"/>
+  <Route method="GET" path="/void" service="basic/constant"/>
+  <Route method="GET" path="/void/" service="basic/nothing"/>
+  <Route path="/any" service="basic/constant"/>
+  <Route method="GET" path="/literal%2Fitem" service="basic/constant"/>
+  <Route method="GET" path="/native" service="native/context"/>
+  <Route method="POST" path="/error" service="native/environment"/>
+  <Route method="GET" path="/state" service="state/read_all"/>
+  <Route method="POST" path="/advance" service="state/advance"/>
+  <Route method="HEAD" path="/touch" service="state/advance"/>
+  <Route method="POST" path="/other" service="state/advance_other"/>
+  <Route method="POST" path="/twice" service="state/twice"/>
+  <Route method="POST" path="/fail" service="state/fail"/>
+  <Route method="POST" path="/partial" service="state/partial"/>
+  <Route method="POST" path="/replace" service="state/replace"/>
+
+  <Group prefix="/api/">
+    <Group prefix="/v1/">
+      <Route method="POST" path="/echo" service="basic/echo"/>
+      <Route method="GET" path="/echo" service="basic/echo"/>
+    </Group>
+  </Group>
+  <Route method="POST" path="/scalar" service="basic/scalar"/>
+  <Route method="POST" path="/text" service="basic/text"/>
+  <Route method="GET" path="/void" service="basic/constant"/>
+  <Route method="GET" path="/void/" service="basic/nothing"/>
+  <Route path="/any" service="basic/constant"/>
+  <Route method="GET" path="/literal%2Fitem" service="basic/constant"/>
+  <Route method="GET" path="/native" service="native/context"/>
+  <Route method="POST" path="/error" service="native/environment"/>
+  <Route method="GET" path="/state" service="state/read_all"/>
+  <Route method="POST" path="/advance" service="state/advance"/>
+  <Route method="HEAD" path="/touch" service="state/advance"/>
+  <Route method="POST" path="/other" service="state/advance_other"/>
+  <Route method="POST" path="/twice" service="state/twice"/>
+  <Route method="POST" path="/fail" service="state/fail"/>
+  <Route method="POST" path="/partial" service="state/partial"/>
+  <Route method="POST" path="/replace" service="state/replace"/>
+
+  <Group prefix="/api/">
+    <Group prefix="/v1/">
+      <Route method="POST" path="/echo" service="basic/echo"/>
+      <Route method="GET" path="/echo" service="basic/echo"/>
+    </Group>
+  </Group>
+  <Route method="POST" path="/scalar" service="basic/scalar"/>
+  <Route method="POST" path="/text" service="basic/text"/>
+  <Route method="GET" path="/void" service="basic/constant"/>
+  <Route method="GET" path="/void/" service="basic/nothing"/>
+  <Route path="/any" service="basic/constant"/>
+  <Route method="GET" path="/literal%2Fitem" service="basic/constant"/>
+  <Route method="GET" path="/native" service="native/context"/>
+  <Route method="POST" path="/error" service="native/environment"/>
+  <Route method="GET" path="/state" service="state/read_all"/>
+  <Route method="POST" path="/advance" service="state/advance"/>
+  <Route method="HEAD" path="/touch" service="state/advance"/>
+  <Route method="POST" path="/other" service="state/advance_other"/>
+  <Route method="POST" path="/twice" service="state/twice"/>
+  <Route method="POST" path="/fail" service="state/fail"/>
+  <Route method="POST" path="/partial" service="state/partial"/>
+  <Route method="POST" path="/replace" service="state/replace"/>
+
+  <Group prefix="/api/">
+    <Group prefix="/v1/">
+      <Route method="POST" path="/echo" service="basic/echo"/>
+      <Route method="GET" path="/echo" service="basic/echo"/>
+    </Group>
+  </Group>
+  <Route method="POST" path="/scalar" service="basic/scalar"/>
+  <Route method="POST" path="/text" service="basic/text"/>
+  <Route method="GET" path="/void" service="basic/constant"/>
+  <Route method="GET" path="/void/" service="basic/nothing"/>
+  <Route path="/any" service="basic/constant"/>
+  <Route method="GET" path="/literal%2Fitem" service="basic/constant"/>
+  <Route method="GET" path="/native" service="native/context"/>
+  <Route method="POST" path="/error" service="native/environment"/>
+  <Route method="GET" path="/state" service="state/read_all"/>
+  <Route method="POST" path="/advance" service="state/advance"/>
+  <Route method="HEAD" path="/touch" service="state/advance"/>
+  <Route method="POST" path="/other" service="state/advance_other"/>
+  <Route method="POST" path="/twice" service="state/twice"/>
+  <Route method="POST" path="/fail" service="state/fail"/>
+  <Route method="POST" path="/partial" service="state/partial"/>
+  <Route method="POST" path="/replace" service="state/replace"/>
+
+  <Group prefix="/api/">
+    <Group prefix="/v1/">
+      <Route method="POST" path="/echo" service="basic/echo"/>
+      <Route method="GET" path="/echo" service="basic/echo"/>
+    </Group>
+  </Group>
+  <Route method="POST" path="/scalar" service="basic/scalar"/>
+  <Route method="POST" path="/text" service="basic/text"/>
+  <Route method="GET" path="/void" service="basic/constant"/>
+  <Route method="GET" path="/void/" service="basic/nothing"/>
+  <Route path="/any" service="basic/constant"/>
+  <Route method="GET" path="/literal%2Fitem" service="basic/constant"/>
+  <Route method="GET" path="/native" service="native/context"/>
+  <Route method="POST" path="/error" service="native/environment"/>
+  <Route method="GET" path="/state" service="state/read_all"/>
+  <Route method="POST" path="/advance" service="state/advance"/>
+  <Route method="HEAD" path="/touch" service="state/advance"/>
+  <Route method="POST" path="/other" service="state/advance_other"/>
+  <Route method="POST" path="/twice" service="state/twice"/>
+  <Route method="POST" path="/fail" service="state/fail"/>
+  <Route method="POST" path="/partial" service="state/partial"/>
+  <Route method="POST" path="/replace" service="state/replace"/>
+
+  <Group prefix="/api/">
+    <Group prefix="/v1/">
+      <Route method="POST" path="/echo" service="basic/echo"/>
+      <Route method="GET" path="/echo" service="basic/echo"/>
+    </Group>
+  </Group>
+  <Route method="POST" path="/scalar" service="basic/scalar"/>
+  <Route method="POST" path="/text" service="basic/text"/>
+  <Route method="GET" path="/void" service="basic/constant"/>
+  <Route method="GET" path="/void/" service="basic/nothing"/>
+  <Route path="/any" service="basic/constant"/>
+  <Route method="GET" path="/literal%2Fitem" service="basic/constant"/>
+  <Route method="GET" path="/native" service="native/context"/>
+  <Route method="POST" path="/error" service="native/environment"/>
+  <Route method="GET" path="/state" service="state/read_all"/>
+  <Route method="POST" path="/advance" service="state/advance"/>
+  <Route method="HEAD" path="/touch" service="state/advance"/>
+  <Route method="POST" path="/other" service="state/advance_other"/>
+  <Route method="POST" path="/twice" service="state/twice"/>
+  <Route method="POST" path="/fail" service="state/fail"/>
+  <Route method="POST" path="/partial" service="state/partial"/>
+  <Route method="POST" path="/replace" service="state/replace"/>
+
+  <Group prefix="/api/">
+    <Group prefix="/v1/">
+      <Route method="POST" path="/echo" service="basic/echo"/>
+      <Route method="GET" path="/echo" service="basic/echo"/>
+    </Group>
+  </Group>
+  <Route method="POST" path="/scalar" service="basic/scalar"/>
+  <Route method="POST" path="/text" service="basic/text"/>
+  <Route method="GET" path="/void" service="basic/constant"/>
+  <Route method="GET" path="/void/" service="basic/nothing"/>
+  <Route path="/any" service="basic/constant"/>
+  <Route method="GET" path="/literal%2Fitem" service="basic/constant"/>
+  <Route method="GET" path="/native" service="native/context"/>
+  <Route method="POST" path="/error" service="native/environment"/>
+  <Route method="GET" path="/state" service="state/read_all"/>
+  <Route method="POST" path="/advance" service="state/advance"/>
+  <Route method="HEAD" path="/touch" service="state/advance"/>
+  <Route method="POST" path="/other" service="state/advance_other"/>
+  <Route method="POST" path="/twice" service="state/twice"/>
+  <Route method="POST" path="/fail" service="state/fail"/>
+  <Route method="POST" path="/partial" service="state/partial"/>
+  <Route method="POST" path="/replace" service="state/replace"/>
+
+  <Group prefix="/api/">
+    <Group prefix="/v1/">
+      <Route method="POST" path="/echo" service="basic/echo"/>
+      <Route method="GET" path="/echo" service="basic/echo"/>
+    </Group>
+  </Group>
+  <Route method="POST" path="/scalar" service="basic/scalar"/>
+  <Route method="POST" path="/text" service="basic/text"/>
+  <Route method="GET" path="/void" service="basic/constant"/>
+  <Route method="GET" path="/void/" service="basic/nothing"/>
+  <Route path="/any" service="basic/constant"/>
+  <Route method="GET" path="/literal%2Fitem" service="basic/constant"/>
+  <Route method="GET" path="/native" service="native/context"/>
+  <Route method="POST" path="/error" service="native/environment"/>
+  <Route method="GET" path="/state" service="state/read_all"/>
+  <Route method="POST" path="/advance" service="state/advance"/>
+  <Route method="HEAD" path="/touch" service="state/advance"/>
+  <Route method="POST" path="/other" service="state/advance_other"/>
+  <Route method="POST" path="/twice" service="state/twice"/>
+  <Route method="POST" path="/fail" service="state/fail"/>
+  <Route method="POST" path="/partial" service="state/partial"/>
+  <Route method="POST" path="/replace" service="state/replace"/>
+</Gateway>

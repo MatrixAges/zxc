@@ -1,0 +1,82 @@
+✔ ZX and RX reject removed APIs without producing applications or modifying input files (18.246753ms)
+✔ ordinary imported names loop and iterate remain callable and independent void calls still execute (23474.852948ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23496.675823
+✔ loop CLI / precondition evaluation order (7781.767562ms)
+✔ loop CLI / postcondition evaluation order (7864.727416ms)
+✔ loop CLI / index failure precedes right hand side effects (7784.592046ms)
+✔ loop RX / explicit ZX calls preserve initial values (7838.85616ms)
+✔ loop import shadows the built in without changing its calling convention (7798.262784ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39071.784128
+Build Summary: 43/43 steps succeeded; 271/271 tests passed
+test-loop-policy success
++- run test 4 pass (4 total) 5ms MaxRSS:1M
+|  +- compile test safe native success 21s MaxRSS:613M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer safe native cached 44ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run node success 23s
+   +- compile exe zxc safe native success 1m MaxRSS:2G
+      +- WriteFile cached
+      +- compile lib yaml safe native cached 41ms MaxRSS:20M
+      +- compile lib yaml safe native (reused)
+      +- translate-c cached 40ms MaxRSS:20M
+      +- options success
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig fast native cached 46ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+test-iterate success
++- run test 2 pass (2 total) 4ms MaxRSS:1M
+|  +- compile test safe native success 20s MaxRSS:634M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 6 pass (6 total) 2ms MaxRSS:991K
+|  +- compile test safe native success 7s MaxRSS:313M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 1ms MaxRSS:991K
+|  +- compile test safe native success 7s MaxRSS:363M
+|     +- run exe zxc (program.zig) success 2ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:339M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test safe native success 7s MaxRSS:321M
+|     +- run exe zxc (program.zig) success 4ms
+|     |  +- compile exe zxc safe native (+8 more reused dependencies)
+|     +- options cached
++- test-iterate-cli success
+   +- run node success 39s
+      +- compile exe zxc safe native (+8 more reused dependencies)
+test-rx-parallel-inference success
++- run test 103 pass (103 total) 128ms MaxRSS:3M
+   +- compile test safe native success 24s MaxRSS:679M
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+test-rx-inference success
++- run test 138 pass (138 total) 51ms MaxRSS:2M
+   +- compile test safe native success 25s MaxRSS:720M
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+

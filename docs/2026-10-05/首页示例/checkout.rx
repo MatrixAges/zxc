@@ -1,8 +1,8 @@
 <Module>
-  <Call fn="subtotal" in={$in.items} out="ctx.subtotal" />
-  <Call fn="discount" in={{subtotal: ctx.subtotal, coupon: $in.coupon}} out="ctx.discounted" />
-  <Call fn="shipping" in={{amount: ctx.discounted, region: $in.region}} out="ctx.shipping" />
-  <Call fn="total" in={{amount: ctx.discounted, shipping: ctx.shipping}} out="ctx.total" />
+  <Call fn="subtotal" in={$in.items} />
+  <Call fn="discount" in={{subtotal: $ctx.subtotal, coupon: $in.coupon}} />
+  <Call fn="shipping" in={{amount: $ctx.discount, region: $in.region}} />
+  <Call fn="total" in={{amount: $ctx.discount, shipping: $ctx.shipping}} />
 
-  <Return value={ctx.total} />
+  <Return value={$ctx.total} />
 </Module>

@@ -1,11 +1,11 @@
 <Module>
-  <Call service="checkout" in={$in} out="ctx.checkout" />
+  <Call module="checkout" in={$in} />
 
-  <Switch on={ctx.checkout.shipping}>
+  <Switch on={$ctx.checkout.shipping}>
     <Case value={0}>
-      <Return value={{payable: ctx.checkout.payable, free_shipping: true}} />
+      <Return value={{payable: $ctx.checkout.payable, free_shipping: true}} />
     </Case>
   </Switch>
 
-  <Return value={{payable: ctx.checkout.payable, free_shipping: false}} />
+  <Return value={{payable: $ctx.checkout.payable, free_shipping: false}} />
 </Module>

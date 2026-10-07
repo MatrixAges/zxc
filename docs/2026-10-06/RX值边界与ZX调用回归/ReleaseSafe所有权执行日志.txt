@@ -1,0 +1,241 @@
+test-rx-value-migration-runtime
++- run test
+   +- compile test safe native
+      +- run exe compile-rx-module (program.zig) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/f22a5dfea547911a522b33d826f9d191/compile-rx-module owned_pop ./.zig-cache/o/df3b8be195344bcc74dda434b938a484/program.zig ./.zig-cache/o/df3b8be195344bcc74dda434b938a484/abi.zig
+
+test-rx-value-migration-runtime
++- run test
+   +- compile test safe native
+      +- run exe compile-rx-project (program.zig) failure
+main.rx:2:31: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/d2847f443d63e702d0829ec870f22401/compile-rx-project owned_service ./.zig-cache/o/9ea4023e93d19330b48d7cad72d611b4/program.zig ./.zig-cache/o/9ea4023e93d19330b48d7cad72d611b4/abi.zig
+
+test-rx-value-migration-runtime
++- run test
+   +- compile test safe native
+      +- run exe compile-rx-project (program.zig) failure
+main.rx:5:35: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/d2847f443d63e702d0829ec870f22401/compile-rx-project control_owned ./.zig-cache/o/4de305e7e3baf193f40cc073ce9d9833/program.zig ./.zig-cache/o/4de305e7e3baf193f40cc073ce9d9833/abi.zig
+
+test-rx-value-migration-parallel
++- run test
+   +- compile test safe native
+      +- run exe replay-rx-parallel (program.zig)
+         +- run exe consume-rx-parallel (consumer.zxlib)
+            +- run exe compile-rx-parallel (workflow.zxlib) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/e3ee098a88531db6b9f41bbd24c73055/compile-rx-parallel task_capture ./.zig-cache/o/59c43081b26aa9e2f0b6020eb323b88e/workflow.zxlib archive_reverse
+
+test-rx-value-migration-parallel
++- run test
+   +- compile test safe native
+      +- run exe replay-rx-parallel (program.zig)
+         +- run exe consume-rx-parallel (consumer.zxlib)
+            +- run exe compile-rx-parallel (workflow.zxlib) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/e3ee098a88531db6b9f41bbd24c73055/compile-rx-parallel task_capture ./.zig-cache/o/2e339c97e9c701785707e2412f288af6/workflow.zxlib archive_forward
+
+test-rx-value-migration-parallel
++- run test
+   +- compile test safe native
+      +- run exe replay-rx-parallel (program.zig)
+         +- run exe consume-rx-parallel (consumer.zxlib)
+            +- run exe compile-rx-parallel (workflow.zxlib) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/e3ee098a88531db6b9f41bbd24c73055/compile-rx-parallel task_capture ./.zig-cache/o/59c43081b26aa9e2f0b6020eb323b88e/workflow.zxlib archive_reverse
+
+test-rx-value-migration-parallel
++- run test
+   +- compile test safe native
+      +- run exe replay-rx-parallel (program.zig)
+         +- run exe consume-rx-parallel (republished.zxlib)
+            +- run exe consume-rx-parallel (consumer.zxlib)
+               +- run exe compile-rx-parallel (workflow.zxlib) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/e3ee098a88531db6b9f41bbd24c73055/compile-rx-parallel task_capture ./.zig-cache/o/59c43081b26aa9e2f0b6020eb323b88e/workflow.zxlib archive_reverse
+
+test-rx-value-migration-parallel
++- run test
+   +- compile test safe native
+      +- run exe replay-rx-parallel (program.zig)
+         +- run exe compile-rx-parallel (workflow.zxlib) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/e3ee098a88531db6b9f41bbd24c73055/compile-rx-parallel task_capture ./.zig-cache/o/59c43081b26aa9e2f0b6020eb323b88e/workflow.zxlib archive_reverse
+
+test-rx-value-migration-parallel
++- run test
+   +- compile test safe native
+      +- run exe replay-rx-parallel (program.zig)
+         +- run exe consume-rx-parallel (republished.zxlib)
+            +- run exe consume-rx-parallel (consumer.zxlib)
+               +- run exe compile-rx-parallel (workflow.zxlib) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/e3ee098a88531db6b9f41bbd24c73055/compile-rx-parallel task_capture ./.zig-cache/o/2e339c97e9c701785707e2412f288af6/workflow.zxlib archive_forward
+
+test-rx-value-migration-parallel
++- run test
+   +- compile test safe native
+      +- run exe replay-rx-parallel (program.zig)
+         +- run exe consume-rx-parallel (consumer.zxlib)
+            +- run exe compile-rx-parallel (workflow.zxlib) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/e3ee098a88531db6b9f41bbd24c73055/compile-rx-parallel task_capture ./.zig-cache/o/2e339c97e9c701785707e2412f288af6/workflow.zxlib archive_forward
+
+test-rx-value-migration-parallel
++- run test
+   +- compile test safe native
+      +- run exe replay-rx-parallel (program.zig)
+         +- run exe compile-rx-parallel (workflow.zxlib) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/e3ee098a88531db6b9f41bbd24c73055/compile-rx-parallel task_capture ./.zig-cache/o/2e339c97e9c701785707e2412f288af6/workflow.zxlib archive_forward
+
+test-rx-value-migration-parallel
++- run test
+   +- compile test safe native
+      +- run exe compile-rx-parallel (program.zig) failure
+main.rx:2:25: unknown_attribute: Attribute is not allowed on this element
+error: InvalidContract
+error: process exited with code 1
+failed command: ./.zig-cache/o/e3ee098a88531db6b9f41bbd24c73055/compile-rx-parallel task_capture ./.zig-cache/o/7ba1075783051db9e04b099e3bffb408/program.zig ./.zig-cache/o/7ba1075783051db9e04b099e3bffb408/abi.zig
+
+Build Summary: 18/72 steps succeeded (12 failed)
+test-rx-value-migration-parallel transitive failure
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe compile-rx-parallel (program.zig) failure
+|     |  +- compile exe compile-rx-parallel safe native success 24s MaxRSS:714M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     +- run exe generate-lexer (lexer.zig) cached
+|     |        +- compile exe generate-lexer safe native cached 44ms MaxRSS:21M
+|     |           +- WriteFile interfaces/0.d.zx cached
+|     +- options cached
+|     +- run exe compile-rx-parallel (program.zig) (+1 more reused dependencies)
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe replay-rx-parallel (program.zig) transitive failure
+|     |  +- compile exe replay-rx-parallel safe native success 16s MaxRSS:537M
+|     |  |  +- WriteFile interfaces/0.d.zx (reused)
+|     |  |  +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     |  +- run exe compile-rx-parallel (workflow.zxlib) failure
+|     |     +- compile exe compile-rx-parallel safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe replay-rx-parallel (program.zig) (+2 more reused dependencies)
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe replay-rx-parallel (program.zig) transitive failure
+|     |  +- compile exe replay-rx-parallel safe native (+2 more reused dependencies)
+|     |  +- run exe compile-rx-parallel (workflow.zxlib) failure
+|     |     +- compile exe compile-rx-parallel safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe replay-rx-parallel (program.zig) (+2 more reused dependencies)
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe replay-rx-parallel (program.zig) transitive failure
+|     |  +- compile exe replay-rx-parallel safe native (+2 more reused dependencies)
+|     |  +- run exe consume-rx-parallel (consumer.zxlib) transitive failure
+|     |     +- compile exe consume-rx-parallel safe native success 23s MaxRSS:687M
+|     |     |  +- WriteFile interfaces/0.d.zx (reused)
+|     |     |  +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     |     +- run exe compile-rx-parallel (workflow.zxlib) failure
+|     |        +- compile exe compile-rx-parallel safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe replay-rx-parallel (program.zig) (+2 more reused dependencies)
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe replay-rx-parallel (program.zig) transitive failure
+|     |  +- compile exe replay-rx-parallel safe native (+2 more reused dependencies)
+|     |  +- run exe consume-rx-parallel (consumer.zxlib) transitive failure
+|     |     +- compile exe consume-rx-parallel safe native (+2 more reused dependencies)
+|     |     +- run exe compile-rx-parallel (workflow.zxlib) failure
+|     |        +- compile exe compile-rx-parallel safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe replay-rx-parallel (program.zig) (+2 more reused dependencies)
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe replay-rx-parallel (program.zig) transitive failure
+|     |  +- compile exe replay-rx-parallel safe native (+2 more reused dependencies)
+|     |  +- run exe consume-rx-parallel (consumer.zxlib) transitive failure
+|     |     +- compile exe consume-rx-parallel safe native (+2 more reused dependencies)
+|     |     +- run exe compile-rx-parallel (workflow.zxlib) failure
+|     |        +- compile exe compile-rx-parallel safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe replay-rx-parallel (program.zig) (+2 more reused dependencies)
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe replay-rx-parallel (program.zig) transitive failure
+|     |  +- compile exe replay-rx-parallel safe native (+2 more reused dependencies)
+|     |  +- run exe consume-rx-parallel (consumer.zxlib) transitive failure
+|     |     +- compile exe consume-rx-parallel safe native (+2 more reused dependencies)
+|     |     +- run exe compile-rx-parallel (workflow.zxlib) failure
+|     |        +- compile exe compile-rx-parallel safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe replay-rx-parallel (program.zig) (+2 more reused dependencies)
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe replay-rx-parallel (program.zig) transitive failure
+|     |  +- compile exe replay-rx-parallel safe native (+2 more reused dependencies)
+|     |  +- run exe consume-rx-parallel (republished.zxlib) transitive failure
+|     |     +- compile exe consume-rx-parallel safe native (+2 more reused dependencies)
+|     |     +- run exe consume-rx-parallel (consumer.zxlib) transitive failure
+|     |        +- compile exe consume-rx-parallel safe native (+2 more reused dependencies)
+|     |        +- run exe compile-rx-parallel (workflow.zxlib) failure
+|     |           +- compile exe compile-rx-parallel safe native (+2 more reused dependencies)
+|     +- options cached
+|     +- run exe replay-rx-parallel (program.zig) (+2 more reused dependencies)
++- run test transitive failure
+   +- compile test safe native transitive failure
+      +- run exe replay-rx-parallel (program.zig) transitive failure
+      |  +- compile exe replay-rx-parallel safe native (+2 more reused dependencies)
+      |  +- run exe consume-rx-parallel (republished.zxlib) transitive failure
+      |     +- compile exe consume-rx-parallel safe native (+2 more reused dependencies)
+      |     +- run exe consume-rx-parallel (consumer.zxlib) transitive failure
+      |        +- compile exe consume-rx-parallel safe native (+2 more reused dependencies)
+      |        +- run exe compile-rx-parallel (workflow.zxlib) failure
+      |           +- compile exe compile-rx-parallel safe native (+2 more reused dependencies)
+      +- options cached
+      +- run exe replay-rx-parallel (program.zig) (+2 more reused dependencies)
+test-rx-value-migration-runtime transitive failure
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe compile-rx-module (program.zig) failure
+|     |  +- compile exe compile-rx-module safe native success 24s MaxRSS:700M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-module (program.zig) (+1 more reused dependencies)
++- run test transitive failure
+|  +- compile test safe native transitive failure
+|     +- run exe compile-rx-project (program.zig) failure
+|     |  +- compile exe compile-rx-project safe native success 24s MaxRSS:693M
+|     |     +- WriteFile interfaces/0.d.zx (reused)
+|     |     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe compile-rx-project (program.zig) (+1 more reused dependencies)
++- run test transitive failure
+   +- compile test safe native transitive failure
+      +- run exe compile-rx-project (program.zig) failure
+      |  +- compile exe compile-rx-project safe native (+2 more reused dependencies)
+      +- run exe compile-rx-project (program.zig) (+1 more reused dependencies)
+

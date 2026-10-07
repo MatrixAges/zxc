@@ -1,0 +1,104 @@
+✔ loop CLI / precondition evaluation order (1596.444869ms)
+✔ loop CLI / postcondition evaluation order (1580.598673ms)
+✔ loop CLI / index failure precedes right hand side effects (1755.584906ms)
+✔ loop RX / explicit ZX calls preserve initial values (1598.960835ms)
+✔ loop import shadows the built in without changing its calling convention (1541.342587ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8078.352225
+test-rx-inference
++- run test
+   +- compile test debug native 4 errors
+tests/rx/inference/ownership/boundaries_test.zig:16:62: error: embed of file outside package path: '../../support/collections/pop_values.zx'
+            .{ .path = "pop_values.zx", .source = @embedFile("../../support/collections/pop_values.zx") },
+                                                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+referenced by:
+    test.RX consumes two distinct owned results independently: tests/rx/inference/ownership/boundaries_test.zig:34:14
+    comptime: tests/rx/inference/ownership/root.zig:3:17
+    1 reference(s) hidden; use '-freference-trace=3' to see all references
+tests/rx/inference/ownership/comparison_test.zig:28:139: error: embed of file outside package path: '../../support/collections/pop_values.zx'
+        .sources = &.{ .{ .path = "make.zx", .source = @embedFile("fixtures/make.zx") }, .{ .path = "pop_values.zx", .source = @embedFile("../../support/collections/pop_values.zx") } },
+                                                                                                                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/rx/inference/ownership/comparison_test.zig:47:143: error: embed of file outside package path: '../../support/collections/pop_values.zx'
+        .sources = &.{ .{ .path = "make.zx", .source = @embedFile("fixtures/borrowed.zx") }, .{ .path = "pop_values.zx", .source = @embedFile("../../support/collections/pop_values.zx") } },
+                                                                                                                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/rx/inference/project/ownership_test.zig:35:62: error: embed of file outside package path: '../../support/collections/pop_values.zx'
+            .{ .path = "pop_values.zx", .source = @embedFile("../../support/collections/pop_values.zx") },
+                                                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+error: 4 compilation errors
+failed command: /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep rx --dep rx_analysis --dep compiler --dep allocation_testing -Mroot=tests/rx/inference/root.zig -Odebug --dep dsl --dep frontend -Mrx=../compiler/src/rx/root.zig -Odebug --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces -Mfrontend=../compiler/src/zx/frontend.zig -Odebug -Mzx=../core/src/root.zig -Odebug --dep dsl --dep zx -Mlint=../lint/src/root.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Odebug --dep zx --dep generated -Mlexer=../compiler/src/zx/frontend/lex.zig -Mstandard_interfaces=.zig-cache/o/7535f465621b95d968beec5c562886c5/catalog.zig -Odebug -Mgenerated=.zig-cache/o/a6fb7425b8a360d948cd8ad05074bd4f/lexer.zig --cache-dir .zig-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name test --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+
+✔ ZX and RX reject removed APIs without producing applications or modifying input files (26.764922ms)
+✔ ordinary imported names loop and iterate remain callable and independent void calls still execute (4798.586816ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4828.700835
+Build Summary: 40/43 steps succeeded (1 failed); 133/133 tests passed
+test-loop-policy success
++- run test 4 pass (4 total) 14ms MaxRSS:3M
+|  +- compile test debug native success 3s MaxRSS:544M
+|     +- WriteFile interfaces/0.d.zx cached
+|     +- run exe generate-lexer (lexer.zig) cached
+|        +- compile exe generate-lexer debug native cached 42ms MaxRSS:21M
+|           +- WriteFile interfaces/0.d.zx cached
++- run node success 4s
+   +- compile exe zxc debug native cached 47ms MaxRSS:21M
+      +- WriteFile cached
+      +- compile lib yaml debug native cached 42ms MaxRSS:20M
+      +- compile lib yaml debug native (reused)
+      +- translate-c cached 51ms MaxRSS:20M
+      +- options cached
+      +- run exe bundle-zig (bundle) cached
+      |  +- compile exe bundle-zig fast native cached 41ms MaxRSS:21M
+      |  +- WriteFile bundle_manifest.json cached
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+test-iterate success
++- run test 2 pass (2 total) 15ms MaxRSS:3M
+|  +- compile test debug native success 3s MaxRSS:540M
+|     +- WriteFile interfaces/0.d.zx (reused)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:255M
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:263M
+|     +- run exe zxc (program.zig) success 6ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:330M
+|     +- run exe zxc (program.zig) success 7ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options cached
++- run test 6 pass (6 total) 2ms MaxRSS:1M
+|  +- compile test debug native success 1s MaxRSS:334M
+|     +- run exe zxc (program.zig) success 8ms
+|     |  +- compile exe zxc debug native (+8 more reused dependencies)
+|     +- options cached
++- test-iterate-cli success
+   +- run node success 8s
+      +- compile exe zxc debug native (+8 more reused dependencies)
+test-rx-parallel-inference success
++- run test 103 pass (103 total) 667ms MaxRSS:4M
+   +- compile test debug native success 4s MaxRSS:628M
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+test-rx-inference transitive failure
++- run test transitive failure
+   +- compile test debug native 4 errors
+      +- WriteFile interfaces/0.d.zx (reused)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+
