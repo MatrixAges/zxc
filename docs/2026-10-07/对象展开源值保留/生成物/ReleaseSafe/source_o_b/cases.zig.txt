@@ -1,0 +1,5 @@
+const check = @import("support").check;
+
+test "language/types/object_construction/source_preservation/o.b" {
+    try check(@import("program"), {}, .{ .value = 3 });
+}

@@ -1,0 +1,17 @@
+const check = @import("support").check;
+
+test "language/expressions/object_construction/merge/obj.a" {
+    try check(@import("program"), 0, .{ .value = 2 });
+}
+
+test "language/expressions/object_construction/merge/obj.b" {
+    try check(@import("program"), 1, .{ .value = 3 });
+}
+
+test "language/expressions/object_construction/merge/obj.c" {
+    try check(@import("program"), 2, .{ .value = 4 });
+}
+
+test "language/expressions/object_construction/merge/obj.d" {
+    try check(@import("program"), 3, .{ .value = 5 });
+}

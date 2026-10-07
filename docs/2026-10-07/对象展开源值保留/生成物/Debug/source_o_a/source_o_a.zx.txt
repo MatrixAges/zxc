@@ -1,13 +1,10 @@
-export type Input = u64
+export type Input = void
 
 export type Output = u64
 
 export default function (in: Input): Output {
   const o = { a: 2, b: 3 }
-
   const array = [{a: 1, b: 7, ...o}]
-  const obj = array[0]
-  const observed: u64[] = [obj.a, obj.b, o.a, o.b]
 
-  return observed[in]
+  return o.a
 }

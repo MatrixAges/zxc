@@ -1,0 +1,84 @@
+{
+    "runtime_before": 6,
+    "runtime_after": 8,
+    "retained_runtime_rows": [
+        {
+            "id": "language/expressions/object_construction/merge/obj.a",
+            "input": 0,
+            "expected": {
+                "value": 2
+            }
+        },
+        {
+            "id": "language/expressions/object_construction/merge/obj.b",
+            "input": 1,
+            "expected": {
+                "value": 3
+            }
+        },
+        {
+            "id": "language/expressions/object_construction/merge/obj.c",
+            "input": 2,
+            "expected": {
+                "value": 4
+            }
+        },
+        {
+            "id": "language/expressions/object_construction/merge/obj.d",
+            "input": 3,
+            "expected": {
+                "value": 5
+            }
+        },
+        {
+            "id": "language/expressions/object_construction/override/obj.a",
+            "input": 0,
+            "expected": {
+                "value": 2
+            }
+        },
+        {
+            "id": "language/expressions/object_construction/override/obj.b",
+            "input": 1,
+            "expected": {
+                "value": 3
+            }
+        }
+    ],
+    "added_runtime_rows": [
+        {
+            "id": "language/expressions/object_construction/override/o.a",
+            "input": 2,
+            "expected": {
+                "value": 2
+            }
+        },
+        {
+            "id": "language/expressions/object_construction/override/o.b",
+            "input": 3,
+            "expected": {
+                "value": 3
+            }
+        }
+    ],
+    "retired_frontend_ids": [
+        "language/types/object_construction/consumed/o.a",
+        "language/types/object_construction/consumed/o.b"
+    ],
+    "frontend_rows": [
+        {
+            "id": "language/types/object_construction/source_preservation/o.a",
+            "source": "export type Input = void\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  const o = { a: 2, b: 3 }\n  const array = [{a: 1, b: 7, ...o}]\n\n  return o.a\n}\n",
+            "phase": "analyze",
+            "diagnostic": null
+        },
+        {
+            "id": "language/types/object_construction/source_preservation/o.b",
+            "source": "export type Input = void\n\nexport type Output = u64\n\nexport default function (in: Input): Output {\n  const o = { a: 2, b: 3 }\n  const array = [{a: 1, b: 7, ...o}]\n\n  return o.b\n}\n",
+            "phase": "analyze",
+            "diagnostic": null
+        }
+    ],
+    "net_catalog_delta": 2,
+    "new_upstream_reviews": 0
+}
