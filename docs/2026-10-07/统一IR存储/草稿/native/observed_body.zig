@@ -35,6 +35,16 @@ pub fn compare(arena: *std.heap.ArenaAllocator, program: ir.Program, control: co
 
     if (try generated.execute(arena, &input) != &input) return error.BodyIdentityChanged;
 
+    const checker = @import("body_checker");
+    const CheckInput = @typeInfo(checker.Input).pointer.child;
+    const CheckBody = @typeInfo(@FieldType(CheckInput, "body")).pointer.child;
+    const check_expressions = borrow.columns(@typeInfo(@FieldType(CheckBody, "expressions")).pointer.child, table);
+    const check_control = borrow.columns(@typeInfo(@FieldType(CheckBody, "control")).pointer.child, control);
+    const check_symbols = borrow.columns(@typeInfo(@FieldType(CheckBody, "symbols")).pointer.child, symbol_input);
+    const check_body: CheckBody = .{ .symbols = &check_symbols, .expressions = &check_expressions, .control = &check_control, .root = root };
+
+    if (!try checker.execute(arena, &.{ .body = &check_body, .max_offset = std.math.maxInt(usize) })) return error.BodyStructureRejected;
+
     for (program.expressions, 0..) |source, index| {
         const restored = try @import("expressions/observed_decode.zig").expression(allocator, table, index);
         const before = try std.json.Stringify.valueAlloc(allocator, source, .{});
@@ -47,7 +57,7 @@ pub fn compare(arena: *std.heap.ArenaAllocator, program: ir.Program, control: co
 
     for (table.kinds) |kind| kinds[@backingInt(kind)] += 1;
 
-    const encoded = try std.json.Stringify.valueAlloc(allocator, .{ .file = program.file_name, .expressions = table.kinds.len, .symbols = program.symbols.len, .kinds = kinds, .expression_columns_borrowed = true, .expression_roundtrip_equal = true, .body_identity_retained = true }, .{});
+    const encoded = try std.json.Stringify.valueAlloc(allocator, .{ .file = program.file_name, .expressions = table.kinds.len, .symbols = program.symbols.len, .kinds = kinds, .expression_columns_borrowed = true, .expression_roundtrip_equal = true, .body_identity_retained = true, .body_structure_valid = true, .body_local_references_valid = true, .allocation_free_reader = true }, .{});
 
     std.debug.print("canonical-body {s}\n", .{encoded});
 }

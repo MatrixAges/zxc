@@ -1,0 +1,14 @@
+<Module>
+    <Call fn="body/validate" in={$in} />
+
+    <Switch on={$ctx.validate}>
+        <Case value={true}>
+            <Call fn="body/references" in={$in.body} />
+
+            <Return value={$ctx.references} />
+        </Case>
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

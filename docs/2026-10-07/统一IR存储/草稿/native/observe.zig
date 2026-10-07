@@ -33,14 +33,14 @@ fn compare(program: ir.Program) !void {
     const output = try generated.execute(&arena, &input);
 
     if (!output.valid or !std.mem.eql(bool, output.returns, expected.items)) return error.ReturnsMismatch;
-
+    if (!@import("observed_control.zig").equal(program.body, @import("control_read.zig").block(&table, root))) return error.ControlContentChanged;
     try @import("observed_body.zig").compare(&arena, program, table, root);
 
     var kinds = std.mem.zeroes([@typeInfo(model.Kind).@"enum".field_names.len]usize);
 
     for (table.statement_kinds) |kind| kinds[@backingInt(kind)] += 1;
 
-    const encoded = try std.json.Stringify.valueAlloc(allocator, .{ .file = program.file_name, .blocks = expected.items.len, .statements = table.statement_kinds.len, .root = root, .kinds = kinds, .columns_borrowed = true, .all_block_results_equal = true }, .{});
+    const encoded = try std.json.Stringify.valueAlloc(allocator, .{ .file = program.file_name, .blocks = expected.items.len, .statements = table.statement_kinds.len, .root = root, .kinds = kinds, .columns_borrowed = true, .all_block_results_equal = true, .control_read_equal = true }, .{});
 
     std.debug.print("canonical-control {s}\n", .{encoded});
 }

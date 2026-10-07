@@ -1,0 +1,51 @@
+import segments from "../../control/segments"
+
+import type { Expressions } from "../model"
+
+export type Input = Expressions
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!segments({ first: in.sequence_first, count: in.sequence_count, length: in.sequence_items.length })) {
+        return false
+    }
+
+    if (!segments({ first: in.task_capture_first, count: in.task_capture_count, length: in.task_captures.length })) {
+        return false
+    }
+
+    if (!segments({ first: in.parallel_first, count: in.parallel_count, length: in.parallel_tasks.length })) {
+        return false
+    }
+
+    if (!segments({ first: in.collection_first, count: in.collection_count, length: in.collection_arguments.length })) {
+        return false
+    }
+
+    if (!segments({ first: in.transform_first, count: in.transform_count, length: in.transform_parameters.length })) {
+        return false
+    }
+
+    if (!segments({ first: in.scope_first, count: in.scope_count, length: in.scope_symbols.length })) {
+        return false
+    }
+
+    if (!segments({ first: in.call_store_first, count: in.call_store_count, length: in.call_stores.length })) {
+        return false
+    }
+
+    if (!segments({ first: in.match_first, count: in.match_count, length: in.match_conditions.length })) {
+        return false
+    }
+
+    if (!segments({ first: in.object_first, count: in.object_count, length: in.object_field_indices.length })) {
+        return false
+    }
+
+    if (!segments({ first: in.object_evaluation_first, count: in.object_evaluation_count, length: in.object_evaluation_values.length })) {
+        return false
+    }
+
+    return true
+}

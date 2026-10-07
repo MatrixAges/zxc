@@ -1,0 +1,27 @@
+import integers from "zig:integers"
+
+import control from "../control/validate"
+import expressions from "../expressions/validation/validate"
+import symbols from "./symbols"
+
+import type { Body } from "../body_model"
+
+export type Input = { body: Body, max_offset: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!symbols({ symbols: in.body.symbols, max_offset: in.max_offset })) {
+        return false
+    }
+
+    if (!expressions({ table: in.body.expressions, max_offset: in.max_offset })) {
+        return false
+    }
+
+    if (!control(in.body.control)) {
+        return false
+    }
+
+    return integers.widen(in.body.root) < in.body.control.block_first.length
+}

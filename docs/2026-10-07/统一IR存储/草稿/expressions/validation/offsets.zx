@@ -1,0 +1,15 @@
+export type Input = { starts: u64[], ends: u64[], max_offset: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ input: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.input.starts.length,
+        next: current => {
+            current.valid = current.input.starts[current.index] <= current.input.max_offset && current.input.ends[current.index] <= current.input.max_offset
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}
