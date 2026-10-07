@@ -1,0 +1,13 @@
+const check = @import("support").check;
+
+test "language/expressions/object_fields/number_shorthand/0" {
+    try check(@import("program"), 1, .{ .value = 1 });
+}
+
+test "language/expressions/object_fields/number_shorthand/1" {
+    try check(@import("program"), 0, .{ .value = 0 });
+}
+
+test "language/expressions/object_fields/number_shorthand/2" {
+    try check(@import("program"), 255, .{ .value = 255 });
+}

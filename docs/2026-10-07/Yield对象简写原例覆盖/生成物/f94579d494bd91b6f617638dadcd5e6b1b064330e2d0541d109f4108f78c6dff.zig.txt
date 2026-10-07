@@ -1,0 +1,17 @@
+const check = @import("support").check;
+
+test "language/expressions/object_construction/copy_prefix/0" {
+    try check(@import("program"), 0, .{ .value = 1 });
+}
+
+test "language/expressions/object_construction/copy_prefix/1" {
+    try check(@import("program"), 1, .{ .value = 2 });
+}
+
+test "language/expressions/object_construction/copy_prefix/2" {
+    try check(@import("program"), 2, .{ .value = 3 });
+}
+
+test "language/expressions/object_construction/copy_prefix/3" {
+    try check(@import("program"), 3, .{ .value = 4 });
+}

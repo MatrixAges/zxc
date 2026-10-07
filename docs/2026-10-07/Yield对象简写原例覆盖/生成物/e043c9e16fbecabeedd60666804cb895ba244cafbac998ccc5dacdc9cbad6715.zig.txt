@@ -1,0 +1,9 @@
+const check = @import("support").check;
+
+test "language/expressions/object_fields/bool_explicit/0" {
+    try check(@import("program"), true, .{ .value = true });
+}
+
+test "language/expressions/object_fields/bool_explicit/1" {
+    try check(@import("program"), false, .{ .value = false });
+}
