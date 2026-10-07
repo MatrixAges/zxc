@@ -1,0 +1,11 @@
+import type { Functions } from "./model"
+
+export type Input = { functions: Functions }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const count = in.functions.files.length
+
+    return count <= 4294967295 && in.functions.input_types.length == count && in.functions.output_types.length == count && in.functions.ownership.length == count && in.functions.roots.length == count && in.functions.symbols.length == count && in.functions.expressions.length == count && in.functions.control.length == count && in.functions.stores.length == count
+}

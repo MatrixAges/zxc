@@ -12,15 +12,15 @@ const Stores = std.meta.Child(@FieldType(Function, "stores"));
 
 pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program) !generated.Output {
     const types = ir.TypeTable.borrow(Types, program.types);
-    const symbols = borrow.columns(Symbols, program.symbols);
-    const expressions = borrow.columns(Expressions, program.expressions);
-    const control = borrow.columns(Control, program.body.control.*);
+    const symbols = borrow.pointer(*const Symbols, &program.symbols);
+    const expressions = borrow.pointer(*const Expressions, &program.expressions);
+    const control = borrow.pointer(*const Control, program.body.control);
 
     const input: Input = .{
         .types = &types,
-        .symbols = &symbols,
-        .expressions = &expressions,
-        .control = &control,
+        .symbols = symbols,
+        .expressions = expressions,
+        .control = control,
         .body = if (program.body.root) |root| @backingInt(root) else null,
         .functions = try functions(arena.allocator(), program.functions),
         .type_only = program.type_only,
@@ -32,18 +32,15 @@ pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program) !generated.
 fn functions(allocator: std.mem.Allocator, source: []const ir.Function) std.mem.Allocator.Error![]const *const Function {
     const values = try allocator.alloc(Function, source.len);
     const pointers = try allocator.alloc(*const Function, source.len);
-    const slots = try allocator.alloc(Stores, source.len);
 
-    for (source, values, pointers, slots) |item, *value, *pointer, *stores| {
-        stores.* = borrow.columns(Stores, item.stores);
-
+    for (source, values, pointers) |*item, *value, *pointer| {
         value.* = .{
             .output_ownership = switch (item.output_ownership) {
                 .copy => .Copy,
                 .borrowed => .Borrowed,
                 .owned => .Owned,
             },
-            .stores = stores,
+            .stores = borrow.pointer(*const Stores, &item.stores),
         };
 
         pointer.* = value;

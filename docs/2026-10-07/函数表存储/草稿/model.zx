@@ -1,0 +1,7 @@
+import type { Control } from "./control"
+import type { Expressions } from "./expressions"
+import type { Ownership } from "./kinds"
+import type { Stores } from "./stores"
+import type { Symbols } from "./symbols"
+
+export type Functions = { files: string[], input_types: u32[], output_types: u32[], ownership: Ownership[], roots: u32?[], symbols: Symbols[], expressions: Expressions[], control: Control[], stores: Stores[] }

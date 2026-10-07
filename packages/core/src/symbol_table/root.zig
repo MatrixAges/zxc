@@ -4,10 +4,10 @@ const Self = @This();
 pub const Ownership = enum { Copy, Borrowed, Owned };
 
 names: []const []const u8 = &.{},
-types: []const u32 = &.{},
-span_start: []const u64 = &.{},
-span_end: []const u64 = &.{},
 ownership: []const Ownership = &.{},
+span_end: []const u64 = &.{},
+span_start: []const u64 = &.{},
+types: []const u32 = &.{},
 pub fn count(self: Self) usize {
     return self.names.len;
 }

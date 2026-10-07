@@ -1,0 +1,28 @@
+{
+    "阶段": "稳定IR描述符直接借用与函数表ABI前置验证",
+    "基础提交": "6b2ba40602e689d49bfa64da4399d6c69c229d85",
+    "正式函数表迁移完成": false,
+    "完整自举完成": false,
+    "验证": {
+        "根构建": "35/35 steps",
+        "专项": "123/123 steps; 606/606 tests",
+        "前端": "23/23 steps; 313/313 tests",
+        "草稿": "ReleaseSafe对象实例化；未执行运行时验证"
+    },
+    "正式源码_sha256": {
+        "packages/compiler/src/zx/ir/body_structure.zig": "48ac010c055c83b4f662ee7b8cbf0a74f7582fd026de2b7870f589af26c46ad2",
+        "packages/compiler/src/zx/ir/canonical/borrow.zig": "0f611f6aa329a31959347c5f9ae0e8cadceaa98362d28b04dd0fcef367810d23",
+        "packages/compiler/src/zx/ownership/input.zig": "ea09b30100af76395357ec646cd1f572805b22f94983e8fc236c0f0b72a22fbf",
+        "packages/core/src/control_table/model.zig": "c115cbf6e7c0ca2dd99bbff4dd8a510aa4ca889f0e5e62f144afca4cc3f9a0e5",
+        "packages/core/src/expression_table/model.zig": "7e46615202dff240ba46793ded722f14b6fbc0754984e13c253da306b9532c2b",
+        "packages/core/src/store_table/root.zig": "ebbee9d633de9e491df470f4844144297e788696db5d8eb27b73f584a93ebf03",
+        "packages/core/src/symbol_table/root.zig": "17207979982b357cad487e3624f025761c0b2bb893756e9029ca44fe5be1e01c"
+    },
+    "生成校验器_sha256": "aeb7fc806c5a5c672000f7dc60b5cfcab8410ca13770252905f3c6682c9e4c31",
+    "边界": [
+        "跨ABI按字段偏移及递归类型表示编译期检查",
+        "描述符指针只在同步调用及原owner生命周期内借用",
+        "函数摘要两数组仍待消除",
+        "合约与External仍为原生状态列"
+    ]
+}

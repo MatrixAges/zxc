@@ -2,10 +2,10 @@ const std = @import("std");
 const ir = @import("../ir.zig");
 const Self = @This();
 
-paths: []const []const u8 = &.{},
-types: []const u32 = &.{},
 handles: []const []const u8 = &.{},
+paths: []const []const u8 = &.{},
 readable: []const bool = &.{},
+types: []const u32 = &.{},
 writable: []const bool = &.{},
 pub fn count(self: Self) usize {
     return self.paths.len;
