@@ -1,0 +1,29 @@
+1/8 cases.test.built_ins/list/callbacks/every/rows/empty...OK
+2/8 cases.test.built_ins/list/callbacks/every/rows/true...OK
+3/8 cases.test.built_ins/list/callbacks/every/rows/false...OK
+4/8 cases.test.built_ins/list/callbacks/every/rows/first_failure...OK
+5/8 cases.test.built_ins/list/callbacks/every/rows/later_failure...OK
+6/8 cases.test.built_ins/list/callbacks/every/rows/stopped_before_empty...FAIL (IndexOutOfBounds)
+/Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/test/../../../../../../../../tmp/zxc-every-observer-eager-rows.zig:122:29: 0x103cccd0a in execute (every-observers-rows)
+                            return error.IndexOutOfBounds;
+                            ^
+/Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/test/tests/support/collections.zig:16:66: 0x103cc518c in check__func_1003 (every-observers-rows)
+        .value => |value| try std.testing.expectEqualDeep(value, try actual),
+                                                                 ^
+/tmp/zxc-every-observer-debug-ca30f620/o/20a00d9a2507132dd12bce5e22478df0/cases.zig:24:5: 0x103cd0531 in test.built_ins/list/callbacks/every/rows/stopped_before_empty (every-observers-rows)
+    try check(@import("program"), &.{.items = &.{&.{9}, &.{}}, .threshold = 10}, .{ .value = &.{.result = false, .calls = 1, .visited = &.{9}, .threshold = 10} });
+    ^
+7/8 cases.test.built_ins/list/callbacks/every/rows/stopped_after_true...FAIL (IndexOutOfBounds)
+/Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/test/../../../../../../../../tmp/zxc-every-observer-eager-rows.zig:122:29: 0x103cccd0a in execute (every-observers-rows)
+                            return error.IndexOutOfBounds;
+                            ^
+/Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/test/tests/support/collections.zig:16:66: 0x103cc518c in check__func_1003 (every-observers-rows)
+        .value => |value| try std.testing.expectEqualDeep(value, try actual),
+                                                                 ^
+/tmp/zxc-every-observer-debug-ca30f620/o/20a00d9a2507132dd12bce5e22478df0/cases.zig:28:5: 0x103cd04d1 in test.built_ins/list/callbacks/every/rows/stopped_after_true (every-observers-rows)
+    try check(@import("program"), &.{.items = &.{&.{11}, &.{9}, &.{}}, .threshold = 10}, .{ .value = &.{.result = false, .calls = 2, .visited = &.{11, 9}, .threshold = 10} });
+    ^
+8/8 cases.test.built_ins/list/callbacks/every/rows/all_true...OK
+6 passed; 0 skipped; 2 failed.
+error: the following test command failed with exit code 1:
+/tmp/zxc-every-observer-debug-ca30f620/o/05164578557537d6dca2c6fc65102d14/every-observers-rows --seed=0x3aca452e

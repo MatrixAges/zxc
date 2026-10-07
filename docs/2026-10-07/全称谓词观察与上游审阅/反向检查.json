@@ -1,0 +1,36 @@
+{
+    "argv": [
+        "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+        "test",
+        "-Odebug",
+        "--dep",
+        "support",
+        "--dep",
+        "program",
+        "-Mroot=/tmp/zxc-every-observer-debug-ca30f620/o/20a00d9a2507132dd12bce5e22478df0/cases.zig",
+        "-Odebug",
+        "-Msupport=tests/support/collections.zig",
+        "-Odebug",
+        "-Mprogram=/tmp/zxc-every-observer-eager-rows.zig",
+        "--cache-dir",
+        "/tmp/zxc-every-observer-debug-ca30f620",
+        "--global-cache-dir",
+        "/Users/xiewendao/.cache/zig",
+        "--build-root",
+        ".",
+        "--name",
+        "every-observers-rows",
+        "--zig-lib-dir",
+        "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/"
+    ],
+    "exit_code": 1,
+    "failed_names": [
+        "built_ins/list/callbacks/every/rows/stopped_before_empty",
+        "built_ins/list/callbacks/every/rows/stopped_after_true"
+    ],
+    "fault": "Evaluate every row even after the predicate result becomes false.",
+    "fault_source": "生成产物/ca30f620/Debug/rows/停止标记故障控制.zig.txt",
+    "fault_sha256": "dd0499a95c1d71d0b453c3054865cd936a679ae724463a95f69822267c313760",
+    "output_path": "生成产物/ca30f620/Debug/rows/停止标记故障控制输出.txt",
+    "output_sha256": "90c45cfaac982b97c2be39905b9b0b58be93685baedb5e0cd2d68dab5dda4a32"
+}

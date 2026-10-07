@@ -1,0 +1,11 @@
+export type Input = { items: i64[] }
+
+export type Output = { result: bool, calls: u64, visited: i64[] }
+
+export default function (in: Input): Output {
+    const initial: Output = { result: true, calls: 0, visited: [] }
+
+    return in.items.reduce((state, item) => state.result ? {
+        result: true, calls: state.calls + 1, visited: state.visited.push(item)[0]
+    } : state, initial)
+}
