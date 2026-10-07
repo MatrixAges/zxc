@@ -1,0 +1,16 @@
+$ packages/test/node_modules/.bin/tsc --noEmit -p packages/test/tsconfig.json
+EXIT=0
+
+$ zig fmt --check packages/test/build/function_updates.zig packages/test/tests/collections/function_updates/safety/process.zig
+EXIT=0
+
+$ node_modules/.bin/prettier --check packages/test/tests/collections/function_updates/safety/run_process.ts packages/test/tests/collections/function_updates/safety/run_test.ts packages/test/tests/collections/function_updates/safety/expected.ts packages/test/tests/collections/function_updates/safety/cases.ts
+Checking formatting...
+All matched files use Prettier code style!
+EXIT=0
+
+$ git diff --check
+EXIT=0
+
+$ node scripts/format.mjs --check <two canonical Zig files>
+EXIT=0

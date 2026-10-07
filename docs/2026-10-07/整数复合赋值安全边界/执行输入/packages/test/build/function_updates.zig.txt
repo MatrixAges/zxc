@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step {
     const step = b.step("test-function-updates", "Execute function element updates loops stale captures and duplicate aliases");
+
     const safety_step = b.step("test-function-update-safety", "Check compound integer arithmetic and host effects in isolated processes");
 
     step.dependOn(safety_step);
@@ -62,7 +63,6 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
                     _ = safety.addOutputFileArg(b.fmt("compound-safety-{s}-{s}", .{ mode, route }));
                     safety.has_side_effects = true;
-
                     safety_step.dependOn(&safety.step);
                 }
 
