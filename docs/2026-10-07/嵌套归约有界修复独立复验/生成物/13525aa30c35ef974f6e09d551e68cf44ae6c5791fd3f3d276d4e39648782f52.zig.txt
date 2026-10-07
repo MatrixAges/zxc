@@ -1,0 +1,220 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Child = *const (zx_abi).zx_type_11;
+
+pub const State = *const (zx_abi).zx_type_13;
+
+pub const Input = *const (zx_abi).zx_type_15;
+
+pub const Output = *const (zx_abi).zx_type_13;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .object, .fields = .{ .value = zx_shape_5, }, };
+
+const zx_shape_12 = .{ .kind = .list, .child = zx_shape_10, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .child = zx_shape_11, .count = zx_shape_5, .labels = zx_shape_12, .last = zx_shape_5, .text = zx_shape_10, .total = zx_shape_5, }, };
+
+const zx_shape_14 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .seed = zx_shape_13, .steps = zx_shape_14, }, };
+
+pub const input_shape = zx_shape_15;
+
+pub const output_shape = zx_shape_13;
+
+fn function_0(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_13) error{ OutOfMemory, }!*const (zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    return block_6: {
+        const operand_1 = in;
+        const operand_2 = ((in).count + @as(u64, 1));
+        const operand_3 = (in).count;
+
+        break :block_6 block_5: {
+            const operand_4 = (try (allocator).create((zx_abi).zx_type_13));
+
+            (operand_4).* = @as((zx_abi).zx_type_13, (zx_abi).zx_type_13{ .child = (operand_1).child, .count = operand_2, .labels = (operand_1).labels, .last = operand_3, .text = (operand_1).text, .total = (operand_1).total, });
+
+            break :block_5 @as(*const (zx_abi).zx_type_13, operand_4);
+        };
+    };
+}
+
+fn function_0_value(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2) error{ OutOfMemory, }!(zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return block_10: {
+        const operand_7 = in;
+        const operand_8 = ((in).count + @as(u64, 1));
+        const operand_9 = (in).count;
+
+        break :block_10 @as((zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2, (zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2{ .child = (operand_7).child, .count = operand_8, .labels = (operand_7).labels, .last = operand_9, .text = (operand_7).text, .total = (operand_7).total, });
+    };
+}
+
+fn function_0_buffered(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2, buffers: struct {
+    lane_0: ?struct {
+        buffer: *(std).ArrayList([]const u8),
+        started: *bool,
+    },
+}) error{ OutOfMemory, }!(zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    _ = buffers;
+
+    return block_14: {
+        const operand_11 = in;
+        const operand_12 = ((in).count + @as(u64, 1));
+        const operand_13 = (in).count;
+
+        break :block_14 @as((zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2, (zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2{ .child = (operand_11).child, .count = operand_12, .labels = (operand_11).labels, .last = operand_13, .text = (operand_11).text, .total = (operand_11).total, });
+    };
+}
+
+fn function_1(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_15) error{ OutOfMemory, }!*const (zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    return block_14: {
+        const operand_1 = (in).steps;
+
+        var value_1: *const (zx_abi).zx_type_13 = (in).seed;
+
+        for (operand_1) |value_2| {
+            value_1 = block_13: {
+                const operand_2 = block_9: {
+                    const operand_3 = value_1;
+                    const operand_4 = (try function_0_value(allocator, (zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2{ .child = (zx_abi).value_zx_type_11_4f40a753d66cbdf2828707a9f642bbaf44febd927bbdba19d0f7279821ade744{ .value = ((operand_3).child).value, .zx_origin = (operand_3).child, }, .count = (operand_3).count, .labels = (operand_3).labels, .last = (operand_3).last, .text = (operand_3).text, .total = (operand_3).total, .zx_origin = operand_3, }));
+
+                    break :block_9 (if (((operand_4).zx_origin != null)) (operand_4).zx_origin.? else block_8: {
+                        const operand_7 = (try (allocator).create((zx_abi).zx_type_13));
+
+                        (operand_7).* = (zx_abi).zx_type_13{ .child = (if ((((operand_4).child).zx_origin != null)) ((operand_4).child).zx_origin.? else block_6: {
+                            const operand_5 = (try (allocator).create((zx_abi).zx_type_11));
+
+                            (operand_5).* = (zx_abi).zx_type_11{ .value = ((operand_4).child).value, };
+
+                            break :block_6 @as(*const (zx_abi).zx_type_11, operand_5);
+                        }), .count = (operand_4).count, .labels = (operand_4).labels, .last = (operand_4).last, .text = (operand_4).text, .total = (operand_4).total, };
+
+                        break :block_8 @as(*const (zx_abi).zx_type_13, operand_7);
+                    });
+                };
+                const operand_10 = (((value_1).total + (value_1).count) + value_2);
+
+                break :block_13 block_12: {
+                    const operand_11 = (try (allocator).create((zx_abi).zx_type_13));
+
+                    (operand_11).* = @as((zx_abi).zx_type_13, (zx_abi).zx_type_13{ .child = ((operand_2).*).child, .count = ((operand_2).*).count, .labels = ((operand_2).*).labels, .last = ((operand_2).*).last, .text = ((operand_2).*).text, .total = operand_10, });
+
+                    break :block_12 @as(*const (zx_abi).zx_type_13, operand_11);
+                };
+            };
+        }
+
+        break :block_14 value_1;
+    };
+}
+
+fn function_1_value(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_15_e75fd8bd7ba4953908df45d7cb21dac97f86c37d2cbeb6384f0f32c728bafd68) error{ OutOfMemory, }!(zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2 {
+    @setRuntimeSafety(true);
+
+    return block_21: {
+        const operand_15 = (in).steps;
+
+        var value_1: (zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2 = (in).seed;
+
+        for (operand_15) |value_2| {
+            value_1 = block_20: {
+                const operand_16 = block_17: {
+                    break :block_17 (try function_0_value(allocator, value_1));
+                };
+                const operand_18 = (((value_1).total + (value_1).count) + block_19: {
+                    break :block_19 value_2;
+                });
+
+                break :block_20 @as((zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2, (zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2{ .child = (operand_16).child, .count = (operand_16).count, .labels = (operand_16).labels, .last = (operand_16).last, .text = (operand_16).text, .total = operand_18, });
+            };
+        }
+
+        break :block_21 value_1;
+    };
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_15) error{ OutOfMemory, }!*const (zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return block_14: {
+        const operand_1 = (in).steps;
+
+        var value_1: *const (zx_abi).zx_type_13 = (in).seed;
+
+        for (operand_1) |value_2| {
+            value_1 = block_13: {
+                const operand_2 = block_9: {
+                    const operand_3 = value_1;
+                    const operand_4 = (try function_0_value(allocator, (zx_abi).value_zx_type_13_35ddb6d0529dc7f822e63e150b14ec433bbe8f9a218bb1186d703bbdfb1f98b2{ .child = (zx_abi).value_zx_type_11_4f40a753d66cbdf2828707a9f642bbaf44febd927bbdba19d0f7279821ade744{ .value = ((operand_3).child).value, .zx_origin = (operand_3).child, }, .count = (operand_3).count, .labels = (operand_3).labels, .last = (operand_3).last, .text = (operand_3).text, .total = (operand_3).total, .zx_origin = operand_3, }));
+
+                    break :block_9 (if (((operand_4).zx_origin != null)) (operand_4).zx_origin.? else block_8: {
+                        const operand_7 = (try (allocator).create((zx_abi).zx_type_13));
+
+                        (operand_7).* = (zx_abi).zx_type_13{ .child = (if ((((operand_4).child).zx_origin != null)) ((operand_4).child).zx_origin.? else block_6: {
+                            const operand_5 = (try (allocator).create((zx_abi).zx_type_11));
+
+                            (operand_5).* = (zx_abi).zx_type_11{ .value = ((operand_4).child).value, };
+
+                            break :block_6 @as(*const (zx_abi).zx_type_11, operand_5);
+                        }), .count = (operand_4).count, .labels = (operand_4).labels, .last = (operand_4).last, .text = (operand_4).text, .total = (operand_4).total, };
+
+                        break :block_8 @as(*const (zx_abi).zx_type_13, operand_7);
+                    });
+                };
+                const operand_10 = (((value_1).total + (value_1).count) + value_2);
+
+                break :block_13 block_12: {
+                    const operand_11 = (try (allocator).create((zx_abi).zx_type_13));
+
+                    (operand_11).* = @as((zx_abi).zx_type_13, (zx_abi).zx_type_13{ .child = ((operand_2).*).child, .count = ((operand_2).*).count, .labels = ((operand_2).*).labels, .last = ((operand_2).*).last, .text = ((operand_2).*).text, .total = operand_10, });
+
+                    break :block_12 @as(*const (zx_abi).zx_type_13, operand_11);
+                };
+            };
+        }
+
+        break :block_14 value_1;
+    };
+}
+
