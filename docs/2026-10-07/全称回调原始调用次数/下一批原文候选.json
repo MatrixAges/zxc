@@ -1,0 +1,27 @@
+[
+    {
+        "path": "test/built-ins/Array/prototype/some/15.4.4.17-7-c-ii-9.js",
+        "sha256": "aaf420899cff460dc57de5a7f30d014ca2e1b51ff6f63ec89b95babf617a795d",
+        "reviews": []
+    },
+    {
+        "path": "test/built-ins/Array/prototype/map/15.4.4.19-8-c-ii-9.js",
+        "sha256": "df926ab69d69b37ccf2d88b2ad9a1c694014514f67c8c03c94b8306ede949e04",
+        "reviews": [
+            {
+                "status": "adapted",
+                "reason": "原文零形式参数回调忽略所有实参且只返回true；适配为现有显式但未使用的item回调，完整保留结果观察。map保留第0项true；filter同时保留长度1及第0项11。不声明零形参lambda、JS函数length/arguments/this或稀疏数组协议。"
+            }
+        ]
+    },
+    {
+        "path": "test/built-ins/Array/prototype/forEach/15.4.4.18-7-c-ii-9.js",
+        "sha256": "fe41ba78363285b23bb171fc1ccb054540a8323d1a0c3ba1bd463c7da59cb5ee",
+        "reviews": [
+            {
+                "status": "excluded",
+                "reason": "原文明确测试零正式参数函数仍被调用两次；ZX forEach当前要求一个正式参数，不把补一个参数后的执行次数检查冒充该零形参协议。"
+            }
+        ]
+    }
+]
