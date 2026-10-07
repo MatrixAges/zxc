@@ -163,6 +163,16 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[30 + entries.len], .data = ir_body.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[31 + entries.len], .data = ir_body.types });
 
+    const ir_stores = try generate(allocator, inputs, sources.items, "zx/ir/canonical/stores_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[32 + entries.len], .data = ir_stores.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[33 + entries.len], .data = ir_stores.types });
+
+    const ir_store_call = try generate(allocator, inputs, sources.items, "zx/ir/canonical/store_call_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[34 + entries.len], .data = ir_store_call.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[35 + entries.len], .data = ir_store_call.types });
+
     const naming = try generate(allocator, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 2], .data = naming.source });

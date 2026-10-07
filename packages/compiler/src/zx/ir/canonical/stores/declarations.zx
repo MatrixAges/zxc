@@ -1,0 +1,35 @@
+import integers from "zig:integers"
+
+import contains from "../../../analysis/semantic/querying/execute"
+import kind from "../../../analysis/semantic/types/kind"
+import { Kind } from "../../../analysis/semantic/types/model"
+import path from "./path"
+
+import type { Table } from "../../../analysis/semantic/types/model"
+
+export type Input = { table: Table, paths: u8[][], slot_types: u32[], type_only: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.paths.length != in.slot_types.length || (in.type_only && in.paths.length != 0)) {
+        return false
+    }
+
+    const result = loop({ table: in.table, paths: in.paths, slot_types: in.slot_types, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.paths.length,
+        next: current => {
+            const type_id = current.slot_types[current.index]
+            const index = integers.widen(type_id)
+
+            current.valid = index < current.table.kinds.length &&
+                kind(current.table.kinds[index]) == Kind.Object &&
+                path({ paths: current.paths, index: current.index }) &&
+                !contains({ table: current.table, id: type_id, native_references: true })
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

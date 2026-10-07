@@ -1,0 +1,53 @@
+{
+    "基线": "54c912064c0c8d078aa2ee22678b57406bfc3aed",
+    "验证": [
+        {
+            "名称": "根构建",
+            "命令": "zig build -j3 --summary all",
+            "目录": ".",
+            "退出码": 0,
+            "步骤": 35,
+            "用例": null,
+            "日志": "根构建.log.gz",
+            "日志SHA256": "384ff6fe133448199cda70c3931b5a4848796eac0d2dc5153dd91d0af4c8aee5"
+        },
+        {
+            "名称": "编译器回归",
+            "命令": "zig build test -j2 --summary all",
+            "目录": "packages/compiler",
+            "退出码": 0,
+            "步骤": 28,
+            "用例": 372,
+            "日志": "编译器回归.log.gz",
+            "日志SHA256": "d471116f9019786cb3754bdd42931f3abc5e7529b79a15427d78fe6269a243dc"
+        },
+        {
+            "名称": "Store边界专项",
+            "命令": "zig build test-artifact-slots test-store-ownership-proof test-library-initializers test-native-references-ir test-rx-inference -j2 --summary all",
+            "目录": "packages/test",
+            "退出码": 0,
+            "步骤": 49,
+            "用例": 267,
+            "日志": "Store边界专项.log.gz",
+            "日志SHA256": "cebb8821e7510630799c98947b5ba6c2ad53e23da7ece0db2fe2a20cecb71a91"
+        }
+    ],
+    "生成SHA256": {
+        "声明检查.zig.gz": "f5b10ab1a88a24f4b05e00fd454d92a1a0fefde9363a07197e7e1850489bd6f5",
+        "声明接口.zig.gz": "c1fed994c199724a05fa7ab2475ef1c4097b712cd77536945fc8ee9580310f1a",
+        "调用检查.zig.gz": "293de85a5082686df8cfd66db55afa594d3becc2739265156a3c0553cd900dfe",
+        "调用接口.zig.gz": "8de1a1c2bf26cecb1cadfa13259f2e42c48c2f6acd9469a8842b9e68b4bd4211"
+    },
+    "源码SHA256": {
+        "packages/compiler/build/compiler.zig": "e75595c2969310a2c85d075a756a61665faa99db2c0a57cb66414c82633ab099",
+        "packages/compiler/build/generate_parser.zig": "4b84cff3ebd192f0a5e2642adf02b6f185678b03537f754190e23069272b1c4f",
+        "packages/compiler/build/parser.zig": "b4854b960a7216fd5001fb2486669f5b482c529745bd3fa9faa316004ac671bb",
+        "packages/compiler/src/zx/ir/canonical/store_call_check.rx": "68c78e210e264b674978d6297f558bf58d6cbb3021b07329cc52aa02bd03ba25",
+        "packages/compiler/src/zx/ir/canonical/stores/call.zx": "5202d1fb27118858101c1cb4c53cf64357a49e5715270842e43114d98bfe2992",
+        "packages/compiler/src/zx/ir/canonical/stores/declarations.zx": "fc76706447e2d6e189dbeef34a8d0900b88ba77b2aac08507f06a1ca5b524610",
+        "packages/compiler/src/zx/ir/canonical/stores/path.zx": "8e7a09351958ae9d04791e6919551a394489c9b82651a44547771dfb7a014974",
+        "packages/compiler/src/zx/ir/canonical/stores_check.rx": "2599b5eee078a1bad4a38e4be95d44530bf34df38dee550e914fb6799bb6bde6",
+        "packages/compiler/src/zx/ir/seed_stores.zig": "49487d9e42b0de628c3c8756bbf82304df5b85ba0df317e95bbb09cfd93954ec",
+        "packages/compiler/src/zx/ir/stores.zig": "5a75cdb67dcd18b3f07ce3ff5122393f0a99578050610762d6abdb44797b45f2"
+    }
+}

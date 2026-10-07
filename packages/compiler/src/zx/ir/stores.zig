@@ -1,43 +1,45 @@
 const std = @import("std");
 const ir = @import("zx").ir;
+const options = @import("parser_options");
+const borrow = @import("canonical/borrow.zig");
 
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
-    if (program.type_only and program.stores.count() != 0) return false;
+    if (comptime !options.generated_parser) return @import("seed_stores.zig").validate(allocator, program);
 
-    for (0..program.stores.count()) |index| {
-        const slot = program.stores.at(index);
+    const generated = @import("generated_ir_stores");
+    const Input = std.meta.Child(generated.Input);
+    const Table = std.meta.Child(@FieldType(Input, "table"));
+    const table = ir.TypeTable.borrow(Table, program.types);
+    const input: Input = .{ .table = &table, .paths = program.stores.paths, .slot_types = program.stores.types, .type_only = program.type_only };
+    var arena = std.heap.ArenaAllocator.init(allocator);
 
-        if (@backingInt(slot.type_id) >= program.types.count() or program.typeOf(slot.type_id) != .object or !std.mem.startsWith(u8, slot.path, "store.")) return false;
-        if (try ir.containsNativeReference(allocator, program.types, slot.type_id)) return false;
+    defer arena.deinit();
 
-        for (program.stores.paths[0..index]) |previous| {
-            if (std.mem.eql(u8, previous, slot.path)) return false;
-        }
-    }
-
-    return true;
+    return generated.execute(&arena, &input) catch |err| switch (err) {
+        error.OutOfMemory, error.Overflow => return error.OutOfMemory,
+        else => return false,
+    };
 }
 
 pub fn call(program: ir.Program, invocation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) bool {
-    const target = program.functions.at(@backingInt(invocation.function));
+    if (comptime !options.generated_parser) return @import("seed_stores.zig").call(program, invocation);
 
-    if (invocation.stores.len != target.stores.count()) return false;
-    if (target.stores.count() != 0 and program.store_mode != .orchestration) return false;
+    const generated = @import("generated_ir_store_call");
+    const Input = std.meta.Child(generated.Input);
+    const target = program.functions.stores[@backingInt(invocation.function)];
 
-    for (invocation.stores, 0..) |id, index| {
-        const required = target.stores.at(index);
+    const input: Input = .{
+        .available = borrow.pointer(@FieldType(Input, "available"), &program.stores),
+        .required = borrow.pointer(@FieldType(Input, "required"), target),
+        .slots = invocation.stores,
+        .orchestration = program.store_mode == .orchestration,
+    };
 
-        if (id >= program.stores.count()) return false;
+    var storage: [0]u8 = undefined;
+    var fixed = std.heap.FixedBufferAllocator.init(&storage);
+    var arena = std.heap.ArenaAllocator.init(fixed.allocator());
 
-        const available = program.stores.at(id);
+    defer arena.deinit();
 
-        if (available.type_id != required.type_id or !std.mem.eql(u8, available.path, required.path)) return false;
-        if ((required.readable and !available.readable) or (required.writable and !available.writable)) return false;
-
-        for (invocation.stores[0..index]) |previous| if (previous == id) {
-            return false;
-        };
-    }
-
-    return true;
+    return generated.execute(&arena, &input) catch unreachable;
 }

@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const ParserModules = struct { ownership: *std.Build.Module, ir_body: *std.Build.Module, type_construction: *std.Build.Module, type_query: *std.Build.Module, type_resolution: *std.Build.Module, type_views: *std.Build.Module, type_validation: *std.Build.Module, type_merge: *std.Build.Module, merge_writer_view: *std.Build.Module, type_extract: *std.Build.Module, extract_workspace_view: *std.Build.Module, program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, native: *std.Build.Module, type_lookup: *std.Build.Module, nominal_lookup: *std.Build.Module, origin_validation: *std.Build.Module, origin_production: *std.Build.Module, origin_writer: *std.Build.Module, nominal_data: *std.Build.Module, name_sort: *std.Build.Module, named_view: *std.Build.Module, type_remap: *std.Build.Module, reference_view: *std.Build.Module, merge_preflight: *std.Build.Module, merge_workspace_view: *std.Build.Module };
+pub const ParserModules = struct { ownership: *std.Build.Module, ir_body: *std.Build.Module, ir_stores: *std.Build.Module, ir_store_call: *std.Build.Module, type_construction: *std.Build.Module, type_query: *std.Build.Module, type_resolution: *std.Build.Module, type_views: *std.Build.Module, type_validation: *std.Build.Module, type_merge: *std.Build.Module, merge_writer_view: *std.Build.Module, type_extract: *std.Build.Module, extract_workspace_view: *std.Build.Module, program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, native: *std.Build.Module, type_lookup: *std.Build.Module, nominal_lookup: *std.Build.Module, origin_validation: *std.Build.Module, origin_production: *std.Build.Module, origin_writer: *std.Build.Module, nominal_data: *std.Build.Module, name_sort: *std.Build.Module, named_view: *std.Build.Module, type_remap: *std.Build.Module, reference_view: *std.Build.Module, merge_preflight: *std.Build.Module, merge_workspace_view: *std.Build.Module };
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules, lint: *std.Build.Module) Modules {
@@ -42,6 +42,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     if (parser) |generated| {
         frontend.addImport("generated_ownership", generated.ownership);
         frontend.addImport("generated_ir_body", generated.ir_body);
+        frontend.addImport("generated_ir_stores", generated.ir_stores);
+        frontend.addImport("generated_ir_store_call", generated.ir_store_call);
         frontend.addImport("generated_type_resolution", generated.type_resolution);
         frontend.addImport("generated_type_construction", generated.type_construction);
         frontend.addImport("generated_type_query", generated.type_query);

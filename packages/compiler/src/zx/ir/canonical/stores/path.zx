@@ -1,0 +1,31 @@
+export type Input = { paths: u8[][], index: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const path = in.paths[in.index]
+
+    if (path.length < 6 || path[0] != 115 || path[1] != 116 || path[2] != 111 || path[3] != 114 || path[4] != 101 || path[5] != 46) {
+        return false
+    }
+
+    const previous = loop({ paths: in.paths, path: path, limit: in.index, index: 0, repeated: false }, {
+        while: current => current.index < current.limit && !current.repeated,
+        next: current => {
+            const other = current.paths[current.index]
+
+            const same = loop({ left: current.path, right: other, index: 0, equal: current.path.length == other.length }, {
+                while: bytes => bytes.equal && bytes.index < bytes.left.length,
+                next: bytes => {
+                    bytes.equal = bytes.left[bytes.index] == bytes.right[bytes.index]
+                    bytes.index += 1
+                }
+            })
+
+            current.repeated = same.equal
+            current.index += 1
+        }
+    })
+
+    return !previous.repeated
+}

@@ -1,0 +1,45 @@
+import integers from "zig:integers"
+
+import validate from "./validate"
+
+import type { Stores } from "./model"
+
+export type Input = { available: Stores, required: Stores, slots: u32[], orchestration: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!validate(in.available) || !validate(in.required) || in.slots.length != in.required.paths.length || (in.slots.length != 0 && !in.orchestration)) {
+        return false
+    }
+
+    const result = loop({ available: in.available, required: in.required, slots: in.slots, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.slots.length,
+        next: current => {
+            const id = current.slots[current.index]
+            const index = integers.widen(id)
+
+            if (index >= current.available.paths.length) {
+                current.valid = false
+            } else {
+                const duplicate = loop({ slots: current.slots, limit: current.index, index: 0, id: id, found: false }, {
+                    while: previous => previous.index < previous.limit && !previous.found,
+                    next: previous => {
+                        previous.found = previous.slots[previous.index] == previous.id
+                        previous.index += 1
+                    }
+                })
+
+                current.valid = !duplicate.found &&
+                    current.available.types[index] == current.required.types[current.index] &&
+                    current.available.paths[index] == current.required.paths[current.index] &&
+                    (!current.required.readable[current.index] || current.available.readable[index]) &&
+                    (!current.required.writable[current.index] || current.available.writable[index])
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}
