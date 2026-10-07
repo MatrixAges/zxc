@@ -66,6 +66,17 @@ fn result(self: *Self, id: ir.ExprId) bool {
     return switch (self.program.expression(id).value) {
         .reference => |symbol| symbol == self.accumulator,
         .conditional => |value| self.safe[@backingInt(value.condition)] and self.result(value.yes) and self.result(value.no),
+        .match_expr => |value| blk: {
+            if (value.subject) |subject| if (!self.safe[@backingInt(subject)]) break :blk false;
+
+            for (0..value.arms.len) |index| {
+                const arm = value.arms.at(index);
+
+                if (!self.safe[@backingInt(arm.condition)] or !self.result(arm.result)) break :blk false;
+            }
+
+            break :blk self.result(value.fallback);
+        },
         .call => |value| blk: {
             if (!self.value_functions[@backingInt(value.function)] or !self.argument(value.argument)) break :blk false;
 
@@ -107,6 +118,17 @@ fn argument(self: *const Self, id: ir.ExprId) bool {
             break :blk true;
         },
         .conditional => |value| self.safe[@backingInt(value.condition)] and self.argument(value.yes) and self.argument(value.no),
+        .match_expr => |value| blk: {
+            if (value.subject) |subject| if (!self.safe[@backingInt(subject)]) break :blk false;
+
+            for (0..value.arms.len) |index| {
+                const arm = value.arms.at(index);
+
+                if (!self.safe[@backingInt(arm.condition)] or !self.argument(arm.result)) break :blk false;
+            }
+
+            break :blk self.argument(value.fallback);
+        },
         else => false,
     };
 }

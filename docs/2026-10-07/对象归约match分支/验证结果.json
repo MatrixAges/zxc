@@ -1,0 +1,42 @@
+{
+    "基线": "8499f5fd1e6e77832ccedfe318c8ecd8bcd68917",
+    "验证": [
+        {
+            "名称": "Debug归约",
+            "目录": "packages/test",
+            "命令": "zig build test-object-reduce test-rx-store-io -Doptimize=Debug -j2 --cache-dir /tmp/zxc-reduce-match-debug --summary all",
+            "退出码": 0,
+            "结果": "105/105 steps succeeded; 192/192 tests passed",
+            "日志": "Debug归约.log.gz",
+            "日志SHA256": "248ef2e92aee9337e87cccfa3e3e771762182bb1f4286a7e4b5af8283953741c"
+        },
+        {
+            "名称": "ReleaseSafe归约",
+            "目录": "packages/test",
+            "命令": "zig build test-object-reduce test-rx-store-io -Doptimize=ReleaseSafe -j2 --cache-dir /tmp/zxc-reduce-match-safe --summary all",
+            "退出码": 0,
+            "结果": "105/105 steps succeeded; 192/192 tests passed",
+            "日志": "ReleaseSafe归约.log.gz",
+            "日志SHA256": "af1d1906c955d7a1a87bd4d6a597ac61273290ee234e756d9bfe0d41de5039fc"
+        },
+        {
+            "名称": "追加归约",
+            "目录": "packages/test",
+            "命令": "zig build test-object-append test-multiple-append -j2 --summary all",
+            "退出码": 0,
+            "结果": "143/143 steps succeeded; 366/366 tests passed",
+            "日志": "追加归约.log.gz",
+            "日志SHA256": "8bf9797ce42e0b2d9ef972816d8e3458dc90a71ca63b22fcacfffbe1f6ddc4cd"
+        }
+    ],
+    "生成SHA256": {
+        "源码入口.zig.gz": "d5289dc38fad6277f0b4ee9b6db4eaf53c499794f8243e225aaf44c4b96af5e4",
+        "库入口.zig.gz": "aa8e3f9b10afc45fec449fcea0684a3375f7fb92e56967711660186044ee89f8"
+    },
+    "源码SHA256": {
+        "packages/compiler/src/backends/zig/fingerprint.zig": "cf3d2d6cff3364ef0dd79e94bcfc2ba5524418f1333eb0e8310451a3340591fb",
+        "packages/genz/src/zx/object_reduce/analysis.zig": "5d27dfd278c521d11abc5ef36641a1719c88841dc484fa6e3cedfee0aa65ccf4",
+        "packages/genz/src/zx/object_reduce/append/analysis.zig": "2795d53679cda3a688322303f1a700dd2aede8f863a91cef99b52c1c1a8d3524",
+        "packages/genz/src/zx/object_reduce/root.zig": "472a89a55ffbb5faf769b87e82a7fdcbcb17b74746ed01766b309550ac3aea6e"
+    }
+}

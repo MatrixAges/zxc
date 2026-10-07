@@ -77,6 +77,17 @@ fn result(self: *Self, id: ir.ExprId) std.mem.Allocator.Error!bool {
     return switch (self.program.expression(id).value) {
         .reference => |symbol| symbol == self.accumulator,
         .conditional => |value| self.safe[@backingInt(value.condition)] and try self.result(value.yes) and try self.result(value.no),
+        .match_expr => |value| blk: {
+            if (value.subject) |subject| if (!self.safe[@backingInt(subject)]) break :blk false;
+
+            for (0..value.arms.len) |index| {
+                const arm = value.arms.at(index);
+
+                if (!self.safe[@backingInt(arm.condition)] or !try self.result(arm.result)) break :blk false;
+            }
+
+            break :blk try self.result(value.fallback);
+        },
         .object => |value| blk: {
             const selected = for (0..value.fields.len) |record_index| {
                 const item = value.fields.at(record_index);
@@ -109,6 +120,17 @@ fn append(self: *Self, id: ir.ExprId) std.mem.Allocator.Error!bool {
 
     return switch (self.program.expression(id).value) {
         .conditional => |value| self.safe[@backingInt(value.condition)] and try self.append(value.yes) and try self.append(value.no),
+        .match_expr => |value| blk: {
+            if (value.subject) |subject| if (!self.safe[@backingInt(subject)]) break :blk false;
+
+            for (0..value.arms.len) |index| {
+                const arm = value.arms.at(index);
+
+                if (!self.safe[@backingInt(arm.condition)] or !try self.append(arm.result)) break :blk false;
+            }
+
+            break :blk try self.append(value.fallback);
+        },
         .tuple_field => |projection| blk: {
             const value = self.program.expression(projection.target).value;
 
