@@ -1,0 +1,6 @@
+<Module>
+    <Call fn="native_names/initial" in={$in} />
+    <Call fn="native_names/walk" in={$ctx.initial} />
+
+    <Return value={$ctx.walk} />
+</Module>

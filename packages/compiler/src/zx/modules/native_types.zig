@@ -1,84 +1,39 @@
 const std = @import("std");
 const zx = @import("zx");
-const ir = zx.ir;
-const syntax = zx.syntax.borrow;
+const options = @import("parser_options");
+const Source = @import("../analysis/semantic/resolving/host/source.zig");
+const layout = @import("../analysis/semantic/resolving/host/layout.zig");
 
-pub fn parameters(allocator: std.mem.Allocator, view: anytype, values: anytype, reporter: *zx.Reporter) zx.Error!ir.NativeType {
-    var names: std.ArrayList(?[]const u8) = .empty;
+pub fn parameters(arena: *std.heap.ArenaAllocator, view: anytype, values: anytype, reporter: *zx.Reporter) zx.Error!zx.ir.NativeType {
+    const allocator = arena.allocator();
 
-    if (values.len != 1) try names.append(allocator, null);
-    for (0..values.len) |index| try resolve(allocator, view, syntax.item(values, index), &names, reporter);
+    if (comptime !options.generated_parser) return @import("seed_native_types.zig").parameters(allocator, view, values, reporter);
 
-    return .{ .names = try names.toOwnedSlice(allocator) };
-}
+    const generated = @import("generated_native_names");
+    const Input = std.meta.Child(generated.Input);
+    var source: Source = .{};
 
-fn resolve(allocator: std.mem.Allocator, view: anytype, value: @TypeOf(view).Ref, names: *std.ArrayList(?[]const u8), reporter: *zx.Reporter) zx.Error!void {
-    const kind = view.kind(value);
+    try source.init(allocator, view, null);
 
-    if (kind == .named) {
-        const name = view.name(value);
-        var declarations = view.declarations().iterator();
+    const source_value: *const @TypeOf(source.value) = &source.value;
 
-        while (declarations.next()) |declaration| {
-            if (!std.mem.eql(u8, declaration.name.text, name.text)) continue;
-
-            const start = names.items.len;
-
-            try resolve(allocator, view, declaration.value, names, reporter);
-
-            names.items[start] = try allocator.dupe(u8, name.text);
-
-            return;
-        }
-
-        try names.append(allocator, null);
-
-        return;
-    }
-
-    try names.append(allocator, null);
-
-    switch (kind) {
-        .named => unreachable,
-        .enumeration => {},
-        .optional, .list, .application => {
-            const child = view.child(value);
-
-            try resolve(allocator, view, child, names, reporter);
-
-            if (kind != .optional and !addressable(view, child)) return reporter.fail(.unsupported, .{ .start = 0, .end = 0 }, "native arrays of objects, tuples or enums require a named element type exported by the native module");
-        },
-        .tuple => {
-            var iterator = view.children(value).iterator();
-
-            while (iterator.next()) |child| try resolve(allocator, view, child, names, reporter);
-        },
-        .object => {
-            const fields = view.fields(value);
-            var scratch = std.heap.ArenaAllocator.init(allocator);
-
-            defer scratch.deinit();
-
-            const ordered = try scratch.allocator().alloc(usize, fields.count());
-            var positions = fields.positions();
-
-            for (ordered) |*index| index.* = positions.next().?;
-
-            std.mem.sort(usize, ordered, fields, struct {
-                fn lessThan(context: @TypeOf(fields), left: usize, right: usize) bool {
-                    return std.mem.lessThan(u8, context.atPosition(left).name.text, context.atPosition(right).name.text);
-                }
-            }.lessThan);
-
-            for (ordered) |index| try resolve(allocator, view, fields.atPosition(index).value, names, reporter);
-        },
-    }
-}
-
-fn addressable(view: anytype, value: @TypeOf(view).Ref) bool {
-    return switch (view.kind(value)) {
-        .named => true,
-        .optional, .list, .application => addressable(view, view.child(value)),
-        else => false,
+    const input: Input = .{
+        .source = layout.borrow(@FieldType(Input, "source"), source_value),
+        .parameters = layout.borrow(@FieldType(Input, "parameters"), view.storage.parameters),
+        .first = values.first,
+        .count = values.len,
     };
+
+    const result = generated.execute(arena, &input) catch |err| switch (err) {
+        error.OutOfMemory, error.Overflow => return error.OutOfMemory,
+        else => unreachable,
+    };
+
+    if (!result.valid) return reporter.fail(.unsupported, .{ .start = 0, .end = 0 }, "native arrays of objects, tuples or enums require a named element type exported by the native module");
+
+    for (@constCast(result.names)) |*name| {
+        if (name.*) |text| name.* = try allocator.dupe(u8, text);
+    }
+
+    return .{ .names = result.names };
 }

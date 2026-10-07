@@ -1,0 +1,57 @@
+import count from "../../analysis/semantic/resolving/source/count"
+import declaration from "../../analysis/semantic/resolving/source/declaration"
+import find from "../../analysis/semantic/resolving/source/find"
+import { NodeKind } from "../../analysis/semantic/resolving/source/model"
+import node from "../../analysis/semantic/resolving/source/node"
+import addressable from "./addressable"
+import children from "./children"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const index = in.work.nodes.length - 1
+    const selected = node({ source: in.source, reference: { enumeration: in.work.enumerations[index], index: in.work.nodes[index] } })
+    const alias = in.work.aliases[index]
+
+    if (selected.kind == NodeKind.Named) {
+        const found = find({ source: in.source, name: selected.name.text, limit: count(in.source) })
+
+        if (found.found) {
+            const target = declaration({ source: in.source, index: found.index })
+
+            return { ...in, work: {
+                nodes: in.work.nodes.pop()[0].push(target.value.index)[0],
+                enumerations: in.work.enumerations.pop()[0].push(target.value.enumeration)[0],
+                aliases: in.work.aliases.pop()[0].push(alias != null ? alias : selected.name.text)[0]
+            } }
+        }
+    }
+
+    if ((selected.kind == NodeKind.List || selected.kind == NodeKind.Application) && !addressable({ source: in.source, reference: selected.child })) {
+        return { ...in, valid: false }
+    }
+
+    const state = { ...in, names: in.names.push(alias)[0], work: {
+        nodes: in.work.nodes.pop()[0],
+        enumerations: in.work.enumerations.pop()[0],
+        aliases: in.work.aliases.pop()[0]
+    } }
+
+    if (selected.kind == NodeKind.Optional || selected.kind == NodeKind.List || selected.kind == NodeKind.Application) {
+        return { ...state, work: {
+            nodes: state.work.nodes.push(selected.child.index)[0],
+            enumerations: state.work.enumerations.push(selected.child.enumeration)[0],
+            aliases: state.work.aliases.push(null)[0]
+        } }
+    }
+
+    if (selected.kind == NodeKind.Object || selected.kind == NodeKind.Tuple) {
+        return children({ state: state, position: selected.position, count: selected.count, object: selected.kind == NodeKind.Object })
+    }
+
+    return state
+}

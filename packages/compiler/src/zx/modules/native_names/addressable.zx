@@ -1,0 +1,26 @@
+import { NodeKind } from "../../analysis/semantic/resolving/source/model"
+import node from "../../analysis/semantic/resolving/source/node"
+
+import type { Source, Reference } from "../../analysis/semantic/resolving/source/model"
+
+export type Input = { source: Source, reference: Reference }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ source: in.source, reference: in.reference, active: true, valid: false }, {
+        while: current => current.active,
+        next: current => {
+            const selected = node({ source: current.source, reference: current.reference })
+
+            if (selected.kind == NodeKind.Optional || selected.kind == NodeKind.List || selected.kind == NodeKind.Application) {
+                current.reference = selected.child
+            } else {
+                current.valid = selected.kind == NodeKind.Named
+                current.active = false
+            }
+        }
+    })
+
+    return result.valid
+}

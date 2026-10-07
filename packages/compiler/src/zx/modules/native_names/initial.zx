@@ -1,0 +1,22 @@
+import type { Input, State } from "./model"
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const nodes: u64[] = []
+    const enumerations: bool[] = []
+    const aliases: string?[] = []
+    const names: string?[] = in.count == 1 ? [] : [null]
+
+    const result = loop({ input: in, nodes: nodes, enumerations: enumerations, aliases: aliases, remaining: in.count }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            current.remaining -= 1
+            current.nodes = current.nodes.push(current.input.parameters[current.input.first + current.remaining].value)[0]
+            current.enumerations = current.enumerations.push(false)[0]
+            current.aliases = current.aliases.push(null)[0]
+        }
+    })
+
+    return { source: in.source, work: { nodes: result.nodes, enumerations: result.enumerations, aliases: result.aliases }, names: names, valid: true }
+}

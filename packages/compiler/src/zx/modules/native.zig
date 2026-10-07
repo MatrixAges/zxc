@@ -9,10 +9,11 @@ const Types = @import("../analysis/types.zig");
 pub const Member = struct { name: []const u8, function: ir.Function };
 pub const Result = struct { types: ir.TypeTable, exports: []const ir.Export, members: []const Member };
 
-pub fn load(allocator: std.mem.Allocator, entry: Native, module: ir.NativeModuleId, existing: ir.TypeTable, origins: ?*@import("nominal_origins.zig"), reporter: *zx.Reporter, span: zx.Span) zx.Error!Result {
+pub fn load(arena: *std.heap.ArenaAllocator, entry: Native, module: ir.NativeModuleId, existing: ir.TypeTable, origins: ?*@import("nominal_origins.zig"), reporter: *zx.Reporter, span: zx.Span) zx.Error!Result {
+    const allocator = arena.allocator();
     var local: zx.Reporter = .{};
 
-    return analyze(allocator, entry, module, existing, origins, &local) catch |err| {
+    return analyze(arena, entry, module, existing, origins, &local) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         const issue = local.diagnostic.?;
@@ -23,7 +24,9 @@ pub fn load(allocator: std.mem.Allocator, entry: Native, module: ir.NativeModule
     };
 }
 
-fn analyze(allocator: std.mem.Allocator, entry: Native, module: ir.NativeModuleId, existing: ir.TypeTable, origins: ?*@import("nominal_origins.zig"), reporter: *zx.Reporter) zx.Error!Result {
+fn analyze(arena: *std.heap.ArenaAllocator, entry: Native, module: ir.NativeModuleId, existing: ir.TypeTable, origins: ?*@import("nominal_origins.zig"), reporter: *zx.Reporter) zx.Error!Result {
+    const allocator = arena.allocator();
+
     if (@import("parser_options").generated_parser) {
         const generated = @import("generated_native");
         var scratch = std.heap.ArenaAllocator.init(allocator);
@@ -49,15 +52,16 @@ fn analyze(allocator: std.mem.Allocator, entry: Native, module: ir.NativeModuleI
 
         try @import("native/validate.zig").check(scratch.allocator(), view, reporter);
 
-        return analyzeView(allocator, entry, module, existing, origins, reporter, view);
+        return analyzeView(arena, entry, module, existing, origins, reporter, view);
     }
 
     const parsed = try @import("declarations.zig").parse(allocator, entry.source, reporter);
 
-    return analyzeView(allocator, entry, module, existing, origins, reporter, views.Native{ .value = parsed });
+    return analyzeView(arena, entry, module, existing, origins, reporter, views.Native{ .value = parsed });
 }
 
-fn analyzeView(allocator: std.mem.Allocator, entry: Native, module: ir.NativeModuleId, existing: ir.TypeTable, origins: ?*@import("nominal_origins.zig"), reporter: *zx.Reporter, view: anytype) zx.Error!Result {
+fn analyzeView(arena: *std.heap.ArenaAllocator, entry: Native, module: ir.NativeModuleId, existing: ir.TypeTable, origins: ?*@import("nominal_origins.zig"), reporter: *zx.Reporter, view: anytype) zx.Error!Result {
+    const allocator = arena.allocator();
     const type_view = view.typeView();
     var types = Types{ .native_interface = true, .allocator = allocator, .reporter = reporter, .declarations = &.{}, .shared = if (origins) |items| Types.Shared{ .origins = items, .origin = .{ .native = entry.key() } } else null };
 
@@ -123,7 +127,7 @@ fn analyzeView(allocator: std.mem.Allocator, entry: Native, module: ir.NativeMod
             .symbols = .{},
             .expressions = .{},
             .body = .{},
-            .external = .{ .input = try @import("native_types.zig").parameters(allocator, type_view, declaration.parameters, reporter), .module = module, .member = path, .export_name = path[entry.namespace.len], .allocator_argument = declaration.allocator_argument, .io_argument = declaration.io_argument, .process_argument = declaration.process_argument, .expand_tuple = parameters.len > 1, .fallible = declaration.fallible, .errors = errors, .concurrent = declaration.concurrent },
+            .external = .{ .input = try @import("native_types.zig").parameters(arena, type_view, declaration.parameters, reporter), .module = module, .member = path, .export_name = path[entry.namespace.len], .allocator_argument = declaration.allocator_argument, .io_argument = declaration.io_argument, .process_argument = declaration.process_argument, .expand_tuple = parameters.len > 1, .fallible = declaration.fallible, .errors = errors, .concurrent = declaration.concurrent },
         } };
     }
 

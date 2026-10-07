@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub fn borrow(comptime T: type, values: anytype) T {
+    @setEvalBranchQuota(100_000);
     comptime compatible(T, @TypeOf(values));
 
     return @ptrCast(values);
@@ -16,6 +17,7 @@ fn compatible(comptime Target: type, comptime Source: type) void {
     if (std.meta.activeTag(target) != std.meta.activeTag(source)) @compileError("type source ABI representation differs");
 
     switch (target) {
+        .optional => |optional| compatible(optional.child, source.optional.child),
         .pointer => |pointer| {
             if (pointer.size != source.pointer.size or !std.meta.eql(pointer.attrs, source.pointer.attrs) or pointer.sentinel_ptr != null or source.pointer.sentinel_ptr != null) @compileError("type source ABI pointer shape differs");
 

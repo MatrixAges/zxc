@@ -1,0 +1,10 @@
+import type { Source } from "../../analysis/semantic/resolving/source/model"
+import type { Parameter } from "../../frontend/parser/native/model"
+
+export type Input = { source: Source, parameters: Parameter[], first: u64, count: u64 }
+
+export type Work = { nodes: u64[], enumerations: bool[], aliases: string?[] }
+
+export type State = { source: Source, work: Work, names: string?[], valid: bool }
+
+export type Result = { names: string?[], valid: bool }

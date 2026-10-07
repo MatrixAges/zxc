@@ -1,0 +1,18 @@
+import step from "./step"
+
+import type { State, Result } from "./model"
+
+export type Input = State
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = loop(in, {
+        while: current => current.valid && current.work.nodes.length != 0,
+        next: current => {
+            current = step(current)
+        }
+    })
+
+    return { names: result.names, valid: result.valid }
+}

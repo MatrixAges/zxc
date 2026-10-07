@@ -35,6 +35,7 @@ const Imported = struct { type_only: bool, function: ?ir.FunctionId, input_type:
 pub const ImportTarget = union(enum) { source: []const u8, compiled: compiled.Target };
 
 const Project = struct {
+    arena: *std.heap.ArenaAllocator,
     allocator: std.mem.Allocator,
     sources: []const Source,
     parse_cache: *ParseCache,
@@ -344,7 +345,7 @@ const Project = struct {
             const loaded = if (self.semantic_cache) |cache|
                 try cache.native.load(self.allocator, entry, .{ .module = module_id, .types = self.types, .nominal_types = self.nominal_origins.items.view() }, self.reporter, item.span)
             else
-                try @import("native.zig").load(self.allocator, entry, module_id, self.types, &self.nominal_origins, self.reporter, item.span);
+                try @import("native.zig").load(self.arena, entry, module_id, self.types, &self.nominal_origins, self.reporter, item.span);
 
             const namespace = try self.allocator.alloc([]const u8, entry.namespace.len);
 
@@ -492,7 +493,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
 
     var normalized = options;
     normalized.entry = try std.fs.path.resolve(temporary, &.{ options.root_dir, options.entry });
-    var project = Project{ .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .nominal_origins = .{ .allocator = temporary } };
+    var project = Project{ .arena = &arena, .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .nominal_origins = .{ .allocator = temporary } };
     project.native_modules = try @import("native_context.zig").storage(temporary, options.context.native_modules);
     project.types = try @import("../analysis/type_table.zig").copy(temporary, options.context.types);
 
