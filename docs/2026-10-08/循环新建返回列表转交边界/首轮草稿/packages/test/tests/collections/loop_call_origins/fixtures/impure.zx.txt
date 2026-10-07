@@ -1,0 +1,24 @@
+import create from "./factory/fresh"
+
+import host from "zig:origin"
+
+export type Input = { values: u64[], count: u64, enabled: bool }
+
+export type State = { values: u64[], round: u64, count: u64 }
+
+export type Output = { original: u64[], values: u64[] }
+
+export default function (in: Input): Output {
+    const fresh = create(in.values)
+    const initial: State = { values: fresh, round: 0, count: in.count }
+
+    const result = loop(initial, {
+        while: state => state.round < state.count,
+        next: state => {
+            state.values[0] += host.tick(state.round)
+            state.round += 1
+        }
+    })
+
+    return { original: in.values, values: result.values }
+}

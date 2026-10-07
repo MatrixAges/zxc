@@ -1,0 +1,38 @@
+{
+    "cwd": "/Users/xiewendao/.codex/worktrees/loop-call-origin-conformance/zxc/packages/test",
+    "command": "zig build test-loop-call-origins test-loop-initial-ownership test-iterate-buffer -Doptimize=<mode> -Dzig-archive=/tmp/zig-x86_64-macos-0.17.0.tar.xz --cache-dir /tmp/zxc-map-observations-<debug|safe>-cache -j1 --verbose --summary all",
+    "gates": {
+        "首轮Debug": {
+            "mode": "Debug",
+            "session": 65577,
+            "status": "terminal",
+            "exit_code": 1,
+            "log": "/tmp/zxc-loop-call-origins-first-Debug.log",
+            "baseline_file": "首轮执行输入.json"
+        },
+        "首轮ReleaseSafe": {
+            "mode": "ReleaseSafe",
+            "session": 44252,
+            "status": "terminal",
+            "exit_code": 1,
+            "log": "/tmp/zxc-loop-call-origins-first-ReleaseSafe.log",
+            "baseline_file": "首轮执行输入.json"
+        },
+        "Debug": {
+            "mode": "Debug",
+            "session": 73093,
+            "status": "terminal",
+            "exit_code": 0,
+            "log": "/tmp/zxc-loop-call-origins-final-Debug.log",
+            "baseline_file": "执行输入.json"
+        },
+        "ReleaseSafe": {
+            "mode": "ReleaseSafe",
+            "session": 97376,
+            "status": "terminal",
+            "exit_code": 0,
+            "log": "/tmp/zxc-loop-call-origins-final-ReleaseSafe.log",
+            "baseline_file": "执行输入.json"
+        }
+    }
+}
