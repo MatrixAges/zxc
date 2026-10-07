@@ -1,0 +1,122 @@
+[
+    {
+        "name": "assign",
+        "operator": "=",
+        "cases": [
+            {
+                "id": "assignment/A3.1/initialized",
+                "left": 1,
+                "right": 1,
+                "expected": 1,
+                "assign_first": false
+            },
+            {
+                "id": "assignment/A3.1/updated",
+                "left": 1,
+                "right": 1,
+                "expected": 1,
+                "assign_first": false
+            }
+        ]
+    },
+    {
+        "name": "multiply",
+        "operator": "*=",
+        "cases": [
+            {
+                "id": "compound/A3.1_T1/1",
+                "left": 1,
+                "right": -1,
+                "expected": -1,
+                "assign_first": false
+            },
+            {
+                "id": "compound/A3.1_T1/2",
+                "left": 1,
+                "right": -1,
+                "expected": -1,
+                "assign_first": true
+            }
+        ]
+    },
+    {
+        "name": "divide",
+        "operator": "/=",
+        "cases": [
+            {
+                "id": "compound/A3.1_T2/1",
+                "left": 1,
+                "right": -1,
+                "expected": -1,
+                "assign_first": false
+            },
+            {
+                "id": "compound/A3.1_T2/2",
+                "left": 1,
+                "right": -1,
+                "expected": -1,
+                "assign_first": true
+            }
+        ]
+    },
+    {
+        "name": "remainder",
+        "operator": "%=",
+        "cases": [
+            {
+                "id": "compound/A3.1_T3/1",
+                "left": -1,
+                "right": 2,
+                "expected": -1,
+                "assign_first": false
+            },
+            {
+                "id": "compound/A3.1_T3/2",
+                "left": -1,
+                "right": 2,
+                "expected": -1,
+                "assign_first": true
+            }
+        ]
+    },
+    {
+        "name": "add",
+        "operator": "+=",
+        "cases": [
+            {
+                "id": "compound/A3.1_T4/1",
+                "left": 1,
+                "right": 1,
+                "expected": 2,
+                "assign_first": false
+            },
+            {
+                "id": "compound/A3.1_T4/2",
+                "left": 1,
+                "right": 1,
+                "expected": 2,
+                "assign_first": true
+            }
+        ]
+    },
+    {
+        "name": "subtract",
+        "operator": "-=",
+        "cases": [
+            {
+                "id": "compound/A3.1_T5/1",
+                "left": -1,
+                "right": 1,
+                "expected": -2,
+                "assign_first": false
+            },
+            {
+                "id": "compound/A3.1_T5/2",
+                "left": -1,
+                "right": 1,
+                "expected": -2,
+                "assign_first": true
+            }
+        ]
+    }
+]

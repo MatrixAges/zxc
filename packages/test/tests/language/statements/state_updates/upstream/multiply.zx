@@ -1,0 +1,28 @@
+export type Input = { left: f64, right: f64, assign_first: bool }
+
+export type Output = { initialized: f64
+    scalar: f64, field: f64, element: f64 }
+
+export default function (in: Input): Output {
+    const initial = { scalar: in.left, box: { value: in.left }, values: [in.left], right: in.right, round: 0, left: in.left, assign_first: in.assign_first }
+    const initialized = initial.scalar
+
+    const result = loop(initial, {
+        while: state => state.round < 1,
+        next: state => {
+            if (state.assign_first) {
+                state.scalar = state.left
+                state.box.value = state.left
+                state.values[0] = state.left
+            }
+
+            state.scalar *= state.right
+            state.box.value *= state.right
+            state.values[0] *= state.right
+
+            state.round += 1
+        }
+    })
+
+    return { initialized: initialized, scalar: result.scalar, field: result.box.value, element: result.values[0] }
+}

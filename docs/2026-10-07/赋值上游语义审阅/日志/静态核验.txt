@@ -1,0 +1,55 @@
+COMMAND: ['node', 'packages/test/src/generate_state_updates.ts', '--check']
+tests/language/statements/state_updates/assign/f32.jsonl: 1521 named cases
+tests/language/statements/state_updates/add/f32.jsonl: 1521 named cases
+tests/language/statements/state_updates/subtract/f32.jsonl: 1521 named cases
+tests/language/statements/state_updates/multiply/f32.jsonl: 1521 named cases
+tests/language/statements/state_updates/divide/f32.jsonl: 1225 named cases
+tests/language/statements/state_updates/remainder/f32.jsonl: 1681 named cases
+tests/language/statements/state_updates/assign/f64.jsonl: 1521 named cases
+tests/language/statements/state_updates/add/f64.jsonl: 1521 named cases
+tests/language/statements/state_updates/subtract/f64.jsonl: 1849 named cases
+tests/language/statements/state_updates/multiply/f64.jsonl: 1521 named cases
+tests/language/statements/state_updates/divide/f64.jsonl: 1225 named cases
+tests/language/statements/state_updates/remainder/f64.jsonl: 1681 named cases
+tests/language/statements/state_updates/upstream/assign.jsonl: 2 named cases
+tests/language/statements/state_updates/upstream/multiply.jsonl: 2 named cases
+tests/language/statements/state_updates/upstream/divide.jsonl: 2 named cases
+tests/language/statements/state_updates/upstream/remainder.jsonl: 2 named cases
+tests/language/statements/state_updates/upstream/add.jsonl: 2 named cases
+tests/language/statements/state_updates/upstream/subtract.jsonl: 2 named cases
+COMMAND: ['packages/test/node_modules/.bin/tsc', '--noEmit', '-p', 'packages/test/tsconfig.json']
+COMMAND: ['node', 'packages/test/src/audit_matrix.ts']
+{
+  "upstream_files": 53597,
+  "metadata_files": 53597,
+  "reviewed": {
+    "adapted": 777,
+    "excluded": 1963,
+    "equivalent": 103
+  },
+  "unreviewed": 50754,
+  "catalog_cases": 101810,
+  "catalog_by_runner": {
+    "runtime": 84222,
+    "frontend": 5358,
+    "evaluation_order": 1084,
+    "safety": 464,
+    "module_graphs": 10446,
+    "stores": 236
+  },
+  "linked_cases": 5485,
+  "execution_status": "not measured by this audit; see zig build test results"
+}
+tests/language/expressions/addition/f32.jsonl: 1521 named cases
+tests/language/expressions/addition/f64.jsonl: 1521 named cases
+tests/language/expressions/subtraction/f32.jsonl: 1521 named cases
+tests/language/expressions/subtraction/f64.jsonl: 1849 named cases
+tests/language/expressions/addition/overflow_literals.jsonl: 2 named cases
+tests/language/expressions/multiplication/f32.jsonl: 1521 named cases
+tests/language/expressions/multiplication/f64.jsonl: 1521 named cases
+tests/language/expressions/division/f32.jsonl: 1225 named cases
+tests/language/expressions/division/f64.jsonl: 1225 named cases
+tests/language/expressions/modulus/f32.jsonl: 1681 named cases
+tests/language/expressions/modulus/f64.jsonl: 1681 named cases
+PASS: 18 generated ZX files passed CLI format checks
+PASS: five independent numeric reference generators reproduced their catalogs
