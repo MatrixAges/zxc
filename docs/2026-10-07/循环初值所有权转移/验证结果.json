@@ -1,0 +1,52 @@
+{
+    "基线": "5896cdabe4081c5c6365d75d77d5dffe5c25d800",
+    "验证": [
+        {
+            "名称": "最终根构建",
+            "目录": ".",
+            "命令": "zig build -j3 --summary all",
+            "退出码": 0,
+            "结果": "35/35 steps succeeded",
+            "日志": "最终根构建.log.gz",
+            "日志SHA256": "8e211ec51f71607806633e708ee65e4015684e7a2146255b9673e14e95ff5fce"
+        },
+        {
+            "名称": "循环与别名专项",
+            "目录": "packages/test",
+            "命令": "zig build test-iterate-buffer test-iterate-calls test-aggregate-loop test-loop-columns -j3 --summary all",
+            "退出码": 0,
+            "结果": "245/245 steps succeeded; 411/411 tests passed",
+            "日志": "循环与别名专项.log.gz",
+            "日志SHA256": "c96702ea0d7b4ddb6340e6951f560d0d7ce2567e7d99aebd927565a3d69c5d83"
+        },
+        {
+            "名称": "编译器回归",
+            "目录": "packages/compiler",
+            "命令": "zig build test -j2 --summary all",
+            "退出码": 0,
+            "结果": "28/28 steps succeeded; 372/372 tests passed",
+            "日志": "编译器回归.log.gz",
+            "日志SHA256": "7eb0592c4788dae62cbec97e23ada98d2263f35a50ae013ca2c80d0bc2d3b02c"
+        },
+        {
+            "名称": "任务边界专项",
+            "目录": "packages/test",
+            "命令": "zig build test-zx-tasks-analysis test-zx-cancel-analysis test-native-references-ir -j2 --summary all",
+            "退出码": 0,
+            "结果": "48/48 steps succeeded; 93/93 tests passed",
+            "日志": "任务边界专项.log.gz",
+            "日志SHA256": "f30a0eacae1ef6a525f0282929383df7ffe07ded90515ef4ff4fcbe2f16500e9"
+        }
+    ],
+    "生成SHA256": {
+        "任务检查.zig.gz": "a6127a47b01dcb8a7436daf5c28dac155e76542505b63b048392fdf6368759d1",
+        "任务接口.zig.gz": "98deb5bec57d2f948c650a39fb5119565c6590ae67af55a070dcc4d522fa6e67"
+    },
+    "源码SHA256": {
+        "packages/compiler/src/backends/zig/fingerprint.zig": "ee816dcb2247ffcdd9a7f19584fd079e03c17e03a4126f9af9d962d258e57250",
+        "packages/genz/src/zx/iteration_buffer/ownership/graph.zig": "20cfcb0719efa9f2983ee75e8c35389f05825248901693183cf6cf8635b50bc6",
+        "packages/genz/src/zx/iteration_buffer/ownership/root.zig": "dda2c4e678a94ecce647b409b97b59329a527c64fef3db3878c93824b59eba1a",
+        "packages/genz/src/zx/iteration_buffer/root.zig": "9a8b42c845d3e5e27ef106f2fce3be20e04b83bec95e8717cc378a0959f05589",
+        "packages/genz/src/zx/list_update.zig": "86188216664a2b51f6b9d409078f0eff578527450e0b1c443191244069f219a2"
+    }
+}

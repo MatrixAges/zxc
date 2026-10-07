@@ -4,7 +4,7 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const intrinsics = @import("intrinsics.zig");
-pub const Storage = struct { buffer: *const node.Expression, started: *const node.Expression, capacity: ?@import("iteration_buffer/capacity.zig") = null, enabled: ?*const node.Expression = null, fallback_capacity: ?@import("iteration_buffer/capacity.zig") = null };
+pub const Storage = struct { buffer: *const node.Expression, started: *const node.Expression, capacity: ?@import("iteration_buffer/capacity.zig") = null, enabled: ?*const node.Expression = null, fallback_capacity: ?@import("iteration_buffer/capacity.zig") = null, transfer: bool = false };
 
 pub fn lower(self: *Lower, update: ir.ListUpdate, storage: ?Storage) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
@@ -36,7 +36,7 @@ pub fn lower(self: *Lower, update: ir.ListUpdate, storage: ?Storage) Lower.Error
 
 fn write(self: *Lower, source: *const node.Expression, index: *const node.Expression, value: *const node.Expression, element: ir.TypeId, storage: ?Storage) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
-    const copy = try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ try @import("iteration_value/types.zig").element(self, element), source }, true);
+    const initial = if (storage != null and storage.?.transfer) try self.builtin(.constCast, &.{source}) else try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ try @import("iteration_value/types.zig").element(self, element), source }, true);
 
     const buffer = if (storage) |shared| blk: {
         if (shared.capacity) |capacity| {
@@ -48,14 +48,14 @@ fn write(self: *Lower, source: *const node.Expression, index: *const node.Expres
         try body.append(self.allocator, .{ .branch = .{
             .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = shared.started } }),
             .yes = try self.allocator.dupe(node.Statement, &.{
-                .{ .assignment = .{ .target = shared.buffer, .value = copy } },
+                .{ .assignment = .{ .target = shared.buffer, .value = initial } },
                 .{ .assignment = .{ .target = shared.started, .value = try self.builder.expression(.{ .boolean = true }) } },
             }),
             .no = &.{},
         } });
 
         break :blk shared.buffer;
-    } else try aggregate.bind(self, &body, copy);
+    } else try aggregate.bind(self, &body, initial);
 
     const slot = try self.builder.expression(.{ .index = .{ .target = buffer, .index = try self.builtin(.intCast, &.{index}) } });
 

@@ -32,7 +32,7 @@ pub fn createPrepared(allocator: std.mem.Allocator, program: ir.Program, names: 
     const state_plan = facts.state;
     var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions, .state_plan = state_plan };
 
-    self.bytes("zxc.zig.input.v34");
+    self.bytes("zxc.zig.input.v35");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
