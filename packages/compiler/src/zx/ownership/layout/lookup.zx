@@ -1,0 +1,38 @@
+import hash from "./hash"
+
+import type { Index, Key, Location } from "./index_model"
+
+export type Input = { index: Index, key: Key }
+
+export type Output = Location
+
+export default function (in: Input): Output {
+    if (in.index.slots.length == 0) {
+        return { found: false, slot: 0, value: 0 }
+    }
+
+    const first = hash({ parent: in.key.parent, field: in.key.field, capacity: in.index.slots.length })
+
+    const result = loop({ index: in.index, key: in.key, slot: first, found: false, value: 0, active: true }, {
+        while: current => current.active,
+        next: current => {
+            const entry = current.index.slots[current.slot]
+
+            if (entry == 0) {
+                current.active = false
+            } else {
+                const position = entry - 1
+
+                if (current.index.parents[position] == current.key.parent && current.index.fields[position] == current.key.field) {
+                    current.found = true
+                    current.value = current.index.values[position]
+                    current.active = false
+                } else {
+                    current.slot = current.slot + 1 == current.index.slots.length ? 0 : current.slot + 1
+                }
+            }
+        }
+    })
+
+    return { found: result.found, slot: result.slot, value: result.value }
+}

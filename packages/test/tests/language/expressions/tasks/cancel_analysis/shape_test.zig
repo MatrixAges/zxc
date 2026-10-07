@@ -4,7 +4,7 @@ const f = @import("task_fixture");
 const compiler = f.compiler;
 
 const Expected = struct {
-    operand: std.meta.Tag(@FieldType(compiler.ir.Expression, "value")) = .reference,
+    operand: std.meta.Tag(@FieldType(compiler.ir.ExpressionRow, "value")) = .reference,
     payload: std.meta.Tag(compiler.ir.Type) = .scalar,
     scalar: compiler.ir.Scalar = .u64,
     task_errors: []const []const u8 = &.{"NativeFailure"},

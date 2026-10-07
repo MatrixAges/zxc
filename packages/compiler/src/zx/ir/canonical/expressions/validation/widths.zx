@@ -1,0 +1,97 @@
+import type { Expressions } from "../model"
+
+export type Input = Expressions
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.kinds.length > 4294967295) {
+        return false
+    }
+
+    if (in.kinds.length != in.types.length || in.kinds.length != in.span_start.length || in.kinds.length != in.span_end.length || in.kinds.length != in.payloads.length) {
+        return false
+    }
+
+    if (in.sequence_first.length != in.sequence_count.length) {
+        return false
+    }
+
+    if (in.projection_targets.length != in.projection_indices.length) {
+        return false
+    }
+
+    if (in.index_targets.length != in.index_values.length) {
+        return false
+    }
+
+    if (in.task_bodies.length != in.task_capture_first.length || in.task_bodies.length != in.task_capture_count.length) {
+        return false
+    }
+
+    if (in.parallel_first.length != in.parallel_count.length) {
+        return false
+    }
+
+    if (in.parallel_tasks.length != in.parallel_fields.length) {
+        return false
+    }
+
+    if (in.collection_kinds.length != in.collection_targets.length || in.collection_kinds.length != in.collection_first.length || in.collection_kinds.length != in.collection_count.length) {
+        return false
+    }
+
+    if (in.transform_kinds.length != in.transform_targets.length || in.transform_kinds.length != in.transform_bodies.length || in.transform_kinds.length != in.transform_initials.length || in.transform_kinds.length != in.transform_first.length || in.transform_kinds.length != in.transform_count.length) {
+        return false
+    }
+
+    if (in.scope_results.length != in.scope_first.length || in.scope_results.length != in.scope_count.length) {
+        return false
+    }
+
+    if (in.scope_symbols.length != in.scope_values.length || in.scope_symbols.length != in.scope_borrows.length) {
+        return false
+    }
+
+    if (in.iteration_initials.length != in.iteration_condition_parameters.length || in.iteration_initials.length != in.iteration_parameters.length || in.iteration_initials.length != in.iteration_conditions.length || in.iteration_initials.length != in.iteration_bodies.length || in.iteration_initials.length != in.iteration_postconditions.length) {
+        return false
+    }
+
+    if (in.update_targets.length != in.update_indices.length || in.update_targets.length != in.update_values.length) {
+        return false
+    }
+
+    if (in.call_functions.length != in.call_arguments.length || in.call_functions.length != in.call_store_first.length || in.call_functions.length != in.call_store_count.length) {
+        return false
+    }
+
+    if (in.unary_operators.length != in.unary_operands.length) {
+        return false
+    }
+
+    if (in.binary_operators.length != in.binary_left.length || in.binary_operators.length != in.binary_right.length) {
+        return false
+    }
+
+    if (in.conditional_conditions.length != in.conditional_yes.length || in.conditional_conditions.length != in.conditional_no.length) {
+        return false
+    }
+
+    if (in.match_subjects.length != in.match_fallbacks.length || in.match_subjects.length != in.match_first.length || in.match_subjects.length != in.match_count.length) {
+        return false
+    }
+
+    if (in.match_conditions.length != in.match_results.length) {
+        return false
+    }
+
+    if (in.object_first.length != in.object_count.length || in.object_first.length != in.object_evaluation_first.length || in.object_first.length != in.object_evaluation_count.length) {
+        return false
+    }
+
+    if (in.object_field_indices.length != in.object_field_values.length) {
+        return false
+    }
+
+    return true
+}

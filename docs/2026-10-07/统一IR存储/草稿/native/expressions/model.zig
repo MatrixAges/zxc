@@ -1,4 +1,4 @@
-pub const ExpressionKind = enum(u32) {
+pub const ExpressionKind = enum {
     Integer,
     NegativeInteger,
     Float,
@@ -37,7 +37,7 @@ pub const ExpressionKind = enum(u32) {
     Object,
 };
 
-pub const CollectionKind = enum(u32) {
+pub const CollectionKind = enum {
     Push,
     Pop,
     Sort,
@@ -46,7 +46,7 @@ pub const CollectionKind = enum(u32) {
     Concat,
 };
 
-pub const TransformKind = enum(u32) {
+pub const TransformKind = enum {
     Map,
     Filter,
     Reduce,
@@ -54,12 +54,12 @@ pub const TransformKind = enum(u32) {
     Some,
 };
 
-pub const UnaryOperator = enum(u32) {
+pub const UnaryOperator = enum {
     Negate,
     Not,
 };
 
-pub const BinaryOperator = enum(u32) {
+pub const BinaryOperator = enum {
     Coalesce,
     Add,
     Subtract,

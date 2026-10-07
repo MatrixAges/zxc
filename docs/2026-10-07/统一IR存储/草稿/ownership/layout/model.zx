@@ -1,0 +1,7 @@
+import type { Layout } from "../places/model"
+
+export type Cached = { first: u64[], count: u64[], positions: u64[] }
+
+export type Roots = { tree: Layout, cached: Cached, heads: u64[], next: u64[] }
+
+export type Built = { tree: Layout, cached: Cached, slots: u64[], parents: u64[], fields: u64[], values: u64[] }

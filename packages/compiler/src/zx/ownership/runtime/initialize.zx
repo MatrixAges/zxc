@@ -1,0 +1,35 @@
+import apply from "../places/execute"
+import { Operation, State } from "../places/model"
+
+import type { Program } from "../ir/input_model"
+import type { Built } from "../layout/model"
+import type { Runtime } from "./model"
+
+export type Input = { program: Program, layout: Built }
+
+export type Output = Runtime
+
+export default function (in: Input): Output {
+    const states: State[] = []
+    const numbers: u64[] = []
+
+    const allocated = loop({ states: states, memo: numbers, places: in.layout.tree.parents.length, expressions: in.program.expressions.kinds.length }, {
+        while: current => current.states.length < current.places || current.memo.length < current.expressions,
+        next: current => {
+            if (current.states.length < current.places) {
+                current.states = current.states.push(State.Copy)[0]
+            }
+
+            if (current.memo.length < current.expressions) {
+                current.memo = current.memo.push(0)[0]
+            }
+        }
+    })
+
+    const initialized = allocated.states.length == 0 ? allocated.states : apply({ layout: in.layout.tree, states: allocated.states, id: 0, operation: Operation.Assign, value: State.Borrowed })
+
+    return {
+        memory: { states: initialized, memo: allocated.memo, trail: numbers },
+        snapshots: { states: states, memo: numbers, state_first: numbers, state_count: numbers, memo_first: numbers, memo_count: numbers }
+    }
+}

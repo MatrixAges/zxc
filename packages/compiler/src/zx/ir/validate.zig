@@ -4,10 +4,10 @@ const ir = zx.ir;
 
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!?zx.Diagnostic {
     if (program.version != zx.ir_version or !@import("type_rules.zig").validate(program.types)) return invalid();
-    if (!try program.body.validStructure(allocator) or !program.expressions.validStructure() or !program.symbols.validStructure() or !contractTables(program.contracts)) return invalid();
+    if (!try @import("body_structure.zig").valid(allocator, program) or !contractTables(program.contracts)) return invalid();
 
     for (program.functions) |item| {
-        if (!try item.body.validStructure(allocator) or !item.expressions.validStructure() or !item.symbols.validStructure() or !contractTables(item.contracts)) return invalid();
+        if (!try @import("body_structure.zig").valid(allocator, item) or !contractTables(item.contracts)) return invalid();
     }
 
     if (!@import("native_modules.zig").validate(program)) return invalid();

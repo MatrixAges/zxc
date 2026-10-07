@@ -153,6 +153,16 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[26 + entries.len], .data = query.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[27 + entries.len], .data = query.types });
 
+    const ownership = try generate(allocator, inputs, sources.items, "zx/ownership/check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[28 + entries.len], .data = ownership.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[29 + entries.len], .data = ownership.types });
+
+    const ir_body = try generate(allocator, inputs, sources.items, "zx/ir/canonical/body_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[30 + entries.len], .data = ir_body.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[31 + entries.len], .data = ir_body.types });
+
     const naming = try generate(allocator, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 2], .data = naming.source });

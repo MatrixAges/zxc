@@ -1,0 +1,151 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+
+import type { Expressions } from "../model"
+
+export type Input = Expressions
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ table: in, index: 0, valid: true, integers: 0, negative_integers: 0, floats: 0, strings: 0, booleans: 0, some: 0, captures: 0, tasks: 0, awaits: 0, cancellations: 0, parallels: 0, optional_values: 0, enumerations: 0, errors: 0, references: 0, stores: 0, projections: 0, indices: 0, lengths: 0, sequences: 0, collections: 0, transforms: 0, scopes: 0, iterations: 0, updates: 0, calls: 0, unary: 0, binary: 0, conditionals: 0, matches: 0, objects: 0 }, {
+        while: current => current.valid && current.index < current.table.kinds.length,
+        next: current => {
+            const kind = current.table.kinds[current.index]
+            const payload = integers.widen(current.table.payloads[current.index])
+
+            if (kind == ExpressionKind.None || kind == ExpressionKind.Unit) {
+                current.valid = payload == 0
+            }
+            else if (kind == ExpressionKind.Integer) {
+                current.valid = payload == current.integers && payload < current.table.integers.length
+                current.integers += 1
+            }
+            else if (kind == ExpressionKind.NegativeInteger) {
+                current.valid = payload == current.negative_integers && payload < current.table.negative_integers.length
+                current.negative_integers += 1
+            }
+            else if (kind == ExpressionKind.Float) {
+                current.valid = payload == current.floats && payload < current.table.floats.length
+                current.floats += 1
+            }
+            else if (kind == ExpressionKind.String) {
+                current.valid = payload == current.strings && payload < current.table.strings.length
+                current.strings += 1
+            }
+            else if (kind == ExpressionKind.Boolean) {
+                current.valid = payload == current.booleans && payload < current.table.booleans.length
+                current.booleans += 1
+            }
+            else if (kind == ExpressionKind.Some) {
+                current.valid = payload == current.some && payload < current.table.some.length
+                current.some += 1
+            }
+            else if (kind == ExpressionKind.Capture) {
+                current.valid = payload == current.captures && payload < current.table.captures.length
+                current.captures += 1
+            }
+            else if (kind == ExpressionKind.Task) {
+                current.valid = payload == current.tasks && payload < current.table.task_bodies.length
+                current.tasks += 1
+            }
+            else if (kind == ExpressionKind.AwaitTask) {
+                current.valid = payload == current.awaits && payload < current.table.awaits.length
+                current.awaits += 1
+            }
+            else if (kind == ExpressionKind.CancelTask) {
+                current.valid = payload == current.cancellations && payload < current.table.cancellations.length
+                current.cancellations += 1
+            }
+            else if (kind == ExpressionKind.Parallel) {
+                current.valid = payload == current.parallels && payload < current.table.parallel_first.length
+                current.parallels += 1
+            }
+            else if (kind == ExpressionKind.OptionalValue) {
+                current.valid = payload == current.optional_values && payload < current.table.optional_values.length
+                current.optional_values += 1
+            }
+            else if (kind == ExpressionKind.EnumValue) {
+                current.valid = payload == current.enumerations && payload < current.table.enumerations.length
+                current.enumerations += 1
+            }
+            else if (kind == ExpressionKind.ErrorValue) {
+                current.valid = payload == current.errors && payload < current.table.errors.length
+                current.errors += 1
+            }
+            else if (kind == ExpressionKind.Reference) {
+                current.valid = payload == current.references && payload < current.table.references.length
+                current.references += 1
+            }
+            else if (kind == ExpressionKind.StoreGet) {
+                current.valid = payload == current.stores && payload < current.table.stores.length
+                current.stores += 1
+            }
+            else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+                current.valid = payload == current.projections && payload < current.table.projection_targets.length
+                current.projections += 1
+            }
+            else if (kind == ExpressionKind.Index) {
+                current.valid = payload == current.indices && payload < current.table.index_targets.length
+                current.indices += 1
+            }
+            else if (kind == ExpressionKind.Length) {
+                current.valid = payload == current.lengths && payload < current.table.lengths.length
+                current.lengths += 1
+            }
+            else if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
+                current.valid = payload == current.sequences && payload < current.table.sequence_first.length
+                current.sequences += 1
+            }
+            else if (kind == ExpressionKind.ListOperation) {
+                current.valid = payload == current.collections && payload < current.table.collection_kinds.length
+                current.collections += 1
+            }
+            else if (kind == ExpressionKind.Transform) {
+                current.valid = payload == current.transforms && payload < current.table.transform_kinds.length
+                current.transforms += 1
+            }
+            else if (kind == ExpressionKind.Scope) {
+                current.valid = payload == current.scopes && payload < current.table.scope_results.length
+                current.scopes += 1
+            }
+            else if (kind == ExpressionKind.Iteration) {
+                current.valid = payload == current.iterations && payload < current.table.iteration_initials.length
+                current.iterations += 1
+            }
+            else if (kind == ExpressionKind.ListUpdate) {
+                current.valid = payload == current.updates && payload < current.table.update_targets.length
+                current.updates += 1
+            }
+            else if (kind == ExpressionKind.Call) {
+                current.valid = payload == current.calls && payload < current.table.call_functions.length
+                current.calls += 1
+            }
+            else if (kind == ExpressionKind.Unary) {
+                current.valid = payload == current.unary && payload < current.table.unary_operands.length
+                current.unary += 1
+            }
+            else if (kind == ExpressionKind.Binary) {
+                current.valid = payload == current.binary && payload < current.table.binary_operators.length
+                current.binary += 1
+            }
+            else if (kind == ExpressionKind.Conditional) {
+                current.valid = payload == current.conditionals && payload < current.table.conditional_conditions.length
+                current.conditionals += 1
+            }
+            else if (kind == ExpressionKind.Match) {
+                current.valid = payload == current.matches && payload < current.table.match_subjects.length
+                current.matches += 1
+            }
+            else if (kind == ExpressionKind.Object) {
+                current.valid = payload == current.objects && payload < current.table.object_first.length
+                current.objects += 1
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.valid && result.integers == in.integers.length && result.negative_integers == in.negative_integers.length && result.floats == in.floats.length && result.strings == in.strings.length && result.booleans == in.booleans.length && result.some == in.some.length && result.captures == in.captures.length && result.tasks == in.task_bodies.length && result.awaits == in.awaits.length && result.cancellations == in.cancellations.length && result.parallels == in.parallel_first.length && result.optional_values == in.optional_values.length && result.enumerations == in.enumerations.length && result.errors == in.errors.length && result.references == in.references.length && result.stores == in.stores.length && result.projections == in.projection_targets.length && result.indices == in.index_targets.length && result.lengths == in.lengths.length && result.sequences == in.sequence_first.length && result.collections == in.collection_kinds.length && result.transforms == in.transform_kinds.length && result.scopes == in.scope_results.length && result.iterations == in.iteration_initials.length && result.updates == in.update_targets.length && result.calls == in.call_functions.length && result.unary == in.unary_operands.length && result.binary == in.binary_operators.length && result.conditionals == in.conditional_conditions.length && result.matches == in.match_subjects.length && result.objects == in.object_first.length
+}

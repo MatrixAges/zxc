@@ -1,0 +1,37 @@
+import combine from "../../places/combine"
+import { State } from "../../places/model"
+import { Action } from "./model"
+
+import type { Memory } from "../model"
+import type { Stack } from "./model"
+
+export type Input = { memory: Memory, stack: Stack, frame: u64, action: Action }
+
+export type Output = Memory
+
+export default function (in: Input): Output {
+    const count = in.action == Action.RestoreMemo ? in.memory.memo.length : in.memory.states.length
+    const state_first = in.action == Action.ReleaseAllLoans || in.action == Action.RestoreMemo ? 0 : in.stack.state_first[in.frame]
+    const memo_first = in.action == Action.RestoreMemo ? in.stack.memo_first[in.frame] : 0
+
+    const result = loop({ states: in.memory.states, memo: in.memory.memo, saved: in.stack, state_first: state_first, memo_first: memo_first, action: in.action, count: count, index: 0 }, {
+        while: current => current.index < current.count,
+        next: current => {
+            if (current.action == Action.RestoreMemo) {
+                current.memo[current.index] = current.saved.memo[current.memo_first + current.index]
+            } else if (current.action == Action.RestoreStates) {
+                current.states[current.index] = current.saved.states[current.state_first + current.index]
+            } else if (current.action == Action.MergeStates) {
+                current.states[current.index] = combine({ left: current.states[current.index], right: current.saved.states[current.state_first + current.index] })
+            } else if (current.states[current.index] == State.Loaned) {
+                if (current.action == Action.ReleaseAllLoans || current.saved.states[current.state_first + current.index] != State.Loaned) {
+                    current.states[current.index] = State.Owned
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { states: result.states, memo: result.memo, trail: in.memory.trail }
+}

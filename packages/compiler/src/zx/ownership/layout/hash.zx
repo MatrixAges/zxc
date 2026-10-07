@@ -1,0 +1,10 @@
+export type Input = { parent: u64, field: u64, capacity: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const parent = ((in.parent % 4294967291) * 2654435761) % 4294967291
+    const field = ((in.field % 4294967279) * 2246822519) % 4294967279
+
+    return (parent + field) % in.capacity
+}

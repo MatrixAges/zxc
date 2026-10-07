@@ -1,0 +1,13 @@
+import integers from "zig:integers"
+
+import type { Expressions } from "../../ir/canonical/expressions/model"
+
+export type Input = { expressions: Expressions, id: u64 }
+
+export type Output = { target: u64, index: u32 }
+
+export default function (in: Input): Output {
+    const payload = integers.widen(in.expressions.payloads[in.id])
+
+    return { target: integers.widen(in.expressions.projection_targets[payload]), index: in.expressions.projection_indices[payload] }
+}

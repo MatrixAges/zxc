@@ -1,0 +1,9 @@
+import type { Frame, Work } from "./model"
+
+export type Input = { work: Work, frame: Frame }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    return { actions: in.work.actions.push(in.frame.action)[0], subjects: in.work.subjects.push(in.frame.subject)[0], moving: in.work.moving.push(in.frame.moving)[0], indices: in.work.indices.push(in.frame.index)[0] }
+}

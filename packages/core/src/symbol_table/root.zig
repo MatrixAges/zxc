@@ -1,7 +1,7 @@
 const std = @import("std");
 const ir = @import("../ir.zig");
 const Self = @This();
-pub const Ownership = enum(u32) { Copy, Borrowed, Owned };
+pub const Ownership = enum { Copy, Borrowed, Owned };
 
 names: []const []const u8 = &.{},
 types: []const u32 = &.{},

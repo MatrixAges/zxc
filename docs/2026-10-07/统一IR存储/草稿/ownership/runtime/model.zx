@@ -1,0 +1,6 @@
+import type { State } from "../places/model"
+import type { Stack } from "./snapshots/model"
+
+export type Memory = { states: State[], memo: u64[], trail: u64[] }
+
+export type Runtime = { memory: Memory, snapshots: Stack }

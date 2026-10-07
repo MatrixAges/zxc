@@ -1,0 +1,57 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../ir/canonical/expressions/kinds"
+import lookup from "../layout/lookup"
+import projection from "../layout/projection"
+
+import type { Expressions } from "../../ir/canonical/expressions/model"
+import type { Built } from "../layout/model"
+
+export type Input = { expressions: Expressions, layout: Built, memo: u64[], expression: u64, trail: u64[] }
+
+export type Output = { found: bool, position: u64, trail: u64[] }
+
+export default function (in: Input): Output {
+    const result = loop({ expressions: in.expressions, layout: in.layout, memo: in.memo, expression: in.expression, trail: in.trail.splice(0, 0, [])[1], ascending: true, active: true, found: false, position: 0 }, {
+        while: current => current.active,
+        next: current => {
+            if (current.ascending) {
+                const cached = current.memo[current.expression]
+                const kind = current.expressions.kinds[current.expression]
+
+                if (cached != 0) {
+                    current.found = true
+                    current.position = cached - 1
+                    current.ascending = false
+                } else if (kind == ExpressionKind.Reference) {
+                    current.found = true
+                    current.position = integers.widen(current.expressions.references[integers.widen(current.expressions.payloads[current.expression])])
+                    current.ascending = false
+                } else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+                    const field = projection({ expressions: current.expressions, id: current.expression })
+
+                    current.trail = current.trail.push(integers.widen(field.index))[0]
+                    current.expression = field.target
+                } else {
+                    current.active = false
+                }
+            } else if (current.trail.length == 0) {
+                current.active = false
+            } else {
+                const field = current.trail[current.trail.length - 1]
+                const child = lookup({ index: { slots: current.layout.slots, parents: current.layout.parents, fields: current.layout.fields, values: current.layout.values }, key: { parent: current.position, field: field } })
+
+                current.trail = current.trail.pop()[0]
+
+                if (child.found) {
+                    current.position = child.value
+                } else {
+                    current.found = false
+                    current.active = false
+                }
+            }
+        }
+    })
+
+    return { found: result.found, position: result.position, trail: result.trail.splice(0, 0, [])[1] }
+}

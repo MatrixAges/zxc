@@ -1,0 +1,66 @@
+import combine from "./combine"
+import { Operation, State } from "./model"
+
+import type { Request } from "./model"
+
+export enum Phase { Enter, Leave, Parents, Advance }
+
+export type Input = Request
+
+export type Output = State[]
+
+export default function (in: Input): Output {
+    const result = loop({ layout: in.layout, root: in.id, operation: in.operation, value: in.value, states: in.states, index: in.id, phase: Phase.Enter, ancestor: 0, propagated: State.Copy, active: true }, {
+        while: current => current.active,
+        next: current => {
+            if (current.phase == Phase.Enter) {
+                const state = current.states[current.index]
+
+                if (current.operation == Operation.Assign) {
+                    current.states[current.index] = current.layout.references[current.index] || current.value == State.Moved ? current.value : State.Copy
+                } else if (state == State.Owned || (current.operation == Operation.Freeze && state == State.Loaned)) {
+                    current.states[current.index] = current.operation == Operation.Freeze ? State.Borrowed : State.Loaned
+                }
+
+                const child = current.layout.children[current.index]
+
+                if (child == 0) {
+                    current.phase = Phase.Leave
+                } else {
+                    current.index = child - 1
+                }
+            } else if (current.phase == Phase.Leave) {
+                if (current.operation != Operation.Assign || current.index == current.root) {
+                    current.ancestor = current.layout.parents[current.index]
+                    current.propagated = current.operation == Operation.Assign ? current.value : current.states[current.index]
+                    current.phase = Phase.Parents
+                } else {
+                    current.phase = Phase.Advance
+                }
+            } else if (current.phase == Phase.Parents) {
+                if (current.ancestor == 0) {
+                    current.phase = Phase.Advance
+                } else {
+                    const parent = current.ancestor - 1
+
+                    current.states[parent] = combine({ left: current.states[parent], right: current.propagated })
+                    current.ancestor = current.layout.parents[parent]
+                }
+            } else if (current.index == current.root) {
+                current.active = false
+            } else {
+                const sibling = current.layout.siblings[current.index]
+
+                if (sibling == 0) {
+                    current.index = current.layout.parents[current.index] - 1
+                    current.phase = Phase.Leave
+                } else {
+                    current.index = sibling - 1
+                    current.phase = Phase.Enter
+                }
+            }
+        }
+    })
+
+    return result.states
+}

@@ -1,0 +1,22 @@
+import combine from "../../places/combine"
+
+import type { State } from "../../places/model"
+import type { Stack } from "./model"
+
+export type Input = { stack: Stack, frame: u64, states: State[], merge: bool }
+
+export type Output = Stack
+
+export default function (in: Input): Output {
+    const result = loop({ saved: in.stack.states, source: in.states, first: in.stack.state_first[in.frame], count: in.stack.state_count[in.frame], index: 0, merge: in.merge }, {
+        while: current => current.index < current.count,
+        next: current => {
+            const position = current.first + current.index
+
+            current.saved[position] = current.merge ? combine({ left: current.saved[position], right: current.source[current.index] }) : current.source[current.index]
+            current.index += 1
+        }
+    })
+
+    return { ...in.stack, states: result.saved }
+}

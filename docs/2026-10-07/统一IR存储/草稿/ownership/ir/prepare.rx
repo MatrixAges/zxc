@@ -1,0 +1,8 @@
+<Module>
+    <Call fn="references" in={$in} />
+    <Call fn="terminates" in={$in.control} />
+    <Call fn="../layout/roots" in={{ program: $in, references: $ctx.references }} />
+    <Call fn="../layout/project" in={{ program: $in, references: $ctx.references, roots: $ctx.roots }} />
+
+    <Return value={{ references: $ctx.references, returns: $ctx.terminates, layout: $ctx.project }} />
+</Module>

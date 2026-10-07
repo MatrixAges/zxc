@@ -1,0 +1,25 @@
+import { Capture } from "./model"
+
+import type { Memory } from "../model"
+import type { Stack } from "./model"
+
+export type Input = { memory: Memory, stack: Stack, capture: Capture }
+
+export type Output = { stack: Stack, frame: u64 }
+
+export default function (in: Input): Output {
+    const states = in.capture != Capture.Memo
+    const memo = in.capture != Capture.States
+
+    return {
+        frame: in.stack.state_first.length,
+        stack: {
+            states: states ? in.stack.states.concat(in.memory.states)[0] : in.stack.states,
+            memo: memo ? in.stack.memo.concat(in.memory.memo)[0] : in.stack.memo,
+            state_first: in.stack.state_first.push(in.stack.states.length)[0],
+            state_count: in.stack.state_count.push(states ? in.memory.states.length : 0)[0],
+            memo_first: in.stack.memo_first.push(in.stack.memo.length)[0],
+            memo_count: in.stack.memo_count.push(memo ? in.memory.memo.length : 0)[0]
+        }
+    }
+}

@@ -1,0 +1,75 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../control/model"
+
+import type { Control } from "../control/model"
+
+export type Input = { control: Control, root: u32? }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const block_id = in.root
+
+    if (block_id == null) {
+        return in.control.block_first.length == 0
+    }
+
+    const root = integers.widen(block_id)
+
+    if (root >= in.control.block_first.length) {
+        return false
+    }
+
+    const flags: bool[] = []
+    const numbers: u64[] = []
+
+    const initialized = loop({ count: in.control.block_first.length, root: root, owned: flags, depths: numbers }, {
+        while: current => current.owned.length < current.count,
+        next: current => {
+            current.owned = current.owned.push(current.owned.length == current.root)[0]
+            current.depths = current.depths.push(0)[0]
+        }
+    })
+
+    const checked = loop({ control: in.control, owned: initialized.owned, depths: initialized.depths, block: 0, index: 0, edge: 0, valid: true }, {
+        while: current => current.valid && current.block < current.control.block_first.length,
+        next: current => {
+            if (current.index == integers.widen(current.control.block_count[current.block])) {
+                current.block += 1
+                current.index = 0
+            } else {
+                const statement = integers.widen(current.control.block_first[current.block]) + current.index
+                const kind = current.control.statement_kinds[statement]
+                const payload = integers.widen(current.control.statement_payloads[statement])
+                const count = match kind {
+                    StatementKind.Branch => 2,
+                    StatementKind.Switch => integers.widen(current.control.selection_count[payload]),
+                    _ => 0
+                }
+
+                if (current.edge == count) {
+                    current.index += 1
+                    current.edge = 0
+                } else {
+                    const child = match kind {
+                        StatementKind.Branch => integers.widen(current.edge == 0 ? current.control.branch_yes[payload] : current.control.branch_no[payload]),
+                        _ => integers.widen(current.control.case_bodies[integers.widen(current.control.selection_first[payload]) + current.edge])
+                    }
+                    const depth = current.depths[child] + 1
+
+                    current.valid = !current.owned[child] && depth <= 256
+                    current.owned[child] = true
+
+                    if (depth > current.depths[current.block]) {
+                        current.depths[current.block] = depth
+                    }
+
+                    current.edge += 1
+                }
+            }
+        }
+    })
+
+    return checked.valid && checked.owned.every(value => value)
+}

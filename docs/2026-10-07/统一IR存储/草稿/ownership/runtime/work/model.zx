@@ -1,0 +1,9 @@
+import type { State } from "../../places/model"
+
+export enum WorkAction { Block, Statement, Release, Value, Finish, Copy, Borrowed, Constant, Result, Store, Destructure, Borrow, Aggregate, Sequence, SequenceResult, IndexTarget, IndexResult, BranchCondition, BranchYes, BranchNo, CallResult, BinaryLeft, BinaryRight, ConditionalCondition, ConditionalYes, ConditionalNo, UpdateResult, ScopeBinding, ScopeResult, ScopeFinish, TaskCapture, TaskFinish, ParallelBranch, ObjectEvaluation, ObjectCached, ObjectField, ObjectFieldResult, ObjectFinish, Invocation, InvocationResult, CollectionTarget, CollectionArgument, CollectionResult, CollectionFreeze, SwitchSubject, SwitchCase, SwitchResult, MatchSubject, MatchArm, MatchCondition, MatchResult, MatchFinish, IterationInitial, IterationCondition, IterationBody, IterationFinish, TransformTarget, TransformInitial, TransformParameter, TransformBody, TransformFinish }
+
+export type Frame = { action: WorkAction, subject: u64, moving: bool, index: u64 }
+
+export type Work = { actions: WorkAction[], subjects: u64[], moving: bool[], indices: u64[] }
+
+export type Outcome = { complete: bool, failed: bool, expression: u64, output: State, stores_owned: bool }

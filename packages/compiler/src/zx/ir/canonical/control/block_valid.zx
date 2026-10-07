@@ -1,0 +1,42 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "./model"
+
+import type { Control } from "./model"
+
+export type Input = { control: Control, block: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const first = integers.widen(in.control.block_first[in.block])
+    const count = integers.widen(in.control.block_count[in.block])
+
+    const result = loop({ control: in.control, block: in.block, index: first, end: first + count, valid: true }, {
+        while: current => current.valid && current.index < current.end,
+        next: current => {
+            const kind = current.control.statement_kinds[current.index]
+            const payload = integers.widen(current.control.statement_payloads[current.index])
+
+            if (kind == StatementKind.Branch) {
+                current.valid = integers.widen(current.control.branch_yes[payload]) < current.block && integers.widen(current.control.branch_no[payload]) < current.block
+            } else if (kind == StatementKind.Switch) {
+                const first_case = integers.widen(current.control.selection_first[payload])
+                const case_count = integers.widen(current.control.selection_count[payload])
+                const cases = loop({ bodies: current.control.case_bodies, block: current.block, index: first_case, end: first_case + case_count, valid: true }, {
+                    while: selected => selected.valid && selected.index < selected.end,
+                    next: selected => {
+                        selected.valid = integers.widen(selected.bodies[selected.index]) < selected.block
+                        selected.index += 1
+                    }
+                })
+
+                current.valid = cases.valid
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

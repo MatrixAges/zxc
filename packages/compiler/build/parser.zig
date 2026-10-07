@@ -1,6 +1,10 @@
 const std = @import("std");
 
 pub const Sources = struct {
+    ownership: std.Build.LazyPath,
+    ownership_abi: std.Build.LazyPath,
+    ir_body: std.Build.LazyPath,
+    ir_body_abi: std.Build.LazyPath,
     naming: std.Build.LazyPath,
     program: std.Build.LazyPath,
     expression: std.Build.LazyPath,
@@ -146,13 +150,17 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const construction_abi = run.addOutputFileArg("construction_abi.zig");
     const type_query = run.addOutputFileArg("type_query.zig");
     const query_abi = run.addOutputFileArg("query_abi.zig");
+    const ownership = run.addOutputFileArg("ownership.zig");
+    const ownership_abi = run.addOutputFileArg("ownership_abi.zig");
+    const ir_body = run.addOutputFileArg("ir_body.zig");
+    const ir_body_abi = run.addOutputFileArg("ir_body_abi.zig");
     const naming = run.addOutputFileArg("naming.zig");
     const naming_root = lint_dependency.path("src/naming");
 
     run.addDirectoryArg2(naming_root, .{});
     trackSources(b, run, naming_root, lint_dependency.builder.root.joinString(b.allocator, "src/naming") catch @panic("out of memory")) catch @panic("unable to track lint naming sources");
 
-    return .{ .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .type_remap = type_remap, .remap_abi = remap_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_extract = type_extract, .extract_abi = extract_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
+    return .{ .ownership = ownership, .ownership_abi = ownership_abi, .ir_body = ir_body, .ir_body_abi = ir_body_abi, .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .type_remap = type_remap, .remap_abi = remap_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_extract = type_extract, .extract_abi = extract_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath, absolute: []const u8) !void {
@@ -346,7 +354,29 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         },
     });
 
+    const ownership = b.createModule(.{
+        .root_source_file = source.ownership,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ownership_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+        },
+    });
+
+    const ir_body = b.createModule(.{
+        .root_source_file = source.ir_body,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_body_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+        },
+    });
+
     return .{
+        .ownership = ownership,
+        .ir_body = ir_body,
         .type_construction = type_construction,
         .type_query = type_query,
         .type_resolution = type_resolution,

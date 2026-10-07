@@ -1,0 +1,742 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../../ir/canonical/control/model"
+import { BinaryOperator, ExpressionKind, CollectionKind, TransformKind } from "../../ir/canonical/expressions/kinds"
+import { Ownership } from "../ir/input_model"
+import optionalId from "../ir/widen_optional"
+import projection from "../layout/projection"
+import place from "../places/execute"
+import find from "../places/find"
+import { Operation, State } from "../places/model"
+import access from "./access"
+import borrow from "./borrowing/execute"
+import apply from "./snapshots/apply"
+import drop from "./snapshots/drop"
+import { Action } from "./snapshots/model"
+import { Capture } from "./snapshots/model"
+import save from "./snapshots/save"
+import update from "./snapshots/update"
+import { WorkAction } from "./work/model"
+import pop from "./work/pop"
+import push from "./work/push"
+import top from "./work/top"
+
+import type { Program } from "../ir/input_model"
+import type { Built } from "../layout/model"
+import type { Runtime } from "./model"
+import type { Outcome } from "./work/model"
+
+export type Input = { program: Program, references: bool[], returns: bool[], layout: Built, runtime: Runtime }
+
+export type Output = Outcome
+
+export default function (in: Input): Output {
+    const root = in.program.body
+
+    if (root == null || in.program.type_only) {
+        return { complete: true, failed: false, expression: 0, output: State.Copy, stores_owned: true }
+    }
+
+    const values: State[] = []
+
+    const result = loop({ program: in.program, references: in.references, returns: in.returns, layout: in.layout, memory: in.runtime.memory, snapshots: in.runtime.snapshots, work: { actions: [WorkAction.Block], subjects: [integers.widen(root)], moving: [false], indices: [0] }, value: State.Copy, values: values, returned: State.Copy, stores_owned: true, failed: false, complete: true, expression: 0, active: !in.program.type_only }, {
+        while: current => current.active && current.complete && !current.failed,
+        next: current => {
+            if (current.work.actions.length == 0) {
+                current.active = false
+            } else {
+                const frame = top(current.work)
+
+                current.work = pop(current.work)
+
+                if (frame.action == WorkAction.Block) {
+                    const count = integers.widen(current.program.control.block_count[frame.subject])
+
+                    if (frame.index < count) {
+                        const statement = integers.widen(current.program.control.block_first[frame.subject]) + frame.index
+
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Release, subject: 0, moving: false, index: 0 } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Statement, subject: statement, moving: false, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.Release) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: 0, action: Action.ReleaseAllLoans })
+                } else if (frame.action == WorkAction.Statement) {
+                    const kind = current.program.control.statement_kinds[frame.subject]
+                    const payload = integers.widen(current.program.control.statement_payloads[frame.subject])
+
+                    if (kind == StatementKind.Evaluate) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.evaluations[payload]), moving: false, index: 0 } })
+                    } else if (kind == StatementKind.Constant) {
+                        const binding = payload
+
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Constant, subject: integers.widen(current.program.control.constant_symbols[binding]), moving: false, index: 0 } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.constant_values[binding]), moving: true, index: 0 } })
+                    } else if (kind == StatementKind.Result) {
+                        const value = optionalId(current.program.control.results[payload])
+
+                        if (value != null) {
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Result, subject: 0, moving: false, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: value, moving: true, index: 0 } })
+                        }
+                    } else if (kind == StatementKind.StoreSet) {
+                        const setter = payload
+
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Store, subject: integers.widen(current.program.control.setter_values[setter]), moving: false, index: 0 } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.setter_values[setter]), moving: false, index: 0 } })
+                    } else if (kind == StatementKind.Destructure) {
+                        const binding = payload
+
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Destructure, subject: payload, moving: false, index: 0 } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.destructure_values[binding]), moving: true, index: 0 } })
+                    } else if (kind == StatementKind.Switch) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.SwitchSubject, subject: payload, moving: false, index: 0 } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.selection_subjects[payload]), moving: false, index: 0 } })
+                    } else if (kind == StatementKind.Parallel) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Invocation, subject: payload, moving: false, index: 0 } })
+                    } else if (kind == StatementKind.Branch) {
+                        const branch = payload
+
+                        current.work = push({ work: current.work, frame: { action: WorkAction.BranchCondition, subject: payload, moving: false, index: 0 } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.branch_conditions[branch]), moving: false, index: 0 } })
+                    } else {
+                        current.complete = false
+                    }
+                } else if (frame.action == WorkAction.Constant) {
+                    current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: frame.subject, operation: Operation.Assign, value: current.value }) }
+                } else if (frame.action == WorkAction.Result) {
+                    if (current.returned == State.Borrowed || current.value == State.Borrowed) {
+                        current.returned = State.Borrowed
+                    } else if (current.returned == State.Owned || current.value == State.Owned) {
+                        current.returned = State.Owned
+                    } else {
+                        current.returned = current.value
+                    }
+                } else if (frame.action == WorkAction.Store) {
+                    current.stores_owned = current.stores_owned && (current.value == State.Owned || current.value == State.Copy)
+                    current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: frame.subject, permanent: true })
+                } else if (frame.action == WorkAction.Destructure) {
+                    const symbols = { first: integers.widen(current.program.control.destructure_first[frame.subject]), count: integers.widen(current.program.control.destructure_count[frame.subject]) }
+
+                    if (frame.index < symbols.count) {
+                        const symbol = optionalId(current.program.control.destructure_symbols[symbols.first + frame.index])
+
+                        if (symbol != null) {
+                            current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: symbol, operation: Operation.Assign, value: current.value }) }
+                        }
+
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Destructure, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                    }
+                } else if (frame.action == WorkAction.BranchCondition) {
+                    const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                    const branch = frame.subject
+
+                    current.snapshots = captured.stack
+                    current.work = push({ work: current.work, frame: { action: WorkAction.BranchYes, subject: frame.subject, moving: false, index: captured.frame } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: integers.widen(current.program.control.branch_yes[branch]), moving: false, index: 0 } })
+                } else if (frame.action == WorkAction.BranchYes) {
+                    const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                    const branch = frame.subject
+
+                    current.snapshots = captured.stack
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.BranchNo, subject: frame.subject, moving: false, index: frame.index } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: integers.widen(current.program.control.branch_no[branch]), moving: false, index: 0 } })
+                } else if (frame.action == WorkAction.BranchNo) {
+                    const branch = frame.subject
+
+                    if (current.returns[integers.widen(current.program.control.branch_yes[branch])]) {
+                        if (current.returns[integers.widen(current.program.control.branch_no[branch])]) {
+                            current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                        }
+                    } else {
+                        current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index + 1, action: current.returns[integers.widen(current.program.control.branch_no[branch])] ? Action.RestoreStates : Action.MergeStates })
+                    }
+
+                    current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                } else if (frame.action == WorkAction.Finish) {
+                    if (!current.references[integers.widen(current.program.expressions.types[frame.subject])]) {
+                        current.value = State.Copy
+                    }
+                } else if (frame.action == WorkAction.Copy) {
+                    current.value = State.Copy
+                } else if (frame.action == WorkAction.Borrowed) {
+                    current.value = State.Borrowed
+                } else if (frame.action == WorkAction.Borrow) {
+                    if (!frame.moving && current.references[integers.widen(current.program.expressions.types[frame.subject])]) {
+                        current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: frame.subject, permanent: false })
+                    }
+                } else if (frame.action == WorkAction.Aggregate) {
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Borrow, subject: frame.subject, moving: frame.moving, index: 0 } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: frame.subject, moving: frame.moving, index: 0 } })
+                } else if (frame.action == WorkAction.Sequence) {
+                    const kind = current.program.expressions.kinds[frame.subject]
+                    const payload = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const items = { first: integers.widen(current.program.expressions.sequence_first[payload]), count: integers.widen(current.program.expressions.sequence_count[payload]) }
+
+                    if (frame.index < items.count) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.SequenceResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                        current.work = push({ work: current.work, frame: { action: kind == ExpressionKind.Template ? WorkAction.Value : WorkAction.Aggregate, subject: integers.widen(current.program.expressions.sequence_items[items.first + frame.index]), moving: kind == ExpressionKind.Template ? false : frame.moving, index: 0 } })
+                    } else {
+                        current.value = kind == ExpressionKind.Template ? State.Copy : current.values[current.values.length - 1]
+                        current.values = current.values.pop()[0]
+                    }
+                } else if (frame.action == WorkAction.SequenceResult) {
+                    if (current.value == State.Borrowed) {
+                        current.values[current.values.length - 1] = State.Borrowed
+                    }
+
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Sequence, subject: frame.subject, moving: frame.moving, index: frame.index + 1 } })
+                } else if (frame.action == WorkAction.IndexTarget) {
+                    const item = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    current.values = current.values.push(current.value)[0]
+                    current.work = push({ work: current.work, frame: { action: WorkAction.IndexResult, subject: 0, moving: false, index: 0 } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.index_values[item]), moving: false, index: 0 } })
+                } else if (frame.action == WorkAction.IndexResult) {
+                    current.value = current.values[current.values.length - 1]
+                    current.values = current.values.pop()[0]
+                } else if (frame.action == WorkAction.IterationInitial) {
+                    const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const temporary = current.program.expressions.kinds[integers.widen(current.program.expressions.iteration_initials[iteration])] == ExpressionKind.Call && current.value == State.Owned
+                    const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                    const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                    current.snapshots = captured.stack
+                    current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: integers.widen(current.program.expressions.iteration_condition_parameters[iteration]), operation: Operation.Assign, value: container ? State.Borrowed : State.Copy }) }
+                    current.work = push({ work: current.work, frame: { action: WorkAction.IterationCondition, subject: frame.subject, moving: temporary, index: captured.frame } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.iteration_conditions[iteration]), moving: false, index: 0 } })
+                } else if (frame.action == WorkAction.IterationCondition) {
+                    const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                    const state = container ? State.Borrowed : State.Copy
+
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                    current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: integers.widen(current.program.expressions.iteration_parameters[iteration]), operation: Operation.Assign, value: frame.moving ? State.Owned : state }) }
+                    current.work = push({ work: current.work, frame: { action: WorkAction.IterationBody, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.iteration_bodies[iteration]), moving: true, index: 0 } })
+                } else if (frame.action == WorkAction.IterationBody) {
+                    const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+
+                    current.values = current.values.push(current.value)[0]
+                    current.work = push({ work: current.work, frame: { action: WorkAction.IterationFinish, subject: frame.subject, moving: frame.moving, index: frame.index } })
+
+                    if (frame.moving && (current.value == State.Borrowed || current.value == State.Loaned)) {
+                        current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                        current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: integers.widen(current.program.expressions.iteration_parameters[iteration]), operation: Operation.Assign, value: container ? State.Borrowed : State.Copy }) }
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.iteration_bodies[iteration]), moving: true, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.IterationFinish) {
+                    const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                    const result = current.values[current.values.length - 1]
+                    const borrowed = container && ((!current.program.expressions.iteration_postconditions[iteration] && !frame.moving) || result == State.Borrowed || result == State.Loaned)
+
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+
+                    if (borrowed) {
+                        current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.iteration_initials[iteration]), permanent: true })
+                    }
+
+                    current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                    current.values = current.values.pop()[0]
+                    current.value = borrowed ? State.Borrowed : result
+                } else if (frame.action == WorkAction.TransformTarget) {
+                    const transform = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const initial = optionalId(current.program.expressions.transform_initials[transform])
+
+                    current.value = State.Copy
+                    current.work = push({ work: current.work, frame: { action: WorkAction.TransformInitial, subject: frame.subject, moving: false, index: 0 } })
+
+                    if (initial != null) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: initial, moving: true, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.TransformInitial) {
+                    const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                    current.snapshots = captured.stack
+                    current.values = current.values.push(current.value)[0]
+                    current.work = push({ work: current.work, frame: { action: WorkAction.TransformBody, subject: frame.subject, moving: false, index: 0 } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.TransformParameter, subject: frame.subject, moving: false, index: 0 } })
+                } else if (frame.action == WorkAction.TransformParameter) {
+                    const transform = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    if (frame.index < integers.widen(current.program.expressions.transform_count[transform])) {
+                        const parameter = integers.widen(current.program.expressions.transform_parameters[integers.widen(current.program.expressions.transform_first[transform]) + frame.index])
+                        const reference = current.references[integers.widen(current.program.symbols.types[parameter])]
+                        const initial = frame.moving ? State.Borrowed : current.values[current.values.length - 1]
+                        const state = current.program.expressions.transform_kinds[transform] == TransformKind.Reduce && frame.index == 0 ? initial : State.Borrowed
+
+                        current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: parameter, operation: Operation.Assign, value: reference ? state : State.Copy }) }
+                        current.work = push({ work: current.work, frame: { action: WorkAction.TransformParameter, subject: frame.subject, moving: frame.moving, index: frame.index + 1 } })
+                    } else {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.transform_bodies[transform]), moving: true, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.TransformBody) {
+                    const transform = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const initial = current.values[current.values.length - 1]
+
+                    current.values = current.values.push(current.value)[0]
+                    current.work = push({ work: current.work, frame: { action: WorkAction.TransformFinish, subject: frame.subject, moving: false, index: 0 } })
+
+                    if (current.program.expressions.transform_kinds[transform] == TransformKind.Reduce && current.value == State.Borrowed && initial != State.Borrowed) {
+                        current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: current.snapshots.state_first.length - 1, action: Action.RestoreStates })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.TransformParameter, subject: frame.subject, moving: true, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.TransformFinish) {
+                    const transform = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const initial_state = current.values[current.values.length - 2]
+                    const result = current.values[current.values.length - 1]
+                    const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.transform_targets[transform])])
+                    const element = integers.widen(current.program.types.first[type_id])
+                    const predicate = current.program.expressions.transform_kinds[transform] == TransformKind.Every || current.program.expressions.transform_kinds[transform] == TransformKind.Some
+                    const borrowed = !predicate && ((current.program.expressions.transform_kinds[transform] == TransformKind.Filter && current.references[element]) || result == State.Borrowed || initial_state == State.Borrowed)
+                    const before = current.snapshots.state_first.length - 2
+
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before + 1, action: Action.RestoreStates })
+
+                    if (borrowed) {
+                        const initial = optionalId(current.program.expressions.transform_initials[transform])
+
+                        current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.transform_targets[transform]), permanent: true })
+
+                        if (initial != null) {
+                            current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: initial, permanent: true })
+                        }
+                    }
+
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before, action: Action.ReleaseNewLoans })
+                    current.snapshots = drop({ stack: current.snapshots, frame: before })
+                    current.values = current.values.pop()[0]
+                    current.values = current.values.pop()[0]
+                    const output = borrowed ? State.Borrowed : State.Owned
+
+                    current.value = predicate ? State.Copy : output
+                } else if (frame.action == WorkAction.SwitchSubject) {
+                    const before = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                    const combined = save({ memory: current.memory, stack: before.stack, capture: Capture.States })
+
+                    current.snapshots = combined.stack
+                    current.work = push({ work: current.work, frame: { action: WorkAction.SwitchCase, subject: frame.subject, moving: !current.program.control.selection_exhaustive[frame.subject], index: 0 } })
+                } else if (frame.action == WorkAction.SwitchCase) {
+                    const selection = frame.subject
+                    const before = current.snapshots.state_first.length - 2
+
+                    if (frame.index < integers.widen(current.program.control.selection_count[selection])) {
+                        current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before, action: Action.RestoreStates })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.SwitchResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Block, subject: integers.widen(current.program.control.case_bodies[integers.widen(current.program.control.selection_first[selection]) + frame.index]), moving: false, index: 0 } })
+                    } else {
+                        current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: before + 1, action: Action.RestoreStates })
+                        current.snapshots = drop({ stack: current.snapshots, frame: before })
+                    }
+                } else if (frame.action == WorkAction.SwitchResult) {
+                    const selection = frame.subject
+                    const continuing = !current.returns[integers.widen(current.program.control.case_bodies[integers.widen(current.program.control.selection_first[selection]) + frame.index])]
+
+                    if (continuing) {
+                        current.snapshots = update({ stack: current.snapshots, frame: current.snapshots.state_first.length - 1, states: current.memory.states, merge: frame.moving })
+                    }
+
+                    current.work = push({ work: current.work, frame: { action: WorkAction.SwitchCase, subject: frame.subject, moving: frame.moving || continuing, index: frame.index + 1 } })
+                } else if (frame.action == WorkAction.MatchSubject) {
+                    const before = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+                    const combined = save({ memory: current.memory, stack: before.stack, capture: Capture.States })
+
+                    current.snapshots = combined.stack
+                    current.values = current.values.push(State.Owned)[0]
+                    current.work = push({ work: current.work, frame: { action: WorkAction.MatchFinish, subject: frame.subject, moving: false, index: before.frame } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.MatchArm, subject: frame.subject, moving: frame.moving, index: 0 } })
+                } else if (frame.action == WorkAction.MatchArm) {
+                    const selection = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    if (frame.index < integers.widen(current.program.expressions.match_count[selection])) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.MatchCondition, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.match_conditions[integers.widen(current.program.expressions.match_first[selection]) + frame.index]), moving: false, index: 0 } })
+                    } else {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.match_fallbacks[selection]), moving: frame.moving, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.MatchCondition) {
+                    const selection = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    current.snapshots = update({ stack: current.snapshots, frame: current.snapshots.state_first.length - 2, states: current.memory.states, merge: false })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.MatchResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.match_results[integers.widen(current.program.expressions.match_first[selection]) + frame.index]), moving: frame.moving, index: 0 } })
+                } else if (frame.action == WorkAction.MatchResult) {
+                    if (current.value == State.Borrowed) {
+                        current.values[current.values.length - 1] = State.Borrowed
+                    }
+
+                    current.snapshots = update({ stack: current.snapshots, frame: current.snapshots.state_first.length - 1, states: current.memory.states, merge: frame.index != 0 })
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: current.snapshots.state_first.length - 2, action: Action.RestoreStates })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.MatchArm, subject: frame.subject, moving: frame.moving, index: frame.index + 1 } })
+                } else if (frame.action == WorkAction.MatchFinish) {
+                    const selection = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    if (integers.widen(current.program.expressions.match_count[selection]) != 0) {
+                        current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index + 1, action: Action.MergeStates })
+                    }
+
+                    current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                    current.value = current.value == State.Borrowed || current.values[current.values.length - 1] == State.Borrowed ? State.Borrowed : State.Owned
+                    current.values = current.values.pop()[0]
+                } else if (frame.action == WorkAction.Invocation) {
+                    const invocations = { first: integers.widen(current.program.control.parallel_first[frame.subject]), count: integers.widen(current.program.control.parallel_count[frame.subject]) }
+
+                    if (frame.index < invocations.count) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.InvocationResult, subject: frame.subject, moving: false, index: frame.index } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.control.parallel_values[invocations.first + frame.index]), moving: false, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.InvocationResult) {
+                    const invocation = integers.widen(current.program.control.parallel_first[frame.subject]) + frame.index
+                    const symbol = optionalId(current.program.control.parallel_symbols[invocation])
+                    const call = integers.widen(current.program.expressions.payloads[integers.widen(current.program.control.parallel_values[invocation])])
+
+                    if (symbol != null) {
+                        current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: symbol, operation: Operation.Assign, value: current.value }) }
+                    }
+
+                    current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.call_arguments[call]), permanent: true })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Invocation, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                } else if (frame.action == WorkAction.CollectionTarget) {
+                    const collection = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.collection_targets[collection])])
+                    const element = integers.widen(current.program.types.first[type_id])
+                    const shares = current.program.expressions.collection_kinds[collection] == CollectionKind.Pop || current.program.expressions.collection_kinds[collection] == CollectionKind.Splice || current.references[element]
+                    const borrowed = shares && (current.value == State.Borrowed || current.value == State.Loaned)
+
+                    current.values = current.values.push(borrowed ? State.Borrowed : State.Owned)[0]
+                    current.work = push({ work: current.work, frame: { action: WorkAction.CollectionArgument, subject: frame.subject, moving: false, index: 0 } })
+                } else if (frame.action == WorkAction.CollectionArgument) {
+                    const collection = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    if (frame.index < integers.widen(current.program.expressions.collection_count[collection])) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.CollectionResult, subject: frame.subject, moving: false, index: frame.index } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.collection_arguments[integers.widen(current.program.expressions.collection_first[collection]) + frame.index]), moving: false, index: 0 } })
+                    } else {
+                        current.value = current.values[current.values.length - 1]
+                        current.values = current.values.pop()[0]
+
+                        if (current.value == State.Borrowed) {
+                            current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.collection_targets[collection]), permanent: true })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.CollectionFreeze, subject: frame.subject, moving: false, index: 0 } })
+                        }
+                    }
+                } else if (frame.action == WorkAction.CollectionResult) {
+                    const collection = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.collection_targets[collection])])
+                    const element = integers.widen(current.program.types.first[type_id])
+
+                    if (current.references[element] && (current.value == State.Borrowed || current.value == State.Loaned)) {
+                        current.values[current.values.length - 1] = State.Borrowed
+                    }
+
+                    current.work = push({ work: current.work, frame: { action: WorkAction.CollectionArgument, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                } else if (frame.action == WorkAction.CollectionFreeze) {
+                    const arguments = { first: integers.widen(current.program.expressions.collection_first[integers.widen(current.program.expressions.payloads[frame.subject])]), count: integers.widen(current.program.expressions.collection_count[integers.widen(current.program.expressions.payloads[frame.subject])]) }
+
+                    if (frame.index < arguments.count) {
+                        current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.collection_arguments[arguments.first + frame.index]), permanent: true })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.CollectionFreeze, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                    }
+                } else if (frame.action == WorkAction.ObjectEvaluation) {
+                    const object = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    if (frame.index < integers.widen(current.program.expressions.object_evaluation_count[object])) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.ObjectCached, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Aggregate, subject: integers.widen(current.program.expressions.object_evaluation_values[integers.widen(current.program.expressions.object_evaluation_first[object]) + frame.index]), moving: frame.moving, index: 0 } })
+                    } else {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.ObjectField, subject: frame.subject, moving: frame.moving, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.ObjectCached) {
+                    const object = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const position = current.layout.cached.positions[current.layout.cached.first[frame.subject] + frame.index]
+                    const expression = integers.widen(current.program.expressions.object_evaluation_values[integers.widen(current.program.expressions.object_evaluation_first[object]) + frame.index])
+
+                    current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: position, operation: Operation.Assign, value: current.value }) }
+                    current.memory.memo[expression] = position + 1
+                    current.work = push({ work: current.work, frame: { action: WorkAction.ObjectEvaluation, subject: frame.subject, moving: frame.moving, index: frame.index + 1 } })
+                } else if (frame.action == WorkAction.ObjectField) {
+                    const object = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    if (frame.index < integers.widen(current.program.expressions.object_count[object])) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.ObjectFieldResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Aggregate, subject: integers.widen(current.program.expressions.object_field_values[integers.widen(current.program.expressions.object_first[object]) + frame.index]), moving: frame.moving, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.ObjectFieldResult) {
+                    if (current.value == State.Borrowed) {
+                        current.values[current.values.length - 1] = State.Borrowed
+                    }
+
+                    current.work = push({ work: current.work, frame: { action: WorkAction.ObjectField, subject: frame.subject, moving: frame.moving, index: frame.index + 1 } })
+                } else if (frame.action == WorkAction.ObjectFinish) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreMemo })
+                    current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                    current.value = current.values[current.values.length - 1]
+                    current.values = current.values.pop()[0]
+                } else if (frame.action == WorkAction.ScopeBinding) {
+                    const scope = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    if (frame.index < integers.widen(current.program.expressions.scope_count[scope])) {
+                        const binding = integers.widen(current.program.expressions.scope_first[scope]) + frame.index
+
+                        current.work = push({ work: current.work, frame: { action: WorkAction.ScopeResult, subject: frame.subject, moving: frame.moving, index: frame.index } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.scope_values[binding]), moving: optionalId(current.program.expressions.scope_symbols[binding]) != null && !current.program.expressions.scope_borrows[binding], index: 0 } })
+                    } else {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.scope_results[scope]), moving: frame.moving, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.ScopeResult) {
+                    const binding = integers.widen(current.program.expressions.scope_first[integers.widen(current.program.expressions.payloads[frame.subject])]) + frame.index
+
+                    if (current.program.expressions.scope_borrows[binding] && current.references[integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.scope_values[binding])])]) {
+                        current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.scope_values[binding]), permanent: true })
+                        current.value = State.Borrowed
+                    }
+
+                    const symbol = optionalId(current.program.expressions.scope_symbols[binding])
+
+                    if (symbol != null) {
+                        current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: symbol, operation: Operation.Assign, value: current.value }) }
+                    }
+
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: current.snapshots.state_first.length - 1, action: Action.ReleaseNewLoans })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.ScopeBinding, subject: frame.subject, moving: frame.moving, index: frame.index + 1 } })
+                } else if (frame.action == WorkAction.ScopeFinish) {
+                    current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                } else if (frame.action == WorkAction.TaskCapture) {
+                    const task = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    current.expression = frame.subject
+
+                    if (frame.index < integers.widen(current.program.expressions.task_capture_count[task])) {
+                        const symbol = integers.widen(current.program.expressions.task_captures[integers.widen(current.program.expressions.task_capture_first[task]) + frame.index])
+                        const decision = access({ types: current.program.types, symbols: current.program.symbols, position: symbol, current: current.memory.states[symbol], moving: false })
+
+                        current.failed = decision.failed
+
+                        if (!decision.failed) {
+                            current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: symbol, operation: Operation.Freeze, value: State.Copy }) }
+                            current.work = push({ work: current.work, frame: { action: WorkAction.TaskCapture, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                        }
+                    } else {
+                        const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                        current.snapshots = captured.stack
+                        current.work = push({ work: current.work, frame: { action: WorkAction.TaskFinish, subject: frame.subject, moving: false, index: captured.frame } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.task_bodies[task]), moving: false, index: 0 } })
+                    }
+                } else if (frame.action == WorkAction.TaskFinish) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                    current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                    current.value = State.Owned
+                } else if (frame.action == WorkAction.ParallelBranch) {
+                    const branches = { first: integers.widen(current.program.expressions.parallel_first[integers.widen(current.program.expressions.payloads[frame.subject])]), count: integers.widen(current.program.expressions.parallel_count[integers.widen(current.program.expressions.payloads[frame.subject])]) }
+
+                    if (frame.index < branches.count) {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.ParallelBranch, subject: frame.subject, moving: false, index: frame.index + 1 } })
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.parallel_tasks[branches.first + frame.index]), moving: true, index: 0 } })
+                    } else {
+                        current.value = State.Borrowed
+                    }
+                } else if (frame.action == WorkAction.UpdateResult) {
+                    const update = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const type_id = integers.widen(current.program.expressions.types[frame.subject])
+                    const element = integers.widen(current.program.types.first[type_id])
+                    const borrowed = current.references[element] || current.value == State.Borrowed || current.value == State.Loaned
+
+                    if (borrowed) {
+                        current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.update_targets[update]), permanent: true })
+                        current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.update_values[update]), permanent: true })
+                    }
+
+                    current.value = borrowed ? State.Borrowed : State.Owned
+                } else if (frame.action == WorkAction.CallResult) {
+                    const call = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const function_info = current.program.functions[integers.widen(current.program.expressions.call_functions[call])]
+                    const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                    const escapes = loop({ slots: function_info.stores, index: 0, found: container && function_info.output_ownership == Ownership.Borrowed }, {
+                        while: slot => slot.index < slot.slots.length && !slot.found,
+                        next: slot => {
+                            slot.found = slot.slots[slot.index].writable
+                            slot.index += 1
+                        }
+                    })
+
+                    if (escapes.found) {
+                        current.memory = borrow({ expressions: current.program.expressions, layout: current.layout, memory: current.memory, expression: integers.widen(current.program.expressions.call_arguments[call]), permanent: true })
+                    }
+
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.ReleaseNewLoans })
+                    current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                    current.value = match function_info.output_ownership {
+                        Ownership.Copy => State.Copy,
+                        Ownership.Owned => State.Owned,
+                        _ => State.Borrowed
+                    }
+                } else if (frame.action == WorkAction.BinaryLeft) {
+                    const binary = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                    current.snapshots = captured.stack
+                    current.values = current.values.push(current.value)[0]
+                    current.work = push({ work: current.work, frame: { action: WorkAction.BinaryRight, subject: frame.subject, moving: false, index: captured.frame } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.binary_right[binary]), moving: frame.moving, index: 0 } })
+                } else if (frame.action == WorkAction.BinaryRight) {
+                    const binary = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                    if (current.program.expressions.binary_operators[binary] == BinaryOperator.LogicalAnd || current.program.expressions.binary_operators[binary] == BinaryOperator.LogicalOr || current.program.expressions.binary_operators[binary] == BinaryOperator.Coalesce) {
+                        current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.MergeStates })
+                    }
+
+                    current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                    current.value = current.value == State.Borrowed || current.values[current.values.length - 1] == State.Borrowed ? State.Borrowed : State.Owned
+                    current.values = current.values.pop()[0]
+                } else if (frame.action == WorkAction.ConditionalCondition) {
+                    const conditional = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                    current.snapshots = captured.stack
+                    current.work = push({ work: current.work, frame: { action: WorkAction.ConditionalYes, subject: frame.subject, moving: frame.moving, index: captured.frame } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.conditional_yes[conditional]), moving: frame.moving, index: 0 } })
+                } else if (frame.action == WorkAction.ConditionalYes) {
+                    const conditional = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                    current.snapshots = captured.stack
+                    current.values = current.values.push(current.value)[0]
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index, action: Action.RestoreStates })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.ConditionalNo, subject: frame.subject, moving: false, index: frame.index } })
+                    current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.conditional_no[conditional]), moving: frame.moving, index: 0 } })
+                } else if (frame.action == WorkAction.ConditionalNo) {
+                    current.memory = apply({ memory: current.memory, stack: current.snapshots, frame: frame.index + 1, action: Action.MergeStates })
+                    current.snapshots = drop({ stack: current.snapshots, frame: frame.index })
+                    current.value = current.value == State.Borrowed || current.values[current.values.length - 1] == State.Borrowed ? State.Borrowed : State.Owned
+                    current.values = current.values.pop()[0]
+                } else if (frame.action == WorkAction.Value) {
+                    const kind = current.program.expressions.kinds[frame.subject]
+                    const payload = integers.widen(current.program.expressions.payloads[frame.subject])
+                    const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
+                    const located = find({ expressions: current.program.expressions, layout: current.layout, memo: current.memory.memo, expression: frame.subject, trail: current.memory.trail })
+
+                    current.expression = frame.subject
+                    current.memory = { ...current.memory, trail: located.trail }
+
+                    if (located.found) {
+                        const moving = current.memory.memo[frame.subject] != 0 || kind == ExpressionKind.Reference ? frame.moving : container && frame.moving
+                        const decision = access({ types: current.program.types, symbols: current.program.symbols, position: located.position, current: current.memory.states[located.position], moving: moving })
+
+                        current.failed = decision.failed
+                        current.value = decision.value
+
+                        if (decision.assign) {
+                            current.memory = { ...current.memory, states: place({ layout: current.layout.tree, states: current.memory.states, id: located.position, operation: Operation.Assign, value: decision.assigned }) }
+                        }
+
+                        if (current.memory.memo[frame.subject] == 0 && !container) {
+                            current.value = State.Copy
+                        }
+                    } else {
+                        current.work = push({ work: current.work, frame: { action: WorkAction.Finish, subject: frame.subject, moving: false, index: 0 } })
+
+                        if (kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger || kind == ExpressionKind.Float || kind == ExpressionKind.String || kind == ExpressionKind.Boolean || kind == ExpressionKind.None || kind == ExpressionKind.Unit || kind == ExpressionKind.EnumValue || kind == ExpressionKind.ErrorValue) {
+                            current.value = State.Copy
+                        } else if (kind == ExpressionKind.StoreGet) {
+                            current.value = State.Borrowed
+                        } else if (kind == ExpressionKind.Some || kind == ExpressionKind.Capture || kind == ExpressionKind.OptionalValue) {
+                            const child = match kind {
+                                ExpressionKind.Some => integers.widen(current.program.expressions.some[payload]),
+                                ExpressionKind.Capture => integers.widen(current.program.expressions.captures[payload]),
+                                _ => integers.widen(current.program.expressions.optional_values[payload])
+                            }
+
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: child, moving: frame.moving, index: 0 } })
+                        } else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+                            const field = projection({ expressions: current.program.expressions, id: frame.subject })
+
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: field.target, moving: container && frame.moving, index: 0 } })
+                        } else if (kind == ExpressionKind.Index) {
+                            const item = payload
+
+                            current.work = push({ work: current.work, frame: { action: WorkAction.IndexTarget, subject: frame.subject, moving: false, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.index_targets[item]), moving: container && frame.moving, index: 0 } })
+                        } else if (kind == ExpressionKind.Length || kind == ExpressionKind.Unary || kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask) {
+                            const child = match kind {
+                                ExpressionKind.Length => integers.widen(current.program.expressions.lengths[payload]),
+                                ExpressionKind.Unary => integers.widen(current.program.expressions.unary_operands[payload]),
+                                ExpressionKind.AwaitTask => integers.widen(current.program.expressions.awaits[payload]),
+                                _ => integers.widen(current.program.expressions.cancellations[payload])
+                            }
+
+                            current.work = push({ work: current.work, frame: { action: kind == ExpressionKind.AwaitTask ? WorkAction.Borrowed : WorkAction.Copy, subject: 0, moving: false, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: child, moving: kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask, index: 0 } })
+                        } else if (kind == ExpressionKind.Iteration) {
+                            current.work = push({ work: current.work, frame: { action: WorkAction.IterationInitial, subject: frame.subject, moving: false, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.iteration_initials[payload]), moving: false, index: 0 } })
+                        } else if (kind == ExpressionKind.Transform) {
+                            const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                            current.snapshots = captured.stack
+                            current.work = push({ work: current.work, frame: { action: WorkAction.TransformTarget, subject: frame.subject, moving: false, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Aggregate, subject: integers.widen(current.program.expressions.transform_targets[payload]), moving: false, index: 0 } })
+                        } else if (kind == ExpressionKind.Match) {
+                            const subject = optionalId(current.program.expressions.match_subjects[payload])
+
+                            current.work = push({ work: current.work, frame: { action: WorkAction.MatchSubject, subject: frame.subject, moving: frame.moving, index: 0 } })
+
+                            if (subject != null) {
+                                current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: subject, moving: false, index: 0 } })
+                            }
+                        } else if (kind == ExpressionKind.ListOperation) {
+                            current.work = push({ work: current.work, frame: { action: WorkAction.CollectionTarget, subject: frame.subject, moving: false, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.collection_targets[payload]), moving: false, index: 0 } })
+                        } else if (kind == ExpressionKind.Object) {
+                            const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.Memo })
+
+                            current.snapshots = captured.stack
+                            current.values = current.values.push(State.Owned)[0]
+                            current.work = push({ work: current.work, frame: { action: WorkAction.ObjectFinish, subject: frame.subject, moving: false, index: captured.frame } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.ObjectEvaluation, subject: frame.subject, moving: frame.moving, index: 0 } })
+                        } else if (kind == ExpressionKind.Scope) {
+                            const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                            current.snapshots = captured.stack
+                            current.work = push({ work: current.work, frame: { action: WorkAction.ScopeFinish, subject: frame.subject, moving: false, index: captured.frame } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.ScopeBinding, subject: frame.subject, moving: frame.moving, index: 0 } })
+                        } else if (kind == ExpressionKind.Task || kind == ExpressionKind.Parallel) {
+                            current.work = push({ work: current.work, frame: { action: kind == ExpressionKind.Task ? WorkAction.TaskCapture : WorkAction.ParallelBranch, subject: frame.subject, moving: false, index: 0 } })
+                        } else if (kind == ExpressionKind.ListUpdate) {
+                            const update = payload
+
+                            current.work = push({ work: current.work, frame: { action: WorkAction.UpdateResult, subject: frame.subject, moving: false, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.update_values[update]), moving: true, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.update_indices[update]), moving: false, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.update_targets[update]), moving: false, index: 0 } })
+                        } else if (kind == ExpressionKind.Call) {
+                            const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.States })
+
+                            current.snapshots = captured.stack
+                            current.work = push({ work: current.work, frame: { action: WorkAction.CallResult, subject: frame.subject, moving: false, index: captured.frame } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.call_arguments[payload]), moving: false, index: 0 } })
+                        } else if (kind == ExpressionKind.Binary) {
+                            current.work = push({ work: current.work, frame: { action: WorkAction.BinaryLeft, subject: frame.subject, moving: container && frame.moving, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.binary_left[payload]), moving: container && frame.moving, index: 0 } })
+                        } else if (kind == ExpressionKind.Conditional) {
+                            current.work = push({ work: current.work, frame: { action: WorkAction.ConditionalCondition, subject: frame.subject, moving: frame.moving, index: 0 } })
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Value, subject: integers.widen(current.program.expressions.conditional_conditions[payload]), moving: false, index: 0 } })
+                        } else if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
+                            current.values = current.values.push(State.Owned)[0]
+                            current.work = push({ work: current.work, frame: { action: WorkAction.Sequence, subject: frame.subject, moving: frame.moving, index: 0 } })
+                        } else {
+                            current.complete = false
+                        }
+                    }
+                } else {
+                    current.complete = false
+                }
+            }
+        }
+    })
+
+    return { complete: result.complete, failed: result.failed, expression: result.expression, output: result.returned == State.Loaned ? State.Borrowed : result.returned, stores_owned: result.stores_owned }
+}

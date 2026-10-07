@@ -1,0 +1,7 @@
+<Module>
+    <Call module="./initialize" in={$in} />
+
+    <Call fn="./runtime/execute" in={{ program: $in, references: $ctx.initialize.prepared.references, returns: $ctx.initialize.prepared.returns, layout: $ctx.initialize.prepared.layout, runtime: { memory: $ctx.initialize.memory, snapshots: $ctx.initialize.snapshots } }} />
+
+    <Return value={$ctx.execute} />
+</Module>

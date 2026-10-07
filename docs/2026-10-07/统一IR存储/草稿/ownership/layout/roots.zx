@@ -1,0 +1,91 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../expressions/kinds"
+
+import type { Program } from "../ir/input_model"
+import type { Roots } from "./model"
+
+export enum Phase { Heads, Symbols, Expressions, Evaluation }
+
+export type Input = { program: Program, references: bool[] }
+
+export type Output = Roots
+
+export default function (in: Input): Output {
+    const numbers: u64[] = []
+    const flags: bool[] = []
+
+    const result = loop({ program: in.program, references: in.references, phase: Phase.Heads, index: 0, item: 0, active: true, parents: numbers, children: numbers, siblings: numbers, reference_flags: flags, cached_first: numbers, cached_count: numbers, cached_positions: numbers, heads: numbers, tails: numbers, next: numbers }, {
+        while: current => current.active,
+        next: current => {
+            if (current.phase == Phase.Heads) {
+                if (current.heads.length < current.program.expressions.kinds.length) {
+                    current.heads = current.heads.push(0)[0]
+                    current.tails = current.tails.push(0)[0]
+                } else {
+                    current.phase = Phase.Symbols
+                }
+            } else if (current.phase == Phase.Symbols) {
+                if (current.index < current.program.symbols.types.length) {
+                    const type_id = current.program.symbols.types[current.index]
+
+                    current.parents = current.parents.push(0)[0]
+                    current.children = current.children.push(0)[0]
+                    current.siblings = current.siblings.push(0)[0]
+                    current.reference_flags = current.reference_flags.push(current.references[integers.widen(type_id)])[0]
+                    current.index += 1
+                } else {
+                    current.index = 0
+                    current.phase = Phase.Expressions
+                }
+            } else if (current.phase == Phase.Expressions) {
+                if (current.index == current.program.expressions.kinds.length) {
+                    current.active = false
+                } else {
+                    current.cached_first = current.cached_first.push(current.cached_positions.length)[0]
+
+                    if (current.program.expressions.kinds[current.index] == ExpressionKind.Object) {
+                        const object = integers.widen(current.program.expressions.payloads[current.index])
+
+                        current.cached_count = current.cached_count.push(integers.widen(current.program.expressions.object_evaluation_count[object]))[0]
+                        current.item = 0
+                        current.phase = Phase.Evaluation
+                    } else {
+                        current.cached_count = current.cached_count.push(0)[0]
+                        current.index += 1
+                    }
+                }
+            } else {
+                const object = integers.widen(current.program.expressions.payloads[current.index])
+
+                if (current.item == integers.widen(current.program.expressions.object_evaluation_count[object])) {
+                    current.index += 1
+                    current.phase = Phase.Expressions
+                } else {
+                    const expression = integers.widen(current.program.expressions.object_evaluation_values[integers.widen(current.program.expressions.object_evaluation_first[object]) + current.item])
+                    const root = current.parents.length
+                    const position = current.cached_positions.length
+                    const tail = current.tails[expression]
+
+                    current.parents = current.parents.push(0)[0]
+                    current.children = current.children.push(0)[0]
+                    current.siblings = current.siblings.push(0)[0]
+                    current.reference_flags = current.reference_flags.push(current.references[integers.widen(current.program.expressions.types[expression])])[0]
+                    current.cached_positions = current.cached_positions.push(root)[0]
+                    current.next = current.next.push(0)[0]
+
+                    if (tail == 0) {
+                        current.heads[expression] = position + 1
+                    } else {
+                        current.next[tail - 1] = position + 1
+                    }
+
+                    current.tails[expression] = position + 1
+                    current.item += 1
+                }
+            }
+        }
+    })
+
+    return { tree: { parents: result.parents, children: result.children, siblings: result.siblings, references: result.reference_flags }, cached: { first: result.cached_first, count: result.cached_count, positions: result.cached_positions }, heads: result.heads, next: result.next }
+}

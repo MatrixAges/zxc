@@ -1,0 +1,26 @@
+import integers from "zig:integers"
+
+import type { Control } from "../../control/model"
+
+export type Input = { control: Control, selection: u64, returns: bool[] }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (!in.control.selection_exhaustive[in.selection]) {
+        return false
+    }
+
+    const first = integers.widen(in.control.selection_first[in.selection])
+    const count = integers.widen(in.control.selection_count[in.selection])
+
+    const result = loop({ bodies: in.control.case_bodies, returns: in.returns, index: first, end: first + count, all: true }, {
+        while: current => current.all && current.index < current.end,
+        next: current => {
+            current.all = current.returns[integers.widen(current.bodies[current.index])]
+            current.index += 1
+        }
+    })
+
+    return result.all
+}

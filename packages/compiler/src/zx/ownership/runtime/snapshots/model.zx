@@ -1,0 +1,14 @@
+import type { State } from "../../places/model"
+
+export enum Capture { States, Memo, Both }
+
+export enum Action { RestoreStates, MergeStates, ReleaseNewLoans, ReleaseAllLoans, RestoreMemo }
+
+export type Stack = {
+    states: State[]
+    memo: u64[]
+    state_first: u64[]
+    state_count: u64[]
+    memo_first: u64[]
+    memo_count: u64[]
+}

@@ -1,0 +1,87 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../ir/canonical/expressions/kinds"
+import projection from "../../layout/projection"
+
+import type { Expressions } from "../../../ir/canonical/expressions/model"
+
+export type Input = { expressions: Expressions, expression: u64, index: u64, permanent: bool }
+
+export type Output = { found: bool, expression: u64 }
+
+export default function (in: Input): Output {
+    const kind = in.expressions.kinds[in.expression]
+    const payload = integers.widen(in.expressions.payloads[in.expression])
+
+    if (kind == ExpressionKind.Match) {
+        const first = integers.widen(in.expressions.match_first[payload])
+        const count = integers.widen(in.expressions.match_count[payload])
+
+        if (in.index < count) {
+            return { found: true, expression: integers.widen(in.expressions.match_results[first + in.index]) }
+        }
+
+        return { found: in.index == count, expression: integers.widen(in.expressions.match_fallbacks[payload]) }
+    }
+
+    if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Object) {
+        const object = kind == ExpressionKind.Object
+        const first = integers.widen(object ? in.expressions.object_evaluation_first[payload] : in.expressions.sequence_first[payload])
+        const count = integers.widen(object ? in.expressions.object_evaluation_count[payload] : in.expressions.sequence_count[payload])
+        const values = object ? in.expressions.object_evaluation_values : in.expressions.sequence_items
+
+        return { found: in.index < count, expression: in.index < count ? integers.widen(values[first + in.index]) : 0 }
+    }
+
+    if (kind == ExpressionKind.ListUpdate) {
+        return { found: in.index < 2, expression: integers.widen(in.index == 0 ? in.expressions.update_targets[payload] : in.expressions.update_values[payload]) }
+    }
+
+    if (kind == ExpressionKind.Conditional) {
+        return { found: in.index < 2, expression: integers.widen(in.index == 0 ? in.expressions.conditional_yes[payload] : in.expressions.conditional_no[payload]) }
+    }
+
+    if (kind == ExpressionKind.Binary) {
+        return { found: in.index < 2, expression: integers.widen(in.index == 0 ? in.expressions.binary_left[payload] : in.expressions.binary_right[payload]) }
+    }
+
+    if (in.index != 0) {
+        return { found: false, expression: 0 }
+    }
+
+    if (kind == ExpressionKind.Scope) {
+        return { found: true, expression: integers.widen(in.expressions.scope_results[payload]) }
+    }
+
+    if (kind == ExpressionKind.Iteration) {
+        return { found: true, expression: integers.widen(in.expressions.iteration_initials[payload]) }
+    }
+
+    if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+        return { found: true, expression: projection({ expressions: in.expressions, id: in.expression }).target }
+    }
+
+    if (kind == ExpressionKind.Index) {
+        return { found: true, expression: integers.widen(in.expressions.index_targets[payload]) }
+    }
+
+    if (kind == ExpressionKind.Some || kind == ExpressionKind.Capture || kind == ExpressionKind.OptionalValue) {
+        const expression = match kind {
+            ExpressionKind.Some => in.expressions.some[payload],
+            ExpressionKind.Capture => in.expressions.captures[payload],
+            _ => in.expressions.optional_values[payload]
+        }
+
+        return { found: true, expression: integers.widen(expression) }
+    }
+
+    if (in.permanent && kind == ExpressionKind.Transform) {
+        return { found: true, expression: integers.widen(in.expressions.transform_targets[payload]) }
+    }
+
+    if (in.permanent && kind == ExpressionKind.Call) {
+        return { found: true, expression: integers.widen(in.expressions.call_arguments[payload]) }
+    }
+
+    return { found: false, expression: 0 }
+}

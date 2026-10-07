@@ -1,4 +1,4 @@
-pub const Kind = enum(u32) { Evaluate, Constant, Parallel, Destructure, Branch, Switch, StoreSet, Result };
+pub const Kind = enum { Evaluate, Constant, Parallel, Destructure, Branch, Switch, StoreSet, Result };
 
 pub const Table = struct {
     pub const validStructure = @import("validate.zig").structure;

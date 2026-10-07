@@ -1,0 +1,7 @@
+export enum State { Copy, Borrowed, Owned, Loaned, Moved }
+
+export enum Operation { Assign, Borrow, Freeze }
+
+export type Layout = { parents: u64[], children: u64[], siblings: u64[], references: bool[] }
+
+export type Request = { layout: Layout, states: State[], id: u64, operation: Operation, value: State }

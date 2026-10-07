@@ -1,0 +1,30 @@
+import integers from "zig:integers"
+
+import kind from "../../analysis/semantic/types/kind"
+import { Kind } from "../../analysis/semantic/types/model"
+import { State } from "../places/model"
+
+import type { Table } from "../../analysis/semantic/types/model"
+import type { Symbols } from "../../ir/canonical/symbols"
+
+export type Input = { types: Table, symbols: Symbols, position: u64, current: State, moving: bool }
+
+export type Output = { failed: bool, value: State, assign: bool, assigned: State }
+
+export default function (in: Input): Output {
+    if (in.current == State.Moved) {
+        return { failed: true, value: State.Moved, assign: false, assigned: State.Copy }
+    }
+
+    const linear = in.position < in.symbols.types.length && kind(in.types.kinds[integers.widen(in.symbols.types[in.position])]) == Kind.Task
+
+    if (in.moving && in.current == State.Owned && linear) {
+        return { failed: false, value: in.current, assign: true, assigned: State.Moved }
+    }
+
+    if (in.moving && (in.current == State.Loaned || in.current == State.Borrowed)) {
+        return { failed: false, value: State.Borrowed, assign: true, assigned: State.Borrowed }
+    }
+
+    return { failed: false, value: in.current == State.Loaned ? State.Borrowed : in.current, assign: false, assigned: State.Copy }
+}

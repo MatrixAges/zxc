@@ -1,0 +1,48 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../../control/model"
+import selectionReturns from "./selection_returns"
+
+import type { Control } from "../../control/model"
+
+export type Input = Control
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const initial: bool[] = []
+
+    const result = loop({ control: in, block: 0, returns: initial }, {
+        while: current => current.block < current.control.block_first.length,
+        next: current => {
+            const count = integers.widen(current.control.block_count[current.block])
+
+            if (count == 0) {
+                current.returns = current.returns.push(false)[0]
+            } else {
+                const statement = integers.widen(current.control.block_first[current.block]) + count - 1
+                const kind = current.control.statement_kinds[statement]
+                const payload = integers.widen(current.control.statement_payloads[statement])
+
+                if (kind == StatementKind.Result) {
+                    current.returns = current.returns.push(true)[0]
+                } else if (kind == StatementKind.Branch) {
+                    const yes = integers.widen(current.control.branch_yes[payload])
+                    const no = integers.widen(current.control.branch_no[payload])
+
+                    current.returns = current.returns.push(current.returns[yes] && current.returns[no])[0]
+                } else if (kind == StatementKind.Switch) {
+                    const all = selectionReturns({ control: current.control, selection: payload, returns: current.returns })
+
+                    current.returns = current.returns.push(all)[0]
+                } else {
+                    current.returns = current.returns.push(false)[0]
+                }
+            }
+
+            current.block += 1
+        }
+    })
+
+    return result.returns
+}
