@@ -1,0 +1,23 @@
+import probe from "zig:probe"
+
+import type { PatchInput } from "./types"
+
+export type Input = PatchInput
+
+export type Output = i64[]
+
+export default function (in: Input): Output {
+    const initial = { ...in, round: 0 }
+
+    const result = loop(initial, {
+        while: state => state.round < state.count,
+        next: state => {
+            state.values = probe.source(state.values)
+            state.values[probe.index(state.selected)] -= probe.value(state.delta)
+
+            state.round = probe.after(state.round) + 1
+        }
+    })
+
+    return result.values
+}

@@ -1,0 +1,302 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_12;
+
+pub const Output = *const (zx_abi).zx_type_13;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_7, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .delta = zx_shape_7, .enabled = zx_shape_1, .inner = zx_shape_5, .outer = zx_shape_5, .selected = zx_shape_5, .values = zx_shape_11, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .mirror = zx_shape_11, .original = zx_shape_11, .seen = zx_shape_7, .steps = zx_shape_5, .values = zx_shape_11, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .delta = zx_shape_7, .enabled = zx_shape_1, .selected = zx_shape_5, .values = zx_shape_11, }, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .mirror = zx_shape_11, .seen = zx_shape_7, .values = zx_shape_11, }, };
+
+const zx_shape_16 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .delta = zx_shape_7, .enabled = zx_shape_1, .round = zx_shape_5, .selected = zx_shape_5, .values = zx_shape_11, }, };
+
+pub const input_shape = zx_shape_12;
+
+pub const output_shape = zx_shape_13;
+
+fn function_0(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_14) error{ IndexOutOfBounds, OutOfMemory, }![]const i64 {
+    @setRuntimeSafety(true);
+
+    const value_1: *const (zx_abi).zx_type_16 = block_25: {
+        const operand_21 = in;
+        const operand_22 = @as(u64, 0);
+
+        break :block_25 block_24: {
+            const operand_23 = (try (allocator).create((zx_abi).zx_type_16));
+
+            (operand_23).* = @as((zx_abi).zx_type_16, (zx_abi).zx_type_16{ .count = (operand_21).count, .delta = (operand_21).delta, .enabled = (operand_21).enabled, .selected = (operand_21).selected, .values = (operand_21).values, .round = operand_22, });
+
+            break :block_24 @as(*const (zx_abi).zx_type_16, operand_23);
+        };
+    };
+    const value_14: *const (zx_abi).zx_type_16 = block_20: {
+        const operand_2 = value_1;
+
+        var state_items_4: []i64 = undefined;
+
+        var state_items_started_5 = false;
+
+        var state_1: (zx_abi).zx_type_16 = (operand_2).*;
+
+        var state_changed_3 = false;
+
+        while ((((&state_1)).round < ((&state_1)).count)) {
+            state_1 = block_16: {
+                const value_4: (zx_abi).zx_type_16 = ((&state_1)).*;
+                const value_5: []const i64 = ((&value_4)).values;
+                const value_6: u64 = ((&state_1)).selected;
+                const value_7: i64 = block_15: {
+                    const operand_13 = value_5;
+                    const operand_14 = value_6;
+
+                    if ((operand_14 >= (operand_13).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_15 (operand_13)[@intCast(operand_14)];
+                };
+                const value_8: i64 = ((&state_1)).delta;
+                const value_9: (zx_abi).zx_type_16 = block_12: {
+                    break :block_12 (zx_abi).zx_type_16{ .count = ((&value_4)).count, .delta = ((&value_4)).delta, .enabled = ((&value_4)).enabled, .round = ((&value_4)).round, .selected = ((&value_4)).selected, .values = block_11: {
+                        const operand_7 = value_5;
+                        const operand_8 = value_6;
+                        const operand_9 = (value_7 + value_8);
+
+                        if ((operand_8 >= (operand_7).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_11 block_10: {
+                            if ((!state_items_started_5)) {
+                                state_items_4 = (try (allocator).dupe(i64, operand_7));
+
+                                state_items_started_5 = true;
+                            }
+
+                            (state_items_4)[@intCast(operand_8)] = operand_9;
+
+                            break :block_10 state_items_4;
+                        };
+                    }, };
+                };
+                const value_10: (zx_abi).zx_type_16 = ((&value_9)).*;
+                const value_11: u64 = ((&value_10)).round;
+                const value_12: u64 = @as(u64, 1);
+                const value_13: (zx_abi).zx_type_16 = block_6: {
+                    break :block_6 (zx_abi).zx_type_16{ .count = ((&value_10)).count, .delta = ((&value_10)).delta, .enabled = ((&value_10)).enabled, .round = (value_11 + value_12), .selected = ((&value_10)).selected, .values = ((&value_10)).values, };
+                };
+
+                break :block_16 ((&value_13)).*;
+            };
+
+            state_changed_3 = true;
+        }
+
+        break :block_20 (if (state_changed_3) block_19: {
+            const operand_18 = (try (allocator).create((zx_abi).zx_type_16));
+
+            (operand_18).* = @as((zx_abi).zx_type_16, state_1);
+
+            break :block_19 @as(*const (zx_abi).zx_type_16, operand_18);
+        } else operand_2);
+    };
+
+    return (value_14).values;
+}
+
+fn function_0_buffered(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_14, buffers: struct {
+    lane_0: ?struct {
+        buffer: *(std).ArrayList(i64),
+        started: *bool,
+    },
+}) error{ IndexOutOfBounds, OutOfMemory, }![]const i64 {
+    @setRuntimeSafety(true);
+
+    const value_1: *const (zx_abi).zx_type_16 = block_52: {
+        const operand_48 = in;
+        const operand_49 = @as(u64, 0);
+
+        break :block_52 block_51: {
+            const operand_50 = (try (allocator).create((zx_abi).zx_type_16));
+
+            (operand_50).* = @as((zx_abi).zx_type_16, (zx_abi).zx_type_16{ .count = (operand_48).count, .delta = (operand_48).delta, .enabled = (operand_48).enabled, .selected = (operand_48).selected, .values = (operand_48).values, .round = operand_49, });
+
+            break :block_51 @as(*const (zx_abi).zx_type_16, operand_50);
+        };
+    };
+    const value_14: *const (zx_abi).zx_type_16 = block_47: {
+        const operand_27 = value_1;
+
+        var state_capacity_29: (std).ArrayList(i64) = .empty;
+
+        var state_capacity_started_30 = false;
+
+        defer (state_capacity_29).deinit(allocator);
+
+        var state_26: (zx_abi).zx_type_16 = (operand_27).*;
+
+        var state_changed_28 = false;
+
+        while ((((&state_26)).round < ((&state_26)).count)) {
+            state_26 = block_42: {
+                const value_4: (zx_abi).zx_type_16 = ((&state_26)).*;
+                const value_5: []const i64 = ((&value_4)).values;
+                const value_6: u64 = ((&state_26)).selected;
+                const value_7: i64 = block_41: {
+                    const operand_39 = value_5;
+                    const operand_40 = value_6;
+
+                    if ((operand_40 >= (operand_39).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_41 (operand_39)[@intCast(operand_40)];
+                };
+                const value_8: i64 = ((&state_26)).delta;
+                const value_9: (zx_abi).zx_type_16 = block_38: {
+                    break :block_38 (zx_abi).zx_type_16{ .count = ((&value_4)).count, .delta = ((&value_4)).delta, .enabled = ((&value_4)).enabled, .round = ((&value_4)).round, .selected = ((&value_4)).selected, .values = block_37: {
+                        const operand_32 = value_5;
+                        const operand_33 = value_6;
+                        const operand_34 = (value_7 + value_8);
+
+                        if ((operand_33 >= (operand_32).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_37 @as([]const i64, (if (((buffers).lane_0 != null)) block_35: {
+                            if ((!(((buffers).lane_0.?).started).*)) {
+                                (try ((((buffers).lane_0.?).buffer).*).appendSlice(allocator, operand_32));
+
+                                (((buffers).lane_0.?).started).* = true;
+                            } else {
+                                (((((buffers).lane_0.?).buffer).*).items).len = (operand_32).len;
+                            }
+
+                            (((((buffers).lane_0.?).buffer).*).items)[@intCast(operand_33)] = operand_34;
+
+                            break :block_35 ((((buffers).lane_0.?).buffer).*).items;
+                        } else block_36: {
+                            if ((!state_capacity_started_30)) {
+                                (try (state_capacity_29).appendSlice(allocator, operand_32));
+
+                                state_capacity_started_30 = true;
+                            } else {
+                                ((state_capacity_29).items).len = (operand_32).len;
+                            }
+
+                            ((state_capacity_29).items)[@intCast(operand_33)] = operand_34;
+
+                            break :block_36 (state_capacity_29).items;
+                        }));
+                    }, };
+                };
+                const value_10: (zx_abi).zx_type_16 = ((&value_9)).*;
+                const value_11: u64 = ((&value_10)).round;
+                const value_12: u64 = @as(u64, 1);
+                const value_13: (zx_abi).zx_type_16 = block_31: {
+                    break :block_31 (zx_abi).zx_type_16{ .count = ((&value_10)).count, .delta = ((&value_10)).delta, .enabled = ((&value_10)).enabled, .round = (value_11 + value_12), .selected = ((&value_10)).selected, .values = ((&value_10)).values, };
+                };
+
+                break :block_42 ((&value_13)).*;
+            };
+
+            state_changed_28 = true;
+        }
+
+        var state_owned_43: []const i64 = (&[_]i64{});
+
+        errdefer (allocator).free(state_owned_43);
+
+        if (state_capacity_started_30) {
+            ((state_capacity_29).items).len = ((state_26).values).len;
+
+            state_owned_43 = (try (state_capacity_29).toOwnedSlice(allocator));
+        }
+
+        if (state_capacity_started_30) {
+            state_26 = (zx_abi).zx_type_16{ .count = (state_26).count, .delta = (state_26).delta, .enabled = (state_26).enabled, .round = (state_26).round, .selected = (state_26).selected, .values = state_owned_43, };
+        }
+
+        break :block_47 (if (state_changed_28) block_46: {
+            const operand_45 = (try (allocator).create((zx_abi).zx_type_16));
+
+            (operand_45).* = @as((zx_abi).zx_type_16, state_26);
+
+            break :block_46 @as(*const (zx_abi).zx_type_16, operand_45);
+        } else operand_27);
+    };
+
+    return (value_14).values;
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_12) error{ IndexOutOfBounds, OutOfMemory, }!*const (zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_1: []const i64 = (try function_0(allocator, block_16: {
+        const operand_9 = (in).values;
+        const operand_10 = (in).inner;
+        const operand_11 = (in).selected;
+        const operand_12 = (in).delta;
+        const operand_13 = (in).enabled;
+
+        break :block_16 block_15: {
+            const operand_14 = (try (allocator).create((zx_abi).zx_type_14));
+
+            (operand_14).* = @as((zx_abi).zx_type_14, (zx_abi).zx_type_14{ .values = operand_9, .count = operand_10, .selected = operand_11, .delta = operand_12, .enabled = operand_13, });
+
+            break :block_15 @as(*const (zx_abi).zx_type_14, operand_14);
+        };
+    }));
+
+    return block_8: {
+        const operand_1 = (in).values;
+        const operand_2 = value_1;
+        const operand_3 = (in).values;
+        const operand_4 = @as(i64, 0);
+        const operand_5 = (in).inner;
+
+        break :block_8 block_7: {
+            const operand_6 = (try (allocator).create((zx_abi).zx_type_13));
+
+            (operand_6).* = @as((zx_abi).zx_type_13, (zx_abi).zx_type_13{ .original = operand_1, .values = operand_2, .mirror = operand_3, .seen = operand_4, .steps = operand_5, });
+
+            break :block_7 @as(*const (zx_abi).zx_type_13, operand_6);
+        };
+    };
+}
+
