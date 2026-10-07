@@ -1,0 +1,86 @@
+{
+    "execution_commit": "7229b342804b9aa542b7776c043d624df776ead1",
+    "old_commit": "49edda5e15776dccf22b756ab1487de9bdaed2e9",
+    "protected_jsonl_count": 1004,
+    "protected_catalogs_unchanged": true,
+    "entries": {
+        "language/lexical/numeric/decimal_original/cases": {
+            "original_payloads": 403,
+            "dependencies": [
+                "language/lexical/numeric/decimal_original/cases/fraction.zx",
+                "language/lexical/numeric/decimal_original/cases/fraction_exponent/negative.zx",
+                "language/lexical/numeric/decimal_original/cases/fraction_exponent/positive.zx",
+                "language/lexical/numeric/decimal_original/cases/fraction_exponent/unsigned.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_digit.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_lower_exponent/negative.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_lower_exponent/positive.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_lower_exponent/unsigned.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_multi_digit/decimal_2_digits.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_multi_digit/decimal_3_digits.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_multi_digit/leading_zero_2_digits.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_multi_digit/leading_zero_3_digits.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_multi_digit/leading_zero_4_digits.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_signed.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_upper_exponent/negative.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_upper_exponent/positive.zx",
+                "language/lexical/numeric/decimal_original/cases/integer_upper_exponent/unsigned.zx"
+            ],
+            "line_counts": {
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/fraction_exponent/positive.zx": 52,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases.zx": 93,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_multi_digit/decimal_2_digits.zx": 28,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_upper_exponent/negative.zx": 50,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_multi_digit/leading_zero_2_digits.zx": 14,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/fraction_exponent/negative.zx": 52,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_lower_exponent/negative.zx": 50,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_lower_exponent/positive.zx": 50,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/fraction.zx": 70,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_multi_digit/leading_zero_3_digits.zx": 90,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_upper_exponent/unsigned.zx": 90,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/fraction_exponent/unsigned.zx": 90,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_multi_digit/decimal_3_digits.zx": 50,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_signed.zx": 30,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_upper_exponent/positive.zx": 50,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_multi_digit/leading_zero_4_digits.zx": 90,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_lower_exponent/unsigned.zx": 90,
+                "packages/test/tests/language/lexical/numeric/decimal_original/cases/integer_digit.zx": 30
+            }
+        },
+        "language/expressions/comparison/whitespace": {
+            "original_payloads": 72,
+            "dependencies": [
+                "language/expressions/comparison/whitespace/less.zx",
+                "language/expressions/comparison/whitespace/greater.zx",
+                "language/expressions/comparison/whitespace/less_equal.zx",
+                "language/expressions/comparison/whitespace/greater_equal.zx"
+            ],
+            "line_counts": {
+                "packages/test/tests/language/expressions/comparison/whitespace/greater_equal.zx": 54,
+                "packages/test/tests/language/expressions/comparison/whitespace.zx": 13,
+                "packages/test/tests/language/expressions/comparison/whitespace/less.zx": 54,
+                "packages/test/tests/language/expressions/comparison/whitespace/greater.zx": 54,
+                "packages/test/tests/language/expressions/comparison/whitespace/less_equal.zx": 54
+            }
+        }
+    },
+    "generator_checks": {
+        "generate_decimal_literals.ts": {
+            "exit_code": 0,
+            "stdout": "tests/language/lexical/numeric/decimal_original/cases.jsonl: 403 named cases\nupstream/reviews/language/literals/decimal_original.jsonl: 35 named cases\n"
+        },
+        "generate_relational_whitespace.ts": {
+            "exit_code": 0,
+            "stdout": "tests/language/types/relational_whitespace/cases.jsonl: 240 named cases\ntests/language/expressions/comparison/whitespace.jsonl: 216 named cases\nupstream/reviews/language/expressions/relational_whitespace.jsonl: 4 named cases\n"
+        },
+        "generate_compound_whitespace.ts": {
+            "exit_code": 0,
+            "stdout": "tests/language/statements/state_updates/whitespace/multiply.jsonl: 18 named cases\ntests/language/statements/state_updates/whitespace/divide.jsonl: 18 named cases\ntests/language/statements/state_updates/whitespace/remainder.jsonl: 18 named cases\ntests/language/statements/state_updates/whitespace/add.jsonl: 18 named cases\ntests/language/statements/state_updates/whitespace/subtract.jsonl: 18 named cases\ntests/language/types/compound_whitespace/cases.jsonl: 1050 named cases\nupstream/reviews/language/expressions/compound_whitespace.jsonl: 11 named cases\n"
+        }
+    },
+    "runtime_both_modes_verified": true,
+    "candidate_merge_required": false,
+    "runtime_evidence": {
+        "Debug": "Build Summary: 268/268 steps succeeded; 7688/7688 tests passed",
+        "ReleaseSafe": "Build Summary: 268/268 steps succeeded; 7688/7688 tests passed"
+    }
+}
