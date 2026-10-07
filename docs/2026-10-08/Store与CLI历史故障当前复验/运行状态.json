@@ -1,0 +1,99 @@
+{
+    "source_commit": "3bda0e588394a24538831f691bf1022839c90275",
+    "packages_tree": "36d6bf7299fff8a377491014b13b54c18a62951d",
+    "gates": {
+        "SharedReleaseSafe": {
+            "session_id": 75987,
+            "status": "terminal",
+            "exit_code": 0,
+            "raw_log": "/tmp/zxc-store-cli-current-ReleaseSafe.log",
+            "command": [
+                "zig",
+                "build",
+                "test-rx-store-io",
+                "test-process-entry",
+                "test-iterate",
+                "-Doptimize=ReleaseSafe",
+                "-Dzig-archive=/tmp/zig-x86_64-macos-0.17.0.tar.xz",
+                "--cache-dir",
+                "/tmp/zxc-map-observations-safe-cache",
+                "-j1",
+                "--verbose",
+                "--summary",
+                "all"
+            ],
+            "cwd": "packages/test",
+            "source_identity": "unproven: shared package inputs changed before terminal collection"
+        },
+        "SharedDebug": {
+            "session_id": 8569,
+            "status": "terminal",
+            "exit_code": 0,
+            "raw_log": "/tmp/zxc-store-cli-current-Debug.log",
+            "command": [
+                "zig",
+                "build",
+                "test-rx-store-io",
+                "test-process-entry",
+                "test-iterate",
+                "-Doptimize=Debug",
+                "-Dzig-archive=/tmp/zig-x86_64-macos-0.17.0.tar.xz",
+                "--cache-dir",
+                "/tmp/zxc-map-observations-debug-cache",
+                "-j1",
+                "--verbose",
+                "--summary",
+                "all"
+            ],
+            "cwd": "packages/test",
+            "source_identity": "verified at terminal against e5c67484 package snapshot"
+        },
+        "Debug": {
+            "session_id": 4531,
+            "status": "terminal",
+            "exit_code": 0,
+            "raw_log": "/tmp/zxc-store-cli-fixed-Debug.log",
+            "command": [
+                "zig",
+                "build",
+                "test-rx-store-io",
+                "test-process-entry",
+                "test-iterate",
+                "-Doptimize=Debug",
+                "-Dzig-archive=/tmp/zig-x86_64-macos-0.17.0.tar.xz",
+                "--cache-dir",
+                "/tmp/zxc-map-observations-debug-cache",
+                "-j1",
+                "--verbose",
+                "--summary",
+                "all"
+            ],
+            "cwd": "/Users/xiewendao/.codex/worktrees/store-cli-regression/zxc/packages/test",
+            "source_identity": "fixed detached checkout"
+        },
+        "ReleaseSafe": {
+            "session_id": 23750,
+            "status": "terminal",
+            "exit_code": 0,
+            "raw_log": "/tmp/zxc-store-cli-fixed-ReleaseSafe.log",
+            "command": [
+                "zig",
+                "build",
+                "test-rx-store-io",
+                "test-process-entry",
+                "test-iterate",
+                "-Doptimize=ReleaseSafe",
+                "-Dzig-archive=/tmp/zig-x86_64-macos-0.17.0.tar.xz",
+                "--cache-dir",
+                "/tmp/zxc-map-observations-safe-cache",
+                "-j1",
+                "--verbose",
+                "--summary",
+                "all"
+            ],
+            "cwd": "/Users/xiewendao/.codex/worktrees/store-cli-regression/zxc/packages/test",
+            "source_identity": "fixed detached checkout"
+        }
+    },
+    "execution_root": "/Users/xiewendao/.codex/worktrees/store-cli-regression/zxc"
+}
