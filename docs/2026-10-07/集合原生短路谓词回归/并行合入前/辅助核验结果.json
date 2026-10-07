@@ -1,0 +1,65 @@
+[
+    {
+        "label": "格式核验",
+        "argv": [
+            "node",
+            "scripts/format.mjs",
+            "--check",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/compiler/src/backends/zig/fingerprint.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/compiler/src/zx/analysis/transforms.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/compiler/src/zx/ir/expression_rules.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/compiler/src/zx/ownership/check.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/compiler/tests/language/store_test.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/core/src/error_effects/expression.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/core/src/ir.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/core/src/root.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/genz/src/zx/predicates.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/genz/src/zx/transform.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test/build.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test/build/predicates.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test/build/runtime.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test/tests/collections/predicates/analysis_test.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test/tests/collections/predicates/compile.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test/tests/collections/predicates/host.zig",
+            "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test/tests/collections/predicates/root.zig"
+        ],
+        "cwd": "/Users/xiewendao/Documents/MatrixAges/zxc",
+        "started_at": "2026-10-07T02:39:40.615261+00:00",
+        "completed_at": "2026-10-07T02:39:40.797874+00:00",
+        "exit_code": 0,
+        "log": "格式核验日志.txt",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+        "label": "用例生成核验",
+        "argv": ["node", "src/generate_list_predicates.ts", "--check"],
+        "cwd": "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test",
+        "started_at": "2026-10-07T02:39:40.797951+00:00",
+        "completed_at": "2026-10-07T02:39:40.861559+00:00",
+        "exit_code": 0,
+        "log": "用例生成核验日志.txt",
+        "log_sha256": "e6f1781cd0fd963d08ace83bfa1c77d8bb5dd3b62ba737d133b0087cfb3ea3c4"
+    },
+    {
+        "label": "类型核验",
+        "argv": ["node_modules/.bin/tsc", "--noEmit"],
+        "cwd": "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test",
+        "started_at": "2026-10-07T02:39:40.861632+00:00",
+        "completed_at": "2026-10-07T02:39:42.557751+00:00",
+        "exit_code": 0,
+        "log": "类型核验日志.txt",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+        "label": "矩阵最终审计",
+        "argv": ["node", "src/audit_matrix.ts"],
+        "cwd": "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test",
+        "started_at": "2026-10-07T02:39:42.557824+00:00",
+        "completed_at": "2026-10-07T02:39:44.529531+00:00",
+        "exit_code": 0,
+        "log": "矩阵最终审计日志.txt",
+        "log_sha256": "75840c78c72eee2f0365e88209ffbf3dcf9bdd5b01647bf22909c9047072bfcc"
+    }
+]

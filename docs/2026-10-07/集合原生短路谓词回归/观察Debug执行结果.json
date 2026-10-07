@@ -1,0 +1,263 @@
+{
+    "argv": [
+        "zig",
+        "build",
+        "test-every-observers",
+        "-Doptimize=Debug",
+        "-Dzig-archive=/tmp/zig-x86_64-macos-0.17.0.tar.xz",
+        "-j2",
+        "--summary",
+        "all",
+        "--verbose",
+        "--cache-dir",
+        "/tmp/zxc-list-predicate-debug-9cef2cd3"
+    ],
+    "cwd": "/Users/xiewendao/.codex/worktrees/list-predicate-conformance/zxc/packages/test",
+    "source_commit": "9cef2cd3b11906df4702b06f10c45d0ab27dd387",
+    "inputs": [
+        {
+            "path": "packages/compiler/src/backends/zig/fingerprint.zig",
+            "sha256": "aa788948564296913b1aeebb266b73ebb8f02daafb392eaa5afaa66f394ac7b6",
+            "base_sha256": "2449d8dae95058d3ffcdc30e3544fcbc8528b7f0946129bf2da8ed4933021f7b"
+        },
+        {
+            "path": "packages/compiler/src/zx/analysis/transforms.zig",
+            "sha256": "fc664bfe314151960601d31a09b7e242d02adc278b836d88053351fadb6659a5",
+            "base_sha256": "e86fa534a57a695abd20ddc0bcd52782debabf05a0ca4517d9b6e2f598583f84"
+        },
+        {
+            "path": "packages/compiler/src/zx/ir/expression_rules.zig",
+            "sha256": "d2866df6119d219942b37fac93d28f8d5517cefd7afe377c4da1ea9419a0ea16",
+            "base_sha256": "40a029f7aa6569d8b4229a96afbe505de6fded54e8d953badd2f35b8727f69e7"
+        },
+        {
+            "path": "packages/compiler/src/zx/ownership/check.zig",
+            "sha256": "e2c15ed1e4a366473449d05d79e78218d6bc194de8f97ea3eec9d1c150671f68",
+            "base_sha256": "a6dfd5ebf17e5e85ab21d421438b12588cb5611fb9d1c1582a644da0547370e5"
+        },
+        {
+            "path": "packages/compiler/tests/language/store_test.zig",
+            "sha256": "441bf521c797dedcf71da0b92d73c299371cae5cd1b4046224b36357d5dea771",
+            "base_sha256": "567a36c0380fe7c5001bea6c84e78a6fdad8606cdc632609a302438ba38d455f"
+        },
+        {
+            "path": "packages/compiler/tests/ownership/consumption_test.zig",
+            "sha256": "c130b22141a10a91a4a7acea9c78a5647cd15b1ec5681c8854d5bd703f0d2b00",
+            "base_sha256": "d640c21cc95abdd2fe571d91d8eb1f653cdc4ef0cb7fae65670ad79e0f18f187"
+        },
+        {
+            "path": "packages/compiler/tests/ownership/operations_test.zig",
+            "sha256": "e0af0cb34e3b64114696e7ec2490f94a0a6553907ec3c0a436642705bf2f8393",
+            "base_sha256": "03718995a120d6247281c72415cf64dbe1e2749622e3177b47eb288a48295a61"
+        },
+        {
+            "path": "packages/core/IR契约.md",
+            "sha256": "caddac33c9a768d5eb296ce265b6a69fe09c8b231b6cd815f95702e6a652ee5c",
+            "base_sha256": "db7e85a74247c29dfc5f8170a84f0c876a84bd6b0c427d627315300f853fc970"
+        },
+        {
+            "path": "packages/core/src/error_effects/expression.zig",
+            "sha256": "67eae0fec4868119be3e7472d6f814d846e8b3ac37e6ef99288478f330ab6ec0",
+            "base_sha256": "578f10c357a622e171cab59ddb84436353bfeae11375e523aa6ad2dd2baa33a7"
+        },
+        {
+            "path": "packages/core/src/ir.zig",
+            "sha256": "f9d2e1c217522e2ba01dccea1472ab448b33370f738c27bf946f93fa4c9940c8",
+            "base_sha256": "1d4e7bb9b9f3965e5778c621f38b1c21fdc4331aa82621ae37fada850a054e74"
+        },
+        {
+            "path": "packages/core/src/root.zig",
+            "sha256": "e04ab7f4bc85eedce6d181a858ecfa1a0c169c16fdb8ca35c51a550876593ce1",
+            "base_sha256": "f6d81693bc2de2ceed331432e95255d5eb1bc9f57f023cd3c44383343755904c"
+        },
+        {
+            "path": "packages/genz/src/zx/predicates.zig",
+            "sha256": "28866da5e20daa053043672b3b000bab4f5ac41737efc6911beec96193a6b965",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/genz/src/zx/transform.zig",
+            "sha256": "b80b4667b16b4936d80f01ca2e4805baf65bb971d22e308677d192303e6eb03c",
+            "base_sha256": "1cbbe878fbaff6c8ed7b7448f041ef3776ff5818073f83f9f17f91b397938771"
+        },
+        {
+            "path": "packages/test/build.zig",
+            "sha256": "8b6c6afbe5d2aefe9057b52258422ccdff8f71056f3875551a9230c70c20b3f5",
+            "base_sha256": "2daee146fbb2da0f86449e4a1a754c2a7a98ff485be0f3cfa745363a6fbcc536"
+        },
+        {
+            "path": "packages/test/build/predicates.zig",
+            "sha256": "a2802873bae846aaa166e5a8981a39eb049dd0d31e3c49a6bbe8565cb4925290",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/build/runtime.zig",
+            "sha256": "1e797cf31b68f4c30062a483f41e82e13b98798418d2eea705ecfd49f821f5e7",
+            "base_sha256": "5dba31dcb63c2ca7fc720529bdd84ce486066c78f8456b23d1ea58af47363784"
+        },
+        {
+            "path": "packages/test/src/generate_list_predicates.ts",
+            "sha256": "0ef7d5da446d844bdba4a7145e796511a6e6eef4006c8452a70858ac88f4d6f9",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/suites.json",
+            "sha256": "1f59cffd751533a5bd81a2eeedb512f9dc98a7667344f23be0616730aa42fcce",
+            "base_sha256": "037fcc88d6548b4a6c87bdb97201e2a75438d53201bbe221404917ee668f72ee"
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/bounds/cases.jsonl",
+            "sha256": "59b2f1a915c03d1cd8cca9839df3f150474ade4b57198d1ea2e3da17d769ca99",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/bounds/cases.zx",
+            "sha256": "45978926f5709637576e5b383d017162c014fc40ed482018f2bb0f794721a112",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/constant_false/cases.jsonl",
+            "sha256": "7b0a54843d04c195fdac68cc5bbb4a02edfc51d57c5843ebfc2a81fd57645c3d",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/constant_false/cases.zx",
+            "sha256": "c1c15d5078ecd65a5232d539b1800c1ebc1387bdc53961a8351c0f4e96437fc8",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/constant_true/cases.jsonl",
+            "sha256": "d0283ed2bafd3c7e5d2677e163eca0e879bf788269e565627f44e35fe6797169",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/constant_true/cases.zx",
+            "sha256": "c0f07e58f169e4756143180738b02940bd7368e198a7c6e7b979d75aaaf4747b",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/greater_0/cases.jsonl",
+            "sha256": "b8c04ad374a153d3a6e92b2e0eaf8e966fc3c6e8b7bec07829f0e6b9b2614deb",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/greater_0/cases.zx",
+            "sha256": "8a05eec360c34ac3dcd8a35425cd0bbe6ccf0e5796234f848321d049fb0d403e",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/greater_10/cases.jsonl",
+            "sha256": "ecdf31c38d2a25dccd69663631f8794eb1a45f1d9990269d9e897b7726fdda12",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/every/greater_10/cases.zx",
+            "sha256": "5e55288abac30ea27986ee2ab28af6f5e5a184bee6d4dbe89fbedcad88d0175f",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/nested/cases.jsonl",
+            "sha256": "5de88afcf4915ddcf1b7ba1c0e2b94b72390e0fd25478a08041c16984200dc4e",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/nested/cases.zx",
+            "sha256": "58f96b6583523d7b77dafc944f59a7ac1930c8c92ee547f05432e9ae2abc8032",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/bounds/cases.jsonl",
+            "sha256": "f69d2f7e5b0fbdd81633e2668d60db67b63c88cf4f486eeafe5fd270583b51fc",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/bounds/cases.zx",
+            "sha256": "3051a795c74df587c7c0efe9848e23d7204ba7fd0b9211154a3a89565d8fbee7",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/constant_false/cases.jsonl",
+            "sha256": "9efc84c4edf71cd095f433ed33233837651099be73d021f2cb9432a05efe6fcd",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/constant_false/cases.zx",
+            "sha256": "b1014a94e0f1ca0b1f3a3d01bcc2bce5754e8abd2470ca7a76e283f8991fb00f",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/constant_true/cases.jsonl",
+            "sha256": "6a51eee38395e30f08f663846d49dc54075d2637b9a56b789135822ea1f2a213",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/constant_true/cases.zx",
+            "sha256": "d8818da347bc1f4fe5487733adf9dd873cabfa4e545ec391400dde1f745c387d",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/greater_0/cases.jsonl",
+            "sha256": "ec65fdbc04e41a253f16ba297af24715d9a05477c0e3c4cfe2743e9a0269f419",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/greater_0/cases.zx",
+            "sha256": "39c2b5dce1a9d9bbaf554baa2de9b66fd0228d6e06e9332ca650ad5660a3f327",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/greater_10/cases.jsonl",
+            "sha256": "e95624cec0b7a79cd0470c86828d27c7ab6c5b4053aad33a76d4b2c29e29eab3",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/built_ins/list/predicates/some/greater_10/cases.zx",
+            "sha256": "736cf5ef82bb99cded2a7083408e42adf993987ea7154a5ecaf8c63bf5effd61",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/collections/predicates/analysis_test.zig",
+            "sha256": "37396a39c4457231cc006c0ba7bbc2cd55bb2fde63a9f8d6ac25a88f900c2359",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/collections/predicates/compile.zig",
+            "sha256": "2900b721dd05d0b873e17f1c6892273984ff85bb06915ae61635e10c807fe6a7",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/collections/predicates/fixtures/every.zx",
+            "sha256": "6be86f047d8f888249295e7b84d99487e82bf6a75c57c83a8f1ec9943fab2e07",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/collections/predicates/fixtures/host.d.zx",
+            "sha256": "1828f37d9776a5dcee6910d9bd2a6dc24db7082abffecb565e6663249bc121c0",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/collections/predicates/fixtures/some.zx",
+            "sha256": "9699284b8fa678cf601c3688d6fa770a652786778e5eaed1cb22f89cdad4504a",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/collections/predicates/host.zig",
+            "sha256": "511e6d762c085c97568225a2c1908fd10749cc564e753eab12f1da4e6c92417f",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/collections/predicates/root.zig",
+            "sha256": "736273327d80f5eee2563bd8f3133398f9fd4133a7bead6e009d5c2863ba2af1",
+            "base_sha256": null
+        },
+        {
+            "path": "packages/test/tests/collections/predicates/run_test.ts",
+            "sha256": "ef220e0fc5d678a813de87b0ffb033eaf6932fca9e082fdc0682b9ccd44b8d79",
+            "base_sha256": null
+        }
+    ],
+    "started_at": "2026-10-07T02:43:49.519765+00:00",
+    "completed_at": "2026-10-07T02:43:54.952017+00:00",
+    "exit_code": 0,
+    "log_sha256": "6fa11a22942455a466be3dc1eff1e303620acd56f131ecc9410480e3ea70a813"
+}

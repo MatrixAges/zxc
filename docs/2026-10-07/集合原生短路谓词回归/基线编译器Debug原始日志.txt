@@ -1,0 +1,407 @@
+test
++- run test zx-frontend-tests 287 pass, 26 fail (313 total)
+error: 'ownership.operations_test.test.ownership push: borrowed input' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:4:5: 0x100e13006 in test.ownership push: borrowed input (zx-frontend-tests)
+           try h.analyzeCase("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.push(2)\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership push: old owner' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:8:5: 0x100e12fa6 in test.ownership push: old owner (zx-frontend-tests)
+           try h.analyzeCase("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values = [1]\n const [next, _] = values.push(2)\n return values.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership push: nested borrowed field' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:16:5: 0x100e12ee6 in test.ownership push: nested borrowed field (zx-frontend-tests)
+           try h.analyzeCase("export type Input = { items: u64[] }\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.items.push(2)\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership pop: borrowed input' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:20:5: 0x100e12e86 in test.ownership pop: borrowed input (zx-frontend-tests)
+           try h.analyzeCase("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.pop()\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership pop: old owner' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:24:5: 0x100e12e26 in test.ownership pop: old owner (zx-frontend-tests)
+           try h.analyzeCase("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values = [1]\n const [next, _] = values.pop()\n return values.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership pop: nested borrowed field' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:32:5: 0x100e12d66 in test.ownership pop: nested borrowed field (zx-frontend-tests)
+           try h.analyzeCase("export type Input = { items: u64[] }\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.items.pop()\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership sort: borrowed input' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:36:5: 0x100e12d06 in test.ownership sort: borrowed input (zx-frontend-tests)
+           try h.analyzeCase("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.sort()\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership sort: old owner' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:40:5: 0x100e12ca6 in test.ownership sort: old owner (zx-frontend-tests)
+           try h.analyzeCase("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values = [1]\n const [next, _] = values.sort()\n return values.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership sort: nested borrowed field' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:48:5: 0x100e12be6 in test.ownership sort: nested borrowed field (zx-frontend-tests)
+           try h.analyzeCase("export type Input = { items: u64[] }\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.items.sort()\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership reverse: borrowed input' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:52:5: 0x100e12b86 in test.ownership reverse: borrowed input (zx-frontend-tests)
+           try h.analyzeCase("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.reverse()\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership reverse: old owner' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:56:5: 0x100e12b26 in test.ownership reverse: old owner (zx-frontend-tests)
+           try h.analyzeCase("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values = [1]\n const [next, _] = values.reverse()\n return values.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership reverse: nested borrowed field' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:64:5: 0x100e12a66 in test.ownership reverse: nested borrowed field (zx-frontend-tests)
+           try h.analyzeCase("export type Input = { items: u64[] }\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.items.reverse()\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership concat: borrowed input' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:68:5: 0x100e12a06 in test.ownership concat: borrowed input (zx-frontend-tests)
+           try h.analyzeCase("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.concat([2])\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership concat: old owner' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:72:5: 0x100e129a6 in test.ownership concat: old owner (zx-frontend-tests)
+           try h.analyzeCase("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values = [1]\n const [next, _] = values.concat([2])\n return values.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership concat: nested borrowed field' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:80:5: 0x100e128e6 in test.ownership concat: nested borrowed field (zx-frontend-tests)
+           try h.analyzeCase("export type Input = { items: u64[] }\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.items.concat([2])\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership splice: borrowed input' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:84:5: 0x100e12886 in test.ownership splice: borrowed input (zx-frontend-tests)
+           try h.analyzeCase("export type Input = u64[]\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.splice(0, 0, [2])\n return next.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership splice: old owner' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:88:5: 0x100e12826 in test.ownership splice: old owner (zx-frontend-tests)
+           try h.analyzeCase("export type Input = void\n export type Output = u64\n export default function (in: Input): Output { const values = [1]\n const [next, _] = values.splice(0, 0, [2])\n return values.length }", .ownership);
+           ^
+error: 'ownership.operations_test.test.ownership splice: nested borrowed field' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/helpers.zig:40:9: 0x100cac7d9 in analyzeCase (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/operations_test.zig:96:5: 0x100e12766 in test.ownership splice: nested borrowed field (zx-frontend-tests)
+           try h.analyzeCase("export type Input = { items: u64[] }\n export type Output = u64\n export default function (in: Input): Output { const [next, _] = in.items.splice(0, 0, [2])\n return next.length }", .ownership);
+           ^
+error: 'language.store_test.test.store: getter list data cannot be consumed without owning it' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/language/store_test.zig:20:9: 0x100e0bc03 in check (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/language/store_test.zig:50:5: 0x100e0c75d in test.store: getter list data cannot be consumed without owning it (zx-frontend-tests)
+           try check("const [next, _] = $state.value.items.reverse()\n return next.length\n", writable, .ownership);
+           ^
+error: 'language.store_test.test.store: publishing a local owner permits reading but freezes consumption' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/language/store_test.zig:20:9: 0x100e0bc03 in check (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/language/store_test.zig:63:5: 0x100e0c62f in test.store: publishing a local owner permits reading but freezes consumption (zx-frontend-tests)
+           try check("const sta
+error: 'ownership.consumption_test.test.ownership: assignment transfers an owned list' failed:
+       te = { count: 1, items: [2] }\n $state.value = state\n const [next, _] = state.items.reverse()\n return 0\n", writable, .ownership);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:23:9: 0x100cabcbc in check (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:30:5: 0x100cad4da in test.ownership: assignment transfers an owned list (zx-frontend-tests)
+           try check("const first = [1, 2]\n const second = first\n return first[0]\n", false);
+           ^
+error: 'ownership.consumption_test.test.ownership: consuming operation invalidates the previous owner' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:23:9: 0x100cabcbc in check (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:35:5: 0x100
+error: 'ownership.consumption_test.test.ownership: branch consumption is merged onto continuing paths' failed:
+       cad43a in test.ownership: consuming operation invalidates the previous owner (zx-frontend-tests)
+           try check("const items = [1, 2]\n const [next, _] = items.push(3)\n return items.length\n", false);
+           ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:23:9: 0x100cabcbc in check (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:39:5: 0x100cad36f in test.ownership: branch consumption is merged onto continuing paths (zx-frontend-tests)
+           try check("const items = [1]\n if (in) { const [next, _] = items.pop() } return items.length\n", false);
+           ^
+error: 'ownership.consumption_test.test.ownership: duplicate container fields cannot create owned aliases' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:23:9: 0x100cabcbc in check (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:48:5: 0x100cad291 in test.ownership: duplicate container fields cannot create owned aliases (zx-frontend-tests)
+           try check("const items = [1]\n const pair = { left: items, right: items }\n return 0\n", false);
+           ^
+error: 'ownership.consumption_test.test.ownership: moved fields and their incomplete parent cannot be reused' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:23:9: 0x100cabcbc in check (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:56:5: 0x100cad1ac in test.ownership: moved fields and their incomplete parent cannot be reused (zx-frontend-tests)
+           try check("const object = { values: [1], count: 2 }\n const values = object.values\n return object.values[0]\n", false);
+           ^
+error: 'ownership.consumption_test.test.ownership: an escaping nested view freezes the original owner' failed:
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10038b6ff in expect (zx-frontend-tests)
+           if (!ok) return error.TestUnexpectedResult;
+                    ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:23:9: 0x100cabcbc in check (zx-frontend-tests)
+               try std.testing.expect(analyzed.value == .diagnostic);
+               ^
+       /Users/xiewendao/.codex/worktrees/every-observer-conformance/zxc/packages/compiler/tests/ownership/consumption_test.zig:61:5: 0x100cad131 in test.ownership: an escaping nested view freezes the original owner (zx-frontend-tests)
+           try check("const rows = [[1]]\n const view = rows.filter((row) => true)\n const [next, _] = rows.reverse()\n return view.length\n", false);
+           ^
+failed command: /tmp/zxc-predicate-baseline-compiler-debug/o/d8e688951a40d86836578755d86f1f06/zx-frontend-tests --cache-dir=/tmp/zxc-predicate-baseline-compiler-debug --seed=0x8d501915 --listen=-
+
+Build Summary: 26/28 steps succeeded (1 failed); 346/372 tests passed (26 failed)
+test transitive failure
++- run test 39 pass (39 total) 48ms MaxRSS:2M
+|  +- compile test debug native success 2s MaxRSS:336M
+|     +- options success
+|     +- run exe generate-parser (parser.zig) success 11s
+|     |  +- compile exe generate-parser debug native success 4s MaxRSS:632M
+|     |     +- options success
+|     |     +- WriteFile interfaces/0.d.zx success
+|     |     |  +- run exe standard-catalog (catalog.zig) success 2ms
+|     |     |     +- compile exe standard-catalog fast native cached 7s MaxRSS:21M
+|     |     |     +- WriteFile catalog.json success
+|     |     +- options success
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- WriteFile interfaces/0.d.zx cached
+|     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     +- compile exe standard-catalog fast native cached 50ms MaxRSS:21M
+|     |     +- WriteFile catalog.json cached
+|     +- options success
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) success 85ms
+|     |  +- compile exe generate-lexer debug native success 4s MaxRSS:513M
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native success 7s MaxRSS:352M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test zx-frontend-tests 287 pass, 26 fail (313 total)
+|  +- compile test zx-frontend-tests debug native success 10s MaxRSS:1G
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- run test zx-integration-tests 20 pass (20 total) 78ms MaxRSS:5M
+   +- compile test zx-integration-tests debug native success 9s MaxRSS:1G
+      +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+      +- options (reused)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+      +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+
