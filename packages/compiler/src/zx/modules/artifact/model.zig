@@ -20,7 +20,7 @@ pub const Module = struct {
     type_imports: []const ir.Export,
     function_imports: []const @import("../function_import.zig"),
     functions: []const Signature,
-    native_modules: []const ir.NativeModule,
+    native_modules: ir.NativeModuleTable,
     function: ?ir.Function,
     stores: ir.StoreTable,
 };

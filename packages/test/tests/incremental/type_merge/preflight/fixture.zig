@@ -92,6 +92,17 @@ pub fn valid(memory: std.mem.Allocator, table: ir.TypeTable) !void {
         if (value == .native_reference) try exports.append(memory, .{ .name = value.native_reference, .type_id = @fromBackingInt(@intCast(index)) });
     }
 
+    const bindings = try ir.NativeBindings.fromValues(memory, exports.items);
+
+    defer memory.free(bindings.names);
+    defer memory.free(bindings.type_ids);
+
+    var modules: ir.NativeModuleStorage = .{};
+
+    defer modules.deinit(memory);
+
+    try modules.append(memory, .{ .specifier = "zig:fixture", .import_name = "fixture", .types = bindings });
+
     const program: ir.Program = .{
         .file_name = "preflight.zx",
         .types = table,
@@ -101,7 +112,7 @@ pub fn valid(memory: std.mem.Allocator, table: ir.TypeTable) !void {
         .output_type = @fromBackingInt(@backingInt(ir.Scalar.void)),
         .body = .{},
         .type_only = true,
-        .native_modules = &.{.{ .specifier = "zig:fixture", .import_name = "fixture", .types = exports.items }},
+        .native_modules = modules.view(),
     };
 
     const issue = try compiler.validateIr(memory, program);

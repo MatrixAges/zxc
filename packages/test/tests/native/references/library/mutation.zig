@@ -6,14 +6,17 @@ pub const Mode = enum { missing_nominal, source_origin, other_origin, nominal_na
 
 pub fn apply(value: *f.compiler.library.Result, mode: Mode) !void {
     const allocator = value.arena.allocator();
-    const modules = try allocator.dupe(ir.NativeModule, value.program.native_modules);
-    const bindings = try allocator.dupe(ir.Export, modules[0].types);
+    var modules: ir.NativeModuleStorage = .{};
+
+    for (0..value.program.native_modules.count()) |index| try modules.append(allocator, value.program.native_modules.at(index));
+
+    const binding_names = try allocator.dupe([]const u8, modules.type_names.items[0]);
     const kinds = try allocator.dupe(u8, value.nominal_types.kinds);
     const owners = try allocator.dupe([]const u8, value.nominal_types.owners);
     const names = try allocator.dupe([]const u8, value.nominal_types.names);
 
-    value.program.native_modules = modules;
-    modules[0].types = bindings;
+    value.program.native_modules = modules.view();
+    modules.type_names.items[0] = binding_names;
     value.nominal_types.kinds = kinds;
     value.nominal_types.owners = owners;
     value.nominal_types.names = names;
@@ -33,16 +36,25 @@ pub fn apply(value: *f.compiler.library.Result, mode: Mode) !void {
                 @field(value.nominal_types, name) = try allocator.dupe(@TypeOf(column[0]), &.{ column[0], column[0] });
             }
         },
-        .missing_binding => modules[0].types = &.{},
-        .renamed_binding => bindings[0].name = "Alias",
-        .distinct_owner => {
-            const repeated = try allocator.dupe(ir.NativeModule, &.{ modules[0], modules[0] });
-
-            repeated[1].identity = "another-owner";
-            repeated[1].import_name = "alias";
-            value.program.native_modules = repeated;
+        .missing_binding => {
+            modules.type_names.items[0] = &.{};
+            modules.type_ids.items[0] = &.{};
         },
-        .same_owner_alias => modules[0].types = try allocator.dupe(ir.Export, &.{ bindings[0], .{ .name = "Alias", .type_id = bindings[0].type_id } }),
+        .renamed_binding => binding_names[0] = "Alias",
+        .distinct_owner => {
+            var repeated = modules.at(0);
+
+            repeated.identity = "another-owner";
+            repeated.import_name = "alias";
+
+            try modules.append(allocator, repeated);
+
+            value.program.native_modules = modules.view();
+        },
+        .same_owner_alias => {
+            modules.type_names.items[0] = try allocator.dupe([]const u8, &.{ binding_names[0], "Alias" });
+            modules.type_ids.items[0] = try allocator.dupe(u32, &.{ modules.type_ids.items[0][0], modules.type_ids.items[0][0] });
+        },
     }
 }
 

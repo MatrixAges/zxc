@@ -15,11 +15,11 @@ types: Types,
 function_mapping: []?ir.FunctionId,
 native_mapping: []?ir.NativeModuleId,
 functions: std.ArrayList(model.Signature) = .empty,
-native_modules: std.ArrayList(ir.NativeModule) = .empty,
+native_modules: ir.NativeModuleStorage = .{},
 pub fn init(allocator: std.mem.Allocator, temporary: std.mem.Allocator, analysis: *const Analysis.Result) Error!Self {
     const program = analysis.value.ir;
     const functions = try temporary.alloc(?ir.FunctionId, program.functions.count());
-    const native_modules = try temporary.alloc(?ir.NativeModuleId, program.native_modules.len);
+    const native_modules = try temporary.alloc(?ir.NativeModuleId, program.native_modules.count());
 
     @memset(functions, null);
     @memset(native_modules, null);
@@ -34,8 +34,12 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
         if (included) _ = try self.types.include(@fromBackingInt(@intCast(index)));
     }
 
-    for (self.program.native_modules, 0..) |module, index| {
-        for (module.types) |binding| {
+    for (0..self.program.native_modules.count()) |index| {
+        const module = self.program.native_modules.at(index);
+
+        for (0..module.types.count()) |binding_index| {
+            const binding = module.types.at(binding_index);
+
             if (self.program.typeOf(binding.type_id) != .native_reference or self.types.mapping[@backingInt(binding.type_id)] == null) continue;
             try self.nativeModule(@fromBackingInt(@intCast(index)));
 
@@ -50,7 +54,9 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
 
         var found = false;
 
-        for (self.program.native_modules, 0..) |module, index| {
+        for (0..self.program.native_modules.count()) |index| {
+            const module = self.program.native_modules.at(index);
+
             if (!std.mem.eql(u8, module.key(), dependency.identity orelse dependency.specifier)) continue;
             try self.nativeModule(@fromBackingInt(@intCast(index)));
 
@@ -114,7 +120,7 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
         .type_imports = type_imports,
         .function_imports = function_imports,
         .functions = self.functions.items,
-        .native_modules = self.native_modules.items,
+        .native_modules = self.native_modules.view(),
         .function = function,
         .stores = stores,
     };
@@ -173,19 +179,26 @@ fn importFunction(self: *Self, id: ir.FunctionId) Error!ir.FunctionId {
 fn nativeModule(self: *Self, id: ir.NativeModuleId) Error!void {
     const index = @backingInt(id);
 
-    if (index >= self.program.native_modules.len) return error.InvalidModule;
+    if (index >= self.program.native_modules.count()) return error.InvalidModule;
     if (self.native_mapping[index] != null) return;
 
-    const value = self.program.native_modules[index];
+    const value = self.program.native_modules.at(index);
     var nodes = self.nodeCopier();
-    const mapped: ir.NativeModuleId = @fromBackingInt(@intCast(self.native_modules.items.len));
+    const mapped: ir.NativeModuleId = @fromBackingInt(@intCast(self.native_modules.count()));
+    const names = try self.allocator.alloc([]const u8, value.types.count());
+    const ids = try self.allocator.alloc(u32, value.types.count());
+
+    for (value.types.names, value.types.type_ids, names, ids) |name, type_id, *mapped_name, *mapped_id| {
+        mapped_name.* = try self.allocator.dupe(u8, name);
+        mapped_id.* = @backingInt(try self.types.include(@fromBackingInt(type_id)));
+    }
 
     try self.native_modules.append(self.allocator, .{
         .specifier = try self.allocator.dupe(u8, value.specifier),
         .identity = if (value.identity) |key| try self.allocator.dupe(u8, key) else null,
         .import_name = try self.allocator.dupe(u8, value.import_name),
         .type_namespace = try nodes.strings(value.type_namespace),
-        .types = try self.exports(value.types),
+        .types = .{ .names = names, .type_ids = ids },
     });
 
     self.native_mapping[index] = mapped;

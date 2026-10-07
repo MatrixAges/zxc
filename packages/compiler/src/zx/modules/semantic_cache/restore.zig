@@ -13,7 +13,7 @@ pub const Current = struct {
     types: ir.TypeTable,
     nominal_types: Origins.Table,
     functions: ir.FunctionTable,
-    native_modules: []const ir.NativeModule,
+    native_modules: ir.NativeModuleTable,
     aliases: []const ir.Export,
     imports: []const FunctionImport,
     dependencies: []const Record.Import,
@@ -31,6 +31,7 @@ pub fn restore(module: model.Module, current: Current) std.mem.Allocator.Error!?
 }
 
 fn restoreChecked(module: model.Module, current: Current) Error!Result {
+    if (!module.native_modules.validStructure() or !current.native_modules.validStructure()) return error.InvalidModule;
     if (!sameDependencies(module.dependencies, current.dependencies)) return error.InvalidModule;
     if (module.type_imports.len != current.aliases.len or module.function_imports.len != current.imports.len) return error.InvalidModule;
 
@@ -46,7 +47,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
 
     const mapping = try types.append(allocator, module);
     const function_mapping = try allocator.alloc(?ir.FunctionId, module.functions.len);
-    const native_mapping = try allocator.alloc(?ir.NativeModuleId, module.native_modules.len);
+    const native_mapping = try allocator.alloc(?ir.NativeModuleId, module.native_modules.count());
 
     @memset(function_mapping, null);
     @memset(native_mapping, null);
@@ -57,12 +58,19 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         if (!std.mem.eql(u8, previous.name, alias.name) or try nodes.types.include(previous.type_id) != alias.type_id) return error.InvalidModule;
     }
 
-    for (module.native_modules, native_mapping) |previous, *id| {
-        for (current.native_modules, 0..) |candidate, index| {
-            if (!std.mem.eql(u8, previous.key(), candidate.key()) or !std.mem.eql(u8, previous.import_name, candidate.import_name)) continue;
-            if (!native.stringsEqual(previous.type_namespace, candidate.type_namespace) or previous.types.len != candidate.types.len) return error.InvalidModule;
+    for (0..module.native_modules.count(), native_mapping) |previous_row, *id| {
+        const previous = module.native_modules.at(previous_row);
 
-            for (previous.types, candidate.types) |a, b| {
+        for (0..current.native_modules.count()) |index| {
+            const candidate = current.native_modules.at(index);
+
+            if (!std.mem.eql(u8, previous.key(), candidate.key()) or !std.mem.eql(u8, previous.import_name, candidate.import_name)) continue;
+            if (!native.stringsEqual(previous.type_namespace, candidate.type_namespace) or previous.types.count() != candidate.types.count()) return error.InvalidModule;
+
+            for (0..previous.types.count()) |binding_index| {
+                const a = previous.types.at(binding_index);
+                const b = candidate.types.at(binding_index);
+
                 if (!std.mem.eql(u8, a.name, b.name) or try nodes.types.include(a.type_id) != b.type_id) return error.InvalidModule;
             }
 

@@ -30,7 +30,7 @@ pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Alloc
     }
 
     var functions: zx.ir.FunctionStorage = .{};
-    var native_modules: std.ArrayList(zx.ir.NativeModule) = .fromOwnedSlice(try frontend.native_context.copy(allocator, options.project.context.native_modules));
+    var native_modules: zx.ir.NativeModuleStorage = try frontend.native_context.storage(allocator, options.project.context.native_modules);
 
     const loaded = frontend.project.compiled.load(allocator, .{
         .library = library orelse return fail(allocator, options, "module", "compiled library is missing from the input set"),
@@ -78,7 +78,7 @@ pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Alloc
             .expressions = expressions,
             .body = try zx.ir.ControlBody.fromValues(allocator, &.{.{ .result = @fromBackingInt(@intCast(1)) }}),
             .functions = functions.view(),
-            .native_modules = native_modules.items,
+            .native_modules = native_modules.view(),
         };
 
         if (try frontend.validateIr(allocator, program)) |issue| return fail(allocator, options, @tagName(issue.code), issue.message);

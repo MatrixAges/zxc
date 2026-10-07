@@ -1,0 +1,11 @@
+import type { Functions } from "./model"
+
+export type Input = { functions: Functions, index: u64 }
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const members = in.functions.native_members[in.index]
+
+    return in.functions.native_exports[in.index] ?? members[members.length - 1]
+}

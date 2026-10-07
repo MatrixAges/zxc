@@ -3,33 +3,36 @@ const ir = @import("zx").ir;
 const Nodes = @import("../artifact/nodes.zig");
 const Error = @import("../artifact/model.zig").Error || error{ConflictingInterface};
 
-pub fn append(allocator: std.mem.Allocator, modules: *std.ArrayList(ir.NativeModule), value: ir.NativeModule, nodes: *Nodes) Error!ir.NativeModuleId {
-    const exports = try allocator.dupe(ir.Export, value.types);
+pub fn append(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, value: ir.NativeModule, nodes: *Nodes) Error!ir.NativeModuleId {
+    const names = try allocator.alloc([]const u8, value.types.count());
+    const ids = try allocator.alloc(u32, value.types.count());
 
-    for (exports) |*item| {
-        item.name = try allocator.dupe(u8, item.name);
-        item.type_id = try nodes.types.include(item.type_id);
+    for (value.types.names, value.types.type_ids, names, ids) |name, id, *mapped_name, *mapped_id| {
+        mapped_name.* = try allocator.dupe(u8, name);
+        mapped_id.* = @backingInt(try nodes.types.include(@fromBackingInt(id)));
     }
 
-    for (modules.items, 0..) |existing, index| {
-        if (!std.mem.eql(u8, existing.key(), value.key()) or !std.mem.eql(u8, existing.import_name, value.import_name)) continue;
-        if (!stringsEqual(existing.type_namespace, value.type_namespace) or existing.types.len != exports.len) return error.ConflictingInterface;
+    for (0..modules.count()) |index| {
+        const existing = modules.at(index);
 
-        for (existing.types, exports) |left, right| {
-            if (left.type_id != right.type_id or !std.mem.eql(u8, left.name, right.name)) return error.ConflictingInterface;
+        if (!std.mem.eql(u8, existing.key(), value.key()) or !std.mem.eql(u8, existing.import_name, value.import_name)) continue;
+        if (!stringsEqual(existing.type_namespace, value.type_namespace) or existing.types.count() != names.len) return error.ConflictingInterface;
+
+        for (existing.types.names, existing.types.type_ids, names, ids) |left_name, left_id, right_name, right_id| {
+            if (left_id != right_id or !std.mem.eql(u8, left_name, right_name)) return error.ConflictingInterface;
         }
 
         return @fromBackingInt(@intCast(index));
     }
 
-    const id: ir.NativeModuleId = @fromBackingInt(@intCast(modules.items.len));
+    const id: ir.NativeModuleId = @fromBackingInt(@intCast(modules.count()));
 
     try modules.append(allocator, .{
         .specifier = try allocator.dupe(u8, value.specifier),
         .identity = if (value.identity) |key| try allocator.dupe(u8, key) else null,
         .import_name = try allocator.dupe(u8, value.import_name),
         .type_namespace = try nodes.strings(value.type_namespace),
-        .types = exports,
+        .types = .{ .names = names, .type_ids = ids },
     });
 
     return id;

@@ -20,7 +20,7 @@ pub const Result = struct {
 };
 
 pub const StoreBinding = struct { handle: []const u8, path: []const u8, type_name: ?[]const u8 = null, type_id: ?zx.ir.TypeId = null, readable: bool = true, writable: bool = true };
-pub const Context = struct { types: zx.ir.TypeTable = .{}, nominal_types: Origins.Table = .{}, native_modules: []const zx.ir.NativeModule = &.{}, stores: []const StoreBinding = &.{} };
+pub const Context = struct { types: zx.ir.TypeTable = .{}, nominal_types: Origins.Table = .{}, native_modules: zx.ir.NativeModuleTable = .{}, stores: []const StoreBinding = &.{} };
 
 pub fn analyze(allocator: std.mem.Allocator, parsed: Parsed) std.mem.Allocator.Error!Result {
     return analyzeWithContext(allocator, parsed, .{});

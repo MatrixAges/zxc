@@ -65,7 +65,7 @@ pub fn checkTable(self: *Self, table: ir.TypeTable, accepted: bool, structural: 
 
     const has_native = self.ids.native < table.kinds.len and self.ids.native < table.labels.len and table.kinds[self.ids.native] == @backingInt(std.meta.Tag(ir.TypeValue).native_reference);
     const binding: ir.Export = .{ .name = if (has_native) table.labels[self.ids.native] else "Node", .type_id = id(self.ids.native) };
-    const modules = [_]ir.NativeModule{.{ .specifier = "zig:fixture", .import_name = "fixture", .types = &.{binding} }};
+    const modules = try ir.NativeModuleTable.fromValues(memory.allocator(), &.{.{ .specifier = "zig:fixture", .import_name = "fixture", .types = .{ .names = &.{binding.name}, .type_ids = &.{@backingInt(binding.type_id)} } }});
 
     const program: ir.Program = .{
         .file_name = "type_validation.zx",
@@ -76,7 +76,7 @@ pub fn checkTable(self: *Self, table: ir.TypeTable, accepted: bool, structural: 
         .output_type = scalar(.void),
         .body = .{},
         .type_only = true,
-        .native_modules = if (has_native) &modules else &.{},
+        .native_modules = if (has_native) modules else .{},
     };
 
     var failing = std.testing.FailingAllocator.init(std.testing.allocator, .{ .fail_index = 0 });

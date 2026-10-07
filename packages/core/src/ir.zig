@@ -15,6 +15,9 @@ pub const FunctionId = enum(u32) { _ };
 pub const FunctionTable = @import("function_table/root.zig");
 pub const FunctionStorage = @import("function_table/storage.zig");
 pub const NativeModuleId = enum(u32) { _ };
+pub const NativeModuleTable = @import("native_module_table/root.zig");
+pub const NativeModuleStorage = @import("native_module_table/storage.zig");
+pub const NativeBindings = @import("native_module_table/bindings.zig");
 pub const Ownership = enum { copy, borrowed, owned };
 pub const Scalar = @import("type_table/model.zig").Scalar;
 pub const Type = @import("type_table/model.zig").Type;
@@ -121,7 +124,7 @@ pub const NativeModule = struct {
     import_name: []const u8,
     identity: ?[]const u8 = null,
     type_namespace: []const []const u8 = &.{},
-    types: []const Export = &.{},
+    types: NativeBindings = .{},
     pub fn key(self: NativeModule) []const u8 {
         return self.identity orelse self.specifier;
     }
@@ -173,7 +176,7 @@ pub const Function = struct {
 
 pub const Program = struct {
     output_ownership: Ownership = .borrowed,
-    version: u32 = 32,
+    version: u32 = 33,
     store_mode: StoreMode = .transaction,
     contracts: ContractTable = .{},
     file_name: []const u8,
@@ -185,7 +188,7 @@ pub const Program = struct {
     body: ControlBody,
     exports: []const Export = &.{},
     functions: FunctionTable = .{},
-    native_modules: []const NativeModule = &.{},
+    native_modules: NativeModuleTable = .{},
     stores: StoreTable = .{},
     type_only: bool = false,
     pub fn typeOf(self: Program, id: TypeId) Type {

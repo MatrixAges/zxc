@@ -49,7 +49,7 @@ pub fn consume(allocator: std.mem.Allocator, value: *const compiler.library.Resu
 
 pub fn inspect(allocator: std.mem.Allocator, program: compiler.ir.Program, distinct: bool) !void {
     try std.testing.expect(try compiler.validateIr(allocator, program) == null);
-    try std.testing.expectEqual(@as(usize, if (distinct) 2 else 1), program.native_modules.len);
+    try std.testing.expectEqual(@as(usize, if (distinct) 2 else 1), program.native_modules.count());
 
     const fields = program.typeOf(program.input_type).object;
 
@@ -71,11 +71,13 @@ pub fn inspect(allocator: std.mem.Allocator, program: compiler.ir.Program, disti
 
     try std.testing.expectEqual(distinct, !std.mem.eql(u8, left, right));
 
-    for (program.native_modules) |module| {
+    for (0..program.native_modules.count()) |module_row| {
+        const module = program.native_modules.at(module_row);
+
         try std.testing.expectEqualStrings("zig:host", module.specifier);
         try std.testing.expect(!std.mem.eql(u8, "host", module.import_name));
         try std.testing.expect(!std.mem.eql(u8, "zig:host", module.key()));
     }
 
-    if (distinct) try std.testing.expect(!std.mem.eql(u8, program.native_modules[0].import_name, program.native_modules[1].import_name));
+    if (distinct) try std.testing.expect(!std.mem.eql(u8, program.native_modules.at(0).import_name, program.native_modules.at(1).import_name));
 }

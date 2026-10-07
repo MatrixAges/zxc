@@ -5,36 +5,41 @@ pub const Mode = enum { missing_owner, renamed_binding, renamed_type, distinct_o
 
 pub fn apply(allocator: std.mem.Allocator, original: ir.Program, mode: Mode) !ir.Program {
     var program = original;
-    const modules = try allocator.dupe(ir.NativeModule, original.native_modules);
-    const bindings = try allocator.dupe(ir.Export, modules[0].types);
+    var modules: ir.NativeModuleStorage = .{};
+
+    for (0..original.native_modules.count()) |index| try modules.append(allocator, original.native_modules.at(index));
+
+    const names = try allocator.dupe([]const u8, modules.type_names.items[0]);
     const input_types = try allocator.dupe(u32, original.functions.input_types);
     const output_types = try allocator.dupe(u32, original.functions.output_types);
     const native_inputs = try allocator.dupe(?ir.NativeType, original.functions.native_inputs);
     const native_concurrent = try allocator.dupe(bool, original.functions.native_concurrent);
     const labels = try allocator.dupe([]const u8, original.types.labels);
-    const reference = bindings[0].type_id;
-    program.native_modules = modules;
+    const reference: ir.TypeId = @fromBackingInt(modules.type_ids.items[0][0]);
+    program.native_modules = modules.view();
     program.functions.input_types = input_types;
     program.functions.output_types = output_types;
     program.functions.native_inputs = native_inputs;
     program.functions.native_concurrent = native_concurrent;
     program.types.labels = labels;
-    modules[0].types = bindings;
+    modules.type_names.items[0] = names;
 
     switch (mode) {
-        .missing_owner => modules[0].types = &.{},
-        .renamed_binding => bindings[0].name = "Other",
+        .missing_owner => {
+            modules.type_names.items[0] = &.{};
+            modules.type_ids.items[0] = &.{};
+        },
+        .renamed_binding => names[0] = "Other",
         .renamed_type => labels[@backingInt(reference)] = "Other",
         .distinct_owner, .same_owner => {
-            const repeated = try allocator.alloc(ir.NativeModule, 2);
+            var repeated = modules.at(0);
 
-            repeated[0] = modules[0];
-            repeated[1] = modules[0];
-            repeated[1].import_name = "alias";
+            repeated.import_name = "alias";
 
-            if (mode == .distinct_owner) repeated[1].identity = "another-owner";
+            if (mode == .distinct_owner) repeated.identity = "another-owner";
+            try modules.append(allocator, repeated);
 
-            program.native_modules = repeated;
+            program.native_modules = modules.view();
         },
         .store => program.stores = try ir.StoreTable.fromValues(allocator, &.{.{ .path = "store.host", .type_id = original.output_type }}),
         else => {

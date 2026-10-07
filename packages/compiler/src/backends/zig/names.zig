@@ -100,7 +100,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program, origins: @Field
         if (needs_process) field(&hash, "std.process.Init.Minimal");
 
         if (function.external) |external| {
-            const module = program.native_modules[@backingInt(external.module)];
+            const module = program.native_modules.at(@backingInt(external.module));
 
             field(&hash, "native");
             field(&hash, module.specifier);

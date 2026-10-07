@@ -37,18 +37,18 @@ pub fn nominal(module: f.artifact.Module, ids: graph.Ids) !void {
 }
 
 pub fn native(module: f.artifact.Module, node: f.ir.TypeId) !void {
-    try std.testing.expectEqual(@as(usize, 1), module.native_modules.len);
+    try std.testing.expectEqual(@as(usize, 1), module.native_modules.count());
 
-    const value = module.native_modules[0];
+    const value = module.native_modules.at(0);
 
     try std.testing.expectEqualStrings("zig:host", value.specifier);
     try std.testing.expectEqualStrings("fixture@1", value.identity.?);
     try std.testing.expectEqualStrings("fixture@1", value.key());
     try std.testing.expectEqualStrings("host", value.import_name);
     try strings(value.type_namespace, &.{ "owned", "api" });
-    try std.testing.expectEqual(@as(usize, 1), value.types.len);
-    try std.testing.expectEqualStrings("Node", value.types[0].name);
-    try std.testing.expectEqual(node, value.types[0].type_id);
+    try std.testing.expectEqual(@as(usize, 1), value.types.count());
+    try std.testing.expectEqualStrings("Node", value.types.at(0).name);
+    try std.testing.expectEqual(node, value.types.at(0).type_id);
 }
 
 pub fn dependencies(module: f.artifact.Module) !void {

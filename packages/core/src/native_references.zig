@@ -42,6 +42,8 @@ pub fn contains(allocator: std.mem.Allocator, types: ir.TypeTable, id: ir.TypeId
 }
 
 pub fn owner(program: ir.Program, id: ir.TypeId) ?[]const u8 {
+    if (!program.native_modules.validStructure()) return null;
+
     const value = program.typeOf(id);
 
     if (value != .native_reference) return null;
@@ -49,8 +51,12 @@ pub fn owner(program: ir.Program, id: ir.TypeId) ?[]const u8 {
     var identity: ?[]const u8 = null;
     var declared = false;
 
-    for (program.native_modules) |module| {
-        for (module.types) |binding| {
+    for (0..program.native_modules.count()) |module_row| {
+        const module = program.native_modules.at(module_row);
+
+        for (0..module.types.count()) |binding_index| {
+            const binding = module.types.at(binding_index);
+
             if (binding.type_id != id) continue;
             if (identity) |key| if (!std.mem.eql(u8, key, module.key())) return null;
 

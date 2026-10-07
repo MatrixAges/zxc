@@ -31,12 +31,12 @@ test "native reference codec permits an alias binding alongside its original own
 
     try types.inspect(&decoded);
 
-    const bindings = decoded.program.native_modules[0].types;
+    const bindings = decoded.program.native_modules.at(0).types;
 
-    try std.testing.expectEqual(@as(usize, 2), bindings.len);
-    try std.testing.expectEqualStrings("Node", bindings[0].name);
-    try std.testing.expectEqualStrings("Alias", bindings[1].name);
-    try std.testing.expectEqual(bindings[0].type_id, bindings[1].type_id);
+    try std.testing.expectEqual(@as(usize, 2), bindings.count());
+    try std.testing.expectEqualStrings("Node", bindings.at(0).name);
+    try std.testing.expectEqualStrings("Alias", bindings.at(1).name);
+    try std.testing.expectEqual(bindings.at(0).type_id, bindings.at(1).type_id);
 }
 
 test "decoded native reference metadata owns bytes after provider and encoded input release" {

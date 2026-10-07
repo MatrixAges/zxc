@@ -16,7 +16,7 @@ pub const Bundle = struct {
     types: []const u8,
     modules: []const File,
     type_names: []const []const u8 = &.{},
-    native_modules: []const @import("zx").ir.NativeModule = &.{},
+    native_modules: @import("zx").ir.NativeModuleTable = .{},
     store_initializers: []const StoreInitializer = &.{},
     state_module: ?[]const u8 = null,
     runner: ?[]const u8 = null,
@@ -107,7 +107,7 @@ pub fn functionFilesPrepared(owned: std.mem.Allocator, program: @import("zx").ir
         const file = File{
             .name = identities.functions[index],
             .source = source,
-            .imports = if (function.external) |external| try owned.dupe([]const u8, &.{try owned.dupe(u8, program.native_modules[@backingInt(external.module)].import_name)}) else try references.imports(owned, function.expressions, function.contracts, identities.functions),
+            .imports = if (function.external) |external| try owned.dupe([]const u8, &.{try owned.dupe(u8, program.native_modules.at(@backingInt(external.module)).import_name)}) else try references.imports(owned, function.expressions, function.contracts, identities.functions),
         };
 
         const entry = try seen.getOrPut(owned, file.name);
@@ -150,16 +150,21 @@ pub fn typeNames(owned: std.mem.Allocator, program: @import("zx").ir.Program, id
     return type_names.toOwnedSlice(owned);
 }
 
-pub fn nativeModules(owned: std.mem.Allocator, program: @import("zx").ir.Program) std.mem.Allocator.Error![]const @import("zx").ir.NativeModule {
-    const native_modules = try owned.dupe(@import("zx").ir.NativeModule, program.native_modules);
+pub fn nativeModules(owned: std.mem.Allocator, program: @import("zx").ir.Program) std.mem.Allocator.Error!@import("zx").ir.NativeModuleTable {
+    const ir = @import("zx").ir;
+    var native_modules: ir.NativeModuleStorage = .{};
 
-    for (native_modules) |*module| {
-        module.specifier = try owned.dupe(u8, module.specifier);
-        module.import_name = try owned.dupe(u8, module.import_name);
-        module.identity = if (module.identity) |key| try owned.dupe(u8, key) else null;
-        module.types = &.{};
-        module.type_namespace = &.{};
+    errdefer native_modules.deinit(owned);
+
+    for (0..program.native_modules.count()) |index| {
+        const module = program.native_modules.at(index);
+
+        try native_modules.append(owned, .{
+            .specifier = try owned.dupe(u8, module.specifier),
+            .identity = if (module.identity) |identity| try owned.dupe(u8, identity) else null,
+            .import_name = try owned.dupe(u8, module.import_name),
+        });
     }
 
-    return native_modules;
+    return native_modules.finish(owned);
 }

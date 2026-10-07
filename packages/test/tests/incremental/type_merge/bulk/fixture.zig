@@ -103,7 +103,7 @@ pub fn source(memory: std.mem.Allocator, options: Options) !Source {
 
     const ids = try family(&table, options, null);
     const aliases = if (options.aliases) try family(&table, options, ids.node) else null;
-    var modules: std.ArrayList(ir.NativeModule) = .empty;
+    var modules: ir.NativeModuleStorage = .{};
 
     for (0..table.items.count()) |index| {
         const value = table.items.view().at(index);
@@ -116,9 +116,7 @@ pub fn source(memory: std.mem.Allocator, options: Options) !Source {
             if (@backingInt(item.type_id) == index) break item.origin.native;
         } else return error.MissingFixtureOrigin;
 
-        const bindings = try memory.alloc(ir.Export, 1);
-
-        bindings[0] = .{ .name = value.native_reference, .type_id = @fromBackingInt(@intCast(index)) };
+        const bindings: ir.NativeBindings = .{ .names = try memory.dupe([]const u8, &.{value.native_reference}), .type_ids = try memory.dupe(u32, &.{@intCast(index)}) };
 
         try modules.append(memory, .{ .specifier = native_origin, .import_name = try std.fmt.allocPrint(memory, "native_{d}", .{index}), .types = bindings });
     }
@@ -133,7 +131,7 @@ pub fn source(memory: std.mem.Allocator, options: Options) !Source {
         .type_imports = &.{},
         .function_imports = &.{},
         .functions = &.{},
-        .native_modules = try modules.toOwnedSlice(memory),
+        .native_modules = try modules.finish(memory),
         .function = null,
         .stores = .{},
     };

@@ -10,7 +10,9 @@ pub fn store(allocator: std.mem.Allocator, instance: []const u8, path: []const u
 }
 
 pub fn nativeKey(allocator: std.mem.Allocator, library: Library, key: []const u8) std.mem.Allocator.Error![]const u8 {
-    for (library.program.native_modules) |module| {
+    for (0..library.program.native_modules.count()) |module_row| {
+        const module = library.program.native_modules.at(module_row);
+
         if (std.mem.eql(u8, module.key(), key) and std.mem.startsWith(u8, module.specifier, "std:")) return key;
     }
 

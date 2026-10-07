@@ -4,8 +4,8 @@ const Module = @import("module.zig");
 const Nodes = @import("frontend").ArtifactNodes;
 const native = @import("frontend").native_link;
 
-pub fn merge(allocator: std.mem.Allocator, calls: []Module.Call, types: zx.ir.TypeTable, shared: []const zx.ir.NativeModule) ![]const zx.ir.NativeModule {
-    var modules: std.ArrayList(zx.ir.NativeModule) = .fromOwnedSlice(try @import("frontend").native_context.copy(allocator, shared));
+pub fn merge(allocator: std.mem.Allocator, calls: []Module.Call, types: zx.ir.TypeTable, shared: zx.ir.NativeModuleTable) !zx.ir.NativeModuleTable {
+    var modules: zx.ir.NativeModuleStorage = try @import("frontend").native_context.storage(allocator, shared);
     const mapping = try allocator.alloc(zx.ir.TypeId, types.count());
 
     for (mapping, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
@@ -13,9 +13,13 @@ pub fn merge(allocator: std.mem.Allocator, calls: []Module.Call, types: zx.ir.Ty
     var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = mapping }, .functions = &.{}, .native_modules = &.{} };
 
     for (calls) |*call| {
-        const native_mapping = try allocator.alloc(zx.ir.NativeModuleId, call.callee.native_modules.len);
+        const native_mapping = try allocator.alloc(zx.ir.NativeModuleId, call.callee.native_modules.count());
 
-        for (call.callee.native_modules, native_mapping) |module, *id| id.* = try native.append(allocator, &modules, module, &nodes);
+        for (0..call.callee.native_modules.count(), native_mapping) |module_row, *id| {
+            const module = call.callee.native_modules.at(module_row);
+
+            id.* = try native.append(allocator, &modules, module, &nodes);
+        }
 
         const external = try allocator.dupe(?u32, call.callee.functions.native_modules);
 
@@ -26,7 +30,7 @@ pub fn merge(allocator: std.mem.Allocator, calls: []Module.Call, types: zx.ir.Ty
         call.callee.functions.native_modules = external;
     }
 
-    for (calls) |*call| call.callee.native_modules = modules.items;
+    for (calls) |*call| call.callee.native_modules = modules.view();
 
-    return modules.items;
+    return modules.view();
 }

@@ -63,7 +63,9 @@ pub fn main(init: std.process.Init) !void {
 
     if (try compiler.validateIr(allocator, program) != null) return error.InvalidIr;
 
-    for (program.native_modules) |native| {
+    for (0..program.native_modules.count()) |native_row| {
+        const native = program.native_modules.at(native_row);
+
         try std.testing.expectEqualStrings("zxc_standard", native.import_name);
         try std.testing.expectEqualStrings("std:fs", native.specifier);
     }

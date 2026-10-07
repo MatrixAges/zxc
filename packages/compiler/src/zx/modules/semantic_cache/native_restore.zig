@@ -13,16 +13,18 @@ pub const Current = struct { module: ir.NativeModuleId, types: ir.TypeTable, nom
 pub const Error = Types.Error || Artifact.Error;
 
 pub fn restore(allocator: std.mem.Allocator, artifact: Artifact.Module, entry: Native, current: Current) Error!Loaded.Result {
-    if (artifact.function != null or artifact.native_modules.len != 1 or artifact.dependencies.len != 0 or artifact.type_imports.len != 0 or artifact.stores.count() != 0) return error.InvalidModule;
+    if (!artifact.native_modules.validStructure() or artifact.function != null or artifact.native_modules.count() != 1 or artifact.dependencies.len != 0 or artifact.type_imports.len != 0 or artifact.stores.count() != 0) return error.InvalidModule;
     if (!std.mem.eql(u8, artifact.path, entry.key()) or artifact.functions.len != artifact.function_imports.len) return error.InvalidModule;
 
-    const descriptor = artifact.native_modules[0];
+    const descriptor = artifact.native_modules.at(0);
 
     if (!std.mem.eql(u8, descriptor.key(), entry.key())) return error.InvalidModule;
     if (!std.mem.eql(u8, descriptor.specifier, entry.specifier) or !std.mem.eql(u8, descriptor.import_name, entry.module) or !native.stringsEqual(descriptor.type_namespace, entry.namespace)) return error.InvalidModule;
-    if (descriptor.types.len != artifact.exports.len) return error.InvalidModule;
+    if (descriptor.types.count() != artifact.exports.len) return error.InvalidModule;
 
-    for (descriptor.types, artifact.exports) |left, right| {
+    for (0..descriptor.types.count(), artifact.exports) |binding_index, right| {
+        const left = descriptor.types.at(binding_index);
+
         if (left.type_id != right.type_id or !std.mem.eql(u8, left.name, right.name)) return error.InvalidModule;
     }
 

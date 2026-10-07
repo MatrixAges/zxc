@@ -25,7 +25,7 @@ test "reverse input and destroyed artifacts preserve native metadata and generat
     defer result.deinit();
 
     try f.check(result);
-    try std.testing.expectEqualStrings("choice", result.program.native_modules[0].import_name);
+    try std.testing.expectEqualStrings("choice", result.program.native_modules.at(0).import_name);
 
     const generated = try f.compiler.zig.emitBundle(std.testing.allocator, result.program);
 
@@ -39,9 +39,9 @@ test "conflicting native type namespace is rejected" {
 
     defer fixture.deinit();
 
-    var native = fixture.modules[1].native_modules[0];
+    var native = fixture.modules[1].native_modules.at(0);
     native.type_namespace = &.{"Other"};
-    fixture.modules[1].native_modules = (&native)[0..1];
+    fixture.modules[1].native_modules = try f.compiler.ir.NativeModuleTable.fromValues(fixture.results[1].arena.allocator(), &.{native});
 
     try std.testing.expectError(error.ConflictingInterface, f.artifact.linker.link(std.testing.allocator, &fixture.modules, "/project/main.zx"));
 }

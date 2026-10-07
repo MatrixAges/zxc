@@ -74,5 +74,5 @@ fn emit(init: std.process.Init, program: compiler.ir.Program, paths: []const []c
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = paths[0], .data = bundle.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = paths[1], .data = bundle.types });
-    if (paths.len == 3) try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = paths[2], .data = try std.json.Stringify.valueAlloc(allocator, program.native_modules, .{}) });
+    if (paths.len == 3) try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = paths[2], .data = try std.json.Stringify.valueAlloc(allocator, program.native_modules.jsonRows(), .{}) });
 }

@@ -142,9 +142,9 @@ test "native interface output resolves containers enum and opaque declaration" {
     defer result.deinit();
 
     try valid(result);
-    try std.testing.expectEqual(@as(usize, 1), result.value.ir.native_modules.len);
+    try std.testing.expectEqual(@as(usize, 1), result.value.ir.native_modules.count());
 
-    const module = result.value.ir.native_modules[0];
+    const module = result.value.ir.native_modules.at(0);
 
     try std.testing.expectEqualStrings("resolution@1", module.key());
     try graph.declarations(result.value.ir.types, module.types);

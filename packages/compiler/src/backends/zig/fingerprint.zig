@@ -32,7 +32,7 @@ pub fn createPrepared(allocator: std.mem.Allocator, program: ir.Program, names: 
     const state_plan = facts.state;
     var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions, .state_plan = state_plan };
 
-    self.bytes("zxc.zig.input.v37");
+    self.bytes("zxc.zig.input.v38");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -109,7 +109,7 @@ fn write(self: *Self, value: anytype) void {
         return;
     }
 
-    if (T == ir.ExpressionTable or T == ir.SymbolTable or T == ir.ContractTable) {
+    if (T == ir.ExpressionTable or T == ir.SymbolTable or T == ir.ContractTable or T == ir.NativeModuleTable or T == ir.NativeBindings) {
         self.write(value.count());
 
         for (0..value.count()) |index| self.write(value.at(index));
@@ -142,7 +142,7 @@ fn write(self: *Self, value: anytype) void {
     }
 
     if (T == ir.NativeModuleId) {
-        const module = self.program.native_modules[@backingInt(value)];
+        const module = self.program.native_modules.at(@backingInt(value));
 
         return self.write(.{ .specifier = module.specifier, .identity = module.identity, .import_name = module.import_name, .type_namespace = module.type_namespace });
     }

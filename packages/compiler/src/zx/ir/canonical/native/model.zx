@@ -1,0 +1,11 @@
+import type { Table } from "../../../analysis/semantic/types/model"
+
+export type Modules = { identities: string?[], import_names: string[], specifiers: string[], type_ids: u32[][], type_names: string[][], type_namespaces: string[][] }
+
+export type Errors = string[]?
+
+    export type Functions = { input_types: u32[], output_types: u32[], native_modules: u32?[], native_members: string[][], native_exports: string?[], native_fallible: bool[], native_errors: Errors[], native_concurrent: bool[] }
+
+export type Context = { table: Table, modules: Modules }
+
+export type ExportContext = { modules: Modules, functions: Functions, index: u64 }

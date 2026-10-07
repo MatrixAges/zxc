@@ -5,7 +5,7 @@ const Builder = @import("../program/builder.zig");
 const inlineValue = @import("../program/expression.zig").inlineValue;
 pub const Field = struct { name: []const u8, type_id: zx.ir.TypeId, initial: zx.ir.Program };
 
-pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Field, types: zx.ir.TypeTable, native_modules: []const zx.ir.NativeModule, reporter: *zx.Reporter) zx.Error!zx.ir.Program {
+pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Field, types: zx.ir.TypeTable, native_modules: zx.ir.NativeModuleTable, reporter: *zx.Reporter) zx.Error!zx.ir.Program {
     var table = frontend.types{ .allocator = allocator, .reporter = reporter, .declarations = &.{} };
 
     try table.items.appendDelta(allocator, types);

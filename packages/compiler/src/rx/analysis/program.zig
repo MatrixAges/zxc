@@ -11,7 +11,7 @@ pub const Options = struct {
     output_type: ir.TypeId,
     captures: ?[]const @import("frontend").expressions.Binding = null,
     calls: []const Module.Call,
-    native_modules: []const ir.NativeModule,
+    native_modules: ir.NativeModuleTable,
     steps: []const @import("program/flow.zig").Step,
 };
 

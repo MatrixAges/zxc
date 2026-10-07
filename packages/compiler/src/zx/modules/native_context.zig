@@ -1,7 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 
-pub fn valid(types: ir.TypeTable, modules: []const ir.NativeModule) bool {
+pub fn valid(types: ir.TypeTable, modules: ir.NativeModuleTable) bool {
     return @import("../ir/native_modules.zig").validate(.{
         .file_name = "shared",
         .types = types,
@@ -15,10 +15,20 @@ pub fn valid(types: ir.TypeTable, modules: []const ir.NativeModule) bool {
     });
 }
 
-pub fn copy(allocator: std.mem.Allocator, modules: []const ir.NativeModule) std.mem.Allocator.Error![]ir.NativeModule {
-    const result = try allocator.dupe(ir.NativeModule, modules);
+pub fn copy(allocator: std.mem.Allocator, modules: ir.NativeModuleTable) std.mem.Allocator.Error!ir.NativeModuleTable {
+    var result = try storage(allocator, modules);
 
-    for (result) |*module| {
+    return result.finish(allocator);
+}
+
+pub fn storage(allocator: std.mem.Allocator, modules: ir.NativeModuleTable) std.mem.Allocator.Error!ir.NativeModuleStorage {
+    var result: ir.NativeModuleStorage = .{};
+
+    errdefer result.deinit(allocator);
+
+    for (0..modules.count()) |index| {
+        var module = modules.at(index);
+
         module.specifier = try allocator.dupe(u8, module.specifier);
         module.identity = if (module.identity) |identity| try allocator.dupe(u8, identity) else null;
         module.import_name = try allocator.dupe(u8, module.import_name);
@@ -28,11 +38,14 @@ pub fn copy(allocator: std.mem.Allocator, modules: []const ir.NativeModule) std.
 
         module.type_namespace = namespace;
 
-        const bindings = try allocator.dupe(ir.Export, module.types);
+        const names = try allocator.alloc([]const u8, module.types.count());
+        const ids = try allocator.dupe(u32, module.types.type_ids);
 
-        for (bindings) |*binding| binding.name = try allocator.dupe(u8, binding.name);
+        for (module.types.names, names) |name, *owned| owned.* = try allocator.dupe(u8, name);
 
-        module.types = bindings;
+        module.types = .{ .names = names, .type_ids = ids };
+
+        try result.append(allocator, module);
     }
 
     return result;

@@ -18,7 +18,7 @@ pub fn bind(builder: *Builder, input_type: ir.TypeId, captures: []const Binding,
 }
 
 pub fn argument(allocator: std.mem.Allocator, owner: []const u8, types: ir.TypeTable, environment_type: ir.TypeId, environment: []const Binding, input_type: ir.TypeId, captures: []const Binding, span: zx.Span) std.mem.Allocator.Error!ir.Program {
-    var builder = Builder{ .allocator = allocator, .types = types, .native_modules = &.{} };
+    var builder = Builder{ .allocator = allocator, .types = types, .native_modules = .{} };
 
     try bind(&builder, environment_type, environment, span);
 

@@ -37,7 +37,9 @@ fn emit(io: std.Io, allocator: std.mem.Allocator, result: *const compiler.Analys
     for (bundle.modules) |module| try output.module(module.name, module.source, module.imports);
     try output.file("types.zig", bundle.types);
 
-    for (bundle.native_modules) |module| {
+    for (0..bundle.native_modules.count()) |module_row| {
+        const module = bundle.native_modules.at(module_row);
+
         if (module.identity == null) continue;
 
         const view = try compiler.zig.abi_view.render(allocator, bundle.type_names, &.{.{ .name = module.specifier, .identity = module.key() }}, true);
@@ -45,7 +47,7 @@ fn emit(io: std.Io, allocator: std.mem.Allocator, result: *const compiler.Analys
         try output.file(try std.fmt.allocPrint(allocator, "{s}_abi.zig", .{module.import_name}), view);
     }
 
-    try output.file("native.json", try std.json.Stringify.valueAlloc(allocator, bundle.native_modules, .{}));
+    try output.file("native.json", try std.json.Stringify.valueAlloc(allocator, bundle.native_modules.jsonRows(), .{}));
     try output.file("modules.json", try std.json.Stringify.valueAlloc(allocator, output.modules.items, .{}));
 }
 

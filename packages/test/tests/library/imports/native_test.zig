@@ -16,9 +16,9 @@ test "compiled native public aliases share one rebound module and enum" {
 
     const program = result.value.ir;
 
-    try std.testing.expectEqual(@as(usize, 1), program.native_modules.len);
+    try std.testing.expectEqual(@as(usize, 1), program.native_modules.count());
 
-    const module = program.native_modules[0];
+    const module = program.native_modules.at(0);
 
     try std.testing.expectEqualStrings("zig:choice", module.specifier);
     try std.testing.expect(!std.mem.eql(u8, "choice", module.import_name));
@@ -43,10 +43,10 @@ test "compiled native distinct instances isolate module keys import names and en
 
     const program = result.value.ir;
 
-    try std.testing.expectEqual(@as(usize, 2), program.native_modules.len);
+    try std.testing.expectEqual(@as(usize, 2), program.native_modules.count());
 
-    const left = program.native_modules[0];
-    const right = program.native_modules[1];
+    const left = program.native_modules.at(0);
+    const right = program.native_modules.at(1);
 
     try std.testing.expect(!std.mem.eql(u8, left.key(), right.key()));
     try std.testing.expect(!std.mem.eql(u8, left.import_name, right.import_name));
@@ -60,9 +60,9 @@ test "compiled native distinct instances isolate module keys import names and en
 
     defer bundle.deinit();
 
-    try std.testing.expectEqual(@as(usize, 2), bundle.native_modules.len);
-    try std.testing.expectEqualDeep(program.native_modules[0].identity, bundle.native_modules[0].identity);
-    try std.testing.expectEqualDeep(program.native_modules[1].identity, bundle.native_modules[1].identity);
+    try std.testing.expectEqual(@as(usize, 2), bundle.native_modules.count());
+    try std.testing.expectEqualDeep(program.native_modules.at(0).identity, bundle.native_modules.at(0).identity);
+    try std.testing.expectEqualDeep(program.native_modules.at(1).identity, bundle.native_modules.at(1).identity);
 }
 
 test "compiled rebound native output owns descriptors after library and analysis release" {
@@ -82,9 +82,11 @@ test "compiled rebound native output owns descriptors after library and analysis
 
     defer bundle.deinit();
 
-    try std.testing.expectEqual(@as(usize, 2), bundle.native_modules.len);
+    try std.testing.expectEqual(@as(usize, 2), bundle.native_modules.count());
 
-    for (bundle.native_modules) |module| {
+    for (0..bundle.native_modules.count()) |module_row| {
+        const module = bundle.native_modules.at(module_row);
+
         try std.testing.expectEqualStrings("zig:choice", module.specifier);
         try std.testing.expect(std.mem.indexOf(u8, bundle.types, module.key()) != null);
         try std.testing.expect(std.mem.startsWith(u8, module.import_name, "library_native_"));

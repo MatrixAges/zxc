@@ -3,7 +3,7 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error![]const []const u8 {
-    const names = try self.allocator.alloc([]const u8, self.program.native_modules.len);
+    const names = try self.allocator.alloc([]const u8, self.program.native_modules.count());
     var imported: std.StringHashMapUnmanaged([]const u8) = .empty;
 
     for (output.items) |declaration| {
@@ -18,7 +18,9 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error
         if (argument.* == .string) try imported.put(self.allocator, argument.string, declaration.constant.name);
     }
 
-    for (self.program.native_modules, names, 0..) |module, *name, index| {
+    for (0..self.program.native_modules.count(), names, 0..) |module_row, *name, index| {
+        const module = self.program.native_modules.at(module_row);
+
         if (imported.get(module.import_name)) |existing| {
             name.* = existing;
 

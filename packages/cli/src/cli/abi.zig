@@ -6,7 +6,7 @@ const Loaded = @import("project.zig").Loaded;
 const Bundle = struct {
     types: []const u8,
     type_names: []const []const u8,
-    native_modules: []const compiler.ir.NativeModule,
+    native_modules: compiler.ir.NativeModuleTable,
     modules: []const compiler.zig.ModuleFile,
 };
 
@@ -24,7 +24,9 @@ pub fn createLibrary(allocator: std.mem.Allocator, bundle: compiler.zig.LibraryB
 fn render(allocator: std.mem.Allocator, bundle: Bundle, loaded: Loaded) !Result {
     var scoped = false;
 
-    for (bundle.native_modules) |module| {
+    for (0..bundle.native_modules.count()) |module_row| {
+        const module = bundle.native_modules.at(module_row);
+
         if (module.identity != null) scoped = true;
     }
 
@@ -34,7 +36,9 @@ fn render(allocator: std.mem.Allocator, bundle: Bundle, loaded: Loaded) !Result 
     var conflicts: std.StringHashMapUnmanaged(void) = .empty;
     var views: std.ArrayList(File) = .empty;
 
-    for (bundle.native_modules) |module| {
+    for (0..bundle.native_modules.count()) |module_row| {
+        const module = bundle.native_modules.at(module_row);
+
         if (module.identity == null) try append(allocator, &defaults, &conflicts, .{ .name = module.specifier, .identity = module.key() });
     }
 
@@ -68,7 +72,9 @@ fn render(allocator: std.mem.Allocator, bundle: Bundle, loaded: Loaded) !Result 
             if (is_root) try append(allocator, &defaults, &conflicts, resolved);
         }
 
-        for (bundle.native_modules) |standard| {
+        for (0..bundle.native_modules.count()) |standard_row| {
+            const standard = bundle.native_modules.at(standard_row);
+
             if (standard.identity != null) continue;
 
             var found = false;
@@ -109,7 +115,9 @@ fn render(allocator: std.mem.Allocator, bundle: Bundle, loaded: Loaded) !Result 
 }
 
 fn contains(bundle: Bundle, identity: []const u8) bool {
-    for (bundle.native_modules) |module| {
+    for (0..bundle.native_modules.count()) |module_row| {
+        const module = bundle.native_modules.at(module_row);
+
         if (std.mem.eql(u8, module.key(), identity)) return true;
     }
 

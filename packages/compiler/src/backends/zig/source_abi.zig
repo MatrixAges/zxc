@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const project = @import("frontend").project;
 const view = @import("genz").zx.modules.abi_view;
 
-pub fn render(allocator: std.mem.Allocator, modules: []const ir.NativeModule, options: project.Options) ![]u8 {
+pub fn render(allocator: std.mem.Allocator, modules: ir.NativeModuleTable, options: project.Options) ![]u8 {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
@@ -12,13 +12,17 @@ pub fn render(allocator: std.mem.Allocator, modules: []const ir.NativeModule, op
     var aliases: std.ArrayList(view.Alias) = .empty;
     var scoped = false;
 
-    for (modules) |module| {
+    for (0..modules.count()) |index| {
+        const module = modules.at(index);
+
         if (module.identity != null) scoped = true;
     }
 
     if (!scoped) return allocator.dupe(u8, "");
 
-    for (modules) |module| {
+    for (0..modules.count()) |index| {
+        const module = modules.at(index);
+
         if (module.identity == null) try aliases.append(temporary, .{ .name = module.specifier, .identity = module.key() });
     }
 
@@ -60,8 +64,10 @@ pub fn render(allocator: std.mem.Allocator, modules: []const ir.NativeModule, op
     return view.render(allocator, &.{}, unique.items, false);
 }
 
-fn contains(modules: []const ir.NativeModule, identity: []const u8) bool {
-    for (modules) |module| {
+fn contains(modules: ir.NativeModuleTable, identity: []const u8) bool {
+    for (0..modules.count()) |index| {
+        const module = modules.at(index);
+
         if (std.mem.eql(u8, module.key(), identity)) return true;
     }
 

@@ -11,7 +11,7 @@ pub const Options = struct {
     types: ir.TypeTable,
     nominal_types: Origins.Table,
     functions: *ir.FunctionStorage,
-    native_modules: *std.ArrayList(ir.NativeModule),
+    native_modules: *ir.NativeModuleStorage,
 };
 
 pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
@@ -44,7 +44,7 @@ pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
 
     const type_mapping = try types.appendFrom(allocator, program.types, origins.view(), 0);
     const function_mapping = try allocator.alloc(?ir.FunctionId, program.functions.count());
-    const native_mapping = try allocator.alloc(?ir.NativeModuleId, program.native_modules.len);
+    const native_mapping = try allocator.alloc(?ir.NativeModuleId, program.native_modules.count());
 
     for (function_mapping, 0..) |*id, index| id.* = @fromBackingInt(@intCast(options.functions.count() + index));
 
@@ -52,7 +52,8 @@ pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
 
     var nodes = Nodes{ .allocator = allocator, .types = .{ .mapped = type_mapping }, .functions = function_mapping, .native_modules = native_mapping };
 
-    for (program.native_modules, native_mapping) |native, *id| {
+    for (0..program.native_modules.count(), native_mapping) |native_row, *id| {
+        const native = program.native_modules.at(native_row);
         var rebound = native;
 
         if (!std.mem.startsWith(u8, native.specifier, "std:")) {

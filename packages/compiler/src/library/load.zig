@@ -11,7 +11,7 @@ pub fn load(allocator: std.mem.Allocator, input: frontend.project.compiled.Libra
 
     const owned = arena.allocator();
     var functions: ir.FunctionStorage = .{};
-    var native_modules: std.ArrayList(ir.NativeModule) = .empty;
+    var native_modules: ir.NativeModuleStorage = .{};
 
     const imported = try frontend.project.compiled.load(owned, .{
         .library = input,
@@ -43,7 +43,7 @@ pub fn load(allocator: std.mem.Allocator, input: frontend.project.compiled.Libra
             .expressions = .{},
             .body = .{},
             .functions = functions.view(),
-            .native_modules = native_modules.items,
+            .native_modules = native_modules.view(),
             .type_only = true,
         },
         .exports = exports,

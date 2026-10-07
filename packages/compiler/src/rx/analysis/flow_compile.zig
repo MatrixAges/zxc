@@ -14,7 +14,7 @@ pub const Error = std.mem.Allocator.Error || error{InvalidFlow};
 allocator: std.mem.Allocator,
 owner: []const u8,
 types: zx.ir.TypeTable,
-native_modules: []const zx.ir.NativeModule = &.{},
+native_modules: zx.ir.NativeModuleTable = .{},
 output_type: zx.ir.TypeId,
 loaded: []const Module.Loaded,
 results: []const Module.Binding,

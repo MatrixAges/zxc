@@ -15,7 +15,7 @@ pub const Options = struct {
     tasks: []const @import("flow_compile.zig").TaskType = &.{},
     types: zx.ir.TypeTable,
     nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types"),
-    native_modules: []const zx.ir.NativeModule = &.{},
+    native_modules: zx.ir.NativeModuleTable = .{},
     input_type: zx.ir.TypeId,
     output_type: zx.ir.TypeId,
 };

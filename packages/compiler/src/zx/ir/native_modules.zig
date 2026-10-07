@@ -1,148 +1,60 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const specifier = @import("../modules/specifier.zig");
+const options = @import("parser_options");
+const borrow = @import("canonical/borrow.zig");
+pub const validateType = @import("native_type.zig").validate;
 
 pub fn validate(program: ir.Program) bool {
-    for (program.native_modules, 0..) |module, index| {
-        const kind = specifier.classify(module.specifier) catch return false;
+    if (comptime !options.generated_parser) return @import("seed_native_modules.zig").validate(program);
 
-        if (kind == .file or kind == .package) return false;
-        if (module.import_name.len == 0 or std.mem.indexOfScalar(u8, module.import_name, 0) != null or !std.unicode.utf8ValidateSlice(module.import_name)) return false;
+    const generated = @import("generated_native_modules");
+    const Input = std.meta.Child(generated.Input);
+    const Table = std.meta.Child(@FieldType(Input, "table"));
+    const table = ir.TypeTable.borrow(Table, program.types);
 
-        if (module.identity) |identity| {
-            if (identity.len == 0 or std.mem.indexOfScalar(u8, identity, 0) != null or !std.unicode.utf8ValidateSlice(identity)) return false;
-        }
+    const input: Input = .{
+        .table = &table,
+        .modules = borrow.pointer(@FieldType(Input, "modules"), &program.native_modules),
+    };
 
-        for (module.type_namespace) |part| {
-            if (part.len == 0 or std.mem.indexOfScalar(u8, part, 0) != null or !std.unicode.utf8ValidateSlice(part)) return false;
-        }
+    var storage: [0]u8 = undefined;
+    var fixed = std.heap.FixedBufferAllocator.init(&storage);
+    var arena = std.heap.ArenaAllocator.init(fixed.allocator());
 
-        for (module.types, 0..) |binding, position| {
-            if (@backingInt(binding.type_id) >= program.types.count() or binding.name.len == 0 or std.mem.indexOfScalar(u8, binding.name, 0) != null or !std.unicode.utf8ValidateSlice(binding.name)) return false;
+    defer arena.deinit();
 
-            for (module.types[0..position]) |previous| {
-                if (std.mem.eql(u8, previous.name, binding.name)) return false;
-            }
-
-            for (program.native_modules[0..index]) |previous| {
-                if (!std.mem.eql(u8, previous.key(), module.key())) continue;
-
-                for (previous.types) |item| {
-                    if (std.mem.eql(u8, item.name, binding.name) and item.type_id != binding.type_id) return false;
-                }
-            }
-        }
-
-        for (program.native_modules[0..index]) |previous| {
-            if (std.mem.eql(u8, previous.key(), module.key()) and std.mem.eql(u8, previous.import_name, module.import_name)) return false;
-        }
-    }
-
-    for (0..program.types.count()) |type_index| {
-        const value = program.types.at(type_index);
-
-        if (value == .native_reference and ir.nativeReferenceOwner(program, @fromBackingInt(@intCast(type_index))) == null) return false;
-    }
-
-    return true;
+    return generated.execute(&arena, &input) catch unreachable;
 }
 
 pub fn validateExport(program: ir.Program, index: usize) bool {
-    const function = program.functions.at(index);
-    const external = function.external.?;
-    const name = external.exportName();
-    const module = program.native_modules[@backingInt(external.module)];
+    if (comptime !options.generated_parser) return @import("seed_native_modules.zig").validateExport(program, index);
 
-    if (name.len == 0 or std.mem.indexOfScalar(u8, name, 0) != null or !std.unicode.utf8ValidateSlice(name)) return false;
+    const generated = @import("generated_native_export");
+    const Input = std.meta.Child(generated.Input);
+    const Functions = std.meta.Child(@FieldType(Input, "functions"));
 
-    if (external.errors) |errors| {
-        if (!external.fallible) return false;
+    const functions: Functions = .{
+        .input_types = program.functions.input_types,
+        .output_types = program.functions.output_types,
+        .native_modules = program.functions.native_modules,
+        .native_members = program.functions.native_members,
+        .native_exports = program.functions.native_exports,
+        .native_fallible = program.functions.native_fallible,
+        .native_errors = program.functions.native_errors,
+        .native_concurrent = program.functions.native_concurrent,
+    };
 
-        for (errors, 0..) |error_name, position| {
-            if (!@import("lint").checkName(error_name, .type_decl)) return false;
+    const input: Input = .{
+        .functions = &functions,
+        .modules = borrow.pointer(@FieldType(Input, "modules"), &program.native_modules),
+        .index = index,
+    };
 
-            for (errors[0..position]) |previous| {
-                if (std.mem.eql(u8, previous, error_name)) return false;
-            }
-        }
-    }
+    var storage: [0]u8 = undefined;
+    var fixed = std.heap.FixedBufferAllocator.init(&storage);
+    var arena = std.heap.ArenaAllocator.init(fixed.allocator());
 
-    for (program.native_modules) |implementation| {
-        if (!std.mem.eql(u8, implementation.key(), module.key())) continue;
+    defer arena.deinit();
 
-        for (implementation.types) |binding| {
-            if (std.mem.eql(u8, binding.name, name)) return false;
-        }
-    }
-
-    for (0..index) |previous_index| {
-        const previous = program.functions.at(previous_index);
-        const other = previous.external orelse continue;
-
-        if (!std.mem.eql(u8, program.native_modules[@backingInt(other.module)].key(), module.key())) continue;
-        if (!std.mem.eql(u8, other.exportName(), name)) continue;
-        if (previous.input_type != function.input_type or previous.output_type != function.output_type) return false;
-        if (other.fallible != external.fallible) return false;
-        if (other.concurrent != external.concurrent) return false;
-        if ((other.errors == null) != (external.errors == null)) return false;
-
-        if (external.errors) |errors| {
-            const previous_errors = other.errors.?;
-
-            if (errors.len != previous_errors.len) return false;
-
-            for (errors) |error_name| {
-                var found = false;
-
-                for (previous_errors) |previous_error| {
-                    if (std.mem.eql(u8, previous_error, error_name)) found = true;
-                }
-
-                if (!found) return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-pub fn validateType(program: ir.Program, module_id: ir.NativeModuleId, type_id: ir.TypeId, shape: ir.NativeType, depth: usize) bool {
-    if (depth >= 256) return false;
-
-    if (shape.name) |name| {
-        var found = false;
-
-        for (program.native_modules[@backingInt(module_id)].types) |binding| {
-            if (binding.type_id == type_id and std.mem.eql(u8, binding.name, name)) found = true;
-        }
-
-        if (!found) return false;
-    }
-
-    switch (program.typeOf(type_id)) {
-        .task => return false,
-        .native_reference => return shape.name != null and shape.children.len == 0,
-        .scalar, .enumeration, .error_set => return shape.children.len == 0,
-        .optional, .list => |child| return shape.children.len == 1 and validateType(program, module_id, child, shape.children[0], depth + 1),
-        .tuple => |children| {
-            if (children.len != shape.children.len) return false;
-
-            for (0..children.len, shape.children) |view_index, nested| {
-                const child = children.at(view_index);
-
-                if (!validateType(program, module_id, child, nested, depth + 1)) return false;
-            }
-        },
-        .object => |fields| {
-            if (fields.len != shape.children.len) return false;
-
-            for (0..fields.len, shape.children) |item_index, nested| {
-                const field = fields.at(item_index);
-
-                if (!validateType(program, module_id, field.type_id, nested, depth + 1)) return false;
-            }
-        },
-    }
-
-    return true;
+    return generated.execute(&arena, &input) catch unreachable;
 }

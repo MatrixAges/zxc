@@ -1,0 +1,27 @@
+import check from "../../../../lint/naming/check"
+import { NameKind } from "../../../../lint/naming/model"
+
+export type Input = string[]
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ names: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.names.length,
+        next: current => {
+            const name = current.names[current.index]
+            const previous = loop({ names: current.names, name: name, count: current.index, index: 0, found: false }, {
+                while: other => !other.found && other.index < other.count,
+                next: other => {
+                    other.found = other.names[other.index] == other.name
+                    other.index += 1
+                }
+            })
+
+            current.valid = check({ name: name, kind: NameKind.TypeDecl }) && !previous.found
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

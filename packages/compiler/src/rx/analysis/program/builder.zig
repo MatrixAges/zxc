@@ -7,7 +7,7 @@ pub const Error = std.mem.Allocator.Error || error{ InvalidModule, UnreachableFl
 
 allocator: std.mem.Allocator,
 types: ir.TypeTable,
-native_modules: []const ir.NativeModule,
+native_modules: ir.NativeModuleTable,
 symbols: ir.SymbolStorage = .{},
 expressions: ir.ExpressionStorage = .{},
 functions: ir.FunctionStorage = .{},
@@ -35,7 +35,7 @@ pub fn importFunction(self: *Self, program: ir.Program, initializers: []const St
     const Nodes = @import("frontend").ArtifactNodes;
     const types = try self.allocator.alloc(ir.TypeId, self.types.count());
     const functions = try self.allocator.alloc(?ir.FunctionId, program.functions.count());
-    const native_modules = try self.allocator.alloc(?ir.NativeModuleId, self.native_modules.len);
+    const native_modules = try self.allocator.alloc(?ir.NativeModuleId, self.native_modules.count());
 
     for (types, 0..) |*id, index| id.* = @fromBackingInt(@intCast(index));
     for (functions, 0..) |*id, index| id.* = @fromBackingInt(@intCast(self.functions.count() + index));

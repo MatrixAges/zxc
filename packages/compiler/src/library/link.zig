@@ -23,7 +23,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
     const scratch = temporary.allocator();
     var types = try Types.init(owned);
     var functions: ir.FunctionStorage = .{};
-    var native_modules: std.ArrayList(ir.NativeModule) = .empty;
+    var native_modules: ir.NativeModuleStorage = .{};
     var initializers = Initializers{ .allocator = owned, .scratch = scratch, .types = &types, .functions = &functions };
     const exports = try owned.alloc(model.Export, inputs.len);
     var names: std.StringHashMapUnmanaged(void) = .empty;
@@ -40,7 +40,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
 
         const type_mapping = try types.appendFrom(scratch, program.types, input.analysis.nominal_types, 0);
         const function_mapping = try scratch.alloc(?ir.FunctionId, program.functions.count());
-        const native_mapping = try scratch.alloc(?ir.NativeModuleId, program.native_modules.len);
+        const native_mapping = try scratch.alloc(?ir.NativeModuleId, program.native_modules.count());
 
         for (function_mapping, 0..) |*id, index| id.* = @fromBackingInt(@intCast(functions.count() + index));
 
@@ -48,7 +48,11 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
 
         var nodes = Nodes{ .allocator = owned, .types = .{ .mapped = type_mapping }, .functions = function_mapping, .native_modules = native_mapping };
 
-        for (program.native_modules, native_mapping) |native, *id| id.* = try artifact.native_link.append(owned, &native_modules, native, &nodes);
+        for (0..program.native_modules.count(), native_mapping) |native_row, *id| {
+            const native = program.native_modules.at(native_row);
+
+            id.* = try artifact.native_link.append(owned, &native_modules, native, &nodes);
+        }
 
         for (0..program.functions.count()) |function_row| {
             const function = program.functions.at(function_row);
@@ -127,7 +131,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         .expressions = .{},
         .body = .{},
         .functions = functions.view(),
-        .native_modules = native_modules.items,
+        .native_modules = native_modules.view(),
         .type_only = true,
     };
 

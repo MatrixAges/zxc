@@ -7,6 +7,8 @@ const Self = @This();
 needed: []bool,
 program: ir.Program,
 pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record) Error![]const bool {
+    if (!program.native_modules.validStructure()) return error.InvalidModule;
+
     const needed = try allocator.alloc(bool, program.types.count());
     var self = Self{ .needed = needed, .program = program };
 
@@ -39,7 +41,9 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
     for (record.imports) |dependency| {
         if (dependency.target != .native) continue;
 
-        for (program.native_modules, 0..) |module, index| {
+        for (0..program.native_modules.count()) |index| {
+            const module = program.native_modules.at(index);
+
             if (std.mem.eql(u8, dependency.specifier, module.specifier)) try self.nativeModule(@fromBackingInt(@intCast(index)));
         }
     }
@@ -103,8 +107,8 @@ fn mark(self: *Self, id: ir.TypeId) Error!void {
 }
 
 fn nativeModule(self: *Self, id: ir.NativeModuleId) Error!void {
-    if (@backingInt(id) >= self.program.native_modules.len) return error.InvalidModule;
-    for (self.program.native_modules[@backingInt(id)].types) |item| try self.mark(item.type_id);
+    if (@backingInt(id) >= self.program.native_modules.count()) return error.InvalidModule;
+    for (self.program.native_modules.type_ids[@backingInt(id)]) |type_id| try self.mark(@fromBackingInt(type_id));
 }
 
 fn nodes(self: *Self, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, contracts: ir.ContractTable) Error!void {

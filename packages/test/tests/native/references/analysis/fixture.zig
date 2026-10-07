@@ -55,7 +55,7 @@ pub fn accepted(allocator: std.mem.Allocator, case: Case) !void {
     try std.testing.expect(try compiler.validateIr(allocator, result.value.ir) == null);
 
     const program = result.value.ir;
-    const binding = program.native_modules[0].types[0];
+    const binding = program.native_modules.at(0).types.at(0);
 
     try std.testing.expectEqualStrings("Node", binding.name);
     try std.testing.expect(program.typeOf(binding.type_id) == .native_reference);

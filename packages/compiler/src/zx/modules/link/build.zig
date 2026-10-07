@@ -11,12 +11,15 @@ temporary: std.mem.Allocator,
 modules: []const model.Module,
 type_mappings: []const []const ir.TypeId,
 functions: ir.FunctionStorage = .{},
-native_modules: std.ArrayList(ir.NativeModule) = .empty,
+native_modules: ir.NativeModuleStorage = .{},
 module_functions: []?ir.FunctionId,
 pub fn module(self: *Self, index: usize) Error!?ir.Function {
     const value = self.modules[index];
+
+    if (!value.native_modules.validStructure()) return error.InvalidModule;
+
     const function_mapping = try self.temporary.alloc(?ir.FunctionId, value.functions.len);
-    const native_mapping = try self.temporary.alloc(?ir.NativeModuleId, value.native_modules.len);
+    const native_mapping = try self.temporary.alloc(?ir.NativeModuleId, value.native_modules.count());
 
     @memset(function_mapping, null);
     @memset(native_mapping, null);
@@ -25,7 +28,12 @@ pub fn module(self: *Self, index: usize) Error!?ir.Function {
 
     try checkExports(value.exports, nodes.types);
     try checkExports(value.type_imports, nodes.types);
-    for (value.native_modules, native_mapping) |item, *id| id.* = try native.append(self.allocator, &self.native_modules, item, &nodes);
+
+    for (0..value.native_modules.count(), native_mapping) |item_row, *id| {
+        const item = value.native_modules.at(item_row);
+
+        id.* = try native.append(self.allocator, &self.native_modules, item, &nodes);
+    }
 
     for (value.functions, function_mapping) |signature, *id| {
         const input = try nodes.types.include(signature.input_type);
@@ -76,7 +84,9 @@ fn imports(self: *Self, index: usize, nodes: *Nodes) Error!void {
         if (dependency.target != .source) {
             var found = false;
 
-            for (value.native_modules) |item| {
+            for (0..value.native_modules.count()) |item_row| {
+                const item = value.native_modules.at(item_row);
+
                 if (std.mem.eql(u8, item.specifier, dependency.specifier)) found = true;
             }
 
@@ -134,7 +144,7 @@ fn importExternal(self: *Self, signature: model.Signature, input: ir.TypeId, out
         const existing = self.functions.at(index);
         const other = existing.external orelse continue;
 
-        if (!std.mem.eql(u8, self.native_modules.items[@backingInt(other.module)].key(), self.native_modules.items[@backingInt(implementation.module)].key())) continue;
+        if (!std.mem.eql(u8, self.native_modules.at(@backingInt(other.module)).key(), self.native_modules.at(@backingInt(implementation.module)).key())) continue;
         if (!std.mem.eql(u8, other.exportName(), implementation.exportName())) continue;
         if (existing.input_type != input or existing.output_type != output or existing.output_ownership != signature.output_ownership or !native.sameExternal(other, implementation)) return error.ConflictingInterface;
 

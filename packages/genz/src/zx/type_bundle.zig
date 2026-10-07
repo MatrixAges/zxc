@@ -8,7 +8,9 @@ pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
     var layouts: std.ArrayList(node.Declaration) = .empty;
     var scoped = false;
 
-    for (self.program.native_modules) |module| {
+    for (0..self.program.native_modules.count()) |module_row| {
+        const module = self.program.native_modules.at(module_row);
+
         if (module.identity != null) scoped = true;
     }
 
@@ -16,7 +18,8 @@ pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
 
     var seen: std.StringHashMapUnmanaged(void) = .empty;
 
-    for (self.program.native_modules) |module| {
+    for (0..self.program.native_modules.count()) |module_row| {
+        const module = self.program.native_modules.at(module_row);
         const entry = try seen.getOrPut(self.allocator, module.key());
 
         if (entry.found_existing) continue;
@@ -25,23 +28,26 @@ pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
         var members: std.ArrayList(node.Declaration) = .empty;
         var storage: std.ArrayList(node.Declaration) = .empty;
 
-        for (self.program.native_modules) |implementation| {
+        for (0..self.program.native_modules.count()) |implementation_row| {
+            const implementation = self.program.native_modules.at(implementation_row);
+
             if (!std.mem.eql(u8, implementation.key(), module.key())) continue;
 
-            for (implementation.types) |binding| {
+            for (0..implementation.types.count()) |binding_index| {
+                const binding = implementation.types.at(binding_index);
                 const name = try names.getOrPut(self.allocator, binding.name);
 
                 if (name.found_existing) continue;
 
                 try members.append(self.allocator, .{ .constant = .{
                     .name = binding.name,
-                    .value = self.types[@intFromEnum(binding.type_id)],
+                    .value = self.types[@backingInt(binding.type_id)],
                     .exported = true,
                 } });
 
                 try storage.append(self.allocator, .{ .constant = .{
                     .name = binding.name,
-                    .value = self.layouts[@intFromEnum(binding.type_id)],
+                    .value = self.layouts[@backingInt(binding.type_id)],
                     .exported = true,
                 } });
             }
@@ -50,7 +56,7 @@ pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
         for (0..self.program.functions.count()) |function_row| {
             const function = self.program.functions.at(function_row);
             const external = function.external orelse continue;
-            const implementation = self.program.native_modules[@intFromEnum(external.module)];
+            const implementation = self.program.native_modules.at(@backingInt(external.module));
 
             if (!std.mem.eql(u8, implementation.key(), module.key())) continue;
 
@@ -59,10 +65,10 @@ pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
             if (name.found_existing) continue;
 
             const signature = try self.allocator.alloc(node.Declaration, 4);
-            signature[0] = .{ .constant = .{ .name = "Input", .value = self.types[@intFromEnum(function.input_type)], .exported = true } };
-            signature[1] = .{ .constant = .{ .name = "Output", .value = self.types[@intFromEnum(function.output_type)], .exported = true } };
-            signature[2] = .{ .constant = .{ .name = "InputValue", .value = self.layouts[@intFromEnum(function.input_type)], .exported = true } };
-            signature[3] = .{ .constant = .{ .name = "OutputValue", .value = self.layouts[@intFromEnum(function.output_type)], .exported = true } };
+            signature[0] = .{ .constant = .{ .name = "Input", .value = self.types[@backingInt(function.input_type)], .exported = true } };
+            signature[1] = .{ .constant = .{ .name = "Output", .value = self.types[@backingInt(function.output_type)], .exported = true } };
+            signature[2] = .{ .constant = .{ .name = "InputValue", .value = self.layouts[@backingInt(function.input_type)], .exported = true } };
+            signature[3] = .{ .constant = .{ .name = "OutputValue", .value = self.layouts[@backingInt(function.output_type)], .exported = true } };
 
             try members.append(self.allocator, .{ .constant = .{
                 .name = external.exportName(),

@@ -46,7 +46,7 @@ const Project = struct {
     nominal_origins: NominalOrigins,
     modules: std.ArrayList(ModuleRecord) = .empty,
     functions: ir.FunctionStorage = .{},
-    native_modules: std.ArrayList(ir.NativeModule) = .empty,
+    native_modules: ir.NativeModuleStorage = .{},
     native_units: std.StringHashMapUnmanaged(NativeUnit) = .empty,
     store_initializers: std.ArrayList(compiled.StoreInitializer) = .empty,
     compiled_units: std.AutoHashMapUnmanaged(usize, compiled.Loaded) = .empty,
@@ -179,7 +179,7 @@ const Project = struct {
                     .types = self.types,
                     .nominal_types = self.nominal_origins.items.view(),
                     .functions = self.functions.view(),
-                    .native_modules = self.native_modules.items,
+                    .native_modules = self.native_modules.view(),
                     .aliases = aliases.items,
                     .imports = imports.items,
                     .dependencies = dependencies.items,
@@ -306,11 +306,13 @@ const Project = struct {
     fn nativeModule(self: *Project, source: []const u8, identity: ?[]const u8, name: []const u8, span: zx.Span) zx.Error!ir.NativeModuleId {
         if (name.len == 0 or std.mem.indexOfScalar(u8, name, 0) != null or !std.unicode.utf8ValidateSlice(name)) return self.reporter.fail(.module, span, "native import names must be nonempty UTF-8 strings");
 
-        for (self.native_modules.items, 0..) |module, index| {
+        for (0..self.native_modules.count()) |index| {
+            const module = self.native_modules.at(index);
+
             if (std.mem.eql(u8, module.key(), identity orelse source) and std.mem.eql(u8, module.import_name, name)) return @fromBackingInt(@intCast(index));
         }
 
-        const id: ir.NativeModuleId = @fromBackingInt(@intCast(self.native_modules.items.len));
+        const id: ir.NativeModuleId = @fromBackingInt(@intCast(self.native_modules.count()));
 
         try self.native_modules.append(self.allocator, .{ .specifier = try self.allocator.dupe(u8, source), .identity = if (identity) |key| try self.allocator.dupe(u8, key) else null, .import_name = try self.allocator.dupe(u8, name) });
 
@@ -348,8 +350,12 @@ const Project = struct {
 
             for (entry.namespace, namespace) |part, *owned| owned.* = try self.allocator.dupe(u8, part);
 
-            self.native_modules.items[@backingInt(module_id)].type_namespace = namespace;
-            self.native_modules.items[@backingInt(module_id)].types = loaded.exports;
+            const bindings = try ir.NativeBindings.fromValues(self.allocator, loaded.exports);
+            const native_index = @backingInt(module_id);
+
+            self.native_modules.type_namespaces.items[native_index] = namespace;
+            self.native_modules.type_names.items[native_index] = bindings.names;
+            self.native_modules.type_ids.items[native_index] = bindings.type_ids;
 
             const members = try self.allocator.alloc(Analyzer.FunctionImport, loaded.members.len);
 
@@ -487,7 +493,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
     var normalized = options;
     normalized.entry = try std.fs.path.resolve(temporary, &.{ options.root_dir, options.entry });
     var project = Project{ .allocator = temporary, .sources = sources, .parse_cache = cache, .semantic_cache = if (options.compiled_libraries.len == 0) semantic_cache else null, .units = units, .options = normalized, .reporter = &reporter, .nominal_origins = .{ .allocator = temporary } };
-    project.native_modules = .fromOwnedSlice(try @import("native_context.zig").copy(temporary, options.context.native_modules));
+    project.native_modules = try @import("native_context.zig").storage(temporary, options.context.native_modules);
     project.types = try @import("../analysis/type_table.zig").copy(temporary, options.context.types);
 
     project.nominal_origins.seed(project.types, options.context.nominal_types) catch |err| {
@@ -514,7 +520,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
     };
 
     program.types = project.types;
-    program.native_modules = project.native_modules.items;
+    program.native_modules = project.native_modules.view();
     program.functions = try project.functions.view().prefix(project.functions.count() - @intFromBool(!program.type_only)).snapshot(temporary);
 
     if (try @import("../ir/validate.zig").validate(allocator, program)) |issue| return .{ .arena = arena, .value = .{ .diagnostic = issue } };

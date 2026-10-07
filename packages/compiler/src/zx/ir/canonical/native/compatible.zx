@@ -1,0 +1,42 @@
+import type { Functions } from "./model"
+
+export type Input = { functions: Functions, left: u64, right: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const functions = in.functions
+
+    if (functions.input_types[in.left] != functions.input_types[in.right] || functions.output_types[in.left] != functions.output_types[in.right] || functions.native_fallible[in.left] != functions.native_fallible[in.right] || functions.native_concurrent[in.left] != functions.native_concurrent[in.right]) {
+        return false
+    }
+
+    const left = functions.native_errors[in.left]
+    const right = functions.native_errors[in.right]
+
+    if (left == null) {
+        return right == null
+    }
+
+    if (right == null || left.length != right.length) {
+        return false
+    }
+
+    const result = loop({ left: left, right: right, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.left.length,
+        next: current => {
+            const found = loop({ names: current.right, name: current.left[current.index], index: 0, found: false }, {
+                while: other => !other.found && other.index < other.names.length,
+                next: other => {
+                    other.found = other.names[other.index] == other.name
+                    other.index += 1
+                }
+            })
+
+            current.valid = found.found
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

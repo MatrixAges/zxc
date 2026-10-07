@@ -35,7 +35,8 @@ pub fn emitModulesCached(allocator: std.mem.Allocator, analysis: *const @import(
 
 pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts, NativeRequiresBundle })![]u8 {
     try validate(allocator, program);
-    if (program.native_modules.len != 0) return error.NativeRequiresBundle;
+
+    if (program.native_modules.count() != 0) return error.NativeRequiresBundle;
 
     return @import("genz").zx.emit(allocator, program);
 }

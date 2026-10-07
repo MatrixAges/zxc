@@ -22,12 +22,12 @@ pub fn inspect(value: *const compiler.library.Result) !void {
     const program = value.program;
 
     try std.testing.expectEqual(@as(usize, 0), program.functions.count());
-    try std.testing.expectEqual(@as(usize, 1), program.native_modules.len);
+    try std.testing.expectEqual(@as(usize, 1), program.native_modules.count());
     try std.testing.expectEqual(@as(usize, 1), value.nominal_types.count());
     try std.testing.expectEqual(@as(usize, 1), value.exports.len);
 
     const nominal = value.nominal_types.at(0);
-    const module = program.native_modules[0];
+    const module = program.native_modules.at(0);
 
     try std.testing.expect(program.typeOf(nominal.type_id) == .native_reference);
     try std.testing.expectEqualStrings("Node", program.typeOf(nominal.type_id).native_reference);

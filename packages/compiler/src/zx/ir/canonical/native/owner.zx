@@ -1,0 +1,47 @@
+import integers from "zig:integers"
+
+import key from "./key"
+
+import type { Context } from "./model"
+
+export type Input = { context: Context, type_id: u64 }
+
+export type Output = string?
+
+    export default function (in: Input): Output {
+        const empty: string? = null
+
+        const result = loop({ modules: in.context.modules, type_id: in.type_id, name: in.context.table.labels[in.type_id], index: 0, owner: empty, declared: false, valid: true }, {
+            while: current => current.valid && current.index < current.modules.specifiers.length,
+            next: current => {
+                const binding = loop({ ids: current.modules.type_ids[current.index], names: current.modules.type_names[current.index], type_id: current.type_id, name: current.name, index: 0, found: false, declared: false }, {
+                    while: item => item.index < item.ids.length,
+                    next: item => {
+                        if (integers.widen(item.ids[item.index]) == item.type_id) {
+                            item.found = true
+                            item.declared = item.declared || item.names[item.index] == item.name
+                        }
+
+                        item.index += 1
+                    }
+                })
+
+                if (binding.found) {
+                    const identity = key({ modules: current.modules, index: current.index })
+                    const previous = current.owner
+
+                    current.valid = previous == null || previous == identity
+                    current.owner = identity
+                    current.declared = current.declared || binding.declared
+                }
+
+                current.index += 1
+            }
+        })
+
+        if (!result.valid || !result.declared) {
+            return null
+        }
+
+        return result.owner
+    }

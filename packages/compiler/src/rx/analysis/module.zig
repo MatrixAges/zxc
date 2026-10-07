@@ -25,7 +25,7 @@ pub const Contract = struct {
     output_type: zx.ir.TypeId,
     calls: []const Call,
     result: ?zx.ir.Program,
-    native_modules: []const zx.ir.NativeModule,
+    native_modules: zx.ir.NativeModuleTable,
 };
 
 pub const Value = union(enum) { contract: Contract, diagnostic: target.Diagnostic };

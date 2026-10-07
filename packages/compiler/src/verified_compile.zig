@@ -32,7 +32,7 @@ pub fn emit(allocator: std.mem.Allocator, options: Options, analyzed: *const com
 }
 
 fn render(allocator: std.mem.Allocator, options: Options, program: compiler.ir.Program) !compiler.Result {
-    if (program.native_modules.len != 0) {
+    if (program.native_modules.count() != 0) {
         const writer = options.type_output orelse return .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "native modules require shared type output; use --out or build" } };
         const bundle = try @import("genz").zx.bundle(allocator, program);
 
@@ -118,7 +118,7 @@ fn checkProgram(allocator: std.mem.Allocator, options: Options, program: compile
     if (try compiler.validateIr(allocator, program)) |issue| return issue;
 
     if (options.dependencies) |dependencies| {
-        for (program.native_modules) |module| try dependencies.append(allocator, try allocator.dupe(u8, module.import_name));
+        for (program.native_modules.import_names) |name| try dependencies.append(allocator, try allocator.dupe(u8, name));
     }
 
     if (!program.type_only and requiresVerification(program, options.solver)) {

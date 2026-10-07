@@ -15,11 +15,11 @@ fn run(allocator: std.mem.Allocator, conflict: bool) !void {
 
     defer fixture.deinit();
 
-    var native = fixture.modules[1].native_modules[0];
+    var native = fixture.modules[1].native_modules.at(0);
 
     if (conflict) {
         native.type_namespace = &.{"Other"};
-        fixture.modules[1].native_modules = (&native)[0..1];
+        fixture.modules[1].native_modules = try f.compiler.ir.NativeModuleTable.fromValues(fixture.results[1].arena.allocator(), &.{native});
     }
 
     var result = f.artifact.linker.link(allocator, &fixture.modules, "/project/main.zx") catch |err| {

@@ -1,0 +1,26 @@
+import type { Modules } from "./model"
+
+export type Input = Modules
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const count = in.specifiers.length
+
+    if (count > 4294967295 || in.identities.length != count || in.import_names.length != count || in.type_ids.length != count || in.type_names.length != count || in.type_namespaces.length != count) {
+        return false
+    }
+
+    const result = loop({ modules: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.modules.specifiers.length,
+        next: current => {
+            const names = current.modules.type_names[current.index]
+            const ids = current.modules.type_ids[current.index]
+
+            current.valid = names.length == ids.length && names.length <= 4294967295
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}

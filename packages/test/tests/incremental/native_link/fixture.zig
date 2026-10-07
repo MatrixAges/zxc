@@ -45,7 +45,7 @@ pub const Fixture = struct {
 
 pub fn check(result: artifact.linker.Result) !void {
     try std.testing.expect(try compiler.validateIr(std.testing.allocator, result.program) == null);
-    try std.testing.expectEqual(@as(usize, 1), result.program.native_modules.len);
+    try std.testing.expectEqual(@as(usize, 1), result.program.native_modules.count());
     try std.testing.expectEqual(@as(usize, 1), result.nominal_types.count());
     try std.testing.expectEqualStrings("zig:choice", result.nominal_types.at(0).origin.native);
     try std.testing.expectEqualStrings("Mode", result.nominal_types.at(0).name);

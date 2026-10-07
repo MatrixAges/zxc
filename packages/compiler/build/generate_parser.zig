@@ -238,6 +238,16 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[56 + entries.len], .data = refinement_type.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[57 + entries.len], .data = refinement_type.types });
 
+    const native_modules = try generate(allocator, inputs, sources.items, "zx/ir/canonical/native_modules_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[58 + entries.len], .data = native_modules.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[59 + entries.len], .data = native_modules.types });
+
+    const native_export = try generate(allocator, inputs, sources.items, "zx/ir/canonical/native_export_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[60 + entries.len], .data = native_export.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[61 + entries.len], .data = native_export.types });
+
     const naming = try generate(allocator, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 2], .data = naming.source });

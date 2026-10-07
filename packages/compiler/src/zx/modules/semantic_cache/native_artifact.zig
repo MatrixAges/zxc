@@ -28,9 +28,7 @@ pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, 
 
     for (entry.namespace, namespace) |part, *name| name.* = try owned.dupe(u8, part);
 
-    const native_modules = try owned.alloc(ir.NativeModule, 1);
-    native_modules[0] = .{ .specifier = try owned.dupe(u8, entry.specifier), .identity = if (entry.identity) |key| try owned.dupe(u8, key) else null, .import_name = try owned.dupe(u8, entry.module), .type_namespace = namespace, .types = loaded.exports };
-
+    const native_modules = try ir.NativeModuleTable.fromValues(owned, &.{.{ .specifier = try owned.dupe(u8, entry.specifier), .identity = if (entry.identity) |key| try owned.dupe(u8, key) else null, .import_name = try owned.dupe(u8, entry.module), .type_namespace = namespace, .types = try ir.NativeBindings.fromValues(owned, loaded.exports) }});
     var functions: ir.FunctionStorage = .{};
     const signatures = try owned.alloc(Artifact.Signature, loaded.members.len);
     const bindings = try owned.alloc(FunctionImport, loaded.members.len);

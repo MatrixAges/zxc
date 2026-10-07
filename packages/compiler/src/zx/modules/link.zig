@@ -85,7 +85,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         .contracts = if (root) |value| value.contracts else .{},
         .exports = exports,
         .functions = builder.functions.view(),
-        .native_modules = builder.native_modules.items,
+        .native_modules = builder.native_modules.view(),
         .stores = stores,
         .store_mode = if (root) |value| value.store_mode else .transaction,
         .type_only = root == null,

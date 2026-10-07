@@ -1,0 +1,42 @@
+export type Input = string
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const low: u8 = 128
+    const high: u8 = 191
+
+    const result = loop({ text: in, index: 0, remaining: 0, low: low, high: high, valid: true }, {
+        while: current => current.valid && current.index < current.text.length,
+        next: current => {
+            const byte = current.text[current.index]
+
+            if (current.remaining != 0) {
+                current.valid = byte >= current.low && byte <= current.high
+                current.remaining -= 1
+                current.low = 128
+                current.high = 191
+            } else if (byte == 0) {
+                current.valid = false
+            } else if (byte < 128) {
+                current.remaining = 0
+            } else if (byte >= 194 && byte <= 223) {
+                current.remaining = 1
+            } else if (byte >= 224 && byte <= 239) {
+                current.remaining = 2
+                current.low = byte == 224 ? 160 : 128
+                current.high = byte == 237 ? 159 : 191
+            } else if (byte >= 240 && byte <= 244) {
+                current.remaining = 3
+                current.low = byte == 240 ? 144 : 128
+                current.high = byte == 244 ? 143 : 191
+            } else {
+                current.valid = false
+            }
+
+            current.index += 1
+        }
+    })
+
+    return in.length != 0 && result.valid && result.remaining == 0
+}

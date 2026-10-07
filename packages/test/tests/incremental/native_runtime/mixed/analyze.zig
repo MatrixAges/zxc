@@ -17,15 +17,15 @@ pub fn analyze(allocator: std.mem.Allocator, helper: []const u8) !Result {
     const same = try compiler.project.SemanticCache.contextDigest(allocator, context);
 
     if (!std.mem.eql(u8, &digest, &same)) return error.NonDeterministicContextDigest;
-    if (context.native_modules.len == 0) return error.MissingNativeContext;
+    if (context.native_modules.count() == 0) return error.MissingNativeContext;
 
-    const changed = try allocator.dupe(compiler.ir.NativeModule, context.native_modules);
+    const changed = try allocator.dupe([]const u8, context.native_modules.import_names);
 
     defer allocator.free(changed);
 
-    changed[0].import_name = "different_choice";
+    changed[0] = "different_choice";
     var alternate = context;
-    alternate.native_modules = changed;
+    alternate.native_modules.import_names = changed;
 
     const different = try compiler.project.SemanticCache.contextDigest(allocator, alternate);
 

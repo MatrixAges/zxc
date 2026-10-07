@@ -73,9 +73,11 @@ test "generated native reference descriptors survive releasing library and analy
 
     defer bundle.deinit();
 
-    try std.testing.expectEqual(@as(usize, 2), bundle.native_modules.len);
+    try std.testing.expectEqual(@as(usize, 2), bundle.native_modules.count());
 
-    for (bundle.native_modules) |module| {
+    for (0..bundle.native_modules.count()) |module_row| {
+        const module = bundle.native_modules.at(module_row);
+
         try std.testing.expectEqualStrings("zig:host", module.specifier);
         try std.testing.expect(std.mem.indexOf(u8, bundle.types, module.key()) != null);
         try std.testing.expect(std.mem.startsWith(u8, module.import_name, "library_native_"));

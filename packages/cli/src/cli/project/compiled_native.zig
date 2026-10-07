@@ -40,7 +40,9 @@ pub fn declaration(self: Self, allocator: std.mem.Allocator, specifier: []const 
     var key: ?[]const u8 = null;
     var shared = false;
 
-    for (self.library.program.native_modules) |module| {
+    for (0..self.library.program.native_modules.count()) |module_row| {
+        const module = self.library.program.native_modules.at(module_row);
+
         if (!std.mem.eql(u8, module.specifier, specifier) and !std.mem.eql(u8, module.key(), specifier)) continue;
         if (key) |previous| if (!std.mem.eql(u8, previous, module.key())) return error.ConflictingNativeAbiAlias;
 
@@ -61,7 +63,9 @@ pub fn aliases(self: Self, allocator: std.mem.Allocator, configured: ?[]const mo
     if (configured) |entries| {
         for (entries) |entry| try result.append(allocator, .{ .name = entry.name, .specifier = try self.declaration(allocator, entry.specifier) });
     } else {
-        for (self.library.program.native_modules) |module| {
+        for (0..self.library.program.native_modules.count()) |module_row| {
+            const module = self.library.program.native_modules.at(module_row);
+
             if (std.mem.startsWith(u8, module.specifier, "std:")) continue;
 
             for (result.items) |previous| {

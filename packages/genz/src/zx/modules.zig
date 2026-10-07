@@ -92,8 +92,8 @@ fn functionPrepared(allocator: std.mem.Allocator, program: ir.Program, id: ir.Fu
     try @import("store.zig").declaration(&lower, &output);
 
     var declaration = if (selected.external) |external| native: {
-        const module = program.native_modules[@backingInt(external.module)];
-        const native_names = try temporary.alloc([]const u8, program.native_modules.len);
+        const module = program.native_modules.at(@backingInt(external.module));
+        const native_names = try temporary.alloc([]const u8, program.native_modules.count());
 
         @memset(native_names, "");
         native_names[@backingInt(external.module)] = "zx_native";
