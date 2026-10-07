@@ -13,7 +13,7 @@ pub fn lower(self: *Context, scope: ir.Scope) Lower.Error!*const node.Expression
     };
 
     for (scope.bindings) |binding| if (binding.symbol) |symbol| {
-        if (!self.represented(lowering.program.symbols[@backingInt(symbol)].type_id) or self.symbols.contains(symbol)) continue;
+        if (!self.represented(lowering.program.symbols.at(@backingInt(symbol)).type_id) or self.symbols.contains(symbol)) continue;
         try symbols.append(lowering.allocator, symbol);
         try self.symbols.put(lowering.allocator, symbol, {});
     };
@@ -41,7 +41,7 @@ pub fn lower(self: *Context, scope: ir.Scope) Lower.Error!*const node.Expression
 
             statements[offset] = if (lowering.used[index]) .{ .constant = .{
                 .name = lowering.names[index],
-                .type_expr = try @import("types.zig").get(self, lowering.program.symbols[index].type_id),
+                .type_expr = try @import("types.zig").get(self, lowering.program.symbols.at(index).type_id),
                 .value = value,
             } } else .{ .discard = value };
         } else statements[offset] = .{ .expression = value };

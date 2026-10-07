@@ -16,6 +16,8 @@ pub const TypeStorage = @import("type_table/storage.zig");
 pub const TypeIds = @import("type_table/model.zig").Ids;
 pub const TypeFields = @import("type_table/model.zig").Fields;
 pub const TypeField = @import("type_table/model.zig").Field;
+pub const SymbolTable = @import("symbol_table/root.zig");
+pub const SymbolStorage = @import("symbol_table/storage.zig");
 pub const Symbol = struct { name: []const u8, type_id: TypeId, span: Span, ownership: Ownership = .copy };
 pub const Export = struct { name: []const u8, type_id: TypeId };
 pub const ListOperation = enum { push, pop, sort, reverse, splice, concat };
@@ -131,7 +133,7 @@ pub const External = struct {
 
 pub const Contract = struct {
     kind: @import("syntax.zig").ContractKind,
-    symbols: []const Symbol,
+    symbols: SymbolTable,
     expressions: []const Expression,
     predicate: ExprId,
     span: Span,
@@ -146,19 +148,19 @@ pub const Function = struct {
     file_name: []const u8,
     input_type: TypeId,
     output_type: TypeId,
-    symbols: []const Symbol,
+    symbols: SymbolTable,
     expressions: []const Expression,
     body: []const Statement,
 };
 
 pub const Program = struct {
     output_ownership: Ownership = .borrowed,
-    version: u32 = 25,
+    version: u32 = 26,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,
     types: TypeTable,
-    symbols: []const Symbol,
+    symbols: SymbolTable,
     expressions: []const Expression,
     input_type: TypeId,
     output_type: TypeId,

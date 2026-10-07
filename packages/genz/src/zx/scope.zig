@@ -28,8 +28,8 @@ fn lowerMode(self: *Lower, scope: ir.Scope, layout: bool) Lower.Error!*const nod
 
     if (layout and analysis.flat(self.program, self.program.expression(scope.result).type_id)) {
         for (scope.bindings) |binding| if (binding.symbol) |symbol| {
-            if (@import("state_value/root.zig").selected(self, self.program.symbols[@backingInt(symbol)].type_id)) continue;
-            if (!analysis.flat(self.program, self.program.symbols[@backingInt(symbol)].type_id) or self.stack_symbols.contains(symbol)) continue;
+            if (@import("state_value/root.zig").selected(self, self.program.symbols.at(@backingInt(symbol)).type_id)) continue;
+            if (!analysis.flat(self.program, self.program.symbols.at(@backingInt(symbol)).type_id) or self.stack_symbols.contains(symbol)) continue;
             try stacked.append(self.allocator, symbol);
             try self.stack_symbols.put(self.allocator, symbol, {});
         };
@@ -87,7 +87,7 @@ fn lowerMode(self: *Lower, scope: ir.Scope, layout: bool) Lower.Error!*const nod
             if (self.used[index]) {
                 try output.append(self.allocator, .{ .constant = .{
                     .name = self.names[index],
-                    .type_expr = if (by_value) self.layouts[@backingInt(self.program.symbols[index].type_id)] else self.types[@backingInt(self.program.symbols[index].type_id)],
+                    .type_expr = if (by_value) self.layouts[@backingInt(self.program.symbols.at(index).type_id)] else self.types[@backingInt(self.program.symbols.at(index).type_id)],
                     .value = value,
                 } });
             } else try output.append(self.allocator, .{ .discard = value });

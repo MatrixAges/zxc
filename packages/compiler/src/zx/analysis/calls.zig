@@ -17,7 +17,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         if (self.lookup(name.text) != null) return self.reporter.fail(.type_mismatch, name.span, "a local value is not a callable function");
 
         for (self.active.items[0..self.scope_floor]) |symbol| {
-            if (std.mem.eql(u8, self.symbols.items[@backingInt(symbol)].name, name.text)) {
+            if (std.mem.eql(u8, self.symbols.at(@backingInt(symbol)).name, name.text)) {
                 _ = try self.resolveValue(name);
             }
         }
@@ -44,7 +44,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
 
         if (self.lookup(namespace.text) == null) {
             for (self.active.items[0..self.scope_floor]) |symbol| {
-                if (std.mem.eql(u8, self.symbols.items[@backingInt(symbol)].name, namespace.text)) {
+                if (std.mem.eql(u8, self.symbols.at(@backingInt(symbol)).name, namespace.text)) {
                     _ = try self.resolveValue(namespace);
                 }
             }

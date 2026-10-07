@@ -95,8 +95,8 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
         helper.program.store_mode = module_function.store_mode;
         helper.pending_name = try std.fmt.allocPrint(self.allocator, "zx_pending_{d}", .{index});
         helper.program.contracts = module_function.contracts;
-        helper.names = try self.allocator.alloc([]const u8, module_function.symbols.len);
-        helper.used = try self.allocator.alloc(bool, module_function.symbols.len);
+        helper.names = try self.allocator.alloc([]const u8, module_function.symbols.count());
+        helper.used = try self.allocator.alloc(bool, module_function.symbols.count());
         helper.cache = .empty;
         helper.append_overrides = .empty;
         helper.buffer_calls = .empty;

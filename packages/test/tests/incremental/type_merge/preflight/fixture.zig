@@ -95,7 +95,7 @@ pub fn valid(memory: std.mem.Allocator, table: ir.TypeTable) !void {
     const program: ir.Program = .{
         .file_name = "preflight.zx",
         .types = table,
-        .symbols = &.{},
+        .symbols = .{},
         .expressions = &.{},
         .input_type = @fromBackingInt(@backingInt(ir.Scalar.void)),
         .output_type = @fromBackingInt(@backingInt(ir.Scalar.void)),

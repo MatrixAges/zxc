@@ -134,7 +134,7 @@ fn restoreChecked(module: model.Module, current: Current) Error!Result {
         .input_type = if (function) |value| value.input_type else @fromBackingInt(@intCast(0)),
         .output_type = if (function) |value| value.output_type else @fromBackingInt(@intCast(0)),
         .output_ownership = if (function) |value| value.output_ownership else .borrowed,
-        .symbols = if (function) |value| value.symbols else &.{},
+        .symbols = if (function) |value| value.symbols else .{},
         .expressions = if (function) |value| value.expressions else &.{},
         .body = if (function) |value| value.body else &.{},
         .contracts = if (function) |value| value.contracts else &.{},

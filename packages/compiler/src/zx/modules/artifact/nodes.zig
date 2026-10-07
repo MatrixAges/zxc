@@ -59,15 +59,23 @@ pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
     return result;
 }
 
-fn symbols(self: *Self, values: []const ir.Symbol) Error![]const ir.Symbol {
-    const result = try self.allocator.dupe(ir.Symbol, values);
+fn symbols(self: *Self, values: ir.SymbolTable) Error!ir.SymbolTable {
+    if (!values.validStructure()) return error.InvalidModule;
 
-    for (result) |*item| {
+    var storage: ir.SymbolStorage = .{};
+
+    errdefer storage.deinit(self.allocator);
+
+    for (0..values.count()) |index| {
+        var item = values.at(index);
+
         item.name = try self.allocator.dupe(u8, item.name);
         item.type_id = try self.types.include(item.type_id);
+
+        try storage.append(self.allocator, item);
     }
 
-    return result;
+    return storage.finish(self.allocator);
 }
 
 fn expressions(self: *Self, values: []const ir.Expression) Error![]const ir.Expression {

@@ -20,7 +20,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
     defer builder.nodes.deinit(allocator);
     errdefer builder.children.deinit(allocator);
 
-    for (program.symbols) |symbol| _ = try builder.root(symbol.type_id);
+    for (program.symbols.types) |type_id| _ = try builder.root(@fromBackingInt(type_id));
 
     const cached = try allocator.alloc([]const usize, program.expressions.len);
 

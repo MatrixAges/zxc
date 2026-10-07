@@ -9,11 +9,11 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
     const count = program.body.len - 1;
 
     if (program.functions.len != 0 or program.stores.len != 0) return error.InvalidModule;
-    if (program.symbols.len < count + 1) return error.InvalidModule;
+    if (program.symbols.count() < count + 1) return error.InvalidModule;
 
     var mapping = Mapping{
         .allocator = builder.allocator,
-        .symbols = try builder.allocator.alloc(?ir.SymbolId, program.symbols.len),
+        .symbols = try builder.allocator.alloc(?ir.SymbolId, program.symbols.count()),
         .expressions = try builder.allocator.alloc(?ir.ExprId, program.expressions.len),
     };
 
@@ -28,38 +28,40 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
 
         const source = statement.constant;
 
-        if (@intFromEnum(source.symbol) >= mapping.symbols.len or @intFromEnum(source.value) >= program.expressions.len) return error.InvalidModule;
+        if (@backingInt(source.symbol) >= mapping.symbols.len or @backingInt(source.value) >= program.expressions.len) return error.InvalidModule;
 
         const value = program.expression(source.value);
 
         if (value.value != .tuple_field or value.value.tuple_field.index != index) return error.InvalidModule;
-        if (@intFromEnum(value.value.tuple_field.target) >= program.expressions.len) return error.InvalidModule;
+        if (@backingInt(value.value.tuple_field.target) >= program.expressions.len) return error.InvalidModule;
 
         const environment = program.expression(value.value.tuple_field.target);
 
-        if (environment.value != .reference or @intFromEnum(environment.value.reference) != 0) return error.InvalidModule;
+        if (environment.value != .reference or @backingInt(environment.value.reference) != 0) return error.InvalidModule;
 
-        const symbol = program.symbols[@intFromEnum(source.symbol)];
+        const symbol = program.symbols.at(@backingInt(source.symbol));
 
         for (builder.bindings.items) |binding| {
-            const target = builder.symbols.items[@intFromEnum(binding)];
+            const target = builder.symbols.at(@backingInt(binding));
 
             if (!std.mem.eql(u8, symbol.name, target.name)) continue;
             if (symbol.type_id != target.type_id) return error.InvalidModule;
 
-            mapping.symbols[@intFromEnum(source.symbol)] = binding;
+            mapping.symbols[@backingInt(source.symbol)] = binding;
         }
 
-        projections[@intFromEnum(source.value)] = true;
+        projections[@backingInt(source.value)] = true;
     }
 
-    for (program.symbols, 0..) |symbol, index| {
+    for (0..program.symbols.count()) |index| {
+        const symbol = program.symbols.at(index);
+
         if (index == 0 or mapping.symbols[index] != null) continue;
 
         var environment_binding = false;
 
         for (program.body[0..count]) |statement| {
-            if (@intFromEnum(statement.constant.symbol) == index) environment_binding = true;
+            if (@backingInt(statement.constant.symbol) == index) environment_binding = true;
         }
 
         if (environment_binding) continue;
@@ -69,7 +71,7 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
 
     for (program.expressions, 0..) |expression, index| {
         if (projections[index]) continue;
-        if (expression.value == .reference and @intFromEnum(expression.value.reference) == 0) continue;
+        if (expression.value == .reference and @backingInt(expression.value.reference) == 0) continue;
 
         mapping.expressions[index] = try builder.expression(try mapping.expression(expression));
     }

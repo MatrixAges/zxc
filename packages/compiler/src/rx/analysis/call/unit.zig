@@ -3,7 +3,7 @@ const zx = @import("zx");
 const rx = @import("rx");
 
 pub fn create(allocator: std.mem.Allocator, owner: []const u8, types: zx.ir.TypeTable, location: rx.ast.Location) std.mem.Allocator.Error!zx.ir.Program {
-    const void_type: zx.ir.TypeId = @enumFromInt(@intFromEnum(zx.ir.Scalar.void));
+    const void_type: zx.ir.TypeId = @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void)));
     const span = zx.Span{ .start = location.offset, .end = location.offset };
 
     return .{
@@ -11,8 +11,8 @@ pub fn create(allocator: std.mem.Allocator, owner: []const u8, types: zx.ir.Type
         .types = types,
         .input_type = void_type,
         .output_type = void_type,
-        .symbols = try allocator.dupe(zx.ir.Symbol, &.{.{ .name = "$in", .type_id = void_type, .span = span }}),
+        .symbols = try zx.ir.SymbolTable.fromValues(allocator, &.{.{ .name = "$in", .type_id = void_type, .span = span }}),
         .expressions = try allocator.dupe(zx.ir.Expression, &.{.{ .type_id = void_type, .span = span, .value = .unit }}),
-        .body = try allocator.dupe(zx.ir.Statement, &.{.{ .result = @enumFromInt(0) }}),
+        .body = try allocator.dupe(zx.ir.Statement, &.{.{ .result = @fromBackingInt(@intCast(0)) }}),
     };
 }

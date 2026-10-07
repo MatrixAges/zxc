@@ -22,7 +22,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
         if (input == .scalar and input.scalar == .void) continue;
         if (!statements(function.body)) continue;
 
-        var cost = function.expressions.len + function.symbols.len + 1;
+        var cost = function.expressions.len + function.symbols.count() + 1;
 
         for (function.expressions) |expression| if (expression.value == .call) {
             const child = @backingInt(expression.value.call.function);

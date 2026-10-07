@@ -53,7 +53,7 @@ pub fn generate(self: *Self) zx.Error!Query {
         precondition = try self.conjunction(precondition, try self.conjunction(evaluated.safe, evaluated.value.scalar));
     }
 
-    const environment = try self.allocator.alloc(?Value, self.program.symbols.len);
+    const environment = try self.allocator.alloc(?Value, self.program.symbols.count());
 
     @memset(environment, null);
 
@@ -132,7 +132,7 @@ fn block(self: *Self, statements: []const ir.Statement, environment: []?Value, i
 
                 path = try self.conjunction(path, value.safe);
 
-                environment[@intFromEnum(binding.symbol)] = value.value;
+                environment[@backingInt(binding.symbol)] = value.value;
             },
             .destructure => |binding| {
                 const value = try evaluator.evaluate(binding.value);
@@ -142,7 +142,7 @@ fn block(self: *Self, statements: []const ir.Statement, environment: []?Value, i
                 path = try self.conjunction(path, value.safe);
 
                 for (binding.symbols, value.value.fields) |symbol, field| {
-                    if (symbol) |id| environment[@intFromEnum(id)] = field;
+                    if (symbol) |id| environment[@backingInt(id)] = field;
                 }
             },
             .result => |result| {
@@ -226,14 +226,14 @@ fn parallel(self: *Self, evaluator: *Expressions, invocations: []const ir.Parall
     }
 
     for (invocations, values) |invocation, value| {
-        if (invocation.symbol) |symbol| evaluator.environment[@intFromEnum(symbol)] = value.value;
+        if (invocation.symbol) |symbol| evaluator.environment[@backingInt(symbol)] = value.value;
     }
 
     return joined_path;
 }
 
 fn evaluateContract(self: *Self, clause: ir.Contract, output: ?Value) zx.Error!terms.Evaluation {
-    const environment = try self.allocator.alloc(?Value, clause.symbols.len);
+    const environment = try self.allocator.alloc(?Value, clause.symbols.count());
 
     environment[0] = self.input;
 
@@ -306,7 +306,7 @@ pub fn call(self: *Self) zx.Error!terms.Evaluation {
         path = try self.conjunction(path, valid);
     }
 
-    const environment = try self.allocator.alloc(?Value, self.program.symbols.len);
+    const environment = try self.allocator.alloc(?Value, self.program.symbols.count());
 
     @memset(environment, null);
 

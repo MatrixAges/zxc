@@ -32,7 +32,7 @@ pub fn check(trace: *Trace, lane: Lane) Error!bool {
         .state = .{
             .allocator = allocator,
             .program = program,
-            .symbols = try allocator.alloc(facts.Value, program.symbols.len),
+            .symbols = try allocator.alloc(facts.Value, program.symbols.count()),
             .cached = try allocator.alloc(?facts.Value, program.expressions.len),
             .calls = .{ .selected = lane.calls, .summaries = trace.summaries, .readers = trace.readers },
             .loops = lane.iterations,

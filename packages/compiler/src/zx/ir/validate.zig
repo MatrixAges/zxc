@@ -8,13 +8,15 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
     if (!try function(allocator, program)) return invalid();
 
     for (program.functions, 0..) |item, function_index| {
+        if (!item.symbols.validStructure()) return invalid();
+
         for (item.expressions) |expression| {
             if (expression.value == .call and @backingInt(expression.value.call.function) >= function_index) return invalid();
         }
 
         if (item.external) |external| {
             if (item.stores.len != 0 or item.store_mode != .transaction or item.contracts.len != 0 or item.output_ownership != .borrowed) return invalid();
-            if (@backingInt(external.module) >= program.native_modules.len or external.member.len == 0 or item.symbols.len != 0 or item.expressions.len != 0 or item.body.len != 0 or @backingInt(item.input_type) >= program.types.count() or @backingInt(item.output_type) >= program.types.count()) return invalid();
+            if (@backingInt(external.module) >= program.native_modules.len or external.member.len == 0 or item.symbols.count() != 0 or item.expressions.len != 0 or item.body.len != 0 or @backingInt(item.input_type) >= program.types.count() or @backingInt(item.output_type) >= program.types.count()) return invalid();
 
             for (external.member) |part| {
                 if (part.len == 0 or std.mem.indexOfScalar(u8, part, 0) != null or !std.unicode.utf8ValidateSlice(part)) return invalid();
@@ -64,13 +66,16 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 }
 
 fn function(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
+    if (!program.symbols.validStructure()) return false;
     if (!try @import("stores.zig").validate(allocator, program)) return false;
     if (@backingInt(program.input_type) >= program.types.count() or @backingInt(program.output_type) >= program.types.count()) return false;
-    if (program.type_only) return @backingInt(program.input_type) == 0 and @backingInt(program.output_type) == 0 and program.symbols.len == 0 and program.expressions.len == 0 and program.body.len == 0 and program.contracts.len == 0;
+    if (program.type_only) return @backingInt(program.input_type) == 0 and @backingInt(program.output_type) == 0 and program.symbols.count() == 0 and program.expressions.len == 0 and program.body.len == 0 and program.contracts.len == 0;
     if (!@import("contracts.zig").validate(program)) return false;
-    if (program.symbols.len == 0 or program.symbols[0].type_id != program.input_type) return false;
+    if (program.symbols.count() == 0 or program.symbols.at(0).type_id != program.input_type) return false;
 
-    for (program.symbols) |symbol| {
+    for (0..program.symbols.count()) |symbol_index| {
+        const symbol = program.symbols.at(symbol_index);
+
         if (@backingInt(symbol.type_id) >= program.types.count() or symbol.name.len == 0) return false;
     }
 

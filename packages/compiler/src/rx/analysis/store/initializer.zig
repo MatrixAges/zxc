@@ -52,7 +52,7 @@ pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Fi
         .file_name = try allocator.dupe(u8, owner),
         .types = table.items.view(),
         .native_modules = owned_modules,
-        .symbols = builder.symbols.items,
+        .symbols = builder.symbols.view(),
         .expressions = builder.expressions.items,
         .input_type = input,
         .output_type = output,

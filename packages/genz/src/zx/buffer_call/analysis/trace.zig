@@ -22,7 +22,7 @@ loops: std.ArrayList(flow.Iteration) = .empty,
 selected_loops: []const flow.Iteration = &.{},
 calls: std.ArrayList(flow.Call) = .empty,
 pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Function, summaries: []const []const flow.Lane) Error!Self {
-    var self = Self{ .allocator = allocator, .program = program, .function = function, .summaries = summaries, .bindings = try allocator.alloc(?ir.ExprId, function.symbols.len), .iterations = try allocator.alloc(?ir.ExprId, function.symbols.len) };
+    var self = Self{ .allocator = allocator, .program = program, .function = function, .summaries = summaries, .bindings = try allocator.alloc(?ir.ExprId, function.symbols.count()), .iterations = try allocator.alloc(?ir.ExprId, function.symbols.count()) };
 
     @memset(self.bindings, null);
     @memset(self.iterations, null);

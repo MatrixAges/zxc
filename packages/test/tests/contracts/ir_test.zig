@@ -23,33 +23,43 @@ test "invalid contract IR cannot reach code generation" {
 
         defer allocator.free(contracts);
 
-        const input_symbols = try allocator.dupe(compiler.ir.Symbol, contracts[0].symbols);
+        const input_names = try allocator.dupe([]const u8, contracts[0].symbols.names);
 
-        defer allocator.free(input_symbols);
+        defer allocator.free(input_names);
 
-        const output_symbols = try allocator.dupe(compiler.ir.Symbol, contracts[1].symbols);
+        const input_types = try allocator.dupe(u32, contracts[0].symbols.types);
 
-        defer allocator.free(output_symbols);
+        defer allocator.free(input_types);
+
+        const output_names = try allocator.dupe([]const u8, contracts[1].symbols.names);
+
+        defer allocator.free(output_names);
+
+        const output_types = try allocator.dupe(u32, contracts[1].symbols.types);
+
+        defer allocator.free(output_types);
 
         const expressions = try allocator.dupe(compiler.ir.Expression, contracts[0].expressions);
 
         defer allocator.free(expressions);
 
-        contracts[0].symbols = input_symbols;
-        contracts[1].symbols = output_symbols;
+        contracts[0].symbols.names = input_names;
+        contracts[0].symbols.types = input_types;
+        contracts[1].symbols.names = output_names;
+        contracts[1].symbols.types = output_types;
         contracts[0].expressions = expressions;
         program.contracts = contracts;
-        const predicate: usize = @intFromEnum(contracts[0].predicate);
+        const predicate: usize = @backingInt(contracts[0].predicate);
         const bool_type = expressions[predicate].type_id;
 
         switch (mutation) {
             .order => std.mem.swap(compiler.ir.Contract, &contracts[0], &contracts[1]),
-            .predicate => contracts[0].predicate = @enumFromInt(expressions.len),
-            .symbol_count => contracts[0].symbols = &.{},
-            .input_name => input_symbols[0].name = "wrong",
-            .input_type => input_symbols[0].type_id = bool_type,
-            .output_name => output_symbols[1].name = "wrong",
-            .output_type => output_symbols[1].type_id = bool_type,
+            .predicate => contracts[0].predicate = @fromBackingInt(@intCast(expressions.len)),
+            .symbol_count => contracts[0].symbols = .{},
+            .input_name => input_names[0] = "wrong",
+            .input_type => input_types[0] = @backingInt(bool_type),
+            .output_name => output_names[1] = "wrong",
+            .output_type => output_types[1] = @backingInt(bool_type),
             .predicate_type => expressions[predicate].type_id = program.input_type,
         }
 

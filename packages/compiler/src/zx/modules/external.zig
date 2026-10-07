@@ -43,7 +43,7 @@ pub fn load(allocator: std.mem.Allocator, entry: External, module: ir.NativeModu
         .file_name = try allocator.dupe(u8, entry.specifier),
         .input_type = input_type,
         .output_type = output_type,
-        .symbols = &.{},
+        .symbols = .{},
         .expressions = &.{},
         .body = &.{},
         .external = .{

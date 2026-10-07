@@ -77,8 +77,8 @@ fn functionPrepared(allocator: std.mem.Allocator, program: ir.Program, id: ir.Fu
     lower.program.stores = selected.stores;
     lower.program.store_mode = selected.store_mode;
     lower.program.contracts = selected.contracts;
-    lower.names = try temporary.alloc([]const u8, selected.symbols.len);
-    lower.used = try temporary.alloc(bool, selected.symbols.len);
+    lower.names = try temporary.alloc([]const u8, selected.symbols.count());
+    lower.used = try temporary.alloc(bool, selected.symbols.count());
     lower.cache_reads = try temporary.alloc(usize, selected.expressions.len);
 
     var output: std.ArrayList(node.Declaration) = .empty;

@@ -58,7 +58,7 @@ pub fn apply(allocator: std.mem.Allocator, original: ir.Program, mode: Mode) !ir
 
             program.types.first = first;
         } else {
-            const symbols = try allocator.dupe(ir.Symbol, original.symbols);
+            const symbol_types = try allocator.dupe(u32, original.symbols.types);
             const exports = try allocator.dupe(ir.Export, original.exports);
             const reference = try exported(original, "Refs");
 
@@ -67,8 +67,8 @@ pub fn apply(allocator: std.mem.Allocator, original: ir.Program, mode: Mode) !ir
             try std.testing.expectEqual(@as(ir.TypeId, @fromBackingInt(@backingInt(ir.Scalar.u64))), original.typeOf(expression.type_id).task.result);
 
             program.input_type = reference;
-            symbols[0].type_id = reference;
-            program.symbols = symbols;
+            symbol_types[0] = @backingInt(reference);
+            program.symbols.types = symbol_types;
             program.exports = exports;
 
             for (expressions) |*item| {

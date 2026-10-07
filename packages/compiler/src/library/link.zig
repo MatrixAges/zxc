@@ -113,7 +113,7 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         .types = types.items.view(),
         .input_type = @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
         .output_type = @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
-        .symbols = &.{},
+        .symbols = .{},
         .expressions = &.{},
         .body = &.{},
         .functions = functions.items,

@@ -39,7 +39,7 @@ pub fn analyzeWithCalls(allocator: std.mem.Allocator, program: ir.Program, itera
     var self = Self{
         .allocator = temporary,
         .program = program,
-        .symbols = try temporary.alloc(Value, program.symbols.len),
+        .symbols = try temporary.alloc(Value, program.symbols.count()),
         .cached = try temporary.alloc(?Value, program.expressions.len),
         .calls = calls,
     };

@@ -109,7 +109,7 @@ fn call(builder: *Builder, invocation: Module.Call) Builder.Error!void {
 
 fn invoke(builder: *Builder, invocation: Module.Call) Builder.Error!ir.ExprId {
     const count = builder.bindings.items.len;
-    const location = invocation.argument.symbols[0].span;
+    const location = invocation.argument.symbols.at(0).span;
 
     for (invocation.getters) |getter| {
         const slot = try builder.store(getter.slot);

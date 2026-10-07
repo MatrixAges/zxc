@@ -9,7 +9,7 @@ plan: Plan,
 depth: usize = 0,
 expressions: std.ArrayList(ir.Expression) = .empty,
 costs: std.ArrayList(usize) = .empty,
-symbols: std.ArrayList(ir.Symbol) = .empty,
+symbols: ir.SymbolStorage = .{},
 pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!ir.Program {
     if (program.functions.len == 0) return program;
 
@@ -50,9 +50,9 @@ pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
     return result;
 }
 
-const Rebuilt = struct { symbols: []const ir.Symbol, expressions: []const ir.Expression, body: []const ir.Statement };
+const Rebuilt = struct { symbols: ir.SymbolTable, expressions: []const ir.Expression, body: []const ir.Statement };
 
-fn rebuild(allocator: std.mem.Allocator, plan: Plan, symbols: []const ir.Symbol, expressions: []const ir.Expression, body: []const ir.Statement, selected: []const bool) Mapping.Error!Rebuilt {
+fn rebuild(allocator: std.mem.Allocator, plan: Plan, symbols: ir.SymbolTable, expressions: []const ir.Expression, body: []const ir.Statement, selected: []const bool) Mapping.Error!Rebuilt {
     var unit = Self{ .allocator = allocator, .plan = plan };
     var mapping = try Mapping.init(&unit, symbols, expressions, selected);
 
@@ -60,7 +60,7 @@ fn rebuild(allocator: std.mem.Allocator, plan: Plan, symbols: []const ir.Symbol,
 
     const statements = try mapping.value([]const ir.Statement, body);
 
-    return .{ .body = statements, .expressions = try unit.expressions.toOwnedSlice(allocator), .symbols = try unit.symbols.toOwnedSlice(allocator) };
+    return .{ .body = statements, .expressions = try unit.expressions.toOwnedSlice(allocator), .symbols = try unit.symbols.finish(allocator) };
 }
 
 pub fn append(self: *Self, expression: ir.Expression) std.mem.Allocator.Error!ir.ExprId {
@@ -74,7 +74,7 @@ pub fn append(self: *Self, expression: ir.Expression) std.mem.Allocator.Error!ir
 }
 
 pub fn symbol(self: *Self, item: ir.Symbol) std.mem.Allocator.Error!ir.SymbolId {
-    const id: ir.SymbolId = @fromBackingInt(@intCast(self.symbols.items.len));
+    const id: ir.SymbolId = @fromBackingInt(@intCast(self.symbols.count()));
 
     try self.symbols.append(self.allocator, item);
 

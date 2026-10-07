@@ -10,7 +10,7 @@ pub fn register(self: *Lower, statements: []const ir.Statement) Lower.Error![]co
 
     for (statements) |statement| switch (statement) {
         .constant => |binding| {
-            const type_id = self.program.symbols[@backingInt(binding.symbol)].type_id;
+            const type_id = self.program.symbols.at(@backingInt(binding.symbol)).type_id;
 
             if (@import("../state_value/root.zig").selected(self, type_id)) continue;
             if (self.program.typeOf(type_id) != .object or analysis.containsDescendant(self.program, self.program.output_type, type_id)) continue;

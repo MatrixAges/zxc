@@ -445,7 +445,7 @@ fn access(self: *Self, position: usize, mode: Mode, span: zx.Span) zx.Error!Stat
 
     if (current == .moved) return self.reporter.fail(.ownership, span, "the previous owner was consumed; use the new binding returned by the operation");
 
-    const linear = position < self.program.symbols.len and self.program.typeOf(self.program.symbols[position].type_id) == .task;
+    const linear = position < self.program.symbols.count() and self.program.typeOf(self.program.symbols.at(position).type_id) == .task;
 
     if (mode == .move and current == .owned and linear) self.places.assign(self.states, position, .moved);
     if (mode == .move and (current == .loaned or current == .borrowed)) self.places.assign(self.states, position, .borrowed);
@@ -465,7 +465,7 @@ fn place(self: *Self, id: ir.ExprId) ?usize {
 
 fn callback(self: *Self, transform: ir.Transform, initial: State) zx.Error!State {
     for (transform.parameters, 0..) |parameter, index| {
-        const state: State = if (!self.isReference(self.program.symbols[@backingInt(parameter)].type_id)) .copy else if (transform.kind == .reduce and index == 0) initial else .borrowed;
+        const state: State = if (!self.isReference(self.program.symbols.at(@backingInt(parameter)).type_id)) .copy else if (transform.kind == .reduce and index == 0) initial else .borrowed;
 
         self.places.assign(self.states, @backingInt(parameter), state);
     }

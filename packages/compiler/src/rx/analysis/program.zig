@@ -26,20 +26,20 @@ pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Resu
     } else {
         const input = try builder.symbol("$in", contract.input_type, start);
 
-        if (@intFromEnum(contract.input_type) != @intFromEnum(ir.Scalar.void)) try builder.bindings.append(allocator, input);
+        if (@backingInt(contract.input_type) != @backingInt(ir.Scalar.void)) try builder.bindings.append(allocator, input);
     }
 
     try @import("program/statements.zig").lower(&builder, contract.steps, contract.calls);
 
     if (!ir.terminates(builder.body.items)) {
-        if (@intFromEnum(contract.output_type) != @intFromEnum(ir.Scalar.void)) return error.IncompleteFlow;
+        if (@backingInt(contract.output_type) != @backingInt(ir.Scalar.void)) return error.IncompleteFlow;
         try builder.body.append(allocator, .{ .result = null });
     }
 
     return .{ .store_initializers = builder.store_initializers.items, .program = .{
         .file_name = try allocator.dupe(u8, contract.owner),
         .types = contract.types,
-        .symbols = builder.symbols.items,
+        .symbols = builder.symbols.view(),
         .expressions = builder.expressions.items,
         .input_type = contract.input_type,
         .output_type = contract.output_type,

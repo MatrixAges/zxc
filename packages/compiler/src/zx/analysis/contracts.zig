@@ -42,7 +42,7 @@ pub fn analyze(owner: *Analyzer, source: anytype, input_type: ir.TypeId, exports
 
         contract.* = .{
             .kind = item.kind,
-            .symbols = try analyzer.symbols.toOwnedSlice(owner.allocator),
+            .symbols = try analyzer.symbols.finish(owner.allocator),
             .expressions = try analyzer.nodes.toOwnedSlice(owner.allocator),
             .predicate = predicate,
             .span = item.span,

@@ -24,7 +24,7 @@ fn reads(program: ir.Program, name: []const u8) bool {
         const symbol = statement.constant.symbol;
         const value = program.expression(statement.constant.value);
 
-        if (value.value != .tuple_field or !std.mem.eql(u8, program.symbols[@backingInt(symbol)].name, name)) continue;
+        if (value.value != .tuple_field or !std.mem.eql(u8, program.symbols.at(@backingInt(symbol)).name, name)) continue;
 
         const environment = program.expression(value.value.tuple_field.target);
 

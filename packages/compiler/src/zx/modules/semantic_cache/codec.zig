@@ -60,6 +60,14 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
 
     if (!@import("../../ir/type_rules.zig").validate(parsed.module.types)) return error.InvalidCache;
 
+    if (parsed.module.function) |function| {
+        if (!function.symbols.validStructure()) return error.InvalidCache;
+
+        for (function.contracts) |contract| {
+            if (!contract.symbols.validStructure()) return error.InvalidCache;
+        }
+    }
+
     return .{ .result = .{ .arena = arena, .value = parsed.module }, .context_digest = parsed.context_digest };
 }
 

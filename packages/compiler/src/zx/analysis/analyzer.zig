@@ -9,7 +9,7 @@ const Self = @This();
 allocator: std.mem.Allocator,
 reporter: *zx.Reporter,
 types: Types,
-symbols: std.ArrayList(ir.Symbol) = .empty,
+symbols: ir.SymbolStorage = .{},
 active: std.ArrayList(ir.SymbolId) = .empty,
 nodes: std.ArrayList(ir.Expression) = .empty,
 output_type: ir.TypeId = undefined,
@@ -106,7 +106,7 @@ fn finish(self: *Self, output: Output) zx.Error!ir.Program {
         .contracts = output.contracts,
         .file_name = try self.allocator.dupe(u8, output.file_name),
         .types = try self.types.items.finish(self.allocator),
-        .symbols = try self.symbols.toOwnedSlice(self.allocator),
+        .symbols = try self.symbols.finish(self.allocator),
         .expressions = try self.nodes.toOwnedSlice(self.allocator),
         .input_type = output.input_type,
         .output_type = self.output_type,
@@ -163,7 +163,7 @@ pub fn lookup(self: *const Self, name: []const u8) ?ir.SymbolId {
         index -= 1;
         const id = self.active.items[index];
 
-        if (std.mem.eql(u8, self.symbols.items[@backingInt(id)].name, name)) return id;
+        if (std.mem.eql(u8, self.symbols.at(@backingInt(id)).name, name)) return id;
     }
 
     return null;
@@ -173,7 +173,7 @@ pub fn resolveValue(self: *Self, name: zx.ast.Name) zx.Error!ir.SymbolId {
     if (self.lookup(name.text)) |id| return id;
 
     for (self.active.items[0..self.scope_floor]) |id| {
-        if (std.mem.eql(u8, self.symbols.items[@backingInt(id)].name, name.text)) {
+        if (std.mem.eql(u8, self.symbols.at(@backingInt(id)).name, name.text)) {
             return self.reporter.fail(.ownership, name.span, "ZX callbacks cannot capture outer bindings; use explicit callback parameters");
         }
     }
@@ -185,10 +185,10 @@ pub fn bind(self: *Self, name: zx.ast.Name, type_id: ir.TypeId, scope_start: usi
     if (std.mem.startsWith(u8, name.text, "$")) return self.reporter.fail(.capability, name.span, "$ names are reserved for Call-injected handles");
 
     for (self.active.items[scope_start..]) |id| {
-        if (std.mem.eql(u8, self.symbols.items[@backingInt(id)].name, name.text)) return self.reporter.fail(.name, name.span, "duplicate binding in the same scope");
+        if (std.mem.eql(u8, self.symbols.at(@backingInt(id)).name, name.text)) return self.reporter.fail(.name, name.span, "duplicate binding in the same scope");
     }
 
-    const id: ir.SymbolId = @fromBackingInt(@intCast(self.symbols.items.len));
+    const id: ir.SymbolId = @fromBackingInt(@intCast(self.symbols.count()));
 
     try self.symbols.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name.text), .type_id = type_id, .span = name.span });
     try self.active.append(self.allocator, id);

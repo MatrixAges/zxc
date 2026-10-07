@@ -7,7 +7,7 @@ const Types = @import("types.zig");
 
 pub fn start(self: *Analyzer, child: anytype, span: zx.Span) zx.Error!ir.ExprId {
     const first = self.nodes.items.len;
-    const symbol_count = self.symbols.items.len;
+    const symbol_count = self.symbols.count();
     const body = try self.expression(child, null);
     var captures: std.ArrayList(ir.SymbolId) = .empty;
 
@@ -15,8 +15,8 @@ pub fn start(self: *Analyzer, child: anytype, span: zx.Span) zx.Error!ir.ExprId 
         switch (node.value) {
             .reference => |symbol| {
                 if (@backingInt(symbol) >= symbol_count) continue;
-                if (try ir.containsNativeReference(self.allocator, self.types.items.view(), self.symbols.items[@backingInt(symbol)].type_id)) return self.reporter.fail(.capability, span, "tasks cannot capture host references");
-                if (self.types.get(self.symbols.items[@backingInt(symbol)].type_id) == .task) return self.reporter.fail(.ownership, span, "tasks cannot capture other task handles");
+                if (try ir.containsNativeReference(self.allocator, self.types.items.view(), self.symbols.at(@backingInt(symbol)).type_id)) return self.reporter.fail(.capability, span, "tasks cannot capture host references");
+                if (self.types.get(self.symbols.at(@backingInt(symbol)).type_id) == .task) return self.reporter.fail(.ownership, span, "tasks cannot capture other task handles");
                 if (std.mem.indexOfScalar(ir.SymbolId, captures.items, symbol) == null) try captures.append(self.allocator, symbol);
             },
             .store_get => return self.reporter.fail(.capability, span, "tasks cannot access Store state"),

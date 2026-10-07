@@ -40,7 +40,7 @@ pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, 
         binding.* = .{ .name = member.name, .id = @fromBackingInt(@intCast(index)), .input_type = function.input_type, .output_type = function.output_type, .positional_types = if (function.external.?.expand_tuple) loaded.types.at(@backingInt(function.input_type)).tuple else null };
     }
 
-    const program = ir.Program{ .file_name = entry.path, .types = loaded.types, .input_type = @fromBackingInt(@intCast(0)), .output_type = @fromBackingInt(@intCast(0)), .symbols = &.{}, .expressions = &.{}, .body = &.{}, .exports = loaded.exports, .native_modules = native_modules, .functions = functions, .type_only = true };
+    const program = ir.Program{ .file_name = entry.path, .types = loaded.types, .input_type = @fromBackingInt(@intCast(0)), .output_type = @fromBackingInt(@intCast(0)), .symbols = .{}, .expressions = &.{}, .body = &.{}, .exports = loaded.exports, .native_modules = native_modules, .functions = functions, .type_only = true };
 
     if (try @import("../../ir/validate.zig").validate(owned, program) != null) return reporter.fail(.module, span, "native declarations produced invalid interface IR");
 

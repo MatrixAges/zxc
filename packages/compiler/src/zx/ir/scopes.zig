@@ -16,15 +16,15 @@ callback_depth: usize = 0,
 task_depth: usize = 0,
 refinement: zx.Refinement = .{},
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
-    const active = try allocator.alloc(bool, program.symbols.len);
+    const active = try allocator.alloc(bool, program.symbols.count());
 
     defer allocator.free(active);
 
-    const declared = try allocator.alloc(bool, program.symbols.len);
+    const declared = try allocator.alloc(bool, program.symbols.count());
 
     defer allocator.free(declared);
 
-    const declaration_owner = try allocator.alloc(?ir.ExprId, program.symbols.len);
+    const declaration_owner = try allocator.alloc(?ir.ExprId, program.symbols.count());
 
     defer allocator.free(declaration_owner);
     @memset(active, false);
@@ -51,7 +51,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
 fn declare(self: *Self, symbol: ir.SymbolId, type_id: ir.TypeId) bool {
     const index = @backingInt(symbol);
 
-    if (index >= self.active.len or self.declared[index] or self.program.symbols[index].type_id != type_id or type_id == Types.scalarId(.void)) return false;
+    if (index >= self.active.len or self.declared[index] or self.program.symbols.at(index).type_id != type_id or type_id == Types.scalarId(.void)) return false;
 
     self.declared[index] = true;
     self.active[index] = true;
@@ -209,7 +209,7 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
 
                     if (index >= self.active.len or self.active[index]) break :blk false;
                     if (self.declared[index] and self.declaration_owner[index] != id) break :blk false;
-                    if (self.program.symbols[index].type_id == Types.scalarId(.void)) break :blk false;
+                    if (self.program.symbols.at(index).type_id == Types.scalarId(.void)) break :blk false;
 
                     self.declared[index] = true;
                     self.active[index] = true;

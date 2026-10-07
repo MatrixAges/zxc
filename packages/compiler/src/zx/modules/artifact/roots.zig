@@ -97,12 +97,12 @@ fn nativeModule(self: *Self, id: ir.NativeModuleId) Error!void {
     for (self.program.native_modules[@backingInt(id)].types) |item| try self.mark(item.type_id);
 }
 
-fn nodes(self: *Self, symbols: []const ir.Symbol, expressions: []const ir.Expression, contracts: []const ir.Contract) Error!void {
-    for (symbols) |symbol| try self.mark(symbol.type_id);
+fn nodes(self: *Self, symbols: ir.SymbolTable, expressions: []const ir.Expression, contracts: []const ir.Contract) Error!void {
+    for (symbols.types) |type_id| try self.mark(@fromBackingInt(type_id));
     for (expressions) |expression| try self.mark(expression.type_id);
 
     for (contracts) |contract| {
-        for (contract.symbols) |symbol| try self.mark(symbol.type_id);
+        for (contract.symbols.types) |type_id| try self.mark(@fromBackingInt(type_id));
         for (contract.expressions) |expression| try self.mark(expression.type_id);
     }
 }

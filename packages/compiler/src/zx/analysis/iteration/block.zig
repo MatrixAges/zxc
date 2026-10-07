@@ -145,7 +145,7 @@ fn switchStatement(self: *Self, source: anytype, span: zx.Span) zx.Error!void {
         }
     }
 
-    const result = try analyzer.append(.{ .span = span, .type_id = analyzer.symbols.items[@backingInt(self.state)].type_id, .value = .{ .match_expr = .{
+    const result = try analyzer.append(.{ .span = span, .type_id = analyzer.symbols.at(@backingInt(self.state)).type_id, .value = .{ .match_expr = .{
         .subject = subject,
         .arms = try arms.toOwnedSlice(analyzer.allocator),
         .fallback = fallback orelse try self.reference(self.state, span),
@@ -156,7 +156,7 @@ fn switchStatement(self: *Self, source: anytype, span: zx.Span) zx.Error!void {
 
 fn bindingName(self: *Self, name: zx.ast.Name) zx.Error!void {
     try @import("../statements.zig").bindingName(self.analyzer, name);
-    if (std.mem.eql(u8, name.text, self.analyzer.symbols.items[@backingInt(self.state)].name)) return self.analyzer.reporter.fail(.name, name.span, "the loop state parameter cannot be redeclared");
+    if (std.mem.eql(u8, name.text, self.analyzer.symbols.at(@backingInt(self.state)).name)) return self.analyzer.reporter.fail(.name, name.span, "the loop state parameter cannot be redeclared");
 }
 
 fn bind(self: *Self, name: zx.ast.Name, value: ir.ExprId, scope_start: usize) zx.Error!ir.SymbolId {
@@ -178,7 +178,7 @@ fn bind(self: *Self, name: zx.ast.Name, value: ir.ExprId, scope_start: usize) zx
 }
 
 fn reference(self: *Self, symbol: ir.SymbolId, span: zx.Span) zx.Error!ir.ExprId {
-    return self.analyzer.append(.{ .span = span, .type_id = self.analyzer.symbols.items[@backingInt(symbol)].type_id, .value = .{ .reference = symbol } });
+    return self.analyzer.append(.{ .span = span, .type_id = self.analyzer.symbols.at(@backingInt(symbol)).type_id, .value = .{ .reference = symbol } });
 }
 
 pub fn temporary(self: *Self, value: ir.ExprId) zx.Error!ir.ExprId {
@@ -191,7 +191,7 @@ pub fn temporary(self: *Self, value: ir.ExprId) zx.Error!ir.ExprId {
 }
 
 fn advance(self: *Self, value: ir.ExprId, span: zx.Span) zx.Error!void {
-    const name = self.analyzer.symbols.items[@backingInt(self.state)].name;
+    const name = self.analyzer.symbols.at(@backingInt(self.state)).name;
 
     self.state = try self.bind(.{ .text = name, .span = span }, value, self.analyzer.active.items.len);
 }

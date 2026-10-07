@@ -16,7 +16,7 @@ pub fn eligible(lowering: *Lower, iteration: ir.Iteration) Lower.Error!bool {
 
     if (!try lists(lowering, iteration, type_id, &path, &count) or count == 0) return false;
 
-    const locals = try lowering.allocator.alloc(bool, lowering.program.symbols.len);
+    const locals = try lowering.allocator.alloc(bool, lowering.program.symbols.count());
     const seen = try lowering.allocator.alloc(bool, lowering.program.expressions.len);
 
     @memset(locals, false);

@@ -9,13 +9,12 @@ source: []const ir.Expression,
 selected: ?[]const bool,
 ids: []?ir.ExprId,
 symbol_offset: usize,
-pub fn init(unit: *Unit, symbols: []const ir.Symbol, expressions: []const ir.Expression, selected: ?[]const bool) Error!Self {
-    const offset = unit.symbols.items.len;
+pub fn init(unit: *Unit, symbols: ir.SymbolTable, expressions: []const ir.Expression, selected: ?[]const bool) Error!Self {
+    const offset = unit.symbols.count();
     const ids = try unit.allocator.alloc(?ir.ExprId, expressions.len);
 
     @memset(ids, null);
-
-    try unit.symbols.appendSlice(unit.allocator, symbols);
+    for (0..symbols.count()) |index| try unit.symbols.append(unit.allocator, symbols.at(index));
 
     return .{ .unit = unit, .source = expressions, .selected = selected, .ids = ids, .symbol_offset = offset };
 }

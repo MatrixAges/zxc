@@ -39,7 +39,7 @@ pub fn load(allocator: std.mem.Allocator, input: frontend.project.compiled.Libra
             .types = imported.types,
             .input_type = @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
             .output_type = @fromBackingInt(@intCast(@backingInt(ir.Scalar.void))),
-            .symbols = &.{},
+            .symbols = .{},
             .expressions = &.{},
             .body = &.{},
             .functions = functions.items,

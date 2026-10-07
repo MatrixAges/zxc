@@ -70,7 +70,7 @@ pub fn checkTable(self: *Self, table: ir.TypeTable, accepted: bool, structural: 
     const program: ir.Program = .{
         .file_name = "type_validation.zx",
         .types = table,
-        .symbols = &.{},
+        .symbols = .{},
         .expressions = &.{},
         .input_type = scalar(.void),
         .output_type = scalar(.void),

@@ -106,7 +106,7 @@ pub fn task(module: f.artifact.Module) !void {
             try std.testing.expectEqual(@as(usize, 1), expression.value.task.captures.len);
 
             const capture = expression.value.task.captures[0];
-            const symbol = function.symbols[@backingInt(capture)];
+            const symbol = function.symbols.at(@backingInt(capture));
             const body = function.expressions[@backingInt(expression.value.task.body)];
 
             try std.testing.expectEqualStrings("count", symbol.name);
@@ -132,7 +132,7 @@ pub fn task(module: f.artifact.Module) !void {
             const work = function.expressions[@backingInt(expression.value.await_task)];
 
             try std.testing.expectEqual(.reference, std.meta.activeTag(work.value));
-            try std.testing.expectEqualStrings("work", function.symbols[@backingInt(work.value.reference)].name);
+            try std.testing.expectEqualStrings("work", function.symbols.at(@backingInt(work.value.reference)).name);
             try std.testing.expectEqual(.task, std.meta.activeTag(module.types.get(work.type_id)));
         }
     }

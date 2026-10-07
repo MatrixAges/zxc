@@ -21,7 +21,7 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
             if (target != .task or !check.typed(task.body, target.task.result)) break :blk false;
 
             for (task.captures, 0..) |symbol, capture_index| {
-                if (@backingInt(symbol) >= program.symbols.len or program.typeOf(program.symbols[@backingInt(symbol)].type_id) == .task) break :blk false;
+                if (@backingInt(symbol) >= program.symbols.count() or program.typeOf(program.symbols.at(@backingInt(symbol)).type_id) == .task) break :blk false;
                 if (std.mem.indexOfScalar(ir.SymbolId, task.captures[0..capture_index], symbol) != null) break :blk false;
             }
 
@@ -112,7 +112,7 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
         .enum_value => |member| target == .enumeration and member < target.enumeration.members.len,
         .error_value => |member| target == .error_set and member < target.error_set.len,
         .store_get => |slot| slot < program.stores.len and program.stores[slot].readable and program.stores[slot].type_id == type_id,
-        .reference => |symbol| @backingInt(symbol) < program.symbols.len and program.symbols[@backingInt(symbol)].type_id == type_id,
+        .reference => |symbol| @backingInt(symbol) < program.symbols.count() and program.symbols.at(@backingInt(symbol)).type_id == type_id,
         .field, .tuple_field => |field| blk: {
             if (!check.earlier(field.target)) break :blk false;
 
@@ -208,14 +208,14 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
         .iteration => |iteration| type_id != void_type and check.typed(iteration.initial, type_id) and check.typed(iteration.body, type_id) and check.typed(iteration.condition, bool_type) and
             iteration.parameter != iteration.condition_parameter and
 
-            @backingInt(iteration.parameter) < program.symbols.len and @backingInt(iteration.condition_parameter) < program.symbols.len and
-            program.symbols[@backingInt(iteration.parameter)].type_id == type_id and program.symbols[@backingInt(iteration.condition_parameter)].type_id == type_id,
+            @backingInt(iteration.parameter) < program.symbols.count() and @backingInt(iteration.condition_parameter) < program.symbols.count() and
+            program.symbols.at(@backingInt(iteration.parameter)).type_id == type_id and program.symbols.at(@backingInt(iteration.condition_parameter)).type_id == type_id,
         .scope => |scope| blk: {
             for (scope.bindings) |binding| {
                 if (!check.earlier(binding.value)) break :blk false;
 
                 if (binding.symbol) |symbol| {
-                    if (@backingInt(symbol) >= program.symbols.len or !check.typed(binding.value, program.symbols[@backingInt(symbol)].type_id)) break :blk false;
+                    if (@backingInt(symbol) >= program.symbols.count() or !check.typed(binding.value, program.symbols.at(@backingInt(symbol)).type_id)) break :blk false;
                 } else if (!check.typed(binding.value, void_type) and program.expression(binding.value).value != .iteration) break :blk false;
             }
 
@@ -266,8 +266,8 @@ const Check = struct {
         if (source != .list or value.parameters.len != @as(usize, if (value.kind == .reduce) 2 else 1)) return false;
 
         for (value.parameters, 0..) |parameter, index| {
-            if (@backingInt(parameter) >= self.program.symbols.len) return false;
-            if (self.program.symbols[@backingInt(parameter)].type_id != (if (value.kind == .reduce and index == 0) result else source.list)) return false;
+            if (@backingInt(parameter) >= self.program.symbols.count()) return false;
+            if (self.program.symbols.at(@backingInt(parameter)).type_id != (if (value.kind == .reduce and index == 0) result else source.list)) return false;
         }
 
         return switch (value.kind) {

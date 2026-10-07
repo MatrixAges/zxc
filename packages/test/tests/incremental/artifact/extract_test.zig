@@ -71,7 +71,7 @@ test "artifact remains readable after original analysis is destroyed" {
     try std.testing.expectEqualStrings("./helper", result.value.dependencies[0].specifier);
     try std.testing.expectEqualStrings("helper", result.value.dependencies[0].names[0]);
     try std.testing.expectEqualStrings("/project/helper.zx", result.value.dependencies[0].target.source);
-    try std.testing.expectEqualStrings("in", result.value.function.?.symbols[0].name);
+    try std.testing.expectEqualStrings("in", result.value.function.?.symbols.at(0).name);
 
     const nominal = result.value.nominal_types.at(0);
 

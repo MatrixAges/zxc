@@ -42,7 +42,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!*const node
 
         worker.names[index] = try std.fmt.allocPrint(self.allocator, "capture_{d}", .{index});
 
-        try parameters.append(self.allocator, .{ .name = worker.names[index], .value = self.types[@backingInt(self.program.symbols[index].type_id)] });
+        try parameters.append(self.allocator, .{ .name = worker.names[index], .value = self.types[@backingInt(self.program.symbols.at(index).type_id)] });
     }
 
     const result = try worker.expr(task.body);

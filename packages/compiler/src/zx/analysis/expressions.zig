@@ -13,7 +13,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
     if (@import("expression_binding.zig").unit(self, expression)) return self.append(.{ .span = span, .type_id = Types.scalarId(.void), .value = .unit });
 
     if (@import("expression_binding.zig").lookup(self, expression)) |binding| {
-        const symbol = try self.resolveValue(.{ .text = self.symbols.items[@backingInt(binding)].name, .span = span });
+        const symbol = try self.resolveValue(.{ .text = self.symbols.at(@backingInt(binding)).name, .span = span });
 
         return @import("refinement.zig").reference(self, symbol, span);
     }

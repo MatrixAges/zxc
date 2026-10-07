@@ -38,7 +38,7 @@ fn task(case: f.Case, expected: Task) !void {
         try std.testing.expectEqual(expected.captures.len, value.captures.len);
 
         for (value.captures, expected.captures) |symbol, name| {
-            try std.testing.expectEqualStrings(name, program.symbols[@intFromEnum(symbol)].name);
+            try std.testing.expectEqualStrings(name, program.symbols.at(@backingInt(symbol)).name);
         }
     }
 
@@ -142,8 +142,8 @@ test "parallel preserves source branch order and maps canonical fields by name" 
         try std.testing.expectEqualStrings("zeta", fields.at(branches[0].field.?).name);
         try std.testing.expectEqual(@as(?u32, null), branches[1].field);
         try std.testing.expectEqualStrings("alpha", fields.at(branches[2].field.?).name);
-        try std.testing.expect(@intFromEnum(branches[0].task) < @intFromEnum(branches[1].task));
-        try std.testing.expect(@intFromEnum(branches[1].task) < @intFromEnum(branches[2].task));
+        try std.testing.expect(@backingInt(branches[0].task) < @backingInt(branches[1].task));
+        try std.testing.expect(@backingInt(branches[1].task) < @backingInt(branches[2].task));
     }
 
     try std.testing.expectEqual(@as(usize, 1), count);

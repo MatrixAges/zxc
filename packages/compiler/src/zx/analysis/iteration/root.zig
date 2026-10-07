@@ -81,7 +81,7 @@ fn callback(self: *Analyzer, source: anytype, type_id: ir.TypeId, updating: bool
 
     const parameter = try self.bind(syntax.item(lambda.parameters, 0), type_id, start);
 
-    self.symbols.items[@backingInt(parameter)].ownership = .borrowed;
+    self.symbols.ownership.items[@backingInt(parameter)] = .Borrowed;
 
     const body = if (updating)
         try @import("block.zig").analyze(self, syntax.value(lambda.body).state_block, parameter)

@@ -41,7 +41,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, target: ir.ExprId, kind: @F
 
         parameters[index] = try self.bind(parameter, type_id, scope_start);
 
-        self.symbols.items[@backingInt(parameters[index])].ownership = if (try self.types.containsList(type_id)) .borrowed else .copy;
+        self.symbols.ownership.items[@backingInt(parameters[index])] = if (try self.types.containsList(type_id)) .Borrowed else .Copy;
     }
 
     const hint = aggregates.payload(self, expected);

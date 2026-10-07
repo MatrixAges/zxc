@@ -35,7 +35,7 @@ pub fn parameters(self: *Lower, values: []const ir.SymbolId) Lower.Error![]const
 }
 
 fn add(self: *Lower, symbols: *std.ArrayList(ir.SymbolId), id: ir.SymbolId) Lower.Error!void {
-    if (!self.state_plan.represented(self.program, self.program.symbols[@backingInt(id)].type_id) or self.state_symbols.contains(id)) return;
+    if (!self.state_plan.represented(self.program, self.program.symbols.at(@backingInt(id)).type_id) or self.state_symbols.contains(id)) return;
     try symbols.append(self.allocator, id);
     try self.state_symbols.put(self.allocator, id, {});
 }

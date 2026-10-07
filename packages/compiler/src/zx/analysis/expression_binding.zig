@@ -7,7 +7,7 @@ pub fn bind(self: *Analyzer, name: zx.ast.Name, type_id: zx.ir.TypeId) zx.Error!
     if (type_id == @import("types.zig").scalarId(.void)) return self.reporter.fail(.type_mismatch, name.span, "expression bindings cannot have type void");
     try validateName(self, name);
 
-    const id: zx.ir.SymbolId = @fromBackingInt(@intCast(self.symbols.items.len));
+    const id: zx.ir.SymbolId = @fromBackingInt(@intCast(self.symbols.count()));
 
     try self.symbols.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name.text), .type_id = type_id, .span = name.span });
     try self.active.append(self.allocator, id);
@@ -21,7 +21,7 @@ pub fn lookup(self: *const Analyzer, expression: anytype) ?zx.ir.SymbolId {
     if (syntax.value(root) != .identifier) return null;
 
     for (self.expression_bindings.items) |id| {
-        const symbol = self.symbols.items[@backingInt(id)];
+        const symbol = self.symbols.at(@backingInt(id));
 
         if (self.lookup(syntax.value(root).identifier.text)) |local| {
             if (local != id) continue;
@@ -60,7 +60,9 @@ pub fn unit(self: *const Analyzer, expression: anytype) bool {
 fn validateName(self: *Analyzer, name: zx.ast.Name) zx.Error!void {
     if (!@import("binding_path.zig").valid(name.text)) return self.reporter.fail(.name, name.span, "expression bindings require identifier paths");
 
-    for (self.symbols.items) |symbol| {
+    for (0..self.symbols.count()) |symbol_index| {
+        const symbol = self.symbols.at(symbol_index);
+
         if (@import("binding_path.zig").overlaps(symbol.name, name.text)) return self.reporter.fail(.name, name.span, "expression binding paths must not overlap");
     }
 

@@ -40,7 +40,7 @@ pub fn lower(self: *Lower, values: []const ir.Statement) Lower.Error![]const nod
                 const value = if (self.stack_symbols.contains(binding.symbol)) try @import("value_call/root.zig").expression(self, binding.value) else try self.expr(binding.value);
                 const index = @backingInt(binding.symbol);
 
-                if (self.used[index]) try output.append(self.allocator, .{ .constant = .{ .name = self.names[index], .type_expr = if (self.stack_symbols.contains(binding.symbol)) self.layouts[@backingInt(self.program.symbols[index].type_id)] else self.types[@backingInt(self.program.symbols[index].type_id)], .value = value } }) else try output.append(self.allocator, .{ .discard = value });
+                if (self.used[index]) try output.append(self.allocator, .{ .constant = .{ .name = self.names[index], .type_expr = if (self.stack_symbols.contains(binding.symbol)) self.layouts[@backingInt(self.program.symbols.at(index).type_id)] else self.types[@backingInt(self.program.symbols.at(index).type_id)], .value = value } }) else try output.append(self.allocator, .{ .discard = value });
             },
             .destructure => |binding| {
                 const name = try self.fresh("tuple");

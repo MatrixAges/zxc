@@ -8,7 +8,7 @@ pub const Error = std.mem.Allocator.Error || error{ InvalidModule, UnreachableFl
 allocator: std.mem.Allocator,
 types: ir.TypeTable,
 native_modules: []const ir.NativeModule,
-symbols: std.ArrayList(ir.Symbol) = .empty,
+symbols: ir.SymbolStorage = .{},
 expressions: std.ArrayList(ir.Expression) = .empty,
 functions: std.ArrayList(ir.Function) = .empty,
 store_initializers: std.ArrayList(StoreInitializer) = .empty,
@@ -16,7 +16,7 @@ stores: std.ArrayList(ir.StoreSlot) = .empty,
 body: std.ArrayList(ir.Statement) = .empty,
 bindings: std.ArrayList(ir.SymbolId) = .empty,
 pub fn symbol(self: *Self, name: []const u8, type_id: ir.TypeId, span: zx.Span) std.mem.Allocator.Error!ir.SymbolId {
-    const id: ir.SymbolId = @fromBackingInt(@intCast(self.symbols.items.len));
+    const id: ir.SymbolId = @fromBackingInt(@intCast(self.symbols.count()));
 
     try self.symbols.append(self.allocator, .{ .name = try self.allocator.dupe(u8, name), .type_id = type_id, .span = span });
 

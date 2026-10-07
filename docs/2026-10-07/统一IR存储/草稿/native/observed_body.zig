@@ -25,7 +25,7 @@ pub fn compare(arena: *std.heap.ArenaAllocator, program: ir.Program, control: co
     const table = try storage.finish(allocator);
     const expression_input = borrow.columns(ExpressionTable, table);
     const control_input = borrow.columns(Control, control);
-    const symbol_input = try symbols(allocator, program.symbols);
+    const symbol_input = borrow.columns(Symbols, program.symbols);
     const input: Body = .{ .symbols = &symbol_input, .expressions = &expression_input, .control = &control_input, .root = root };
 
     inline for (@typeInfo(expressions.Table).@"struct".field_names) |name| {
@@ -57,25 +57,7 @@ pub fn compare(arena: *std.heap.ArenaAllocator, program: ir.Program, control: co
 
     for (table.kinds) |kind| kinds[@backingInt(kind)] += 1;
 
-    const encoded = try std.json.Stringify.valueAlloc(allocator, .{ .file = program.file_name, .expressions = table.kinds.len, .symbols = program.symbols.len, .kinds = kinds, .expression_columns_borrowed = true, .expression_roundtrip_equal = true, .body_identity_retained = true, .body_structure_valid = true, .body_local_references_valid = true, .allocation_free_reader = true }, .{});
+    const encoded = try std.json.Stringify.valueAlloc(allocator, .{ .file = program.file_name, .expressions = table.kinds.len, .symbols = program.symbols.count(), .kinds = kinds, .expression_columns_borrowed = true, .expression_roundtrip_equal = true, .body_identity_retained = true, .body_structure_valid = true, .body_local_references_valid = true, .allocation_free_reader = true }, .{});
 
     std.debug.print("canonical-body {s}\n", .{encoded});
-}
-
-fn symbols(allocator: std.mem.Allocator, source: []const ir.Symbol) !Symbols {
-    var result: Symbols = undefined;
-
-    inline for (@typeInfo(Symbols).@"struct".field_names) |name| {
-        @field(result, name) = try allocator.alloc(@typeInfo(@FieldType(Symbols, name)).pointer.child, source.len);
-    }
-
-    for (source, 0..) |value, index| {
-        @constCast(result.names)[index] = value.name;
-        @constCast(result.types)[index] = @backingInt(value.type_id);
-        @constCast(result.span_start)[index] = value.span.start;
-        @constCast(result.span_end)[index] = value.span.end;
-        @constCast(result.ownership)[index] = @import("expressions/enumeration.zig").convert(@typeInfo(@TypeOf(result.ownership)).pointer.child, value.ownership);
-    }
-
-    return result;
 }
