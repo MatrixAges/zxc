@@ -1,0 +1,19 @@
+export type Input = { values: u64[], count: u64 }
+
+export type State = { values: u64[], round: u64, count: u64 }
+
+export type Output = { original: u64[], values: u64[] }
+
+export default function (in: Input): Output {
+    const initial: State = { values: in.values, round: 0, count: in.count }
+
+    const state = loop(initial, {
+        while: current => current.round < current.count,
+        next: current => {
+            current.values[0] += 1
+            current.round += 1
+        }
+    })
+
+    return { original: in.values, values: state.values }
+}
