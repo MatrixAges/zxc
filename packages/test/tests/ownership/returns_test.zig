@@ -32,7 +32,7 @@ test "function return ownership distinguishes new data and borrowed views" {
 
         try std.testing.expect(result.value == .ir);
         try std.testing.expectEqual(.owned, result.value.ir.output_ownership);
-        try std.testing.expectEqual(if (case.borrowed) .borrowed else .owned, result.value.ir.functions[0].output_ownership);
+        try std.testing.expectEqual(@as(compiler.ir.Ownership, if (case.borrowed) .borrowed else .owned), result.value.ir.functions[0].output_ownership);
         try std.testing.expect(try compiler.validateIr(std.testing.allocator, result.value.ir) == null);
     }
 }
