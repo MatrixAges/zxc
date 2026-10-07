@@ -1,0 +1,45 @@
+import integers from "zig:integers"
+
+import contains from "../../../analysis/semantic/querying/execute"
+import { ExpressionKind } from "../expressions/kinds"
+
+import type { Program } from "./model"
+
+export type Input = Program
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.body.expressions
+
+    const result = loop({ table: in.table, symbols: in.body.symbols, expressions: expressions, index: 0, capture: 0, valid: true }, {
+        while: current => current.valid && current.index < current.expressions.kinds.length,
+        next: current => {
+            if (current.expressions.kinds[current.index] != ExpressionKind.Task) {
+                current.index += 1
+            } else {
+                const payload = integers.widen(current.expressions.payloads[current.index])
+                const count = integers.widen(current.expressions.task_capture_count[payload])
+
+                if (current.capture == 0) {
+                    const body = integers.widen(current.expressions.task_bodies[payload])
+
+                    current.valid = !contains({ table: current.table, id: current.expressions.types[body], native_references: true })
+                }
+
+                if (current.capture < count) {
+                    const offset = integers.widen(current.expressions.task_capture_first[payload]) + current.capture
+                    const symbol = integers.widen(current.expressions.task_captures[offset])
+
+                    current.valid = current.valid && !contains({ table: current.table, id: current.symbols.types[symbol], native_references: true })
+                    current.capture += 1
+                } else {
+                    current.index += 1
+                    current.capture = 0
+                }
+            }
+        }
+    })
+
+    return result.valid
+}

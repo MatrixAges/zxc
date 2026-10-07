@@ -173,6 +173,11 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[34 + entries.len], .data = ir_store_call.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[35 + entries.len], .data = ir_store_call.types });
 
+    const ir_tasks = try generate(allocator, inputs, sources.items, "zx/ir/canonical/tasks_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[36 + entries.len], .data = ir_tasks.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[37 + entries.len], .data = ir_tasks.types });
+
     const naming = try generate(allocator, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 2], .data = naming.source });

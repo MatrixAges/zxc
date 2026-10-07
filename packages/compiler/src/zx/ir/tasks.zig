@@ -1,84 +1,34 @@
 const std = @import("std");
 const ir = @import("zx").ir;
+const options = @import("parser_options");
+const borrow = @import("canonical/borrow.zig");
 
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
-    if (program.typeOf(program.input_type) == .task or program.typeOf(program.output_type) == .task) return false;
+    if (comptime !options.generated_parser) return @import("seed_tasks.zig").validate(allocator, program);
 
-    const uses = try allocator.alloc(usize, program.expressions.count());
+    const generated = @import("generated_ir_tasks");
+    const Input = std.meta.Child(generated.Input);
+    const Table = std.meta.Child(@FieldType(Input, "table"));
+    const Body = std.meta.Child(@FieldType(Input, "body"));
+    const table = ir.TypeTable.borrow(Table, program.types);
 
-    defer allocator.free(uses);
-    @memset(uses, 0);
+    const body: Body = .{
+        .stores = borrow.pointer(@FieldType(Body, "stores"), &program.stores),
+        .symbols = borrow.pointer(@FieldType(Body, "symbols"), &program.symbols),
+        .expressions = borrow.pointer(@FieldType(Body, "expressions"), &program.expressions),
+        .control = borrow.pointer(@FieldType(Body, "control"), program.body.control),
+        .root = if (program.body.root) |id| @backingInt(id) else null,
+    };
 
-    for (0..program.expressions.count()) |expression_index| {
-        const expression = program.expressions.at(expression_index);
+    const input: Input = .{ .table = &table, .body = &body, .input_type = @backingInt(program.input_type), .output_type = @backingInt(program.output_type) };
+    var arena = std.heap.ArenaAllocator.init(allocator);
 
-        switch (expression.value) {
-            .task => |task| {
-                if (try ir.containsNativeReference(allocator, program.types, program.expression(task.body).type_id)) return false;
-                for (task.captures) |symbol| if (try ir.containsNativeReference(allocator, program.types, program.symbols.at(@backingInt(symbol)).type_id)) return false;
-            },
-            .await_task, .cancel_task => |child| {
-                const value = program.expression(child).value;
+    defer arena.deinit();
 
-                if (value != .task and value != .reference) return false;
-
-                uses[@backingInt(child)] += 1;
-            },
-            .parallel => |branches| for (0..branches.len) |record_index| {
-                const branch = branches.at(record_index);
-
-                uses[@backingInt(branch.task)] += 1;
-            },
-            .scope => |scope| for (0..scope.bindings.len) |record_index| {
-                const binding = scope.bindings.at(record_index);
-                const value = program.expression(binding.value);
-
-                if (program.typeOf(value.type_id) != .task) continue;
-                if (binding.symbol == null or value.value != .task) return false;
-
-                uses[@backingInt(binding.value)] += 1;
-            },
-            else => {},
-        }
-    }
-
-    if (!bindings(program, program.body.block(), uses)) return false;
-
-    for (0..program.expressions.count(), uses) |expression_index, count| {
-        const expression = program.expressions.at(expression_index);
-
-        if (program.typeOf(expression.type_id) == .task and count != 1) return false;
-    }
-
-    return true;
-}
-
-fn bindings(program: ir.Program, statements: ir.Block, uses: []usize) bool {
-    for (0..statements.len) |statement_index| {
-        const statement = statements.at(statement_index);
-
-        switch (statement) {
-            .constant => |binding| {
-                const expression = program.expression(binding.value);
-
-                if (program.typeOf(expression.type_id) != .task) continue;
-                if (expression.value != .task) return false;
-
-                uses[@backingInt(binding.value)] += 1;
-            },
-            .branch => |branch| {
-                if (!bindings(program, branch.yes, uses) or !bindings(program, branch.no, uses)) return false;
-            },
-            .switch_stmt => |selection| for (0..selection.cases.len) |case_index| {
-                const case = selection.cases.at(case_index);
-
-                if (!bindings(program, case.body, uses)) return false;
-            },
-            else => {},
-        }
-    }
-
-    return true;
+    return generated.execute(&arena, &input) catch |err| switch (err) {
+        error.OutOfMemory, error.Overflow => return error.OutOfMemory,
+        else => return false,
+    };
 }
 
 pub fn callSafe(allocator: std.mem.Allocator, functions: ir.FunctionTable, id: ir.FunctionId) std.mem.Allocator.Error!bool {

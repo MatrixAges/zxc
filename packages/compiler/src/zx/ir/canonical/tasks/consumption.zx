@@ -1,0 +1,80 @@
+import integers from "zig:integers"
+
+import kind from "../../../analysis/semantic/types/kind"
+import { Kind } from "../../../analysis/semantic/types/model"
+import { ExpressionKind } from "../expressions/kinds"
+
+import type { Program } from "./model"
+
+export type Input = Program
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const uses: u64[] = in.body.expressions.kinds.map(value => 0)
+
+    const result = loop({ table: in.table, expressions: in.body.expressions, constants: in.body.control.constant_values, uses: uses, index: 0, binding: 0, edge: 0, valid: true }, {
+        while: current => current.valid && (current.index < current.expressions.kinds.length || current.binding < current.constants.length),
+        next: current => {
+            if (current.index == current.expressions.kinds.length) {
+                const value = integers.widen(current.constants[current.binding])
+                const type_id = integers.widen(current.expressions.types[value])
+
+                if (kind(current.table.kinds[type_id]) == Kind.Task) {
+                    current.valid = current.expressions.kinds[value] == ExpressionKind.Task
+                    current.uses[value] += 1
+                }
+
+                current.binding += 1
+            } else {
+                const expression_kind = current.expressions.kinds[current.index]
+                const payload = integers.widen(current.expressions.payloads[current.index])
+
+                if (expression_kind == ExpressionKind.AwaitTask || expression_kind == ExpressionKind.CancelTask) {
+                    const child = integers.widen(expression_kind == ExpressionKind.AwaitTask ? current.expressions.awaits[payload] : current.expressions.cancellations[payload])
+                    const child_kind = current.expressions.kinds[child]
+
+                    current.valid = child_kind == ExpressionKind.Task || child_kind == ExpressionKind.Reference
+                    current.uses[child] += 1
+                    current.index += 1
+                } else if (expression_kind == ExpressionKind.Parallel || expression_kind == ExpressionKind.Scope) {
+                    const parallel = expression_kind == ExpressionKind.Parallel
+                    const count = integers.widen(parallel ? current.expressions.parallel_count[payload] : current.expressions.scope_count[payload])
+                    const first = integers.widen(parallel ? current.expressions.parallel_first[payload] : current.expressions.scope_first[payload])
+
+                    if (current.edge == count) {
+                        current.index += 1
+                        current.edge = 0
+                    } else {
+                        const offset = first + current.edge
+                        const child = integers.widen(parallel ? current.expressions.parallel_tasks[offset] : current.expressions.scope_values[offset])
+                        const type_id = integers.widen(current.expressions.types[child])
+
+                        if (parallel) {
+                            current.uses[child] += 1
+                        } else if (kind(current.table.kinds[type_id]) == Kind.Task) {
+                            current.valid = current.expressions.scope_symbols[offset] != null && current.expressions.kinds[child] == ExpressionKind.Task
+                            current.uses[child] += 1
+                        }
+
+                        current.edge += 1
+                    }
+                } else {
+                    current.index += 1
+                }
+            }
+        }
+    })
+
+    const checked = loop({ table: in.table, expressions: in.body.expressions, uses: result.uses, index: 0, valid: result.valid }, {
+        while: current => current.valid && current.index < current.expressions.kinds.length,
+        next: current => {
+            const type_id = integers.widen(current.expressions.types[current.index])
+
+            current.valid = kind(current.table.kinds[type_id]) != Kind.Task || current.uses[current.index] == 1
+            current.index += 1
+        }
+    })
+
+    return checked.valid
+}

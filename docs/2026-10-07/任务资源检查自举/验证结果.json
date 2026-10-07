@@ -1,0 +1,48 @@
+{
+    "基线": "9e7a2b0b2711172750f171ca58542c239b29fa04",
+    "验证": [
+        {
+            "名称": "根构建",
+            "目录": ".",
+            "命令": "zig build -j3 --summary all",
+            "退出码": 0,
+            "结果": "35/35 steps succeeded",
+            "日志": "根构建.log.gz",
+            "日志SHA256": "82566dc1422e1c0b243e9a221e6249bb6bd390de3b4e808cf19cc575a251515a"
+        },
+        {
+            "名称": "编译器回归",
+            "目录": "packages/compiler",
+            "命令": "zig build test -j2 --summary all",
+            "退出码": 0,
+            "结果": "28/28 steps succeeded; 372/372 tests passed",
+            "日志": "编译器回归.log.gz",
+            "日志SHA256": "fba5372b551d262c40325a039d88980a067782762f5ec68110526fab8eb080ef"
+        },
+        {
+            "名称": "任务与编解码专项",
+            "目录": "packages/test",
+            "命令": "zig build test-zx-tasks-analysis test-zx-cancel-analysis test-native-references-ir test-library-codec test-cache-codec -j3 --summary all",
+            "退出码": 0,
+            "结果": "64/64 steps succeeded; 174/174 tests passed",
+            "日志": "任务与编解码专项.log.gz",
+            "日志SHA256": "131473a49944c3e28fe736fca41b6e960ab16ffba6cda1d41b61e4e2cfd8e6bc"
+        }
+    ],
+    "生成SHA256": {
+        "任务检查.zig.gz": "2fa85f876b938e1f9d00d7f6f1608f5510fdc913312470c91c26463983cc1c2b",
+        "任务接口.zig.gz": "98deb5bec57d2f948c650a39fb5119565c6590ae67af55a070dcc4d522fa6e67"
+    },
+    "源码SHA256": {
+        "packages/compiler/build/compiler.zig": "54a805e9b73456287b3671eb026e6e4842ebee4a16b88611ea86ce1abdb462f3",
+        "packages/compiler/build/generate_parser.zig": "a1e266baf6406f2717acd6814eb258ac1a81f201060d352cc426de6eaa2fd99b",
+        "packages/compiler/build/parser.zig": "884573d40fb804e052363767485927b1ca0df96e1c9e16fda8b6fa7b1a8308ff",
+        "packages/compiler/src/zx/ir/canonical/tasks/consumption.zx": "4bdfdeb5201e9e6e638efba64eac356683f6c4d2f8f75ce4fe494ba3fe0b3655",
+        "packages/compiler/src/zx/ir/canonical/tasks/model.zx": "a5019642d27b359e44a783ff3dad08092ceea8b5c29e0ab1fcf655d9e133a956",
+        "packages/compiler/src/zx/ir/canonical/tasks/references.zx": "eb9e0c54e36f67717b7001cb249f2ccf51650ce9542069a82b2f522397351bd4",
+        "packages/compiler/src/zx/ir/canonical/tasks/validate.zx": "17c30fece07583c86dd14b00e121f150da31e81d886811783d7cd43d6e6437b7",
+        "packages/compiler/src/zx/ir/canonical/tasks_check.rx": "926713d20a720fe2b44cd074a11f2a4e5d9aaba2a02b307fb0ee7df904e7f9ff",
+        "packages/compiler/src/zx/ir/seed_tasks.zig": "4d87a2d275d6d798056c3c3925a062d95bd221f91001275af68c60f56cd5905e",
+        "packages/compiler/src/zx/ir/tasks.zig": "db75964675d29e929d92d1672f9675c048ecc158bbb9c5157a49a241ea2538fa"
+    }
+}
