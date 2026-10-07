@@ -1,6 +1,14 @@
 const std = @import("std");
 
 pub const Sources = struct {
+    ir_scopes: std.Build.LazyPath,
+    ir_scopes_abi: std.Build.LazyPath,
+    refinement_assume: std.Build.LazyPath,
+    refinement_assume_abi: std.Build.LazyPath,
+    refinement_bind: std.Build.LazyPath,
+    refinement_bind_abi: std.Build.LazyPath,
+    refinement_type: std.Build.LazyPath,
+    refinement_type_abi: std.Build.LazyPath,
     ownership: std.Build.LazyPath,
     ownership_abi: std.Build.LazyPath,
     ir_contracts: std.Build.LazyPath,
@@ -121,6 +129,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     executable.root_module.addAnonymousImport("references_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/references.d.zx") });
     executable.root_module.addAnonymousImport("origin_writer_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/origin_writer.d.zx") });
     executable.root_module.addAnonymousImport("named_columns_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/ordering/columns.d.zx") });
+    executable.root_module.addAnonymousImport("flow_state_interface", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/flow_state.d.zx") });
     executable.root_module.addAnonymousImport("semantic_floats", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/floats.d.zx") });
     executable.root_module.addAnonymousImport("semantic_integers", .{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.d.zx") });
 
@@ -191,13 +200,21 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const ir_contracts_abi = run.addOutputFileArg("ir_contracts_abi.zig");
     const ir_contract_tables = run.addOutputFileArg("ir_contract_tables.zig");
     const ir_contract_tables_abi = run.addOutputFileArg("ir_contract_tables_abi.zig");
+    const ir_scopes = run.addOutputFileArg("ir_scopes.zig");
+    const ir_scopes_abi = run.addOutputFileArg("ir_scopes_abi.zig");
+    const refinement_assume = run.addOutputFileArg("refinement_assume.zig");
+    const refinement_assume_abi = run.addOutputFileArg("refinement_assume_abi.zig");
+    const refinement_bind = run.addOutputFileArg("refinement_bind.zig");
+    const refinement_bind_abi = run.addOutputFileArg("refinement_bind_abi.zig");
+    const refinement_type = run.addOutputFileArg("refinement_type.zig");
+    const refinement_type_abi = run.addOutputFileArg("refinement_type_abi.zig");
     const naming = run.addOutputFileArg("naming.zig");
     const naming_root = lint_dependency.path("src/naming");
 
     run.addDirectoryArg2(naming_root, .{});
     trackSources(b, run, naming_root, lint_dependency.builder.root.joinString(b.allocator, "src/naming") catch @panic("out of memory")) catch @panic("unable to track lint naming sources");
 
-    return .{ .ir_contracts = ir_contracts, .ir_contracts_abi = ir_contracts_abi, .ir_contract_tables = ir_contract_tables, .ir_contract_tables_abi = ir_contract_tables_abi, .ir_expressions = ir_expressions, .ir_expressions_abi = ir_expressions_abi, .ownership = ownership, .ownership_abi = ownership_abi, .ir_functions = ir_functions, .ir_functions_abi = ir_functions_abi, .ir_task_call = ir_task_call, .ir_task_call_abi = ir_task_call_abi, .ir_program_pure = ir_program_pure, .ir_program_pure_abi = ir_program_pure_abi, .ir_tasks = ir_tasks, .ir_tasks_abi = ir_tasks_abi, .ir_body = ir_body, .ir_body_abi = ir_body_abi, .ir_stores = ir_stores, .ir_stores_abi = ir_stores_abi, .ir_store_call = ir_store_call, .ir_store_call_abi = ir_store_call_abi, .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .type_remap = type_remap, .remap_abi = remap_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_extract = type_extract, .extract_abi = extract_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
+    return .{ .ir_scopes = ir_scopes, .ir_scopes_abi = ir_scopes_abi, .refinement_assume = refinement_assume, .refinement_assume_abi = refinement_assume_abi, .refinement_bind = refinement_bind, .refinement_bind_abi = refinement_bind_abi, .refinement_type = refinement_type, .refinement_type_abi = refinement_type_abi, .ir_contracts = ir_contracts, .ir_contracts_abi = ir_contracts_abi, .ir_contract_tables = ir_contract_tables, .ir_contract_tables_abi = ir_contract_tables_abi, .ir_expressions = ir_expressions, .ir_expressions_abi = ir_expressions_abi, .ownership = ownership, .ownership_abi = ownership_abi, .ir_functions = ir_functions, .ir_functions_abi = ir_functions_abi, .ir_task_call = ir_task_call, .ir_task_call_abi = ir_task_call_abi, .ir_program_pure = ir_program_pure, .ir_program_pure_abi = ir_program_pure_abi, .ir_tasks = ir_tasks, .ir_tasks_abi = ir_tasks_abi, .ir_body = ir_body, .ir_body_abi = ir_body_abi, .ir_stores = ir_stores, .ir_stores_abi = ir_stores_abi, .ir_store_call = ir_store_call, .ir_store_call_abi = ir_store_call_abi, .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .native = native, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .name_sort = name_sort, .ordering_abi = ordering_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .type_remap = type_remap, .remap_abi = remap_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_extract = type_extract, .extract_abi = extract_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath, absolute: []const u8) !void {
@@ -232,6 +249,15 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
 pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources) @import("compiler.zig").ParserModules {
     const integers = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.zig"), .target = target, .optimize = optimize });
     const floats = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/floats.zig"), .target = target, .optimize = optimize });
+    const flow_workspace = @import("compiler.zig").flowWorkspace(b, target, optimize);
+
+    const flow_state = b.createModule(.{
+        .root_source_file = b.path("src/zx/analysis/semantic/native/flow_state.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{.{ .name = "flow_workspace", .module = flow_workspace }},
+    });
+
     const lookup = b.createModule(.{ .root_source_file = source.type_lookup, .target = target, .optimize = optimize });
 
     lookup.addImport("integers", integers);
@@ -402,6 +428,50 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         },
     });
 
+    const ir_scopes = b.createModule(.{
+        .root_source_file = source.ir_scopes,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_scopes_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+            .{ .name = "flow_state", .module = flow_state },
+        },
+    });
+
+    const refinement_assume = b.createModule(.{
+        .root_source_file = source.refinement_assume,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_assume_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+            .{ .name = "flow_state", .module = flow_state },
+        },
+    });
+
+    const refinement_bind = b.createModule(.{
+        .root_source_file = source.refinement_bind,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_bind_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+            .{ .name = "flow_state", .module = flow_state },
+        },
+    });
+
+    const refinement_type = b.createModule(.{
+        .root_source_file = source.refinement_type,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_type_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "integers", .module = integers },
+            .{ .name = "flow_state", .module = flow_state },
+        },
+    });
+
     const ir_contracts = b.createModule(.{
         .root_source_file = source.ir_contracts,
         .target = target,
@@ -505,6 +575,11 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
     });
 
     return .{
+        .flow_workspace = flow_workspace,
+        .ir_scopes = ir_scopes,
+        .refinement_assume = refinement_assume,
+        .refinement_bind = refinement_bind,
+        .refinement_type = refinement_type,
         .ownership = ownership,
         .ir_body = ir_body,
         .ir_tasks = ir_tasks,

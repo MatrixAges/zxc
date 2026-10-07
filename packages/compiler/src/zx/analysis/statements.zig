@@ -64,7 +64,7 @@ pub fn block(self: *Analyzer, value: anytype) zx.Error!ir.BlockId {
                 }
 
                 try result.append(self.allocator, .{ .destructure = .{ .symbols = symbols, .value = initializer } });
-                try self.refinement.bind(self.allocator, self.node(initializer), symbols);
+                try self.refinement.bind(self.allocator, self.nodes.view(), initializer, symbols);
             },
             .result => |source| {
                 const id = if (source) |expression| try self.expression(expression, self.output_type) else null;

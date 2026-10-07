@@ -1,0 +1,49 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import { BinaryOperator, ExpressionKind } from "../expressions/kinds"
+import { Phase } from "./model"
+import schedule from "./schedule"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const expressions = program.body.expressions
+    const payload = integers.widen(expressions.payloads[in.frame.a])
+    const writer = program.writer
+    const facts = state.factMark(writer)
+    const captures = state.captureMark(writer)
+    const depth = in.frame.b + 1
+    const flags = in.frame.c
+
+    schedule({ writer: writer, frame: { phase: Phase.RestoreFacts, a: facts, b: captures, c: 0 } })
+
+    if (expressions.kinds[in.frame.a] == ExpressionKind.Conditional) {
+        const condition = integers.widen(expressions.conditional_conditions[payload])
+
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.conditional_no[payload]), b: depth, c: flags } })
+        schedule({ writer: writer, frame: { phase: Phase.Assume, a: condition, b: 0, c: 0 } })
+        schedule({ writer: writer, frame: { phase: Phase.RestoreFacts, a: facts, b: captures, c: 0 } })
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.conditional_yes[payload]), b: depth, c: flags } })
+        schedule({ writer: writer, frame: { phase: Phase.Assume, a: condition, b: 1, c: 0 } })
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: condition, b: depth, c: flags } })
+    } else {
+        const left = integers.widen(expressions.binary_left[payload])
+        const operator = expressions.binary_operators[payload]
+
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.binary_right[payload]), b: depth, c: flags } })
+
+        if (operator == BinaryOperator.LogicalAnd || operator == BinaryOperator.LogicalOr) {
+            schedule({ writer: writer, frame: { phase: Phase.Assume, a: left, b: operator == BinaryOperator.LogicalAnd ? 1 : 0, c: 0 } })
+        }
+
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: left, b: depth, c: flags } })
+    }
+
+    return true
+}

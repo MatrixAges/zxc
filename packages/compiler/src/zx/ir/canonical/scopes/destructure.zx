@@ -1,0 +1,46 @@
+import integers from "zig:integers"
+
+import kind from "../../../analysis/semantic/types/kind"
+import { Kind } from "../../../analysis/semantic/types/model"
+import bind from "../refinement/bind"
+import declare from "./declare"
+import { Declaration } from "./model"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const control = program.body.control
+    const payload = in.frame.a
+    const value = integers.widen(control.destructure_values[payload])
+    const type_id = integers.widen(program.body.expressions.types[value])
+    const first = integers.widen(control.destructure_first[payload])
+    const count = integers.widen(control.destructure_count[payload])
+
+    if (kind(program.table.kinds[type_id]) != Kind.Tuple || integers.widen(program.table.second[type_id]) != count) {
+        return false
+    }
+
+    const result = loop({ program: program, first: first, count: count, type_first: integers.widen(program.table.first[type_id]), index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const symbol = current.program.body.control.destructure_symbols[current.first + current.index]
+
+            if (symbol != null) {
+                current.valid = declare({ program: current.program, symbol: integers.widen(symbol), type_id: current.program.table.children[current.type_first + current.index], owner: 0, mode: Declaration.Ordinary })
+            }
+
+            current.index += 1
+        }
+    })
+
+    if (result.valid && count == 2) {
+        bind({ writer: program.writer, expressions: program.body.expressions, value: value, count: count, err: control.destructure_symbols[first], result: control.destructure_symbols[first + 1] })
+    }
+
+    return result.valid
+}

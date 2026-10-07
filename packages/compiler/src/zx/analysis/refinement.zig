@@ -12,7 +12,6 @@ pub fn reference(self: *Analyzer, symbol: ir.SymbolId, span: zx.Span) zx.Error!i
 
 pub fn typeOf(self: *const Analyzer, symbol: ir.SymbolId) ir.TypeId {
     const id = self.symbols.at(@backingInt(symbol)).type_id;
-    const target = self.types.get(id);
 
-    return if (target == .optional and self.refinement.contains(symbol)) target.optional else id;
+    return self.refinement.typeOf(self.types.items.view(), id, symbol);
 }

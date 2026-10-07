@@ -1,0 +1,40 @@
+import state from "zig:flow_state"
+
+import { Declaration } from "./model"
+
+import type { Program } from "./model"
+
+export type Input = { program: Program, symbol: u64, type_id: u32, owner: u64, mode: Declaration }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const writer = in.program.writer
+
+    if (in.symbol >= in.program.body.symbols.names.length) {
+        return false
+    }
+
+    const type_id = in.program.body.symbols.types[in.symbol]
+
+    if (in.mode == Declaration.Ordinary) {
+        if (state.declared(writer, in.symbol) || type_id != in.type_id || type_id == 0) {
+            return false
+        }
+    } else {
+        if (state.active(writer, in.symbol) || (state.declared(writer, in.symbol) && state.owner(writer, in.symbol) != in.owner + 1)) {
+            return false
+        }
+
+        if (in.mode == Declaration.Scope && type_id == 0) {
+            return false
+        }
+
+        state.setOwner(writer, in.symbol, in.owner + 1)
+    }
+
+    state.setDeclared(writer, in.symbol)
+    state.setActive(writer, in.symbol, true)
+
+    return true
+}

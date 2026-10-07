@@ -1,0 +1,55 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../expressions/kinds"
+import bind from "./bind"
+
+import type { Writer } from "zig:flow_state"
+import type { Expressions } from "../expressions/model"
+
+export type Input = { writer: Writer, expressions: Expressions, first: u64, count: u64 }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    loop({ input: in, index: 0 }, {
+        while: current => current.index < current.input.count,
+        next: current => {
+            const input = current.input
+            const expressions = input.expressions
+            const position = input.first + current.index
+            const symbol = expressions.scope_symbols[position]
+            const value = integers.widen(expressions.scope_values[position])
+
+            if (symbol != null && expressions.kinds[value] == ExpressionKind.Capture) {
+                const empty: u32? = null
+                const pair = loop({ expressions: expressions, first: input.first, count: input.count, symbol: symbol, index: current.index + 1, err: empty, result: empty }, {
+                    while: projection => projection.index < projection.count,
+                    next: projection => {
+                        const expressions = projection.expressions
+                        const position = projection.first + projection.index
+                        const value = integers.widen(expressions.scope_values[position])
+                        const payload = integers.widen(expressions.payloads[value])
+
+                        if (expressions.kinds[value] == ExpressionKind.TupleField && expressions.projection_indices[payload] < 2) {
+                            const target = integers.widen(expressions.projection_targets[payload])
+
+                            if (expressions.kinds[target] == ExpressionKind.Reference && expressions.references[integers.widen(expressions.payloads[target])] == projection.symbol) {
+                                if (expressions.projection_indices[payload] == 0) {
+                                    projection.err = expressions.scope_symbols[position]
+                                } else {
+                                    projection.result = expressions.scope_symbols[position]
+                                }
+                            }
+                        }
+
+                        projection.index += 1
+                    }
+                })
+
+                bind({ writer: input.writer, expressions: expressions, value: value, count: 2, err: pair.err, result: pair.result })
+            }
+
+            current.index += 1
+        }
+    })
+}

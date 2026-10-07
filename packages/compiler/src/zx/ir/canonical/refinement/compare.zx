@@ -1,0 +1,57 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import { BinaryOperator, ExpressionKind } from "../expressions/kinds"
+
+import type { Writer } from "zig:flow_state"
+import type { Expressions } from "../expressions/model"
+
+export type Input = { writer: Writer, expressions: Expressions, payload: u64, truth: bool }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const operator = expressions.binary_operators[in.payload]
+
+    if (operator != BinaryOperator.Equal && operator != BinaryOperator.NotEqual) {
+        return
+    }
+
+    const left = integers.widen(expressions.binary_left[in.payload])
+    const right = integers.widen(expressions.binary_right[in.payload])
+
+    const reference = match {
+        expressions.kinds[left] == ExpressionKind.Reference && expressions.kinds[right] == ExpressionKind.None => left,
+        expressions.kinds[right] == ExpressionKind.Reference && expressions.kinds[left] == ExpressionKind.None => right,
+        _ => expressions.kinds.length
+    }
+
+    if (reference == expressions.kinds.length) {
+        return
+    }
+
+    const symbol = integers.widen(expressions.references[integers.widen(expressions.payloads[reference])])
+    const present = operator == BinaryOperator.NotEqual ? in.truth : !in.truth
+
+    if (present) {
+        if (!state.contains(in.writer, symbol)) {
+            state.appendFact(in.writer, symbol)
+        }
+    } else {
+        loop({ writer: in.writer, symbol: symbol, index: 0, count: state.captureMark(in.writer) }, {
+            while: current => current.index < current.count,
+            next: current => {
+                if (state.captureError(current.writer, current.index) == current.symbol) {
+                    const result = state.captureResult(current.writer, current.index)
+
+                    if (!state.contains(current.writer, result)) {
+                        state.appendFact(current.writer, result)
+                    }
+                }
+
+                current.index += 1
+            }
+        })
+    }
+}

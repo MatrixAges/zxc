@@ -65,7 +65,7 @@ fn statement(self: *Self, source: anytype) zx.Error!void {
                 symbols[index] = try self.bind(name, item, self.scope_start);
             }
 
-            try analyzer.refinement.bind(analyzer.allocator, analyzer.node(value), symbols);
+            try analyzer.refinement.bind(analyzer.allocator, analyzer.nodes.view(), value, symbols);
         },
         .state_update => |update| {
             const location = try analyzer.expression(update.target, null);

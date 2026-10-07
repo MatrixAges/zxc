@@ -1,0 +1,16 @@
+import terminates from "../control/terminates"
+import analyze from "../functions/analyze"
+
+import type { Prepared, Program } from "./model"
+
+export type Input = Program
+
+export type Output = Prepared
+
+export default function (in: Input): Output {
+    const returns = terminates(in.body.control)
+    const pure: bool[] = in.body.control.parallel_first.length == 0 ? [] : analyze({ functions: in.functions, concurrent: false })
+    const concurrent: bool[] = in.body.expressions.task_bodies.length == 0 ? [] : analyze({ functions: in.functions, concurrent: true })
+
+    return { returns: returns, pure: pure, concurrent: concurrent }
+}

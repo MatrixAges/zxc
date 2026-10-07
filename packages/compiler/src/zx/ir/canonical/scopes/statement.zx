@@ -1,0 +1,81 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../control/model"
+import { Phase } from "./model"
+import parallel from "./parallel_statement"
+import schedule from "./schedule"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const control = program.body.control
+    const kind = control.statement_kinds[in.frame.a]
+    const payload = integers.widen(control.statement_payloads[in.frame.a])
+    const writer = program.writer
+
+    if (kind == StatementKind.Parallel) {
+        return parallel({ context: in.context, frame: { phase: Phase.BlockNext, a: payload, b: 0, c: 0 } })
+    }
+
+    if (kind == StatementKind.Result) {
+        const value = control.results[payload]
+
+        if (value == null) {
+            return program.output_type == 0
+        }
+
+        const id = integers.widen(value)
+
+        if (program.body.expressions.types[id] != program.output_type) {
+            return false
+        }
+
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: id, b: 0, c: 0 } })
+
+        return true
+    }
+
+    if (kind == StatementKind.StoreSet) {
+        const slot = integers.widen(control.setter_slots[payload])
+        const value = integers.widen(control.setter_values[payload])
+
+        if (!program.transaction || slot >= program.body.stores.paths.length || !program.body.stores.writable[slot] || program.body.expressions.types[value] != program.body.stores.types[slot]) {
+            return false
+        }
+
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: value, b: 0, c: 0 } })
+
+        return true
+    }
+
+    if (kind == StatementKind.Constant) {
+        schedule({ writer: writer, frame: { phase: Phase.Declare, a: integers.widen(control.constant_symbols[payload]), b: integers.widen(control.constant_values[payload]), c: 0 } })
+    } else if (kind == StatementKind.Destructure) {
+        schedule({ writer: writer, frame: { phase: Phase.Destructure, a: payload, b: 0, c: 0 } })
+    } else if (kind == StatementKind.Branch) {
+        if (program.body.expressions.types[integers.widen(control.branch_conditions[payload])] != 1) {
+            return false
+        }
+
+        schedule({ writer: writer, frame: { phase: Phase.Branch, a: payload, b: in.frame.b, c: 0 } })
+    } else if (kind == StatementKind.Switch) {
+        schedule({ writer: writer, frame: { phase: Phase.Switch, a: payload, b: in.frame.b, c: 0 } })
+    }
+
+    const value = match kind {
+        StatementKind.Constant => control.constant_values[payload],
+        StatementKind.Destructure => control.destructure_values[payload],
+        StatementKind.Branch => control.branch_conditions[payload],
+        StatementKind.Switch => control.selection_subjects[payload],
+        _ => control.evaluations[payload]
+    }
+
+    schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(value), b: 0, c: 0 } })
+
+    return true
+}

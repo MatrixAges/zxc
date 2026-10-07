@@ -1,0 +1,80 @@
+import integers from "zig:integers"
+
+import kind from "../../../analysis/semantic/types/kind"
+import { Kind } from "../../../analysis/semantic/types/model"
+import { ExpressionKind } from "../expressions/kinds"
+import { Numeric } from "../expressions/rules/model"
+import numeric from "../expressions/rules/numeric"
+import same from "./same"
+
+import type { Program } from "./model"
+
+export type Input = { program: Program, payload: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.program
+    const control = program.body.control
+    const expressions = program.body.expressions
+    const type_id = expressions.types[integers.widen(control.selection_subjects[in.payload])]
+    const target = kind(program.table.kinds[integers.widen(type_id)])
+    const number = numeric(type_id)
+
+    if (target != Kind.Enumeration && target != Kind.ErrorSet && number != Numeric.Integer && number != Numeric.Signed && type_id != 1 && type_id != 10) {
+        return false
+    }
+
+    const first = integers.widen(control.selection_first[in.payload])
+    const count = integers.widen(control.selection_count[in.payload])
+
+    const result = loop({ program: program, type_id: type_id, first: first, count: count, index: 0, has_default: false, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const value = current.program.body.control.case_values[current.first + current.index]
+
+            if (value == null) {
+                current.valid = !current.has_default
+                current.has_default = true
+            } else {
+                const id = integers.widen(value)
+                const expressions = current.program.body.expressions
+
+                if (id >= expressions.kinds.length || expressions.types[id] != current.type_id) {
+                    current.valid = false
+                } else {
+                    const allowed = match expressions.kinds[id] {
+                        ExpressionKind.Integer => true,
+                        ExpressionKind.NegativeInteger => true,
+                        ExpressionKind.String => true,
+                        ExpressionKind.Boolean => true,
+                        ExpressionKind.EnumValue => true,
+                        ExpressionKind.ErrorValue => true,
+                        _ => false
+                    }
+
+                    const duplicate = loop({ program: current.program, first: current.first, count: current.index, value: id, index: 0, found: false }, {
+                        while: previous => !previous.found && previous.index < previous.count,
+                        next: previous => {
+                            const other = previous.program.body.control.case_values[previous.first + previous.index]
+
+                            if (other != null) {
+                                previous.found = same({ expressions: previous.program.body.expressions, left: previous.value, right: integers.widen(other) })
+                            }
+
+                            previous.index += 1
+                        }
+                    })
+
+                    current.valid = allowed && !duplicate.found
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    const exhaustive = result.has_default || ((target == Kind.Enumeration || target == Kind.ErrorSet) && count == integers.widen(program.table.second[integers.widen(type_id)])) || (type_id == 1 && count == 2)
+
+    return result.valid && control.selection_exhaustive[in.payload] == exhaustive
+}

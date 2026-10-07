@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const ParserModules = struct { ownership: *std.Build.Module, ir_body: *std.Build.Module, ir_tasks: *std.Build.Module, ir_functions: *std.Build.Module, ir_expressions: *std.Build.Module, ir_contracts: *std.Build.Module, ir_contract_tables: *std.Build.Module, ir_task_call: *std.Build.Module, ir_program_pure: *std.Build.Module, ir_stores: *std.Build.Module, ir_store_call: *std.Build.Module, type_construction: *std.Build.Module, type_query: *std.Build.Module, type_resolution: *std.Build.Module, type_views: *std.Build.Module, type_validation: *std.Build.Module, type_merge: *std.Build.Module, merge_writer_view: *std.Build.Module, type_extract: *std.Build.Module, extract_workspace_view: *std.Build.Module, program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, native: *std.Build.Module, type_lookup: *std.Build.Module, nominal_lookup: *std.Build.Module, origin_validation: *std.Build.Module, origin_production: *std.Build.Module, origin_writer: *std.Build.Module, nominal_data: *std.Build.Module, name_sort: *std.Build.Module, named_view: *std.Build.Module, type_remap: *std.Build.Module, reference_view: *std.Build.Module, merge_preflight: *std.Build.Module, merge_workspace_view: *std.Build.Module };
+pub const ParserModules = struct { flow_workspace: *std.Build.Module, ir_scopes: *std.Build.Module, refinement_assume: *std.Build.Module, refinement_bind: *std.Build.Module, refinement_type: *std.Build.Module, ownership: *std.Build.Module, ir_body: *std.Build.Module, ir_tasks: *std.Build.Module, ir_functions: *std.Build.Module, ir_expressions: *std.Build.Module, ir_contracts: *std.Build.Module, ir_contract_tables: *std.Build.Module, ir_task_call: *std.Build.Module, ir_program_pure: *std.Build.Module, ir_stores: *std.Build.Module, ir_store_call: *std.Build.Module, type_construction: *std.Build.Module, type_query: *std.Build.Module, type_resolution: *std.Build.Module, type_views: *std.Build.Module, type_validation: *std.Build.Module, type_merge: *std.Build.Module, merge_writer_view: *std.Build.Module, type_extract: *std.Build.Module, extract_workspace_view: *std.Build.Module, program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, native: *std.Build.Module, type_lookup: *std.Build.Module, nominal_lookup: *std.Build.Module, origin_validation: *std.Build.Module, origin_production: *std.Build.Module, origin_writer: *std.Build.Module, nominal_data: *std.Build.Module, name_sort: *std.Build.Module, named_view: *std.Build.Module, type_remap: *std.Build.Module, reference_view: *std.Build.Module, merge_preflight: *std.Build.Module, merge_workspace_view: *std.Build.Module };
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules, lint: *std.Build.Module) Modules {
@@ -21,6 +21,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     });
 
     frontend.addOptions("parser_options", options);
+    frontend.addImport("flow_workspace", if (parser) |generated| generated.flow_workspace else flowWorkspace(b, target, optimize));
     frontend.addImport("type_views", if (parser) |generated| generated.type_views else typeViews(b, target, optimize));
     frontend.addImport("merge_workspace_view", if (parser) |generated| generated.merge_workspace_view else mergeWorkspace(b, target, optimize));
     frontend.addImport("reference_view", if (parser) |generated| generated.reference_view else referenceView(b, target, optimize));
@@ -40,6 +41,10 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     }));
 
     if (parser) |generated| {
+        frontend.addImport("generated_ir_scopes", generated.ir_scopes);
+        frontend.addImport("generated_refinement_assume", generated.refinement_assume);
+        frontend.addImport("generated_refinement_bind", generated.refinement_bind);
+        frontend.addImport("generated_refinement_type", generated.refinement_type);
         frontend.addImport("generated_ownership", generated.ownership);
         frontend.addImport("generated_ir_body", generated.ir_body);
         frontend.addImport("generated_ir_tasks", generated.ir_tasks);
@@ -128,6 +133,15 @@ pub fn mergeWorkspace(b: *std.Build, target: std.Build.ResolvedTarget, optimize:
 pub fn typeViews(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Module {
     return b.createModule(.{
         .root_source_file = b.path("src/zx/analysis/types/view.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{.{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") }},
+    });
+}
+
+pub fn flowWorkspace(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Module {
+    return b.createModule(.{
+        .root_source_file = b.path("src/zx/analysis/semantic/flow/workspace.zig"),
         .target = target,
         .optimize = optimize,
         .imports = &.{.{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") }},

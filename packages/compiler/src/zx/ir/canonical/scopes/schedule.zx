@@ -1,0 +1,33 @@
+import state from "zig:flow_state"
+
+import { Phase } from "./model"
+
+import type { Writer } from "zig:flow_state"
+import type { Frame } from "./model"
+
+export type Input = { writer: Writer, frame: Frame }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const kind = match in.frame.phase {
+        Phase.Block => 0,
+        Phase.BlockNext => 1,
+        Phase.Expression => 2,
+        Phase.Declare => 3,
+        Phase.ScopeDeclare => 4,
+        Phase.Destructure => 5,
+        Phase.Branch => 6,
+        Phase.BranchPost => 7,
+        Phase.Switch => 8,
+        Phase.Restore => 9,
+        Phase.RestoreFacts => 10,
+        Phase.Assume => 11,
+        Phase.IterationCondition => 12,
+        Phase.IterationBody => 13,
+        Phase.Transform => 14,
+        _ => 15
+    }
+
+    state.push(in.writer, kind, in.frame.a, in.frame.b, in.frame.c)
+}

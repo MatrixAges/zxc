@@ -1,0 +1,51 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import clear from "./clear"
+import { Phase } from "./model"
+import schedule from "./schedule"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const expressions = program.body.expressions
+    const payload = integers.widen(expressions.payloads[in.frame.a])
+    const first = integers.widen(expressions.task_capture_first[payload])
+    const count = integers.widen(expressions.task_capture_count[payload])
+
+    const captures = loop({ program: program, first: first, count: count, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            const symbol = integers.widen(current.program.body.expressions.task_captures[current.first + current.index])
+
+            current.valid = state.active(current.program.writer, symbol)
+            current.index += 1
+        }
+    })
+
+    if (!captures.valid) {
+        return false
+    }
+
+    const writer = program.writer
+
+    schedule({ writer: writer, frame: { phase: Phase.Restore, a: state.activeMark(writer), b: state.factMark(writer), c: state.captureMark(writer) } })
+    clear(program)
+
+    loop({ program: program, first: first, count: count, index: 0 }, {
+        while: current => current.index < current.count,
+        next: current => {
+            state.setActive(current.program.writer, integers.widen(current.program.body.expressions.task_captures[current.first + current.index]), true)
+            current.index += 1
+        }
+    })
+
+    schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.task_bodies[payload]), b: in.frame.b + 1, c: in.frame.c == 1 || in.frame.c == 3 ? 3 : 2 } })
+
+    return true
+}

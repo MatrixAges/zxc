@@ -1,0 +1,47 @@
+export type Writer = opaque
+
+export declare function push(writer: Writer, kind: u64, a: u64, b: u64, c: u64): void throws { OutOfMemory }
+
+export declare function pop(writer: Writer): void
+
+export declare function eventCount(writer: Writer): u64
+
+export declare function eventKind(writer: Writer): u64
+
+export declare function eventA(writer: Writer): u64
+
+export declare function eventB(writer: Writer): u64
+
+export declare function eventC(writer: Writer): u64
+
+export declare function active(writer: Writer, index: u64): bool
+
+export declare function setActive(writer: Writer, index: u64, value: bool): void throws { OutOfMemory }
+
+export declare function activeMark(writer: Writer): u64
+
+export declare function restoreActive(writer: Writer, mark: u64): void
+
+export declare function declared(writer: Writer, index: u64): bool
+
+export declare function setDeclared(writer: Writer, index: u64): void
+
+export declare function owner(writer: Writer, index: u64): u64
+
+export declare function setOwner(writer: Writer, index: u64, owner: u64): void
+
+export declare function factMark(writer: Writer): u64
+
+export declare function captureMark(writer: Writer): u64
+
+export declare function restoreFacts(writer: Writer, facts: u64, captures: u64): void
+
+export declare function contains(writer: Writer, symbol: u64): bool
+
+export declare function appendFact(writer: Writer, symbol: u64): void throws { OutOfMemory }
+
+export declare function appendCapture(writer: Writer, err: u64, result: u64): void throws { OutOfMemory }
+
+export declare function captureError(writer: Writer, index: u64): u64
+
+export declare function captureResult(writer: Writer, index: u64): u64

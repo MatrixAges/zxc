@@ -1,0 +1,61 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../expressions/kinds"
+import { Phase } from "./model"
+import schedule from "./schedule"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const control = program.body.control
+    const count = integers.widen(control.parallel_count[in.frame.a])
+    const first = integers.widen(control.parallel_first[in.frame.a])
+
+    if (count == 0) {
+        return false
+    }
+
+    loop({ program: program, first: first, index: count }, {
+        while: current => current.index != 0,
+        next: current => {
+            current.index -= 1
+
+            const position = current.first + current.index
+            const symbol = current.program.body.control.parallel_symbols[position]
+
+            if (symbol != null) {
+                schedule({ writer: current.program.writer, frame: { phase: Phase.Declare, a: integers.widen(symbol), b: integers.widen(current.program.body.control.parallel_values[position]), c: 0 } })
+            }
+        }
+    })
+
+    const result = loop({ context: in.context, first: first, index: count, valid: true }, {
+        while: current => current.valid && current.index != 0,
+        next: current => {
+            current.index -= 1
+
+            const program = current.context.program
+            const id = integers.widen(program.body.control.parallel_values[current.first + current.index])
+            const expressions = program.body.expressions
+
+            if (expressions.kinds[id] != ExpressionKind.Call) {
+                current.valid = false
+            } else {
+                const function_index = integers.widen(expressions.call_functions[integers.widen(expressions.payloads[id])])
+
+                if (!current.context.prepared.pure[function_index]) {
+                    current.valid = false
+                } else {
+                    schedule({ writer: program.writer, frame: { phase: Phase.Expression, a: id, b: 0, c: 0 } })
+                }
+            }
+        }
+    })
+
+    return result.valid
+}

@@ -1,0 +1,46 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import { Phase } from "./model"
+import returns from "./returns"
+import schedule from "./schedule"
+import statement from "./statement"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const frame = in.frame
+    const program = in.context.program
+    const control = program.body.control
+
+    if (frame.phase == Phase.Block) {
+        if (frame.b > 256) {
+            return false
+        }
+
+        schedule({ writer: program.writer, frame: { phase: Phase.Restore, a: state.activeMark(program.writer), b: state.factMark(program.writer), c: state.captureMark(program.writer) } })
+        schedule({ writer: program.writer, frame: { phase: Phase.BlockNext, a: frame.a, b: 0, c: frame.b } })
+
+        return true
+    }
+
+    const count = integers.widen(control.block_count[frame.a])
+
+    if (frame.b == count) {
+        return true
+    }
+
+    const first = integers.widen(control.block_first[frame.a])
+
+    if (frame.b != 0 && returns({ context: in.context, statement: first + frame.b - 1 })) {
+        return false
+    }
+
+    schedule({ writer: program.writer, frame: { phase: Phase.BlockNext, a: frame.a, b: frame.b + 1, c: frame.c } })
+
+    return statement({ context: in.context, frame: { phase: Phase.BlockNext, a: first + frame.b, b: frame.c, c: 0 } })
+}

@@ -1,0 +1,35 @@
+import state from "zig:flow_state"
+
+import { Phase } from "./model"
+
+import type { Writer } from "zig:flow_state"
+import type { Frame } from "./model"
+
+export type Input = Writer
+
+export type Output = Frame
+
+export default function (in: Input): Output {
+    state.pop(in)
+
+    const phase = match state.eventKind(in) {
+        0 => Phase.Block,
+        1 => Phase.BlockNext,
+        2 => Phase.Expression,
+        3 => Phase.Declare,
+        4 => Phase.ScopeDeclare,
+        5 => Phase.Destructure,
+        6 => Phase.Branch,
+        7 => Phase.BranchPost,
+        8 => Phase.Switch,
+        9 => Phase.Restore,
+        10 => Phase.RestoreFacts,
+        11 => Phase.Assume,
+        12 => Phase.IterationCondition,
+        13 => Phase.IterationBody,
+        14 => Phase.Transform,
+        _ => Phase.Invalid
+    }
+
+    return { phase: phase, a: state.eventA(in), b: state.eventB(in), c: state.eventC(in) }
+}

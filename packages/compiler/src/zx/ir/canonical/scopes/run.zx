@@ -1,0 +1,53 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import dispatch from "./dispatch"
+import { Phase } from "./model"
+import schedule from "./schedule"
+import take from "./take"
+
+import type { Context } from "./model"
+
+export type Input = Context
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.program
+
+    if (program.body.symbols.names.length == 0) {
+        return false
+    }
+
+    state.setDeclared(program.writer, 0)
+    state.setActive(program.writer, 0, true)
+
+    const root = program.body.root
+
+    if (root != null) {
+        schedule({ writer: program.writer, frame: { phase: Phase.Block, a: integers.widen(root), b: 0, c: 0 } })
+    }
+
+    const result = loop({ context: in, valid: true }, {
+        while: current => current.valid && state.eventCount(current.context.program.writer) != 0,
+        next: current => {
+            const frame = take(current.context.program.writer)
+
+            current.valid = dispatch({ context: current.context, frame: frame })
+        }
+    })
+
+    if (!result.valid) {
+        return false
+    }
+
+    const declared = loop({ writer: program.writer, index: 0, count: program.body.symbols.names.length, valid: true }, {
+        while: current => current.valid && current.index < current.count,
+        next: current => {
+            current.valid = state.declared(current.writer, current.index)
+            current.index += 1
+        }
+    })
+
+    return declared.valid && (program.output_type == 0 || (root != null && in.prepared.returns[integers.widen(root)]))
+}

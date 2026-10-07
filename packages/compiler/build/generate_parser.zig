@@ -30,6 +30,11 @@ pub fn main(init: std.process.Init) !void {
     for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
 
     const interfaces = [_]compiler.project.NativeInterface{ .{
+        .specifier = "zig:flow_state",
+        .path = "zx/analysis/semantic/native/flow_state.d.zx",
+        .source = @embedFile("flow_state_interface"),
+        .module = "flow_state",
+    }, .{
         .specifier = "zig:floats",
         .path = "zx/analysis/semantic/native/floats.d.zx",
         .source = @embedFile("semantic_floats"),
@@ -212,6 +217,26 @@ pub fn main(init: std.process.Init) !void {
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[48 + entries.len], .data = ir_contract_tables.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[49 + entries.len], .data = ir_contract_tables.types });
+
+    const ir_scopes = try generate(allocator, inputs, sources.items, "zx/ir/canonical/scopes_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[50 + entries.len], .data = ir_scopes.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[51 + entries.len], .data = ir_scopes.types });
+
+    const refinement_assume = try generate(allocator, inputs, sources.items, "zx/ir/canonical/refinement_assume.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[52 + entries.len], .data = refinement_assume.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[53 + entries.len], .data = refinement_assume.types });
+
+    const refinement_bind = try generate(allocator, inputs, sources.items, "zx/ir/canonical/refinement_bind.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[54 + entries.len], .data = refinement_bind.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[55 + entries.len], .data = refinement_bind.types });
+
+    const refinement_type = try generate(allocator, inputs, sources.items, "zx/ir/canonical/refinement_type_of.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[56 + entries.len], .data = refinement_type.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[57 + entries.len], .data = refinement_type.types });
 
     const naming = try generate(allocator, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 

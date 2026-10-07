@@ -1,0 +1,40 @@
+import integers from "zig:integers"
+
+import { Phase } from "./model"
+import schedule from "./schedule"
+import valid from "./switch_valid"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const control = program.body.control
+
+    if (!valid({ program: program, payload: in.frame.a })) {
+        return false
+    }
+
+    loop({ program: program, first: integers.widen(control.selection_first[in.frame.a]), index: integers.widen(control.selection_count[in.frame.a]), depth: in.frame.b + 1 }, {
+        while: current => current.index != 0,
+        next: current => {
+            current.index -= 1
+
+            const position = current.first + current.index
+            const control = current.program.body.control
+
+            schedule({ writer: current.program.writer, frame: { phase: Phase.Block, a: integers.widen(control.case_bodies[position]), b: current.depth, c: 0 } })
+
+            const value = control.case_values[position]
+
+            if (value != null) {
+                schedule({ writer: current.program.writer, frame: { phase: Phase.Expression, a: integers.widen(value), b: 0, c: 0 } })
+            }
+        }
+    })
+
+    return true
+}

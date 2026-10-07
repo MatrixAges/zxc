@@ -1,0 +1,62 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import clear from "./clear"
+import declare from "./declare"
+import { Declaration, Phase } from "./model"
+import schedule from "./schedule"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const writer = program.writer
+    const expressions = program.body.expressions
+    const payload = integers.widen(expressions.payloads[in.frame.a])
+
+    if (in.frame.phase != Phase.IterationBody) {
+        schedule({ writer: writer, frame: { phase: Phase.Restore, a: state.activeMark(writer), b: state.factMark(writer), c: state.captureMark(writer) } })
+    }
+
+    clear(program)
+
+    if (in.frame.phase == Phase.Transform) {
+        const parameters = loop({ program: program, owner: in.frame.a, first: integers.widen(expressions.transform_first[payload]), count: integers.widen(expressions.transform_count[payload]), index: 0, valid: true }, {
+            while: current => current.valid && current.index < current.count,
+            next: current => {
+                const symbol = integers.widen(current.program.body.expressions.transform_parameters[current.first + current.index])
+
+                current.valid = declare({ program: current.program, symbol: symbol, type_id: 0, owner: current.owner, mode: Declaration.Callback })
+                current.index += 1
+            }
+        })
+
+        if (!parameters.valid) {
+            return false
+        }
+
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.transform_bodies[payload]), b: in.frame.b + 1, c: in.frame.c >= 2 ? 3 : 1 } })
+
+        return true
+    }
+
+    const condition = in.frame.phase == Phase.IterationCondition
+    const parameter = condition ? expressions.iteration_condition_parameters[payload] : expressions.iteration_parameters[payload]
+    const value = condition ? expressions.iteration_conditions[payload] : expressions.iteration_bodies[payload]
+
+    if (!declare({ program: program, symbol: integers.widen(parameter), type_id: 0, owner: in.frame.a, mode: Declaration.Callback })) {
+        return false
+    }
+
+    if (condition) {
+        schedule({ writer: writer, frame: { phase: Phase.IterationBody, a: in.frame.a, b: in.frame.b, c: in.frame.c } })
+    }
+
+    schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(value), b: in.frame.b + 1, c: in.frame.c >= 2 ? 3 : 1 } })
+
+    return true
+}

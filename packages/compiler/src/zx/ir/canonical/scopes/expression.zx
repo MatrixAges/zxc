@@ -1,0 +1,98 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../expressions/kinds"
+import children from "./children"
+import choice from "./choice"
+import selection from "./match"
+import { Phase } from "./model"
+import schedule from "./schedule"
+import scope from "./scope"
+import taskBody from "./task_body"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const expressions = program.body.expressions
+    const frame = in.frame
+
+    if (frame.a >= expressions.kinds.length || frame.b > 256) {
+        return false
+    }
+
+    const kind = expressions.kinds[frame.a]
+    const payload = integers.widen(expressions.payloads[frame.a])
+
+    if (kind == ExpressionKind.StoreGet) {
+        return frame.c == 0
+    }
+
+    if (kind == ExpressionKind.Reference) {
+        return state.active(program.writer, integers.widen(expressions.references[payload]))
+    }
+
+    if (kind == ExpressionKind.OptionalValue) {
+        const child = integers.widen(expressions.optional_values[payload])
+
+        if (expressions.kinds[child] != ExpressionKind.Reference || !state.contains(program.writer, integers.widen(expressions.references[integers.widen(expressions.payloads[child])]))) {
+            return false
+        }
+    } else if (kind == ExpressionKind.Call) {
+        if ((frame.c == 1 || frame.c == 3) && expressions.call_store_count[payload] != 0) {
+            return false
+        }
+
+        if (frame.c >= 2 && !in.context.prepared.concurrent[integers.widen(expressions.call_functions[payload])]) {
+            return false
+        }
+    } else if (kind == ExpressionKind.Iteration) {
+        schedule({ writer: program.writer, frame: { phase: Phase.IterationCondition, a: frame.a, b: frame.b, c: frame.c } })
+        schedule({ writer: program.writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.iteration_initials[payload]), b: frame.b + 1, c: frame.c } })
+
+        return true
+    } else if (kind == ExpressionKind.Transform) {
+        schedule({ writer: program.writer, frame: { phase: Phase.Transform, a: frame.a, b: frame.b, c: frame.c } })
+
+        const initial = expressions.transform_initials[payload]
+
+        if (initial != null) {
+            schedule({ writer: program.writer, frame: { phase: Phase.Expression, a: integers.widen(initial), b: frame.b + 1, c: frame.c } })
+        }
+
+        schedule({ writer: program.writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.transform_targets[payload]), b: frame.b + 1, c: frame.c } })
+
+        return true
+    }
+
+    return match kind {
+        ExpressionKind.Scope => scope(in),
+        ExpressionKind.Task => taskBody(in),
+        ExpressionKind.Binary => choice(in),
+        ExpressionKind.Conditional => choice(in),
+        ExpressionKind.Match => selection(in),
+        ExpressionKind.ListUpdate => children(in),
+        ExpressionKind.Field => children(in),
+        ExpressionKind.TupleField => children(in),
+        ExpressionKind.Index => children(in),
+        ExpressionKind.Length => children(in),
+        ExpressionKind.Some => children(in),
+        ExpressionKind.Capture => children(in),
+        ExpressionKind.AwaitTask => children(in),
+        ExpressionKind.CancelTask => children(in),
+        ExpressionKind.Parallel => children(in),
+        ExpressionKind.OptionalValue => children(in),
+        ExpressionKind.Unary => children(in),
+        ExpressionKind.List => children(in),
+        ExpressionKind.Tuple => children(in),
+        ExpressionKind.Template => children(in),
+        ExpressionKind.Object => children(in),
+        ExpressionKind.Call => children(in),
+        ExpressionKind.ListOperation => children(in),
+        _ => true
+    }
+}

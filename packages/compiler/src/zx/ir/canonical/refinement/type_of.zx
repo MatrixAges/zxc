@@ -1,0 +1,18 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import kind from "../../../analysis/semantic/types/kind"
+import { Kind } from "../../../analysis/semantic/types/model"
+
+import type { Writer } from "zig:flow_state"
+import type { Table } from "../../../analysis/semantic/types/model"
+
+export type Input = { writer: Writer, table: Table, type_id: u32, symbol: u64 }
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.type_id)
+
+    return kind(in.table.kinds[index]) == Kind.Optional && state.contains(in.writer, in.symbol) ? in.table.first[index] : in.type_id
+}

@@ -1,0 +1,44 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import { BinaryOperator, ExpressionKind, UnaryOperator } from "../expressions/kinds"
+import compare from "./compare"
+
+import type { Writer } from "zig:flow_state"
+import type { Expressions } from "../expressions/model"
+
+export type Input = { writer: Writer, expressions: Expressions, condition: u64, truth: bool }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const mark = state.eventCount(in.writer)
+
+    state.push(in.writer, 0, in.condition, in.truth ? 1 : 0, 0)
+
+    loop({ writer: in.writer, expressions: in.expressions, mark: mark }, {
+        while: current => state.eventCount(current.writer) > current.mark,
+        next: current => {
+            state.pop(current.writer)
+
+            const condition = state.eventA(current.writer)
+            const truth = state.eventB(current.writer) != 0
+            const expressions = current.expressions
+            const kind = expressions.kinds[condition]
+            const payload = integers.widen(expressions.payloads[condition])
+
+            if (kind == ExpressionKind.Unary && expressions.unary_operators[payload] == UnaryOperator.Not) {
+                state.push(current.writer, 0, integers.widen(expressions.unary_operands[payload]), truth ? 0 : 1, 0)
+            } else if (kind == ExpressionKind.Binary) {
+                const operator = expressions.binary_operators[payload]
+
+                if ((operator == BinaryOperator.LogicalAnd && truth) || (operator == BinaryOperator.LogicalOr && !truth)) {
+                    state.push(current.writer, 0, integers.widen(expressions.binary_right[payload]), truth ? 1 : 0, 0)
+                    state.push(current.writer, 0, integers.widen(expressions.binary_left[payload]), truth ? 1 : 0, 0)
+                } else {
+                    compare({ writer: current.writer, expressions: expressions, payload: payload, truth: truth })
+                }
+            }
+        }
+    })
+}

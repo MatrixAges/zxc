@@ -1,0 +1,18 @@
+import type { Writer } from "zig:flow_state"
+import type { Table } from "../../../analysis/semantic/types/model"
+import type { Body } from "../body_model"
+import type { Functions } from "../functions/model"
+
+export enum Phase { Block, BlockNext, Expression, Declare, ScopeDeclare, Destructure, Branch, BranchPost, Switch, Restore, RestoreFacts, Assume, IterationCondition, IterationBody, Transform, Invalid }
+
+export type Frame = { phase: Phase, a: u64, b: u64, c: u64 }
+
+export type Program = { table: Table, body: Body, functions: Functions, output_type: u32, transaction: bool, writer: Writer }
+
+export type Prepared = { returns: bool[], pure: bool[], concurrent: bool[] }
+
+export type Context = { program: Program, prepared: Prepared }
+
+export type Step = { context: Context, frame: Frame }
+
+export enum Declaration { Ordinary, Scope, Callback }

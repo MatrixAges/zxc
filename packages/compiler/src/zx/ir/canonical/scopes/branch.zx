@@ -1,0 +1,44 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import { Phase } from "./model"
+import schedule from "./schedule"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const writer = in.context.program.writer
+    const control = in.context.program.body.control
+    const payload = in.frame.a
+    const condition = integers.widen(control.branch_conditions[payload])
+
+    if (in.frame.phase == Phase.BranchPost) {
+        state.restoreFacts(writer, in.frame.b, in.frame.c)
+
+        if (in.context.prepared.returns[integers.widen(control.branch_no[payload])]) {
+            schedule({ writer: writer, frame: { phase: Phase.Assume, a: condition, b: 1, c: 0 } })
+        }
+
+        if (in.context.prepared.returns[integers.widen(control.branch_yes[payload])]) {
+            schedule({ writer: writer, frame: { phase: Phase.Assume, a: condition, b: 0, c: 0 } })
+        }
+
+        return true
+    }
+
+    const facts = state.factMark(writer)
+    const captures = state.captureMark(writer)
+
+    schedule({ writer: writer, frame: { phase: Phase.BranchPost, a: payload, b: facts, c: captures } })
+    schedule({ writer: writer, frame: { phase: Phase.Block, a: integers.widen(control.branch_no[payload]), b: in.frame.b + 1, c: 0 } })
+    schedule({ writer: writer, frame: { phase: Phase.Assume, a: condition, b: 0, c: 0 } })
+    schedule({ writer: writer, frame: { phase: Phase.RestoreFacts, a: facts, b: captures, c: 0 } })
+    schedule({ writer: writer, frame: { phase: Phase.Block, a: integers.widen(control.branch_yes[payload]), b: in.frame.b + 1, c: 0 } })
+    schedule({ writer: writer, frame: { phase: Phase.Assume, a: condition, b: 1, c: 0 } })
+
+    return true
+}

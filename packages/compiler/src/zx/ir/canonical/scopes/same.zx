@@ -1,0 +1,32 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../expressions/kinds"
+
+import type { Expressions } from "../expressions/model"
+
+export type Input = { expressions: Expressions, left: u64, right: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const left = expressions.kinds[in.left]
+    const right = expressions.kinds[in.right]
+    const a = integers.widen(expressions.payloads[in.left])
+    const b = integers.widen(expressions.payloads[in.right])
+
+    if (left != right) {
+        return (left == ExpressionKind.Integer && expressions.integers[a] == 0 && right == ExpressionKind.NegativeInteger && expressions.negative_integers[b] == 0) ||
+            (right == ExpressionKind.Integer && expressions.integers[b] == 0 && left == ExpressionKind.NegativeInteger && expressions.negative_integers[a] == 0)
+    }
+
+    return match left {
+        ExpressionKind.Integer => expressions.integers[a] == expressions.integers[b],
+        ExpressionKind.NegativeInteger => expressions.negative_integers[a] == expressions.negative_integers[b],
+        ExpressionKind.Boolean => expressions.booleans[a] == expressions.booleans[b],
+        ExpressionKind.String => expressions.strings[a] == expressions.strings[b],
+        ExpressionKind.EnumValue => expressions.enumerations[a] == expressions.enumerations[b],
+        ExpressionKind.ErrorValue => expressions.errors[a] == expressions.errors[b],
+        _ => false
+    }
+}

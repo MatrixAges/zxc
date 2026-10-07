@@ -1,0 +1,20 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../expressions/kinds"
+
+import type { Writer } from "zig:flow_state"
+import type { Expressions } from "../expressions/model"
+
+export type Input = { writer: Writer, expressions: Expressions, value: u64, count: u64, err: u32?, result: u32? }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    const err = in.err
+    const result = in.result
+
+    if (in.expressions.kinds[in.value] == ExpressionKind.Capture && in.count == 2 && err != null && result != null) {
+        state.appendCapture(in.writer, integers.widen(err), integers.widen(result))
+    }
+}

@@ -1,0 +1,44 @@
+import state from "zig:flow_state"
+import integers from "zig:integers"
+
+import refine from "../refinement/scope"
+import { Phase } from "./model"
+import schedule from "./schedule"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const expressions = program.body.expressions
+    const payload = integers.widen(expressions.payloads[in.frame.a])
+    const first = integers.widen(expressions.scope_first[payload])
+    const count = integers.widen(expressions.scope_count[payload])
+    const writer = program.writer
+
+    schedule({ writer: writer, frame: { phase: Phase.Restore, a: state.activeMark(writer), b: state.factMark(writer), c: state.captureMark(writer) } })
+    refine({ writer: writer, expressions: expressions, first: first, count: count })
+    schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.scope_results[payload]), b: in.frame.b + 1, c: in.frame.c } })
+
+    loop({ program: program, owner: in.frame.a, first: first, index: count, depth: in.frame.b + 1, flags: in.frame.c }, {
+        while: current => current.index != 0,
+        next: current => {
+            current.index -= 1
+
+            const position = current.first + current.index
+            const expressions = current.program.body.expressions
+            const symbol = expressions.scope_symbols[position]
+
+            if (symbol != null) {
+                schedule({ writer: current.program.writer, frame: { phase: Phase.ScopeDeclare, a: integers.widen(symbol), b: current.owner, c: 0 } })
+            }
+
+            schedule({ writer: current.program.writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.scope_values[position]), b: current.depth, c: current.flags } })
+        }
+    })
+
+    return true
+}

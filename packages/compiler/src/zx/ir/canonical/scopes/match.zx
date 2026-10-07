@@ -1,0 +1,40 @@
+import integers from "zig:integers"
+
+import { Phase } from "./model"
+import schedule from "./schedule"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const expressions = program.body.expressions
+    const payload = integers.widen(expressions.payloads[in.frame.a])
+    const depth = in.frame.b + 1
+
+    schedule({ writer: program.writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.match_fallbacks[payload]), b: depth, c: in.frame.c } })
+
+    loop({ program: program, first: integers.widen(expressions.match_first[payload]), index: integers.widen(expressions.match_count[payload]), depth: depth, flags: in.frame.c }, {
+        while: current => current.index != 0,
+        next: current => {
+            current.index -= 1
+
+            const position = current.first + current.index
+            const expressions = current.program.body.expressions
+
+            schedule({ writer: current.program.writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.match_results[position]), b: current.depth, c: current.flags } })
+            schedule({ writer: current.program.writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.match_conditions[position]), b: current.depth, c: current.flags } })
+        }
+    })
+
+    const subject = expressions.match_subjects[payload]
+
+    if (subject != null) {
+        schedule({ writer: program.writer, frame: { phase: Phase.Expression, a: integers.widen(subject), b: depth, c: in.frame.c } })
+    }
+
+    return true
+}

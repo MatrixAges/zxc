@@ -1,0 +1,23 @@
+import integers from "zig:integers"
+
+import { Phase } from "./model"
+import schedule from "./schedule"
+
+import type { Writer } from "zig:flow_state"
+
+export type Input = { writer: Writer, values: u32[], first: u64, count: u64, depth: u64, flags: u64 }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    loop({ input: in, index: in.count }, {
+        while: current => current.index != 0,
+        next: current => {
+            current.index -= 1
+
+            const input = current.input
+
+            schedule({ writer: input.writer, frame: { phase: Phase.Expression, a: integers.widen(input.values[input.first + current.index]), b: input.depth, c: input.flags } })
+        }
+    })
+}

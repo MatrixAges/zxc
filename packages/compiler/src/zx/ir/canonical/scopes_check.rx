@@ -1,0 +1,6 @@
+<Module>
+    <Call fn="./scopes/prepare" in={$in} />
+    <Call fn="./scopes/run" in={{ program: $in, prepared: $ctx.prepare }} />
+
+    <Return value={$ctx.run} />
+</Module>

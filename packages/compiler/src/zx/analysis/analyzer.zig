@@ -24,7 +24,7 @@ expression_units: std.ArrayList([]const u8) = .empty,
 allow_store: bool = false,
 lambda_depth: usize = 0,
 scope_floor: usize = 0,
-refinement: zx.Refinement = .{},
+refinement: @import("semantic/flow/refinement.zig") = .{},
 pub const FunctionImport = @import("../modules/function_import.zig");
 
 pub fn run(self: *Self, program: zx.ast.Program, file_name: []const u8) zx.Error!ir.Program {

@@ -1,0 +1,58 @@
+import state from "zig:flow_state"
+
+import assume from "../refinement/assume"
+import block from "./block"
+import branch from "./branch"
+import callback from "./callback"
+import declare from "./declare"
+import destructure from "./destructure"
+import expression from "./expression"
+import { Declaration, Phase } from "./model"
+import selection from "./selection"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const frame = in.frame
+    const program = in.context.program
+    const writer = program.writer
+
+    if (frame.phase == Phase.Restore) {
+        state.restoreActive(writer, frame.a)
+        state.restoreFacts(writer, frame.b, frame.c)
+
+        return true
+    }
+
+    if (frame.phase == Phase.RestoreFacts) {
+        state.restoreFacts(writer, frame.a, frame.b)
+
+        return true
+    }
+
+    if (frame.phase == Phase.Assume) {
+        assume({ writer: writer, expressions: program.body.expressions, condition: frame.a, truth: frame.b != 0 })
+
+        return true
+    }
+
+    return match frame.phase {
+        Phase.Block => block(in),
+        Phase.BlockNext => block(in),
+        Phase.Expression => expression(in),
+        Phase.Declare => declare({ program: program, symbol: frame.a, type_id: program.body.expressions.types[frame.b], owner: 0, mode: Declaration.Ordinary }),
+        Phase.ScopeDeclare => declare({ program: program, symbol: frame.a, type_id: 0, owner: frame.b, mode: Declaration.Scope }),
+        Phase.Destructure => destructure(in),
+        Phase.Branch => branch(in),
+        Phase.BranchPost => branch(in),
+        Phase.Switch => selection(in),
+        Phase.IterationCondition => callback(in),
+        Phase.IterationBody => callback(in),
+        Phase.Transform => callback(in),
+        _ => false
+    }
+}

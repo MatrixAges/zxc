@@ -1,0 +1,17 @@
+import state from "zig:flow_state"
+
+import type { Program } from "./model"
+
+export type Input = Program
+
+export type Output = void
+
+export default function (in: Input): Output {
+    loop({ writer: in.writer, count: in.body.symbols.names.length, index: 0 }, {
+        while: current => current.index < current.count,
+        next: current => {
+            state.setActive(current.writer, current.index, false)
+            current.index += 1
+        }
+    })
+}

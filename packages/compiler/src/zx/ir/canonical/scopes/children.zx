@@ -1,0 +1,70 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../expressions/kinds"
+import { Phase } from "./model"
+import schedule from "./schedule"
+import sequence from "./sequence"
+
+import type { Step } from "./model"
+
+export type Input = Step
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const program = in.context.program
+    const expressions = program.body.expressions
+    const kind = expressions.kinds[in.frame.a]
+    const payload = integers.widen(expressions.payloads[in.frame.a])
+    const depth = in.frame.b + 1
+    const flags = in.frame.c
+    const writer = program.writer
+
+    if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
+        sequence({ writer: writer, values: expressions.sequence_items, first: integers.widen(expressions.sequence_first[payload]), count: integers.widen(expressions.sequence_count[payload]), depth: depth, flags: flags })
+
+        return true
+    }
+
+    if (kind == ExpressionKind.Parallel) {
+        sequence({ writer: writer, values: expressions.parallel_tasks, first: integers.widen(expressions.parallel_first[payload]), count: integers.widen(expressions.parallel_count[payload]), depth: depth, flags: flags })
+
+        return true
+    }
+
+    if (kind == ExpressionKind.Object) {
+        sequence({ writer: writer, values: expressions.object_field_values, first: integers.widen(expressions.object_first[payload]), count: integers.widen(expressions.object_count[payload]), depth: depth, flags: flags })
+        sequence({ writer: writer, values: expressions.object_evaluation_values, first: integers.widen(expressions.object_evaluation_first[payload]), count: integers.widen(expressions.object_evaluation_count[payload]), depth: depth, flags: flags })
+
+        return true
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        sequence({ writer: writer, values: expressions.collection_arguments, first: integers.widen(expressions.collection_first[payload]), count: integers.widen(expressions.collection_count[payload]), depth: depth, flags: flags })
+    } else if (kind == ExpressionKind.ListUpdate) {
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.update_values[payload]), b: depth, c: flags } })
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.update_indices[payload]), b: depth, c: flags } })
+    } else if (kind == ExpressionKind.Index) {
+        schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(expressions.index_values[payload]), b: depth, c: flags } })
+    }
+
+    const child = match kind {
+        ExpressionKind.Field => expressions.projection_targets[payload],
+        ExpressionKind.TupleField => expressions.projection_targets[payload],
+        ExpressionKind.Index => expressions.index_targets[payload],
+        ExpressionKind.Length => expressions.lengths[payload],
+        ExpressionKind.Some => expressions.some[payload],
+        ExpressionKind.Capture => expressions.captures[payload],
+        ExpressionKind.AwaitTask => expressions.awaits[payload],
+        ExpressionKind.CancelTask => expressions.cancellations[payload],
+        ExpressionKind.OptionalValue => expressions.optional_values[payload],
+        ExpressionKind.Unary => expressions.unary_operands[payload],
+        ExpressionKind.ListOperation => expressions.collection_targets[payload],
+        ExpressionKind.ListUpdate => expressions.update_targets[payload],
+        _ => expressions.call_arguments[payload]
+    }
+
+    schedule({ writer: writer, frame: { phase: Phase.Expression, a: integers.widen(child), b: depth, c: flags } })
+
+    return true
+}
