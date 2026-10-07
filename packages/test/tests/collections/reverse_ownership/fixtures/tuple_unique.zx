@@ -1,0 +1,9 @@
+export type Input = i64[]
+
+export type Output = { original: i64[], reversed: i64[] }
+
+export default function (in: Input): Output {
+    const holder: [i64[], bool] = [in.map(item => item + 1), true]
+
+    return { original: in, reversed: holder[0].reverse()[0] }
+}

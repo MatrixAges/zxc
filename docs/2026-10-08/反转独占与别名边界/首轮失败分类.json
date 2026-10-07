@@ -1,0 +1,12 @@
+{
+    "modes": {
+        "Debug": 1,
+        "ReleaseSafe": 1
+    },
+    "summary": "84/97 steps; 90/102 tests; 12 crashes per mode",
+    "cause": "test expected a business Overflow error for i64 addition; current IR contract and original safety cases require runtime safety panic",
+    "production_defect": false,
+    "correction": "use maxInt-1 in mapping fixtures so +1 reaches the exact representable maxInt; retain maxInt for unmapped fixtures",
+    "resource_budget_changed": false,
+    "source_mutation_after_both_terminal": true
+}

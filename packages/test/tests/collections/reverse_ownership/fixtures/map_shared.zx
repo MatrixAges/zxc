@@ -1,0 +1,10 @@
+export type Input = i64[]
+
+export type Output = { original: i64[], reversed: i64[] }
+
+export default function (in: Input): Output {
+    const values = in.map(item => item + 1)
+    const reversed = values.reverse()[0]
+
+    return { original: values, reversed: reversed }
+}

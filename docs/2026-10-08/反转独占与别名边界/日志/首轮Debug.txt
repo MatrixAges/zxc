@@ -1,0 +1,566 @@
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib --name configurer -fsingle-threaded --dep @build --dep @dependencies -Mroot=/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/configurer.zig --dep compiler=../compiler --dep core=../core --dep lint=../lint --dep pkgs=../pkgs --dep dsl=../dsl --dep genz=../genz --dep napi=../napi -M../cli=../cli/build.zig --dep dsl=../dsl --dep core=../core --dep genz=../genz --dep lint=../lint -M../compiler=../compiler/build.zig -M../core=../core/build.zig -M../dsl=../dsl/build.zig --dep core=../core -M../genz=../genz/build.zig --dep dsl=../dsl --dep core=../core -M../lint=../lint/build.zig --dep core=../core -M../napi=../napi/build.zig -M../pkgs=../pkgs/build.zig --dep ../cli --dep ../compiler --dep ../core --dep ../dsl --dep ../genz --dep ../lint --dep ../napi --dep ../pkgs -M@dependencies=/tmp/zxc-map-observations-debug-cache/o/664cc024bcb41b8d2365c77c6ca93203/dependencies.zig --dep cli=../cli --dep compiler=../compiler --dep pkgs=../pkgs -M@build=build.zig --listen=-
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/eb5e23759dd7b039e0f20fa1e23eeceb/standard-catalog /tmp/zxc-map-observations-debug-cache/o/38164407d913b30e25d086ef8d5a9b1e/catalog.json /tmp/zxc-map-observations-debug-cache/o/5104b0d3c110b32a56cc038c86ce4bb4/catalog.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Odebug --dep compiler --dep rx --dep rx_analysis --dep merge_writer_interface --dep extract_workspace_interface --dep merge_workspace_interface --dep references_interface --dep origin_writer_interface --dep named_columns_interface --dep flow_state_interface --dep semantic_floats --dep semantic_integers -Mroot=../compiler/build/generate_parser.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug --dep dsl --dep frontend --dep rx_options -Mrx=../compiler/src/rx/root.zig -Odebug --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Mmerge_writer_interface=../compiler/src/zx/analysis/semantic/native/merge_writer.d.zx -Mextract_workspace_interface=../compiler/src/zx/analysis/semantic/native/extract_workspace.d.zx -Mmerge_workspace_interface=../compiler/src/zx/analysis/semantic/native/merge_workspace.d.zx -Mreferences_interface=../compiler/src/zx/analysis/semantic/native/references.d.zx -Morigin_writer_interface=../compiler/src/zx/analysis/semantic/native/origin_writer.d.zx -Mnamed_columns_interface=../compiler/src/zx/analysis/semantic/ordering/columns.d.zx -Mflow_state_interface=../compiler/src/zx/analysis/semantic/native/flow_state.d.zx -Msemantic_floats=../compiler/src/zx/analysis/semantic/native/floats.d.zx -Msemantic_integers=../compiler/src/zx/analysis/semantic/native/integers.d.zx -Odebug --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep ownership_seed -Mfrontend=../compiler/src/zx/frontend.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug -Mzx=../core/src/root.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Odebug --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Mrx_options=/tmp/zxc-map-observations-debug-cache/o/77c1f5e6d2a04327be93efeeeb45b750/options.zig -Odebug --dep zx -Mlexer=../compiler/bootstrap/lexer/lex.zig -Mstandard_interfaces=/tmp/zxc-map-observations-debug-cache/o/eaa6bd36fff88a6bfdc5e2f1c619f5ed/catalog.zig -Mparser_options=/tmp/zxc-map-observations-debug-cache/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig -Odebug --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Odebug --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Odebug --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Odebug --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Odebug --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Odebug -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Odebug --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Odebug --dep zx -Mownership_seed=../compiler/bootstrap/ownership/check.zig -Odebug -Mnaming=../lint/bootstrap/naming.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name generate-parser --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Odebug --dep compiler --dep rx --dep rx_analysis -Mroot=../compiler/build/generate_lexer.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug --dep dsl --dep frontend --dep rx_options -Mrx=../compiler/src/rx/root.zig -Odebug --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Odebug --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep ownership_seed -Mfrontend=../compiler/src/zx/frontend.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug -Mzx=../core/src/root.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Odebug --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Mrx_options=/tmp/zxc-map-observations-debug-cache/o/77c1f5e6d2a04327be93efeeeb45b750/options.zig -Odebug --dep zx -Mlexer=../compiler/bootstrap/lexer/lex.zig -Mstandard_interfaces=/tmp/zxc-map-observations-debug-cache/o/eaa6bd36fff88a6bfdc5e2f1c619f5ed/catalog.zig -Mparser_options=/tmp/zxc-map-observations-debug-cache/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig -Odebug --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Odebug --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Odebug --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Odebug --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Odebug --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Odebug -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Odebug --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Odebug --dep zx -Mownership_seed=../compiler/bootstrap/ownership/check.zig -Odebug -Mnaming=../lint/bootstrap/naming.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name generate-lexer --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/9813604d667477a87f6535210efb83c7/generate-parser ./../compiler/src /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/parser.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/expression.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/xml.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/paths.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/graph.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/attribute_role.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/attribute_content.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/call_rule.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/path_kind.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/file_kind.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/specifier.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/integer.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_lookup.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/semantic_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/nominal_lookup.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/nominal_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/name_sort.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ordering_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/origin_validation.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/origins_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/origin_production.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/production_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_remap.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/remap_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/merge_preflight.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/preflight_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_extract.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/extract_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_merge.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/merge_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_validation.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/validation_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_resolution.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/resolution_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_construction.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/construction_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_query.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/query_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ownership.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ownership_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_body.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_body_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_stores.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_stores_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_store_call.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_store_call_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_tasks.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_tasks_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_functions.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_functions_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_task_call.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_task_call_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_program_pure.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_program_pure_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_expressions.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_expressions_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_contracts.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_contracts_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_contract_tables.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_contract_tables_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_scopes.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_scopes_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_assume.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_assume_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_bind.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_bind_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_type.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_type_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native_modules.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native_modules_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native_export.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native_export_abi.zig /tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/naming.zig ./../lint/src/naming
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/c61cc8698336ef03fcf0565ad30f0292/generate-lexer ./../compiler/src/zx/frontend/lexer /tmp/zxc-map-observations-debug-cache/o/c8e39de22508c0a64c2436c0e1749524/lexer.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Odebug --dep compiler -Mroot=tests/collections/reverse_ownership/compile.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep generated_native_modules --dep generated_native_export --dep generated_ir_scopes --dep generated_refinement_assume --dep generated_refinement_bind --dep generated_refinement_type --dep generated_ownership --dep generated_ir_body --dep generated_ir_tasks --dep generated_ir_functions --dep generated_ir_expressions --dep generated_ir_contracts --dep generated_ir_contract_tables --dep generated_ir_task_call --dep generated_ir_program_pure --dep generated_ir_stores --dep generated_ir_store_call --dep generated_type_resolution --dep generated_type_construction --dep generated_type_query --dep generated_parser --dep generated_expression --dep generated_xml --dep generated_specifier --dep generated_integer --dep generated_native --dep generated_type_lookup --dep generated_nominal_lookup --dep generated_origin_validation --dep generated_origin_production --dep origin_writer --dep generated_name_sort --dep generated_type_remap --dep generated_merge_preflight --dep generated_type_extract --dep generated_type_merge --dep generated_type_validation --dep merge_writer_view --dep extract_workspace_view -Mfrontend=../compiler/src/zx/frontend.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug -Mzx=../core/src/root.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Odebug --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Odebug --dep zx --dep generated -Mlexer=../compiler/src/zx/frontend/lex.zig -Mstandard_interfaces=/tmp/zxc-map-observations-debug-cache/o/eaa6bd36fff88a6bfdc5e2f1c619f5ed/catalog.zig -Mparser_options=/tmp/zxc-map-observations-debug-cache/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig -Odebug --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Odebug --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Odebug --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Odebug --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Odebug --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Odebug -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Odebug --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Odebug --dep zxc_abi --dep integers -Mgenerated_native_modules=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native_modules.zig -Odebug --dep zxc_abi=zxc_abi0 --dep integers -Mgenerated_native_export=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native_export.zig -Odebug --dep zxc_abi=zxc_abi1 --dep integers --dep flow_state -Mgenerated_ir_scopes=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_scopes.zig -Odebug --dep zxc_abi=zxc_abi2 --dep integers --dep flow_state -Mgenerated_refinement_assume=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_assume.zig -Odebug --dep zxc_abi=zxc_abi3 --dep integers --dep flow_state -Mgenerated_refinement_bind=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_bind.zig -Odebug --dep zxc_abi=zxc_abi4 --dep integers --dep flow_state -Mgenerated_refinement_type=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_type.zig -Odebug --dep zxc_abi=zxc_abi5 --dep integers -Mgenerated_ownership=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ownership.zig -Odebug --dep zxc_abi=zxc_abi6 --dep integers -Mgenerated_ir_body=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_body.zig -Odebug --dep zxc_abi=zxc_abi7 --dep integers -Mgenerated_ir_tasks=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_tasks.zig -Odebug --dep zxc_abi=zxc_abi8 --dep integers -Mgenerated_ir_functions=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_functions.zig -Odebug --dep zxc_abi=zxc_abi9 --dep integers --dep floats -Mgenerated_ir_expressions=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_expressions.zig -Odebug --dep zxc_abi=zxc_abi10 --dep integers --dep floats -Mgenerated_ir_contracts=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_contracts.zig -Odebug --dep zxc_abi=zxc_abi11 --dep integers -Mgenerated_ir_contract_tables=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_contract_tables.zig -Odebug --dep zxc_abi=zxc_abi12 --dep integers -Mgenerated_ir_task_call=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_task_call.zig -Odebug --dep zxc_abi=zxc_abi13 --dep integers -Mgenerated_ir_program_pure=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_program_pure.zig -Odebug --dep zxc_abi=zxc_abi14 --dep integers -Mgenerated_ir_stores=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_stores.zig -Odebug --dep zxc_abi=zxc_abi15 --dep integers -Mgenerated_ir_store_call=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_store_call.zig -Odebug --dep zxc_standard --dep zxc_abi=zxc_abi16 --dep integers -Mgenerated_type_resolution=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_resolution.zig -Odebug --dep zxc_abi=zxc_abi17 --dep integers -Mgenerated_type_construction=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_construction.zig -Odebug --dep zxc_abi=zxc_abi18 --dep integers -Mgenerated_type_query=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_query.zig -Odebug -Mgenerated_parser=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/parser.zig -Odebug -Mgenerated_expression=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/expression.zig -Odebug -Mgenerated_xml=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/xml.zig -Odebug -Mgenerated_specifier=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/specifier.zig -Odebug -Mgenerated_integer=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/integer.zig -Odebug -Mgenerated_native=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native.zig -Odebug --dep integers --dep zxc_abi=zxc_abi19 -Mgenerated_type_lookup=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_lookup.zig -Odebug --dep integers --dep zxc_abi=zxc_abi20 -Mgenerated_nominal_lookup=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/nominal_lookup.zig -Odebug --dep integers --dep zxc_abi=zxc_abi21 -Mgenerated_origin_validation=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/origin_validation.zig -Odebug --dep origin_writer --dep zxc_abi=zxc_abi22 -Mgenerated_origin_production=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/origin_production.zig -Odebug --dep nominal_data --dep zxc_abi=zxc_abi22 -Morigin_writer=../compiler/src/zx/analysis/semantic/native/origin_writer.zig -Odebug --dep zxc_abi=zxc_abi23 --dep named_columns -Mgenerated_name_sort=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/name_sort.zig -Odebug --dep references --dep integers --dep zxc_abi=zxc_abi24 -Mgenerated_type_remap=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_remap.zig -Odebug --dep merge_workspace --dep integers --dep zxc_abi=zxc_abi25 -Mgenerated_merge_preflight=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/merge_preflight.zig -Odebug --dep extract_workspace --dep references --dep integers --dep zxc_abi=zxc_abi26 -Mgenerated_type_extract=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_extract.zig -Odebug --dep merge_writer --dep references --dep integers --dep zxc_abi=zxc_abi27 -Mgenerated_type_merge=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_merge.zig -Odebug --dep integers --dep zxc_abi=zxc_abi28 -Mgenerated_type_validation=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/type_validation.zig -Odebug --dep zx --dep reference_view --dep nominal_data -Mmerge_writer_view=../compiler/src/zx/analysis/semantic/merging/writer.zig -Odebug --dep zx --dep reference_view --dep nominal_data -Mextract_workspace_view=../compiler/src/zx/analysis/semantic/extracting/workspace.zig -Odebug --dep generated=generated0 -Mnaming=../lint/src/naming/root.zig -Odebug -Mgenerated=/tmp/zxc-map-observations-debug-cache/o/c8e39de22508c0a64c2436c0e1749524/lexer.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native_modules_abi.zig -Odebug -Mintegers=../compiler/src/zx/analysis/semantic/native/integers.zig -Odebug -Mzxc_abi0=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/native_export_abi.zig -Odebug -Mzxc_abi1=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_scopes_abi.zig -Odebug --dep flow_workspace -Mflow_state=../compiler/src/zx/analysis/semantic/native/flow_state.zig -Odebug -Mzxc_abi2=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_assume_abi.zig -Odebug -Mzxc_abi3=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_bind_abi.zig -Odebug -Mzxc_abi4=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/refinement_type_abi.zig -Odebug -Mzxc_abi5=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ownership_abi.zig -Odebug -Mzxc_abi6=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_body_abi.zig -Odebug -Mzxc_abi7=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_tasks_abi.zig -Odebug -Mzxc_abi8=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_functions_abi.zig -Odebug -Mzxc_abi9=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_expressions_abi.zig -Odebug -Mfloats=../compiler/src/zx/analysis/semantic/native/floats.zig -Odebug -Mzxc_abi10=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_contracts_abi.zig -Odebug -Mzxc_abi11=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_contract_tables_abi.zig -Odebug -Mzxc_abi12=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_task_call_abi.zig -Odebug -Mzxc_abi13=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_program_pure_abi.zig -Odebug -Mzxc_abi14=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_stores_abi.zig -Odebug -Mzxc_abi15=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ir_store_call_abi.zig -Odebug --dep zxc_abi=zxc_abi16 -Mzxc_standard=../compiler/standard/src/root.zig -Odebug -Mzxc_abi16=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/resolution_abi.zig -Odebug -Mzxc_abi17=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/construction_abi.zig -Odebug -Mzxc_abi18=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/query_abi.zig -Odebug -Mzxc_abi19=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/semantic_abi.zig -Odebug -Mzxc_abi20=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/nominal_abi.zig -Odebug -Mzxc_abi21=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/origins_abi.zig -Odebug -Mzxc_abi22=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/production_abi.zig -Odebug -Mzxc_abi23=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/ordering_abi.zig -Odebug --dep zxc_abi=zxc_abi23 --dep named_view -Mnamed_columns=../compiler/src/zx/analysis/semantic/ordering/columns.zig -Odebug --dep reference_view -Mreferences=../compiler/src/zx/analysis/semantic/native/references.zig -Odebug -Mzxc_abi24=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/remap_abi.zig -Odebug --dep merge_workspace_view --dep zx --dep zxc_abi=zxc_abi25 -Mmerge_workspace=../compiler/src/zx/analysis/semantic/native/merge_workspace.zig -Odebug -Mzxc_abi25=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/preflight_abi.zig -Odebug --dep extract_workspace_view --dep reference_view --dep nominal_data --dep zx --dep zxc_abi=zxc_abi26 -Mextract_workspace=../compiler/src/zx/analysis/semantic/native/extract_workspace.zig -Odebug -Mzxc_abi26=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/extract_abi.zig -Odebug --dep merge_writer_view --dep reference_view --dep nominal_data --dep zxc_abi=zxc_abi27 -Mmerge_writer=../compiler/src/zx/analysis/semantic/native/merge_writer.zig -Odebug -Mzxc_abi27=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/merge_abi.zig -Odebug -Mzxc_abi28=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/validation_abi.zig -Odebug -Mgenerated0=/tmp/zxc-map-observations-debug-cache/o/9a3c38c923f2f1be686583586443528f/naming.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name compile-reverse-ownership --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/loop_unique.zx /tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/source.zig /tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/library.zig /tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/735f6c64ef0958cb79357653f9205c6d/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-loop_unique-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/8713453e92e628c630023af546f3d66b/reverse-ownership-loop_unique-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-loop_unique-library 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16698193 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/library.zig:207:27: 0x1039308dc in function_0_value (reverse-ownership-loop_unique-library)
+                               } + @as(i64, 1));
+                                 ^
+       /tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/library.zig:280:48: 0x10392fd62 in execute (reverse-ownership-loop_unique-library)
+               const operand_2 = (try function_0_value(allocator, operand_1));
+                                                      ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x10392fa6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-loop_unique-library)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x1039063b6 in mainServer (reverse-ownership-loop_unique-library)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x103906abd in main (reverse-ownership-loop_unique-library)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x103904576 in callMain (reverse-ownership-loop_unique-library)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/8713453e92e628c630023af546f3d66b/reverse-ownership-loop_unique-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/735f6c64ef0958cb79357653f9205c6d/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-loop_unique-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/f0fc6e6d2fdc8e6f295fe3319bd163ac/reverse-ownership-loop_unique-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-loop_unique-source 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16698343 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/2f3e1b0c7c8d84142eceb1094d9cea4d/source.zig:94:27: 0x10c4bd401 in execute (reverse-ownership-loop_unique-source)
+                               } + @as(i64, 1));
+                                 ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x10c4bca6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-loop_unique-source)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x10c4933b6 in mainServer (reverse-ownership-loop_unique-source)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x10c493abd in main (reverse-ownership-loop_unique-source)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x10c491576 in callMain (reverse-ownership-loop_unique-source)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/f0fc6e6d2fdc8e6f295fe3319bd163ac/reverse-ownership-loop_unique-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/literal.zx /tmp/zxc-map-observations-debug-cache/o/6b5319f0b84325fe09dbc3a4d807d227/source.zig /tmp/zxc-map-observations-debug-cache/o/6b5319f0b84325fe09dbc3a4d807d227/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/6b5319f0b84325fe09dbc3a4d807d227/library.zig /tmp/zxc-map-observations-debug-cache/o/6b5319f0b84325fe09dbc3a4d807d227/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/6b5319f0b84325fe09dbc3a4d807d227/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/acc7ea775afd27fe88583780d822d14c/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/6b5319f0b84325fe09dbc3a4d807d227/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-literal-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/2dcabb590a2a6d4723d7566b3b159926/reverse-ownership-literal-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/6b5319f0b84325fe09dbc3a4d807d227/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/acc7ea775afd27fe88583780d822d14c/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/6b5319f0b84325fe09dbc3a4d807d227/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-literal-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/bca86f04fa11ba7066c7afa0465e9a41/reverse-ownership-literal-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/object_unique.zx /tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/source.zig /tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/library.zig /tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/3bf129d37898d7cc73a3cc725fe008d7/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-object_unique-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/accbd6a5a66ee79af8185f0faee70fd3/reverse-ownership-object_unique-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-object_unique-source 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16698945 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/source.zig:57:51: 0x10643c04a in execute (reverse-ownership-object_unique-source)
+                       (operand_10)[index_11] = (value_1 + @as(i64, 1));
+                                                         ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x10643ba6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-object_unique-source)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x1064123b6 in mainServer (reverse-ownership-object_unique-source)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x106412abd in main (reverse-ownership-object_unique-source)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x106410576 in callMain (reverse-ownership-object_unique-source)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/accbd6a5a66ee79af8185f0faee70fd3/reverse-ownership-object_unique-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/3bf129d37898d7cc73a3cc725fe008d7/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-object_unique-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/6245ef483bd58530f39af4090ed3a413/reverse-ownership-object_unique-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-object_unique-library 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16698999 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/library.zig:102:19: 0x10e3e666e in function_0_value (reverse-ownership-object_unique-library)
+                       } + @as(i64, 1));
+                         ^
+       /tmp/zxc-map-observations-debug-cache/o/f68daae6ec50b832b22df79c98e2b670/library.zig:132:48: 0x10e3e5d62 in execute (reverse-ownership-object_unique-library)
+               const operand_2 = (try function_0_value(allocator, operand_1));
+                                                      ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x10e3e5a6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-object_unique-library)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x10e3bc3b6 in mainServer (reverse-ownership-object_unique-library)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x10e3bcabd in main (reverse-ownership-object_unique-library)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x10e3ba576 in callMain (reverse-ownership-object_unique-library)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/6245ef483bd58530f39af4090ed3a413/reverse-ownership-object_unique-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/tuple_unique.zx /tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/source.zig /tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/library.zig /tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/0d89f9f99a79d0f190b928f76d4cb93b/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-tuple_unique-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/13154555d40065dd78a8bc8da6c34643/reverse-ownership-tuple_unique-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-tuple_unique-library 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16699149 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/library.zig:103:19: 0x100e1e67e in function_0_value (reverse-ownership-tuple_unique-library)
+                       } + @as(i64, 1));
+                         ^
+       /tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/library.zig:134:48: 0x100e1dd62 in execute (reverse-ownership-tuple_unique-library)
+               const operand_2 = (try function_0_value(allocator, operand_1));
+                                                      ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x100e1da6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-tuple_unique-library)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x100df43b6 in mainServer (reverse-ownership-tuple_unique-library)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x100df4abd in main (reverse-ownership-tuple_unique-library)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x100df2576 in callMain (reverse-ownership-tuple_unique-library)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/13154555d40065dd78a8bc8da6c34643/reverse-ownership-tuple_unique-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/0d89f9f99a79d0f190b928f76d4cb93b/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-tuple_unique-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/88118a926ad50f921cfb8694c37adc58/reverse-ownership-tuple_unique-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-tuple_unique-source 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16699221 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/0b830f59754f8d99cd6b66ed636eac3e/source.zig:57:50: 0x10483406a in execute (reverse-ownership-tuple_unique-source)
+                       (operand_9)[index_10] = (value_1 + @as(i64, 1));
+                                                        ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x104833a6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-tuple_unique-source)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x10480a3b6 in mainServer (reverse-ownership-tuple_unique-source)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x10480aabd in main (reverse-ownership-tuple_unique-source)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x104808576 in callMain (reverse-ownership-tuple_unique-source)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/88118a926ad50f921cfb8694c37adc58/reverse-ownership-tuple_unique-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/filter_shared.zx /tmp/zxc-map-observations-debug-cache/o/8b242b64238f828b00494beaab7e9ee2/source.zig /tmp/zxc-map-observations-debug-cache/o/8b242b64238f828b00494beaab7e9ee2/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/8b242b64238f828b00494beaab7e9ee2/library.zig /tmp/zxc-map-observations-debug-cache/o/8b242b64238f828b00494beaab7e9ee2/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/8b242b64238f828b00494beaab7e9ee2/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/382d7a60aee3da71b94466d3653b9f59/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/8b242b64238f828b00494beaab7e9ee2/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-filter_shared-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/f29f3a9608c32ccd01dd52822260441a/reverse-ownership-filter_shared-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/8b242b64238f828b00494beaab7e9ee2/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/382d7a60aee3da71b94466d3653b9f59/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/8b242b64238f828b00494beaab7e9ee2/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-filter_shared-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/71b781ebfb1a76af6203a57423d8e739/reverse-ownership-filter_shared-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/filter_unique.zx /tmp/zxc-map-observations-debug-cache/o/1ad8f33aa69c21e7bcdb2026ef5dbb02/source.zig /tmp/zxc-map-observations-debug-cache/o/1ad8f33aa69c21e7bcdb2026ef5dbb02/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/1ad8f33aa69c21e7bcdb2026ef5dbb02/library.zig /tmp/zxc-map-observations-debug-cache/o/1ad8f33aa69c21e7bcdb2026ef5dbb02/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/1ad8f33aa69c21e7bcdb2026ef5dbb02/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/3aeb8ef530877da241251f4f4e50b7a7/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/1ad8f33aa69c21e7bcdb2026ef5dbb02/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-filter_unique-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/a34fbf0fc4d540234625ff41a485feb5/reverse-ownership-filter_unique-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/1ad8f33aa69c21e7bcdb2026ef5dbb02/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/3aeb8ef530877da241251f4f4e50b7a7/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/1ad8f33aa69c21e7bcdb2026ef5dbb02/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-filter_unique-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/3465245483ac13d235bfa72b217bdb7d/reverse-ownership-filter_unique-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/map_unique.zx /tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/source.zig /tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/library.zig /tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program -Mroot=tests/collections/reverse_ownership/capacity_test.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/source.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-capacity-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/ba80bf9cb3be2d4bf3ba85dd4e9c36ff/reverse-capacity-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-capacity-source w
+owned reverse count=2048 allocated=24648 capacity=24624 payload=16384
+owned reverse count=16384 allocated=196680 capacity=196656 payload=131072
+failed command: /tmp/zxc-map-observations-debug-cache/o/ba80bf9cb3be2d4bf3ba85dd4e9c36ff/reverse-capacity-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/687a9280e2d783eed5611d1e07a00a8a/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-map_unique-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/ce02ca68f735aab8335ef022f49be308/reverse-ownership-map_unique-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-map_unique-library 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16699629 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/library.zig:89:15: 0x10f8e7616 in function_0_value (reverse-ownership-map_unique-library)
+                   } + @as(i64, 1));
+                     ^
+       /tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/library.zig:118:48: 0x10f8e6d62 in execute (reverse-ownership-map_unique-library)
+               const operand_2 = (try function_0_value(allocator, operand_1));
+                                                      ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x10f8e6a6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-map_unique-library)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x10f8bd3b6 in mainServer (reverse-ownership-map_unique-library)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x10f8bdabd in main (reverse-ownership-map_unique-library)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x10f8bb576 in callMain (reverse-ownership-map_unique-library)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/ce02ca68f735aab8335ef022f49be308/reverse-ownership-map_unique-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program -Mroot=tests/collections/reverse_ownership/capacity_test.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/library.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-capacity-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/a19e9c367817cfed3c33a5f8c0fbe7b9/reverse-capacity-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-capacity-library w
+owned reverse count=2048 allocated=24648 capacity=24624 payload=16384
+owned reverse count=16384 allocated=196680 capacity=196656 payload=131072
+failed command: /tmp/zxc-map-observations-debug-cache/o/a19e9c367817cfed3c33a5f8c0fbe7b9/reverse-capacity-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/687a9280e2d783eed5611d1e07a00a8a/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-map_unique-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/13b19ff5c7bcad2bfba0701060ea9fa0/reverse-ownership-map_unique-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-map_unique-source 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16699749 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/4fbdfac1bb8a3014cf7461c6632472d4/source.zig:54:46: 0x107970fd6 in execute (reverse-ownership-map_unique-source)
+                   (operand_9)[index_10] = (value_1 + @as(i64, 1));
+                                                    ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x107970a6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-map_unique-source)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x1079473b6 in mainServer (reverse-ownership-map_unique-source)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x107947abd in main (reverse-ownership-map_unique-source)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x107945576 in callMain (reverse-ownership-map_unique-source)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/13b19ff5c7bcad2bfba0701060ea9fa0/reverse-ownership-map_unique-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/borrowed.zx /tmp/zxc-map-observations-debug-cache/o/4a35bf4165e2c2705f9d2974a08ff66c/source.zig /tmp/zxc-map-observations-debug-cache/o/4a35bf4165e2c2705f9d2974a08ff66c/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/4a35bf4165e2c2705f9d2974a08ff66c/library.zig /tmp/zxc-map-observations-debug-cache/o/4a35bf4165e2c2705f9d2974a08ff66c/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/4a35bf4165e2c2705f9d2974a08ff66c/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/58940235228bcc8fed6d337f36fa60cd/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/4a35bf4165e2c2705f9d2974a08ff66c/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-borrowed-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/a3627d5be2bd3cb55c6292b12f78ae50/reverse-ownership-borrowed-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/4a35bf4165e2c2705f9d2974a08ff66c/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/58940235228bcc8fed6d337f36fa60cd/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/4a35bf4165e2c2705f9d2974a08ff66c/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-borrowed-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/8ab0d161813d442124d7da8b661767a8/reverse-ownership-borrowed-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/loop_shared.zx /tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/source.zig /tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/library.zig /tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/2d1a4b6e98a711186dec62b0d8b21891/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-loop_shared-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/676bf795eed58a7e97474735c31c443b/reverse-ownership-loop_shared-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-loop_shared-source 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16699988 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/source.zig:94:27: 0x10aaf13e6 in execute (reverse-ownership-loop_shared-source)
+                               } + @as(i64, 1));
+                                 ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x10aaf0a6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-loop_shared-source)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x10aac73b6 in mainServer (reverse-ownership-loop_shared-source)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x10aac7abd in main (reverse-ownership-loop_shared-source)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x10aac5576 in callMain (reverse-ownership-loop_shared-source)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/676bf795eed58a7e97474735c31c443b/reverse-ownership-loop_shared-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/2d1a4b6e98a711186dec62b0d8b21891/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-loop_shared-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/97855e43980f3ca06bd8638ee59b09cd/reverse-ownership-loop_shared-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-loop_shared-library 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16700056 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/library.zig:211:27: 0x10978d8a8 in function_0_value (reverse-ownership-loop_shared-library)
+                               } + @as(i64, 1));
+                                 ^
+       /tmp/zxc-map-observations-debug-cache/o/cca5457f107c3420103a37025bd92ed6/library.zig:290:48: 0x10978cd62 in execute (reverse-ownership-loop_shared-library)
+               const operand_2 = (try function_0_value(allocator, operand_1));
+                                                      ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x10978ca6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-loop_shared-library)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x1097633b6 in mainServer (reverse-ownership-loop_shared-library)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x109763abd in main (reverse-ownership-loop_shared-library)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x109761576 in callMain (reverse-ownership-loop_shared-library)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/97855e43980f3ca06bd8638ee59b09cd/reverse-ownership-loop_shared-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/7268fde5ef998178796f87cd92e7eb85/compile-reverse-ownership ./tests/collections/reverse_ownership/fixtures/map_shared.zx /tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/source.zig /tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/source_abi.zig /tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/library.zig /tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/library_abi.zig
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/source.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/348585472e759873bd35015fc20c363f/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/source_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-map_shared-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/5cbae5b89fab70e2ba87bc5a945bb0c7/reverse-ownership-map_shared-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-map_shared-source 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16700162 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/source.zig:54:47: 0x10fb69fc8 in execute (reverse-ownership-map_shared-source)
+                   (operand_10)[index_11] = (value_1 + @as(i64, 1));
+                                                     ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x10fb69a6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-map_shared-source)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x10fb403b6 in mainServer (reverse-ownership-map_shared-source)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x10fb40abd in main (reverse-ownership-map_shared-source)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x10fb3e576 in callMain (reverse-ownership-map_shared-source)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/5cbae5b89fab70e2ba87bc5a945bb0c7/reverse-ownership-map_shared-source --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+info(verbose): /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/reverse_ownership/root.zig -Odebug --dep zxc_abi -Mprogram=/tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/library.zig -Moptions=/tmp/zxc-map-observations-debug-cache/o/348585472e759873bd35015fc20c363f/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/library_abi.zig --cache-dir /tmp/zxc-map-observations-debug-cache --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name reverse-ownership-map_shared-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-
+info(verbose): /tmp/zxc-map-observations-debug-cache/o/03232330c05feaed8ce3b8baa3d0667e/reverse-ownership-map_shared-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+test-reverse-ownership
++- run test reverse-ownership-map_shared-library 4 pass, 1 crash (5 total)
+error: 'root.test.reverse propagates mapping overflow or preserves the exact maximal value' terminated with signal ABRT with stderr:
+       thread 16700227 panic: integer overflow
+       /tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/library.zig:93:15: 0x10dcc2601 in function_0_value (reverse-ownership-map_shared-library)
+                   } + @as(i64, 1));
+                     ^
+       /tmp/zxc-map-observations-debug-cache/o/fb3eeaca2dd41ff878ba62f25b1a8836/library.zig:130:48: 0x10dcc1d62 in execute (reverse-ownership-map_shared-library)
+               const operand_2 = (try function_0_value(allocator, operand_1));
+                                                      ^
+       /Users/xiewendao/.codex/worktrees/reverse-ownership-conformance/zxc/packages/test/tests/collections/reverse_ownership/root.zig:62:35: 0x10dcc1a6a in test.reverse propagates mapping overflow or preserves the exact maximal value (reverse-ownership-map_shared-library)
+           const result = program.execute(&arena, &input);
+                                         ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:143:68: 0x10dc983b6 in mainServer (reverse-ownership-map_shared-library)
+                       const status: TestResults.Status = if (test_fn.func()) |v| s: {
+                                                                          ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:72:26: 0x10dc98abd in main (reverse-ownership-map_shared-library)
+               return mainServer(init) catch |err| panic("internal test runner failure: {t}", .{err});
+                                ^
+       /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x10dc96576 in callMain (reverse-ownership-map_shared-library)
+           if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                              ^
+       ???:?:?: 0x7ff80a2d9780 in start (/usr/lib/dyld)
+failed command: /tmp/zxc-map-observations-debug-cache/o/03232330c05feaed8ce3b8baa3d0667e/reverse-ownership-map_shared-library --cache-dir=/tmp/zxc-map-observations-debug-cache --seed=0x2759bf7d --listen=-
+
+Build Summary: 84/97 steps succeeded (12 failed); 90/102 tests passed (12 crashed)
+test-reverse-ownership transitive failure
++- run test reverse-ownership-map_unique-source 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-map_unique-source debug native success 1s MaxRSS:260M
+|     +- run exe compile-reverse-ownership (source.zig) success 13ms
+|     |  +- compile exe compile-reverse-ownership debug native success 16s MaxRSS:1G
+|     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     +- compile exe standard-catalog fast native cached 52ms MaxRSS:21M
+|     |     |     +- WriteFile catalog.json cached
+|     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) success 1m
+|     |     |  +- compile exe generate-parser debug native success 6s MaxRSS:720M
+|     |     |     +- options cached
+|     |     |     +- WriteFile interfaces/0.d.zx success
+|     |     |     |  +- run exe standard-catalog (catalog.zig) success 2ms
+|     |     |     |     +- compile exe standard-catalog fast native success 7s MaxRSS:373M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-lexer (lexer.zig) success 441ms
+|     |     |  +- compile exe generate-lexer debug native success 6s MaxRSS:697M
+|     |     |     +- options cached
+|     |     |     +- WriteFile interfaces/0.d.zx cached
+|     |     |     |  +- run exe standard-catalog (catalog.zig) cached
+|     |     |     |     +- compile exe standard-catalog fast native cached 66ms MaxRSS:21M
+|     |     |     |     +- WriteFile catalog.json cached
+|     |     |     +- options cached
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     |     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-capacity-source 1 pass (1 total) 2ms MaxRSS:1M
+|  +- compile test reverse-capacity-source debug native success 1s MaxRSS:257M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-map_unique-library 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-map_unique-library debug native success 1s MaxRSS:270M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-capacity-library 1 pass (1 total) 2ms MaxRSS:1M
+|  +- compile test reverse-capacity-library debug native success 1s MaxRSS:266M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-map_shared-source 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-map_shared-source debug native success 1s MaxRSS:267M
+|     +- run exe compile-reverse-ownership (source.zig) success 14ms
+|     |  +- compile exe compile-reverse-ownership debug native (+70 more reused dependencies)
+|     +- options success
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-map_shared-library 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-map_shared-library debug native success 1s MaxRSS:266M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-filter_unique-source 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test reverse-ownership-filter_unique-source debug native success 1s MaxRSS:257M
+|     +- run exe compile-reverse-ownership (source.zig) success 14ms
+|     |  +- compile exe compile-reverse-ownership debug native (+70 more reused dependencies)
+|     +- options success
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-filter_unique-library 5 pass (5 total) 2ms MaxRSS:1M
+|  +- compile test reverse-ownership-filter_unique-library debug native success 1s MaxRSS:262M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-filter_shared-source 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test reverse-ownership-filter_shared-source debug native success 1s MaxRSS:270M
+|     +- run exe compile-reverse-ownership (source.zig) success 14ms
+|     |  +- compile exe compile-reverse-ownership debug native (+70 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-filter_shared-library 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test reverse-ownership-filter_shared-library debug native success 1s MaxRSS:269M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-borrowed-source 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test reverse-ownership-borrowed-source debug native success 1s MaxRSS:259M
+|     +- run exe compile-reverse-ownership (source.zig) success 12ms
+|     |  +- compile exe compile-reverse-ownership debug native (+70 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-borrowed-library 5 pass (5 total) 2ms MaxRSS:1M
+|  +- compile test reverse-ownership-borrowed-library debug native success 1s MaxRSS:262M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-literal-source 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test reverse-ownership-literal-source debug native success 1s MaxRSS:268M
+|     +- run exe compile-reverse-ownership (source.zig) success 13ms
+|     |  +- compile exe compile-reverse-ownership debug native (+70 more reused dependencies)
+|     +- options success
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-literal-library 5 pass (5 total) 3ms MaxRSS:1M
+|  +- compile test reverse-ownership-literal-library debug native success 1s MaxRSS:272M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-object_unique-source 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-object_unique-source debug native success 1s MaxRSS:261M
+|     +- run exe compile-reverse-ownership (source.zig) success 15ms
+|     |  +- compile exe compile-reverse-ownership debug native (+70 more reused dependencies)
+|     +- options success
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-object_unique-library 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-object_unique-library debug native success 1s MaxRSS:260M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-tuple_unique-source 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-tuple_unique-source debug native success 1s MaxRSS:339M
+|     +- run exe compile-reverse-ownership (source.zig) success 15ms
+|     |  +- compile exe compile-reverse-ownership debug native (+70 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-tuple_unique-library 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-tuple_unique-library debug native success 1s MaxRSS:263M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-loop_unique-source 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-loop_unique-source debug native success 1s MaxRSS:263M
+|     +- run exe compile-reverse-ownership (source.zig) success 23ms
+|     |  +- compile exe compile-reverse-ownership debug native (+70 more reused dependencies)
+|     +- options cached
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-loop_unique-library 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-loop_unique-library debug native success 1s MaxRSS:340M
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+|     +- options success
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-loop_shared-source 4 pass, 1 crash (5 total)
+|  +- compile test reverse-ownership-loop_shared-source debug native success 1s MaxRSS:264M
+|     +- run exe compile-reverse-ownership (source.zig) success 23ms
+|     |  +- compile exe compile-reverse-ownership debug native (+70 more reused dependencies)
+|     +- options success
+|     +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
++- run test reverse-ownership-loop_shared-library 4 pass, 1 crash (5 total)
+   +- compile test reverse-ownership-loop_shared-library debug native success 1s MaxRSS:350M
+      +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+      +- options cached
+      +- run exe compile-reverse-ownership (source.zig) (+1 more reused dependencies)
+

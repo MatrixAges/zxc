@@ -1,0 +1,5 @@
+const check = @import("support").check;
+
+test "built_ins/list/reverse/i64/items_empty" {
+    try check(@import("program"), &.{.items = &.{}}, .{ .value = &.{} });
+}

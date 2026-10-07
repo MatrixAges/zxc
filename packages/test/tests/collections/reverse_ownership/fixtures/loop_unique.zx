@@ -1,0 +1,16 @@
+export type Input = i64[]
+
+export type Output = { original: i64[], reversed: i64[] }
+
+export default function (in: Input): Output {
+    const empty: i64[] = []
+    const result = loop({ source: in, values: empty, index: 0 }, {
+        while: state => state.index < state.source.length,
+        next: state => {
+            state.values = state.values.push(state.source[state.index] + 1)[0]
+            state.index += 1
+        }
+    })
+
+    return { original: in, reversed: result.values.reverse()[0] }
+}
