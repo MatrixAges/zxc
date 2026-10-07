@@ -1,0 +1,62 @@
+{
+    "status": "passed",
+    "base_commit": "1d337446",
+    "generation_fingerprint": "zxc.zig.input.v20",
+    "source_files": [
+        {
+            "path": "packages/genz/src/zx/buffer_call/analysis/independent.zig",
+            "sha256": "f4662765c648eac14b031f6666fded00dc0b5606dfe557c3146c69571f5d0550"
+        },
+        {
+            "path": "packages/genz/src/zx/buffer_call/analysis/trace.zig",
+            "sha256": "cd5a274f276b1fece708fd76698ce95135495329f7595197280304551cd53800"
+        },
+        {
+            "path": "packages/genz/src/zx/buffer_call/analysis/may.zig",
+            "sha256": "a8671db2f1726f51844c4ae77bdbd8264018ff8fa19724d5fc9bef2bd959c9e7"
+        },
+        {
+            "path": "packages/genz/src/zx/buffer_call/analysis/audit.zig",
+            "sha256": "27850eada1b1672a1486d3d48fbff8a7cca7d143dbfadb7e558fa07d37ae77ad"
+        },
+        {
+            "path": "packages/genz/src/zx/iteration_buffer/analysis.zig",
+            "sha256": "cb7a52abcc8510c5a218d394d404f304d5edcc247248749904ddd40d9d6cc89f"
+        },
+        {
+            "path": "packages/compiler/src/backends/zig/fingerprint.zig",
+            "sha256": "a823aa178f577019c6e45dee72cd15cb69725f4ba127b4f65092083e500de9e7"
+        }
+    ],
+    "observation_input_sha256": "e01170889e8d8091145f37498432e4720e9ccf3b587d79b4f9b3e47a4148e7e3",
+    "observation_sha256": "c4f873abeef0d1dc5990c726af61dd00e91ef96e0740722dcad6936fb84cb13f",
+    "frame_rejections": {
+        "enumeration": "accepted",
+        "name": "accepted",
+        "step": "accepted"
+    },
+    "limits": [
+        "whole iteration state must remain origin-free",
+        "temporary nested proofs do not escape assumptions",
+        "condition and body may not advance target version",
+        "transform and ownership escape restrictions remain",
+        "frame elements remain boxed; other state columns are not all proven copy-free"
+    ],
+    "checks": {
+        "observer_build": "23/23 steps passed",
+        "release_build": "35/35 steps passed",
+        "self_compile": "passed",
+        "focused_regressions": "279/279 steps succeeded; 525/525 tests passed; 6 CLI and library checks passed"
+    },
+    "generated": {
+        "raw_sha256": "f481eb8f51342da0dc44e58429bbb7217760855ffed4389c8955c3b209d9b4d3",
+        "enumeration_buffered": true,
+        "name_buffered": true,
+        "step_buffered": true,
+        "run_calls_buffered_step": true,
+        "frame_capacity_outside_loop": true,
+        "frame_writeback_after_loop": true,
+        "resolver.zig_sha256": "6079479649e749f2d884610339cc7d2d0a4d25e9e29d180e3aa4a489042f9bf6",
+        "resolver_abi.zig_sha256": "4f070cea43f50c3a321c0e147b939d5f2626bfb06d0f694d362d105379569624"
+    }
+}
