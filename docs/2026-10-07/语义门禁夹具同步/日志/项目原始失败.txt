@@ -1,0 +1,219 @@
+✖ semantic lint / valid main.zx ignores unreachable invalid source (15.592195ms)
+✖ semantic lint / valid pkg.yaml ignores unreachable invalid source (9.086276ms)
+✖ semantic lint / type failure and selection / nested/increment.zx (6.202045ms)
+✖ semantic lint / type failure and selection / extra.zx (5.980284ms)
+✖ semantic lint / entry fallback (8.16753ms)
+✔ semantic lint / no public modules (5.703149ms)
+✔ semantic lint / missing import (6.223066ms)
+✔ semantic lint / reachable formatting (6.988898ms)
+✔ semantic lint / import cycle (6.969176ms)
+✖ semantic lint / explicit project path / pkg.yaml (8.562843ms)
+✖ semantic lint / explicit project path / ./pkg.yaml (8.390601ms)
+✖ semantic lint / explicit project path / nested/../pkg.yaml (8.077143ms)
+✖ semantic lint / explicit project path / absolute (8.016897ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 4
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 108.34107
+
+✖ failing tests:
+
+test at packages/test/tests/semantic_lint/project_test.ts:32:2
+✖ semantic lint / valid main.zx ignores unreachable invalid source (15.592195ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint iEJiq0/main.zx: import order, blank lines or indentation require formatting
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/project_test.ts:37:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/test/tests/semantic_lint/project_test.ts:32:2
+✖ semantic lint / valid pkg.yaml ignores unreachable invalid source (9.086276ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint UlKP5x/main.zx: import order, blank lines or indentation require formatting
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/project_test.ts:37:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/test/tests/semantic_lint/project_test.ts:46:2
+✖ semantic lint / type failure and selection / nested/increment.zx (6.202045ms)
+  AssertionError [ERR_ASSERTION]: nested/increment.zx: import order, blank lines or indentation require formatting
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/project_test.ts:51:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/test/tests/semantic_lint/project_test.ts:46:2
+✖ semantic lint / type failure and selection / extra.zx (5.980284ms)
+  AssertionError [ERR_ASSERTION]: extra.zx: import order, blank lines or indentation require formatting
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/project_test.ts:51:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/test/tests/semantic_lint/project_test.ts:70:2
+✖ semantic lint / entry fallback (8.16753ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint 3xCDBh/main.zx: import order, blank lines or indentation require formatting
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/project_test.ts:75:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/test/tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / pkg.yaml (8.562843ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint eSjZII/main.zx: import order, blank lines or indentation require formatting
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/test/tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / ./pkg.yaml (8.390601ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint hbHSe0/main.zx: import order, blank lines or indentation require formatting
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/test/tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / nested/../pkg.yaml (8.077143ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint Vf0EZb/main.zx: import order, blank lines or indentation require formatting
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/test/tests/semantic_lint/project_test.ts:111:2
+✖ semantic lint / explicit project path / absolute (8.016897ms)
+  AssertionError [ERR_ASSERTION]: /private/var/folders/lf/4g9rspms3hq7smqmfx_vfpc80000gn/T/zxc semantic lint ZnpY3V/main.zx: import order, blank lines or indentation require formatting
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/xiewendao/Documents/MatrixAges/zxc/packages/test/tests/semantic_lint/project_test.ts:117:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
