@@ -1,0 +1,9 @@
+import integers from "zig:integers"
+
+import type { Input } from "./type_model"
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return in.depth < 256 && in.names.length != 0 && integers.widen(in.type_id) < in.table.kinds.length && in.binding_names.length == in.binding_types.length
+}

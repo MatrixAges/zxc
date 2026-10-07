@@ -249,6 +249,11 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[60 + entries.len], .data = native_export.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[61 + entries.len], .data = native_export.types });
 
+    const native_type = try generate(allocator, inputs, sources.items, "zx/ir/canonical/native_type_check.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[62 + entries.len], .data = native_type.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[63 + entries.len], .data = native_type.types });
+
     const naming = try generate(allocator, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 2], .data = naming.source });

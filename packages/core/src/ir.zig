@@ -130,7 +130,7 @@ pub const NativeModule = struct {
     }
 };
 
-pub const NativeType = struct { name: ?[]const u8 = null, children: []const NativeType = &.{} };
+pub const NativeType = struct { names: []const ?[]const u8 = &.{null} };
 
 pub const External = struct {
     input: ?NativeType = null,
@@ -176,7 +176,7 @@ pub const Function = struct {
 
 pub const Program = struct {
     output_ownership: Ownership = .borrowed,
-    version: u32 = 33,
+    version: u32 = 34,
     store_mode: StoreMode = .transaction,
     contracts: ContractTable = .{},
     file_name: []const u8,

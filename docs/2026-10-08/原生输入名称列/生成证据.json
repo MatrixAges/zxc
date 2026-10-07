@@ -1,0 +1,23 @@
+{
+    "baseline": "1eefda14",
+    "generated_path": ".zig-cache/o/7792344a3fb39c0c44ae751f3421d32d/native_type.zig",
+    "sha256": "f5e70cd03bd1b356f1aae9009dccda94e72767aa5a5cc2563546896e1eb58ac5",
+    "walk_function": "function_7",
+    "counts": {
+        "create": 0,
+        "memcpy": 0,
+        "dupe": 2,
+        "to_owned_slice": 0,
+        "array_list": 2
+    },
+    "limitations": [
+        "两次dupe初始化一元素临时工作栈，非复制names或类型表",
+        "ArrayList仍按需分配与增长；不代表零分配",
+        "每个具名节点沿用线性绑定查找，最坏O(N×B)"
+    ],
+    "validation": {
+        "build": "36/36 steps succeeded",
+        "targeted": "68/68 steps succeeded; 83/83 tests passed",
+        "node_tests": "native aliases 10/10; native object ABI 1/1"
+    }
+}

@@ -41,20 +41,18 @@ pub fn append(allocator: std.mem.Allocator, modules: *ir.NativeModuleStorage, va
 pub fn sameExternal(left: ir.External, right: ir.External) bool {
     if (left.module != right.module or left.allocator_argument != right.allocator_argument or left.io_argument != right.io_argument or left.process_argument != right.process_argument or left.expand_tuple != right.expand_tuple or left.fallible != right.fallible) return false;
     if (!stringsEqual(left.member, right.member)) return false;
-    if (left.input) |input| return sameType(input, right.input orelse return false, 0);
+    if (left.input) |input| return sameType(input, right.input orelse return false);
 
     return right.input == null;
 }
 
-fn sameType(left: ir.NativeType, right: ir.NativeType, depth: usize) bool {
-    if (depth >= 256 or left.children.len != right.children.len) return false;
+fn sameType(left: ir.NativeType, right: ir.NativeType) bool {
+    if (left.names.len != right.names.len) return false;
 
-    if (left.name) |name| {
-        if (!std.mem.eql(u8, name, right.name orelse return false)) return false;
-    } else if (right.name != null) return false;
-
-    for (left.children, right.children) |a, b| {
-        if (!sameType(a, b, depth + 1)) return false;
+    for (left.names, right.names) |a, b| {
+        if (a) |name| {
+            if (!std.mem.eql(u8, name, b orelse return false)) return false;
+        } else if (b != null) return false;
     }
 
     return true;

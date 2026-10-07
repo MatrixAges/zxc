@@ -148,19 +148,17 @@ pub fn external(self: *Self, value: ir.External) Error!ir.External {
     result.member = try self.strings(value.member);
     result.errors = if (value.errors) |errors| try self.strings(errors) else null;
     result.export_name = if (value.export_name) |name| try self.allocator.dupe(u8, name) else null;
-    result.input = if (value.input) |input| try self.nativeType(input, 0) else null;
+    result.input = if (value.input) |input| try self.nativeType(input) else null;
 
     return result;
 }
 
-fn nativeType(self: *Self, value: ir.NativeType, depth: usize) Error!ir.NativeType {
-    if (depth >= 256) return error.InvalidIr;
+fn nativeType(self: *Self, value: ir.NativeType) Error!ir.NativeType {
+    const names = try self.allocator.alloc(?[]const u8, value.names.len);
 
-    const children = try self.allocator.alloc(ir.NativeType, value.children.len);
+    for (value.names, names) |name, *owned| owned.* = if (name) |text| try self.allocator.dupe(u8, text) else null;
 
-    for (value.children, children) |child, *owned| owned.* = try self.nativeType(child, depth + 1);
-
-    return .{ .name = if (value.name) |name| try self.allocator.dupe(u8, name) else null, .children = children };
+    return .{ .names = names };
 }
 
 pub fn strings(self: *Self, values: []const []const u8) Error![]const []const u8 {

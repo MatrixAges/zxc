@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="native/type_bounds" in={$in} />
+
+    <Switch on={$ctx.type_bounds}>
+        <Case value={true}>
+            <Call fn="native/type_walk" in={$in} />
+
+            <Return value={$ctx.type_walk} />
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

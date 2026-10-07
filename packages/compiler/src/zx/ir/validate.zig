@@ -41,7 +41,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
             if (external.expand_tuple and program.typeOf(item.input_type) != .tuple) return invalid();
 
             if (external.input) |shape| {
-                if (!@import("native_modules.zig").validateType(program, external.module, item.input_type, shape, 0)) return invalid();
+                if (!try @import("native_modules.zig").validateType(allocator, program, external.module, item.input_type, shape, 0)) return invalid();
             }
 
             continue;

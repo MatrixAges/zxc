@@ -50,7 +50,7 @@ pub fn apply(allocator: std.mem.Allocator, original: ir.Program, mode: Mode) !ir
 
                 switch (mode) {
                     .unnamed_input => native_inputs[index] = .{},
-                    .mismatched_input => native_inputs[index] = .{ .name = "Other" },
+                    .mismatched_input => native_inputs[index] = .{ .names = &.{"Other"} },
                     .concurrent => native_concurrent[index] = true,
                     .scalar_source => {
                         input_types[index] = @backingInt(ir.Scalar.u64);
