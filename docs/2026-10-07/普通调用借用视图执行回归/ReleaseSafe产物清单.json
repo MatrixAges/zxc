@@ -1,0 +1,1838 @@
+[
+    {
+        "kind": "concat",
+        "route": "library",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8f8d7944ccb813cb0d47a2eb3db36353/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/cb369363fcfa1d3715b189f23ad92d15/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8f8d7944ccb813cb0d47a2eb3db36353/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-concat-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/bfc9051396a92a1475c0155292aa8834/detached-reader-concat-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/bfc9051396a92a1475c0155292aa8834/detached-reader-concat-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-library/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8f8d7944ccb813cb0d47a2eb3db36353/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-library/program.zig.txt",
+                "sha256": "435f2bb4693a63c20201b63fc4f94a1a4dfaa24a94bf8b92c0d93d82d288271a"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/cb369363fcfa1d3715b189f23ad92d15/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-library/options.zig.txt",
+                "sha256": "f249a0a5ed914a1274e1b7b30dad8c38e72db640f79c6fde15049945282307fe"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8f8d7944ccb813cb0d47a2eb3db36353/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-library/zxc_abi.zig.txt",
+                "sha256": "d12fb5953a5c651ddbc6fd57636e1c91b1c27f14cbdf1d22dbdae371ecfd1a05"
+            }
+        ],
+        "binary_sha256": "f11b3a27e27b1b4aafc2d23a751a45c74915022954068868f02ac84b193ea7cd",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/concat-library/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "concat",
+        "route": "source",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8f8d7944ccb813cb0d47a2eb3db36353/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/cb369363fcfa1d3715b189f23ad92d15/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8f8d7944ccb813cb0d47a2eb3db36353/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-concat-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/87155b4d545c4be17245d1cce1121398/detached-reader-concat-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/87155b4d545c4be17245d1cce1121398/detached-reader-concat-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-source/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8f8d7944ccb813cb0d47a2eb3db36353/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-source/program.zig.txt",
+                "sha256": "381a75563eb4dfcc7c86270c1ecec77c47054ae13a85f3085b793a9a5a53a5fa"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/cb369363fcfa1d3715b189f23ad92d15/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-source/options.zig.txt",
+                "sha256": "f249a0a5ed914a1274e1b7b30dad8c38e72db640f79c6fde15049945282307fe"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8f8d7944ccb813cb0d47a2eb3db36353/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/concat-source/zxc_abi.zig.txt",
+                "sha256": "d12fb5953a5c651ddbc6fd57636e1c91b1c27f14cbdf1d22dbdae371ecfd1a05"
+            }
+        ],
+        "binary_sha256": "b9bb41c0a9fda8fb82637428a4945e8390808789c5a6fc400b5495972f6768b3",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/concat-source/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "nested",
+        "route": "library",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9225aba080323d316951a65f2128edda/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d20ca2908401e27feb033c3f73315f43/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9225aba080323d316951a65f2128edda/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-nested-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/233dc1e118c24518569c2f1acae625d0/detached-reader-nested-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/233dc1e118c24518569c2f1acae625d0/detached-reader-nested-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-library/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9225aba080323d316951a65f2128edda/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-library/program.zig.txt",
+                "sha256": "512f50016da9f910929490209552817400dc4b3f2c13fb5b93831d349ad5c49a"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d20ca2908401e27feb033c3f73315f43/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-library/options.zig.txt",
+                "sha256": "16642bb5c9fa9c4a273da1daf8bc5f20345a99dcda47da984e22b8585bb5b0e9"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9225aba080323d316951a65f2128edda/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-library/zxc_abi.zig.txt",
+                "sha256": "62fee85b76ce0b4ba8182422906dadfecf62876f665d72d09691548836db9b76"
+            }
+        ],
+        "binary_sha256": "0d0d248cd0898063dc809e6c6786c1d1130be3494299fc3700fe56e4641a9744",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/nested-library/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "nested",
+        "route": "source",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9225aba080323d316951a65f2128edda/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d20ca2908401e27feb033c3f73315f43/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9225aba080323d316951a65f2128edda/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-nested-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/43ef4d4e918cf5db5e4eee6abee882ed/detached-reader-nested-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/43ef4d4e918cf5db5e4eee6abee882ed/detached-reader-nested-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-source/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9225aba080323d316951a65f2128edda/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-source/program.zig.txt",
+                "sha256": "aafbb1d6985b783f44ba7d24d51635b163999ea87f2682ef0861a8e3830f921e"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d20ca2908401e27feb033c3f73315f43/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-source/options.zig.txt",
+                "sha256": "16642bb5c9fa9c4a273da1daf8bc5f20345a99dcda47da984e22b8585bb5b0e9"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9225aba080323d316951a65f2128edda/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/nested-source/zxc_abi.zig.txt",
+                "sha256": "62fee85b76ce0b4ba8182422906dadfecf62876f665d72d09691548836db9b76"
+            }
+        ],
+        "binary_sha256": "62e11861d4289bbf6f448fd0adc24e7221aff53bce751bdc0156a2ad8ecc095b",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/nested-source/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "object",
+        "route": "library",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/692e3a28b46712e469233bbd600db0ea/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8ec439c020b07411d80a9baaa1caf57b/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/692e3a28b46712e469233bbd600db0ea/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-object-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ec5f7971f8e6d2302f19bd5f7a295562/detached-reader-object-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ec5f7971f8e6d2302f19bd5f7a295562/detached-reader-object-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-library/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/692e3a28b46712e469233bbd600db0ea/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-library/program.zig.txt",
+                "sha256": "4400a7747cd67808b46b991f8b6f45b92b7641db286622dbe84554d309f6bb1b"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8ec439c020b07411d80a9baaa1caf57b/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-library/options.zig.txt",
+                "sha256": "0dc6e41390ca488651ee8155bb8933c625f15414b3a3bc72a2e3e4327cdfb920"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/692e3a28b46712e469233bbd600db0ea/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-library/zxc_abi.zig.txt",
+                "sha256": "d12fb5953a5c651ddbc6fd57636e1c91b1c27f14cbdf1d22dbdae371ecfd1a05"
+            }
+        ],
+        "binary_sha256": "ddeab81c07d1814680c41b7dccb2c629c113035707619f1d9e3d9c6012a5ec53",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/object-library/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "object",
+        "route": "source",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/692e3a28b46712e469233bbd600db0ea/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8ec439c020b07411d80a9baaa1caf57b/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/692e3a28b46712e469233bbd600db0ea/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-object-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/b397c431c411b834038a78534a964b17/detached-reader-object-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/b397c431c411b834038a78534a964b17/detached-reader-object-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-source/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/692e3a28b46712e469233bbd600db0ea/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-source/program.zig.txt",
+                "sha256": "d8e7651ce318a8411fbd0bdc168874d5e9b297bf44a722af278d51a97809781f"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/8ec439c020b07411d80a9baaa1caf57b/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-source/options.zig.txt",
+                "sha256": "0dc6e41390ca488651ee8155bb8933c625f15414b3a3bc72a2e3e4327cdfb920"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/692e3a28b46712e469233bbd600db0ea/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/object-source/zxc_abi.zig.txt",
+                "sha256": "d12fb5953a5c651ddbc6fd57636e1c91b1c27f14cbdf1d22dbdae371ecfd1a05"
+            }
+        ],
+        "binary_sha256": "151e55e3a8ef6bfd799a9159c384e80f0f895f76579f9c035292e098e335a0b4",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/object-source/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "offset",
+        "route": "library",
+        "test_count": 7,
+        "test_names": [
+            "zero reduce preserves caller records strings and pointer slots for view readers",
+            "borrowed call views preserve old elements and logical bounds after append",
+            "borrowed call views preserve repeated selections and zero input steps",
+            "empty call views report exact bounds and preserve caller storage",
+            "borrowed call views and retained results survive large repeated growth",
+            "borrowed call views release every allocation failure during retained calls",
+            "empty call views release every allocation in zero and failing execution"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/views_test.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/6f318a847a27d31f3d23108c250283b0/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0f3723f7026e42102e20ff343059d3ed/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/6f318a847a27d31f3d23108c250283b0/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-offset-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0f650be15ecca10f3757acc9782f6f38/detached-reader-offset-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0f650be15ecca10f3757acc9782f6f38/detached-reader-offset-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/views_test.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-library/root.zig.txt",
+                "sha256": "0c82a06d06e17e6c55dab3e58e4efe873f81a7268acbb96fcdc888b640546d7a"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/6f318a847a27d31f3d23108c250283b0/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-library/program.zig.txt",
+                "sha256": "ff091e46157d8764f8539aee965240d91400247af5f9be081901530fe2cfdf7a"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0f3723f7026e42102e20ff343059d3ed/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-library/options.zig.txt",
+                "sha256": "38894f71687f446e423b2d3c090a2df24e72502435a68ec7e46ad1501f591a5e"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/6f318a847a27d31f3d23108c250283b0/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-library/zxc_abi.zig.txt",
+                "sha256": "995b88568b75ddc1aa297241b1bd0c6ec74a315caa2cfa70fac49049bf307f13"
+            }
+        ],
+        "binary_sha256": "cfed30072248f4e072b9283a30e1eb22ce4bd45cc475c8babf4d37e54ab0395b",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/offset-library/执行输出.txt",
+        "output_sha256": "d4f7efae65b17c8de6b5cb64fc52fed5011e5c473f270f113fd33d9206947199"
+    },
+    {
+        "kind": "offset",
+        "route": "source",
+        "test_count": 7,
+        "test_names": [
+            "zero reduce preserves caller records strings and pointer slots for view readers",
+            "borrowed call views preserve old elements and logical bounds after append",
+            "borrowed call views preserve repeated selections and zero input steps",
+            "empty call views report exact bounds and preserve caller storage",
+            "borrowed call views and retained results survive large repeated growth",
+            "borrowed call views release every allocation failure during retained calls",
+            "empty call views release every allocation in zero and failing execution"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/views_test.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/6f318a847a27d31f3d23108c250283b0/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0f3723f7026e42102e20ff343059d3ed/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/6f318a847a27d31f3d23108c250283b0/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-offset-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/68da5b6a43d4823a728a3ba451250143/detached-reader-offset-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/68da5b6a43d4823a728a3ba451250143/detached-reader-offset-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/views_test.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-source/root.zig.txt",
+                "sha256": "0c82a06d06e17e6c55dab3e58e4efe873f81a7268acbb96fcdc888b640546d7a"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/6f318a847a27d31f3d23108c250283b0/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-source/program.zig.txt",
+                "sha256": "17ee1e20c2a710882eb055acbc2018eef639773e308f68d9d9303351007bb682"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0f3723f7026e42102e20ff343059d3ed/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-source/options.zig.txt",
+                "sha256": "38894f71687f446e423b2d3c090a2df24e72502435a68ec7e46ad1501f591a5e"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/6f318a847a27d31f3d23108c250283b0/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/offset-source/zxc_abi.zig.txt",
+                "sha256": "995b88568b75ddc1aa297241b1bd0c6ec74a315caa2cfa70fac49049bf307f13"
+            }
+        ],
+        "binary_sha256": "baa32ba36340b31037429f2901c6bbc7c7919aca681c84327d3c5fe19aa32d04",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/offset-source/执行输出.txt",
+        "output_sha256": "d4f7efae65b17c8de6b5cb64fc52fed5011e5c473f270f113fd33d9206947199"
+    },
+    {
+        "kind": "optional",
+        "route": "library",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ecc58dc9ebf765a7b31ff235f101837c/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9549d753a37500192bf61fd527b05eac/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ecc58dc9ebf765a7b31ff235f101837c/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-optional-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/cc8aff210edf39eb30b3f181b79ab044/detached-reader-optional-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/cc8aff210edf39eb30b3f181b79ab044/detached-reader-optional-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-library/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ecc58dc9ebf765a7b31ff235f101837c/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-library/program.zig.txt",
+                "sha256": "86569c4e551212376c1871cebf71a2de0c26627ad64f8eacd93344b893d63bfe"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9549d753a37500192bf61fd527b05eac/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-library/options.zig.txt",
+                "sha256": "4dd76a04c57118546d548a932e526acbfd893c3ac2391ce3534573a3f416a0bd"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ecc58dc9ebf765a7b31ff235f101837c/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-library/zxc_abi.zig.txt",
+                "sha256": "02e7f4ff07f20b9da4a7efabb4e4314decb216ac5d878fcab33c6d6f904683bf"
+            }
+        ],
+        "binary_sha256": "1df20d84ff8032e966a2c569fdaccbc8f81a5e1753a7c354796c753641028c47",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/optional-library/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "optional",
+        "route": "source",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ecc58dc9ebf765a7b31ff235f101837c/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9549d753a37500192bf61fd527b05eac/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ecc58dc9ebf765a7b31ff235f101837c/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-optional-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/646319d51907a95514f53d0b6817a949/detached-reader-optional-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/646319d51907a95514f53d0b6817a949/detached-reader-optional-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-source/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ecc58dc9ebf765a7b31ff235f101837c/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-source/program.zig.txt",
+                "sha256": "058f3962df94500034cb7b7f864b71608acf158248b69b2bb5ce1a79ee3a0dca"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9549d753a37500192bf61fd527b05eac/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-source/options.zig.txt",
+                "sha256": "4dd76a04c57118546d548a932e526acbfd893c3ac2391ce3534573a3f416a0bd"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/ecc58dc9ebf765a7b31ff235f101837c/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/optional-source/zxc_abi.zig.txt",
+                "sha256": "02e7f4ff07f20b9da4a7efabb4e4314decb216ac5d878fcab33c6d6f904683bf"
+            }
+        ],
+        "binary_sha256": "767e4de53e6c9fc29dcb667213659e5b8c289db51337f4833d971c21bd484e26",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/optional-source/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "prefix",
+        "route": "library",
+        "test_count": 7,
+        "test_names": [
+            "zero reduce preserves caller records strings and pointer slots for view readers",
+            "borrowed call views preserve old elements and logical bounds after append",
+            "borrowed call views preserve repeated selections and zero input steps",
+            "empty call views report exact bounds and preserve caller storage",
+            "borrowed call views and retained results survive large repeated growth",
+            "borrowed call views release every allocation failure during retained calls",
+            "empty call views release every allocation in zero and failing execution"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/views_test.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/db4394604351b003e536e80905b64227/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/b43c0c3df162480152f0e381535fe4ca/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/db4394604351b003e536e80905b64227/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-prefix-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/4e46210a7218f6609e09749b05c104ec/detached-reader-prefix-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/4e46210a7218f6609e09749b05c104ec/detached-reader-prefix-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/views_test.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-library/root.zig.txt",
+                "sha256": "0c82a06d06e17e6c55dab3e58e4efe873f81a7268acbb96fcdc888b640546d7a"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/db4394604351b003e536e80905b64227/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-library/program.zig.txt",
+                "sha256": "27c06462f122cd363fe5bbf3906a8dd12d18e84ccbdec7c64d682af66f52eb61"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/b43c0c3df162480152f0e381535fe4ca/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-library/options.zig.txt",
+                "sha256": "3688efb6b91da81818d62d045102454760c5bbcc06998b2fee5cbdefe2f8addb"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/db4394604351b003e536e80905b64227/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-library/zxc_abi.zig.txt",
+                "sha256": "daf59d50770c04bf7ab3d27e1dcdf987cc0efc86aa5677464f378b047e49299a"
+            }
+        ],
+        "binary_sha256": "9659d9da19ac8ecc79436a6a77e85c8e7b769549a5f271b741e2bf17eb9e683d",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-library/执行输出.txt",
+        "output_sha256": "d4f7efae65b17c8de6b5cb64fc52fed5011e5c473f270f113fd33d9206947199"
+    },
+    {
+        "kind": "prefix",
+        "route": "source",
+        "test_count": 7,
+        "test_names": [
+            "zero reduce preserves caller records strings and pointer slots for view readers",
+            "borrowed call views preserve old elements and logical bounds after append",
+            "borrowed call views preserve repeated selections and zero input steps",
+            "empty call views report exact bounds and preserve caller storage",
+            "borrowed call views and retained results survive large repeated growth",
+            "borrowed call views release every allocation failure during retained calls",
+            "empty call views release every allocation in zero and failing execution"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/views_test.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/db4394604351b003e536e80905b64227/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/b43c0c3df162480152f0e381535fe4ca/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/db4394604351b003e536e80905b64227/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-prefix-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/82250f5584cd7d1520ea70241a0c1387/detached-reader-prefix-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/82250f5584cd7d1520ea70241a0c1387/detached-reader-prefix-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/views_test.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-source/root.zig.txt",
+                "sha256": "0c82a06d06e17e6c55dab3e58e4efe873f81a7268acbb96fcdc888b640546d7a"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/db4394604351b003e536e80905b64227/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-source/program.zig.txt",
+                "sha256": "a3c6e10d35280f8c1141ab6f5c352ff2051e4cfec1cd2a1e9558f5f7911da8d0"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/b43c0c3df162480152f0e381535fe4ca/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-source/options.zig.txt",
+                "sha256": "3688efb6b91da81818d62d045102454760c5bbcc06998b2fee5cbdefe2f8addb"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/db4394604351b003e536e80905b64227/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-source/zxc_abi.zig.txt",
+                "sha256": "daf59d50770c04bf7ab3d27e1dcdf987cc0efc86aa5677464f378b047e49299a"
+            }
+        ],
+        "binary_sha256": "d499255a33a2050636144b3da15030c91db515994551645c8955e6b4b004d832",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/prefix-source/执行输出.txt",
+        "output_sha256": "d4f7efae65b17c8de6b5cb64fc52fed5011e5c473f270f113fd33d9206947199"
+    },
+    {
+        "kind": "projection",
+        "route": "library",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c6bd3ebae790c429c37a9c00c411acc3/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/7218b93d9f458be753c6100c41c056f0/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c6bd3ebae790c429c37a9c00c411acc3/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-projection-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/036b2083ce45e985cd8b5fafe6aadef1/detached-reader-projection-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/036b2083ce45e985cd8b5fafe6aadef1/detached-reader-projection-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-library/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c6bd3ebae790c429c37a9c00c411acc3/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-library/program.zig.txt",
+                "sha256": "57b8f63b51247476f6239d2b5663c7c4670e642605d2e3fb3f947f27029bb634"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/7218b93d9f458be753c6100c41c056f0/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-library/options.zig.txt",
+                "sha256": "a7d06d8c69dfdf148897a3254d67f043de86aed549138dfa2194b2b80f8107fa"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c6bd3ebae790c429c37a9c00c411acc3/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-library/zxc_abi.zig.txt",
+                "sha256": "d12fb5953a5c651ddbc6fd57636e1c91b1c27f14cbdf1d22dbdae371ecfd1a05"
+            }
+        ],
+        "binary_sha256": "7a4e2626d4cbfbaa75866149ae4599acdae3c317ed14f61197f7efc34456b0ff",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/projection-library/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "projection",
+        "route": "source",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c6bd3ebae790c429c37a9c00c411acc3/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/7218b93d9f458be753c6100c41c056f0/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c6bd3ebae790c429c37a9c00c411acc3/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-projection-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/bc169ff4be98606311632e253818c610/detached-reader-projection-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/bc169ff4be98606311632e253818c610/detached-reader-projection-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-source/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c6bd3ebae790c429c37a9c00c411acc3/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-source/program.zig.txt",
+                "sha256": "b02f073b8d46abb206fb2a5f4d2522ec7f53295a810d131404cf636d68afe66b"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/7218b93d9f458be753c6100c41c056f0/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-source/options.zig.txt",
+                "sha256": "a7d06d8c69dfdf148897a3254d67f043de86aed549138dfa2194b2b80f8107fa"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c6bd3ebae790c429c37a9c00c411acc3/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/projection-source/zxc_abi.zig.txt",
+                "sha256": "d12fb5953a5c651ddbc6fd57636e1c91b1c27f14cbdf1d22dbdae371ecfd1a05"
+            }
+        ],
+        "binary_sha256": "c30017fc8e1d6290c79d0e3982ad723a1391187d8b430a0937bcfd02a5f536f8",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/projection-source/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "reference",
+        "route": "library",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9f60cac31354c0015220337a26c0cdf6/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/045bfd19702cf8de602496619c053cb0/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9f60cac31354c0015220337a26c0cdf6/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-reference-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d16e22442c06e07c2c44c474b93f37cf/detached-reader-reference-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d16e22442c06e07c2c44c474b93f37cf/detached-reader-reference-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-library/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9f60cac31354c0015220337a26c0cdf6/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-library/program.zig.txt",
+                "sha256": "f441e7305530acdfa46afaab67c1d438ece78b0319c3eb8188ef5f41b8065dc2"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/045bfd19702cf8de602496619c053cb0/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-library/options.zig.txt",
+                "sha256": "04a598b04318fa1049d5571d674131474e4f5c54039ddf6876f851e40cf339e7"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9f60cac31354c0015220337a26c0cdf6/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-library/zxc_abi.zig.txt",
+                "sha256": "f213595db22fb90dfe5b30fca80a35911de250e8886505021e55a087278cd66a"
+            }
+        ],
+        "binary_sha256": "32b39869f52f9f2bf93f9352f88861d94c6a756cc47792108d1fa27eaa8ed761",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/reference-library/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "reference",
+        "route": "source",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9f60cac31354c0015220337a26c0cdf6/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/045bfd19702cf8de602496619c053cb0/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9f60cac31354c0015220337a26c0cdf6/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-reference-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/39eb8dfb91379c73b68e6582365f33ac/detached-reader-reference-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/39eb8dfb91379c73b68e6582365f33ac/detached-reader-reference-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-source/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9f60cac31354c0015220337a26c0cdf6/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-source/program.zig.txt",
+                "sha256": "833a04f46789466fd14df476c4aa517f97d30681d0837c365e3b33dd09ef3794"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/045bfd19702cf8de602496619c053cb0/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-source/options.zig.txt",
+                "sha256": "04a598b04318fa1049d5571d674131474e4f5c54039ddf6876f851e40cf339e7"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/9f60cac31354c0015220337a26c0cdf6/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reference-source/zxc_abi.zig.txt",
+                "sha256": "f213595db22fb90dfe5b30fca80a35911de250e8886505021e55a087278cd66a"
+            }
+        ],
+        "binary_sha256": "d447116025d6fbb68f5743347a84306df02c9334f1fad0df235a5d226bc69176",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/reference-source/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "reverse",
+        "route": "library",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/1bbf4649147f408e4a7bc594a07e8432/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0e76192975dff0d4e6987ebfa2b4ee5b/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/1bbf4649147f408e4a7bc594a07e8432/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-reverse-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/7d1f6cbac260c781d4eb8cc15806026b/detached-reader-reverse-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/7d1f6cbac260c781d4eb8cc15806026b/detached-reader-reverse-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-library/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/1bbf4649147f408e4a7bc594a07e8432/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-library/program.zig.txt",
+                "sha256": "e96650d8454442f15ff369650151226e82480b8521ce7b928c8e6375c8b69e22"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0e76192975dff0d4e6987ebfa2b4ee5b/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-library/options.zig.txt",
+                "sha256": "a1e40ede6f1a88c1a8fa936704ccdb4b2845b2356df75ba6eb37acd0172ab9a7"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/1bbf4649147f408e4a7bc594a07e8432/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-library/zxc_abi.zig.txt",
+                "sha256": "d12fb5953a5c651ddbc6fd57636e1c91b1c27f14cbdf1d22dbdae371ecfd1a05"
+            }
+        ],
+        "binary_sha256": "b4a6fe7167056c2c1e5f7913cd371fee9a8b6dcf7df8f5718c7b4b2673dab62e",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-library/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "reverse",
+        "route": "source",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/1bbf4649147f408e4a7bc594a07e8432/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0e76192975dff0d4e6987ebfa2b4ee5b/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/1bbf4649147f408e4a7bc594a07e8432/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-reverse-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/f07d28e633a8ec860fffb1ea3e10b39c/detached-reader-reverse-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/f07d28e633a8ec860fffb1ea3e10b39c/detached-reader-reverse-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-source/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/1bbf4649147f408e4a7bc594a07e8432/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-source/program.zig.txt",
+                "sha256": "93ec1ce0cee871fee8e0412be3bedcaecc0d79129f2a744ed079f25c8d090a00"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/0e76192975dff0d4e6987ebfa2b4ee5b/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-source/options.zig.txt",
+                "sha256": "a1e40ede6f1a88c1a8fa936704ccdb4b2845b2356df75ba6eb37acd0172ab9a7"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/1bbf4649147f408e4a7bc594a07e8432/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-source/zxc_abi.zig.txt",
+                "sha256": "d12fb5953a5c651ddbc6fd57636e1c91b1c27f14cbdf1d22dbdae371ecfd1a05"
+            }
+        ],
+        "binary_sha256": "967662e9c710e4870896584ba45cb36440fc566341b2b8f9f35061b72ec98f0c",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/reverse-source/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "tuple",
+        "route": "library",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c4faedf9f698f4adc9f887eba0ce5b36/library.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d85ac3807f335caf134a42c75664430d/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c4faedf9f698f4adc9f887eba0ce5b36/library_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-tuple-library",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/3717648479f2f4d798fc0053e42c868f/detached-reader-tuple-library",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/3717648479f2f4d798fc0053e42c868f/detached-reader-tuple-library"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-library/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c4faedf9f698f4adc9f887eba0ce5b36/library.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-library/program.zig.txt",
+                "sha256": "330bb129fb20dbdd0b880e772199efe7d8ffaaba304787da2803006f460a0a31"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d85ac3807f335caf134a42c75664430d/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-library/options.zig.txt",
+                "sha256": "bee949d730d389b0c347b38962effc46a1624d397680952dd39325aa8749d363"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-library/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c4faedf9f698f4adc9f887eba0ce5b36/library_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-library/zxc_abi.zig.txt",
+                "sha256": "58cb51f86e4812b8d076ba30a8283b04ab4196284de5cc24968990173599fdb3"
+            }
+        ],
+        "binary_sha256": "6a1f6b8065ae0e4dbceac117d8742876bdc2da66a6986bd14e064a88ddb0cf8a",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-library/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    },
+    {
+        "kind": "tuple",
+        "route": "source",
+        "test_count": 8,
+        "test_names": [
+            "zero reduce preserves all caller records strings and pointer slots",
+            "detached readers survive caller list growth and post-append old field use",
+            "repeated indexes and zero items keep exact order and optional branches",
+            "empty reader either preserves optional fallback or reports exact bounds",
+            "eligible reader append storage stays bounded as inputs grow",
+            "nonempty caller repeated execution releases every failed allocation",
+            "zero reduce then failing or optional later execution releases every allocation",
+            "empty caller reader failure or optional growth releases every allocation"
+        ],
+        "compiler_argv": [
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig",
+            "test",
+            "-Osafe",
+            "--dep",
+            "program",
+            "--dep",
+            "options",
+            "--dep",
+            "allocation_testing",
+            "-Mroot=tests/collections/detached_reader/root.zig",
+            "-Osafe",
+            "--dep",
+            "zxc_abi",
+            "-Mprogram=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c4faedf9f698f4adc9f887eba0ce5b36/source.zig",
+            "-Moptions=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d85ac3807f335caf134a42c75664430d/options.zig",
+            "-Osafe",
+            "-Mallocation_testing=tests/support/allocation_testing.zig",
+            "-Osafe",
+            "-Mzxc_abi=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c4faedf9f698f4adc9f887eba0ce5b36/source_abi.zig",
+            "--cache-dir",
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--global-cache-dir",
+            "/Users/xiewendao/.cache/zig",
+            "--build-root",
+            ".",
+            "--name",
+            "detached-reader-tuple-source",
+            "--zig-lib-dir",
+            "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/",
+            "--listen=-"
+        ],
+        "build_runner_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/7ba3a6ad080f619f52cc2114e695e67d/detached-reader-tuple-source",
+            "--cache-dir=/tmp/zxc-borrowed-views-releasesafe-3b5a20b6",
+            "--seed=0x1d4121b8",
+            "--listen=-"
+        ],
+        "replay_argv": [
+            "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/7ba3a6ad080f619f52cc2114e695e67d/detached-reader-tuple-source"
+        ],
+        "exit_code": 0,
+        "files": [
+            {
+                "module": "root",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/collections/detached_reader/root.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-source/root.zig.txt",
+                "sha256": "5326bcc031d6a6ac5f46e29d029049596a4a03f56d270c78517e7a6cffdd1584"
+            },
+            {
+                "module": "program",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c4faedf9f698f4adc9f887eba0ce5b36/source.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-source/program.zig.txt",
+                "sha256": "48030dddd6f3ea61791df7200925fb33f8563040e00b2d5134eb18db8ed7c600"
+            },
+            {
+                "module": "options",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/d85ac3807f335caf134a42c75664430d/options.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-source/options.zig.txt",
+                "sha256": "bee949d730d389b0c347b38962effc46a1624d397680952dd39325aa8749d363"
+            },
+            {
+                "module": "allocation_testing",
+                "actual_path": "/Users/xiewendao/.codex/worktrees/borrowed-call-views/zxc/packages/test/tests/support/allocation_testing.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-source/allocation_testing.zig.txt",
+                "sha256": "f7852556e0a664a99508ba2f23ec54f819be1d5522981bb8fc55de05161c048c"
+            },
+            {
+                "module": "zxc_abi",
+                "actual_path": "/tmp/zxc-borrowed-views-releasesafe-3b5a20b6/o/c4faedf9f698f4adc9f887eba0ce5b36/source_abi.zig",
+                "saved_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-source/zxc_abi.zig.txt",
+                "sha256": "58cb51f86e4812b8d076ba30a8283b04ab4196284de5cc24968990173599fdb3"
+            }
+        ],
+        "binary_sha256": "e052dc94dd20ab36effd9f3256d89340b90aafe89420be95ec880e1f798c486f",
+        "output_path": "生成产物/3b5a20b6/ReleaseSafe/tuple-source/执行输出.txt",
+        "output_sha256": "00fca28294232f4992cba45fd49d08dc41b2c1fa94f8f75231b613748af1f333"
+    }
+]

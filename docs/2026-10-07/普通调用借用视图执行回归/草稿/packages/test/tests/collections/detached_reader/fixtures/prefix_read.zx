@@ -1,0 +1,9 @@
+import type { Cell, ReadInput } from "./model"
+
+export type Input = ReadInput
+
+export type Output = Cell[]
+
+export default function (in: Input): Output {
+    return in.values.length <= 1 ? in.values : in.values.pop()[0]
+}

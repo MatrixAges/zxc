@@ -1,0 +1,9 @@
+import type { Cell, ReadInput } from "./model"
+
+export type Input = ReadInput
+
+export type Output = Cell[]
+
+export default function (in: Input): Output {
+    return in.values.splice(in.selected, in.values.length - in.selected, [])[1]
+}

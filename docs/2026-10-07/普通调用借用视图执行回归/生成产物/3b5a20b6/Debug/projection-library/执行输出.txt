@@ -1,0 +1,9 @@
+1/8 root.test.zero reduce preserves all caller records strings and pointer slots...OK
+2/8 root.test.detached readers survive caller list growth and post-append old field use...OK
+3/8 root.test.repeated indexes and zero items keep exact order and optional branches...OK
+4/8 root.test.empty reader either preserves optional fallback or reports exact bounds...OK
+5/8 root.test.eligible reader append storage stays bounded as inputs grow...OK
+6/8 root.test.nonempty caller repeated execution releases every failed allocation...OK
+7/8 root.test.zero reduce then failing or optional later execution releases every allocation...OK
+8/8 root.test.empty caller reader failure or optional growth releases every allocation...OK
+All 8 tests passed.

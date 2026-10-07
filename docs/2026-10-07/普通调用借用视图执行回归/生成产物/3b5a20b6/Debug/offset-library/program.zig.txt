@@ -1,0 +1,426 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_19;
+
+pub const Output = *const (zx_abi).zx_type_20;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .object, .fields = .{ .label = zx_shape_10, .value = zx_shape_5, }, };
+
+const zx_shape_12 = .{ .kind = .list, .child = zx_shape_11, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .label = zx_shape_10, .seen = zx_shape_5, .values = zx_shape_12, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .selected = zx_shape_5, .values = zx_shape_12, }, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .item = zx_shape_5, .state = zx_shape_13, }, };
+
+const zx_shape_16 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_12, .@"1" = zx_shape_12, }, };
+
+const zx_shape_17 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_12, .@"1" = zx_shape_0, }, };
+
+const zx_shape_18 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_19 = .{ .kind = .object, .fields = .{ .label = zx_shape_10, .seed = zx_shape_12, .steps = zx_shape_18, }, };
+
+const zx_shape_20 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .label = zx_shape_10, .mirror = zx_shape_12, .original = zx_shape_12, .seen = zx_shape_5, .values = zx_shape_12, }, };
+
+pub const input_shape = zx_shape_19;
+
+pub const output_shape = zx_shape_20;
+
+fn function_0(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_14) error{ IndexOutOfBounds, OutOfMemory, Overflow, }![]const *const (zx_abi).zx_type_11 {
+    @setRuntimeSafety(true);
+
+    return block_8: {
+        const operand_1 = (in).values;
+        const operand_2 = (in).selected;
+        const operand_3 = (@as(u64, ((in).values).len) - (in).selected);
+        const operand_5 = block_4: {
+            break :block_4 (try (allocator).dupe(*const (zx_abi).zx_type_11, (&[_]*const (zx_abi).zx_type_11{})));
+        };
+
+        if (((operand_2 > (operand_1).len) or (operand_3 > ((operand_1).len - operand_2)))) {
+            return error.IndexOutOfBounds;
+        }
+
+        const operand_6 = @as(usize, @intCast(operand_2));
+        const operand_7 = @as(usize, @intCast(operand_3));
+
+        _ = (try ((std).math).add(usize, ((operand_1).len - operand_7), (operand_5).len));
+
+        break :block_8 (operand_1)[operand_6..(operand_6 + operand_7)];
+    };
+}
+
+fn function_1(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_15) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    const value_1: u64 = (if ((@as(u64, (((in).state).values).len) == @as(u64, 0))) @as(u64, 0) else @rem((in).item, @as(u64, (((in).state).values).len)));
+    const value_2: []const *const (zx_abi).zx_type_11 = (try function_0(allocator, block_33: {
+        const operand_29 = ((in).state).values;
+        const operand_30 = value_1;
+
+        break :block_33 block_32: {
+            const operand_31 = (try (allocator).create((zx_abi).zx_type_14));
+
+            (operand_31).* = @as((zx_abi).zx_type_14, (zx_abi).zx_type_14{ .values = operand_29, .selected = operand_30, });
+
+            break :block_32 @as(*const (zx_abi).zx_type_14, operand_31);
+        };
+    }));
+    const value_3: []const *const (zx_abi).zx_type_11 = (block_28: {
+        const operand_14 = ((in).state).values;
+        const operand_26 = block_25: {
+            const operand_15 = (((block_18: {
+                const operand_16 = value_2;
+                const operand_17 = @as(u64, 0);
+
+                if ((operand_17 >= (operand_16).len)) {
+                    return error.IndexOutOfBounds;
+                }
+
+                break :block_18 (operand_16)[@intCast(operand_17)];
+            }).value + (in).item) + @as(u64, 1));
+            const operand_19 = (block_22: {
+                const operand_20 = value_2;
+                const operand_21 = @as(u64, 0);
+
+                if ((operand_21 >= (operand_20).len)) {
+                    return error.IndexOutOfBounds;
+                }
+
+                break :block_22 (operand_20)[@intCast(operand_21)];
+            }).label;
+
+            break :block_25 block_24: {
+                const operand_23 = (try (allocator).create((zx_abi).zx_type_11));
+
+                (operand_23).* = @as((zx_abi).zx_type_11, (zx_abi).zx_type_11{ .value = operand_15, .label = operand_19, });
+
+                break :block_24 @as(*const (zx_abi).zx_type_11, operand_23);
+            };
+        };
+        const operand_27 = (try (allocator).alloc(*const (zx_abi).zx_type_11, (try ((std).math).add(usize, (operand_14).len, 1))));
+
+        @memcpy((operand_27)[0..(operand_14).len], operand_14);
+
+        (operand_27)[(operand_14).len] = operand_26;
+
+        break :block_28 @as((zx_abi).zx_type_17, .{ operand_27, {}, });
+    }).@"0";
+
+    return block_13: {
+        const operand_1 = value_3;
+        const operand_2 = ((((in).state).seen + (block_5: {
+            const operand_3 = value_2;
+            const operand_4 = @as(u64, 0);
+
+            if ((operand_4 >= (operand_3).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_5 (operand_3)[@intCast(operand_4)];
+        }).value) + @as(u64, (value_2).len));
+        const operand_6 = (block_9: {
+            const operand_7 = value_2;
+            const operand_8 = @as(u64, 0);
+
+            if ((operand_8 >= (operand_7).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_9 (operand_7)[@intCast(operand_8)];
+        }).label;
+        const operand_10 = (((in).state).count + @as(u64, 1));
+
+        break :block_13 block_12: {
+            const operand_11 = (try (allocator).create((zx_abi).zx_type_13));
+
+            (operand_11).* = @as((zx_abi).zx_type_13, (zx_abi).zx_type_13{ .values = operand_1, .seen = operand_2, .label = operand_6, .count = operand_10, });
+
+            break :block_12 @as(*const (zx_abi).zx_type_13, operand_11);
+        };
+    };
+}
+
+fn function_1_value(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_15_455ec73b9aeac5def17353be03fafb63798ca6f942034cf59d8714d7d36a663b) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!(zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 {
+    @setRuntimeSafety(true);
+
+    const value_1: u64 = (if ((@as(u64, (((in).state).values).len) == @as(u64, 0))) @as(u64, 0) else @rem((in).item, @as(u64, (((in).state).values).len)));
+    const value_2: []const *const (zx_abi).zx_type_11 = block_72: {
+        const operand_70 = block_69: {
+            const operand_66 = ((in).state).values;
+            const operand_67 = block_68: {
+                break :block_68 value_1;
+            };
+
+            break :block_69 @as((zx_abi).value_zx_type_14_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814, (zx_abi).value_zx_type_14_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814{ .values = operand_66, .selected = operand_67, });
+        };
+
+        var state_borrow_71: (zx_abi).zx_type_14 = undefined;
+
+        state_borrow_71 = (zx_abi).zx_type_14{ .selected = (operand_70).selected, .values = (operand_70).values, };
+
+        break :block_72 (try function_0(allocator, ((operand_70).zx_origin orelse (&state_borrow_71))));
+    };
+    const value_3: []const *const (zx_abi).zx_type_11 = (block_65: {
+        const operand_49 = ((in).state).values;
+        const operand_63 = block_62: {
+            const operand_50 = (((block_54: {
+                const operand_52 = block_51: {
+                    break :block_51 value_2;
+                };
+                const operand_53 = @as(u64, 0);
+
+                if ((operand_53 >= (operand_52).len)) {
+                    return error.IndexOutOfBounds;
+                }
+
+                break :block_54 (operand_52)[@intCast(operand_53)];
+            }).value + (in).item) + @as(u64, 1));
+            const operand_55 = (block_59: {
+                const operand_57 = block_56: {
+                    break :block_56 value_2;
+                };
+                const operand_58 = @as(u64, 0);
+
+                if ((operand_58 >= (operand_57).len)) {
+                    return error.IndexOutOfBounds;
+                }
+
+                break :block_59 (operand_57)[@intCast(operand_58)];
+            }).label;
+
+            break :block_62 block_61: {
+                const operand_60 = (try (allocator).create((zx_abi).zx_type_11));
+
+                (operand_60).* = @as((zx_abi).zx_type_11, (zx_abi).zx_type_11{ .value = operand_50, .label = operand_55, });
+
+                break :block_61 @as(*const (zx_abi).zx_type_11, operand_60);
+            };
+        };
+        const operand_64 = (try (allocator).alloc(*const (zx_abi).zx_type_11, (try ((std).math).add(usize, (operand_49).len, 1))));
+
+        @memcpy((operand_64)[0..(operand_49).len], operand_49);
+
+        (operand_64)[(operand_49).len] = operand_63;
+
+        break :block_65 @as((zx_abi).value_zx_type_17_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814, .{ operand_64, {}, null, });
+    }).@"0";
+
+    return block_48: {
+        const operand_34 = block_35: {
+            break :block_35 value_3;
+        };
+        const operand_36 = ((((in).state).seen + (block_40: {
+            const operand_38 = block_37: {
+                break :block_37 value_2;
+            };
+            const operand_39 = @as(u64, 0);
+
+            if ((operand_39 >= (operand_38).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_40 (operand_38)[@intCast(operand_39)];
+        }).value) + @as(u64, (block_41: {
+            break :block_41 value_2;
+        }).len));
+        const operand_42 = (block_46: {
+            const operand_44 = block_43: {
+                break :block_43 value_2;
+            };
+            const operand_45 = @as(u64, 0);
+
+            if ((operand_45 >= (operand_44).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_46 (operand_44)[@intCast(operand_45)];
+        }).label;
+        const operand_47 = (((in).state).count + @as(u64, 1));
+
+        break :block_48 @as((zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165, (zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165{ .values = operand_34, .seen = operand_36, .label = operand_42, .count = operand_47, });
+    };
+}
+
+fn function_2(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_19) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_20 {
+    @setRuntimeSafety(true);
+
+    const value_2: []const *const (zx_abi).zx_type_11 = block_32: {
+        const operand_29 = (in).seed;
+        const operand_30 = (try (allocator).alloc(*const (zx_abi).zx_type_11, (operand_29).len));
+
+        for (operand_29, 0..) |value_1, index_31| {
+            (operand_30)[index_31] = value_1;
+        }
+
+        break :block_32 operand_30;
+    };
+    const value_3: *const (zx_abi).zx_type_13 = block_28: {
+        const operand_22 = value_2;
+        const operand_23 = @as(u64, 0);
+        const operand_24 = (in).label;
+        const operand_25 = @as(u64, 0);
+
+        break :block_28 block_27: {
+            const operand_26 = (try (allocator).create((zx_abi).zx_type_13));
+
+            (operand_26).* = @as((zx_abi).zx_type_13, (zx_abi).zx_type_13{ .values = operand_22, .seen = operand_23, .label = operand_24, .count = operand_25, });
+
+            break :block_27 @as(*const (zx_abi).zx_type_13, operand_26);
+        };
+    };
+    const value_6: *const (zx_abi).zx_type_13 = block_21: {
+        const operand_10 = (in).steps;
+        const operand_11 = value_3;
+
+        var value_4: (zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 = (zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165{ .count = (operand_11).count, .label = (operand_11).label, .seen = (operand_11).seen, .values = (operand_11).values, .zx_origin = operand_11, };
+
+        var state_changed_12 = false;
+
+        for (operand_10) |value_5| {
+            value_4 = block_17: {
+                break :block_17 (try function_1_value(allocator, block_16: {
+                    const operand_13 = value_4;
+                    const operand_14 = block_15: {
+                        break :block_15 value_5;
+                    };
+
+                    break :block_16 @as((zx_abi).value_zx_type_15_455ec73b9aeac5def17353be03fafb63798ca6f942034cf59d8714d7d36a663b, (zx_abi).value_zx_type_15_455ec73b9aeac5def17353be03fafb63798ca6f942034cf59d8714d7d36a663b{ .state = operand_13, .item = operand_14, });
+                }));
+            };
+
+            state_changed_12 = true;
+        }
+
+        break :block_21 (if (state_changed_12) block_20: {
+            break :block_20 (if (((value_4).zx_origin != null)) (value_4).zx_origin.? else block_19: {
+                const operand_18 = (try (allocator).create((zx_abi).zx_type_13));
+
+                (operand_18).* = (zx_abi).zx_type_13{ .count = (value_4).count, .label = (value_4).label, .seen = (value_4).seen, .values = (value_4).values, };
+
+                break :block_19 @as(*const (zx_abi).zx_type_13, operand_18);
+            });
+        } else operand_11);
+    };
+
+    return block_9: {
+        const operand_1 = (value_6).values;
+        const operand_2 = (value_6).values;
+        const operand_3 = (in).seed;
+        const operand_4 = (value_6).seen;
+        const operand_5 = (value_6).label;
+        const operand_6 = (value_6).count;
+
+        break :block_9 block_8: {
+            const operand_7 = (try (allocator).create((zx_abi).zx_type_20));
+
+            (operand_7).* = @as((zx_abi).zx_type_20, (zx_abi).zx_type_20{ .values = operand_1, .mirror = operand_2, .original = operand_3, .seen = operand_4, .label = operand_5, .count = operand_6, });
+
+            break :block_8 @as(*const (zx_abi).zx_type_20, operand_7);
+        };
+    };
+}
+
+fn function_2_value(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_19_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!(zx_abi).value_zx_type_20_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701 {
+    @setRuntimeSafety(true);
+
+    const value_2: []const *const (zx_abi).zx_type_11 = block_60: {
+        const operand_56 = (in).seed;
+        const operand_58 = (try (allocator).alloc(*const (zx_abi).zx_type_11, (operand_56).len));
+
+        for (operand_56, 0..) |value_1, index_59| {
+            (operand_58)[index_59] = block_57: {
+                break :block_57 value_1;
+            };
+        }
+
+        break :block_60 operand_58;
+    };
+    const value_3: (zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 = block_55: {
+        const operand_50 = block_51: {
+            break :block_51 value_2;
+        };
+        const operand_52 = @as(u64, 0);
+        const operand_53 = (in).label;
+        const operand_54 = @as(u64, 0);
+
+        break :block_55 @as((zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165, (zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165{ .values = operand_50, .seen = operand_52, .label = operand_53, .count = operand_54, });
+    };
+    const value_6: (zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 = block_49: {
+        const operand_40 = (in).steps;
+        const operand_41 = value_3;
+
+        var value_4: (zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 = operand_41;
+
+        var state_changed_42 = false;
+
+        for (operand_40) |value_5| {
+            value_4 = block_47: {
+                break :block_47 (try function_1_value(allocator, block_46: {
+                    const operand_43 = value_4;
+                    const operand_44 = block_45: {
+                        break :block_45 value_5;
+                    };
+
+                    break :block_46 @as((zx_abi).value_zx_type_15_455ec73b9aeac5def17353be03fafb63798ca6f942034cf59d8714d7d36a663b, (zx_abi).value_zx_type_15_455ec73b9aeac5def17353be03fafb63798ca6f942034cf59d8714d7d36a663b{ .state = operand_43, .item = operand_44, });
+                }));
+            };
+
+            state_changed_42 = true;
+        }
+
+        break :block_49 (if (state_changed_42) block_48: {
+            break :block_48 @as((zx_abi).value_zx_type_13_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165, value_4);
+        } else operand_41);
+    };
+
+    return block_39: {
+        const operand_33 = (value_6).values;
+        const operand_34 = (value_6).values;
+        const operand_35 = (in).seed;
+        const operand_36 = (value_6).seen;
+        const operand_37 = (value_6).label;
+        const operand_38 = (value_6).count;
+
+        break :block_39 @as((zx_abi).value_zx_type_20_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701, (zx_abi).value_zx_type_20_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701{ .values = operand_33, .mirror = operand_34, .original = operand_35, .seen = operand_36, .label = operand_37, .count = operand_38, });
+    };
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_19) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_20 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return (try function_2(allocator, in));
+}
+
