@@ -1,0 +1,17 @@
+const check = @import("support").check;
+
+test "language/statements/assignment_boundaries/carriage_return/0" {
+    try check(@import("program"), "", .{ .value = "carriage-return" });
+}
+
+test "language/statements/assignment_boundaries/carriage_return/1" {
+    try check(@import("program"), "different", .{ .value = "carriage-return" });
+}
+
+test "language/statements/assignment_boundaries/carriage_return/2" {
+    try check(@import("program"), "carriage-return", .{ .value = "carriage-return" });
+}
+
+test "language/statements/assignment_boundaries/carriage_return/3" {
+    try check(@import("program"), "\xe6\xbc\xa2\xe5\xad\x97", .{ .value = "carriage-return" });
+}

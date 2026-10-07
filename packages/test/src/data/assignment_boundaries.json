@@ -1,0 +1,771 @@
+{
+    "originals": [
+        {
+            "path": "test/language/expressions/assignment/line-terminator.js",
+            "sha256": "7c5d367114f880210f8d11c919b83ae912128e8e725efc644865f41e6d815166",
+            "status": "adapted",
+            "reason": "\u4fdd\u7559\u539f LF=LFtrue \u4e0e\u8d4b\u503c\u540e true \u65ad\u8a00\uff1bvar x \u6539\u4e3a\u7c7b\u578b\u5316 loop state.value\uff0c\u589e\u52a0 true/false \u521d\u503c\u3002",
+            "negative": false,
+            "assertions": 1
+        },
+        {
+            "path": "test/language/expressions/assignment/target-cover-id.js",
+            "sha256": "fa1769dffb802d035ca4771d5dcd0120fa6bc8f8b7b9bf0f2adfa9a07b555fd2",
+            "status": "adapted",
+            "reason": "\u4fdd\u7559\u5706\u62ec\u53f7\u5305\u88f9\u7684\u5b9e\u9645\u8d4b\u503c\u76ee\u6807\u4e0e\u8d4b\u503c\u540e\u6570\u503c 1\uff1bIdentifierReference x \u6539\u4e3a\u663e\u5f0f loop state \u5b57\u6bb5\uff0c\u62ec\u53f7\u672a\u88ab\u53bb\u9664\u3002",
+            "negative": false,
+            "assertions": 1
+        },
+        {
+            "path": "test/language/expressions/assignment/member-expr-ident-name-extends.js",
+            "sha256": "40962b3ff542789c44a7a71d7d828f1ca2fc99f3cc6fec42cff102e30a582d1b",
+            "status": "excluded",
+            "reason": "\u539f\u6587\u52a8\u6001\u521b\u5efa extends \u5c5e\u6027\u5e76\u901a\u8fc7 obj[\"extends\"] \u8bfb\u53d6\uff1b\u5f53\u524d\u56fa\u5b9a\u5f62\u72b6\u7684\u70b9\u5c5e\u6027\u5199\u56de42\u6709\u72ec\u7acb\u8fd0\u884c\u63a7\u5236\uff0c\u4f46\u539f\u8ba1\u7b97\u5b57\u6bb5\u8bfb\u53d6\u5b9e\u9645analyze/type_mismatch\u62d2\u7edd\u3002\u4fdd\u7559\u5199\u56de\u63a7\u5236\u4e0e\u8be5\u7f3a\u53e3\uff0c\u4e0d\u628a\u9759\u6001\u70b9\u8bfb\u53d6\u66ff\u6362\u539f\u8bfb\u53d6\u540e\u767b\u8bb0\u6574\u4efd\u8fd0\u884c\u9002\u914d\u3002",
+            "negative": false,
+            "assertions": 1
+        },
+        {
+            "path": "test/language/expressions/assignment/white-space.js",
+            "sha256": "0b40f07b572cb22b4116f0fc4bfb879de1415d2b5b967244bb0fe0203100aeda",
+            "status": "excluded",
+            "reason": "\u4e5d\u9879\u539f\u8d4b\u503c\u540e\u5b57\u7b26\u4e32\u65ad\u8a00\u5305\u542b ASCII \u4e0e Unicode \u7a7a\u767d\u3002\u4fdd\u7559 TAB/VT/FF/SPACE/\u6807\u6ce8U+000D\u7684LF \u7684\u4e94\u9879\u771f\u5b9e\u8fd0\u884c\u65ad\u8a00\uff1bNBSP\u3001U+2028\u3001U+2029\u3001\u7ec4\u5408\u7a7a\u767d\u5728 parse/lexical \u62d2\u7edd\uff0c\u4e0e\u660e\u786e ASCII \u7a7a\u767d\u5951\u7ea6\u4e00\u81f4\u3002\u6574\u4efd\u539f\u6587\u4ecd\u4e0d\u517c\u5bb9\uff0c\u4e0d\u628a\u90e8\u5206\u6295\u5f71\u767b\u8bb0\u4e3a\u5168\u90e8\u901a\u8fc7\u3002 \u9501\u5b9a\u539f\u6587\u7b2c7\u9879\u548c\u7ec4\u5408\u4e2d\u7684\u5b9e\u9645\u5b57\u8282\u4e3a0A\u800c\u975e0D\uff0c\u6309\u539f\u5b57\u8282\u4fdd\u7559\uff1b\u5b9e\u9645CR\u53e6\u5217\u4e3azxc\u81ea\u6709\u63a7\u5236\u3002",
+            "negative": false,
+            "assertions": 9
+        },
+        {
+            "path": "test/language/expressions/assignment/target-number.js",
+            "sha256": "891e96b9bc7e14fe5546973e8c07a7ce0d8a24edfbb0f32c01b364a5503f6a23",
+            "status": "adapted",
+            "reason": "\u4fdd\u7559\u539f\u975e\u6cd5\u5b57\u9762\u91cf\u76ee\u6807\u4e0e =42\uff1b\u5728\u663e\u5f0f state \u66f4\u65b0\u5757\u4e2d parse/syntax \u62d2\u7edd\uff0c\u4e0e JS \u65e9\u671f SyntaxError \u9636\u6bb5\u4e00\u81f4\u3002\u5b9e\u9645\u62d2\u7edd\u53d1\u751f\u5728\u8bed\u53e5\u5206\u6d3e\uff0c\u4e0d\u80fd\u79f0\u5df2\u5230\u8fbe IR \u7684 Reference \u76ee\u6807\u6821\u9a8c\u3002 \u53e6\u4fdd\u7559\u62ec\u53f7\u5305\u88f9\u540c\u4e00\u5b57\u9762\u91cf\u7684\u8865\u5145\u7528\u4f8b\uff0cparse\u63a5\u53d7\u540eanalyze/ownership\u62d2\u7edd\uff0c\u5b9e\u9645\u9a8c\u8bc1\u72b6\u6001\u66f4\u65b0\u7684\u76ee\u6807\u68c0\u67e5\uff0c\u5e76\u660e\u786e\u6b64\u9636\u6bb5\u533a\u522b\u4e8eJS\u65e9\u671f\u8bed\u6cd5\u9519\u8bef\u3002",
+            "negative": true,
+            "assertions": 0
+        },
+        {
+            "path": "test/language/expressions/assignment/target-boolean.js",
+            "sha256": "32a48eb1cf90a255d579fe3e5fdb4c6828febec300a77c10311fef0854e3d3fb",
+            "status": "adapted",
+            "reason": "\u4fdd\u7559\u539f\u975e\u6cd5\u5b57\u9762\u91cf\u76ee\u6807\u4e0e =42\uff1b\u5728\u663e\u5f0f state \u66f4\u65b0\u5757\u4e2d parse/syntax \u62d2\u7edd\uff0c\u4e0e JS \u65e9\u671f SyntaxError \u9636\u6bb5\u4e00\u81f4\u3002\u5b9e\u9645\u62d2\u7edd\u53d1\u751f\u5728\u8bed\u53e5\u5206\u6d3e\uff0c\u4e0d\u80fd\u79f0\u5df2\u5230\u8fbe IR \u7684 Reference \u76ee\u6807\u6821\u9a8c\u3002 \u53e6\u4fdd\u7559\u62ec\u53f7\u5305\u88f9\u540c\u4e00\u5b57\u9762\u91cf\u7684\u8865\u5145\u7528\u4f8b\uff0cparse\u63a5\u53d7\u540eanalyze/ownership\u62d2\u7edd\uff0c\u5b9e\u9645\u9a8c\u8bc1\u72b6\u6001\u66f4\u65b0\u7684\u76ee\u6807\u68c0\u67e5\uff0c\u5e76\u660e\u786e\u6b64\u9636\u6bb5\u533a\u522b\u4e8eJS\u65e9\u671f\u8bed\u6cd5\u9519\u8bef\u3002",
+            "negative": true,
+            "assertions": 0
+        },
+        {
+            "path": "test/language/expressions/assignment/target-string.js",
+            "sha256": "1b638e73681410082517879f46a4b9ed81f067d5a6e33ca087db126e93afa80f",
+            "status": "adapted",
+            "reason": "\u4fdd\u7559\u539f\u975e\u6cd5\u5b57\u9762\u91cf\u76ee\u6807\u4e0e =42\uff1b\u5728\u663e\u5f0f state \u66f4\u65b0\u5757\u4e2d parse/syntax \u62d2\u7edd\uff0c\u4e0e JS \u65e9\u671f SyntaxError \u9636\u6bb5\u4e00\u81f4\u3002\u5b9e\u9645\u62d2\u7edd\u53d1\u751f\u5728\u8bed\u53e5\u5206\u6d3e\uff0c\u4e0d\u80fd\u79f0\u5df2\u5230\u8fbe IR \u7684 Reference \u76ee\u6807\u6821\u9a8c\u3002 \u53e6\u4fdd\u7559\u62ec\u53f7\u5305\u88f9\u540c\u4e00\u5b57\u9762\u91cf\u7684\u8865\u5145\u7528\u4f8b\uff0cparse\u63a5\u53d7\u540eanalyze/ownership\u62d2\u7edd\uff0c\u5b9e\u9645\u9a8c\u8bc1\u72b6\u6001\u66f4\u65b0\u7684\u76ee\u6807\u68c0\u67e5\uff0c\u5e76\u660e\u786e\u6b64\u9636\u6bb5\u533a\u522b\u4e8eJS\u65e9\u671f\u8bed\u6cd5\u9519\u8bef\u3002",
+            "negative": true,
+            "assertions": 0
+        },
+        {
+            "path": "test/language/expressions/assignment/target-null.js",
+            "sha256": "6e44aab287823ad7a580848b9dbfcd896cd9d5252283393b8025c8319a71b91d",
+            "status": "adapted",
+            "reason": "\u4fdd\u7559\u539f\u975e\u6cd5\u5b57\u9762\u91cf\u76ee\u6807\u4e0e =42\uff1b\u5728\u663e\u5f0f state \u66f4\u65b0\u5757\u4e2d parse/syntax \u62d2\u7edd\uff0c\u4e0e JS \u65e9\u671f SyntaxError \u9636\u6bb5\u4e00\u81f4\u3002\u5b9e\u9645\u62d2\u7edd\u53d1\u751f\u5728\u8bed\u53e5\u5206\u6d3e\uff0c\u4e0d\u80fd\u79f0\u5df2\u5230\u8fbe IR \u7684 Reference \u76ee\u6807\u6821\u9a8c\u3002",
+            "negative": true,
+            "assertions": 0
+        },
+        {
+            "path": "test/language/expressions/assignment/target-assignment.js",
+            "sha256": "7a9cdb5a6976037d2976b6b8f9fd5638918a8e159323daeaa96936abe2e32a91",
+            "status": "excluded",
+            "reason": "JS \u8981\u6c42\u62d2\u7edd\u5916\u5c42\u76ee\u6807 (a=b)=1\uff1bZX \u5728\u5185\u5c42\u8d4b\u503c\u8868\u8fbe\u5f0f\u7b2c\u4e00\u4e2a = \u5df2 parse/syntax \u62d2\u7edd\u3002\u4fdd\u7559\u8bca\u65ad\u8fb9\u754c\uff0c\u4f46\u65e0\u6cd5\u8bc1\u660e\u5916\u5c42\u8d4b\u503c\u76ee\u6807\u4e13\u5c5e\u89c4\u5219\u6216\u533a\u5206\u9876\u5c42/\u672a\u8c03\u7528\u51fd\u6570\u73af\u5883\uff0c\u4e0d\u8ba1\u4e3a\u8be5\u89c4\u5219\u517c\u5bb9\u3002",
+            "negative": true,
+            "assertions": 0
+        },
+        {
+            "path": "test/language/expressions/assignment/target-assignment-inside-function.js",
+            "sha256": "93c7c2825b7cbff26b92c07e0605ef87c03c75bd21e9d640b89dde1cabfa2fcb",
+            "status": "excluded",
+            "reason": "JS \u8981\u6c42\u62d2\u7edd\u5916\u5c42\u76ee\u6807 (a=b)=1\uff1bZX \u5728\u5185\u5c42\u8d4b\u503c\u8868\u8fbe\u5f0f\u7b2c\u4e00\u4e2a = \u5df2 parse/syntax \u62d2\u7edd\u3002\u4fdd\u7559\u8bca\u65ad\u8fb9\u754c\uff0c\u4f46\u65e0\u6cd5\u8bc1\u660e\u5916\u5c42\u8d4b\u503c\u76ee\u6807\u4e13\u5c5e\u89c4\u5219\u6216\u533a\u5206\u9876\u5c42/\u672a\u8c03\u7528\u51fd\u6570\u73af\u5883\uff0c\u4e0d\u8ba1\u4e3a\u8be5\u89c4\u5219\u517c\u5bb9\u3002",
+            "negative": true,
+            "assertions": 0
+        },
+        {
+            "path": "test/language/expressions/assignment/S11.13.1_A3.2.js",
+            "sha256": "41cd991505eac756d568346e0f81608eb1e8b62afbda9a4bf7ee121617af024a",
+            "status": "excluded",
+            "reason": "\u4e24\u9879\u8981\u6c42\u666e\u901a\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u53f3\u503c 1\u3002ZX \u5b9e\u9645\u62d2\u7edd\u8868\u8fbe\u5f0f\u4e2d\u7684 =\uff1b\u4fdd\u7559 return \u4e0e loop \u5185\u5c40\u90e8\u521d\u59cb\u5316\u4e24\u4e2a\u4e0a\u4e0b\u6587\u7684\u8bca\u65ad\uff0c\u4e0d\u7528\u8d4b\u503c\u540e\u7684\u5b57\u6bb5\u503c\u66ff\u4ee3\u8fd4\u56de\u503c\uff0c\u4e0d\u8ba1\u8fd0\u884c\u8bed\u4e49\u901a\u8fc7\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/assignment/S11.13.1_A4_T1.js",
+            "sha256": "761b3e8905c71da31d8a6f37c68ba5058a0bbbbe3f5177868c0e3311a4d127d4",
+            "status": "excluded",
+            "reason": "\u539f x=x=1 \u8981\u6c42\u53f3\u7ed3\u5408\u94fe\u5f0f\u8d4b\u503c\u5e76\u89c2\u5bdf\u6700\u7ec8\u503c\u3002\u4fdd\u7559\u771f\u5b9e state.value=state.value=1 \u539f\u5f62\uff0c\u7b2c\u4e8c\u4e2a = \u5728 parse/syntax \u62d2\u7edd\uff1b\u4e0d\u62c6\u6210\u4e24\u6761\u5199\u56de\u8bed\u53e5\u5192\u5145\u94fe\u5f0f\u652f\u6301\u3002",
+            "negative": false,
+            "assertions": 1
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.1.js",
+            "sha256": "bcf2fc57dad86b08946ece92eeea99ae015552a286cd2647dbb6c0d7064c4e0a",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.2.js",
+            "sha256": "f5fa01596bafc2009f71ee5296cfb5d5115b3182acd4bc5bc5bfbb34aac667ad",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.3.js",
+            "sha256": "a861040887cd178a07a995b85388bc64bf022cb8075e7e2fab6ac7c3987744c1",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.4.js",
+            "sha256": "ddb79c9efcee1d667367fef269ffdd1649d200229d1adb6f4f16b993dfb2a9a3",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.5.js",
+            "sha256": "0dfa6923137a9910607ae9249a36d2d0ec19ed02c9eb76cc61a1bf5fe0444f5f",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T1.js",
+            "sha256": "ad74fda12fa41160ea6edeee1a2476062f7bbf52a652498a2d7d4b748d90a430",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T2.js",
+            "sha256": "ee088f459b1a0f92f9a7b0e37a57716c1bdedf6d4c6e3faff3db50bb30cf1270",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T3.js",
+            "sha256": "cea7622f7131ed46f114ecf7c3d71b9fa96c57d5eb006d85f284b535793b6221",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T4.js",
+            "sha256": "72471208d6c2f70ea0f072e6d49da041ea56a3406ab7a4b4c758970fe002b331",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        },
+        {
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T5.js",
+            "sha256": "0ba010cf169cfbaf3e679a4eecaa8dfefc722ca98fb5bd6ac084e435a98693d3",
+            "status": "excluded",
+            "reason": "\u539f\u4e24\u9879\u5747\u8981\u6c42\u590d\u5408\u8d4b\u503c\u8868\u8fbe\u5f0f\u8fd4\u56de\u8fd0\u7b97\u7ed3\u679c\u3002\u4fdd\u7559\u5e38\u91cf/\u5df2\u58f0\u660e\u53d8\u91cf\u53f3\u503c\u4e24\u79cd\u8868\u8fbe\u5f0f\u5f62\u72b6\u4e0e\u51c6\u786e\u521d\u503c\uff0cZX parse/syntax \u62d2\u7edd\u8fd0\u7b97\u7b26\u4e2d\u7684 =\uff1b\u4e0d\u4ee5\u7eaf\u4e8c\u5143\u8868\u8fbe\u5f0f\u6216\u66f4\u65b0\u540e\u8fd4\u56de\u66ff\u6362\u539f\u8981\u6c42\u3002",
+            "negative": false,
+            "assertions": 2
+        }
+    ],
+    "runtime": [
+        {
+            "name": "line_feed",
+            "path": "test/language/expressions/assignment/line-terminator.js",
+            "scalar": "bool",
+            "fields": "value: in, round: 0",
+            "statement": "state.value\n            =\n                true",
+            "result": "result.value",
+            "expected": true,
+            "seeds": [false, true]
+        },
+        {
+            "name": "covered",
+            "path": "test/language/expressions/assignment/target-cover-id.js",
+            "scalar": "f64",
+            "fields": "value: in, round: 0",
+            "statement": "(state.value) = 1",
+            "result": "result.value",
+            "expected": 1,
+            "seeds": [0, -5, 1, 33.5]
+        },
+        {
+            "name": "keyword_extends",
+            "path": "test/language/expressions/assignment/member-expr-ident-name-extends.js",
+            "scalar": "f64",
+            "fields": "obj: { extends: in }, round: 0",
+            "statement": "state.obj.extends = 42",
+            "result": "result.obj.extends",
+            "expected": 42,
+            "seeds": [0, -5, 42, 33.5]
+        },
+        {
+            "name": "whitespace_tab",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "scalar": "string",
+            "fields": "value: in, round: 0",
+            "statement": "state.value\t=\t\"U+0009\"",
+            "result": "result.value",
+            "expected": "U+0009",
+            "seeds": ["", "different", "U+0009", "\u6f22\u5b57"]
+        },
+        {
+            "name": "whitespace_vertical_tab",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "scalar": "string",
+            "fields": "value: in, round: 0",
+            "statement": "state.value\u000b=\u000b\"U+000B\"",
+            "result": "result.value",
+            "expected": "U+000B",
+            "seeds": ["", "different", "U+000B", "\u6f22\u5b57"]
+        },
+        {
+            "name": "whitespace_form_feed",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "scalar": "string",
+            "fields": "value: in, round: 0",
+            "statement": "state.value\f=\f\"U+000C\"",
+            "result": "result.value",
+            "expected": "U+000C",
+            "seeds": ["", "different", "U+000C", "\u6f22\u5b57"]
+        },
+        {
+            "name": "whitespace_space",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "scalar": "string",
+            "fields": "value: in, round: 0",
+            "statement": "state.value = \"U+0020\"",
+            "result": "result.value",
+            "expected": "U+0020",
+            "seeds": ["", "different", "U+0020", "\u6f22\u5b57"]
+        },
+        {
+            "name": "whitespace_label_000d",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "scalar": "string",
+            "fields": "value: in, round: 0",
+            "statement": "state.value\n            =\n                \"U+000D\"",
+            "result": "result.value",
+            "expected": "U+000D",
+            "seeds": ["", "different", "U+000D", "\u6f22\u5b57"]
+        },
+        {
+            "name": "carriage_return",
+            "path": null,
+            "scalar": "string",
+            "fields": "value: in, round: 0",
+            "statement": "state.value\r=\r\"carriage-return\"",
+            "result": "result.value",
+            "expected": "carriage-return",
+            "seeds": ["", "different", "carriage-return", "\u6f22\u5b57"]
+        }
+    ],
+    "frontend": [
+        {
+            "name": "keyword_bracket_read",
+            "path": "test/language/expressions/assignment/member-expr-ident-name-extends.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const obj = { extends: in }\n\n    return obj[\"extends\"]\n}\n",
+            "phase": "analyze",
+            "diagnostic": "type_mismatch",
+            "span": [141, 155]
+        },
+        {
+            "name": "whitespace_nbsp/left/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u00a0= \"U+00A0\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [272, 273]
+        },
+        {
+            "name": "whitespace_nbsp/left/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u00a0= \"U+00A0\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [287, 288]
+        },
+        {
+            "name": "whitespace_nbsp/right/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value =\u00a0\"U+00A0\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [274, 275]
+        },
+        {
+            "name": "whitespace_nbsp/right/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value =\u00a0\"U+00A0\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [289, 290]
+        },
+        {
+            "name": "whitespace_nbsp/both/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u00a0=\u00a0\"U+00A0\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [272, 273]
+        },
+        {
+            "name": "whitespace_nbsp/both/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u00a0=\u00a0\"U+00A0\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [287, 288]
+        },
+        {
+            "name": "whitespace_line_separator/left/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u2028= \"U+2028\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [272, 273]
+        },
+        {
+            "name": "whitespace_line_separator/left/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u2028= \"U+2028\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [287, 288]
+        },
+        {
+            "name": "whitespace_line_separator/right/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value =\u2028\"U+2028\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [274, 275]
+        },
+        {
+            "name": "whitespace_line_separator/right/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value =\u2028\"U+2028\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [289, 290]
+        },
+        {
+            "name": "whitespace_line_separator/both/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u2028=\u2028\"U+2028\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [272, 273]
+        },
+        {
+            "name": "whitespace_line_separator/both/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u2028=\u2028\"U+2028\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [287, 288]
+        },
+        {
+            "name": "whitespace_paragraph_separator/left/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u2029= \"U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [272, 273]
+        },
+        {
+            "name": "whitespace_paragraph_separator/left/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u2029= \"U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [287, 288]
+        },
+        {
+            "name": "whitespace_paragraph_separator/right/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value =\u2029\"U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [274, 275]
+        },
+        {
+            "name": "whitespace_paragraph_separator/right/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value =\u2029\"U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [289, 290]
+        },
+        {
+            "name": "whitespace_paragraph_separator/both/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u2029=\u2029\"U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [272, 273]
+        },
+        {
+            "name": "whitespace_paragraph_separator/both/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\u2029=\u2029\"U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [287, 288]
+        },
+        {
+            "name": "whitespace_combined/left/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\t\u000b\f \u00a0\n\u2028\u2029= \"U+0009U+000BU+000CU+0020U+00A0U+000DU+2028U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [276, 277]
+        },
+        {
+            "name": "whitespace_combined/left/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\t\u000b\f \u00a0\n\u2028\u2029= \"U+0009U+000BU+000CU+0020U+00A0U+000DU+2028U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [291, 292]
+        },
+        {
+            "name": "whitespace_combined/right/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value =\t\u000b\f \u00a0\n\u2028\u2029\"U+0009U+000BU+000CU+0020U+00A0U+000DU+2028U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [278, 279]
+        },
+        {
+            "name": "whitespace_combined/right/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value =\t\u000b\f \u00a0\n\u2028\u2029\"U+0009U+000BU+000CU+0020U+00A0U+000DU+2028U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [293, 294]
+        },
+        {
+            "name": "whitespace_combined/both/ascii_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\t\u000b\f \u00a0\n\u2028\u2029=\t\u000b\f \u00a0\n\u2028\u2029\"U+0009U+000BU+000CU+0020U+00A0U+000DU+2028U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [276, 277]
+        },
+        {
+            "name": "whitespace_combined/both/unicode_prefix",
+            "path": "test/language/expressions/assignment/white-space.js",
+            "source": "export type Input = string\n\nexport type Output = string\n\nexport default function (in: Input): Output {\n    const initial = { value: in, tag: \"\u6f22\u5b57\", round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value\t\u000b\f \u00a0\n\u2028\u2029=\t\u000b\f \u00a0\n\u2028\u2029\"U+0009U+000BU+000CU+0020U+00A0U+000DU+2028U+2029\"\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "lexical",
+            "span": [291, 292]
+        },
+        {
+            "name": "invalid_target/number",
+            "path": "test/language/expressions/assignment/target-number.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            42 = 42\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [255, 257]
+        },
+        {
+            "name": "invalid_target/boolean",
+            "path": "test/language/expressions/assignment/target-boolean.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            true = 42\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [255, 259]
+        },
+        {
+            "name": "invalid_target/string",
+            "path": "test/language/expressions/assignment/target-string.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            \"x\" = 42\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [255, 258]
+        },
+        {
+            "name": "invalid_target/null",
+            "path": "test/language/expressions/assignment/target-null.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            null = 42\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [255, 259]
+        },
+        {
+            "name": "invalid_target/target-assignment",
+            "path": "test/language/expressions/assignment/target-assignment.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { a: in, b: 2, value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            (state.a = state.b) = 1\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [277, 278]
+        },
+        {
+            "name": "invalid_target/target-assignment-inside-function",
+            "path": "test/language/expressions/assignment/target-assignment-inside-function.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { a: in, b: 2, value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            (state.a = state.b) = 1\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [277, 278]
+        },
+        {
+            "name": "return_value/plain/return",
+            "path": "test/language/expressions/assignment/S11.13.1_A3.2.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 0\n\n    return (x = 1)\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [134, 135]
+        },
+        {
+            "name": "return_value/plain/initializer",
+            "path": "test/language/expressions/assignment/S11.13.1_A3.2.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value = 0\n\n            const z = (state.value = 1)\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [307, 308]
+        },
+        {
+            "name": "chain/right_associative",
+            "path": "test/language/expressions/assignment/S11.13.1_A4_T1.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            state.value = state.value = 1\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [281, 282]
+        },
+        {
+            "name": "return_value/compound/A2.1_T11/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.1.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n\n    const z = (x *= -1)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [138, 139],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A2.1_T11/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.1.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n    const y: f64 = -1\n\n    const z = (x *= y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [160, 161],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A2.1_T12/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.2.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n\n    const z = (x /= -1)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [138, 139],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A2.1_T12/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.2.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n    const y: f64 = -1\n\n    const z = (x /= y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [160, 161],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A2.1_T13/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.3.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = -1\n\n    const z = (x %= 2)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [139, 140],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A2.1_T13/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.3.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = -1\n    const y: f64 = 2\n\n    const z = (x %= y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [160, 161],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A2.1_T14/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.4.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n\n    const z = (x += 1)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [138, 139],
+            "original_expected": 2
+        },
+        {
+            "name": "return_value/compound/A2.1_T14/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.4.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n    const y: f64 = 1\n\n    const z = (x += y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [159, 160],
+            "original_expected": 2
+        },
+        {
+            "name": "return_value/compound/A2.1_T15/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.5.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n\n    const z = (x -= 1)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [138, 139],
+            "original_expected": 0
+        },
+        {
+            "name": "return_value/compound/A2.1_T15/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A2.1_T1.5.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n    const y: f64 = 1\n\n    const z = (x -= y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [159, 160],
+            "original_expected": 0
+        },
+        {
+            "name": "return_value/compound/A3.2_T1/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T1.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n\n    const z = (x *= -1)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [138, 139],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A3.2_T1/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T1.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n    const y: f64 = -1\n\n    const z = (x *= y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [160, 161],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A3.2_T2/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T2.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n\n    const z = (x /= -1)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [138, 139],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A3.2_T2/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T2.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n    const y: f64 = -1\n\n    const z = (x /= y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [160, 161],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A3.2_T3/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T3.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = -1\n\n    const z = (x %= 2)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [139, 140],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A3.2_T3/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T3.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = -1\n    const y: f64 = 2\n\n    const z = (x %= y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [160, 161],
+            "original_expected": -1
+        },
+        {
+            "name": "return_value/compound/A3.2_T4/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T4.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n\n    const z = (x += 1)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [138, 139],
+            "original_expected": 2
+        },
+        {
+            "name": "return_value/compound/A3.2_T4/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T4.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = 1\n    const y: f64 = 1\n\n    const z = (x += y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [159, 160],
+            "original_expected": 2
+        },
+        {
+            "name": "return_value/compound/A3.2_T5/literal",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T5.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = -1\n\n    const z = (x -= 1)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [139, 140],
+            "original_expected": -2
+        },
+        {
+            "name": "return_value/compound/A3.2_T5/binding",
+            "path": "test/language/expressions/compound-assignment/S11.13.2_A3.2_T5.js",
+            "source": "export type Input = void\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const x: f64 = -1\n    const y: f64 = 1\n\n    const z = (x -= y)\n\n    return z\n}\n",
+            "phase": "parse",
+            "diagnostic": "syntax",
+            "span": [160, 161],
+            "original_expected": -2
+        },
+        {
+            "name": "expression_control/numeric",
+            "path": null,
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    return in + 1\n}\n",
+            "phase": "analyze",
+            "diagnostic": null
+        },
+        {
+            "name": "expression_control/covered",
+            "path": null,
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    return (in)\n}\n",
+            "phase": "analyze",
+            "diagnostic": null
+        },
+        {
+            "name": "expression_control/conditional",
+            "path": null,
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    return in > 0 ? in : 1\n}\n",
+            "phase": "analyze",
+            "diagnostic": null
+        },
+        {
+            "name": "invalid_target/covered_number",
+            "path": "test/language/expressions/assignment/target-number.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            (42) = 42\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "analyze",
+            "diagnostic": "ownership",
+            "span": [256, 258]
+        },
+        {
+            "name": "invalid_target/covered_boolean",
+            "path": "test/language/expressions/assignment/target-boolean.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            (true) = 42\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "analyze",
+            "diagnostic": "ownership",
+            "span": [256, 260]
+        },
+        {
+            "name": "invalid_target/covered_string",
+            "path": "test/language/expressions/assignment/target-string.js",
+            "source": "export type Input = f64\n\nexport type Output = f64\n\nexport default function (in: Input): Output {\n    const initial = { value: in, round: 0 }\n\n    const result = loop(initial, {\n        while: state => state.round < 1,\n        next: state => {\n            (\"x\") = 42\n\n            state.round += 1\n        }\n    })\n\n    return result.value\n}\n",
+            "phase": "analyze",
+            "diagnostic": "ownership",
+            "span": [256, 259]
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+const check = @import("support").check;
+
+test "language/statements/assignment_boundaries/line_feed/0" {
+    try check(@import("program"), false, .{ .value = true });
+}
+
+test "language/statements/assignment_boundaries/line_feed/1" {
+    try check(@import("program"), true, .{ .value = true });
+}

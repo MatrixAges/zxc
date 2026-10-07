@@ -1,0 +1,17 @@
+const check = @import("support").check;
+
+test "language/statements/assignment_boundaries/whitespace_label_000d/0" {
+    try check(@import("program"), "", .{ .value = "U+000D" });
+}
+
+test "language/statements/assignment_boundaries/whitespace_label_000d/1" {
+    try check(@import("program"), "different", .{ .value = "U+000D" });
+}
+
+test "language/statements/assignment_boundaries/whitespace_label_000d/2" {
+    try check(@import("program"), "U+000D", .{ .value = "U+000D" });
+}
+
+test "language/statements/assignment_boundaries/whitespace_label_000d/3" {
+    try check(@import("program"), "\xe6\xbc\xa2\xe5\xad\x97", .{ .value = "U+000D" });
+}

@@ -1,0 +1,17 @@
+const check = @import("support").check;
+
+test "language/statements/assignment_boundaries/keyword_extends/0" {
+    try check(@import("program"), 0, .{ .value = 42 });
+}
+
+test "language/statements/assignment_boundaries/keyword_extends/1" {
+    try check(@import("program"), -5, .{ .value = 42 });
+}
+
+test "language/statements/assignment_boundaries/keyword_extends/2" {
+    try check(@import("program"), 42, .{ .value = 42 });
+}
+
+test "language/statements/assignment_boundaries/keyword_extends/3" {
+    try check(@import("program"), 33.5, .{ .value = 42 });
+}

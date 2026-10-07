@@ -1,0 +1,18 @@
+export type Input = f64
+
+export type Output = f64
+
+export default function (in: Input): Output {
+    const initial = { value: 0, extends: 0, round: 0 }
+
+    const result = loop(initial, {
+        while: state => state.round < 1,
+        next: state => {
+            state.value = state.value = 1
+
+            state.round += 1
+        }
+    })
+
+    return result.value
+}

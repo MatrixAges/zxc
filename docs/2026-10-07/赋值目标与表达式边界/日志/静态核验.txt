@@ -1,0 +1,40 @@
+COMMAND: ['node', 'packages/test/src/generate_assignment_boundaries.ts', '--check']
+tests/language/statements/assignment_boundaries/line_feed.jsonl: 2 named cases
+tests/language/statements/assignment_boundaries/covered.jsonl: 4 named cases
+tests/language/statements/assignment_boundaries/keyword_extends.jsonl: 4 named cases
+tests/language/statements/assignment_boundaries/whitespace_tab.jsonl: 4 named cases
+tests/language/statements/assignment_boundaries/whitespace_vertical_tab.jsonl: 4 named cases
+tests/language/statements/assignment_boundaries/whitespace_form_feed.jsonl: 4 named cases
+tests/language/statements/assignment_boundaries/whitespace_space.jsonl: 4 named cases
+tests/language/statements/assignment_boundaries/whitespace_label_000d.jsonl: 4 named cases
+tests/language/statements/assignment_boundaries/carriage_return.jsonl: 4 named cases
+tests/language/statements/assignment_boundaries/frontend.jsonl: 60 named cases
+upstream/reviews/language/expressions/assignment_boundaries.jsonl: 22 named cases
+COMMAND: ['packages/test/node_modules/.bin/tsc', '--noEmit', '-p', 'packages/test/tsconfig.json']
+COMMAND: ['node', 'packages/test/src/audit_matrix.ts']
+{
+  "upstream_files": 53597,
+  "metadata_files": 53597,
+  "reviewed": {
+    "adapted": 784,
+    "excluded": 1978,
+    "equivalent": 103
+  },
+  "unreviewed": 50732,
+  "catalog_cases": 101904,
+  "catalog_by_runner": {
+    "runtime": 84256,
+    "frontend": 5418,
+    "evaluation_order": 1084,
+    "safety": 464,
+    "module_graphs": 10446,
+    "stores": 236
+  },
+  "linked_cases": 5572,
+  "execution_status": "not measured by this audit; see zig build test results"
+}
+COMMAND: ['node', 'scripts/format.mjs', '--check', 'packages/test/build.zig', 'packages/test/build/runtime.zig']
+COMMAND: ['node_modules/.bin/prettier', '--check', 'packages/test/src/generate_assignment_boundaries.ts', 'packages/test/src/data/assignment_boundaries.json', 'packages/test/suites.json']
+Checking formatting...
+All matched files use Prettier code style!
+PASS: nine current-CLI runtime source format checks, including raw CR

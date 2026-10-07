@@ -1,0 +1,18 @@
+export type Input = string
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const initial = { value: "", extends: "", round: 0 }
+
+    const result = loop(initial, {
+        while: state => state.round < 1,
+        next: state => {
+            state.value = "ps"
+
+            state.round += 1
+        }
+    })
+
+    return result.value
+}
