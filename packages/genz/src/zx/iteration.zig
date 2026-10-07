@@ -143,7 +143,7 @@ fn lowerMode(self: *Lower, id: ir.ExprId, iteration: ir.Iteration, mode: Mode, c
         return aggregate.finish(self, &body, result);
     }
 
-    try buffers.finish(&body, state, type_id);
+    try buffers.finish(&body, state, type_id, deep);
     try calls.finish(&body, state, type_id);
     if (mode == .discard) return aggregate.finish(self, &body, try self.builder.expression(.unit));
 

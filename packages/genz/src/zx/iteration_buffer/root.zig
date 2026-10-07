@@ -4,11 +4,15 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const Capacity = @import("capacity.zig");
 const Self = @This();
-const Field = struct { path: []const usize, element: ir.TypeId, storage: Capacity };
+const Builder = @import("../object_reduce/append/builder.zig");
+const SavedCall = struct { id: ir.ExprId, previous: ?[]const ?Builder };
+const Field = struct { path: []const usize, element: ir.TypeId, storage: Capacity, rebuild: bool };
 
 lowering: *Lower,
 overrides: std.ArrayList(ir.ExprId) = .empty,
 fields: std.ArrayList(Field) = .empty,
+calls: std.ArrayList(SavedCall) = .empty,
+readers: []const bool = &.{},
 mutable_state: bool,
 pub fn init(lowering: *Lower, iteration: ir.Iteration, body: *std.ArrayList(node.Statement), enabled: bool, mutable_state: bool) Lower.Error!Self {
     var self = Self{ .lowering = lowering, .mutable_state = mutable_state };
@@ -16,6 +20,12 @@ pub fn init(lowering: *Lower, iteration: ir.Iteration, body: *std.ArrayList(node
     errdefer self.restore();
 
     if (!enabled) return self;
+
+    const readers = try lowering.allocator.alloc(bool, lowering.program.functions.len);
+
+    for (lowering.program.functions, 0..) |function, index| readers[index] = index < lowering.pure_functions.len and lowering.pure_functions[index] and @import("../buffer_call/analysis/flow.zig").detached(lowering.program, function.output_type);
+
+    self.readers = readers;
 
     var path: std.ArrayList(usize) = .empty;
 
@@ -54,7 +64,10 @@ fn collect(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
 
 fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.Statement), child: ir.TypeId, path: []const usize) Lower.Error!void {
     const lowering = self.lowering;
-    const updates = try @import("analysis.zig").analyze(lowering.allocator, lowering.program, iteration, path) orelse return;
+    const result = try @import("analysis.zig").analyzeWithCalls(lowering.allocator, lowering.program, iteration, path, .{ .selected = &.{}, .summaries = lowering.buffer_functions, .readers = self.readers, .discover = true }) orelse return;
+    const updates = result.updates;
+
+    for (result.calls) |call| if (lowering.buffer_calls.get(call.expression)) |slots| if (slots[call.lane] != null) return;
 
     const overlap = for (updates) |update| {
         if (lowering.list_update_buffers.contains(update) or lowering.collection_buffers.contains(update)) break true;
@@ -63,13 +76,13 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
     if (overlap) return;
 
     if (lowering.iteration_value) |context| if (context.inline_lists and @import("../iteration_layout.zig").represented(lowering.program, child)) {
-        try self.installCapacity(body, child, path, updates);
+        try self.installCapacity(body, child, path, updates, result.calls);
 
         return;
     };
 
-    var dynamic = false;
-    var writes = false;
+    var dynamic = result.calls.len != 0;
+    var writes = result.calls.len != 0;
 
     for (updates) |update| switch (lowering.program.expression(update).value) {
         .list_operation => |operation| {
@@ -81,7 +94,7 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
     };
 
     if (dynamic) {
-        if (self.mutable_state and writes) try self.installCapacity(body, child, path, updates);
+        if (self.mutable_state and writes) try self.installCapacity(body, child, path, updates, result.calls);
 
         return;
     }
@@ -108,11 +121,20 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
     }
 }
 
-fn installCapacity(self: *Self, body: *std.ArrayList(node.Statement), child: ir.TypeId, path: []const usize, updates: []const ir.ExprId) Lower.Error!void {
+fn installCapacity(self: *Self, body: *std.ArrayList(node.Statement), child: ir.TypeId, path: []const usize, updates: []const ir.ExprId, calls: []const @import("../buffer_call/analysis/flow.zig").Call) Lower.Error!void {
     const lowering = self.lowering;
     const capacity = try Capacity.create(lowering, body, try @import("../iteration_value/types.zig").element(lowering, child));
 
-    try self.fields.append(lowering.allocator, .{ .path = try lowering.allocator.dupe(usize, path), .element = child, .storage = capacity });
+    try self.fields.append(lowering.allocator, .{ .path = try lowering.allocator.dupe(usize, path), .element = child, .storage = capacity, .rebuild = calls.len != 0 });
+
+    for (calls) |call| {
+        const saved = for (self.calls.items) |previous| {
+            if (previous.id == call.expression) break true;
+        } else false;
+
+        if (!saved) try self.calls.append(lowering.allocator, .{ .id = call.expression, .previous = lowering.buffer_calls.get(call.expression) });
+        try @import("../buffer_call/root.zig").bind(lowering, call.expression, call.lane, .{ .buffer = capacity.buffer, .started = capacity.started });
+    }
 
     for (updates) |update| {
         try self.overrides.append(lowering.allocator, update);
@@ -123,10 +145,29 @@ fn installCapacity(self: *Self, body: *std.ArrayList(node.Statement), child: ir.
     }
 }
 
-pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const node.Expression, type_id: ir.TypeId) Lower.Error!void {
+pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const node.Expression, type_id: ir.TypeId, deep: bool) Lower.Error!void {
     const lowering = self.lowering;
 
     for (self.fields.items) |field| {
+        if (field.rebuild and !deep) {
+            const path = try lowering.allocator.alloc(u32, field.path.len);
+
+            for (field.path, path) |part, *output| output.* = @intCast(part);
+
+            const writeback = @import("../object_reduce/append/writeback.zig");
+            const source = try writeback.project(lowering, type_id, state, path);
+            const owned = try field.storage.take(lowering, body, source, lowering.types[@backingInt(field.element)]);
+            const updated = try writeback.replaceLayout(lowering, type_id, state, path, owned);
+
+            try body.append(lowering.allocator, .{ .branch = .{
+                .condition = field.storage.started,
+                .yes = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = state, .value = updated } }}),
+                .no = &.{},
+            } });
+
+            continue;
+        }
+
         var target = state;
         var current = type_id;
         var invalidation: std.ArrayList(node.Statement) = .empty;
@@ -158,6 +199,12 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
 }
 
 pub fn restore(self: *Self) void {
+    for (self.calls.items) |saved| {
+        if (saved.previous) |previous| self.lowering.buffer_calls.put(self.lowering.allocator, saved.id, previous) catch unreachable else _ = self.lowering.buffer_calls.remove(saved.id);
+    }
+
+    self.calls.clearRetainingCapacity();
+
     for (self.overrides.items) |id| {
         _ = self.lowering.list_update_buffers.remove(id);
         _ = self.lowering.collection_buffers.remove(id);

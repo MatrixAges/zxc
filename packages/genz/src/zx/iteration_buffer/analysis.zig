@@ -3,7 +3,8 @@ const ir = @import("zx").ir;
 const facts = @import("fact.zig");
 const Value = facts.Value;
 const flow = @import("../buffer_call/analysis/flow.zig");
-pub const Calls = struct { selected: []const flow.Call, summaries: []const []const flow.Lane, readers: []const bool };
+pub const Calls = struct { selected: []const flow.Call, summaries: []const []const flow.Lane, readers: []const bool, discover: bool = false };
+pub const Result = struct { updates: []const ir.ExprId, calls: []const flow.Call };
 
 const Self = @This();
 const Error = std.mem.Allocator.Error;
@@ -17,10 +18,17 @@ serial: usize = 0,
 valid: bool = true,
 updates: std.ArrayList(ir.ExprId) = .empty,
 calls: ?Calls = null,
+inferred: std.ArrayList(flow.Call) = .empty,
 borrowing: bool = false,
 const Snapshot = struct { symbols: []Value, cached: []?Value, current: usize };
 
 pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, path: []const usize) Error!?[]const ir.ExprId {
+    const result = try analyzeWithCalls(allocator, program, iteration, path, null) orelse return null;
+
+    return result.updates;
+}
+
+pub fn analyzeWithCalls(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, path: []const usize, calls: ?Calls) Error!?Result {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     defer arena.deinit();
@@ -32,6 +40,7 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.
         .program = program,
         .symbols = try temporary.alloc(Value, program.symbols.len),
         .cached = try temporary.alloc(?Value, program.expressions.len),
+        .calls = calls,
     };
 
     const initial = try self.seed(program.expression(iteration.initial).type_id, path);
@@ -48,7 +57,7 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.
 
     const result = try self.expression(iteration.body);
 
-    if (!self.valid or self.updates.items.len == 0 or !self.retains(result, path)) return null;
+    if (!self.valid or (self.updates.items.len == 0 and self.inferred.items.len == 0) or !self.retains(result, path)) return null;
 
     self.symbols[@backingInt(iteration.condition_parameter)] = result;
 
@@ -58,7 +67,7 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.
 
     if (!self.valid or self.current != current) return null;
 
-    return try allocator.dupe(ir.ExprId, self.updates.items);
+    return .{ .updates = try allocator.dupe(ir.ExprId, self.updates.items), .calls = try allocator.dupe(flow.Call, self.inferred.items) };
 }
 
 pub fn seed(self: *Self, id: ir.TypeId, path: []const usize) Error!Value {
@@ -220,6 +229,37 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!Value {
                     break :blk try self.seed(function.output_type, path);
                 }
 
+                if (calls.discover and @backingInt(call.function) < calls.summaries.len and call.stores.len == 0) {
+                    for (calls.summaries[@backingInt(call.function)], 0..) |lane, lane_index| {
+                        if (lane.rejection != null) continue;
+
+                        var target = argument;
+
+                        for (lane.input) |part| target = facts.field(target, part);
+                        if (!facts.contains(target)) continue;
+
+                        self.observe(argument);
+
+                        if (facts.count(argument) != 1) self.valid = false;
+
+                        _ = try self.advance(id, target);
+
+                        const selected = flow.Call{ .expression = id, .lane = lane_index };
+
+                        const present = for (self.inferred.items) |previous| {
+                            if (previous.expression == id and previous.lane == lane_index) break true;
+                        } else false;
+
+                        if (!present) try self.inferred.append(self.allocator, selected);
+
+                        const path = try self.allocator.alloc(usize, lane.output.len);
+
+                        for (lane.output, path) |part, *output| output.* = part;
+
+                        break :blk try self.seed(function.output_type, path);
+                    }
+                }
+
                 break :blk try @import("borrowing/call.zig").evaluate(self, id, argument);
             }
 
@@ -348,7 +388,7 @@ fn advance(self: *Self, id: ir.ExprId, target: Value) Error!Value {
         return .none;
     }
 
-    if (std.mem.indexOfScalar(ir.ExprId, self.updates.items, id) == null) try self.updates.append(self.allocator, id);
+    if (self.program.expression(id).value != .call and std.mem.indexOfScalar(ir.ExprId, self.updates.items, id) == null) try self.updates.append(self.allocator, id);
 
     self.current = self.fresh();
 
