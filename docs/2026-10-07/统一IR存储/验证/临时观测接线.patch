@@ -1,0 +1,40 @@
+diff --git a/packages/compiler/src/zx/ownership/check.zig b/packages/compiler/src/zx/ownership/check.zig
+index 77bed353..0c1eed68 100644
+--- a/packages/compiler/src/zx/ownership/check.zig
++++ b/packages/compiler/src/zx/ownership/check.zig
+@@ -26,6 +26,12 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, reporter: *zx.
+ }
+ 
+ pub fn facts(allocator: std.mem.Allocator, program: ir.Program, reporter: *zx.Reporter) zx.Error!Facts {
++    const options = @import("parser_options");
++
++    if (@hasDecl(options, "control_observation")) {
++        if (options.control_observation) @import("control_observation").run(program);
++    }
++
+     if (program.type_only) return .{ .output = .copy, .stores_owned = true };
+ 
+     var places = try Places.init(allocator, program);
+diff --git a/packages/test/build.zig b/packages/test/build.zig
+index 071e1718..cb551f5c 100644
+--- a/packages/test/build.zig
++++ b/packages/test/build.zig
+@@ -4,8 +4,18 @@ pub fn build(b: *std.Build) void {
+     const target = b.standardTargetOptions(.{});
+     const optimize = b.standardOptimizeOption(.{});
+     const compiler = b.dependency("compiler", .{ .target = target, .optimize = optimize });
++    const control_generated = b.createModule(.{ .root_source_file = .{ .cwd_relative = "/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/docs/2026-10-07/统一IR存储/生成/控制入口.zig" }, .target = target, .optimize = optimize });
++    control_generated.addImport("zxc_abi", b.createModule(.{ .root_source_file = .{ .cwd_relative = "/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/docs/2026-10-07/统一IR存储/生成/控制接口.zig" }, .target = target, .optimize = optimize }));
++    control_generated.addImport("integers", compiler.module("frontend").import_table.get("generated_type_lookup").?.import_table.get("integers").?);
++    const control_observer = b.createModule(.{ .root_source_file = .{ .cwd_relative = "/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/docs/2026-10-07/统一IR存储/草稿/native/observe.zig" }, .target = target, .optimize = optimize, .imports = &.{ .{ .name = "zx", .module = compiler.module("frontend").import_table.get("zx").? }, .{ .name = "generated", .module = control_generated } } });
++    compiler.module("frontend").addImport("control_observation", control_observer);
++    const control_options = b.addOptions();
++    control_options.addOption(bool, "generated_parser", true);
++    control_options.addOption(bool, "control_observation", true);
++    compiler.module("frontend").addOptions("parser_options", control_options);
+     const zig_archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host");
+     const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .@"zig-archive" = path }) else b.dependency("cli", .{ .target = target, .optimize = optimize });
++    b.step("observe-control", "Build the temporary canonical control observer").dependOn(&b.addInstallArtifact(cli_dependency.artifact("zxc"), .{}).step);
+     const test_step = b.step("test", "Run ZX conformance catalogs and their integrity checks");
+     const suites = @import("build/catalog.zig").load(b);
+ 

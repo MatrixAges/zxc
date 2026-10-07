@@ -1,0 +1,11 @@
+import type { Control } from "./model"
+
+export type Input = Control
+
+export type Output = { valid: bool, returns: bool[] }
+
+export default function (in: Input): Output {
+    const returns: bool[] = []
+
+    return { valid: false, returns: returns }
+}

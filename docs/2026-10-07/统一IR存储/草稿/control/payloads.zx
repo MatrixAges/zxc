@@ -1,0 +1,56 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "./model"
+
+import type { Control } from "./model"
+
+export type Input = Control
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ control: in, index: 0, valid: true, evaluations: 0, constants: 0, parallels: 0, destructures: 0, branches: 0, selections: 0, setters: 0, results: 0 }, {
+        while: current => current.valid && current.index < current.control.statement_kinds.length,
+        next: current => {
+            const kind = current.control.statement_kinds[current.index]
+            const payload = integers.widen(current.control.statement_payloads[current.index])
+
+            if (kind == StatementKind.Evaluate) {
+                current.valid = payload == current.evaluations && payload < current.control.evaluations.length
+                current.evaluations += 1
+            }
+            else if (kind == StatementKind.Constant) {
+                current.valid = payload == current.constants && payload < current.control.constant_values.length
+                current.constants += 1
+            }
+            else if (kind == StatementKind.Parallel) {
+                current.valid = payload == current.parallels && payload < current.control.parallel_first.length
+                current.parallels += 1
+            }
+            else if (kind == StatementKind.Destructure) {
+                current.valid = payload == current.destructures && payload < current.control.destructure_values.length
+                current.destructures += 1
+            }
+            else if (kind == StatementKind.Branch) {
+                current.valid = payload == current.branches && payload < current.control.branch_conditions.length
+                current.branches += 1
+            }
+            else if (kind == StatementKind.Switch) {
+                current.valid = payload == current.selections && payload < current.control.selection_subjects.length
+                current.selections += 1
+            }
+            else if (kind == StatementKind.StoreSet) {
+                current.valid = payload == current.setters && payload < current.control.setter_values.length
+                current.setters += 1
+            }
+            else if (kind == StatementKind.Result) {
+                current.valid = payload == current.results && payload < current.control.results.length
+                current.results += 1
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.valid && result.evaluations == in.evaluations.length && result.constants == in.constant_values.length && result.parallels == in.parallel_first.length && result.destructures == in.destructure_values.length && result.branches == in.branch_conditions.length && result.selections == in.selection_subjects.length && result.setters == in.setter_values.length && result.results == in.results.length
+}

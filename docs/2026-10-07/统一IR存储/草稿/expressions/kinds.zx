@@ -1,0 +1,9 @@
+export enum ExpressionKind { Integer, NegativeInteger, Float, String, Boolean, None, Unit, Some, Capture, Task, AwaitTask, CancelTask, Parallel, OptionalValue, EnumValue, ErrorValue, Reference, StoreGet, Field, Index, Length, List, Tuple, TupleField, Template, ListOperation, Transform, Scope, Iteration, ListUpdate, Call, Unary, Binary, Conditional, Match, Object }
+
+export enum CollectionKind { Push, Pop, Sort, Reverse, Splice, Concat }
+
+export enum TransformKind { Map, Filter, Reduce, Every, Some }
+
+export enum UnaryOperator { Negate, Not }
+
+export enum BinaryOperator { Coalesce, Add, Subtract, Multiply, Divide, Remainder, Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual, LogicalAnd, LogicalOr }

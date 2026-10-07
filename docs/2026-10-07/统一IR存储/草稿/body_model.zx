@@ -1,0 +1,7 @@
+import type { Control } from "./control/model"
+import type { Expressions } from "./expressions/model"
+import type { Symbols } from "./symbols"
+
+export type Body = { symbols: Symbols, expressions: Expressions, control: Control, root: u32 }
+
+export type Predicate = { symbols: Symbols, expressions: Expressions, predicate: u32, span_start: u64, span_end: u64 }

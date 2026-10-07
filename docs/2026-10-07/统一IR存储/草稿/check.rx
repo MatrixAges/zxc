@@ -1,0 +1,16 @@
+<Module>
+    <Call fn="control/validate" in={$in} />
+
+    <Switch on={$ctx.validate}>
+        <Case value={true}>
+            <Call fn="control/terminates" in={$in} />
+
+            <Return value={{ valid: true, returns: $ctx.terminates }} />
+        </Case>
+        <Default>
+            <Call fn="control/invalid" in={$in} />
+
+            <Return value={$ctx.invalid} />
+        </Default>
+    </Switch>
+</Module>
