@@ -53,6 +53,17 @@ fn matches(self: *Self, id: ir.ExprId) bool {
     return switch (self.lowering.program.expression(id).value) {
         .reference => |symbol| symbol == self.transform.parameters[0],
         .conditional => |value| !self.dependencies[@intFromEnum(value.condition)] and self.matches(value.yes) and self.matches(value.no),
+        .match_expr => |selection| blk: {
+            if (selection.subject) |subject| if (self.dependencies[@backingInt(subject)]) break :blk false;
+
+            for (0..selection.arms.len) |index| {
+                const arm = selection.arms.at(index);
+
+                if (self.dependencies[@backingInt(arm.condition)] or !self.matches(arm.result)) break :blk false;
+            }
+
+            break :blk self.matches(selection.fallback);
+        },
         .tuple_field => |projection| blk: {
             if (projection.index != 0) break :blk false;
 
@@ -79,6 +90,7 @@ fn statements(self: Self, id: ir.ExprId) Lower.Error![]const node.Statement {
     switch (lowering.program.expression(id).value) {
         .reference => {},
         .conditional => |value| try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.expr(value.condition), .yes = try self.statements(value.yes), .no = try self.statements(value.no) } }),
+        .match_expr => |selection| return self.matchStatements(selection),
         .tuple_field => |projection| {
             const operation = lowering.program.expression(projection.target).value.list_operation;
             const argument = try aggregate.bind(lowering, &body, try lowering.expr(operation.arguments[0]));
@@ -97,6 +109,45 @@ fn statements(self: Self, id: ir.ExprId) Lower.Error![]const node.Statement {
         },
         else => unreachable,
     }
+
+    return body.toOwnedSlice(lowering.allocator);
+}
+
+fn matchStatements(self: Self, selection: ir.MatchRow) Lower.Error![]const node.Statement {
+    const lowering = self.lowering;
+    var body: std.ArrayList(node.Statement) = .empty;
+    const previous = if (selection.subject) |subject| lowering.cache.get(subject) else null;
+
+    if (selection.subject) |subject| {
+        const saved = try aggregate.bind(lowering, &body, try lowering.expr(subject));
+
+        try lowering.cache.put(lowering.allocator, subject, saved);
+        if (selection.arms.len == 0) try body.append(lowering.allocator, .{ .discard = saved });
+    }
+
+    defer {
+        if (selection.subject) |subject| {
+            if (previous) |value| lowering.cache.put(lowering.allocator, subject, value) catch unreachable else _ = lowering.cache.remove(subject);
+        }
+    }
+
+    var tail = try self.statements(selection.fallback);
+    var index = selection.arms.len;
+
+    while (index > 0) {
+        index -= 1;
+        const arm = selection.arms.at(index);
+
+        const condition = if (selection.subject) |subject|
+            try lowering.binary(.{ .operator = .equal, .left = subject, .right = arm.condition })
+
+        else
+            try lowering.expr(arm.condition);
+
+        tail = try lowering.allocator.dupe(node.Statement, &.{.{ .branch = .{ .condition = condition, .yes = try self.statements(arm.result), .no = tail } }});
+    }
+
+    try body.appendSlice(lowering.allocator, tail);
 
     return body.toOwnedSlice(lowering.allocator);
 }
