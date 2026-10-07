@@ -1,0 +1,41 @@
+$ packages/test/node_modules/.bin/tsc --noEmit -p packages/test/tsconfig.json
+EXIT=0
+
+$ node scripts/format.mjs --check packages/test/build.zig packages/test/build/compound_integer.zig packages/test/build/safety.zig packages/test/tests/runtime/safety/compound_integer/compile.zig packages/test/tests/runtime/safety/compound_integer/fixture.zig packages/test/tests/runtime/safety/compound_integer/process.zig
+EXIT=0
+
+$ zig fmt --check packages/test/build.zig packages/test/build/compound_integer.zig packages/test/build/safety.zig packages/test/tests/runtime/safety/compound_integer/compile.zig packages/test/tests/runtime/safety/compound_integer/fixture.zig packages/test/tests/runtime/safety/compound_integer/process.zig
+EXIT=0
+
+$ node_modules/.bin/prettier --check packages/test/src/compound_integer/cases.ts packages/test/src/compound_integer/evaluate.ts packages/test/src/compound_integer/source.ts packages/test/src/generate_compound_integer.ts packages/test/tests/runtime/safety/compound_integer/run_test.ts packages/test/suites.json packages/test/README.md
+Checking formatting...
+All matched files use Prettier code style!
+EXIT=0
+
+$ node packages/test/src/generate_compound_integer.ts --check
+tests/runtime/safety/compound_integer/u8/scalar.jsonl: 939 named cases
+tests/runtime/safety/compound_integer/u8/nested.jsonl: 939 named cases
+tests/runtime/safety/compound_integer/u8/list.jsonl: 954 named cases
+tests/runtime/safety/compound_integer/u16/scalar.jsonl: 939 named cases
+tests/runtime/safety/compound_integer/u16/nested.jsonl: 939 named cases
+tests/runtime/safety/compound_integer/u16/list.jsonl: 954 named cases
+tests/runtime/safety/compound_integer/u32/scalar.jsonl: 939 named cases
+tests/runtime/safety/compound_integer/u32/nested.jsonl: 939 named cases
+tests/runtime/safety/compound_integer/u32/list.jsonl: 954 named cases
+tests/runtime/safety/compound_integer/u64/scalar.jsonl: 1153 named cases
+tests/runtime/safety/compound_integer/u64/nested.jsonl: 1153 named cases
+tests/runtime/safety/compound_integer/u64/list.jsonl: 1168 named cases
+tests/runtime/safety/compound_integer/i32/scalar.jsonl: 1886 named cases
+tests/runtime/safety/compound_integer/i32/nested.jsonl: 1886 named cases
+tests/runtime/safety/compound_integer/i32/list.jsonl: 1901 named cases
+tests/runtime/safety/compound_integer/i64/scalar.jsonl: 2494 named cases
+tests/runtime/safety/compound_integer/i64/nested.jsonl: 2494 named cases
+tests/runtime/safety/compound_integer/i64/list.jsonl: 2509 named cases
+EXIT=0
+
+$ node docs/2026-10-07/定宽整数复合目标/对照普通表达式.mjs
+{"checked":406,"records":[{"scalar":"u8","checked":11},{"scalar":"u16","checked":11},{"scalar":"u32","checked":11},{"scalar":"u64","checked":11},{"scalar":"i32","checked":181},{"scalar":"i64","checked":181}]}
+EXIT=0
+
+$ git diff --check
+EXIT=0

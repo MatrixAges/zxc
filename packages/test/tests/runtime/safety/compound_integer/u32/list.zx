@@ -1,0 +1,25 @@
+export type Input = { operation: u8, left: u32, right: u32, rounds: u8, selected: u64, values: u32[] }
+
+export type Output = { scalar: u32, field: u32, values: u32[], original: u32[], mirror: u32[], rounds: u8 }
+
+export default function (in: Input): Output {
+    const round: u8 = 0
+    const initial = { scalar: in.left, box: { value: in.left }, values: in.values, mirror: in.values, right: in.right, round, operation: in.operation, selected: in.selected, count: in.rounds }
+
+    const result = loop(initial, {
+        while: state => state.round < state.count,
+        next: state => {
+            switch (state.operation) {
+                case 0: state.values[state.selected] += state.right
+                case 1: state.values[state.selected] -= state.right
+                case 2: state.values[state.selected] *= state.right
+                case 3: state.values[state.selected] /= state.right
+                case 4: state.values[state.selected] %= state.right
+            }
+
+            state.round += 1
+        }
+    })
+
+    return { scalar: result.scalar, field: result.box.value, values: result.values, original: in.values, mirror: result.mirror, rounds: result.round }
+}

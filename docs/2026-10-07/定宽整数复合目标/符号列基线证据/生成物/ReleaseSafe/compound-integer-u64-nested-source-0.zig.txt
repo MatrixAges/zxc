@@ -1,0 +1,216 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_12;
+
+pub const Output = *const (zx_abi).zx_type_13;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .left = zx_shape_5, .operation = zx_shape_2, .right = zx_shape_5, .rounds = zx_shape_2, .selected = zx_shape_5, .values = zx_shape_11, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .field = zx_shape_5, .mirror = zx_shape_11, .original = zx_shape_11, .rounds = zx_shape_2, .scalar = zx_shape_5, .values = zx_shape_11, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .value = zx_shape_5, }, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .box = zx_shape_14, .count = zx_shape_2, .mirror = zx_shape_11, .operation = zx_shape_2, .right = zx_shape_5, .round = zx_shape_2, .scalar = zx_shape_5, .selected = zx_shape_5, .values = zx_shape_11, }, };
+
+pub const input_shape = zx_shape_12;
+
+pub const output_shape = zx_shape_13;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_12) error{ OutOfMemory, }!*const (zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_1: u8 = @as(u8, 0);
+    const value_2: *const (zx_abi).zx_type_15 = block_55: {
+        const operand_40 = (in).left;
+        const operand_41 = block_45: {
+            const operand_42 = (in).left;
+
+            break :block_45 block_44: {
+                const operand_43 = (try (allocator).create((zx_abi).zx_type_14));
+
+                (operand_43).* = @as((zx_abi).zx_type_14, (zx_abi).zx_type_14{ .value = operand_42, });
+
+                break :block_44 @as(*const (zx_abi).zx_type_14, operand_43);
+            };
+        };
+        const operand_46 = (in).values;
+        const operand_47 = (in).values;
+        const operand_48 = (in).right;
+        const operand_49 = value_1;
+        const operand_50 = (in).operation;
+        const operand_51 = (in).selected;
+        const operand_52 = (in).rounds;
+
+        break :block_55 block_54: {
+            const operand_53 = (try (allocator).create((zx_abi).zx_type_15));
+
+            (operand_53).* = @as((zx_abi).zx_type_15, (zx_abi).zx_type_15{ .scalar = operand_40, .box = operand_41, .values = operand_46, .mirror = operand_47, .right = operand_48, .round = operand_49, .operation = operand_50, .selected = operand_51, .count = operand_52, });
+
+            break :block_54 @as(*const (zx_abi).zx_type_15, operand_53);
+        };
+    };
+    const value_35: *const (zx_abi).zx_type_15 = block_39: {
+        const operand_11 = value_2;
+        const state_type_13 = struct {
+            value: u64,
+        };
+        const state_type_14 = struct {
+            box: state_type_13,
+            count: u8,
+            mirror: []const u64,
+            operation: u8,
+            right: u64,
+            round: u8,
+            scalar: u64,
+            selected: u64,
+            values: []const u64,
+        };
+
+        var state_10: state_type_14 = state_type_14{ .box = state_type_13{ .value = ((operand_11).box).value, }, .count = (operand_11).count, .mirror = (operand_11).mirror, .operation = (operand_11).operation, .right = (operand_11).right, .round = (operand_11).round, .scalar = (operand_11).scalar, .selected = (operand_11).selected, .values = (operand_11).values, };
+
+        var state_changed_12 = false;
+
+        while (((state_10).round < (state_10).count)) {
+            state_10 = block_33: {
+                const value_30: state_type_14 = block_32: {
+                    const operand_16 = (state_10).operation;
+
+                    break :block_32 (if ((operand_16 == @as(u8, 0))) block_31: {
+                        const value_5: state_type_14 = state_10;
+                        const value_6: state_type_13 = (value_5).box;
+                        const value_7: u64 = (value_6).value;
+                        const value_8: u64 = (state_10).right;
+                        const value_9: state_type_14 = block_30: {
+                            break :block_30 state_type_14{ .box = block_29: {
+                                break :block_29 state_type_13{ .value = (value_7 + value_8), };
+                            }, .count = (value_5).count, .mirror = (value_5).mirror, .operation = (value_5).operation, .right = (value_5).right, .round = (value_5).round, .scalar = (value_5).scalar, .selected = (value_5).selected, .values = (value_5).values, };
+                        };
+
+                        break :block_31 value_9;
+                    } else (if ((operand_16 == @as(u8, 1))) block_28: {
+                        const value_10: state_type_14 = state_10;
+                        const value_11: state_type_13 = (value_10).box;
+                        const value_12: u64 = (value_11).value;
+                        const value_13: u64 = (state_10).right;
+                        const value_14: state_type_14 = block_27: {
+                            break :block_27 state_type_14{ .box = block_26: {
+                                break :block_26 state_type_13{ .value = (value_12 - value_13), };
+                            }, .count = (value_10).count, .mirror = (value_10).mirror, .operation = (value_10).operation, .right = (value_10).right, .round = (value_10).round, .scalar = (value_10).scalar, .selected = (value_10).selected, .values = (value_10).values, };
+                        };
+
+                        break :block_28 value_14;
+                    } else (if ((operand_16 == @as(u8, 2))) block_25: {
+                        const value_15: state_type_14 = state_10;
+                        const value_16: state_type_13 = (value_15).box;
+                        const value_17: u64 = (value_16).value;
+                        const value_18: u64 = (state_10).right;
+                        const value_19: state_type_14 = block_24: {
+                            break :block_24 state_type_14{ .box = block_23: {
+                                break :block_23 state_type_13{ .value = (value_17 * value_18), };
+                            }, .count = (value_15).count, .mirror = (value_15).mirror, .operation = (value_15).operation, .right = (value_15).right, .round = (value_15).round, .scalar = (value_15).scalar, .selected = (value_15).selected, .values = (value_15).values, };
+                        };
+
+                        break :block_25 value_19;
+                    } else (if ((operand_16 == @as(u8, 3))) block_22: {
+                        const value_20: state_type_14 = state_10;
+                        const value_21: state_type_13 = (value_20).box;
+                        const value_22: u64 = (value_21).value;
+                        const value_23: u64 = (state_10).right;
+                        const value_24: state_type_14 = block_21: {
+                            break :block_21 state_type_14{ .box = block_20: {
+                                break :block_20 state_type_13{ .value = @divTrunc(value_22, value_23), };
+                            }, .count = (value_20).count, .mirror = (value_20).mirror, .operation = (value_20).operation, .right = (value_20).right, .round = (value_20).round, .scalar = (value_20).scalar, .selected = (value_20).selected, .values = (value_20).values, };
+                        };
+
+                        break :block_22 value_24;
+                    } else (if ((operand_16 == @as(u8, 4))) block_19: {
+                        const value_25: state_type_14 = state_10;
+                        const value_26: state_type_13 = (value_25).box;
+                        const value_27: u64 = (value_26).value;
+                        const value_28: u64 = (state_10).right;
+                        const value_29: state_type_14 = block_18: {
+                            break :block_18 state_type_14{ .box = block_17: {
+                                break :block_17 state_type_13{ .value = @rem(value_27, value_28), };
+                            }, .count = (value_25).count, .mirror = (value_25).mirror, .operation = (value_25).operation, .right = (value_25).right, .round = (value_25).round, .scalar = (value_25).scalar, .selected = (value_25).selected, .values = (value_25).values, };
+                        };
+
+                        break :block_19 value_29;
+                    } else state_10)))));
+                };
+                const value_31: state_type_14 = value_30;
+                const value_32: u8 = (value_31).round;
+                const value_33: u8 = @as(u8, 1);
+                const value_34: state_type_14 = block_15: {
+                    break :block_15 state_type_14{ .box = (value_31).box, .count = (value_31).count, .mirror = (value_31).mirror, .operation = (value_31).operation, .right = (value_31).right, .round = (value_32 + value_33), .scalar = (value_31).scalar, .selected = (value_31).selected, .values = (value_31).values, };
+                };
+
+                break :block_33 value_34;
+            };
+
+            state_changed_12 = true;
+        }
+
+        break :block_39 (if (state_changed_12) block_38: {
+            const operand_37 = (try (allocator).create((zx_abi).zx_type_15));
+
+            (operand_37).* = @as((zx_abi).zx_type_15, (zx_abi).zx_type_15{ .box = block_36: {
+                const operand_35 = (try (allocator).create((zx_abi).zx_type_14));
+
+                (operand_35).* = @as((zx_abi).zx_type_14, (zx_abi).zx_type_14{ .value = ((state_10).box).value, });
+
+                break :block_36 @as(*const (zx_abi).zx_type_14, operand_35);
+            }, .count = (state_10).count, .mirror = (state_10).mirror, .operation = (state_10).operation, .right = (state_10).right, .round = (state_10).round, .scalar = (state_10).scalar, .selected = (state_10).selected, .values = (state_10).values, });
+
+            break :block_38 @as(*const (zx_abi).zx_type_15, operand_37);
+        } else operand_11);
+    };
+
+    return block_9: {
+        const operand_1 = (value_35).scalar;
+        const operand_2 = ((value_35).box).value;
+        const operand_3 = (value_35).values;
+        const operand_4 = (in).values;
+        const operand_5 = (value_35).mirror;
+        const operand_6 = (value_35).round;
+
+        break :block_9 block_8: {
+            const operand_7 = (try (allocator).create((zx_abi).zx_type_13));
+
+            (operand_7).* = @as((zx_abi).zx_type_13, (zx_abi).zx_type_13{ .scalar = operand_1, .field = operand_2, .values = operand_3, .original = operand_4, .mirror = operand_5, .rounds = operand_6, });
+
+            break :block_8 @as(*const (zx_abi).zx_type_13, operand_7);
+        };
+    };
+}
+
