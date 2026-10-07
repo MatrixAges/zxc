@@ -1,0 +1,5 @@
+const check = @import("support").check;
+
+test "language/statements/state_updates/references/divide/original" {
+    try check(@import("program"), 0x4018000000000000, 0x4000000000000000, 0x4008000000000000);
+}

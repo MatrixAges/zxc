@@ -1,0 +1,21 @@
+export type Input = { left: f64, right: f64 }
+
+export type Output = { scalar: f64, field: f64, element: f64 }
+
+export default function (in: Input): Output {
+    const initial = { scalar: in.left, _11_13_2_19: in.left, box: { _11_13_2_19: in.left }, values: [in.left], right: in.right, round: 0 }
+
+    const result = loop(initial, {
+        while: state => state.round < 1,
+        next: state => {
+            state._11_13_2_19 += state.right
+
+            state.box._11_13_2_19 += state.right
+            state.values[0] += state.right
+
+            state.round += 1
+        }
+    })
+
+    return { scalar: result._11_13_2_19, field: result.box._11_13_2_19, element: result.values[0] }
+}
