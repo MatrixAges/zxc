@@ -1,0 +1,29 @@
+const check = @import("support").check;
+
+test "language/expressions/object_shorthand/identifier/yield/original" {
+    try check(@import("program"), 1, .{ .value = 1 });
+}
+
+test "language/expressions/object_shorthand/identifier/yield/zero" {
+    try check(@import("program"), 0, .{ .value = 0 });
+}
+
+test "language/expressions/object_shorthand/identifier/yield/negative" {
+    try check(@import("program"), -1, .{ .value = -1 });
+}
+
+test "language/expressions/object_shorthand/identifier/yield/positive_control" {
+    try check(@import("program"), 73, .{ .value = 73 });
+}
+
+test "language/expressions/object_shorthand/identifier/yield/negative_control" {
+    try check(@import("program"), -29, .{ .value = -29 });
+}
+
+test "language/expressions/object_shorthand/identifier/yield/minimum" {
+    try check(@import("program"), -9223372036854775808, .{ .value = -9223372036854775808 });
+}
+
+test "language/expressions/object_shorthand/identifier/yield/maximum" {
+    try check(@import("program"), 9223372036854775807, .{ .value = 9223372036854775807 });
+}
