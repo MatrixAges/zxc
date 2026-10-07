@@ -1,0 +1,22 @@
+import position from "./position"
+import value from "./value"
+
+export type Input = { values: i64[], count: u64 }
+
+export type State = { values: i64[], count: u64, index: u64 }
+
+export type Output = i64[]
+
+export default function (in: Input): Output {
+  const initial: State = { values: in.values, count: in.count, index: 0 }
+
+  const result = loop(initial, {
+    while: state => state.index < state.count,
+    next: state => {
+      state.values[position(state.index)] = value(7)
+      state.index += 1
+    }
+  })
+
+  return result.values
+}

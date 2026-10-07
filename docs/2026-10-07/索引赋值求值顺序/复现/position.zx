@@ -1,0 +1,11 @@
+import process from "std:process"
+
+export type Input = u64
+
+export type Output = u64
+
+export default function (in: Input): Output {
+  process.writeStdoutText("P|")
+
+  return in
+}

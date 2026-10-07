@@ -3,7 +3,6 @@ const program = @import("program");
 const probe = @import("probe");
 const mode = @import("options").mode;
 const expected_value = @import("expected_value.zig");
-const compound = expected_value.compound;
 pub const nested = std.mem.indexOf(u8, mode, "_nested_") != null;
 const sequence: []const probe.Stage = if (nested) &.{ .source, .container, .index, .value, .after } else &.{ .source, .index, .value, .after };
 
@@ -35,9 +34,8 @@ fn plannedFailure(case: Case) ?anyerror {
         if (case.failure.stage == .index) return error.IndexFailure;
     }
 
-    if (bounds and compound) return error.IndexOutOfBounds;
-    if (case.failure.stage == .value and case.failure.occurrence == 1) return error.ValueFailure;
     if (bounds) return error.IndexOutOfBounds;
+    if (case.failure.stage == .value and case.failure.occurrence == 1) return error.ValueFailure;
     if (case.failure.stage == null or case.failure.occurrence > rounds or (!nested and case.failure.stage == .container)) return null;
 
     return switch (case.failure.stage.?) {
@@ -52,7 +50,7 @@ fn plannedFailure(case: Case) ?anyerror {
 fn expectTrace(case: Case, expected: ?anyerror) !void {
     const bounds_failure = expected != null and expected.? == error.IndexOutOfBounds;
     const failure_round = if (bounds_failure) 0 else if (expected != null) case.failure.occurrence - 1 else case.outer * case.inner;
-    const final_stage: probe.Stage = if (nested and case.bad_parent and bounds_failure) .container else if (bounds_failure) (if (compound) .index else .value) else case.failure.stage orelse .after;
+    const final_stage: probe.Stage = if (nested and case.bad_parent and bounds_failure) .container else if (bounds_failure) .index else case.failure.stage orelse .after;
     const final_position = std.mem.indexOfScalar(probe.Stage, sequence, final_stage) orelse 0;
     const count = if (expected != null) failure_round * sequence.len + final_position + 1 else failure_round * sequence.len;
 

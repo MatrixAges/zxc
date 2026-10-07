@@ -1,0 +1,23 @@
+{
+    "基础提交": "5a768b39868faf2ac86c59c3f22437a72b0dec01",
+    "修复": "前端取消RHS外层绑定，genz在bounds检查后求值RHS",
+    "未修改反馈stdout用例": true,
+    "原反馈回归_sha256": "01d96d8920efb39e1724144c5172189f1481a0f13b49fb22c30152f3f3ef5c20",
+    "源码_sha256": {
+        "packages/compiler/src/zx/analysis/iteration/block.zig": "0b28cec8c18c2d99c9a86caa2df66b451fb441be70191a2840f6a75b2abbc6de",
+        "packages/genz/src/zx/list_update.zig": "242dbebbe2acacde10f3e873d0744b7544f83e6226f4632f22682a52cd414a7d",
+        "packages/compiler/src/backends/zig/fingerprint.zig": "52585c0777041e4d275b6195d970c0ffcc8bec59c3d1a36ef775d0da56528926",
+        "packages/test/tests/collections/function_updates/effects/check.zig": "81ca84ba63caa4b564b0698ceeb12e9c5fe43ad914422f05414498a880a8a868"
+    },
+    "验证": {
+        "根构建": "35/35 steps",
+        "专项最终": "237/237 steps; 352/352 executed tests; others cached",
+        "CLI应用Debug": "5/5",
+        "CLI应用ReleaseSafe": "5/5"
+    },
+    "生成源码_sha256": "87aaa27e5c5c40b05b832f0290e270ecf18631b5a0d0d936ba0ef18f2e3306a0",
+    "生成ABI_sha256": "22230b3a69c373e268f17df6e6a867c849efa10a4b8de887409c4630f3b23819",
+    "CLI_sha256": "6cabcf08e514f628256422ac3ac33551444e05dffb5301bde563ec1d74cbe563",
+    "限制": ["不是全量测试", "CLI自身为Debug", "不是完整自举验收"],
+    "文本预览": "只规范化文件尾空行，.zig.gz保留原始逐字节产物"
+}
