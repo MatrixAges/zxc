@@ -84,9 +84,7 @@ pub fn expression(program: f.ir.Program) !void {
     var rows: usize = 0;
     var entries: usize = 0;
 
-    for (0..program.symbols.count()) |symbol_index| {
-        const symbol = program.symbols.at(symbol_index);
-
+    for (program.symbols) |symbol| {
         if (std.mem.eql(u8, symbol.name, "row")) {
             rows += 1;
 
