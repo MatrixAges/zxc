@@ -71,6 +71,7 @@ fn statements(self: Self, id: ir.ExprId) Lower.Error![]const node.Statement {
 
     switch (lowering.program.expression(id).value) {
         .reference => {},
+        .match_expr => |value| return self.selection(value),
         .conditional => |value| try body.append(lowering.allocator, .{ .branch = .{ .condition = try lowering.expr(value.condition), .yes = try self.statements(value.yes), .no = try self.statements(value.no) } }),
         .object, .call => {
             const next = try @import("../value_call/root.zig").expression(lowering, id);
@@ -80,6 +81,45 @@ fn statements(self: Self, id: ir.ExprId) Lower.Error![]const node.Statement {
         },
         else => unreachable,
     }
+
+    return body.toOwnedSlice(lowering.allocator);
+}
+
+fn selection(self: Self, value: ir.MatchRow) Lower.Error![]const node.Statement {
+    const lowering = self.lowering;
+    var body: std.ArrayList(node.Statement) = .empty;
+    const previous = if (value.subject) |subject| lowering.cache.get(subject) else null;
+
+    if (value.subject) |subject| {
+        const saved = try aggregate.bind(lowering, &body, try lowering.expr(subject));
+
+        try lowering.cache.put(lowering.allocator, subject, saved);
+        if (value.arms.len == 0) try body.append(lowering.allocator, .{ .discard = saved });
+    }
+
+    defer {
+        if (value.subject) |subject| {
+            if (previous) |saved| lowering.cache.put(lowering.allocator, subject, saved) catch unreachable else _ = lowering.cache.remove(subject);
+        }
+    }
+
+    var tail = try self.statements(value.fallback);
+    var index = value.arms.len;
+
+    while (index > 0) {
+        index -= 1;
+        const arm = value.arms.at(index);
+
+        const condition = if (value.subject) |subject|
+            try lowering.binary(.{ .operator = .equal, .left = subject, .right = arm.condition })
+
+        else
+            try lowering.expr(arm.condition);
+
+        tail = try lowering.allocator.dupe(node.Statement, &.{.{ .branch = .{ .condition = condition, .yes = try self.statements(arm.result), .no = tail } }});
+    }
+
+    try body.appendSlice(lowering.allocator, tail);
 
     return body.toOwnedSlice(lowering.allocator);
 }
