@@ -16,8 +16,9 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
         switch (expression.value) {
             .transform => return .nested_transform,
             .iteration => if (!try @import("independent.zig").prove(trace, id, lane.input)) return .nested_transform,
-            .list_update, .capture, .task, .await_task, .cancel_task, .parallel => return .unsupported_operation,
-            .index => |value| if (try count(trace, value.target, lane) != 0) return .element_read,
+            .capture, .task, .await_task, .cancel_task, .parallel => return .unsupported_operation,
+            .list_update => |value| if (try count(trace, value.target, lane) != 0 or try count(trace, value.value, lane) != 0) return .unsupported_operation,
+            .index => |value| if (!flow.detached(trace.program, expression.type_id) and try count(trace, value.target, lane) != 0) return .element_read,
             .some, .optional_value => |value| if (try count(trace, value, lane) != 0) return .container_escape,
             .list => |values| for (values) |value| {
                 if (try count(trace, value, lane) != 0) return .container_escape;
