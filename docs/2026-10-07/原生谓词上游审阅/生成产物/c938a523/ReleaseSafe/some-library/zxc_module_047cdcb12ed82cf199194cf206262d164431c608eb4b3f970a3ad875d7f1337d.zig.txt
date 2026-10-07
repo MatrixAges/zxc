@@ -1,0 +1,20 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub fn call(allocator: ((std).mem).Allocator, in: []const i64) error{ NativeFailure, }!bool {
+    @setRuntimeSafety(true);
+
+    return predicate_2: {
+        const operand_1 = in;
+
+        for (operand_1) |value_1| {
+            if (((try (@import("zxc_module_432fbde1b5a418d093c2b12d34479328520e91d226b707d1ce325a78a155c8ac")).call(allocator, value_1)) != false)) {
+                break :predicate_2 true;
+            }
+        }
+
+        break :predicate_2 false;
+    };
+}
+
