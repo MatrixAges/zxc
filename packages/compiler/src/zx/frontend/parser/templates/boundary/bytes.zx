@@ -1,0 +1,11 @@
+import tick from "./tick"
+
+import type { State } from "./model"
+
+export type Input = { source: u8[], state: State }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return in.source.reduce((state, byte) => tick({ state: state, byte: byte }), in.state)
+}

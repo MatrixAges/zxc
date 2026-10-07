@@ -7,12 +7,12 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
     const resources_step = b.step("test-expression-preparation-resources", "Validate expression preparation allocation failures and result lifetime");
     const frontend = compiler.module("frontend");
 
-    for ([_][]const u8{ "zx", "rx" }) |route| {
+    for ([_][]const u8{ "direct", "module" }) |route| {
         const generate = b.addRunArtifact(cli.artifact("zxc"));
-        const is_rx = std.mem.eql(u8, route, "rx");
+        const is_module = std.mem.eql(u8, route, "module");
 
-        generate.addFileArg(if (is_rx) compiler.path("src/zx/frontend/parser/prepare.rx") else b.path("tests/bootstrap/expression_preparation/source.zx"));
-        generate.setCwd(compiler.path("."));
+        generate.addFileArg(if (is_module) compiler.path("src/zx/frontend/parser/prepare.rx") else b.path("tests/bootstrap/expression_preparation/source.rx"));
+        generate.setCwd(if (is_module) compiler.path(".") else b.path("../.."));
         generate.addArg("--out");
 
         const source = generate.addOutputFileArg(b.fmt("expression_preparation_{s}.zig", .{route}));
@@ -23,7 +23,7 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
             source_inputs.add(b, generate, compiler, path) catch @panic("unable to track expression preparation sources");
         }
 
-        if (is_rx) generate.addFileInput(compiler.path("src/zx/frontend/lexical.rx"));
+        generate.addFileInput(compiler.path("src/zx/frontend/lexical.rx"));
 
         const program = b.createModule(.{ .root_source_file = source, .target = target, .optimize = optimize });
 

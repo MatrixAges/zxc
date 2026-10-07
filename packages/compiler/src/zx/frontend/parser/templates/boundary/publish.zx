@@ -1,0 +1,17 @@
+import { Keyword } from "../../../lexer/keyword_model"
+import { Kind, Symbol } from "../../../lexer/token_model"
+
+import type { Boundary } from "../model"
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = Boundary
+
+export default function (in: Input): Output {
+    const length = in.lexer.source_length
+    const line_break = in.lexer.tokens.length != 0 && in.lexer.line_break
+    const tokens = in.lexer.tokens.push({ kind: Kind.Eof, word: Keyword.Root, symbol: Symbol.None, span: { start: length, end: length }, line_break: line_break, dollar: false })[0]
+
+    return { lexed: { tokens: tokens, comments: in.lexer.comments, diagnostic: in.lexer.diagnostic }, token_templates: in.graph.token_templates.push(0)[0], templates: in.graph.templates, parts: in.graph.parts, events: in.graph.events }
+}

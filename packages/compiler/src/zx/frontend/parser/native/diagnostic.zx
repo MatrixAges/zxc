@@ -13,5 +13,9 @@ export default function (in: Input): Output {
         _ => in.declarations.control.diagnostic
     }
 
+    if (in.declarations.declarations.length == 0 && in.functions.length == 0 && issue.message == "") {
+        return { code: "contract", start: 0, end: 0, message: "native interfaces must export types or functions" }
+    }
+
     return { code: issue.code, start: issue.start, end: issue.end, message: issue.message }
 }

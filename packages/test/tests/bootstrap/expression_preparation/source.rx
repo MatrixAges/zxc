@@ -1,0 +1,8 @@
+<Module>
+    <Call module="../../../../compiler/src/zx/frontend/lexical" in={$in} />
+
+    <Call fn="../../../../compiler/src/zx/frontend/parser/expressions/prepare/scan" in={$ctx.lexical.lexed.tokens} />
+    <Call fn="../../../../compiler/src/zx/frontend/parser/expressions/prepare/interpolations" in={$ctx.lexical.interpolations} />
+
+    <Return value={{ lexical: $ctx.lexical, hints: $ctx.scan, interpolation_hints: $ctx.interpolations }} />
+</Module>

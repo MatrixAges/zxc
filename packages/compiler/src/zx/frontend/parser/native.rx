@@ -2,7 +2,17 @@
     <Call module="../lexer/scan" in={$in} />
 
     <Call fn="native/parse" in={$ctx.scan} />
-    <Call fn="native/finish" in={$ctx.parse} />
+    <Call fn="native/diagnostic" in={$ctx.parse} />
+    <Call fn="types/order" in={$ctx.parse.declarations.types.tree} />
 
-    <Return value={$ctx.finish} />
+    <Return value={{
+        types: $ctx.parse.declarations.types.tree,
+        type_order: $ctx.order,
+        declarations: $ctx.parse.declarations.declarations,
+        members: $ctx.parse.declarations.members,
+        functions: $ctx.parse.functions,
+        parameters: $ctx.parse.parameters,
+        errors: $ctx.parse.errors,
+        diagnostic: $ctx.diagnostic
+    }} />
 </Module>

@@ -1,15 +1,28 @@
 <Module>
-  <Call module="prepare" in={$in} />
+    <Call module="prepare" in={$in} />
 
-  <Call fn="program/imports" in={$ctx.prepare} />
+    <Call fn="program/imports" in={$ctx.prepare} />
+    <Call fn="program/declarations" in={$ctx.imports} />
+    <Call fn="program/header" in={$ctx.declarations} />
+    <Call fn="program/body" in={$ctx.header} />
+    <Call fn="program/diagnostic" in={$ctx.body} />
+    <Call fn="types/order" in={$ctx.body.body.expression.types.tree} />
 
-  <Call fn="program/declarations" in={$ctx.imports} />
-
-  <Call fn="program/header" in={$ctx.declarations} />
-
-  <Call fn="program/body" in={$ctx.header} />
-
-  <Call fn="program/finish" in={$ctx.body} />
-
-  <Return value={$ctx.finish} />
+    <Return value={{
+        types: $ctx.body.body.expression.types.tree,
+        type_order: $ctx.order,
+        expressions: $ctx.body.body.expression.tree,
+        blocks: $ctx.body.body.tree,
+        tokens: $ctx.body.body.expression.prepared.lexical.lexed.tokens,
+        comments: $ctx.body.body.expression.prepared.lexical.lexed.comments,
+        imports: $ctx.body.prefix.imports,
+        import_names: $ctx.body.prefix.names,
+        declarations: $ctx.body.prefix.declarations,
+        members: $ctx.body.prefix.members,
+        contracts: $ctx.body.contracts,
+        has_store: $ctx.body.header.has_store,
+        function_start: $ctx.body.prefix.function_start,
+        body: $ctx.body.prefix.present ? $ctx.body.body.control.result : null,
+        diagnostic: $ctx.diagnostic
+    }} />
 </Module>

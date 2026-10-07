@@ -1,0 +1,16 @@
+<Module>
+    <Call module="boundary/scan" in={$in} />
+
+    <Switch on={$ctx.scan.lexed.diagnostic.message == "" && $ctx.scan.templates.length != 0}>
+        <Case value={true}>
+            <Call fn="streams/initial" in={{ events: $ctx.scan.events, length: $in.length }} />
+            <Call fn="streams/interpolations" in={{ source: $in, state: $ctx.initial }} />
+
+            <Return value={{ lexed: $ctx.scan.lexed, token_templates: $ctx.scan.token_templates, templates: $ctx.scan.templates, parts: $ctx.scan.parts, interpolations: $ctx.interpolations }} />
+        </Case>
+
+        <Default>
+            <Return value={{ lexed: $ctx.scan.lexed, token_templates: $ctx.scan.token_templates, templates: $ctx.scan.templates, parts: $ctx.scan.parts, interpolations: [] }} />
+        </Default>
+    </Switch>
+</Module>

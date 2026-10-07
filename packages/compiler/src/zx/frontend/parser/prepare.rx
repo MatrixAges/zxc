@@ -1,7 +1,8 @@
 <Module>
-  <Call module="../lexical" in={$in} />
+    <Call module="../lexical" in={$in} />
 
-  <Call fn="expressions/prepare/all" in={$ctx.lexical} />
+    <Call fn="expressions/prepare/scan" in={$ctx.lexical.lexed.tokens} />
+    <Call fn="expressions/prepare/interpolations" in={$ctx.lexical.interpolations} />
 
-  <Return value={$ctx.all} />
+    <Return value={{ lexical: $ctx.lexical, hints: $ctx.scan, interpolation_hints: $ctx.interpolations }} />
 </Module>

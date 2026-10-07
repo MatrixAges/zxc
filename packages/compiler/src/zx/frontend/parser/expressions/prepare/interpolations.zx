@@ -1,0 +1,12 @@
+import scan from "./scan"
+
+import type { Interpolation } from "../../templates/model"
+import type { Hint } from "./model"
+
+export type Input = Interpolation[]
+
+export type Output = Hint[][]
+
+export default function (in: Input): Output {
+    return in.map(item => scan(item.lexed.tokens))
+}

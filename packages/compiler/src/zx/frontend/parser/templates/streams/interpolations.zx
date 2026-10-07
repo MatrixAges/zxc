@@ -1,0 +1,14 @@
+import step from "./step"
+
+import type { Interpolation } from "../model"
+import type { State } from "./model"
+
+export type Input = { source: u8[], state: State }
+
+export type Output = Interpolation[]
+
+export default function (in: Input): Output {
+    const completed = in.source.reduce((state, byte) => step({ state: state, byte: byte }), in.state)
+
+    return completed.interpolations
+}

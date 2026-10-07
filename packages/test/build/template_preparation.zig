@@ -15,11 +15,11 @@ pub fn add(b: *std.Build, cli: *std.Build.Dependency, compiler: *std.Build.Depen
         .imports = &.{.{ .name = "zx", .module = zx }},
     });
 
-    for ([_][]const u8{ "zx", "rx" }) |route| {
+    for ([_][]const u8{ "direct", "module" }) |route| {
         const generate = b.addRunArtifact(cli.artifact("zxc"));
-        const is_rx = std.mem.eql(u8, route, "rx");
+        const is_module = std.mem.eql(u8, route, "module");
 
-        generate.addFileArg(compiler.path(if (is_rx) "src/zx/frontend/lexical.rx" else "src/zx/frontend/parser/templates/prepare.zx"));
+        generate.addFileArg(compiler.path(if (is_module) "src/zx/frontend/lexical.rx" else "src/zx/frontend/parser/templates/prepare.rx"));
         generate.setCwd(compiler.path("."));
         generate.addArg("--out");
 
