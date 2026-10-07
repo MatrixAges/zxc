@@ -135,7 +135,7 @@ pub fn source(memory: std.mem.Allocator, options: Options) !Source {
         .functions = &.{},
         .native_modules = try modules.toOwnedSlice(memory),
         .function = null,
-        .stores = &.{},
+        .stores = .{},
     };
 
     try std.testing.expect(module.types.validStructure());

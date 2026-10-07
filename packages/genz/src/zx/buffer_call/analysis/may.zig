@@ -103,7 +103,7 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
 
             const callee = trace.program.functions[index];
 
-            if (callee.external != null or callee.stores.len != 0 or index >= trace.summaries.len) break :blk try contains(trace, call.argument, &.{}, origin);
+            if (callee.external != null or callee.stores.count() != 0 or index >= trace.summaries.len) break :blk try contains(trace, call.argument, &.{}, origin);
 
             var nested = try Trace.init(trace.allocator, trace.program, callee, trace.summaries[0..index]);
             var inputs: std.ArrayList([]const u32) = .empty;

@@ -126,9 +126,9 @@ fn invoke(builder: *Builder, invocation: Module.Call) Builder.Error!ir.ExprId {
 
     builder.bindings.shrinkRetainingCapacity(count);
 
-    const stores = try builder.allocator.alloc(u32, invocation.callee.stores.len);
+    const stores = try builder.allocator.alloc(u32, invocation.callee.stores.count());
 
-    for (invocation.callee.stores, stores) |slot, *mapped| mapped.* = try builder.store(slot);
+    for (stores, 0..) |*mapped, index| mapped.* = try builder.store(invocation.callee.stores.at(index));
 
     const span = builder.expressions.view().at(@backingInt(argument)).span;
     const function = try builder.importFunction(invocation.callee, invocation.store_initializers);

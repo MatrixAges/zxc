@@ -19,7 +19,7 @@ pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
     const functions = try allocator.dupe(ir.Function, program.functions);
 
     for (functions) |*function| {
-        if (function.stores.len != 0) continue;
+        if (function.stores.count() != 0) continue;
 
         const selected = try @import("selection.zig").create(allocator, function.expressions, function.body, plan) orelse continue;
 
@@ -35,7 +35,7 @@ pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
 
     result.functions = functions;
 
-    if (program.stores.len != 0) return result;
+    if (program.stores.count() != 0) return result;
 
     if (try @import("selection.zig").create(allocator, program.expressions, program.body, plan)) |selected| {
         const transformed = rebuild(allocator, plan, program.symbols, program.expressions, program.body, selected) catch |err| switch (err) {

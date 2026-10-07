@@ -66,11 +66,11 @@ pub fn load(allocator: std.mem.Allocator, options: Options) !model.Loaded {
     for (program.functions) |function| {
         var mapped = try nodes.function(function);
         mapped.file_name = try identity.scope(allocator, library.instance, function.file_name);
-        const stores = try allocator.dupe(ir.StoreSlot, mapped.stores);
+        const paths = try allocator.alloc([]const u8, mapped.stores.count());
 
-        for (stores) |*slot| slot.path = try identity.store(allocator, library.instance, slot.path);
+        for (mapped.stores.paths, paths) |path, *owned| owned.* = try identity.store(allocator, library.instance, path);
 
-        mapped.stores = stores;
+        mapped.stores.paths = paths;
 
         try options.functions.append(allocator, mapped);
     }

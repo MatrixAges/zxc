@@ -23,7 +23,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
         }
 
         if (item.external) |external| {
-            if (item.stores.len != 0 or item.store_mode != .transaction or item.contracts.len != 0 or item.output_ownership != .borrowed) return invalid();
+            if (item.stores.count() != 0 or item.store_mode != .transaction or item.contracts.len != 0 or item.output_ownership != .borrowed) return invalid();
             if (@backingInt(external.module) >= program.native_modules.len or external.member.len == 0 or item.symbols.count() != 0 or item.expressions.count() != 0 or item.body.root != null or @backingInt(item.input_type) >= program.types.count() or @backingInt(item.output_type) >= program.types.count()) return invalid();
 
             for (external.member) |part| {

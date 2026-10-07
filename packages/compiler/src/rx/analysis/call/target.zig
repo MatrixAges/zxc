@@ -130,9 +130,9 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Erro
     if (callee.type_only) return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "module", .message = "Call.fn requires an executable ZX module with a default function" });
 
     if (options.setter) |setter| {
-        const slots = try allocator.dupe(zx.ir.StoreSlot, callee.stores);
-        slots[0].path = try allocator.dupe(u8, setter.path);
-        callee.stores = slots;
+        const paths = try allocator.dupe([]const u8, callee.stores.paths);
+        paths[0] = try allocator.dupe(u8, setter.path);
+        callee.stores.paths = paths;
     }
 
     return .{ .function = .{ .program = callee, .nominal_types = analyzed.nominal_types, .store_initializers = analyzed.store_initializers } };

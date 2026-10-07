@@ -1,5 +1,6 @@
 import control from "../control/validate"
 import expressions from "../expressions/validation/validate"
+import stores from "../stores/validate"
 import symbols from "./symbols"
 import tree from "./tree"
 
@@ -10,6 +11,10 @@ export type Input = { body: Body, max_offset: u64 }
 export type Output = bool
 
 export default function (in: Input): Output {
+    if (!stores(in.body.stores)) {
+        return false
+    }
+
     if (!symbols({ symbols: in.body.symbols, max_offset: in.max_offset })) {
         return false
     }

@@ -9,7 +9,7 @@ fn check(allocator: std.mem.Allocator, distinct: bool) !void {
     defer analyzed.deinit();
 
     try std.testing.expect(analyzed.value == .ir);
-    try std.testing.expectEqual(@as(usize, 0), analyzed.value.ir.stores.len);
+    try std.testing.expectEqual(@as(usize, 0), analyzed.value.ir.stores.count());
     try std.testing.expectEqual(@as(usize, if (distinct) 2 else 1), analyzed.store_initializers.len);
     if (distinct) try std.testing.expect(!std.mem.eql(u8, analyzed.store_initializers[0].identity, analyzed.store_initializers[1].identity));
 

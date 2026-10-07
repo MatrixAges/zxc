@@ -22,7 +22,7 @@ test "real entry artifact closes every type tag and preserves shared children" {
     for (0..module.types.count()) |position| kinds.insert(std.meta.activeTag(module.types.at(position)));
     try std.testing.expectEqual(@as(usize, 9), kinds.count());
     try std.testing.expectEqualSlices(u8, &analysis.modules[index].source_digest, &module.source_digest);
-    try std.testing.expectEqual(@as(usize, 0), module.stores.len);
+    try std.testing.expectEqual(@as(usize, 0), module.stores.count());
 }
 
 test "earlier noise declaration shifts enum and composite local ids" {

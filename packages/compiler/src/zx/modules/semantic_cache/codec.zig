@@ -58,10 +58,10 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
         return error.InvalidCache;
     };
 
-    if (!@import("../../ir/type_rules.zig").validate(parsed.module.types)) return error.InvalidCache;
+    if (!parsed.module.stores.validStructure() or !@import("../../ir/type_rules.zig").validate(parsed.module.types)) return error.InvalidCache;
 
     if (parsed.module.function) |function| {
-        if (!try function.body.validStructure(allocator) or !function.symbols.validStructure() or !function.expressions.validStructure()) return error.InvalidCache;
+        if (!function.stores.validStructure() or !try function.body.validStructure(allocator) or !function.symbols.validStructure() or !function.expressions.validStructure()) return error.InvalidCache;
 
         for (function.contracts) |contract| {
             if (!contract.symbols.validStructure() or !contract.expressions.validStructure()) return error.InvalidCache;

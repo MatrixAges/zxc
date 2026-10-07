@@ -4,7 +4,7 @@ const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 
 pub fn statement(self: *Lower, statements: ir.Block, index: usize) Lower.Error!?node.Statement {
-    if (self.program.store_mode != .orchestration or self.program.stores.len == 0) return null;
+    if (self.program.store_mode != .orchestration or self.program.stores.count() == 0) return null;
 
     const first = value(self, statements.at(index)) orelse return null;
 

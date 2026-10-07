@@ -1,12 +1,11 @@
 import type { Table } from "../../analysis/semantic/types/model"
 import type { Control } from "../../ir/canonical/control/model"
 import type { Expressions } from "../../ir/canonical/expressions/model"
+import type { Stores } from "../../ir/canonical/stores/model"
 import type { Symbols } from "../../ir/canonical/symbols"
 
 export enum Ownership { Copy, Borrowed, Owned }
 
-export type Store = { path: string, type_id: u32, handle: string, readable: bool, writable: bool }
-
-export type Function = { output_ownership: Ownership, stores: Store[] }
+export type Function = { output_ownership: Ownership, stores: Stores }
 
 export type Program = { types: Table, symbols: Symbols, expressions: Expressions, control: Control, body: u32?, functions: Function[], type_only: bool }

@@ -12,7 +12,7 @@ fn boundary(program: ir.Program, function: ir.Function, borrowed: bool) bool {
     const external = function.external orelse return false;
 
     if (borrowed and (external.io_argument or external.process_argument)) return false;
-    if (function.stores.len != 0 or !outputLeaf(program, function.output_type)) return false;
+    if (function.stores.count() != 0 or !outputLeaf(program, function.output_type)) return false;
 
     if (external.expand_tuple) {
         const input = program.typeOf(function.input_type);

@@ -24,7 +24,9 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
     try initializers.appendSlice(allocator, options.initializers);
 
     for (options.analysis.store_initializers) |initial| {
-        const needed = for (application.stores) |slot| {
+        const needed = for (0..application.stores.count()) |store_index| {
+            const slot = application.stores.at(store_index);
+
             if (std.mem.eql(u8, slot.path, initial.identity)) break true;
         } else false;
 
@@ -57,7 +59,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
     for (initializers.items) |initial| {
         var program = initial.program;
 
-        if (program.type_only or program.functions.len != 0 or program.native_modules.len != 0 or program.stores.len != 0 or program.contracts.len != 0) return error.InvalidInitializer;
+        if (program.type_only or program.functions.len != 0 or program.stores.count() != 0 or program.contracts.len != 0) return error.InvalidInitializer;
         if (try frontend.validateIr(allocator, program) != null) return error.InvalidInitializer;
         if (program.types.at(@backingInt(program.input_type)) != .scalar or program.types.at(@backingInt(program.input_type)).scalar != .void) return error.InvalidInitializer;
         if (program.types.at(@backingInt(program.output_type)) != .object) return error.InvalidInitializer;
@@ -86,7 +88,8 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
         try metadata.append(allocator, .{ .identity = identity, .schema_version = initial.schema_version, .module_name = module_name, .type_name = shared.types[@backingInt(program.output_type)] });
     }
 
-    for (application.stores) |slot| {
+    for (0..application.stores.count()) |store_index| {
+        const slot = application.stores.at(store_index);
         const type_id = identities.get(slot.path) orelse return error.MissingInitializer;
 
         if (type_id != slot.type_id) return error.InvalidInitializer;

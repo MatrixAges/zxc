@@ -56,7 +56,7 @@ pub fn main(init: std.process.Init) !void {
 
     const contract = result.value.contract;
 
-    if (contract.program.stores.len != 1 or contract.store_definitions.len != 1) return error.InvalidStoreCount;
+    if (contract.program.stores.count() != 1 or contract.store_definitions.len != 1) return error.InvalidStoreCount;
     if (try compiler.validateIr(allocator, contract.program) != null) return error.InvalidIr;
     try @import("dual/emit_state.zig").write(init, contract, args[2]);
 }

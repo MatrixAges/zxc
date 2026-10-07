@@ -149,7 +149,7 @@ pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
             try std.testing.expectEqualDeep(compiler.ir.Type{ .scalar = case.output }, program.types.get(program.output_type));
         }
 
-        try std.testing.expectEqual(case.slots, program.stores.len);
+        try std.testing.expectEqual(case.slots, program.stores.count());
         try std.testing.expect(try compiler.validateIr(allocator, program) == null);
     }
 }

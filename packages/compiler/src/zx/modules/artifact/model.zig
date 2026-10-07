@@ -22,7 +22,7 @@ pub const Module = struct {
     functions: []const Signature,
     native_modules: []const ir.NativeModule,
     function: ?ir.Function,
-    stores: []const ir.StoreSlot,
+    stores: ir.StoreTable,
 };
 
 pub const Result = struct {

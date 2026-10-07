@@ -25,7 +25,7 @@ test "ordinary helper artifact does not inherit entry capabilities" {
     defer result.deinit();
 
     try std.testing.expect(result.value.function != null);
-    try std.testing.expectEqual(@as(usize, 0), result.value.stores.len);
+    try std.testing.expectEqual(@as(usize, 0), result.value.stores.count());
 }
 
 test "slot types use local ids after unrelated helper enum is omitted" {
@@ -38,7 +38,7 @@ test "slot types use local ids after unrelated helper enum is omitted" {
     defer result.deinit();
 
     try h.check(result.value);
-    try std.testing.expect(analysis.value.ir.stores[0].type_id != result.value.stores[0].type_id);
+    try std.testing.expect(analysis.value.ir.stores.at(0).type_id != result.value.stores.at(0).type_id);
     try std.testing.expectEqual(@as(usize, 0), result.value.nominal_types.count());
 }
 
@@ -60,8 +60,8 @@ test "copied get and set nodes reference matching local slots" {
 
         switch (expression.value) {
             .store_get => |index| {
-                try std.testing.expect(index < module.stores.len);
-                try std.testing.expectEqual(module.stores[index].type_id, expression.type_id);
+                try std.testing.expect(index < module.stores.count());
+                try std.testing.expectEqual(module.stores.at(index).type_id, expression.type_id);
 
                 store_mask |= @as(u8, 1) << @intCast(index);
             },
@@ -96,12 +96,14 @@ test "slot strings and object fields outlive original analysis mutation and rele
 
         errdefer extracted.deinit();
 
-        for (analysis.value.ir.stores) |slot| {
+        for (0..analysis.value.ir.stores.count()) |store_index| {
+            const slot = analysis.value.ir.stores.at(store_index);
+
             @memset(@constCast(slot.path), 'x');
             @memset(@constCast(slot.handle), 'x');
         }
 
-        for ([_]compiler.ir.TypeId{analysis.value.ir.stores[0].type_id}) |id| {
+        for ([_]compiler.ir.TypeId{analysis.value.ir.stores.at(0).type_id}) |id| {
             const fields = analysis.value.ir.types.get(id).object;
 
             for (fields.names) |name| @memset(@constCast(name), 'x');

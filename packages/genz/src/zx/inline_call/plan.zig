@@ -14,7 +14,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
     @memset(costs, 0);
 
     for (program.functions, 0..) |function, index| {
-        if (!facts.pure[index] or function.external != null or function.stores.len != 0 or function.contracts.len != 0) continue;
+        if (!facts.pure[index] or function.external != null or function.stores.count() != 0 or function.contracts.len != 0) continue;
         if (primitive(program, function.input_type) and primitive(program, function.output_type)) continue;
 
         const input = program.typeOf(function.input_type);

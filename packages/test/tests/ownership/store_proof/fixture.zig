@@ -65,7 +65,7 @@ pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
 
     defer analyzed.deinit();
 
-    try std.testing.expectEqual(@as(usize, 1), contract.program.stores.len);
+    try std.testing.expectEqual(@as(usize, 1), contract.program.stores.count());
     try std.testing.expectEqual(@as(usize, 1), contract.store_definitions.len);
     try std.testing.expectEqual(@as(usize, 1), contract.store_definitions[0].objects.len);
 
@@ -73,7 +73,7 @@ pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
         .name = "run",
         .analysis = &analyzed,
         .initializers = &.{.{
-            .identity = contract.program.stores[0].path,
+            .identity = contract.program.stores.at(0).path,
             .schema_version = contract.store_definitions[0].version,
             .program = contract.store_definitions[0].objects[0].initial,
         }},

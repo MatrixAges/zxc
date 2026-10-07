@@ -27,7 +27,7 @@ pub fn create(allocator: std.mem.Allocator, library: *const model.Result, names:
         program.expressions = function.expressions;
         program.body = function.body;
         program.contracts = function.contracts;
-        program.stores = &.{};
+        program.stores = .{};
         program.exports = &.{};
         file.* = .{ .name = module_name, .source = try modules.emit(allocator, program, names, .entry, cache), .imports = &.{} };
 

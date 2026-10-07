@@ -113,7 +113,7 @@ pub fn validate(program: ir.Program, expression: ir.ExpressionRow, index: usize)
         },
         .enum_value => |member| target == .enumeration and member < target.enumeration.members.len,
         .error_value => |member| target == .error_set and member < target.error_set.len,
-        .store_get => |slot| slot < program.stores.len and program.stores[slot].readable and program.stores[slot].type_id == type_id,
+        .store_get => |slot| slot < program.stores.count() and program.stores.at(slot).readable and program.stores.at(slot).type_id == type_id,
         .reference => |symbol| @backingInt(symbol) < program.symbols.count() and program.symbols.at(@backingInt(symbol)).type_id == type_id,
         .field, .tuple_field => |field| blk: {
             if (!check.earlier(field.target)) break :blk false;

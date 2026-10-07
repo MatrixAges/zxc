@@ -110,6 +110,8 @@ pub const Statement = union(enum) {
 pub const ParallelCall = struct { symbol: ?SymbolId, value: ExprId };
 pub const SwitchCase = struct { value: ?ExprId, body: BlockId };
 pub const StoreMode = enum { transaction, orchestration };
+pub const StoreTable = @import("store_table/root.zig");
+pub const StoreStorage = @import("store_table/storage.zig");
 pub const StoreSlot = struct { path: []const u8, type_id: TypeId, handle: []const u8 = "", readable: bool = true, writable: bool = true };
 
 pub const NativeModule = struct {
@@ -151,7 +153,7 @@ pub const Contract = struct {
 };
 
 pub const Function = struct {
-    stores: []const StoreSlot = &.{},
+    stores: StoreTable = .{},
     store_mode: StoreMode = .transaction,
     output_ownership: Ownership = .borrowed,
     contracts: []const Contract = &.{},
@@ -166,7 +168,7 @@ pub const Function = struct {
 
 pub const Program = struct {
     output_ownership: Ownership = .borrowed,
-    version: u32 = 28,
+    version: u32 = 29,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,
@@ -179,7 +181,7 @@ pub const Program = struct {
     exports: []const Export = &.{},
     functions: []const Function = &.{},
     native_modules: []const NativeModule = &.{},
-    stores: []const StoreSlot = &.{},
+    stores: StoreTable = .{},
     type_only: bool = false,
     pub fn typeOf(self: Program, id: TypeId) Type {
         return self.types.get(id);

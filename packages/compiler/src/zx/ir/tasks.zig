@@ -87,7 +87,7 @@ pub fn callSafe(allocator: std.mem.Allocator, functions: []const ir.Function, id
     defer allocator.free(safe);
 
     for (functions, 0..) |function, index| {
-        safe[index] = function.stores.len == 0;
+        safe[index] = function.stores.count() == 0;
 
         if (function.external) |external| {
             safe[index] = safe[index] and external.concurrent;

@@ -155,7 +155,7 @@ fn block(self: *Self, statements: ir.Block, depth: usize) std.mem.Allocator.Erro
                 }
             },
             .store_set => |setter| {
-                if (self.program.store_mode != .transaction or setter.slot >= self.program.stores.len or !self.program.stores[setter.slot].writable or !try self.expression(setter.value, 0) or self.program.expression(setter.value).type_id != self.program.stores[setter.slot].type_id) return false;
+                if (self.program.store_mode != .transaction or setter.slot >= self.program.stores.count() or !self.program.stores.at(setter.slot).writable or !try self.expression(setter.value, 0) or self.program.expression(setter.value).type_id != self.program.stores.at(setter.slot).type_id) return false;
             },
         }
     }

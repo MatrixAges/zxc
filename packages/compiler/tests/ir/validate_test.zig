@@ -140,9 +140,9 @@ test "ir: a supplied Store slot cannot bypass its read permission" {
 
     try std.testing.expect(try frontend.validateIr(std.testing.allocator, program) == null);
 
-    var stores = [_]zx.ir.StoreSlot{program.stores[0]};
-    stores[0].readable = false;
-    program.stores = &stores;
+    const readable = [_]bool{false};
+
+    program.stores.readable = &readable;
 
     try expectInvalid(program);
 }

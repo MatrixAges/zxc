@@ -13,23 +13,25 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
 
     const program = options.analysis.value.ir;
 
-    if (program.stores.len == 0) return;
+    if (program.stores.count() == 0) return;
     for (bundle.modules) |file| if (std.mem.eql(u8, file.name, "zxc_state")) return error.DuplicateState;
 
     const allocator = bundle.arena.allocator();
     const shared = try names.create(allocator, program, options.analysis.nominal_types);
-    const objects = try allocator.alloc(generating.Object, program.stores.len);
+    const objects = try allocator.alloc(generating.Object, program.stores.count());
     const imports = try allocator.alloc([]const u8, objects.len + 1);
     imports[0] = "application";
 
     const independent = try frontend.storesOwnValues(allocator, program);
 
-    for (program.stores, objects, 0..) |slot, *object, index| {
+    for (objects, 0..) |*object, index| {
+        const slot = program.stores.at(index);
+
         const initial = for (bundle.store_initializers) |candidate| {
             if (std.mem.eql(u8, candidate.identity, slot.path)) break candidate;
         } else return error.MissingInitializer;
 
-        if (!std.mem.eql(u8, initial.type_name, shared.types[@intFromEnum(slot.type_id)])) return error.InvalidInitializer;
+        if (!std.mem.eql(u8, initial.type_name, shared.types[@backingInt(slot.type_id)])) return error.InvalidInitializer;
 
         object.* = .{ .module_name = initial.module_name, .writable = slot.writable, .independent = independent };
         imports[index + 1] = initial.module_name;

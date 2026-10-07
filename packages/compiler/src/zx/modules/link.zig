@@ -52,7 +52,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         if (index + 1 == sorted.len) {
             root = function;
         } else {
-            if (module.stores.len != 0) return error.InvalidModule;
+            if (module.stores.count() != 0) return error.InvalidModule;
 
             if (function) |value| {
                 function_ids[index] = @fromBackingInt(@intCast(builder.functions.items.len));
@@ -65,16 +65,11 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
     const module = sorted[sorted.len - 1];
     const mapping = TypeMap{ .mapped = mappings[mappings.len - 1] };
     const exports = try owned.dupe(ir.Export, module.exports);
-    const stores = try owned.dupe(ir.StoreSlot, module.stores);
+    var nodes = @import("artifact/nodes.zig"){ .allocator = owned, .types = mapping, .functions = &.{}, .native_modules = &.{} };
+    const stores = try nodes.stores(module.stores);
 
     for (exports) |*item| {
         item.name = try owned.dupe(u8, item.name);
-        item.type_id = try mapping.include(item.type_id);
-    }
-
-    for (stores) |*item| {
-        item.path = try owned.dupe(u8, item.path);
-        item.handle = try owned.dupe(u8, item.handle);
         item.type_id = try mapping.include(item.type_id);
     }
 

@@ -6,15 +6,15 @@ pub fn append(bundle: *compiler.zig.ModuleBundle, prepared: *const Prepared, cac
     const allocator = bundle.arena.allocator();
     const program = prepared.analysis.value.ir;
 
-    if (program.stores.len == 0) return;
+    if (program.stores.count() == 0) return;
 
     var initializers: std.ArrayList(compiler.zig.store_initializers.Initializer) = .empty;
 
     for (prepared.store_definitions) |definition| for (definition.objects) |object| {
         const identity = try std.fmt.allocPrint(allocator, "store.{s}:{s}", .{ definition.source_path, object.name });
 
-        const needed = for (program.stores) |slot| {
-            if (std.mem.eql(u8, slot.path, identity)) break true;
+        const needed = for (program.stores.paths) |path| {
+            if (std.mem.eql(u8, path, identity)) break true;
         } else false;
 
         if (!needed) continue;

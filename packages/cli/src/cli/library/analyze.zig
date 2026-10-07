@@ -50,8 +50,8 @@ pub const Result = struct {
             for (module.store_definitions) |definition| for (definition.objects) |object| {
                 const identity = try std.fmt.allocPrint(scratch, "store.{s}:{s}", .{ definition.source_path, object.name });
 
-                const needed = for (module.analysis.value.ir.stores) |slot| {
-                    if (std.mem.eql(u8, slot.path, identity)) break true;
+                const needed = for (module.analysis.value.ir.stores.paths) |path| {
+                    if (std.mem.eql(u8, path, identity)) break true;
                 } else false;
 
                 if (needed) try initializers.append(scratch, .{ .identity = identity, .schema_version = definition.version, .program = object.initial });

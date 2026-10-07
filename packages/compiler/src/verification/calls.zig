@@ -9,7 +9,7 @@ pub fn evaluate(self: *Expressions, expression: ir.ExpressionRow) zx.Error!terms
     const invocation = expression.value.call;
     const function = self.program.functions[@backingInt(invocation.function)];
 
-    if (function.stores.len != 0) return self.reporter.fail(.unsupported, expression.span, "verification does not model Store calls");
+    if (function.stores.count() != 0) return self.reporter.fail(.unsupported, expression.span, "verification does not model Store calls");
     if (function.external != null) return self.reporter.fail(.unsupported, expression.span, "verification requires a ZX body for each executed call; external semantics are not modeled");
     if (self.call_depth >= 128) return self.reporter.fail(.unsupported, expression.span, "verification call depth exceeds 128");
 
@@ -27,7 +27,7 @@ pub fn evaluate(self: *Expressions, expression: ir.ExpressionRow) zx.Error!terms
     program.expressions = function.expressions;
     program.body = function.body;
     program.contracts = function.contracts;
-    program.stores = &.{};
+    program.stores = .{};
     program.file_name = function.file_name;
 
     var conditions = Conditions{

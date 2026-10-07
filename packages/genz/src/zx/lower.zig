@@ -170,14 +170,14 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
         } else try body.append(self.allocator, .{ .constant = .{ .name = "allocator", .value = try self.call(try self.field(try self.builder.identifier("arena"), "allocator"), &.{}, false) } });
     } else if (!self.uses_allocator) try body.append(self.allocator, .{ .discard = try self.builder.identifier(if (exported) "arena" else "allocator") });
 
-    if (self.program.stores.len > 0 and !self.transaction() and !self.uses_context) try body.append(self.allocator, .{ .discard = try self.builder.identifier("context") });
+    if (self.program.stores.count() > 0 and !self.transaction() and !self.uses_context) try body.append(self.allocator, .{ .discard = try self.builder.identifier("context") });
     if (needs_io and !self.uses_io) try body.append(self.allocator, .{ .discard = try self.builder.identifier("io") });
     if (needs_process and !self.uses_process) try body.append(self.allocator, .{ .discard = try self.builder.identifier("process") });
     if (!self.used[0]) try body.append(self.allocator, .{ .discard = try self.builder.identifier("in") });
     if (self.buffered_type != null and !self.uses_buffers) try body.append(self.allocator, .{ .discard = try self.builder.identifier("buffers") });
 
     if (self.transaction()) {
-        const fields = try self.allocator.alloc(node.Field, self.program.stores.len);
+        const fields = try self.allocator.alloc(node.Field, self.program.stores.count());
 
         for (fields, 0..) |*item, index| item.* = .{ .name = try std.fmt.allocPrint(self.allocator, "store_{d}", .{index}), .value = try self.builder.expression(.null_value) };
 
@@ -190,7 +190,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     try body.appendSlice(self.allocator, body_statements);
     if (self.transaction() and !ir.terminates(self.program.body.block())) try body.append(self.allocator, .{ .expression = try self.commit() });
 
-    const injected = self.program.stores.len > 0;
+    const injected = self.program.stores.count() > 0;
     const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(injected)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)) + @as(usize, @intFromBool(self.buffered_type != null)));
 
     parameters[0] = if (exported) .{ .name = "arena", .value = try self.builder.expression(.{ .pointer = try @import("intrinsics.zig").standardField(self, &.{ "heap", "ArenaAllocator" }) }) } else .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
@@ -441,7 +441,7 @@ pub fn statements(self: *Self, values: ir.Block) Error![]const node.Statement {
 }
 
 pub fn transaction(self: *const Self) bool {
-    return self.program.stores.len > 0 and self.program.store_mode == .transaction;
+    return self.program.stores.count() > 0 and self.program.store_mode == .transaction;
 }
 
 pub fn commit(self: *Self) Error!*const node.Expression {

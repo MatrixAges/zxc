@@ -80,7 +80,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
 }
 
 fn importedCall(self: *Analyzer, expression: anytype, function: Analyzer.FunctionImport) zx.Error!ir.ExprId {
-    if (self.functions[@backingInt(function.id)].stores.len != 0) return self.reporter.fail(.capability, expression.span, "Store functions require an explicitly authorized orchestration Call");
+    if (self.functions[@backingInt(function.id)].stores.count() != 0) return self.reporter.fail(.capability, expression.span, "Store functions require an explicitly authorized orchestration Call");
 
     const call = syntax.value(expression).call;
 

@@ -1,0 +1,11 @@
+import type { Stores } from "./model"
+
+export type Input = Stores
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const count = in.paths.length
+
+    return count <= 4294967295 && in.types.length == count && in.handles.length == count && in.readable.length == count && in.writable.length == count
+}

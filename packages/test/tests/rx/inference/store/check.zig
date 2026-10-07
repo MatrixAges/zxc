@@ -61,13 +61,13 @@ pub fn run(case: Case) !void {
         try std.testing.expectEqual(offset + 1, issue.location.column);
     } else {
         try std.testing.expect(result.value == .contract);
-        try std.testing.expectEqual(case.slots, result.value.contract.program.stores.len);
+        try std.testing.expectEqual(case.slots, result.value.contract.program.stores.count());
         try std.testing.expect(try compiler.validateIr(allocator, result.value.contract.program) == null);
 
         if (case.slots == 2) {
             const slots = result.value.contract.program.stores;
 
-            try std.testing.expect(!std.mem.eql(u8, slots[0].path, slots[1].path));
+            try std.testing.expect(!std.mem.eql(u8, slots.paths[0], slots.paths[1]));
         }
     }
 }

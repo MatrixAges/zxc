@@ -8,7 +8,7 @@ pub fn check(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocato
     if (!try independent(allocator, program)) return false;
 
     for (program.functions) |function| {
-        if (function.external != null or function.stores.len == 0) continue;
+        if (function.external != null or function.stores.count() == 0) continue;
 
         var child = program;
 

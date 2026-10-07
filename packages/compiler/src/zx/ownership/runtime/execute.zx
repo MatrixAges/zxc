@@ -556,9 +556,9 @@ export default function (in: Input): Output {
                     const function_info = current.program.functions[integers.widen(current.program.expressions.call_functions[call])]
                     const container = current.references[integers.widen(current.program.expressions.types[frame.subject])]
                     const escapes = loop({ slots: function_info.stores, index: 0, found: container && function_info.output_ownership == Ownership.Borrowed }, {
-                        while: slot => slot.index < slot.slots.length && !slot.found,
+                        while: slot => slot.index < slot.slots.writable.length && !slot.found,
                         next: slot => {
-                            slot.found = slot.slots[slot.index].writable
+                            slot.found = slot.slots.writable[slot.index]
                             slot.index += 1
                         }
                     })

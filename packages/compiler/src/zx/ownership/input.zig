@@ -8,7 +8,7 @@ const Symbols = std.meta.Child(@FieldType(Input, "symbols"));
 const Expressions = std.meta.Child(@FieldType(Input, "expressions"));
 const Control = std.meta.Child(@FieldType(Input, "control"));
 const Function = std.meta.Child(std.meta.Elem(@FieldType(Input, "functions")));
-const Store = std.meta.Child(std.meta.Elem(@FieldType(Function, "stores")));
+const Stores = std.meta.Child(@FieldType(Function, "stores"));
 
 pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program) !generated.Output {
     const types = ir.TypeTable.borrow(Types, program.types);
@@ -32,29 +32,20 @@ pub fn execute(arena: *std.heap.ArenaAllocator, program: ir.Program) !generated.
 fn functions(allocator: std.mem.Allocator, source: []const ir.Function) std.mem.Allocator.Error![]const *const Function {
     const values = try allocator.alloc(Function, source.len);
     const pointers = try allocator.alloc(*const Function, source.len);
+    const slots = try allocator.alloc(Stores, source.len);
 
-    for (source, values, pointers) |item, *value, *pointer| {
+    for (source, values, pointers, slots) |item, *value, *pointer, *stores| {
+        stores.* = borrow.columns(Stores, item.stores);
+
         value.* = .{
             .output_ownership = switch (item.output_ownership) {
                 .copy => .Copy,
                 .borrowed => .Borrowed,
                 .owned => .Owned,
             },
-            .stores = try stores(allocator, item.stores),
+            .stores = stores,
         };
 
-        pointer.* = value;
-    }
-
-    return pointers;
-}
-
-fn stores(allocator: std.mem.Allocator, source: []const ir.StoreSlot) std.mem.Allocator.Error![]const *const Store {
-    const values = try allocator.alloc(Store, source.len);
-    const pointers = try allocator.alloc(*const Store, source.len);
-
-    for (source, values, pointers) |item, *value, *pointer| {
-        value.* = .{ .path = item.path, .type_id = @backingInt(item.type_id), .handle = item.handle, .readable = item.readable, .writable = item.writable };
         pointer.* = value;
     }
 

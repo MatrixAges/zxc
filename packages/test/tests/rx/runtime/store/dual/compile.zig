@@ -80,7 +80,7 @@ pub fn main(init: std.process.Init) !void {
 
     const contract = result.value.contract;
 
-    if (contract.program.stores.len != 2 or contract.store_definitions.len != 2) return error.InvalidStoreCount;
+    if (contract.program.stores.count() != 2 or contract.store_definitions.len != 2) return error.InvalidStoreCount;
     if (try compiler.validateIr(allocator, contract.program) != null) return error.InvalidIr;
 
     if (nested) {
@@ -105,7 +105,7 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[3], .data = bundle.types });
 
     for ([_][]const u8{ "store.left.store.rx:counter", "store.right.store.rx:counter" }, 0..) |identity, index| {
-        if (!std.mem.eql(u8, contract.program.stores[index].path, identity)) return error.InvalidStoreIdentity;
+        if (!std.mem.eql(u8, contract.program.stores.at(index).path, identity)) return error.InvalidStoreIdentity;
         if (contract.store_definitions[index].objects.len != 1) return error.InvalidObjectCount;
 
         const initial = contract.store_definitions[index].objects[0].initial;

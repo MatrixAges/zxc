@@ -22,7 +22,7 @@ pub fn validate(program: ir.Program) bool {
 
         view.symbols = contract.symbols;
         view.expressions = contract.expressions;
-        view.stores = &.{};
+        view.stores = .{};
         view.functions = &.{};
 
         for (0..contract.expressions.count()) |index| {

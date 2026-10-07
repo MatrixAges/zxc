@@ -16,14 +16,22 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
         else => {},
     };
 
-    for (program.stores) |slot| mark(program, boxed, slot.type_id);
+    for (0..program.stores.count()) |store_index| {
+        const slot = program.stores.at(store_index);
+
+        mark(program, boxed, slot.type_id);
+    }
 
     comparisons(program, boxed, program.expressions, program.contracts);
 
     for (program.functions) |function| {
         comparisons(program, boxed, function.expressions, function.contracts);
 
-        for (function.stores) |slot| mark(program, boxed, slot.type_id);
+        for (0..function.stores.count()) |store_index| {
+            const slot = function.stores.at(store_index);
+
+            mark(program, boxed, slot.type_id);
+        }
 
         if (function.external != null) {
             mark(program, boxed, function.input_type);

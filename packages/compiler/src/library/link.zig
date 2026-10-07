@@ -100,7 +100,8 @@ pub fn link(allocator: std.mem.Allocator, inputs: []const model.Input) Error!mod
         exported.* = .{ .name = try owned.dupe(u8, input.name), .path = try owned.dupe(u8, program.file_name), .function = function_id, .types = public_types.items };
     }
 
-    for (functions.items) |function| for (function.stores) |slot| {
+    for (functions.items) |function| for (0..function.stores.count()) |store_index| {
+        const slot = function.stores.at(store_index);
         const entry = try stores.getOrPut(scratch, slot.path);
 
         if (entry.found_existing and entry.value_ptr.* != slot.type_id) return error.ConflictingStore;

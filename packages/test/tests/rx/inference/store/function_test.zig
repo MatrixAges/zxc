@@ -50,7 +50,7 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
 
     if (mode == .pure) {
         try std.testing.expect(result.value == .contract);
-        try std.testing.expectEqual(@as(usize, 1), result.value.contract.program.stores.len);
+        try std.testing.expectEqual(@as(usize, 1), result.value.contract.program.stores.count());
         try std.testing.expect(try compiler.validateIr(allocator, result.value.contract.program) == null);
     } else {
         try std.testing.expect(result.value == .diagnostic);

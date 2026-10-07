@@ -51,9 +51,9 @@ pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Alloc
         const function = functions.items[@backingInt(id)];
 
         if (options.setter != null) return fail(allocator, options, "capability", "Call.module cannot grant a setter; Store authorization belongs inside the published RX module");
-        if (function.stores.len != 0 and function.store_mode != .orchestration) return fail(allocator, options, "capability", "compiled Store transactions require an explicit authorized RX module");
+        if (function.stores.count() != 0 and function.store_mode != .orchestration) return fail(allocator, options, "capability", "compiled Store transactions require an explicit authorized RX module");
 
-        const stores = try allocator.alloc(u32, function.stores.len);
+        const stores = try allocator.alloc(u32, function.stores.count());
 
         for (stores, 0..) |*slot, index| slot.* = @intCast(index);
 

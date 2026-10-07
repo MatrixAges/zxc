@@ -20,7 +20,7 @@ pub fn evaluate(state: *State, id: ir.ExprId, argument: facts.Value) std.mem.All
 
     const function = state.program.functions[index];
 
-    if (function.external != null or function.stores.len != 0 or function.contracts.len != 0) {
+    if (function.external != null or function.stores.count() != 0 or function.contracts.len != 0) {
         state.valid = false;
 
         return .none;

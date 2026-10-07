@@ -12,11 +12,11 @@ fn check(allocator: std.mem.Allocator, different_path: bool, different_type: boo
     const left = try result.module(0);
     const right = try result.module(1);
 
-    try std.testing.expectEqual(@as(usize, 1), left.stores.len);
-    try std.testing.expectEqual(@as(usize, 1), right.stores.len);
-    try std.testing.expectEqualStrings("store.state.store.rx:counter", left.stores[0].path);
-    try std.testing.expectEqualStrings(if (different_path) "store.other.store.rx:counter" else "store.state.store.rx:counter", right.stores[0].path);
-    try std.testing.expectEqual(!different_type, left.stores[0].type_id == right.stores[0].type_id);
+    try std.testing.expectEqual(@as(usize, 1), left.stores.count());
+    try std.testing.expectEqual(@as(usize, 1), right.stores.count());
+    try std.testing.expectEqualStrings("store.state.store.rx:counter", left.stores.at(0).path);
+    try std.testing.expectEqualStrings(if (different_path) "store.other.store.rx:counter" else "store.state.store.rx:counter", right.stores.at(0).path);
+    try std.testing.expectEqual(!different_type, left.stores.at(0).type_id == right.stores.at(0).type_id);
     try std.testing.expect(try compiler.validateIr(std.testing.allocator, left) == null);
     try std.testing.expect(try compiler.validateIr(std.testing.allocator, right) == null);
 }

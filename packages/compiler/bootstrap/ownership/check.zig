@@ -362,7 +362,7 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
             const ownership = function.output_ownership;
             var escapes = container and ownership == .borrowed;
 
-            for (function.stores) |slot| escapes = escapes or slot.writable;
+            for (function.stores.writable) |writable| escapes = escapes or writable;
             if (escapes) self.freeze(call.argument);
 
             break :blk switch (ownership) {

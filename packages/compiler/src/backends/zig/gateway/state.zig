@@ -27,9 +27,10 @@ pub fn create(allocator: std.mem.Allocator, library: *const Library, bundle: Bun
 
         if (try ir.containsNativeReference(allocator, program.types, program.input_type) or try ir.containsNativeReference(allocator, program.types, program.output_type)) return error.UnsupportedHostReference;
 
-        const bindings = try allocator.alloc(generating.gateway.Slot, program.stores.len);
+        const bindings = try allocator.alloc(generating.gateway.Slot, program.stores.count());
 
-        for (program.stores, bindings) |slot, *binding| {
+        for (0..program.stores.count(), bindings) |store_index, *binding| {
+            const slot = program.stores.at(store_index);
             const entry = try slots.getOrPut(allocator, slot.path);
 
             if (entry.found_existing) {

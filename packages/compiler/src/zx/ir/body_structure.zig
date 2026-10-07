@@ -7,10 +7,11 @@ pub fn valid(allocator: std.mem.Allocator, value: anytype) std.mem.Allocator.Err
         const generated = @import("generated_ir_body");
         const Input = std.meta.Child(generated.Input);
         const Body = std.meta.Child(@FieldType(Input, "body"));
+        const stores = borrow.columns(std.meta.Child(@FieldType(Body, "stores")), value.stores);
         const symbols = borrow.columns(std.meta.Child(@FieldType(Body, "symbols")), value.symbols);
         const expressions = borrow.columns(std.meta.Child(@FieldType(Body, "expressions")), value.expressions);
         const control = borrow.columns(std.meta.Child(@FieldType(Body, "control")), value.body.control.*);
-        const body: Body = .{ .symbols = &symbols, .expressions = &expressions, .control = &control, .root = if (value.body.root) |root| @backingInt(root) else null };
+        const body: Body = .{ .stores = &stores, .symbols = &symbols, .expressions = &expressions, .control = &control, .root = if (value.body.root) |root| @backingInt(root) else null };
         var arena = std.heap.ArenaAllocator.init(allocator);
 
         defer arena.deinit();
@@ -20,6 +21,6 @@ pub fn valid(allocator: std.mem.Allocator, value: anytype) std.mem.Allocator.Err
             else => return false,
         };
     } else {
-        return try value.body.validStructure(allocator) and value.expressions.validStructure() and value.symbols.validStructure();
+        return value.stores.validStructure() and try value.body.validStructure(allocator) and value.expressions.validStructure() and value.symbols.validStructure();
     }
 }

@@ -21,6 +21,6 @@ fn run(allocator: std.mem.Allocator, index: usize) !void {
     defer result.deinit();
 
     if (index == 1) try h.check(result.value) else {
-        try std.testing.expectEqual(@as(usize, 0), result.value.stores.len);
+        try std.testing.expectEqual(@as(usize, 0), result.value.stores.count());
     }
 }

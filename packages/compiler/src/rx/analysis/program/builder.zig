@@ -12,7 +12,7 @@ symbols: ir.SymbolStorage = .{},
 expressions: ir.ExpressionStorage = .{},
 functions: std.ArrayList(ir.Function) = .empty,
 store_initializers: std.ArrayList(StoreInitializer) = .empty,
-stores: std.ArrayList(ir.StoreSlot) = .empty,
+stores: ir.StoreStorage = .{},
 body: std.ArrayList(ir.Statement) = .empty,
 control: ir.ControlStorage = .{},
 bindings: std.ArrayList(ir.SymbolId) = .empty,
@@ -101,17 +101,19 @@ pub fn importFunction(self: *Self, program: ir.Program, initializers: []const St
 }
 
 pub fn store(self: *Self, value: ir.StoreSlot) Error!u32 {
-    for (self.stores.items, 0..) |*slot, index| {
+    for (0..self.stores.count()) |index| {
+        const slot = self.stores.at(index);
+
         if (!std.mem.eql(u8, slot.path, value.path)) continue;
         if (slot.type_id != value.type_id) return error.InvalidModule;
 
-        slot.readable = slot.readable or value.readable;
-        slot.writable = slot.writable or value.writable;
+        self.stores.readable.items[index] = slot.readable or value.readable;
+        self.stores.writable.items[index] = slot.writable or value.writable;
 
         return @intCast(index);
     }
 
-    const id: u32 = @intCast(self.stores.items.len);
+    const id: u32 = @intCast(self.stores.count());
 
     try self.stores.append(self.allocator, .{ .path = try self.allocator.dupe(u8, value.path), .type_id = value.type_id, .readable = value.readable, .writable = value.writable });
 

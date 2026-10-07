@@ -49,7 +49,9 @@ pub fn check(value: *const compiler.library.Result, count: usize) !void {
 
         var matched = false;
 
-        for (value.program.functions) |owner| for (owner.stores) |slot| {
+        for (value.program.functions) |owner| for (0..owner.stores.count()) |store_index| {
+            const slot = owner.stores.at(store_index);
+
             if (!std.mem.eql(u8, slot.path, initial.identity)) continue;
             try std.testing.expectEqual(slot.type_id, function.output_type);
 

@@ -62,6 +62,6 @@ pub fn create(allocator: std.mem.Allocator, entry: Native, fingerprint: [32]u8, 
         .dependencies = &.{},
         .type_imports = &.{},
         .function = null,
-        .stores = &.{},
+        .stores = .{},
     } };
 }

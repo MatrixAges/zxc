@@ -5,14 +5,14 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
     const pure = try allocator.alloc(bool, program.functions.len);
 
     for (program.functions, 0..) |function, index| {
-        pure[index] = function.external == null and function.stores.len == 0 and calls(function.expressions, pure[0..index]);
+        pure[index] = function.external == null and function.stores.count() == 0 and calls(function.expressions, pure[0..index]);
     }
 
     return pure;
 }
 
 pub fn programPure(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
-    if (program.stores.len != 0) return false;
+    if (program.stores.count() != 0) return false;
 
     const pure = try functions(allocator, program);
 

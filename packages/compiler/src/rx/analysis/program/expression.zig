@@ -8,7 +8,7 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
 
     const count = program.body.block().len - 1;
 
-    if (program.functions.len != 0 or program.stores.len != 0) return error.InvalidModule;
+    if (program.functions.len != 0 or program.stores.count() != 0) return error.InvalidModule;
     if (program.symbols.count() < count + 1) return error.InvalidModule;
 
     var mapping = Mapping{

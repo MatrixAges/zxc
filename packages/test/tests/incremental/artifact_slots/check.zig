@@ -20,13 +20,13 @@ pub fn analyze(allocator: std.mem.Allocator) !compiler.AnalysisResult {
 }
 
 pub fn check(module: compiler.project.artifact.Module) !void {
-    try std.testing.expectEqual(@as(usize, 2), module.stores.len);
-    try std.testing.expectEqualStrings("store.primary.state", module.stores[0].path);
-    try std.testing.expectEqualStrings("store.secondary.state", module.stores[1].path);
-    try std.testing.expectEqualStrings("$store_a", module.stores[0].handle);
-    try std.testing.expectEqualStrings("$store_b", module.stores[1].handle);
-    try std.testing.expect(module.stores[0].readable and module.stores[0].writable);
-    try std.testing.expect(module.stores[1].readable and !module.stores[1].writable);
-    try std.testing.expectEqual(module.stores[0].type_id, module.stores[1].type_id);
-    try std.testing.expectEqualStrings("count", module.types.get(module.stores[0].type_id).object.at(0).name);
+    try std.testing.expectEqual(@as(usize, 2), module.stores.count());
+    try std.testing.expectEqualStrings("store.primary.state", module.stores.at(0).path);
+    try std.testing.expectEqualStrings("store.secondary.state", module.stores.at(1).path);
+    try std.testing.expectEqualStrings("$store_a", module.stores.at(0).handle);
+    try std.testing.expectEqualStrings("$store_b", module.stores.at(1).handle);
+    try std.testing.expect(module.stores.at(0).readable and module.stores.at(0).writable);
+    try std.testing.expect(module.stores.at(1).readable and !module.stores.at(1).writable);
+    try std.testing.expectEqual(module.stores.at(0).type_id, module.stores.at(1).type_id);
+    try std.testing.expectEqualStrings("count", module.types.get(module.stores.at(0).type_id).object.at(0).name);
 }

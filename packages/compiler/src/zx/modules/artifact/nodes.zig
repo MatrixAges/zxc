@@ -35,17 +35,8 @@ pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
     result.symbols = try self.symbols(value.symbols);
     result.expressions = try self.expressions(value.expressions);
     result.body = try self.body(value.body);
-    const stores = try self.allocator.dupe(ir.StoreSlot, value.stores);
-    result.stores = stores;
-
-    for (stores) |*slot| {
-        slot.path = try self.allocator.dupe(u8, slot.path);
-        slot.handle = try self.allocator.dupe(u8, slot.handle);
-        slot.type_id = try self.types.include(slot.type_id);
-    }
-
+    result.stores = try self.stores(value.stores);
     const contracts = try self.allocator.alloc(ir.Contract, value.contracts.len);
-
     result.contracts = contracts;
 
     for (value.contracts, contracts) |contract, *owned| {
@@ -57,6 +48,26 @@ pub fn function(self: *Self, value: ir.Function) Error!ir.Function {
     result.external = if (value.external) |entry| try self.external(entry) else null;
 
     return result;
+}
+
+pub fn stores(self: *Self, values: ir.StoreTable) Error!ir.StoreTable {
+    if (!values.validStructure()) return error.InvalidModule;
+
+    var storage: ir.StoreStorage = .{};
+
+    errdefer storage.deinit(self.allocator);
+
+    for (0..values.count()) |index| {
+        var item = values.at(index);
+
+        item.path = try self.allocator.dupe(u8, item.path);
+        item.handle = try self.allocator.dupe(u8, item.handle);
+        item.type_id = try self.types.include(item.type_id);
+
+        try storage.append(self.allocator, item);
+    }
+
+    return storage.finish(self.allocator);
 }
 
 fn symbols(self: *Self, values: ir.SymbolTable) Error!ir.SymbolTable {

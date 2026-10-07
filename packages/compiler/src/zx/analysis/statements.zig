@@ -97,7 +97,7 @@ pub fn block(self: *Analyzer, value: anytype) zx.Error!ir.BlockId {
                 if (!self.allow_store or self.lambda_depth != 0) return self.reporter.fail(.capability, statement.span, "Store writes require the explicit setter parameter and cannot occur in a lambda");
 
                 const authorized = try @import("store.zig").writeSlot(self, setter.target);
-                const value_id = try self.expression(setter.value, self.stores[authorized].type_id);
+                const value_id = try self.expression(setter.value, self.stores.at(authorized).type_id);
 
                 try result.append(self.allocator, .{ .store_set = .{ .slot = authorized, .value = value_id } });
             },

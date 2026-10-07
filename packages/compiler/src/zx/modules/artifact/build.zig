@@ -88,16 +88,9 @@ pub fn extract(self: *Self, record: Record) Error!model.Module {
 
     const exported = try self.exports(record.exports);
     const function = try self.copyFunction(record);
-    const stores = try self.allocator.dupe(ir.StoreSlot, if (record.body == .entry) self.program.stores else if (record.body == .function) self.program.functions[@backingInt(record.body.function)].stores else &.{});
-
-    for (stores) |*slot| {
-        slot.path = try self.allocator.dupe(u8, slot.path);
-        slot.handle = try self.allocator.dupe(u8, slot.handle);
-        slot.type_id = try self.types.include(slot.type_id);
-    }
-
-    const dependencies = try self.allocator.dupe(Record.Import, record.imports);
     var nodes = self.nodeCopier();
+    const stores = try nodes.stores(if (record.body == .entry) self.program.stores else if (record.body == .function) self.program.functions[@backingInt(record.body.function)].stores else .{});
+    const dependencies = try self.allocator.dupe(Record.Import, record.imports);
 
     for (dependencies) |*dependency| {
         dependency.specifier = try self.allocator.dupe(u8, dependency.specifier);

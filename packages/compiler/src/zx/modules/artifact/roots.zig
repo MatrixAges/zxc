@@ -50,7 +50,12 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
             try self.mark(program.input_type);
             try self.mark(program.output_type);
             try self.nodes(program.symbols, program.expressions, program.contracts);
-            for (program.stores) |slot| try self.mark(slot.type_id);
+
+            for (0..program.stores.count()) |store_index| {
+                const slot = program.stores.at(store_index);
+
+                try self.mark(slot.type_id);
+            }
         },
         .function => |id| {
             if (@backingInt(id) >= program.functions.len) return error.InvalidModule;
@@ -60,7 +65,12 @@ pub fn collect(allocator: std.mem.Allocator, program: ir.Program, record: Record
             try self.mark(function.input_type);
             try self.mark(function.output_type);
             try self.nodes(function.symbols, function.expressions, function.contracts);
-            for (function.stores) |slot| try self.mark(slot.type_id);
+
+            for (0..function.stores.count()) |store_index| {
+                const slot = function.stores.at(store_index);
+
+                try self.mark(slot.type_id);
+            }
         },
     }
 

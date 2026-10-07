@@ -14,7 +14,7 @@ pub fn program(allocator: std.mem.Allocator, value: ir.Program) std.mem.Allocato
 
     defer self.deinit();
 
-    if (value.stores.len != 0) self.unknown = true;
+    if (value.stores.count() != 0) self.unknown = true;
     try self.contracts(value.contracts);
     try self.statements(value.expressions, value.body.block());
 
@@ -84,7 +84,7 @@ pub fn call(self: *Self, id: ir.FunctionId) std.mem.Allocator.Error!void {
         return;
     }
 
-    if (function.stores.len != 0) self.unknown = true;
+    if (function.stores.count() != 0) self.unknown = true;
     try self.contracts(function.contracts);
     try self.statements(function.expressions, function.body.block());
 }

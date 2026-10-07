@@ -16,7 +16,7 @@ control: ir.ControlStorage = .{},
 output_type: ir.TypeId = undefined,
 function_imports: []const FunctionImport = &.{},
 functions: []const ir.Function = &.{},
-stores: []const ir.StoreSlot = &.{},
+stores: ir.StoreTable = .{},
 store_bindings: []const @import("analyze.zig").StoreBinding = &.{},
 store_type_count: usize = 0,
 expression_bindings: std.ArrayList(ir.SymbolId) = .empty,
@@ -71,9 +71,9 @@ fn runInitialized(self: *Self, program: anytype, view: anytype, file_name: []con
 fn resolveStores(self: *Self, has_store: bool, span: zx.Span) zx.Error!void {
     if (self.store_bindings.len > 0) self.stores = try @import("store.zig").resolve(self, self.store_bindings, span);
 
-    self.allow_store = has_store or self.stores.len > 0;
+    self.allow_store = has_store or self.stores.count() > 0;
 
-    if (has_store and self.stores.len == 0) return self.reporter.fail(.capability, span, "Store setters require an authorized call context");
+    if (has_store and self.stores.count() == 0) return self.reporter.fail(.capability, span, "Store setters require an authorized call context");
 }
 
 fn exportTypes(self: *Self, view: anytype) zx.Error![]const ir.Export {

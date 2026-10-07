@@ -5,8 +5,10 @@ const ir = zx.ir;
 const Analyzer = @import("analyzer.zig");
 const StoreBinding = @import("analyze.zig").StoreBinding;
 
-pub fn resolve(self: *Analyzer, bindings: []const StoreBinding, span: zx.Span) zx.Error![]const ir.StoreSlot {
-    const result = try self.allocator.alloc(ir.StoreSlot, bindings.len);
+pub fn resolve(self: *Analyzer, bindings: []const StoreBinding, span: zx.Span) zx.Error!ir.StoreTable {
+    var result: ir.StoreStorage = .{};
+
+    errdefer result.deinit(self.allocator);
 
     for (bindings, 0..) |binding, index| {
         if (binding.handle.len < 2 or binding.handle[0] != '$') return self.reporter.fail(.capability, span, "injected Store handles must start with $");
@@ -25,11 +27,10 @@ pub fn resolve(self: *Analyzer, bindings: []const StoreBinding, span: zx.Span) z
 
         if (try ir.containsNativeReference(self.allocator, self.types.items.view(), type_id)) return self.reporter.fail(.capability, span, "Store cannot retain host references");
         if (self.types.get(type_id) != .object) return self.reporter.fail(.capability, span, "a Store handle must refer to a complete Object type");
-
-        result[index] = .{ .handle = try self.allocator.dupe(u8, binding.handle), .path = try self.allocator.dupe(u8, binding.path), .type_id = type_id, .readable = binding.readable, .writable = binding.writable };
+        try result.append(self.allocator, .{ .handle = try self.allocator.dupe(u8, binding.handle), .path = try self.allocator.dupe(u8, binding.path), .type_id = type_id, .readable = binding.readable, .writable = binding.writable });
     }
 
-    return result;
+    return result.finish(self.allocator);
 }
 
 fn handleSlot(self: *Analyzer, target: anytype) zx.Error!u32 {
@@ -44,7 +45,7 @@ fn handleSlot(self: *Analyzer, target: anytype) zx.Error!u32 {
 
     const name = owner.identifier.text;
 
-    for (self.stores, 0..) |slot, index| if (std.mem.eql(u8, slot.handle, name)) {
+    for (self.stores.handles, 0..) |handle, index| if (std.mem.eql(u8, handle, name)) {
         return @intCast(index);
     };
 
@@ -54,9 +55,9 @@ fn handleSlot(self: *Analyzer, target: anytype) zx.Error!u32 {
 pub fn read(self: *Analyzer, target: anytype) zx.Error!ir.ExprId {
     const slot = try handleSlot(self, target);
 
-    if (!self.stores[slot].readable) return self.reporter.fail(.capability, target.span, "the Call did not grant read access to this Store handle");
+    if (!self.stores.at(slot).readable) return self.reporter.fail(.capability, target.span, "the Call did not grant read access to this Store handle");
 
-    return self.append(.{ .span = target.span, .type_id = self.stores[slot].type_id, .value = .{ .store_get = slot } });
+    return self.append(.{ .span = target.span, .type_id = self.stores.at(slot).type_id, .value = .{ .store_get = slot } });
 }
 
 pub fn writeSlot(self: *Analyzer, target: anytype) zx.Error!u32 {
@@ -77,14 +78,14 @@ pub fn writeSlot(self: *Analyzer, target: anytype) zx.Error!u32 {
 
         const path = try std.fmt.allocPrint(self.allocator, "store.{s}.{s}", .{ object.field.name.text, node.field.name.text });
 
-        for (self.stores, 0..) |store, index| if (std.mem.eql(u8, store.path, path)) {
+        for (self.stores.paths, 0..) |store_path, index| if (std.mem.eql(u8, store_path, path)) {
             break :blk @as(u32, @intCast(index));
         };
 
         return self.reporter.fail(.capability, target.span, "Store Object is not authorized by this Call");
     };
 
-    if (!self.stores[slot].writable) return self.reporter.fail(.capability, target.span, "the Call did not grant write access to this Store handle");
+    if (!self.stores.at(slot).writable) return self.reporter.fail(.capability, target.span, "the Call did not grant write access to this Store handle");
 
     return slot;
 }

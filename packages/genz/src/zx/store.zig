@@ -4,13 +4,13 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
 pub fn declaration(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower.Error!void {
-    if (self.program.stores.len == 0) return;
+    if (self.program.stores.count() == 0) return;
 
-    const fields = try self.allocator.alloc(node.Field, self.program.stores.len);
+    const fields = try self.allocator.alloc(node.Field, self.program.stores.count());
 
-    for (self.program.stores, 0..) |slot, index| fields[index] = .{
+    for (self.program.stores.types, 0..) |type_id, index| fields[index] = .{
         .name = try slotName(self, index),
-        .value = try self.builder.expression(.{ .optional_type = self.types[@backingInt(slot.type_id)] }),
+        .value = try self.builder.expression(.{ .optional_type = self.types[type_id] }),
     };
 
     try output.append(self.allocator, .{ .constant = .{ .name = self.pending_name, .value = try self.builder.expression(.{ .struct_type = fields }), .exported = true } });
@@ -22,7 +22,7 @@ pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.ExpressionRow,
     const slots = self.program.functions[@backingInt(invocation.function)].stores;
     var readable: usize = 0;
 
-    for (slots) |slot| if (slot.readable) {
+    for (slots.readable) |allowed| if (allowed) {
         readable += 1;
     };
 
@@ -34,8 +34,8 @@ pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.ExpressionRow,
 
     var field_index: usize = 1;
 
-    for (mapping, slots, 0..) |slot, capability, index| {
-        if (!capability.readable) continue;
+    for (mapping, slots.readable, 0..) |slot, allowed, index| {
+        if (!allowed) continue;
 
         const name = try slotName(self, index);
         const pointer = try self.field(context, try slotName(self, slot));
@@ -46,7 +46,7 @@ pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.ExpressionRow,
     }
 
     const pending = try self.builder.identifier("changes");
-    const mapped = try self.allocator.alloc(node.Field, self.program.stores.len);
+    const mapped = try self.allocator.alloc(node.Field, self.program.stores.count());
 
     for (mapped, 0..) |*field, index| field.* = .{ .name = try slotName(self, index), .value = try self.builder.expression(.null_value) };
     for (mapping, 0..) |slot, index| mapped[slot].value = try self.field(pending, try slotName(self, index));

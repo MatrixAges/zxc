@@ -206,7 +206,9 @@ pub fn knownType(self: *const Analyzer, value: anytype) ?ir.TypeId {
             const target_value = syntax.value(field.target);
 
             if (target_value == .identifier and std.mem.startsWith(u8, target_value.identifier.text, "$")) {
-                for (self.stores) |slot| {
+                for (0..self.stores.count()) |store_index| {
+                    const slot = self.stores.at(store_index);
+
                     if (std.mem.eql(u8, slot.handle, target_value.identifier.text) and std.mem.eql(u8, field.name.text, "value")) break :blk slot.type_id;
                 }
             }

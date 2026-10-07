@@ -62,8 +62,8 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
 
     const contract = result.value.contract;
 
-    try std.testing.expectEqual(@as(usize, 1), contract.program.stores.len);
-    try std.testing.expectEqualStrings("store.state.store.rx:counter", contract.program.stores[0].path);
+    try std.testing.expectEqual(@as(usize, 1), contract.program.stores.count());
+    try std.testing.expectEqualStrings("store.state.store.rx:counter", contract.program.stores.at(0).path);
     try std.testing.expectEqual(@as(usize, 1), contract.store_definitions.len);
 
     const definition = contract.store_definitions[0];

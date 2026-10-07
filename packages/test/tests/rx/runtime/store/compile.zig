@@ -59,8 +59,8 @@ pub fn main(init: std.process.Init) !void {
 
     const contract = result.value.contract;
 
-    if (contract.program.stores.len != 1 or contract.store_definitions.len != 1 or contract.store_definitions[0].objects.len != 1) return error.InvalidStoreCount;
-    if (!std.mem.eql(u8, contract.program.stores[0].path, "store.state.store.rx:counter")) return error.InvalidStoreIdentity;
+    if (contract.program.stores.count() != 1 or contract.store_definitions.len != 1 or contract.store_definitions[0].objects.len != 1) return error.InvalidStoreCount;
+    if (!std.mem.eql(u8, contract.program.stores.at(0).path, "store.state.store.rx:counter")) return error.InvalidStoreIdentity;
     if (try compiler.validateIr(allocator, contract.program) != null) return error.InvalidIr;
 
     const initial = contract.store_definitions[0].objects[0].initial;
