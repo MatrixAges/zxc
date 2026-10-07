@@ -62,7 +62,7 @@ pub fn run(allocator: std.mem.Allocator, compiled: bool, case: Case) !void {
 
     const expression = result.value.expression;
 
-    try std.testing.expectEqual(case.output, expression.expressions[@backingInt(expression.value)].type_id);
+    try std.testing.expectEqual(case.output, expression.expressions.at(@backingInt(expression.value)).type_id);
     try std.testing.expectEqual(case.bindings.len, expression.symbols.count());
 
     for (case.bindings, 0..) |binding, symbol_index| {

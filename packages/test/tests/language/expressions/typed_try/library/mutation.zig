@@ -18,14 +18,19 @@ pub fn apply(value: *f.compiler.library.Result, mode: Mode) !void {
     try std.testing.expectEqual(@as(usize, 1), changed);
 }
 
-fn expressions(allocator: std.mem.Allocator, types: *ir.TypeTable, original: []const ir.Expression, mode: Mode, changed: *usize) ![]const ir.Expression {
-    const values = try allocator.dupe(ir.Expression, original);
+fn expressions(allocator: std.mem.Allocator, types: *ir.TypeTable, original: ir.ExpressionTable, mode: Mode, changed: *usize) !ir.ExpressionTable {
+    var values = original;
+    const operators = try allocator.dupe(@typeInfo(@TypeOf(original.binary_operators)).pointer.child, original.binary_operators);
 
-    for (values) |*value| {
+    values.binary_operators = operators;
+
+    for (0..values.count()) |index| {
+        const value = values.at(index);
+
         if (mode == .guard) {
             if (value.value != .binary or value.value.binary.operator != .equal) continue;
 
-            value.value.binary.operator = .not_equal;
+            operators[values.payloads[index]] = .NotEqual;
             changed.* += 1;
         } else {
             if (value.value != .capture) continue;

@@ -40,7 +40,7 @@ pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Resu
         .file_name = try allocator.dupe(u8, contract.owner),
         .types = contract.types,
         .symbols = builder.symbols.view(),
-        .expressions = builder.expressions.items,
+        .expressions = builder.expressions.view(),
         .input_type = contract.input_type,
         .output_type = contract.output_type,
         .body = builder.body.items,

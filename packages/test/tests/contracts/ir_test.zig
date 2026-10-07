@@ -39,28 +39,28 @@ test "invalid contract IR cannot reach code generation" {
 
         defer allocator.free(output_types);
 
-        const expressions = try allocator.dupe(compiler.ir.Expression, contracts[0].expressions);
+        const expression_types = try allocator.dupe(u32, contracts[0].expressions.types);
 
-        defer allocator.free(expressions);
+        defer allocator.free(expression_types);
 
         contracts[0].symbols.names = input_names;
         contracts[0].symbols.types = input_types;
         contracts[1].symbols.names = output_names;
         contracts[1].symbols.types = output_types;
-        contracts[0].expressions = expressions;
+        contracts[0].expressions.types = expression_types;
         program.contracts = contracts;
         const predicate: usize = @backingInt(contracts[0].predicate);
-        const bool_type = expressions[predicate].type_id;
+        const bool_type: compiler.ir.TypeId = @fromBackingInt(expression_types[predicate]);
 
         switch (mutation) {
             .order => std.mem.swap(compiler.ir.Contract, &contracts[0], &contracts[1]),
-            .predicate => contracts[0].predicate = @fromBackingInt(@intCast(expressions.len)),
+            .predicate => contracts[0].predicate = @fromBackingInt(@intCast(expression_types.len)),
             .symbol_count => contracts[0].symbols = .{},
             .input_name => input_names[0] = "wrong",
             .input_type => input_types[0] = @backingInt(bool_type),
             .output_name => output_names[1] = "wrong",
             .output_type => output_types[1] = @backingInt(bool_type),
-            .predicate_type => expressions[predicate].type_id = program.input_type,
+            .predicate_type => expression_types[predicate] = @backingInt(program.input_type),
         }
 
         errdefer std.debug.print("Contract mutation: {t}\n", .{mutation});

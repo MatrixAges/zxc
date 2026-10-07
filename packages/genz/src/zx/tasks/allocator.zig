@@ -13,12 +13,16 @@ pub fn required(allocator: std.mem.Allocator, program: ir.Program) Lower.Error!b
     return uses(program.expressions, functions);
 }
 
-fn uses(expressions: []const ir.Expression, functions: []const bool) bool {
-    for (expressions) |expression| switch (expression.value) {
-        .task, .await_task, .cancel_task, .parallel => return true,
-        .call => |call| if (functions[@backingInt(call.function)]) return true,
-        else => {},
-    };
+fn uses(expressions: ir.ExpressionTable, functions: []const bool) bool {
+    for (0..expressions.count()) |expression_index| {
+        const expression = expressions.at(expression_index);
+
+        switch (expression.value) {
+            .task, .await_task, .cancel_task, .parallel => return true,
+            .call => |call| if (functions[@backingInt(call.function)]) return true,
+            else => {},
+        }
+    }
 
     return false;
 }

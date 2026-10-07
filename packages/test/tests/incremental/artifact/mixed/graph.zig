@@ -90,7 +90,9 @@ pub fn task(module: f.artifact.Module) !void {
     var tasks: usize = 0;
     var awaits: usize = 0;
 
-    for (function.expressions) |expression| {
+    for (0..function.expressions.count()) |expression_index| {
+        const expression = function.expressions.at(expression_index);
+
         if (expression.value == .task) {
             tasks += 1;
             const value = module.types.get(expression.type_id);
@@ -107,7 +109,7 @@ pub fn task(module: f.artifact.Module) !void {
 
             const capture = expression.value.task.captures[0];
             const symbol = function.symbols.at(@backingInt(capture));
-            const body = function.expressions[@backingInt(expression.value.task.body)];
+            const body = function.expressions.at(@backingInt(expression.value.task.body));
 
             try std.testing.expectEqualStrings("count", symbol.name);
             try std.testing.expectEqual(f.scalar(.u64), symbol.type_id);
@@ -116,7 +118,7 @@ pub fn task(module: f.artifact.Module) !void {
             try std.testing.expect(@backingInt(body.value.call.function) < module.functions.len);
 
             const signature = module.functions[@backingInt(body.value.call.function)];
-            const argument = function.expressions[@backingInt(body.value.call.argument)];
+            const argument = function.expressions.at(@backingInt(body.value.call.argument));
 
             try std.testing.expectEqualStrings("compute", signature.external.?.exportName());
             try std.testing.expect(signature.external.?.concurrent);
@@ -129,7 +131,7 @@ pub fn task(module: f.artifact.Module) !void {
 
             try std.testing.expectEqual(f.scalar(.u64), expression.type_id);
 
-            const work = function.expressions[@backingInt(expression.value.await_task)];
+            const work = function.expressions.at(@backingInt(expression.value.await_task));
 
             try std.testing.expectEqual(.reference, std.meta.activeTag(work.value));
             try std.testing.expectEqualStrings("work", function.symbols.at(@backingInt(work.value.reference)).name);

@@ -31,7 +31,9 @@ fn shape(case: f.Case, expected: Expected) !void {
 
     var count: usize = 0;
 
-    for (program.expressions) |expression| {
+    for (0..program.expressions.count()) |expression_index| {
+        const expression = program.expressions.at(expression_index);
+
         if (expression.value != .cancel_task) continue;
 
         count += 1;

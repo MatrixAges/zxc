@@ -83,10 +83,14 @@ fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Low
     const type_fields = self.program.typeOf(expression.type_id).object;
     const fields = try self.allocator.alloc(node.Field, value.fields.len);
 
-    for (value.fields, 0..) |field, index| fields[index] = .{
-        .name = type_fields.at(field.index).name,
-        .value = try existing(self, body, field.value),
-    };
+    for (0..value.fields.len) |index| {
+        const field = value.fields.at(index);
+
+        fields[index] = .{
+            .name = type_fields.at(field.index).name,
+            .value = try existing(self, body, field.value),
+        };
+    }
 
     for (value.evaluation, 0..) |item, index| {
         if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = evaluated[index] });
@@ -108,12 +112,12 @@ fn existing(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) L
     return @import("../state_value/conversion.zig").convert(self, body, type_id, bound, .borrow);
 }
 
-fn fresh(expressions: []const ir.Expression, statements: []const ir.Statement) bool {
+fn fresh(expressions: ir.ExpressionTable, statements: []const ir.Statement) bool {
     for (statements) |statement| switch (statement) {
         .result => |result| {
             const id = result orelse return false;
 
-            switch (expressions[@backingInt(id)].value) {
+            switch (expressions.at(@backingInt(id)).value) {
                 .object, .tuple => {},
                 else => return false,
             }

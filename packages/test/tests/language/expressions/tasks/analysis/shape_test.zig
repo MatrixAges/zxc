@@ -23,7 +23,9 @@ fn task(case: f.Case, expected: Task) !void {
 
     var count: usize = 0;
 
-    for (program.expressions) |expression| {
+    for (0..program.expressions.count()) |expression_index| {
+        const expression = program.expressions.at(expression_index);
+
         if (expression.value != .task) continue;
 
         count += 1;
@@ -59,7 +61,9 @@ fn capture(case: f.Case, expected: []const []const u8) !void {
 
     var count: usize = 0;
 
-    for (program.expressions) |expression| {
+    for (0..program.expressions.count()) |expression_index| {
+        const expression = program.expressions.at(expression_index);
+
         if (expression.value != .capture) continue;
 
         count += 1;
@@ -130,7 +134,9 @@ test "parallel preserves source branch order and maps canonical fields by name" 
 
     var count: usize = 0;
 
-    for (program.expressions) |expression| {
+    for (0..program.expressions.count()) |expression_index| {
+        const expression = program.expressions.at(expression_index);
+
         if (expression.value != .parallel) continue;
 
         count += 1;
@@ -139,11 +145,11 @@ test "parallel preserves source branch order and maps canonical fields by name" 
 
         try std.testing.expectEqual(@as(usize, 2), fields.len);
         try std.testing.expectEqual(@as(usize, 3), branches.len);
-        try std.testing.expectEqualStrings("zeta", fields.at(branches[0].field.?).name);
-        try std.testing.expectEqual(@as(?u32, null), branches[1].field);
-        try std.testing.expectEqualStrings("alpha", fields.at(branches[2].field.?).name);
-        try std.testing.expect(@backingInt(branches[0].task) < @backingInt(branches[1].task));
-        try std.testing.expect(@backingInt(branches[1].task) < @backingInt(branches[2].task));
+        try std.testing.expectEqualStrings("zeta", fields.at(branches.at(0).field.?).name);
+        try std.testing.expectEqual(@as(?u32, null), branches.at(1).field);
+        try std.testing.expectEqualStrings("alpha", fields.at(branches.at(2).field.?).name);
+        try std.testing.expect(@backingInt(branches.at(0).task) < @backingInt(branches.at(1).task));
+        try std.testing.expect(@backingInt(branches.at(1).task) < @backingInt(branches.at(2).task));
     }
 
     try std.testing.expectEqual(@as(usize, 1), count);

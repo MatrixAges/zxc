@@ -21,17 +21,21 @@ pub fn programPure(allocator: std.mem.Allocator, program: ir.Program) std.mem.Al
     return calls(program.expressions, pure);
 }
 
-fn calls(expressions: []const ir.Expression, pure: []const bool) bool {
-    for (expressions) |expression| switch (expression.value) {
-        .task, .await_task, .cancel_task, .parallel => return false,
-        .store_get => return false,
-        .call => |invocation| {
-            const index = @backingInt(invocation.function);
+fn calls(expressions: ir.ExpressionTable, pure: []const bool) bool {
+    for (0..expressions.count()) |expression_index| {
+        const expression = expressions.at(expression_index);
 
-            if (invocation.stores.len != 0 or index >= pure.len or !pure[index]) return false;
-        },
-        else => {},
-    };
+        switch (expression.value) {
+            .task, .await_task, .cancel_task, .parallel => return false,
+            .store_get => return false,
+            .call => |invocation| {
+                const index = @backingInt(invocation.function);
+
+                if (invocation.stores.len != 0 or index >= pure.len or !pure[index]) return false;
+            },
+            else => {},
+        }
+    }
 
     return true;
 }

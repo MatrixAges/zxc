@@ -55,7 +55,7 @@ pub fn valid(table: ir.TypeTable) !void {
         .file_name = "storage.zx",
         .types = table,
         .symbols = .{},
-        .expressions = &.{},
+        .expressions = .{},
         .input_type = @fromBackingInt(0),
         .output_type = @fromBackingInt(0),
         .body = &.{},

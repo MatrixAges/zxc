@@ -9,7 +9,7 @@ field_index: u32,
 safe: []const bool,
 projections: std.ArrayList(ir.ExprId) = .empty,
 pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, transform: ir.Transform, field_index: u32) std.mem.Allocator.Error!?[]const ir.ExprId {
-    const safe = try allocator.alloc(bool, program.expressions.len);
+    const safe = try allocator.alloc(bool, program.expressions.count());
 
     defer allocator.free(safe);
 
@@ -17,13 +17,18 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, transform: ir.
 
     defer self.projections.deinit(allocator);
 
-    for (program.expressions, 0..) |expression, index| safe[index] = self.read(expression.value);
+    for (0..program.expressions.count()) |index| {
+        const expression = program.expressions.at(index);
+
+        safe[index] = self.read(expression.value);
+    }
+
     if (!try self.result(transform.body) or self.projections.items.len == 0) return null;
 
     return try self.projections.toOwnedSlice(allocator);
 }
 
-fn read(self: Self, value: @FieldType(ir.Expression, "value")) bool {
+fn read(self: Self, value: @FieldType(ir.ExpressionRow, "value")) bool {
     const safe = self.safe;
 
     return switch (value) {
@@ -45,13 +50,23 @@ fn read(self: Self, value: @FieldType(ir.Expression, "value")) bool {
         .match_expr => |item| blk: {
             if (item.subject) |subject| if (!safe[@backingInt(subject)]) break :blk false;
             if (!safe[@backingInt(item.fallback)]) break :blk false;
-            for (item.arms) |arm| if (!safe[@backingInt(arm.condition)] or !safe[@backingInt(arm.result)]) break :blk false;
+
+            for (0..item.arms.len) |record_index| {
+                const arm = item.arms.at(record_index);
+
+                if (!safe[@backingInt(arm.condition)] or !safe[@backingInt(arm.result)]) break :blk false;
+            }
 
             break :blk true;
         },
         .object => |item| blk: {
             if (!all(safe, item.evaluation)) break :blk false;
-            for (item.fields) |entry| if (!safe[@backingInt(entry.value)]) break :blk false;
+
+            for (0..item.fields.len) |record_index| {
+                const entry = item.fields.at(record_index);
+
+                if (!safe[@backingInt(entry.value)]) break :blk false;
+            }
 
             break :blk true;
         },
@@ -63,13 +78,19 @@ fn result(self: *Self, id: ir.ExprId) std.mem.Allocator.Error!bool {
         .reference => |symbol| symbol == self.accumulator,
         .conditional => |value| self.safe[@backingInt(value.condition)] and try self.result(value.yes) and try self.result(value.no),
         .object => |value| blk: {
-            const selected = for (value.fields) |item| {
+            const selected = for (0..value.fields.len) |record_index| {
+                const item = value.fields.at(record_index);
+
                 if (item.index == self.field_index) break item.value;
             } else break :blk false;
 
             if (!try self.append(selected)) break :blk false;
 
-            for (value.fields) |item| if (item.index != self.field_index and !self.safe[@backingInt(item.value)]) break :blk false;
+            for (0..value.fields.len) |record_index| {
+                const item = value.fields.at(record_index);
+
+                if (item.index != self.field_index and !self.safe[@backingInt(item.value)]) break :blk false;
+            }
 
             for (value.evaluation) |item| {
                 if (item == selected or self.safe[@backingInt(item)] or self.direct(item) or self.field(item)) continue;

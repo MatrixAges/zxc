@@ -86,7 +86,9 @@ pub fn main(init: std.process.Init) !void {
     if (nested) {
         var permuted = false;
 
-        for (contract.program.expressions) |expression| {
+        for (0..contract.program.expressions.count()) |expression_index| {
+            const expression = contract.program.expressions.at(expression_index);
+
             if (expression.value == .call and std.mem.eql(u32, expression.value.call.stores, &.{ 1, 0 })) permuted = true;
         }
 

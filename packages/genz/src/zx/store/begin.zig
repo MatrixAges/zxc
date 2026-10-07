@@ -20,7 +20,7 @@ pub fn statement(self: *Lower, statements: []const ir.Statement, index: usize) L
         switch (expression) {
             .store_get => |slot| try append(self, &slots, slot),
             .call => |call| {
-                const target = self.program.functions[@intFromEnum(call.function)];
+                const target = self.program.functions[@backingInt(call.function)];
 
                 if (target.store_mode == .transaction) for (call.stores) |slot| try append(self, &slots, slot);
 
@@ -53,7 +53,7 @@ pub fn array(self: *Lower, slots: []const u32) Lower.Error!*const node.Expressio
     return self.builder.expression(.{ .array = .{ .element_type = try self.builder.expression(.{ .primitive = .u32 }), .values = values } });
 }
 
-fn value(self: *Lower, statement_value: ir.Statement) ?@FieldType(ir.Expression, "value") {
+fn value(self: *Lower, statement_value: ir.Statement) ?@FieldType(ir.ExpressionRow, "value") {
     const id = switch (statement_value) {
         .constant => |binding| binding.value,
         .evaluate => |id| id,

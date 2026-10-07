@@ -74,20 +74,20 @@ pub fn block(self: *Analyzer, value: anytype) zx.Error![]const ir.Statement {
                 const condition = try self.expression(branch.condition, Types.scalarId(.bool));
                 const before = self.refinement.mark();
 
-                try self.refinement.assume(self.allocator, self.nodes.items, condition, true);
+                try self.refinement.assume(self.allocator, self.nodes.view(), condition, true);
 
                 const yes = try block(self, branch.yes);
 
                 self.refinement.restore(before);
 
-                try self.refinement.assume(self.allocator, self.nodes.items, condition, false);
+                try self.refinement.assume(self.allocator, self.nodes.view(), condition, false);
 
                 const no = if (branch.no) |body| try block(self, body) else &.{};
 
                 self.refinement.restore(before);
 
-                if (Analyzer.returns(yes)) try self.refinement.assume(self.allocator, self.nodes.items, condition, false);
-                if (Analyzer.returns(no)) try self.refinement.assume(self.allocator, self.nodes.items, condition, true);
+                if (Analyzer.returns(yes)) try self.refinement.assume(self.allocator, self.nodes.view(), condition, false);
+                if (Analyzer.returns(no)) try self.refinement.assume(self.allocator, self.nodes.view(), condition, true);
                 try result.append(self.allocator, .{ .branch = .{ .condition = condition, .yes = yes, .no = no } });
             },
             .switch_stmt => |selection| try result.append(self.allocator, try @import("switch.zig").analyze(self, selection.subject, selection.cases)),

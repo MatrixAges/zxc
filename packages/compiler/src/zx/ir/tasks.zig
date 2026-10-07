@@ -4,40 +4,49 @@ const ir = @import("zx").ir;
 pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
     if (program.typeOf(program.input_type) == .task or program.typeOf(program.output_type) == .task) return false;
 
-    const uses = try allocator.alloc(usize, program.expressions.len);
+    const uses = try allocator.alloc(usize, program.expressions.count());
 
     defer allocator.free(uses);
     @memset(uses, 0);
 
-    for (program.expressions) |expression| switch (expression.value) {
-        .task => |task| {
-            if (try ir.containsNativeReference(allocator, program.types, program.expression(task.body).type_id)) return false;
-            for (task.captures) |symbol| if (try ir.containsNativeReference(allocator, program.types, program.symbols.at(@backingInt(symbol)).type_id)) return false;
-        },
-        .await_task, .cancel_task => |child| {
-            const value = program.expression(child).value;
+    for (0..program.expressions.count()) |expression_index| {
+        const expression = program.expressions.at(expression_index);
 
-            if (value != .task and value != .reference) return false;
+        switch (expression.value) {
+            .task => |task| {
+                if (try ir.containsNativeReference(allocator, program.types, program.expression(task.body).type_id)) return false;
+                for (task.captures) |symbol| if (try ir.containsNativeReference(allocator, program.types, program.symbols.at(@backingInt(symbol)).type_id)) return false;
+            },
+            .await_task, .cancel_task => |child| {
+                const value = program.expression(child).value;
 
-            uses[@backingInt(child)] += 1;
-        },
-        .parallel => |branches| for (branches) |branch| {
-            uses[@backingInt(branch.task)] += 1;
-        },
-        .scope => |scope| for (scope.bindings) |binding| {
-            const value = program.expression(binding.value);
+                if (value != .task and value != .reference) return false;
 
-            if (program.typeOf(value.type_id) != .task) continue;
-            if (binding.symbol == null or value.value != .task) return false;
+                uses[@backingInt(child)] += 1;
+            },
+            .parallel => |branches| for (0..branches.len) |record_index| {
+                const branch = branches.at(record_index);
 
-            uses[@backingInt(binding.value)] += 1;
-        },
-        else => {},
-    };
+                uses[@backingInt(branch.task)] += 1;
+            },
+            .scope => |scope| for (0..scope.bindings.len) |record_index| {
+                const binding = scope.bindings.at(record_index);
+                const value = program.expression(binding.value);
+
+                if (program.typeOf(value.type_id) != .task) continue;
+                if (binding.symbol == null or value.value != .task) return false;
+
+                uses[@backingInt(binding.value)] += 1;
+            },
+            else => {},
+        }
+    }
 
     if (!bindings(program, program.body, uses)) return false;
 
-    for (program.expressions, uses) |expression, count| {
+    for (0..program.expressions.count(), uses) |expression_index, count| {
+        const expression = program.expressions.at(expression_index);
+
         if (program.typeOf(expression.type_id) == .task and count != 1) return false;
     }
 
@@ -80,15 +89,19 @@ pub fn callSafe(allocator: std.mem.Allocator, functions: []const ir.Function, id
             continue;
         }
 
-        for (function.expressions) |expression| switch (expression.value) {
-            .store_get => safe[index] = false,
-            .call => |call| {
-                const target = @backingInt(call.function);
+        for (0..function.expressions.count()) |expression_index| {
+            const expression = function.expressions.at(expression_index);
 
-                if (target >= index or !safe[target] or call.stores.len != 0) safe[index] = false;
-            },
-            else => {},
-        };
+            switch (expression.value) {
+                .store_get => safe[index] = false,
+                .call => |call| {
+                    const target = @backingInt(call.function);
+
+                    if (target >= index or !safe[target] or call.stores.len != 0) safe[index] = false;
+                },
+                else => {},
+            }
+        }
     }
 
     return @backingInt(id) < safe.len and safe[@backingInt(id)];

@@ -71,7 +71,7 @@ pub fn checkTable(self: *Self, table: ir.TypeTable, accepted: bool, structural: 
         .file_name = "type_validation.zx",
         .types = table,
         .symbols = .{},
-        .expressions = &.{},
+        .expressions = .{},
         .input_type = scalar(.void),
         .output_type = scalar(.void),
         .body = &.{},

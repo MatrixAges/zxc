@@ -9,11 +9,13 @@ value_functions: []const bool,
 
 has_object: bool = false,
 pub fn accepts(allocator: std.mem.Allocator, program: ir.Program, transform: ir.Transform, value_functions: []const bool) std.mem.Allocator.Error!bool {
-    const safe = try allocator.alloc(bool, program.expressions.len);
+    const safe = try allocator.alloc(bool, program.expressions.count());
 
     defer allocator.free(safe);
 
-    for (program.expressions, 0..) |expression, index| {
+    for (0..program.expressions.count()) |index| {
+        const expression = program.expressions.at(index);
+
         safe[index] = switch (expression.value) {
             .scope, .iteration, .list_update, .capture, .task, .await_task, .cancel_task, .parallel => false,
             .reference => |symbol| symbol != transform.parameters[0],
@@ -32,13 +34,23 @@ pub fn accepts(allocator: std.mem.Allocator, program: ir.Program, transform: ir.
             .match_expr => |value| blk: {
                 if (value.subject) |subject| if (!safe[@backingInt(subject)]) break :blk false;
                 if (!safe[@backingInt(value.fallback)]) break :blk false;
-                for (value.arms) |arm| if (!safe[@backingInt(arm.condition)] or !safe[@backingInt(arm.result)]) break :blk false;
+
+                for (0..value.arms.len) |record_index| {
+                    const arm = value.arms.at(record_index);
+
+                    if (!safe[@backingInt(arm.condition)] or !safe[@backingInt(arm.result)]) break :blk false;
+                }
 
                 break :blk true;
             },
             .object => |value| blk: {
                 if (!all(safe, value.evaluation)) break :blk false;
-                for (value.fields) |field| if (!safe[@backingInt(field.value)]) break :blk false;
+
+                for (0..value.fields.len) |record_index| {
+                    const field = value.fields.at(record_index);
+
+                    if (!safe[@backingInt(field.value)]) break :blk false;
+                }
 
                 break :blk true;
             },
@@ -63,7 +75,12 @@ fn result(self: *Self, id: ir.ExprId) bool {
         },
         .object => |value| blk: {
             for (value.evaluation) |item| if (!self.safe[@backingInt(item)] and !direct(self.program, item, self.accumulator)) break :blk false;
-            for (value.fields) |field| if (!self.safe[@backingInt(field.value)]) break :blk false;
+
+            for (0..value.fields.len) |record_index| {
+                const field = value.fields.at(record_index);
+
+                if (!self.safe[@backingInt(field.value)]) break :blk false;
+            }
 
             self.has_object = true;
 
@@ -80,7 +97,12 @@ fn argument(self: *const Self, id: ir.ExprId) bool {
         .reference => |symbol| symbol == self.accumulator,
         .object => |value| blk: {
             for (value.evaluation) |item| if (!self.argument(item)) break :blk false;
-            for (value.fields) |field| if (!self.argument(field.value)) break :blk false;
+
+            for (0..value.fields.len) |record_index| {
+                const field = value.fields.at(record_index);
+
+                if (!self.argument(field.value)) break :blk false;
+            }
 
             break :blk true;
         },

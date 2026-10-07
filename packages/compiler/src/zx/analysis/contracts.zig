@@ -31,7 +31,9 @@ pub fn analyze(owner: *Analyzer, source: anytype, input_type: ir.TypeId, exports
 
         const predicate = try analyzer.expression(item.predicate, Types.scalarId(.bool));
 
-        for (analyzer.nodes.items) |expression| {
+        for (0..analyzer.nodes.view().count()) |expression_index| {
+            const expression = analyzer.nodes.view().at(expression_index);
+
             switch (expression.value) {
                 .call, .store_get, .list_operation, .transform, .scope, .iteration, .list_update, .capture, .optional_value, .task, .await_task, .cancel_task, .parallel => return owner.reporter.fail(.contract, expression.span, "contracts cannot call functions, transform collections, capture errors, run tasks, unwrap optionals or access injected capabilities"),
                 else => {},
@@ -43,7 +45,7 @@ pub fn analyze(owner: *Analyzer, source: anytype, input_type: ir.TypeId, exports
         contract.* = .{
             .kind = item.kind,
             .symbols = try analyzer.symbols.finish(owner.allocator),
-            .expressions = try analyzer.nodes.toOwnedSlice(owner.allocator),
+            .expressions = try analyzer.nodes.finish(owner.allocator),
             .predicate = predicate,
             .span = item.span,
         };

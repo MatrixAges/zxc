@@ -16,7 +16,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
     return true;
 }
 
-pub fn call(program: ir.Program, invocation: @FieldType(@FieldType(ir.Expression, "value"), "call")) bool {
+pub fn call(program: ir.Program, invocation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) bool {
     const target = program.functions[@backingInt(invocation.function)];
 
     if (invocation.stores.len != target.stores.len) return false;

@@ -16,6 +16,11 @@ pub const TypeStorage = @import("type_table/storage.zig");
 pub const TypeIds = @import("type_table/model.zig").Ids;
 pub const TypeFields = @import("type_table/model.zig").Fields;
 pub const TypeField = @import("type_table/model.zig").Field;
+pub const ExpressionTable = @import("expression_table/model.zig").Table;
+pub const ExpressionStorage = @import("expression_table/storage.zig");
+pub const ExpressionRow = @import("expression_table/row.zig").Expression;
+pub const ScopeRow = @FieldType(@FieldType(ExpressionRow, "value"), "scope");
+pub const MatchRow = @FieldType(@FieldType(ExpressionRow, "value"), "match_expr");
 pub const SymbolTable = @import("symbol_table/root.zig");
 pub const SymbolStorage = @import("symbol_table/storage.zig");
 pub const Symbol = struct { name: []const u8, type_id: TypeId, span: Span, ownership: Ownership = .copy };
@@ -134,7 +139,7 @@ pub const External = struct {
 pub const Contract = struct {
     kind: @import("syntax.zig").ContractKind,
     symbols: SymbolTable,
-    expressions: []const Expression,
+    expressions: ExpressionTable,
     predicate: ExprId,
     span: Span,
 };
@@ -149,19 +154,19 @@ pub const Function = struct {
     input_type: TypeId,
     output_type: TypeId,
     symbols: SymbolTable,
-    expressions: []const Expression,
+    expressions: ExpressionTable,
     body: []const Statement,
 };
 
 pub const Program = struct {
     output_ownership: Ownership = .borrowed,
-    version: u32 = 26,
+    version: u32 = 27,
     store_mode: StoreMode = .transaction,
     contracts: []const Contract = &.{},
     file_name: []const u8,
     types: TypeTable,
     symbols: SymbolTable,
-    expressions: []const Expression,
+    expressions: ExpressionTable,
     input_type: TypeId,
     output_type: TypeId,
     body: []const Statement,
@@ -174,8 +179,8 @@ pub const Program = struct {
         return self.types.get(id);
     }
 
-    pub fn expression(self: Program, id: ExprId) Expression {
-        return self.expressions[@backingInt(id)];
+    pub fn expression(self: Program, id: ExprId) ExpressionRow {
+        return self.expressions.get(id);
     }
 };
 

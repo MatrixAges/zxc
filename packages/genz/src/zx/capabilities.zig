@@ -15,11 +15,15 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program, kind: Kind) 
     return required;
 }
 
-pub fn uses(expressions: []const ir.Expression, contracts: []const ir.Contract, required: []const bool) bool {
-    for (expressions) |expression| switch (expression.value) {
-        .call => |invocation| if (required[@backingInt(invocation.function)]) return true,
-        else => {},
-    };
+pub fn uses(expressions: ir.ExpressionTable, contracts: []const ir.Contract, required: []const bool) bool {
+    for (0..expressions.count()) |expression_index| {
+        const expression = expressions.at(expression_index);
+
+        switch (expression.value) {
+            .call => |invocation| if (required[@backingInt(invocation.function)]) return true,
+            else => {},
+        }
+    }
 
     for (contracts) |contract| if (uses(contract.expressions, &.{}, required)) return true;
 

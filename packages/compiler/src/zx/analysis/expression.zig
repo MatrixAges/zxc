@@ -8,7 +8,7 @@ pub const compile = @import("expression_program.zig").compile;
 pub const compileForLinking = @import("expression_program.zig").compileForLinking;
 pub const Binding = struct { name: []const u8, type_id: ir.TypeId };
 pub const Options = struct { types: ir.TypeTable = .{}, native_modules: []const ir.NativeModule = &.{}, bindings: []const Binding = &.{}, unit_bindings: []const []const u8 = &.{}, expected: ?ir.TypeId = null };
-pub const Expression = struct { types: ir.TypeTable, symbols: ir.SymbolTable, expressions: []const ir.Expression, value: ir.ExprId };
+pub const Expression = struct { types: ir.TypeTable, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, value: ir.ExprId };
 
 pub const Result = struct {
     arena: std.heap.ArenaAllocator,
@@ -63,7 +63,7 @@ fn analyzeIn(allocator: std.mem.Allocator, parsed: Parsed, options: Options, rep
     return .{
         .types = try analyzer.types.items.finish(allocator),
         .symbols = try analyzer.symbols.finish(allocator),
-        .expressions = try analyzer.nodes.toOwnedSlice(allocator),
+        .expressions = try analyzer.nodes.finish(allocator),
         .value = value,
     };
 }

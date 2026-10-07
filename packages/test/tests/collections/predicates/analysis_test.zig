@@ -106,20 +106,29 @@ test "native predicate IR rejects forged initial values and non bool bodies" {
 
     for ([_]bool{ false, true }) |wrong_body| {
         var program = result.value.ir;
-        const values = try std.testing.allocator.dupe(compiler.ir.Expression, program.expressions);
+        const bodies = try std.testing.allocator.dupe(u32, program.expressions.transform_bodies);
 
-        defer std.testing.allocator.free(values);
+        defer std.testing.allocator.free(bodies);
 
-        program.expressions = values;
+        const initials = try std.testing.allocator.dupe(?u32, program.expressions.transform_initials);
+
+        defer std.testing.allocator.free(initials);
+
+        program.expressions.transform_bodies = bodies;
+        program.expressions.transform_initials = initials;
 
         var found = false;
 
-        for (values) |*value| {
+        for (0..program.expressions.count()) |index| {
+            const value = program.expressions.at(index);
+
             if (value.value != .transform) continue;
 
             found = true;
 
-            if (wrong_body) value.value.transform.body = value.value.transform.target else value.value.transform.initial = value.value.transform.body;
+            const payload = program.expressions.payloads[index];
+
+            if (wrong_body) bodies[payload] = @backingInt(value.value.transform.target) else initials[payload] = @backingInt(value.value.transform.body);
         }
 
         try std.testing.expect(found);

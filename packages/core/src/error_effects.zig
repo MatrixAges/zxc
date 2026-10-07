@@ -21,7 +21,7 @@ pub fn program(allocator: std.mem.Allocator, value: ir.Program) std.mem.Allocato
     return self.finish();
 }
 
-pub fn expression(allocator: std.mem.Allocator, types: ir.TypeTable, functions: []const ir.Function, values: []const ir.Expression, id: ir.ExprId) std.mem.Allocator.Error!?[]const []const u8 {
+pub fn expression(allocator: std.mem.Allocator, types: ir.TypeTable, functions: []const ir.Function, values: ir.ExpressionTable, id: ir.ExprId) std.mem.Allocator.Error!?[]const []const u8 {
     var self = Self{ .allocator = allocator, .types = types, .functions = functions };
 
     defer self.deinit();
@@ -58,13 +58,13 @@ pub fn add(self: *Self, name: []const u8) std.mem.Allocator.Error!void {
     try self.names.put(self.allocator, name, {});
 }
 
-pub fn visit(self: *Self, values: []const ir.Expression, id: ir.ExprId) std.mem.Allocator.Error!void {
-    const value = &values[@backingInt(id)];
-    const entry = try self.visited.getOrPut(self.allocator, @intFromPtr(value));
+pub fn visit(self: *Self, values: ir.ExpressionTable, id: ir.ExprId) std.mem.Allocator.Error!void {
+    const value = values.get(id);
+    const entry = try self.visited.getOrPut(self.allocator, @intFromPtr(&values.kinds[@backingInt(id)]));
 
     if (entry.found_existing) return;
 
-    try @import("error_effects/expression.zig").visit(self, values, value.*);
+    try @import("error_effects/expression.zig").visit(self, values, value);
 }
 
 pub fn call(self: *Self, id: ir.FunctionId) std.mem.Allocator.Error!void {
@@ -97,12 +97,12 @@ fn contracts(self: *Self, values: []const ir.Contract) std.mem.Allocator.Error!v
     }
 }
 
-fn statements(self: *Self, values: []const ir.Expression, body: []const ir.Statement) std.mem.Allocator.Error!void {
+fn statements(self: *Self, values: ir.ExpressionTable, body: []const ir.Statement) std.mem.Allocator.Error!void {
     for (body) |statement| {
         switch (statement) {
             .evaluate => |id| try self.visit(values, id),
             .constant => |binding| try self.visit(values, binding.value),
-            .destructure => |binding| if (values[@backingInt(binding.value)].value != .capture) try self.visit(values, binding.value),
+            .destructure => |binding| if (values.at(@backingInt(binding.value)).value != .capture) try self.visit(values, binding.value),
             .store_set => |write| {
                 self.unknown = true;
 

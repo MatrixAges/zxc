@@ -33,7 +33,9 @@ fn valid(allocator: std.mem.Allocator, statement: []const u8, iterations: usize)
 
     var count: usize = 0;
 
-    for (result.value.ir.expressions) |expression| {
+    for (0..result.value.ir.expressions.count()) |expression_index| {
+        const expression = result.value.ir.expressions.at(expression_index);
+
         if (expression.value == .iteration) count += 1;
     }
 

@@ -8,9 +8,9 @@ allocator: std.mem.Allocator,
 program: ir.Program,
 marked: []bool,
 seen: []bool,
-pub fn create(allocator: std.mem.Allocator, expressions: []const ir.Expression, body: []const ir.Statement, plan: Plan) Error!?[]bool {
-    const marked = try allocator.alloc(bool, expressions.len);
-    const seen = try allocator.alloc(bool, expressions.len);
+pub fn create(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, body: []const ir.Statement, plan: Plan) Error!?[]bool {
+    const marked = try allocator.alloc(bool, expressions.count());
+    const seen = try allocator.alloc(bool, expressions.count());
     var program = plan.program;
     program.expressions = expressions;
 
@@ -23,9 +23,13 @@ pub fn create(allocator: std.mem.Allocator, expressions: []const ir.Expression, 
 
     var cost: usize = 0;
 
-    for (expressions, marked) |expression, selected| if (selected and expression.value == .call) {
-        cost +|= plan.costs[@backingInt(expression.value.call.function)];
-    };
+    for (0..expressions.count(), marked) |expression_index, selected| {
+        const expression = expressions.at(expression_index);
+
+        if (selected and expression.value == .call) {
+            cost +|= plan.costs[@backingInt(expression.value.call.function)];
+        }
+    }
 
     return if (cost != 0 and cost <= Plan.limit) marked else null;
 }
@@ -94,14 +98,18 @@ fn find(self: *Self, id: ir.ExprId) Error!void {
         .iteration, .capture, .task, .transform => return,
         .scope => |scope| {
             if (scope.bindings.len != 0) {
-                const binding = scope.bindings[scope.bindings.len - 1];
+                const binding = scope.bindings.at(scope.bindings.len - 1);
 
                 if (binding.symbol) |symbol| try self.consume(symbol, binding.value, scope.result);
             }
 
-            for (scope.bindings) |binding| if (binding.symbol == null) {
-                try self.iteration(binding.value);
-            };
+            for (0..scope.bindings.len) |record_index| {
+                const binding = scope.bindings.at(record_index);
+
+                if (binding.symbol == null) {
+                    try self.iteration(binding.value);
+                }
+            }
         },
         else => {},
     }
@@ -117,7 +125,7 @@ fn mark(self: *Self, id: ir.ExprId) Error!void {
     try self.walk(self.program.expression(id).value, true);
 }
 
-fn walk(self: *Self, value: @FieldType(ir.Expression, "value"), marking: bool) Error!void {
+fn walk(self: *Self, value: @FieldType(ir.ExpressionRow, "value"), marking: bool) Error!void {
     const children = @import("children.zig").init(value);
 
     for (0..children.len) |index| {

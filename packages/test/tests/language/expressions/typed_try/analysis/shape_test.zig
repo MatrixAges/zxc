@@ -16,7 +16,9 @@ fn shape(case: fixture.Case, members: []const []const u8, layers: usize, payload
 
     var count: usize = 0;
 
-    for (program.expressions) |expression| {
+    for (0..program.expressions.count()) |expression_index| {
+        const expression = program.expressions.at(expression_index);
+
         if (expression.value != .capture) continue;
 
         count += 1;
@@ -110,7 +112,9 @@ test "nested capture separates the inner errors from outer tuple allocation" {
 
     var count: usize = 0;
 
-    for (program.expressions) |expression| {
+    for (0..program.expressions.count()) |expression_index| {
+        const expression = program.expressions.at(expression_index);
+
         if (expression.value != .capture) continue;
 
         count += 1;

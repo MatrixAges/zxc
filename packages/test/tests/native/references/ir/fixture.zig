@@ -46,7 +46,7 @@ pub fn nativeOnly(program: ir.Program) ir.Program {
     result.output_ownership = .borrowed;
     result.type_only = true;
     result.symbols = .{};
-    result.expressions = &.{};
+    result.expressions = .{};
     result.body = &.{};
 
     return result;

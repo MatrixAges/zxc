@@ -4,15 +4,15 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 
-pub fn lower(self: *Lower, selection: ir.Match) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, selection: ir.MatchRow) Lower.Error!*const node.Expression {
     return lowerMode(self, selection, false);
 }
 
-pub fn lowerValue(self: *Lower, selection: ir.Match) Lower.Error!*const node.Expression {
+pub fn lowerValue(self: *Lower, selection: ir.MatchRow) Lower.Error!*const node.Expression {
     return lowerMode(self, selection, true);
 }
 
-fn lowerMode(self: *Lower, selection: ir.Match, layout: bool) Lower.Error!*const node.Expression {
+fn lowerMode(self: *Lower, selection: ir.MatchRow, layout: bool) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     const previous = if (selection.subject) |subject| self.cache.get(subject) else null;
 
@@ -35,7 +35,7 @@ fn lowerMode(self: *Lower, selection: ir.Match, layout: bool) Lower.Error!*const
 
     while (index > 0) {
         index -= 1;
-        const arm = selection.arms[index];
+        const arm = selection.arms.at(index);
 
         const condition = if (selection.subject) |subject|
             try self.binary(.{ .operator = .equal, .left = subject, .right = arm.condition })

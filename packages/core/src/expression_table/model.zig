@@ -1,0 +1,192 @@
+pub const ExpressionKind = enum(u32) {
+    Integer,
+    NegativeInteger,
+    Float,
+    String,
+    Boolean,
+    None,
+    Unit,
+    Some,
+    Capture,
+    Task,
+    AwaitTask,
+    CancelTask,
+    Parallel,
+    OptionalValue,
+    EnumValue,
+    ErrorValue,
+    Reference,
+    StoreGet,
+    Field,
+    Index,
+    Length,
+    List,
+    Tuple,
+    TupleField,
+    Template,
+    ListOperation,
+    Transform,
+    Scope,
+    Iteration,
+    ListUpdate,
+    Call,
+    Unary,
+    Binary,
+    Conditional,
+    Match,
+    Object,
+};
+
+pub const CollectionKind = enum(u32) {
+    Push,
+    Pop,
+    Sort,
+    Reverse,
+    Splice,
+    Concat,
+};
+
+pub const TransformKind = enum(u32) {
+    Map,
+    Filter,
+    Reduce,
+    Every,
+    Some,
+};
+
+pub const UnaryOperator = enum(u32) {
+    Negate,
+    Not,
+};
+
+pub const BinaryOperator = enum(u32) {
+    Coalesce,
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Remainder,
+    Equal,
+    NotEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    LogicalAnd,
+    LogicalOr,
+};
+
+pub const Table = struct {
+    pub fn count(self: Table) usize {
+        return self.kinds.len;
+    }
+
+    pub fn at(self: Table, index: usize) @import("row.zig").Expression {
+        return @import("read.zig").expression(&self, index);
+    }
+
+    pub fn get(self: Table, id: @import("../ir.zig").ExprId) @import("row.zig").Expression {
+        return self.at(@backingInt(id));
+    }
+
+    pub const validStructure = @import("validate.zig").structure;
+
+    pub fn fromValues(allocator: @import("std").mem.Allocator, values: []const @import("../ir.zig").Expression) @import("std").mem.Allocator.Error!Table {
+        var storage: @import("storage.zig") = .{};
+
+        errdefer storage.deinit(allocator);
+
+        for (values) |value| _ = try storage.append(allocator, value);
+
+        return storage.finish(allocator);
+    }
+
+    kinds: []const ExpressionKind = &.{},
+    types: []const u32 = &.{},
+    span_start: []const u64 = &.{},
+    span_end: []const u64 = &.{},
+    payloads: []const u32 = &.{},
+    integers: []const u64 = &.{},
+    negative_integers: []const u64 = &.{},
+    floats: []const f64 = &.{},
+    strings: []const []const u8 = &.{},
+    booleans: []const bool = &.{},
+    some: []const u32 = &.{},
+    captures: []const u32 = &.{},
+    awaits: []const u32 = &.{},
+    cancellations: []const u32 = &.{},
+    optional_values: []const u32 = &.{},
+    enumerations: []const u32 = &.{},
+    errors: []const u32 = &.{},
+    references: []const u32 = &.{},
+    stores: []const u32 = &.{},
+    lengths: []const u32 = &.{},
+    sequence_first: []const u32 = &.{},
+    sequence_count: []const u32 = &.{},
+    sequence_items: []const u32 = &.{},
+    projection_targets: []const u32 = &.{},
+    projection_indices: []const u32 = &.{},
+    index_targets: []const u32 = &.{},
+    index_values: []const u32 = &.{},
+    task_bodies: []const u32 = &.{},
+    task_capture_first: []const u32 = &.{},
+    task_capture_count: []const u32 = &.{},
+    task_captures: []const u32 = &.{},
+    parallel_first: []const u32 = &.{},
+    parallel_count: []const u32 = &.{},
+    parallel_tasks: []const u32 = &.{},
+    parallel_fields: []const ?u32 = &.{},
+    collection_kinds: []const CollectionKind = &.{},
+    collection_targets: []const u32 = &.{},
+    collection_first: []const u32 = &.{},
+    collection_count: []const u32 = &.{},
+    collection_arguments: []const u32 = &.{},
+    transform_kinds: []const TransformKind = &.{},
+    transform_targets: []const u32 = &.{},
+    transform_bodies: []const u32 = &.{},
+    transform_initials: []const ?u32 = &.{},
+    transform_first: []const u32 = &.{},
+    transform_count: []const u32 = &.{},
+    transform_parameters: []const u32 = &.{},
+    scope_results: []const u32 = &.{},
+    scope_first: []const u32 = &.{},
+    scope_count: []const u32 = &.{},
+    scope_symbols: []const ?u32 = &.{},
+    scope_values: []const u32 = &.{},
+    scope_borrows: []const bool = &.{},
+    iteration_initials: []const u32 = &.{},
+    iteration_condition_parameters: []const u32 = &.{},
+    iteration_parameters: []const u32 = &.{},
+    iteration_conditions: []const u32 = &.{},
+    iteration_bodies: []const u32 = &.{},
+    iteration_postconditions: []const bool = &.{},
+    update_targets: []const u32 = &.{},
+    update_indices: []const u32 = &.{},
+    update_values: []const u32 = &.{},
+    call_functions: []const u32 = &.{},
+    call_arguments: []const u32 = &.{},
+    call_store_first: []const u32 = &.{},
+    call_store_count: []const u32 = &.{},
+    call_stores: []const u32 = &.{},
+    unary_operators: []const UnaryOperator = &.{},
+    unary_operands: []const u32 = &.{},
+    binary_operators: []const BinaryOperator = &.{},
+    binary_left: []const u32 = &.{},
+    binary_right: []const u32 = &.{},
+    conditional_conditions: []const u32 = &.{},
+    conditional_yes: []const u32 = &.{},
+    conditional_no: []const u32 = &.{},
+    match_subjects: []const ?u32 = &.{},
+    match_fallbacks: []const u32 = &.{},
+    match_first: []const u32 = &.{},
+    match_count: []const u32 = &.{},
+    match_conditions: []const u32 = &.{},
+    match_results: []const u32 = &.{},
+    object_first: []const u32 = &.{},
+    object_count: []const u32 = &.{},
+    object_field_indices: []const u32 = &.{},
+    object_field_values: []const u32 = &.{},
+    object_evaluation_first: []const u32 = &.{},
+    object_evaluation_count: []const u32 = &.{},
+    object_evaluation_values: []const u32 = &.{},
+};

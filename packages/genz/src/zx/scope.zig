@@ -3,15 +3,15 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
-pub fn lower(self: *Lower, scope: ir.Scope) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, scope: ir.ScopeRow) Lower.Error!*const node.Expression {
     return lowerMode(self, scope, false);
 }
 
-pub fn lowerValue(self: *Lower, scope: ir.Scope) Lower.Error!*const node.Expression {
+pub fn lowerValue(self: *Lower, scope: ir.ScopeRow) Lower.Error!*const node.Expression {
     return lowerMode(self, scope, true);
 }
 
-fn lowerMode(self: *Lower, scope: ir.Scope, layout: bool) Lower.Error!*const node.Expression {
+fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!*const node.Expression {
     const state_symbols = try @import("state_value/locals.zig").scope(self, scope);
 
     defer for (state_symbols) |symbol| {
@@ -27,19 +27,23 @@ fn lowerMode(self: *Lower, scope: ir.Scope, layout: bool) Lower.Error!*const nod
     };
 
     if (layout and analysis.flat(self.program, self.program.expression(scope.result).type_id)) {
-        for (scope.bindings) |binding| if (binding.symbol) |symbol| {
-            if (@import("state_value/root.zig").selected(self, self.program.symbols.at(@backingInt(symbol)).type_id)) continue;
-            if (!analysis.flat(self.program, self.program.symbols.at(@backingInt(symbol)).type_id) or self.stack_symbols.contains(symbol)) continue;
-            try stacked.append(self.allocator, symbol);
-            try self.stack_symbols.put(self.allocator, symbol, {});
-        };
+        for (0..scope.bindings.len) |record_index| {
+            const binding = scope.bindings.at(record_index);
+
+            if (binding.symbol) |symbol| {
+                if (@import("state_value/root.zig").selected(self, self.program.symbols.at(@backingInt(symbol)).type_id)) continue;
+                if (!analysis.flat(self.program, self.program.symbols.at(@backingInt(symbol)).type_id) or self.stack_symbols.contains(symbol)) continue;
+                try stacked.append(self.allocator, symbol);
+                try self.stack_symbols.put(self.allocator, symbol, {});
+            }
+        }
     }
 
     var consumed_last = false;
     var result: ?*const node.Expression = null;
 
     if (scope.bindings.len != 0) {
-        const binding = scope.bindings[scope.bindings.len - 1];
+        const binding = scope.bindings.at(scope.bindings.len - 1);
 
         if (binding.symbol) |symbol| {
             result = try @import("iteration_consumer.zig").lower(self, symbol, binding.value, scope.result, layout);
@@ -59,7 +63,7 @@ fn lowerMode(self: *Lower, scope: ir.Scope, layout: bool) Lower.Error!*const nod
 
     while (offset > 0) {
         offset -= 1;
-        const binding = scope.bindings[offset];
+        const binding = scope.bindings.at(offset);
         var output: std.ArrayList(node.Statement) = .empty;
 
         if (binding.symbol) |symbol| {

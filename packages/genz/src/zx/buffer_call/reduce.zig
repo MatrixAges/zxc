@@ -9,7 +9,7 @@ pub fn match(lowering: *Lower, transform: ir.Transform, path: []const u32) Lower
 
     if (expression != .call) return null;
 
-    for (lowering.buffer_functions[@intFromEnum(expression.call.function)], 0..) |lane, index| {
+    for (lowering.buffer_functions[@backingInt(expression.call.function)], 0..) |lane, index| {
         if (lane.rejection != null or !std.mem.eql(u32, lane.output, path)) continue;
         if (!try projects(lowering.allocator, lowering.program, expression.call.argument, lane.input, transform.parameters[0], path)) continue;
 
@@ -34,7 +34,9 @@ fn projects(allocator: std.mem.Allocator, program: ir.Program, id: ir.ExprId, pa
         .object => |object| blk: {
             if (path.len == 0) break :blk false;
 
-            for (object.fields) |item| {
+            for (0..object.fields.len) |record_index| {
+                const item = object.fields.at(record_index);
+
                 if (item.index == path[0]) break :blk try projects(allocator, program, item.value, path[1..], accumulator, output);
             }
 

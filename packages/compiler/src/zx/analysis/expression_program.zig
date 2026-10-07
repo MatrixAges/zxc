@@ -98,7 +98,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
         .types = try analyzer.types.items.finish(allocator),
         .native_modules = try @import("../modules/native_context.zig").copy(allocator, options.native_modules),
         .symbols = try analyzer.symbols.finish(allocator),
-        .expressions = try analyzer.nodes.toOwnedSlice(allocator),
+        .expressions = try analyzer.nodes.finish(allocator),
         .input_type = input_type,
         .output_type = output_type,
         .body = try body.toOwnedSlice(allocator),

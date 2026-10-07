@@ -13,18 +13,16 @@ pub fn library(allocator: std.mem.Allocator, mode: Mode) !compiler.library.Resul
     const definition = contract.store_definitions[0];
     const initial = compiler.library.Initializer{ .identity = identity, .schema_version = definition.version, .program = definition.objects[0].initial };
     var changed = initial;
-    const expressions = try std.testing.allocator.dupe(compiler.ir.Expression, initial.program.expressions);
+    const integers = try std.testing.allocator.dupe(u64, initial.program.expressions.integers);
 
-    defer std.testing.allocator.free(expressions);
+    defer std.testing.allocator.free(integers);
 
     if (mode == .version_conflict) changed.schema_version += 1;
 
     if (mode == .value_conflict) {
-        for (expressions) |*expression| if (expression.value == .integer) {
-            expression.value.integer += 1;
-        };
+        for (integers) |*integer| integer.* += 1;
 
-        changed.program.expressions = expressions;
+        changed.program.expressions.integers = integers;
     }
 
     var analyzed = compiler.AnalysisResult{ .arena = std.heap.ArenaAllocator.init(std.testing.allocator), .value = .{ .ir = contract.program }, .nominal_types = contract.nominal_types };
@@ -43,7 +41,7 @@ pub fn check(value: *const compiler.library.Result, count: usize) !void {
     try std.testing.expectEqual(count, value.store_initializers.len);
 
     for (value.store_initializers) |initial| {
-        const function = value.program.functions[@intFromEnum(initial.function)];
+        const function = value.program.functions[@backingInt(initial.function)];
 
         try std.testing.expectEqual(@as(u32, 1), initial.schema_version);
         try std.testing.expectEqual(.void, value.program.typeOf(function.input_type).scalar);
@@ -62,11 +60,15 @@ pub fn check(value: *const compiler.library.Result, count: usize) !void {
 
         var literal_found = false;
 
-        for (function.expressions) |expression| if (expression.value == .integer) {
-            try std.testing.expectEqual(@as(u64, 3), expression.value.integer);
+        for (0..function.expressions.count()) |expression_index| {
+            const expression = function.expressions.at(expression_index);
 
-            literal_found = true;
-        };
+            if (expression.value == .integer) {
+                try std.testing.expectEqual(@as(u64, 3), expression.value.integer);
+
+                literal_found = true;
+            }
+        }
 
         try std.testing.expect(literal_found);
     }

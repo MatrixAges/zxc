@@ -27,7 +27,7 @@ pub fn lower(mapping: *Mapping, statements: []const ir.Statement, continuation: 
             .evaluate => |value| result = try bind(mapping, .{ .symbol = null, .value = try mapping.expression(value) }, result.?, type_id, span),
             .destructure => |binding| {
                 const value = try mapping.expression(binding.value);
-                const tuple_type = mapping.source[@backingInt(binding.value)].type_id;
+                const tuple_type = mapping.source.at(@backingInt(binding.value)).type_id;
                 const tuple = unit.plan.program.typeOf(tuple_type).tuple;
                 const symbol = try unit.symbol(.{ .name = "inline_tuple", .type_id = tuple_type, .span = span });
                 const reference = try unit.append(.{ .type_id = tuple_type, .span = span, .value = .{ .reference = symbol } });
@@ -76,13 +76,13 @@ pub fn lower(mapping: *Mapping, statements: []const ir.Statement, continuation: 
 
 pub fn bind(mapping: *Mapping, binding: ir.ScopeBinding, result: ir.ExprId, type_id: ir.TypeId, span: Span) Error!ir.ExprId {
     const unit = mapping.unit;
-    const value = unit.expressions.items[@backingInt(result)].value;
-    const previous: []const ir.ScopeBinding = if (value == .scope) value.scope.bindings else &.{};
-    const bindings = try unit.allocator.alloc(ir.ScopeBinding, previous.len + 1);
+    const value = unit.expressions.view().at(@backingInt(result)).value;
+    const previous_count = if (value == .scope) value.scope.bindings.len else 0;
+    const bindings = try unit.allocator.alloc(ir.ScopeBinding, previous_count + 1);
 
     bindings[0] = binding;
 
-    @memcpy(bindings[1..], previous);
+    for (0..previous_count) |index| bindings[index + 1] = value.scope.bindings.at(index);
 
     return unit.append(.{ .type_id = type_id, .span = span, .value = .{ .scope = .{
         .bindings = bindings,
@@ -93,7 +93,7 @@ pub fn bind(mapping: *Mapping, binding: ir.ScopeBinding, result: ir.ExprId, type
 fn select(mapping: *Mapping, selection: @FieldType(ir.Statement, "switch_stmt"), continuation: ?ir.ExprId, type_id: ir.TypeId, span: Span) Error!ir.ExprId {
     const unit = mapping.unit;
     const subject = try mapping.expression(selection.subject);
-    const subject_type = mapping.source[@backingInt(selection.subject)].type_id;
+    const subject_type = mapping.source.at(@backingInt(selection.subject)).type_id;
     const symbol = try unit.symbol(.{ .name = "inline_subject", .type_id = subject_type, .span = span });
     const reference = try unit.append(.{ .type_id = subject_type, .span = span, .value = .{ .reference = symbol } });
     var fallback = continuation;

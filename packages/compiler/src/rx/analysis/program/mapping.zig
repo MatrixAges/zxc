@@ -26,11 +26,11 @@ fn ids(self: *const Self, values: []const ir.ExprId) Error![]const ir.ExprId {
     return result;
 }
 
-pub fn expression(self: *const Self, value: ir.Expression) Error!ir.Expression {
-    var result = value;
+pub fn expression(self: *const Self, value: ir.ExpressionRow) Error!ir.Expression {
+    var result: ir.Expression = .{ .type_id = value.type_id, .span = value.span, .value = undefined };
 
     result.value = switch (value.value) {
-        .integer, .negative_integer, .float, .boolean, .none, .unit, .enum_value, .error_value => value.value,
+        inline .integer, .negative_integer, .float, .boolean, .none, .unit, .enum_value, .error_value => |item, tag| @unionInit(@FieldType(ir.Expression, "value"), @tagName(tag), item),
         .string => |text| .{ .string = try self.allocator.dupe(u8, text) },
         .reference => |source| .{ .reference = try self.symbol(source) },
         .some => |child| .{ .some = try self.id(child) },
@@ -53,11 +53,15 @@ pub fn expression(self: *const Self, value: ir.Expression) Error!ir.Expression {
         .scope => |scope| block: {
             const bindings = try self.allocator.alloc(ir.ScopeBinding, scope.bindings.len);
 
-            for (scope.bindings, bindings) |binding, *mapped| mapped.* = .{
-                .symbol = if (binding.symbol) |source| try self.symbol(source) else null,
-                .value = try self.id(binding.value),
-                .borrow = binding.borrow,
-            };
+            for (0..scope.bindings.len, bindings) |record_index, *mapped| {
+                const binding = scope.bindings.at(record_index);
+
+                mapped.* = .{
+                    .symbol = if (binding.symbol) |source| try self.symbol(source) else null,
+                    .value = try self.id(binding.value),
+                    .borrow = binding.borrow,
+                };
+            }
 
             break :block .{ .scope = .{ .bindings = bindings, .result = try self.id(scope.result) } };
         },
@@ -77,14 +81,21 @@ pub fn expression(self: *const Self, value: ir.Expression) Error!ir.Expression {
         .match_expr => |item| block: {
             const arms = try self.allocator.alloc(ir.MatchArm, item.arms.len);
 
-            for (item.arms, arms) |arm, *mapped| mapped.* = .{ .condition = try self.id(arm.condition), .result = try self.id(arm.result) };
+            for (0..item.arms.len, arms) |record_index, *mapped| {
+                const arm = item.arms.at(record_index);
+                mapped.* = .{ .condition = try self.id(arm.condition), .result = try self.id(arm.result) };
+            }
 
             break :block .{ .match_expr = .{ .subject = if (item.subject) |subject| try self.id(subject) else null, .arms = arms, .fallback = try self.id(item.fallback) } };
         },
         .object => |item| block: {
             const fields = try self.allocator.alloc(ir.ObjectField, item.fields.len);
 
-            for (item.fields, fields) |field, *mapped| mapped.* = .{ .index = field.index, .value = try self.id(field.value) };
+            for (0..item.fields.len, fields) |record_index, *mapped| {
+                const field = item.fields.at(record_index);
+
+                mapped.* = .{ .index = field.index, .value = try self.id(field.value) };
+            }
 
             break :block .{ .object = .{ .fields = fields, .evaluation = try self.ids(item.evaluation) } };
         },

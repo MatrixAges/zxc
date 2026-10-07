@@ -107,7 +107,9 @@ test "global function id is remapped to the module local import id" {
 
     var calls: usize = 0;
 
-    for (result.value.function.?.expressions) |expression| {
+    for (0..result.value.function.?.expressions.count()) |expression_index| {
+        const expression = result.value.function.?.expressions.at(expression_index);
+
         if (expression.value == .call) {
             try std.testing.expectEqual(@as(u32, 0), @backingInt(expression.value.call.function));
 

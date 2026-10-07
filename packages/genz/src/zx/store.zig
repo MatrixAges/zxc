@@ -16,7 +16,7 @@ pub fn declaration(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower
     try output.append(self.allocator, .{ .constant = .{ .name = self.pending_name, .value = try self.builder.expression(.{ .struct_type = fields }), .exported = true } });
 }
 
-pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.Expression, "value"), "call")) Lower.Error!*const node.Expression {
+pub fn adapter(self: *Lower, invocation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!*const node.Expression {
     self.uses_context = true;
     const mapping = invocation.stores;
     const slots = self.program.functions[@backingInt(invocation.function)].stores;

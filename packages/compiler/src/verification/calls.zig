@@ -5,7 +5,7 @@ const terms = @import("terms.zig");
 const Expressions = @import("expressions.zig");
 const Conditions = @import("conditions.zig");
 
-pub fn evaluate(self: *Expressions, expression: ir.Expression) zx.Error!terms.Evaluation {
+pub fn evaluate(self: *Expressions, expression: ir.ExpressionRow) zx.Error!terms.Evaluation {
     const invocation = expression.value.call;
     const function = self.program.functions[@backingInt(invocation.function)];
 

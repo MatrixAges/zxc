@@ -96,13 +96,13 @@ fn statement(self: *Self, source: anytype) zx.Error!void {
             const condition = try analyzer.expression(branch.condition, Types.scalarId(.bool));
             const facts = analyzer.refinement.mark();
 
-            try analyzer.refinement.assume(analyzer.allocator, analyzer.nodes.items, condition, true);
+            try analyzer.refinement.assume(analyzer.allocator, analyzer.nodes.view(), condition, true);
 
             const yes = try analyze(analyzer, branch.yes, self.state);
 
             analyzer.refinement.restore(facts);
 
-            try analyzer.refinement.assume(analyzer.allocator, analyzer.nodes.items, condition, false);
+            try analyzer.refinement.assume(analyzer.allocator, analyzer.nodes.view(), condition, false);
 
             const no = if (branch.no) |body| try analyze(analyzer, body, self.state) else try self.reference(self.state, source.span);
 

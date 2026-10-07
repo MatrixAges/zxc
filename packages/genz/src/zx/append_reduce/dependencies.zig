@@ -1,22 +1,32 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 
-pub fn analyze(allocator: std.mem.Allocator, expressions: []const ir.Expression, symbol: ir.SymbolId) ![]bool {
-    const result = try allocator.alloc(bool, expressions.len);
+pub fn analyze(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, symbol: ir.SymbolId) ![]bool {
+    const result = try allocator.alloc(bool, expressions.count());
 
-    for (expressions, 0..) |expression, index| {
+    for (0..expressions.count()) |index| {
+        const expression = expressions.at(index);
+
         result[index] = switch (expression.value) {
             .task => |task| result[@backingInt(task.body)],
             .await_task, .cancel_task => |child| result[@backingInt(child)],
             .parallel => |branches| blk: {
-                for (branches) |branch| if (result[@backingInt(branch.task)]) break :blk true;
+                for (0..branches.len) |record_index| {
+                    const branch = branches.at(record_index);
+
+                    if (result[@backingInt(branch.task)]) break :blk true;
+                }
 
                 break :blk false;
             },
             .iteration => |value| result[@backingInt(value.initial)] or result[@backingInt(value.condition)] or result[@backingInt(value.body)],
             .list_update => |value| result[@backingInt(value.target)] or result[@backingInt(value.index)] or result[@backingInt(value.value)],
             .scope => |scope| blk: {
-                for (scope.bindings) |binding| if (result[@backingInt(binding.value)]) break :blk true;
+                for (0..scope.bindings.len) |record_index| {
+                    const binding = scope.bindings.at(record_index);
+
+                    if (result[@backingInt(binding.value)]) break :blk true;
+                }
 
                 break :blk result[@backingInt(scope.result)];
             },
@@ -35,13 +45,23 @@ pub fn analyze(allocator: std.mem.Allocator, expressions: []const ir.Expression,
             .match_expr => |value| blk: {
                 if (value.subject) |subject| if (result[@backingInt(subject)]) break :blk true;
                 if (result[@backingInt(value.fallback)]) break :blk true;
-                for (value.arms) |arm| if (result[@backingInt(arm.condition)] or result[@backingInt(arm.result)]) break :blk true;
+
+                for (0..value.arms.len) |record_index| {
+                    const arm = value.arms.at(record_index);
+
+                    if (result[@backingInt(arm.condition)] or result[@backingInt(arm.result)]) break :blk true;
+                }
 
                 break :blk false;
             },
             .object => |value| blk: {
                 if (any(result, value.evaluation)) break :blk true;
-                for (value.fields) |field| if (result[@backingInt(field.value)]) break :blk true;
+
+                for (0..value.fields.len) |record_index| {
+                    const field = value.fields.at(record_index);
+
+                    if (result[@backingInt(field.value)]) break :blk true;
+                }
 
                 break :blk false;
             },

@@ -78,33 +78,26 @@ fn symbols(self: *Self, values: ir.SymbolTable) Error!ir.SymbolTable {
     return storage.finish(self.allocator);
 }
 
-fn expressions(self: *Self, values: []const ir.Expression) Error![]const ir.Expression {
-    const result = try self.allocator.dupe(ir.Expression, values);
+fn expressions(self: *Self, values: ir.ExpressionTable) Error!ir.ExpressionTable {
+    @setEvalBranchQuota(100_000);
 
-    for (result) |*item| {
-        item.type_id = try self.types.include(item.type_id);
+    if (!values.validStructure()) return error.InvalidModule;
 
-        item.value = switch (item.value) {
-            .task => |task| .{ .task = .{ .body = task.body, .captures = try self.allocator.dupe(ir.SymbolId, task.captures) } },
-            .await_task, .cancel_task => item.value,
-            .parallel => |branches| .{ .parallel = try self.allocator.dupe(ir.ParallelBranch, branches) },
-            .string => |text| .{ .string = try self.allocator.dupe(u8, text) },
-            .list => |ids| .{ .list = try self.allocator.dupe(ir.ExprId, ids) },
-            .tuple => |ids| .{ .tuple = try self.allocator.dupe(ir.ExprId, ids) },
-            .template => |ids| .{ .template = try self.allocator.dupe(ir.ExprId, ids) },
-            .scope => |scope| .{ .scope = .{ .bindings = try self.allocator.dupe(ir.ScopeBinding, scope.bindings), .result = scope.result } },
-            .list_operation => |operation| .{ .list_operation = .{ .kind = operation.kind, .target = operation.target, .arguments = try self.allocator.dupe(ir.ExprId, operation.arguments) } },
-            .transform => |transform| blk: {
-                var owned = transform;
-                owned.parameters = try self.allocator.dupe(ir.SymbolId, transform.parameters);
+    var result: ir.ExpressionTable = .{};
 
-                break :blk .{ .transform = owned };
-            },
-            .match_expr => |selection| .{ .match_expr = .{ .subject = selection.subject, .arms = try self.allocator.dupe(ir.MatchArm, selection.arms), .fallback = selection.fallback } },
-            .object => |object| .{ .object = .{ .fields = try self.allocator.dupe(ir.ObjectField, object.fields), .evaluation = try self.allocator.dupe(ir.ExprId, object.evaluation) } },
-            .call => |call| .{ .call = .{ .function = try self.functionId(call.function), .argument = call.argument, .stores = try self.allocator.dupe(u32, call.stores) } },
-            .integer, .negative_integer, .float, .boolean, .none, .unit, .some, .capture, .optional_value, .enum_value, .error_value, .reference, .store_get, .field, .index, .length, .tuple_field, .unary, .binary, .conditional, .iteration, .list_update => item.value,
-        };
+    inline for (@typeInfo(ir.ExpressionTable).@"struct".field_names) |name| {
+        const source = @field(values, name);
+        const owned = try self.allocator.dupe(@typeInfo(@TypeOf(source)).pointer.child, source);
+
+        if (comptime std.mem.eql(u8, name, "types")) {
+            for (owned) |*id| id.* = @backingInt(try self.types.include(@fromBackingInt(id.*)));
+        } else if (comptime std.mem.eql(u8, name, "call_functions")) {
+            for (owned) |*id| id.* = @backingInt(try self.functionId(@fromBackingInt(id.*)));
+        } else if (comptime std.mem.eql(u8, name, "strings")) {
+            for (owned) |*text| text.* = try self.allocator.dupe(u8, text.*);
+        }
+
+        @field(result, name) = owned;
     }
 
     return result;

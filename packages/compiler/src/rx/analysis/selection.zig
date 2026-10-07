@@ -4,14 +4,14 @@ const zx = @import("zx");
 const Flow = @import("program/flow.zig");
 const Prepared = @import("project/flow.zig");
 const Diagnostic = @import("expression.zig").Diagnostic;
-const Value = @FieldType(zx.ir.Expression, "value");
+const Value = @FieldType(zx.ir.ExpressionRow, "value");
 
 pub fn check(subject: zx.ir.Program, attribute: rx.ast.Attribute, cases: []const Flow.Case, sources: []const Prepared.Case) ?Diagnostic {
     const type_id = subject.output_type;
     const value_type = subject.typeOf(type_id);
-    const integer = @intFromEnum(type_id) >= @intFromEnum(zx.ir.Scalar.u8) and @intFromEnum(type_id) <= @intFromEnum(zx.ir.Scalar.i64);
-    const boolean = @intFromEnum(type_id) == @intFromEnum(zx.ir.Scalar.bool);
-    const string = @intFromEnum(type_id) == @intFromEnum(zx.ir.Scalar.string);
+    const integer = @backingInt(type_id) >= @backingInt(zx.ir.Scalar.u8) and @backingInt(type_id) <= @backingInt(zx.ir.Scalar.i64);
+    const boolean = @backingInt(type_id) == @backingInt(zx.ir.Scalar.bool);
+    const string = @backingInt(type_id) == @backingInt(zx.ir.Scalar.string);
 
     if (value_type != .enumeration and !integer and !boolean and !string) return issue(attribute, .type_mismatch, "Switch.on requires an enum, integer, bool or string");
 

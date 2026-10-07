@@ -82,11 +82,13 @@ pub fn supported(program: ir.Program, id: ir.TypeId) bool {
 }
 
 fn analyze(allocator: std.mem.Allocator, program: ir.Program, roots: []const ir.ExprId, functions: []const bool, deep_layout: bool) std.mem.Allocator.Error!bool {
-    const safe = try allocator.alloc(bool, program.expressions.len);
+    const safe = try allocator.alloc(bool, program.expressions.count());
 
     defer allocator.free(safe);
 
-    for (program.expressions, 0..) |expression, index| {
+    for (0..program.expressions.count()) |index| {
+        const expression = program.expressions.at(index);
+
         if (deep_layout and (!supported(program, expression.type_id) or !deepOperation(program, expression))) {
             safe[index] = false;
 
@@ -109,19 +111,33 @@ fn analyze(allocator: std.mem.Allocator, program: ir.Program, roots: []const ir.
             .transform => |item| safe[@backingInt(item.target)] and safe[@backingInt(item.body)] and (if (item.initial) |initial| safe[@backingInt(initial)] else true),
             .iteration => |item| safe[@backingInt(item.initial)] and safe[@backingInt(item.condition)] and safe[@backingInt(item.body)],
             .scope => |scope| scope_block: {
-                for (scope.bindings) |binding| if (!safe[@backingInt(binding.value)]) break :scope_block false;
+                for (0..scope.bindings.len) |record_index| {
+                    const binding = scope.bindings.at(record_index);
+
+                    if (!safe[@backingInt(binding.value)]) break :scope_block false;
+                }
 
                 break :scope_block safe[@backingInt(scope.result)];
             },
             .match_expr => |selection| match_block: {
                 if (selection.subject) |subject| if (!safe[@backingInt(subject)]) break :match_block false;
-                for (selection.arms) |arm| if (!safe[@backingInt(arm.condition)] or !safe[@backingInt(arm.result)]) break :match_block false;
+
+                for (0..selection.arms.len) |record_index| {
+                    const arm = selection.arms.at(record_index);
+
+                    if (!safe[@backingInt(arm.condition)] or !safe[@backingInt(arm.result)]) break :match_block false;
+                }
 
                 break :match_block safe[@backingInt(selection.fallback)];
             },
             .object => |object| object_block: {
                 if (!all(safe, object.evaluation)) break :object_block false;
-                for (object.fields) |field| if (!safe[@backingInt(field.value)]) break :object_block false;
+
+                for (0..object.fields.len) |record_index| {
+                    const field = object.fields.at(record_index);
+
+                    if (!safe[@backingInt(field.value)]) break :object_block false;
+                }
 
                 break :object_block true;
             },
@@ -131,7 +147,7 @@ fn analyze(allocator: std.mem.Allocator, program: ir.Program, roots: []const ir.
     return all(safe, roots);
 }
 
-fn deepOperation(program: ir.Program, expression: ir.Expression) bool {
+fn deepOperation(program: ir.Program, expression: ir.ExpressionRow) bool {
     return switch (expression.value) {
         .transform, .iteration => false,
         .list => !represented(program, program.typeOf(expression.type_id).list),

@@ -29,7 +29,7 @@ pub fn evaluate(self: *Self, id: ir.ExprId) zx.Error!Evaluation {
     return result;
 }
 
-fn retain(self: *Self, expression: ir.Expression, result: Evaluation) zx.Error!Evaluation {
+fn retain(self: *Self, expression: ir.ExpressionRow, result: Evaluation) zx.Error!Evaluation {
     return .{
         .value = try self.graph.value(self.program, expression.type_id, result.value, expression.span),
         .safe = try self.boolean(result.safe, expression.span),
@@ -49,7 +49,7 @@ fn evaluateRaw(self: *Self, id: ir.ExprId) zx.Error!Evaluation {
     defer self.depth -= 1;
 
     switch (expression.value) {
-        .reference => |symbol| return .{ .value = self.environment[@intFromEnum(symbol)] orelse return self.reporter.fail(.contract, expression.span, "verification encountered an unbound symbol") },
+        .reference => |symbol| return .{ .value = self.environment[@backingInt(symbol)] orelse return self.reporter.fail(.contract, expression.span, "verification encountered an unbound symbol") },
         .integer, .negative_integer => |number| {
             const target = terms.integer(self.program.typeOf(expression.type_id)).?;
             const value = try terms.constant(self.allocator, number, target.width);
@@ -94,7 +94,7 @@ fn evaluateRaw(self: *Self, id: ir.ExprId) zx.Error!Evaluation {
 
             while (index > 0) {
                 index -= 1;
-                const arm = selection.arms[index];
+                const arm = selection.arms.at(index);
                 const condition = try self.evaluate(arm.condition);
                 const yes = try self.evaluate(arm.result);
                 const selected = if (subject) |value| try terms.binary(self.allocator, "=", value.value.scalar, condition.value.scalar) else condition.value.scalar;
@@ -132,7 +132,8 @@ fn evaluateRaw(self: *Self, id: ir.ExprId) zx.Error!Evaluation {
                 safe = try self.boolean(try terms.binary(self.allocator, "and", safe, value.safe), expression.span);
             }
 
-            for (object.fields) |field| {
+            for (0..object.fields.len) |record_index| {
+    const field = object.fields.at(record_index);
                 const value = try self.evaluate(field.value);
 
                 fields[field.index] = value.value;
@@ -145,7 +146,7 @@ fn evaluateRaw(self: *Self, id: ir.ExprId) zx.Error!Evaluation {
     }
 }
 
-fn binary(self: *Self, expression: ir.Expression) zx.Error!Evaluation {
+fn binary(self: *Self, expression: ir.ExpressionRow) zx.Error!Evaluation {
     const operation = expression.value.binary;
     const left = try self.evaluate(operation.left);
     const right = try self.evaluate(operation.right);
@@ -213,6 +214,6 @@ fn binary(self: *Self, expression: ir.Expression) zx.Error!Evaluation {
     return .{ .value = .{ .scalar = value }, .safe = safe };
 }
 
-fn unsupported(self: *Self, expression: ir.Expression) zx.Error {
+fn unsupported(self: *Self, expression: ir.ExpressionRow) zx.Error {
     return self.reporter.fail(.unsupported, expression.span, "formal verification does not yet model this expression");
 }

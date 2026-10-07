@@ -111,7 +111,7 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
             const operand_type = self.node(left).type_id;
             const facts = self.refinement.mark();
 
-            if (logical) try self.refinement.assume(self.allocator, self.nodes.items, left, binary.operator == .logical_and);
+            if (logical) try self.refinement.assume(self.allocator, self.nodes.view(), left, binary.operator == .logical_and);
 
             const right = try self.expression(binary.right, operand_type);
 
@@ -134,14 +134,14 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
             const hint = expected orelse knownType(self, conditional.yes) orelse knownType(self, conditional.no) orelse literalHint(conditional.yes, conditional.no);
             const facts = self.refinement.mark();
 
-            try self.refinement.assume(self.allocator, self.nodes.items, condition, true);
+            try self.refinement.assume(self.allocator, self.nodes.view(), condition, true);
 
             const yes = try self.expression(conditional.yes, hint);
             const type_id = self.node(yes).type_id;
 
             self.refinement.restore(facts);
 
-            try self.refinement.assume(self.allocator, self.nodes.items, condition, false);
+            try self.refinement.assume(self.allocator, self.nodes.view(), condition, false);
 
             const no = try self.expression(conditional.no, type_id);
 

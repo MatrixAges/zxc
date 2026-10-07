@@ -63,7 +63,7 @@ pub fn evaluate(state: *State, id: ir.ExprId, argument: facts.Value) std.mem.All
         .allocator = state.allocator,
         .program = program,
         .symbols = try state.allocator.alloc(facts.Value, program.symbols.count()),
-        .cached = try state.allocator.alloc(?facts.Value, program.expressions.len),
+        .cached = try state.allocator.alloc(?facts.Value, program.expressions.count()),
         .current = state.current,
         .serial = state.serial,
         .borrowing = true,

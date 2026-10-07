@@ -6,7 +6,7 @@ const bool_type = Types.scalarId(.bool);
 const string_type = Types.scalarId(.string);
 const void_type = Types.scalarId(.void);
 
-pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bool {
+pub fn validate(program: ir.Program, expression: ir.ExpressionRow, index: usize) bool {
     const type_id = expression.type_id;
 
     if (@backingInt(type_id) >= program.types.count()) return false;
@@ -40,7 +40,9 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
 
             var fields: usize = 0;
 
-            for (branches, 0..) |branch, branch_index| {
+            for (0..branches.len) |branch_index| {
+                const branch = branches.at(branch_index);
+
                 if (!check.earlier(branch.task)) break :blk false;
 
                 const task = program.expression(branch.task);
@@ -52,16 +54,16 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
                 if (branch.field) |field| {
                     if (target != .object or field >= target.object.len or target.object.at(field).type_id != result) break :blk false;
 
-                    for (branches[0..branch_index]) |previous| if (previous.field == field) {
-                        break :blk false;
-                    };
+                    for (0..branch_index) |position| {
+                        if (branches.at(position).field == field) break :blk false;
+                    }
 
                     fields += 1;
                 } else if (result != void_type) break :blk false;
 
-                for (branches[0..branch_index]) |previous| if (previous.task == branch.task) {
-                    break :blk false;
-                };
+                for (0..branch_index) |position| {
+                    if (branches.at(position).task == branch.task) break :blk false;
+                }
             }
 
             break :blk fields == (if (target == .object) target.object.len else @as(usize, 0));
@@ -158,12 +160,14 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
                 break :blk false;
             };
 
-            for (object.fields, 0..) |field, field_index| {
+            for (0..object.fields.len) |field_index| {
+                const field = object.fields.at(field_index);
+
                 if (field.index >= target.object.len or !check.typed(field.value, target.object.at(field.index).type_id)) break :blk false;
 
-                for (object.fields[0..field_index]) |previous| if (previous.index == field.index) {
-                    break :blk false;
-                };
+                for (0..field_index) |position| {
+                    if (object.fields.at(position).index == field.index) break :blk false;
+                }
             }
 
             break :blk true;
@@ -196,7 +200,9 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
                 if ((subject_type != .scalar and subject_type != .enumeration and subject_type != .error_set) or condition_type == void_type) break :blk false;
             }
 
-            for (selection.arms) |arm| {
+            for (0..selection.arms.len) |record_index| {
+                const arm = selection.arms.at(record_index);
+
                 if (!check.typed(arm.condition, condition_type) or !check.typed(arm.result, type_id)) break :blk false;
             }
 
@@ -211,7 +217,9 @@ pub fn validate(program: ir.Program, expression: ir.Expression, index: usize) bo
             @backingInt(iteration.parameter) < program.symbols.count() and @backingInt(iteration.condition_parameter) < program.symbols.count() and
             program.symbols.at(@backingInt(iteration.parameter)).type_id == type_id and program.symbols.at(@backingInt(iteration.condition_parameter)).type_id == type_id,
         .scope => |scope| blk: {
-            for (scope.bindings) |binding| {
+            for (0..scope.bindings.len) |record_index| {
+                const binding = scope.bindings.at(record_index);
+
                 if (!check.earlier(binding.value)) break :blk false;
 
                 if (binding.symbol) |symbol| {
@@ -235,7 +243,7 @@ const Check = struct {
         return self.earlier(id) and self.program.expression(id).type_id == type_id;
     }
 
-    fn binary(self: Check, value: @FieldType(@FieldType(ir.Expression, "value"), "binary"), result: ir.TypeId) bool {
+    fn binary(self: Check, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "binary"), result: ir.TypeId) bool {
         if (!self.earlier(value.left) or !self.earlier(value.right)) return false;
 
         const left = self.program.expression(value.left).type_id;
@@ -278,7 +286,7 @@ const Check = struct {
         };
     }
 
-    fn operation(self: Check, value: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), result: ir.Type) bool {
+    fn operation(self: Check, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), result: ir.Type) bool {
         if (!self.earlier(value.target) or result != .tuple or result.tuple.len != 2) return false;
 
         const source_id = self.program.expression(value.target).type_id;

@@ -6,12 +6,14 @@ const Analyzer = @import("analyzer.zig");
 const Types = @import("types.zig");
 
 pub fn start(self: *Analyzer, child: anytype, span: zx.Span) zx.Error!ir.ExprId {
-    const first = self.nodes.items.len;
+    const first = self.nodes.count();
     const symbol_count = self.symbols.count();
     const body = try self.expression(child, null);
     var captures: std.ArrayList(ir.SymbolId) = .empty;
 
-    for (self.nodes.items[first..]) |node| {
+    for (first..self.nodes.count()) |index| {
+        const node = self.nodes.at(index);
+
         switch (node.value) {
             .reference => |symbol| {
                 if (@backingInt(symbol) >= symbol_count) continue;
@@ -27,7 +29,7 @@ pub fn start(self: *Analyzer, child: anytype, span: zx.Span) zx.Error!ir.ExprId 
         }
     }
 
-    const errors = try zx.error_effects.expression(self.allocator, self.types.items.view(), self.functions, self.nodes.items, body) orelse return self.reporter.fail(.type_mismatch, span, "a task requires a finite error contract");
+    const errors = try zx.error_effects.expression(self.allocator, self.types.items.view(), self.functions, self.nodes.view(), body) orelse return self.reporter.fail(.type_mismatch, span, "a task requires a finite error contract");
     const error_type = try self.types.errorSet(errors);
     const type_id = try self.types.task(self.node(body).type_id, error_type);
 

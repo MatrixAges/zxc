@@ -22,7 +22,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
 
     for (program.symbols.types) |type_id| _ = try builder.root(@fromBackingInt(type_id));
 
-    const cached = try allocator.alloc([]const usize, program.expressions.len);
+    const cached = try allocator.alloc([]const usize, program.expressions.count());
 
     @memset(cached, &.{});
 
@@ -32,7 +32,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
         allocator.free(cached);
     }
 
-    const roots = try allocator.alloc(std.ArrayList(usize), program.expressions.len);
+    const roots = try allocator.alloc(std.ArrayList(usize), program.expressions.count());
 
     @memset(roots, .empty);
 
@@ -42,7 +42,9 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
         allocator.free(roots);
     }
 
-    for (program.expressions, 0..) |expression, index| {
+    for (0..program.expressions.count()) |index| {
+        const expression = program.expressions.at(index);
+
         if (expression.value != .object) continue;
 
         const evaluation = expression.value.object.evaluation;
@@ -57,12 +59,14 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
         }
     }
 
-    const bindings = try allocator.alloc(?usize, program.expressions.len);
+    const bindings = try allocator.alloc(?usize, program.expressions.count());
 
     defer allocator.free(bindings);
     @memset(bindings, null);
 
-    for (program.expressions, 0..) |expression, index| {
+    for (0..program.expressions.count()) |index| {
+        const expression = program.expressions.at(index);
+
         switch (expression.value) {
             .reference => |symbol| bindings[index] = @backingInt(symbol),
             .field, .tuple_field => |field| {

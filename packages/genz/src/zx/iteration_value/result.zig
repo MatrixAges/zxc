@@ -63,7 +63,12 @@ fn visit(self: *Self, id: ir.ExprId) Lower.Error!bool {
     switch (expression.value) {
         .object => |object| {
             for (object.evaluation) |child| if (!try self.visit(child)) return false;
-            for (object.fields) |field| if (!try self.visit(field.value)) return false;
+
+            for (0..object.fields.len) |record_index| {
+                const field = object.fields.at(record_index);
+
+                if (!try self.visit(field.value)) return false;
+            }
         },
         .tuple => |items| for (items) |child| {
             if (!try self.visit(child)) return false;

@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 
-pub fn object(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expression, "value"), "object")) Lower.Error!*const node.Expression {
+pub fn object(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object")) Lower.Error!*const node.Expression {
     return objectMode(self, id, value, false);
 }
 
@@ -11,7 +11,7 @@ pub fn objectValue(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expressi
     return objectMode(self, id, self.program.expression(id).value.object, true);
 }
 
-fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expression, "value"), "object"), layout: bool) Lower.Error!*const node.Expression {
+fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "object"), layout: bool) Lower.Error!*const node.Expression {
     const saved = try self.allocator.alloc(?*const node.Expression, value.evaluation.len);
 
     for (value.evaluation, 0..) |item, index| saved[index] = self.cache.get(item);
@@ -42,7 +42,11 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
     const type_fields = self.program.typeOf(type_id).object;
     const fields = try self.allocator.alloc(node.Field, value.fields.len);
 
-    for (value.fields, 0..) |field, index| fields[index] = .{ .name = type_fields.at(field.index).name, .value = try self.expr(field.value) };
+    for (0..value.fields.len) |index| {
+        const field = value.fields.at(index);
+
+        fields[index] = .{ .name = type_fields.at(field.index).name, .value = try self.expr(field.value) };
+    }
 
     for (value.evaluation, 0..) |item, index| {
         if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
@@ -53,15 +57,15 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
     return finish(self, &body, if (layout) result else try self.construct(type_id, result));
 }
 
-pub fn sequence(self: *Lower, value: ir.Expression, items: []const ir.ExprId) Lower.Error!*const node.Expression {
+pub fn sequence(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!*const node.Expression {
     return sequenceMode(self, value, items, false);
 }
 
-pub fn tupleValue(self: *Lower, value: ir.Expression, items: []const ir.ExprId) Lower.Error!*const node.Expression {
+pub fn tupleValue(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId) Lower.Error!*const node.Expression {
     return sequenceMode(self, value, items, true);
 }
 
-fn sequenceMode(self: *Lower, value: ir.Expression, items: []const ir.ExprId, layout: bool) Lower.Error!*const node.Expression {
+fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId, layout: bool) Lower.Error!*const node.Expression {
     if (value.value == .list) if (try @import("static_list.zig").lower(self, value, items)) |literal| return literal;
 
     var body: std.ArrayList(node.Statement) = .empty;

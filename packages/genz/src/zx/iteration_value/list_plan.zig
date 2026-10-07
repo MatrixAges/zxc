@@ -17,7 +17,7 @@ pub fn eligible(lowering: *Lower, iteration: ir.Iteration) Lower.Error!bool {
     if (!try lists(lowering, iteration, type_id, &path, &count) or count == 0) return false;
 
     const locals = try lowering.allocator.alloc(bool, lowering.program.symbols.count());
-    const seen = try lowering.allocator.alloc(bool, lowering.program.expressions.len);
+    const seen = try lowering.allocator.alloc(bool, lowering.program.expressions.count());
 
     @memset(locals, false);
     @memset(seen, false);
@@ -121,12 +121,19 @@ fn expression(self: *Self, id: ir.ExprId) bool {
         .list, .tuple, .template => |items| self.all(items),
         .object => |object| blk: {
             if (!self.all(object.evaluation)) break :blk false;
-            for (object.fields) |field| if (!self.expression(field.value)) break :blk false;
+
+            for (0..object.fields.len) |record_index| {
+                const field = object.fields.at(record_index);
+
+                if (!self.expression(field.value)) break :blk false;
+            }
 
             break :blk true;
         },
         .scope => |scope| blk: {
-            for (scope.bindings) |binding| {
+            for (0..scope.bindings.len) |record_index| {
+                const binding = scope.bindings.at(record_index);
+
                 if (!self.expression(binding.value)) break :blk false;
                 if (binding.symbol) |symbol| self.locals[@backingInt(symbol)] = true;
             }
@@ -142,7 +149,12 @@ fn expression(self: *Self, id: ir.ExprId) bool {
         },
         .match_expr => |selection| blk: {
             if (selection.subject) |subject| if (!primitive(program, program.expression(subject).type_id) or !self.expression(subject)) break :blk false;
-            for (selection.arms) |arm| if (!self.expression(arm.condition) or !self.expression(arm.result)) break :blk false;
+
+            for (0..selection.arms.len) |record_index| {
+                const arm = selection.arms.at(record_index);
+
+                if (!self.expression(arm.condition) or !self.expression(arm.result)) break :blk false;
+            }
 
             break :blk self.expression(selection.fallback);
         },

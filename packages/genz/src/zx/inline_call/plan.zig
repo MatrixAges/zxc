@@ -22,19 +22,23 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
         if (input == .scalar and input.scalar == .void) continue;
         if (!statements(function.body)) continue;
 
-        var cost = function.expressions.len + function.symbols.count() + 1;
+        var cost = function.expressions.count() + function.symbols.count() + 1;
 
-        for (function.expressions) |expression| if (expression.value == .call) {
-            const child = @backingInt(expression.value.call.function);
+        for (0..function.expressions.count()) |expression_index| {
+            const expression = function.expressions.at(expression_index);
 
-            if (child >= index) {
-                cost = limit + 1;
+            if (expression.value == .call) {
+                const child = @backingInt(expression.value.call.function);
 
-                break;
+                if (child >= index) {
+                    cost = limit + 1;
+
+                    break;
+                }
+
+                cost +|= costs[child];
             }
-
-            cost +|= costs[child];
-        };
+        }
 
         if (cost <= limit) self.costs[index] = cost;
     }

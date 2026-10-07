@@ -5,13 +5,13 @@ const Self = @This();
 pub const Error = std.mem.Allocator.Error || error{ExpansionLimit};
 
 unit: *Unit,
-source: []const ir.Expression,
+source: ir.ExpressionTable,
 selected: ?[]const bool,
 ids: []?ir.ExprId,
 symbol_offset: usize,
-pub fn init(unit: *Unit, symbols: ir.SymbolTable, expressions: []const ir.Expression, selected: ?[]const bool) Error!Self {
+pub fn init(unit: *Unit, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, selected: ?[]const bool) Error!Self {
     const offset = unit.symbols.count();
-    const ids = try unit.allocator.alloc(?ir.ExprId, expressions.len);
+    const ids = try unit.allocator.alloc(?ir.ExprId, expressions.count());
 
     @memset(ids, null);
     for (0..symbols.count()) |index| try unit.symbols.append(unit.allocator, symbols.at(index));
@@ -26,7 +26,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!ir.ExprId {
     self.unit.depth += 1;
     defer self.unit.depth -= 1;
 
-    var item = self.source[@backingInt(id)];
+    const item = self.source.at(@backingInt(id));
     const selected = if (self.selected) |flags| flags[@backingInt(id)] else true;
 
     const result = if (selected and item.value == .call and self.unit.plan.accepts(item.value.call.function)) blk: {
@@ -41,9 +41,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!ir.ExprId {
 
         break :blk try @import("block.zig").bind(&child, .{ .symbol = input, .value = argument }, returned, item.type_id, item.span);
     } else blk: {
-        item.value = try self.expressionValue(item.value);
-
-        break :blk try self.unit.append(item);
+        break :blk try self.unit.append(.{ .type_id = item.type_id, .span = item.span, .value = try self.expressionValue(item.value) });
     };
 
     self.ids[@backingInt(id)] = result;
@@ -51,7 +49,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!ir.ExprId {
     return result;
 }
 
-fn expressionValue(self: *Self, source: @FieldType(ir.Expression, "value")) Error!@FieldType(ir.Expression, "value") {
+fn expressionValue(self: *Self, source: @FieldType(ir.ExpressionRow, "value")) Error!@FieldType(ir.Expression, "value") {
     return switch (source) {
         .parallel => |items| .{ .parallel = try self.records(ir.ParallelBranch, items) },
         .scope => |item| .{ .scope = .{ .bindings = try self.records(ir.ScopeBinding, item.bindings), .result = try self.expression(item.result) } },
@@ -61,10 +59,10 @@ fn expressionValue(self: *Self, source: @FieldType(ir.Expression, "value")) Erro
     };
 }
 
-fn records(self: *Self, comptime Item: type, items: []const Item) Error![]const Item {
+fn records(self: *Self, comptime Item: type, items: anytype) Error![]const Item {
     const result = try self.unit.allocator.alloc(Item, items.len);
 
-    for (items, result) |item, *mapped| mapped.* = try self.value(Item, item);
+    for (result, 0..) |*mapped, index| mapped.* = try self.value(Item, items.at(index));
 
     return result;
 }

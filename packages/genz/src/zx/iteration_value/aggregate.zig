@@ -40,7 +40,11 @@ pub fn lower(self: *Context, id: ir.ExprId) Lower.Error!*const node.Expression {
     const fields = try lowering.allocator.alloc(node.Field, object.fields.len);
     const definitions = lowering.program.typeOf(expression.type_id).object;
 
-    for (object.fields, fields) |field, *value| value.* = .{ .name = definitions.at(field.index).name, .value = try lowering.expr(field.value) };
+    for (0..object.fields.len, fields) |record_index, *value| {
+        const field = object.fields.at(record_index);
+
+        value.* = .{ .name = definitions.at(field.index).name, .value = try lowering.expr(field.value) };
+    }
 
     for (object.evaluation, values, counts) |item, value, count| {
         if (count == (self.reads.get(item) orelse 0)) try body.append(lowering.allocator, .{ .discard = value });

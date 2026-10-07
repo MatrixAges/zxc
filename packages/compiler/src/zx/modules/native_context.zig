@@ -9,7 +9,7 @@ pub fn valid(types: ir.TypeTable, modules: []const ir.NativeModule) bool {
         .input_type = @fromBackingInt(0),
         .output_type = @fromBackingInt(0),
         .symbols = .{},
-        .expressions = &.{},
+        .expressions = .{},
         .body = &.{},
         .type_only = true,
     });

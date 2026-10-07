@@ -55,13 +55,14 @@ pub fn wait(self: *Lower, child: ir.ExprId) Lower.Error!*const node.Expression {
     return @import("../aggregate.zig").finish(self, &body, try self.call(try self.field(try self.builder.identifier(name), "await"), &.{try self.builder.identifier("io")}, true));
 }
 
-pub fn parallel(self: *Lower, type_id: ir.TypeId, branches: []const ir.ParallelBranch) Lower.Error!*const node.Expression {
+pub fn parallel(self: *Lower, type_id: ir.TypeId, branches: @FieldType(@FieldType(ir.ExpressionRow, "value"), "parallel")) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     const futures = try self.allocator.alloc([]const u8, branches.len);
     const results = try self.allocator.alloc([]const u8, branches.len);
     var fields: std.ArrayList(node.Field) = .empty;
 
-    for (branches, futures) |branch, *name| {
+    for (0..branches.len, futures) |record_index, *name| {
+        const branch = branches.at(record_index);
         name.* = try self.fresh("future");
 
         try bind(self, &body, name.*, branch.task, true);
@@ -73,7 +74,8 @@ pub fn parallel(self: *Lower, type_id: ir.TypeId, branches: []const ir.ParallelB
         try body.append(self.allocator, .{ .constant = .{ .name = result.*, .value = try self.call(try self.field(try self.builder.identifier(future), "await"), &.{try self.builder.identifier("io")}, false) } });
     }
 
-    for (branches, results) |branch, result| {
+    for (0..branches.len, results) |record_index, result| {
+        const branch = branches.at(record_index);
         const raw = try self.builder.identifier(result);
         const value = if (self.capture) |boundary| try self.builder.expression(.{ .catch_value = .{ .value = raw, .capture = boundary.name, .label = boundary.label, .result = boundary.failure } }) else try self.builder.expression(.{ .try_value = raw });
 

@@ -30,13 +30,15 @@ pub fn analyze(allocator: std.mem.Allocator, mode: Mode) !f.compiler.AnalysisRes
 
 pub fn apply(allocator: std.mem.Allocator, original: ir.Program, mode: Mode) !ir.Program {
     var program = original;
-    const expressions = try allocator.dupe(ir.Expression, original.expressions);
+    const expression_types = try allocator.dupe(u32, original.expressions.types);
 
-    program.expressions = expressions;
+    program.expressions.types = expression_types;
 
     var count: usize = 0;
 
-    for (expressions) |expression| {
+    for (0..original.expressions.count()) |index| {
+        const expression = original.expressions.at(index);
+
         if (expression.value != .task) continue;
 
         count += 1;
@@ -45,14 +47,23 @@ pub fn apply(allocator: std.mem.Allocator, original: ir.Program, mode: Mode) !ir
         if (mode == .result) {
             const first = try allocator.dupe(u32, original.types.first);
             const reference = try exported(original, "Ref");
-            const body = &expressions[@backingInt(value.body)];
+            const body = original.expression(value.body);
 
             try std.testing.expectEqual(@as(usize, 0), value.captures.len);
             try std.testing.expect(body.value == .integer);
             try std.testing.expect(@backingInt(reference) < @backingInt(expression.type_id));
+            try std.testing.expectEqual(@as(usize, 1), original.expressions.integers.len);
 
-            body.type_id = reference;
-            body.value = .none;
+            const kinds = try allocator.dupe(@typeInfo(@TypeOf(original.expressions.kinds)).pointer.child, original.expressions.kinds);
+            const payloads = try allocator.dupe(u32, original.expressions.payloads);
+
+            expression_types[@backingInt(value.body)] = @backingInt(reference);
+            kinds[@backingInt(value.body)] = .None;
+            payloads[@backingInt(value.body)] = 0;
+
+            program.expressions.kinds = kinds;
+            program.expressions.payloads = payloads;
+            program.expressions.integers = &.{};
 
             first[@backingInt(expression.type_id)] = @backingInt(reference);
 
@@ -71,8 +82,10 @@ pub fn apply(allocator: std.mem.Allocator, original: ir.Program, mode: Mode) !ir
             program.symbols.types = symbol_types;
             program.exports = exports;
 
-            for (expressions) |*item| {
-                if (item.value == .reference and item.value.reference == @as(ir.SymbolId, @fromBackingInt(0))) item.type_id = reference;
+            for (0..original.expressions.count()) |position| {
+                const item = original.expressions.at(position);
+
+                if (item.value == .reference and item.value.reference == @as(ir.SymbolId, @fromBackingInt(0))) expression_types[position] = @backingInt(reference);
             }
 
             for (exports) |*item| {

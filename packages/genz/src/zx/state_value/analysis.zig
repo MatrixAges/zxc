@@ -135,20 +135,24 @@ pub fn nested(self: Self, program: ir.Program, id: ir.TypeId) bool {
     };
 }
 
-fn comparisons(program: ir.Program, boxed: []bool, expressions: []const ir.Expression, contracts: []const ir.Contract) void {
-    for (expressions) |expression| if (expression.value == .binary) {
-        const binary = expression.value.binary;
+fn comparisons(program: ir.Program, boxed: []bool, expressions: ir.ExpressionTable, contracts: []const ir.Contract) void {
+    for (0..expressions.count()) |expression_index| {
+        const expression = expressions.at(expression_index);
 
-        if (binary.operator != .equal and binary.operator != .not_equal) continue;
+        if (expression.value == .binary) {
+            const binary = expression.value.binary;
 
-        const left = expressions[@backingInt(binary.left)];
-        const right = expressions[@backingInt(binary.right)];
+            if (binary.operator != .equal and binary.operator != .not_equal) continue;
 
-        if (left.value == .none or right.value == .none) continue;
+            const left = expressions.at(@backingInt(binary.left));
+            const right = expressions.at(@backingInt(binary.right));
 
-        mark(program, boxed, left.type_id);
-        mark(program, boxed, right.type_id);
-    };
+            if (left.value == .none or right.value == .none) continue;
+
+            mark(program, boxed, left.type_id);
+            mark(program, boxed, right.type_id);
+        }
+    }
 
     for (contracts) |contract| comparisons(program, boxed, contract.expressions, &.{});
 }

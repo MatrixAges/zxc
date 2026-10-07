@@ -2,7 +2,7 @@ const ir = @import("zx").ir;
 const Children = @import("children.zig");
 const limit = @import("plan.zig").limit;
 
-pub fn count(costs: []const usize, value: @FieldType(ir.Expression, "value")) usize {
+pub fn count(costs: []const usize, value: @FieldType(ir.ExpressionRow, "value")) usize {
     const children = Children.init(value);
     var result: usize = 0;
 

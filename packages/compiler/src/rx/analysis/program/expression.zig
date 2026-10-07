@@ -14,10 +14,10 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
     var mapping = Mapping{
         .allocator = builder.allocator,
         .symbols = try builder.allocator.alloc(?ir.SymbolId, program.symbols.count()),
-        .expressions = try builder.allocator.alloc(?ir.ExprId, program.expressions.len),
+        .expressions = try builder.allocator.alloc(?ir.ExprId, program.expressions.count()),
     };
 
-    const projections = try builder.allocator.alloc(bool, program.expressions.len);
+    const projections = try builder.allocator.alloc(bool, program.expressions.count());
 
     @memset(mapping.symbols, null);
     @memset(mapping.expressions, null);
@@ -28,12 +28,12 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
 
         const source = statement.constant;
 
-        if (@backingInt(source.symbol) >= mapping.symbols.len or @backingInt(source.value) >= program.expressions.len) return error.InvalidModule;
+        if (@backingInt(source.symbol) >= mapping.symbols.len or @backingInt(source.value) >= program.expressions.count()) return error.InvalidModule;
 
         const value = program.expression(source.value);
 
         if (value.value != .tuple_field or value.value.tuple_field.index != index) return error.InvalidModule;
-        if (@backingInt(value.value.tuple_field.target) >= program.expressions.len) return error.InvalidModule;
+        if (@backingInt(value.value.tuple_field.target) >= program.expressions.count()) return error.InvalidModule;
 
         const environment = program.expression(value.value.tuple_field.target);
 
@@ -69,7 +69,9 @@ pub fn inlineValue(builder: *Builder, program: ir.Program) Builder.Error!ir.Expr
         mapping.symbols[index] = try builder.symbol(symbol.name, symbol.type_id, symbol.span);
     }
 
-    for (program.expressions, 0..) |expression, index| {
+    for (0..program.expressions.count()) |index| {
+        const expression = program.expressions.at(index);
+
         if (projections[index]) continue;
         if (expression.value == .reference and @backingInt(expression.value.reference) == 0) continue;
 

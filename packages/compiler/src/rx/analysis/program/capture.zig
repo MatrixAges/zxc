@@ -38,5 +38,5 @@ pub fn argument(allocator: std.mem.Allocator, owner: []const u8, types: ir.TypeT
 
     try builder.body.append(allocator, .{ .result = result });
 
-    return .{ .file_name = owner, .types = types, .input_type = environment_type, .output_type = input_type, .symbols = builder.symbols.view(), .expressions = builder.expressions.items, .body = builder.body.items };
+    return .{ .file_name = owner, .types = types, .input_type = environment_type, .output_type = input_type, .symbols = builder.symbols.view(), .expressions = builder.expressions.view(), .body = builder.body.items };
 }

@@ -101,7 +101,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
         helper.append_overrides = .empty;
         helper.buffer_calls = .empty;
         helper.stack_symbols = .empty;
-        helper.cache_reads = try self.allocator.alloc(usize, module_function.expressions.len);
+        helper.cache_reads = try self.allocator.alloc(usize, module_function.expressions.count());
 
         try @import("store.zig").declaration(&helper, &output);
         try output.append(self.allocator, try helper.function(try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), false));
@@ -361,7 +361,7 @@ pub fn functionReference(self: *Self, id: ir.FunctionId) Error!*const node.Expre
     return self.builder.identifier(try std.fmt.allocPrint(self.allocator, "function_{d}", .{@backingInt(id)}));
 }
 
-pub fn binary(self: *Self, value: @FieldType(@FieldType(ir.Expression, "value"), "binary")) Error!*const node.Expression {
+pub fn binary(self: *Self, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "binary")) Error!*const node.Expression {
     const left = try self.expr(value.left);
     const right = try self.expr(value.right);
     const type_id = self.program.expression(value.left).type_id;

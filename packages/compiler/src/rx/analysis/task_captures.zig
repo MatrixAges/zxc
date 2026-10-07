@@ -30,7 +30,9 @@ fn reads(program: ir.Program, name: []const u8) bool {
 
         if (environment.value != .reference or @backingInt(environment.value.reference) != 0) continue;
 
-        for (program.expressions) |expression| {
+        for (0..program.expressions.count()) |expression_index| {
+            const expression = program.expressions.at(expression_index);
+
             if (expression.value == .reference and expression.value.reference == symbol) return true;
         }
     }

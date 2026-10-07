@@ -85,7 +85,7 @@ pub fn link(allocator: std.mem.Allocator, modules: []const model.Module, entry: 
         .output_type = if (root) |value| value.output_type else @fromBackingInt(@intCast(0)),
         .output_ownership = if (root) |value| value.output_ownership else .borrowed,
         .symbols = if (root) |value| value.symbols else .{},
-        .expressions = if (root) |value| value.expressions else &.{},
+        .expressions = if (root) |value| value.expressions else .{},
         .body = if (root) |value| value.body else &.{},
         .contracts = if (root) |value| value.contracts else &.{},
         .exports = exports,

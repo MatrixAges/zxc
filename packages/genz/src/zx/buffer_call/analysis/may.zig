@@ -6,7 +6,7 @@ const independent = @import("independent.zig");
 const Error = std.mem.Allocator.Error;
 
 pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const u32) Error!bool {
-    const expression = trace.function.expressions[@backingInt(id)];
+    const expression = trace.function.expressions.at(@backingInt(id));
     var selected = expression.type_id;
 
     for (path) |index| {
@@ -37,7 +37,7 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
             contains(trace, binding, path, origin)
         else blk: {
             if (trace.iterations[@backingInt(symbol)]) |iteration_id| for (trace.selected_loops) |loop| {
-                if (loop.expression == iteration_id) break :blk try contains(trace, trace.function.expressions[@backingInt(iteration_id)].value.iteration.initial, path, origin);
+                if (loop.expression == iteration_id) break :blk try contains(trace, trace.function.expressions.at(@backingInt(iteration_id)).value.iteration.initial, path, origin);
             };
 
             break :blk !try independent.parameter(trace, symbol, origin);
@@ -45,7 +45,12 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
         .conditional => |value| try contains(trace, value.yes, path, origin) or try contains(trace, value.no, path, origin),
         .match_expr => |value| blk: {
             if (try contains(trace, value.fallback, path, origin)) break :blk true;
-            for (value.arms) |arm| if (try contains(trace, arm.result, path, origin)) break :blk true;
+
+            for (0..value.arms.len) |record_index| {
+                const arm = value.arms.at(record_index);
+
+                if (try contains(trace, arm.result, path, origin)) break :blk true;
+            }
 
             break :blk false;
         },
@@ -59,7 +64,9 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
             break :blk try contains(trace, projection.target, nested, origin);
         },
         .object => |object| blk: {
-            for (object.fields) |field| {
+            for (0..object.fields.len) |record_index| {
+                const field = object.fields.at(record_index);
+
                 if (path.len != 0 and field.index != path[0]) continue;
                 if (try contains(trace, field.value, if (path.len == 0) &.{} else path[1..], origin)) break :blk true;
             }
@@ -82,7 +89,7 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
                     else => unreachable,
                 };
 
-                if (owner == trace.function.expressions[@backingInt(operation.target)].type_id) break :blk false;
+                if (owner == trace.function.expressions.at(@backingInt(operation.target)).type_id) break :blk false;
             }
 
             break :blk try contains(trace, operation.target, &.{}, origin) or try any(trace, operation.arguments, origin);

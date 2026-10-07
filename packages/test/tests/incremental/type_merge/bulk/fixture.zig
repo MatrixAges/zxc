@@ -139,7 +139,7 @@ pub fn source(memory: std.mem.Allocator, options: Options) !Source {
     };
 
     try std.testing.expect(module.types.validStructure());
-    try std.testing.expectEqual(null, try compiler.validateIr(memory, .{ .file_name = module.path, .types = module.types, .symbols = .{}, .expressions = &.{}, .input_type = scalar(.void), .output_type = scalar(.void), .body = &.{}, .type_only = true, .native_modules = module.native_modules }));
+    try std.testing.expectEqual(null, try compiler.validateIr(memory, .{ .file_name = module.path, .types = module.types, .symbols = .{}, .expressions = .{}, .input_type = scalar(.void), .output_type = scalar(.void), .body = &.{}, .type_only = true, .native_modules = module.native_modules }));
 
     return .{ .table = table, .ids = ids, .aliases = aliases, .options = options, .module = module };
 }

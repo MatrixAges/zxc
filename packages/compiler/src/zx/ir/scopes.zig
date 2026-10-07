@@ -155,7 +155,7 @@ fn block(self: *Self, statements: []const ir.Statement, depth: usize) std.mem.Al
 }
 
 fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!bool {
-    if (@backingInt(id) >= self.program.expressions.len or depth > 256) return false;
+    if (@backingInt(id) >= self.program.expressions.count() or depth > 256) return false;
 
     return switch (self.program.expression(id).value) {
         .store_get => self.callback_depth == 0 and self.task_depth == 0,
@@ -201,7 +201,9 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
             defer self.allocator.free(saved);
             defer @memcpy(self.active, saved);
 
-            for (scope.bindings) |binding| {
+            for (0..scope.bindings.len) |record_index| {
+                const binding = scope.bindings.at(record_index);
+
                 if (!try self.expression(binding.value, depth + 1)) break :blk false;
 
                 if (binding.symbol) |symbol| {
@@ -244,7 +246,11 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
             break :blk try self.expression(task.body, depth + 1);
         },
         .parallel => |branches| blk: {
-            for (branches) |branch| if (!try self.expression(branch.task, depth + 1)) break :blk false;
+            for (0..branches.len) |record_index| {
+                const branch = branches.at(record_index);
+
+                if (!try self.expression(branch.task, depth + 1)) break :blk false;
+            }
 
             break :blk true;
         },
@@ -286,7 +292,9 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
                 break :blk false;
             };
 
-            for (selection.arms) |arm| {
+            for (0..selection.arms.len) |record_index| {
+                const arm = selection.arms.at(record_index);
+
                 if (!try self.expression(arm.condition, depth + 1) or !try self.expression(arm.result, depth + 1)) break :blk false;
             }
 
@@ -296,9 +304,13 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
         .object => |object| blk: {
             if (!try self.sequence(object.evaluation, depth + 1)) break :blk false;
 
-            for (object.fields) |field| if (!try self.expression(field.value, depth + 1)) {
-                break :blk false;
-            };
+            for (0..object.fields.len) |record_index| {
+                const field = object.fields.at(record_index);
+
+                if (!try self.expression(field.value, depth + 1)) {
+                    break :blk false;
+                }
+            }
 
             break :blk true;
         },
@@ -355,7 +367,7 @@ fn switchCases(self: *Self, selection: @FieldType(ir.Statement, "switch_stmt")) 
 
     for (selection.cases, 0..) |case, index| {
         if (case.value) |id| {
-            if (@backingInt(id) >= self.program.expressions.len or self.program.expression(id).type_id != type_id) return false;
+            if (@backingInt(id) >= self.program.expressions.count() or self.program.expression(id).type_id != type_id) return false;
 
             const value = self.program.expression(id).value;
 
@@ -381,7 +393,7 @@ fn switchCases(self: *Self, selection: @FieldType(ir.Statement, "switch_stmt")) 
     return selection.exhaustive == exhaustive;
 }
 
-fn same(left: @FieldType(ir.Expression, "value"), right: @FieldType(ir.Expression, "value")) bool {
+fn same(left: @FieldType(ir.ExpressionRow, "value"), right: @FieldType(ir.ExpressionRow, "value")) bool {
     if (std.meta.activeTag(left) != std.meta.activeTag(right)) {
         return (left == .integer and left.integer == 0 and right == .negative_integer and right.negative_integer == 0) or (right == .integer and right.integer == 0 and left == .negative_integer and left.negative_integer == 0);
     }

@@ -16,11 +16,15 @@ pub fn statements(self: *Lower, values: []const ir.Statement) Lower.Error![]cons
     return symbols.toOwnedSlice(self.allocator);
 }
 
-pub fn scope(self: *Lower, value: ir.Scope) Lower.Error![]const ir.SymbolId {
+pub fn scope(self: *Lower, value: ir.ScopeRow) Lower.Error![]const ir.SymbolId {
     var symbols: std.ArrayList(ir.SymbolId) = .empty;
 
-    if (self.state_active) for (value.bindings) |binding| if (binding.symbol) |symbol| {
-        try add(self, &symbols, symbol);
+    if (self.state_active) for (0..value.bindings.len) |record_index| {
+        const binding = value.bindings.at(record_index);
+
+        if (binding.symbol) |symbol| {
+            try add(self, &symbols, symbol);
+        }
     };
 
     return symbols.toOwnedSlice(self.allocator);

@@ -20,7 +20,7 @@ pub fn prove(trace: *Trace, id: ir.ExprId, origin: []const u32) Error!bool {
         if (matches(proof, id, origin)) return true;
     }
 
-    const iteration = trace.function.expressions[@backingInt(id)].value.iteration;
+    const iteration = trace.function.expressions.at(@backingInt(id)).value.iteration;
 
     if (try may.contains(trace, iteration.initial, &.{}, origin)) return false;
 

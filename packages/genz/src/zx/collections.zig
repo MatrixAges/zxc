@@ -6,11 +6,11 @@ const aggregate = @import("aggregate.zig");
 const intrinsic = @import("intrinsics.zig");
 const Capacity = @import("iteration_buffer/capacity.zig");
 
-pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), storage: ?Capacity) Lower.Error!*const node.Expression {
+pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), storage: ?Capacity) Lower.Error!*const node.Expression {
     return lowerMode(self, type_id, operation, null, storage, false);
 }
 
-pub fn lowerValue(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), layout: *const node.Expression, storage: ?Capacity) Lower.Error!*const node.Expression {
+pub fn lowerValue(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), layout: *const node.Expression, storage: ?Capacity) Lower.Error!*const node.Expression {
     return lowerMode(self, type_id, operation, layout, storage, false);
 }
 
@@ -25,7 +25,7 @@ pub fn projection(self: *Lower, target: ir.ExprId, index: usize) Lower.Error!?*c
     return try lowerMode(self, value.type_id, value.value.list_operation, null, null, true);
 }
 
-fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.Expression, "value"), "list_operation"), layout: ?*const node.Expression, storage: ?Capacity, removed_only: bool) Lower.Error!*const node.Expression {
+fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), layout: ?*const node.Expression, storage: ?Capacity, removed_only: bool) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(operation.target));
     const arguments = try self.allocator.alloc(*const node.Expression, operation.arguments.len);

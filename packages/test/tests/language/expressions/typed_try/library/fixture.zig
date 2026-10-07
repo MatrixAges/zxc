@@ -66,8 +66,10 @@ pub fn inspect(program: compiler.ir.Program, expected: []const []const u8, narro
     try std.testing.expectEqual(narrowed, proofs != 0);
 }
 
-fn expressions(program: compiler.ir.Program, values: []const compiler.ir.Expression, expected: []const []const u8, captures: *usize, proofs: *usize) !void {
-    for (values) |value| {
+fn expressions(program: compiler.ir.Program, values: compiler.ir.ExpressionTable, expected: []const []const u8, captures: *usize, proofs: *usize) !void {
+    for (0..values.count()) |index| {
+        const value = values.at(index);
+
         if (value.value == .optional_value) proofs.* += 1;
         if (value.value != .capture) continue;
 
@@ -78,7 +80,7 @@ fn expressions(program: compiler.ir.Program, values: []const compiler.ir.Express
         try std.testing.expectEqual(@as(usize, 2), slots.len);
         try expectMembers(errors, expected);
 
-        const original = values[@intFromEnum(value.value.capture)].type_id;
+        const original = values.at(@backingInt(value.value.capture)).type_id;
         const payload = program.typeOf(slots.at(1));
 
         try std.testing.expectEqual(original, if (payload == .optional) payload.optional else slots.at(1));

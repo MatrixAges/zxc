@@ -4,7 +4,7 @@ const node = @import("../../node.zig");
 const Context = @import("root.zig");
 const Lower = @import("../lower.zig");
 
-pub fn lower(self: *Context, scope: ir.Scope) Lower.Error!*const node.Expression {
+pub fn lower(self: *Context, scope: ir.ScopeRow) Lower.Error!*const node.Expression {
     const lowering = self.lowering;
     var symbols: std.ArrayList(ir.SymbolId) = .empty;
 
@@ -12,11 +12,15 @@ pub fn lower(self: *Context, scope: ir.Scope) Lower.Error!*const node.Expression
         _ = self.symbols.remove(symbol);
     };
 
-    for (scope.bindings) |binding| if (binding.symbol) |symbol| {
-        if (!self.represented(lowering.program.symbols.at(@backingInt(symbol)).type_id) or self.symbols.contains(symbol)) continue;
-        try symbols.append(lowering.allocator, symbol);
-        try self.symbols.put(lowering.allocator, symbol, {});
-    };
+    for (0..scope.bindings.len) |record_index| {
+        const binding = scope.bindings.at(record_index);
+
+        if (binding.symbol) |symbol| {
+            if (!self.represented(lowering.program.symbols.at(@backingInt(symbol)).type_id) or self.symbols.contains(symbol)) continue;
+            try symbols.append(lowering.allocator, symbol);
+            try self.symbols.put(lowering.allocator, symbol, {});
+        }
+    }
 
     const result = try lowering.expr(scope.result);
     const statements = try lowering.allocator.alloc(?node.Statement, scope.bindings.len);
@@ -24,7 +28,7 @@ pub fn lower(self: *Context, scope: ir.Scope) Lower.Error!*const node.Expression
 
     while (offset > 0) {
         offset -= 1;
-        const binding = scope.bindings[offset];
+        const binding = scope.bindings.at(offset);
 
         if (binding.symbol) |symbol| {
             if (!lowering.used[@backingInt(symbol)] and lowering.program.expression(binding.value).value == .reference) {

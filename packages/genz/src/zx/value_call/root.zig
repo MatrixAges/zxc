@@ -34,25 +34,25 @@ fn dereference(self: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
     return self.builder.expression(.{ .dereference = try self.expr(id) });
 }
 
-pub fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.Expression, "value"), "call"), buffers: ?*const node.Expression) Lower.Error!*const node.Expression {
+pub fn invocation(self: *Lower, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call"), buffers: ?*const node.Expression) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     const result = try lowerInvocation(self, &body, value, buffers, false, .layout);
 
     return aggregate.finish(self, &body, result);
 }
 
-pub fn borrowInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.Expression, "value"), "call")) Lower.Error!*const node.Expression {
+pub fn borrowInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!*const node.Expression {
     return lowerInvocation(self, body, value, null, true, .layout);
 }
 
-pub fn pointerInvocation(self: *Lower, value: @FieldType(@FieldType(ir.Expression, "value"), "call")) Lower.Error!*const node.Expression {
+pub fn pointerInvocation(self: *Lower, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call")) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
     const result = try lowerInvocation(self, &body, value, null, false, .pointer);
 
     return aggregate.finish(self, &body, result);
 }
 
-fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.Expression, "value"), "call"), buffers: ?*const node.Expression, borrowed: bool, result_mode: @import("../state_value/conversion.zig").Mode) Lower.Error!*const node.Expression {
+fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "call"), buffers: ?*const node.Expression, borrowed: bool, result_mode: @import("../state_value/conversion.zig").Mode) Lower.Error!*const node.Expression {
     const function = self.program.functions[@backingInt(value.function)];
     const can_stack = !containsDescendant(self.program, function.output_type, function.input_type);
 

@@ -53,7 +53,7 @@ pub fn build(allocator: std.mem.Allocator, owner: []const u8, source: []const Fi
         .types = table.items.view(),
         .native_modules = owned_modules,
         .symbols = builder.symbols.view(),
-        .expressions = builder.expressions.items,
+        .expressions = builder.expressions.view(),
         .input_type = input,
         .output_type = output,
         .body = try allocator.dupe(zx.ir.Statement, &.{.{ .result = object }}),

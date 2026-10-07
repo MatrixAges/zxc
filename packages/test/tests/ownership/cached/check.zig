@@ -44,35 +44,44 @@ pub fn allocated(allocator: std.mem.Allocator, case: Case) !void {
     }
 
     var program = analyzed.value.ir;
-    const expressions = try allocator.dupe(compiler.ir.Expression, program.expressions);
+    const values = try allocator.dupe(u32, program.expressions.object_field_values);
 
-    defer allocator.free(expressions);
+    defer allocator.free(values);
 
-    program.expressions = expressions;
+    const targets = try allocator.dupe(u32, program.expressions.projection_targets);
+
+    defer allocator.free(targets);
+
+    const indices = try allocator.dupe(u32, program.expressions.projection_indices);
+
+    defer allocator.free(indices);
+
+    program.expressions.object_field_values = values;
+    program.expressions.projection_targets = targets;
+    program.expressions.projection_indices = indices;
 
     var selected: ?usize = null;
 
-    for (expressions, 0..) |expression, index| {
+    for (0..program.expressions.count()) |index| {
+        const expression = program.expressions.at(index);
+
         if (expression.value == .object and expression.value.object.evaluation.len == 1 and expression.value.object.fields.len == 2) selected = index;
     }
 
-    const object = &expressions[selected orelse return error.MissingSpread].value.object;
-    const fields = try allocator.dupe(@TypeOf(object.fields[0]), object.fields);
-
-    defer allocator.free(fields);
-
-    object.fields = fields;
+    const payload = program.expressions.payloads[selected orelse return error.MissingSpread];
+    const first = program.expressions.object_first[payload];
+    const fields = values[first..][0..2];
 
     switch (case.mutation) {
         .none => {},
-        .duplicate_id => fields[1].value = fields[0].value,
+        .duplicate_id => fields[1] = fields[0],
         .duplicate_path => {
-            const first = program.expression(fields[0].value).value.field;
-            const second = &expressions[@backingInt(fields[1].value)].value.field;
-
-            second.* = first;
+            const projection = program.expression(@fromBackingInt(fields[0])).value.field;
+            const second = program.expressions.payloads[fields[1]];
+            targets[second] = @backingInt(projection.target);
+            indices[second] = projection.index;
         },
-        .swap => std.mem.swap(compiler.ir.ExprId, &fields[0].value, &fields[1].value),
+        .swap => std.mem.swap(u32, &fields[0], &fields[1]),
     }
 
     const issue = try compiler.validateIr(allocator, program);

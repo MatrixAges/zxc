@@ -36,7 +36,7 @@ pub fn facts(allocator: std.mem.Allocator, program: ir.Program, reporter: *zx.Re
 
     defer allocator.free(states);
 
-    const memo = try allocator.alloc(?usize, program.expressions.len);
+    const memo = try allocator.alloc(?usize, program.expressions.count());
 
     defer allocator.free(memo);
     @memset(states, .copy);
@@ -220,7 +220,8 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
 
             defer self.allocator.free(before);
 
-            for (scope.bindings) |binding| {
+            for (0..scope.bindings.len) |record_index| {
+                const binding = scope.bindings.at(record_index);
                 var evaluated = try self.value(binding.value, if (binding.symbol != null and !binding.borrow) .move else .read);
 
                 if (binding.borrow and self.isReference(self.program.expression(binding.value).type_id)) {
@@ -275,9 +276,13 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
 
             var result: State = .owned;
 
-            for (object.fields) |field| if (try self.aggregateValue(field.value, mode) == .borrowed) {
-                result = .borrowed;
-            };
+            for (0..object.fields.len) |record_index| {
+                const field = object.fields.at(record_index);
+
+                if (try self.aggregateValue(field.value, mode) == .borrowed) {
+                    result = .borrowed;
+                }
+            }
 
             break :blk result;
         },
@@ -418,7 +423,10 @@ fn value(self: *Self, id: ir.ExprId, mode: Mode) zx.Error!State {
             break :blk .copy;
         },
         .parallel => |branches| blk: {
-            for (branches) |branch| _ = try self.value(branch.task, .move);
+            for (0..branches.len) |record_index| {
+                const branch = branches.at(record_index);
+                _ = try self.value(branch.task, .move);
+            }
 
             break :blk .borrowed;
         },
@@ -509,7 +517,11 @@ fn borrow(self: *Self, id: ir.ExprId, permanent: bool) void {
         .index => |item| self.borrow(item.target, permanent),
         .some, .capture, .optional_value => |child| self.borrow(child, permanent),
         .match_expr => |selection| {
-            for (selection.arms) |arm| self.borrow(arm.result, permanent);
+            for (0..selection.arms.len) |record_index| {
+                const arm = selection.arms.at(record_index);
+
+                self.borrow(arm.result, permanent);
+            }
 
             self.borrow(selection.fallback, permanent);
         },
@@ -529,7 +541,7 @@ fn borrow(self: *Self, id: ir.ExprId, permanent: bool) void {
     }
 }
 
-fn matchValue(self: *Self, selection: ir.Match, mode: Mode) zx.Error!State {
+fn matchValue(self: *Self, selection: ir.MatchRow, mode: Mode) zx.Error!State {
     if (selection.subject) |subject| _ = try self.value(subject, .read);
 
     const before = try self.allocator.alloc(State, self.states.len);
@@ -542,7 +554,9 @@ fn matchValue(self: *Self, selection: ir.Match, mode: Mode) zx.Error!State {
 
     var borrowed = false;
 
-    for (selection.arms, 0..) |arm, index| {
+    for (0..selection.arms.len) |index| {
+        const arm = selection.arms.at(index);
+
         _ = try self.value(arm.condition, .read);
 
         @memcpy(before, self.states);

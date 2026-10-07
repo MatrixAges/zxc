@@ -96,7 +96,7 @@ pub fn valid(memory: std.mem.Allocator, table: ir.TypeTable) !void {
         .file_name = "preflight.zx",
         .types = table,
         .symbols = .{},
-        .expressions = &.{},
+        .expressions = .{},
         .input_type = @fromBackingInt(@backingInt(ir.Scalar.void)),
         .output_type = @fromBackingInt(@backingInt(ir.Scalar.void)),
         .body = &.{},

@@ -25,7 +25,7 @@ pub fn contains(self: Self, symbol: ir.SymbolId) bool {
     return std.mem.indexOfScalar(ir.SymbolId, self.nonnull.items, symbol) != null;
 }
 
-pub fn bind(self: *Self, allocator: std.mem.Allocator, value: ir.Expression, symbols: []const ?ir.SymbolId) std.mem.Allocator.Error!void {
+pub fn bind(self: *Self, allocator: std.mem.Allocator, value: ir.ExpressionRow, symbols: []const ?ir.SymbolId) std.mem.Allocator.Error!void {
     if (value.value != .capture or symbols.len != 2) return;
 
     const err = symbols[0] orelse return;
@@ -34,21 +34,23 @@ pub fn bind(self: *Self, allocator: std.mem.Allocator, value: ir.Expression, sym
     try self.captures.append(allocator, .{ .err = err, .result = result });
 }
 
-pub fn scope(self: *Self, allocator: std.mem.Allocator, values: []const ir.Expression, bindings: []const ir.ScopeBinding) std.mem.Allocator.Error!void {
-    for (bindings, 0..) |binding, index| {
+pub fn scope(self: *Self, allocator: std.mem.Allocator, values: ir.ExpressionTable, bindings: @FieldType(ir.ScopeRow, "bindings")) std.mem.Allocator.Error!void {
+    for (0..bindings.len) |index| {
+        const binding = bindings.at(index);
         const symbol = binding.symbol orelse continue;
-        const value = values[@backingInt(binding.value)];
+        const value = values.at(@backingInt(binding.value));
 
         if (value.value != .capture) continue;
 
         var symbols = [_]?ir.SymbolId{ null, null };
 
-        for (bindings[index + 1 ..]) |projection| {
-            const field = values[@backingInt(projection.value)].value;
+        for (index + 1..bindings.len) |position| {
+            const projection = bindings.at(position);
+            const field = values.at(@backingInt(projection.value)).value;
 
             if (field != .tuple_field or field.tuple_field.index >= 2) continue;
 
-            const target = values[@backingInt(field.tuple_field.target)].value;
+            const target = values.at(@backingInt(field.tuple_field.target)).value;
 
             if (target == .reference and target.reference == symbol) symbols[field.tuple_field.index] = projection.symbol;
         }
@@ -57,8 +59,8 @@ pub fn scope(self: *Self, allocator: std.mem.Allocator, values: []const ir.Expre
     }
 }
 
-pub fn assume(self: *Self, allocator: std.mem.Allocator, values: []const ir.Expression, condition: ir.ExprId, truth: bool) std.mem.Allocator.Error!void {
-    const value = values[@backingInt(condition)].value;
+pub fn assume(self: *Self, allocator: std.mem.Allocator, values: ir.ExpressionTable, condition: ir.ExprId, truth: bool) std.mem.Allocator.Error!void {
+    const value = values.at(@backingInt(condition)).value;
 
     if (value == .unary and value.unary.operator == .not) return self.assume(allocator, values, value.unary.operand, !truth);
     if (value != .binary) return;
@@ -74,8 +76,8 @@ pub fn assume(self: *Self, allocator: std.mem.Allocator, values: []const ir.Expr
 
     if (binary.operator != .equal and binary.operator != .not_equal) return;
 
-    const left = values[@backingInt(binary.left)].value;
-    const right = values[@backingInt(binary.right)].value;
+    const left = values.at(@backingInt(binary.left)).value;
+    const right = values.at(@backingInt(binary.right)).value;
     const symbol = if (left == .reference and right == .none) left.reference else if (right == .reference and left == .none) right.reference else return;
     const present = if (binary.operator == .not_equal) truth else !truth;
 

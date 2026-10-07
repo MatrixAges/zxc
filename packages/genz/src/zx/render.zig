@@ -64,7 +64,7 @@ pub fn initializePrepared(temporary: std.mem.Allocator, program: zx.ir.Program) 
         .layouts = try temporary.alloc(*const node.Expression, program.types.count()),
         .state_plan = function_facts.state,
         .names = try temporary.alloc([]const u8, program.symbols.count()),
-        .cache_reads = try temporary.alloc(usize, program.expressions.len),
+        .cache_reads = try temporary.alloc(usize, program.expressions.count()),
         .used = try temporary.alloc(bool, program.symbols.count()),
         .io_functions = try io.functions(temporary, program),
         .process_functions = try capabilities.functions(temporary, program, .process),

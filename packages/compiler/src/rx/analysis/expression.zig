@@ -66,12 +66,22 @@ fn compileStage(allocator: std.mem.Allocator, path: []const u8, attribute: rx.as
 
     var program = analyzed.value.ir;
     const temporary = analyzed.arena.allocator();
-    const expressions = try temporary.dupe(zx.ir.Expression, program.expressions);
+    var expressions = program.expressions;
+    const expression_starts = try temporary.alloc(u64, expressions.count());
+    const expression_ends = try temporary.alloc(u64, expressions.count());
     var symbols = program.symbols;
     const starts = try temporary.alloc(u64, symbols.count());
     const ends = try temporary.alloc(u64, symbols.count());
 
-    for (expressions) |*expression| expression.span = sourceSpan(attribute, expression.span);
+    for (0..expressions.count()) |index| {
+        const span = sourceSpan(attribute, expressions.at(index).span);
+
+        expression_starts[index] = span.start;
+        expression_ends[index] = span.end;
+    }
+
+    expressions.span_start = expression_starts;
+    expressions.span_end = expression_ends;
 
     for (0..symbols.count()) |index| {
         const span = sourceSpan(attribute, symbols.at(index).span);

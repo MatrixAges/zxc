@@ -102,12 +102,16 @@ fn contains(program: ir.Program, child: ir.TypeId, root: ir.TypeId) bool {
     return child == root or containsDescendant(program, child, root);
 }
 
-fn calls(expressions: []const ir.Expression, contracts: []const ir.Contract, pure: []const bool) bool {
-    for (expressions) |expression| switch (expression.value) {
-        .task, .await_task, .cancel_task, .parallel => return false,
-        .call => |value| if (!pure[@backingInt(value.function)]) return false,
-        else => {},
-    };
+fn calls(expressions: ir.ExpressionTable, contracts: []const ir.Contract, pure: []const bool) bool {
+    for (0..expressions.count()) |expression_index| {
+        const expression = expressions.at(expression_index);
+
+        switch (expression.value) {
+            .task, .await_task, .cancel_task, .parallel => return false,
+            .call => |value| if (!pure[@backingInt(value.function)]) return false,
+            else => {},
+        }
+    }
 
     for (contracts) |contract| if (!calls(contract.expressions, &.{}, pure)) return false;
 

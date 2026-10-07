@@ -1,5 +1,5 @@
 const ir = @import("zx").ir;
-const Value = @FieldType(ir.Expression, "value");
+const Value = @FieldType(ir.ExpressionRow, "value");
 const Self = @This();
 
 value: Value,
@@ -28,7 +28,7 @@ pub fn at(self: Self, index: usize) ir.ExprId {
         .some, .capture, .await_task, .cancel_task, .optional_value, .length => |id| id,
         .field, .tuple_field => |item| item.target,
         .task => |item| item.body,
-        .parallel => |items| items[index].task,
+        .parallel => |items| items.at(index).task,
         .list, .tuple, .template => |items| items[index],
         .index => |item| if (index == 0) item.target else item.index,
         .list_operation => |item| if (index == 0) item.target else item.arguments[index - 1],
@@ -37,7 +37,7 @@ pub fn at(self: Self, index: usize) ir.ExprId {
             1 => item.body,
             else => item.initial.?,
         },
-        .scope => |item| if (index < item.bindings.len) item.bindings[index].value else item.result,
+        .scope => |item| if (index < item.bindings.len) item.bindings.at(index).value else item.result,
         .iteration => |item| switch (index) {
             0 => item.initial,
             1 => item.condition,
@@ -65,10 +65,10 @@ pub fn at(self: Self, index: usize) ir.ExprId {
 
             if (position == item.arms.len * 2) break :blk item.fallback;
 
-            const arm = item.arms[position / 2];
+            const arm = item.arms.at(position / 2);
 
             break :blk if (position % 2 == 0) arm.condition else arm.result;
         },
-        .object => |item| if (index < item.fields.len) item.fields[index].value else item.evaluation[index - item.fields.len],
+        .object => |item| if (index < item.fields.len) item.fields.at(index).value else item.evaluation[index - item.fields.len],
     };
 }

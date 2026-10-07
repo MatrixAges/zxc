@@ -76,12 +76,12 @@ fn forwardedCall(program: ir.Program, root: ir.ExprId) ?ir.ExprId {
 
             if (scope.bindings.len != 1) return null;
 
-            const symbol = scope.bindings[0].symbol orelse return null;
+            const symbol = scope.bindings.at(0).symbol orelse return null;
             const result = program.expression(scope.result).value;
 
             if (result != .reference or result.reference != symbol) return null;
 
-            id = scope.bindings[0].value;
+            id = scope.bindings.at(0).value;
         },
         else => return null,
     };

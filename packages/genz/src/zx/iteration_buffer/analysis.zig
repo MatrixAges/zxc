@@ -40,7 +40,7 @@ pub fn analyzeWithCalls(allocator: std.mem.Allocator, program: ir.Program, itera
         .allocator = temporary,
         .program = program,
         .symbols = try temporary.alloc(Value, program.symbols.count()),
-        .cached = try temporary.alloc(?Value, program.expressions.len),
+        .cached = try temporary.alloc(?Value, program.expressions.count()),
         .calls = calls,
     };
 
@@ -128,11 +128,16 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!Value {
         .scope => |scope| blk: {
             const previous = try self.allocator.dupe(Value, self.symbols);
 
-            defer for (scope.bindings) |binding| if (binding.symbol) |symbol| {
-                self.symbols[@backingInt(symbol)] = previous[@backingInt(symbol)];
+            defer for (0..scope.bindings.len) |record_index| {
+                const binding = scope.bindings.at(record_index);
+
+                if (binding.symbol) |symbol| {
+                    self.symbols[@backingInt(symbol)] = previous[@backingInt(symbol)];
+                }
             };
 
-            for (scope.bindings) |binding| {
+            for (0..scope.bindings.len) |record_index| {
+                const binding = scope.bindings.at(record_index);
                 const value = try self.expression(binding.value);
 
                 if (binding.symbol) |symbol| self.symbols[@backingInt(symbol)] = value;
@@ -151,7 +156,11 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!Value {
 
             @memset(fields, .none);
 
-            for (object.fields) |field| fields[field.index] = try self.expression(field.value);
+            for (0..object.fields.len) |record_index| {
+                const field = object.fields.at(record_index);
+
+                fields[field.index] = try self.expression(field.value);
+            }
 
             break :blk .{ .aggregate = fields };
         },
@@ -180,13 +189,19 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!Value {
 
             const version = self.current;
 
-            for (selection.arms) |arm| self.observe(try self.expression(arm.condition));
+            for (0..selection.arms.len) |record_index| {
+                const arm = selection.arms.at(record_index);
+
+                self.observe(try self.expression(arm.condition));
+            }
+
             if (self.current != version) self.valid = false;
 
             const before = try self.snapshot();
             var result = try self.expression(selection.fallback);
 
-            for (selection.arms) |arm| {
+            for (0..selection.arms.len) |record_index| {
+                const arm = selection.arms.at(record_index);
                 const previous = try self.snapshot();
 
                 self.restore(before);

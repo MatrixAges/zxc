@@ -29,19 +29,31 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Func
 
     try self.block(function.body);
 
-    for (function.expressions) |expression| if (expression.value == .scope) {
-        for (expression.value.scope.bindings) |binding| if (binding.symbol) |symbol| {
-            self.bindings[@backingInt(symbol)] = binding.value;
-        };
-    };
+    for (0..function.expressions.count()) |expression_index| {
+        const expression = function.expressions.at(expression_index);
 
-    for (function.expressions, 0..) |expression, index| if (expression.value == .iteration) {
-        const iteration = expression.value.iteration;
-        const id: ir.ExprId = @fromBackingInt(@intCast(index));
+        if (expression.value == .scope) {
+            for (0..expression.value.scope.bindings.len) |record_index| {
+                const binding = expression.value.scope.bindings.at(record_index);
 
-        self.iterations[@backingInt(iteration.condition_parameter)] = id;
-        self.iterations[@backingInt(iteration.parameter)] = id;
-    };
+                if (binding.symbol) |symbol| {
+                    self.bindings[@backingInt(symbol)] = binding.value;
+                }
+            }
+        }
+    }
+
+    for (0..function.expressions.count()) |index| {
+        const expression = function.expressions.at(index);
+
+        if (expression.value == .iteration) {
+            const iteration = expression.value.iteration;
+            const id: ir.ExprId = @fromBackingInt(@intCast(index));
+
+            self.iterations[@backingInt(iteration.condition_parameter)] = id;
+            self.iterations[@backingInt(iteration.parameter)] = id;
+        }
+    }
 
     return self;
 }
@@ -92,7 +104,7 @@ fn block(self: *Self, statements: []const ir.Statement) Error!void {
 }
 
 pub fn trace(self: *Self, id: ir.ExprId, path: []const u32) Error!?[]const u32 {
-    const expression = self.function.expressions[@backingInt(id)];
+    const expression = self.function.expressions.at(@backingInt(id));
 
     return switch (expression.value) {
         .scope => |scope| self.trace(scope.result, path),
@@ -101,11 +113,11 @@ pub fn trace(self: *Self, id: ir.ExprId, path: []const u32) Error!?[]const u32 {
         else if (self.bindings[@backingInt(symbol)]) |binding|
             self.trace(binding, path)
         else if (self.iterations[@backingInt(symbol)]) |iteration|
-            self.trace(self.function.expressions[@backingInt(iteration)].value.iteration.initial, path)
+            self.trace(self.function.expressions.at(@backingInt(iteration)).value.iteration.initial, path)
         else
             null,
         .field, .tuple_field => |projection| blk: {
-            const target = self.function.expressions[@backingInt(projection.target)].value;
+            const target = self.function.expressions.at(@backingInt(projection.target)).value;
 
             if (target == .list_operation and target.list_operation.kind != .pop and target.list_operation.kind != .splice) {
                 const operation = target.list_operation;
@@ -127,7 +139,9 @@ pub fn trace(self: *Self, id: ir.ExprId, path: []const u32) Error!?[]const u32 {
         .object => |object| blk: {
             if (path.len == 0) break :blk null;
 
-            for (object.fields) |field| {
+            for (0..object.fields.len) |record_index| {
+                const field = object.fields.at(record_index);
+
                 if (field.index == path[0]) break :blk try self.trace(field.value, path[1..]);
             }
 
@@ -168,7 +182,8 @@ pub fn trace(self: *Self, id: ir.ExprId, path: []const u32) Error!?[]const u32 {
         .match_expr => |value| blk: {
             const origin = try self.trace(value.fallback, path) orelse break :blk null;
 
-            for (value.arms) |arm| {
+            for (0..value.arms.len) |record_index| {
+                const arm = value.arms.at(record_index);
                 const next = try self.trace(arm.result, path) orelse break :blk null;
 
                 if (!std.mem.eql(u32, origin, next)) break :blk null;

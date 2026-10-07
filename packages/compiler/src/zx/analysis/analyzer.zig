@@ -11,7 +11,7 @@ reporter: *zx.Reporter,
 types: Types,
 symbols: ir.SymbolStorage = .{},
 active: std.ArrayList(ir.SymbolId) = .empty,
-nodes: std.ArrayList(ir.Expression) = .empty,
+nodes: ir.ExpressionStorage = .{},
 output_type: ir.TypeId = undefined,
 function_imports: []const FunctionImport = &.{},
 functions: []const ir.Function = &.{},
@@ -107,7 +107,7 @@ fn finish(self: *Self, output: Output) zx.Error!ir.Program {
         .file_name = try self.allocator.dupe(u8, output.file_name),
         .types = try self.types.items.finish(self.allocator),
         .symbols = try self.symbols.finish(self.allocator),
-        .expressions = try self.nodes.toOwnedSlice(self.allocator),
+        .expressions = try self.nodes.finish(self.allocator),
         .input_type = output.input_type,
         .output_type = self.output_type,
         .body = output.body,
@@ -145,15 +145,14 @@ pub fn coerce(self: *Self, id: ir.ExprId, expected: ir.TypeId, span: zx.Span) zx
 }
 
 pub fn append(self: *Self, value: ir.Expression) zx.Error!ir.ExprId {
-    const id: ir.ExprId = @fromBackingInt(@intCast(self.nodes.items.len));
-
-    try self.nodes.append(self.allocator, value);
+    const id: ir.ExprId = @fromBackingInt(@intCast(self.nodes.count()));
+    _ = try self.nodes.append(self.allocator, value);
 
     return id;
 }
 
-pub fn node(self: *const Self, id: ir.ExprId) ir.Expression {
-    return self.nodes.items[@backingInt(id)];
+pub fn node(self: *const Self, id: ir.ExprId) ir.ExpressionRow {
+    return self.nodes.view().at(@backingInt(id));
 }
 
 pub fn lookup(self: *const Self, name: []const u8) ?ir.SymbolId {

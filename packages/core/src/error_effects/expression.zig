@@ -2,7 +2,7 @@ const std = @import("std");
 const ir = @import("../ir.zig");
 const Effects = @import("../error_effects.zig");
 
-pub fn visit(self: *Effects, values: []const ir.Expression, value: ir.Expression) std.mem.Allocator.Error!void {
+pub fn visit(self: *Effects, values: ir.ExpressionTable, value: ir.ExpressionRow) std.mem.Allocator.Error!void {
     switch (value.value) {
         .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value, .reference, .store_get => {},
         .capture => try self.add("OutOfMemory"),
@@ -11,7 +11,7 @@ pub fn visit(self: *Effects, values: []const ir.Expression, value: ir.Expression
         .await_task => |child| {
             try self.visit(values, child);
 
-            const task = self.types.at(@backingInt(values[@backingInt(child)].type_id)).task;
+            const task = self.types.at(@backingInt(values.at(@backingInt(child)).type_id)).task;
 
             for (self.types.at(@backingInt(task.errors)).error_set) |name| try self.add(name);
         },
@@ -19,8 +19,9 @@ pub fn visit(self: *Effects, values: []const ir.Expression, value: ir.Expression
             try self.add("ConcurrencyUnavailable");
             if (value.type_id != @as(ir.TypeId, @fromBackingInt(0))) try self.add("OutOfMemory");
 
-            for (branches) |branch| {
-                const task = self.types.at(@backingInt(values[@backingInt(branch.task)].type_id)).task;
+            for (0..branches.len) |record_index| {
+                const branch = branches.at(record_index);
+                const task = self.types.at(@backingInt(values.at(@backingInt(branch.task)).type_id)).task;
 
                 for (self.types.at(@backingInt(task.errors)).error_set) |name| try self.add(name);
             }
@@ -39,7 +40,12 @@ pub fn visit(self: *Effects, values: []const ir.Expression, value: ir.Expression
         .object => |object| {
             try self.add("OutOfMemory");
             for (object.evaluation) |child| try self.visit(values, child);
-            for (object.fields) |field| try self.visit(values, field.value);
+
+            for (0..object.fields.len) |record_index| {
+                const field = object.fields.at(record_index);
+
+                try self.visit(values, field.value);
+            }
         },
         .list_operation => |operation| {
             try self.add("OutOfMemory");
@@ -56,7 +62,12 @@ pub fn visit(self: *Effects, values: []const ir.Expression, value: ir.Expression
             if (transform.initial) |initial| try self.visit(values, initial);
         },
         .scope => |scope| {
-            for (scope.bindings) |binding| try self.visit(values, binding.value);
+            for (0..scope.bindings.len) |record_index| {
+                const binding = scope.bindings.at(record_index);
+
+                try self.visit(values, binding.value);
+            }
+
             try self.visit(values, scope.result);
         },
         .iteration => |iteration| {
@@ -91,7 +102,9 @@ pub fn visit(self: *Effects, values: []const ir.Expression, value: ir.Expression
         .match_expr => |match| {
             if (match.subject) |subject| try self.visit(values, subject);
 
-            for (match.arms) |arm| {
+            for (0..match.arms.len) |record_index| {
+                const arm = match.arms.at(record_index);
+
                 try self.visit(values, arm.condition);
                 try self.visit(values, arm.result);
             }

@@ -57,7 +57,12 @@ fn independent(program: ir.Program, id: ir.ExprId, symbol: ir.SymbolId) bool {
         .call => |call| independent(program, call.argument, symbol),
         .object => |object| result: {
             for (object.evaluation) |child| if (!independent(program, child, symbol)) break :result false;
-            for (object.fields) |field| if (!independent(program, field.value, symbol)) break :result false;
+
+            for (0..object.fields.len) |record_index| {
+                const field = object.fields.at(record_index);
+
+                if (!independent(program, field.value, symbol)) break :result false;
+            }
 
             break :result true;
         },

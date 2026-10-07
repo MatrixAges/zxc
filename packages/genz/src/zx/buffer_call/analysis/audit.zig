@@ -14,7 +14,8 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
     if (trace.function.contracts.len != 0) return .contracts;
     if (parallel(trace.function.body)) return .parallel;
 
-    for (trace.function.expressions, 0..) |expression, position| {
+    for (0..trace.function.expressions.count()) |position| {
+        const expression = trace.function.expressions.at(position);
         const id: ir.ExprId = @fromBackingInt(@intCast(position));
 
         switch (expression.value) {
@@ -38,7 +39,7 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
             },
             .object => |object| {
                 for (object.evaluation) |cached| for (lane.appends) |projection| {
-                    if (trace.function.expressions[@backingInt(projection)].value.tuple_field.target == cached) return .cached_append;
+                    if (trace.function.expressions.at(@backingInt(projection)).value.tuple_field.target == cached) return .cached_append;
                 };
             },
             .binary => |value| if (try count(trace, value.left, lane) != 0 or try count(trace, value.right, lane) != 0) return .unsupported_read,
@@ -63,7 +64,7 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
                 if (operation.kind != .push and operation.kind != .concat) return .unsupported_operation;
 
                 const forwarded = for (lane.appends) |projection| {
-                    if (trace.function.expressions[@backingInt(projection)].value.tuple_field.target == id) break true;
+                    if (trace.function.expressions.at(@backingInt(projection)).value.tuple_field.target == id) break true;
                 } else false;
 
                 if (!forwarded) return .detached_append;
@@ -107,7 +108,7 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
 fn count(trace: *Trace, id: ir.ExprId, lane: flow.Lane) Error!usize {
     var paths: std.ArrayList([]const u32) = .empty;
 
-    try flow.leaves(trace.allocator, trace.program, trace.function.expressions[@backingInt(id)].type_id, &.{}, true, &paths);
+    try flow.leaves(trace.allocator, trace.program, trace.function.expressions.at(@backingInt(id)).type_id, &.{}, true, &paths);
 
     var total: usize = 0;
 

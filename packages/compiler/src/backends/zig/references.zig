@@ -22,15 +22,19 @@ pub fn reachable(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allo
     return needed;
 }
 
-fn mark(needed: []bool, expressions: []const ir.Expression, contracts: []const ir.Contract) void {
-    for (expressions) |expression| if (expression.value == .call) {
-        needed[@intFromEnum(expression.value.call.function)] = true;
-    };
+fn mark(needed: []bool, expressions: ir.ExpressionTable, contracts: []const ir.Contract) void {
+    for (0..expressions.count()) |expression_index| {
+        const expression = expressions.at(expression_index);
+
+        if (expression.value == .call) {
+            needed[@backingInt(expression.value.call.function)] = true;
+        }
+    }
 
     for (contracts) |contract| mark(needed, contract.expressions, &.{});
 }
 
-pub fn imports(allocator: std.mem.Allocator, expressions: []const ir.Expression, contracts: []const ir.Contract, function_names: []const []const u8) std.mem.Allocator.Error![]const []const u8 {
+pub fn imports(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, contracts: []const ir.Contract, function_names: []const []const u8) std.mem.Allocator.Error![]const []const u8 {
     const used = try allocator.alloc(bool, function_names.len);
 
     @memset(used, false);

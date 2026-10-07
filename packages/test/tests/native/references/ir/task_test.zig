@@ -7,7 +7,9 @@ const task = @import("task.zig");
 fn beforeTask(allocator: std.mem.Allocator, program: f.ir.Program) !void {
     try std.testing.expect(frontend.validateTypes(program.types));
 
-    for (program.expressions, 0..) |expression, index| {
+    for (0..program.expressions.count()) |index| {
+        const expression = program.expressions.at(index);
+
         try std.testing.expect(checks.expressions.validate(program, expression, index));
     }
 

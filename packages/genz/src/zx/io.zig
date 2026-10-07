@@ -2,11 +2,15 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const capabilities = @import("capabilities.zig");
 
-pub fn uses(expressions: []const ir.Expression, contracts: []const ir.Contract, required: []const bool) bool {
-    for (expressions) |expression| switch (expression.value) {
-        .task, .await_task, .cancel_task, .parallel => return true,
-        else => {},
-    };
+pub fn uses(expressions: ir.ExpressionTable, contracts: []const ir.Contract, required: []const bool) bool {
+    for (0..expressions.count()) |expression_index| {
+        const expression = expressions.at(expression_index);
+
+        switch (expression.value) {
+            .task, .await_task, .cancel_task, .parallel => return true,
+            else => {},
+        }
+    }
 
     return capabilities.uses(expressions, contracts, required);
 }

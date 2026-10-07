@@ -12,8 +12,10 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
     return true;
 }
 
-fn expressions(allocator: std.mem.Allocator, program: ir.Program, values: []const ir.Expression) std.mem.Allocator.Error!bool {
-    for (values) |value| {
+fn expressions(allocator: std.mem.Allocator, program: ir.Program, values: ir.ExpressionTable) std.mem.Allocator.Error!bool {
+    for (0..values.count()) |index| {
+        const value = values.at(index);
+
         if (value.value != .capture and value.value != .task) continue;
 
         const members = try zx.error_effects.expression(allocator, program.types, program.functions, values, if (value.value == .task) value.value.task.body else value.value.capture) orelse return false;

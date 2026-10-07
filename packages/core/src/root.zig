@@ -9,4 +9,4 @@ pub const Reporter = @import("diagnostic.zig").Reporter;
 pub const Error = @import("diagnostic.zig").Error;
 pub const Span = source.Span;
 pub const language_version = "0.1.0";
-pub const ir_version: u32 = 26;
+pub const ir_version: u32 = 27;

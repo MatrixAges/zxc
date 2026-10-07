@@ -61,7 +61,7 @@ pub fn load(allocator: std.mem.Allocator, options: target.Options) std.mem.Alloc
         const is_void = function.input_type == @as(zx.ir.TypeId, @fromBackingInt(@intCast(@backingInt(zx.ir.Scalar.void))));
         const symbols = try zx.ir.SymbolTable.fromValues(allocator, &.{.{ .name = "$in", .type_id = function.input_type, .span = span }});
 
-        const expressions = try allocator.dupe(zx.ir.Expression, &.{
+        const expressions = try zx.ir.ExpressionTable.fromValues(allocator, &.{
             .{ .type_id = function.input_type, .span = span, .value = if (is_void) .unit else .{ .reference = @fromBackingInt(@intCast(0)) } },
             .{ .type_id = function.output_type, .span = span, .value = .{ .call = .{ .function = id, .argument = @fromBackingInt(@intCast(0)), .stores = stores } } },
         });

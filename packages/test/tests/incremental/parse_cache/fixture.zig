@@ -21,7 +21,9 @@ pub fn increment(result: compiler.AnalysisResult, expected: u64) !void {
     var count: usize = 0;
 
     for (result.value.ir.functions) |function| {
-        for (function.expressions) |expression| {
+        for (0..function.expressions.count()) |expression_index| {
+            const expression = function.expressions.at(expression_index);
+
             if (expression.value == .integer) {
                 try std.testing.expectEqual(expected, expression.value.integer);
 

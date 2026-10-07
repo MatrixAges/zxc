@@ -6,7 +6,7 @@ const Types = @import("types.zig");
 
 pub fn analyze(self: *Analyzer, child: anytype, span: zx.Span) zx.Error!ir.ExprId {
     const operand = try self.expression(child, null);
-    const members = try zx.error_effects.expression(self.allocator, self.types.items.view(), self.functions, self.nodes.items, operand) orelse return self.reporter.fail(.type_mismatch, span, "try requires a finite error contract; declare the native function's throws members");
+    const members = try zx.error_effects.expression(self.allocator, self.types.items.view(), self.functions, self.nodes.view(), operand) orelse return self.reporter.fail(.type_mismatch, span, "try requires a finite error contract; declare the native function's throws members");
     const errors = try self.types.wrap(.optional, try self.types.errorSet(members));
     const payload = self.node(operand).type_id;
     const result = if (payload == Types.scalarId(.void)) payload else try self.types.wrap(.optional, payload);

@@ -18,7 +18,7 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
 
                 for (indices, invocations) |index, *invocation| {
                     const value = try invoke(builder, calls[index]);
-                    const expression = builder.expressions.items[@backingInt(value)];
+                    const expression = builder.expressions.view().at(@backingInt(value));
                     const symbol = if (calls[index].out) |name| try builder.symbol(name, expression.type_id, expression.span) else null;
                     invocation.* = .{ .symbol = symbol, .value = value };
 
@@ -40,7 +40,7 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
                     const value = try inlineValue(builder, output.value);
 
                     if (output.name) |name| {
-                        const expression = builder.expressions.items[@backingInt(value)];
+                        const expression = builder.expressions.view().at(@backingInt(value));
                         const symbol = try builder.symbol(name, expression.type_id, expression.span);
 
                         try builder.body.append(builder.allocator, .{ .constant = .{ .symbol = symbol, .value = value } });
@@ -54,7 +54,7 @@ pub fn lower(builder: *Builder, sequence: []const Flow.Step, calls: []const Modu
             },
             .selection => |selection| {
                 const subject = try inlineValue(builder, selection.subject);
-                const type_id = builder.expressions.items[@backingInt(subject)].type_id;
+                const type_id = builder.expressions.view().at(@backingInt(subject)).type_id;
                 const target = builder.types.at(@backingInt(type_id));
                 const cases = try builder.allocator.alloc(ir.SwitchCase, selection.cases.len);
                 var has_default = false;
@@ -93,7 +93,7 @@ fn block(builder: *Builder, sequence: []const Flow.Step, calls: []const Module.C
 
 fn call(builder: *Builder, invocation: Module.Call) Builder.Error!void {
     const value = try invoke(builder, invocation);
-    const span = builder.expressions.items[@backingInt(value)].span;
+    const span = builder.expressions.view().at(@backingInt(value)).span;
 
     const name = invocation.out orelse {
         try builder.body.append(builder.allocator, .{ .evaluate = value });
@@ -128,7 +128,7 @@ fn invoke(builder: *Builder, invocation: Module.Call) Builder.Error!ir.ExprId {
 
     for (invocation.callee.stores, stores) |slot, *mapped| mapped.* = try builder.store(slot);
 
-    const span = builder.expressions.items[@backingInt(argument)].span;
+    const span = builder.expressions.view().at(@backingInt(argument)).span;
     const function = try builder.importFunction(invocation.callee, invocation.store_initializers);
 
     return builder.expression(.{ .type_id = invocation.callee.output_type, .span = span, .value = .{ .call = .{ .function = function, .argument = argument, .stores = stores } } });

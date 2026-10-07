@@ -3,7 +3,6 @@ const ir = @import("zx").ir;
 const generated = @import("body_generated");
 const control_model = @import("model.zig");
 const expressions = @import("expressions/model.zig");
-const Storage = @import("expressions/storage.zig");
 const borrow = @import("borrow.zig");
 const Body = @typeInfo(generated.Input).pointer.child;
 const Symbols = @typeInfo(@FieldType(Body, "symbols")).pointer.child;
@@ -14,15 +13,8 @@ pub fn compare(arena: *std.heap.ArenaAllocator, program: ir.Program, control: co
     @setEvalBranchQuota(100_000);
 
     const allocator = arena.allocator();
-    var storage: Storage = .{};
-
-    defer storage.deinit(allocator);
-
-    for (program.expressions, 0..) |value, index| {
-        if (try storage.append(allocator, value) != index) return error.ExpressionIdChanged;
-    }
-
-    const table = try storage.finish(allocator);
+    const table = program.expressions;
+    const candidate = borrow.columns(expressions.Table, table);
     const expression_input = borrow.columns(ExpressionTable, table);
     const control_input = borrow.columns(Control, control);
     const symbol_input = borrow.columns(Symbols, program.symbols);
@@ -45,8 +37,9 @@ pub fn compare(arena: *std.heap.ArenaAllocator, program: ir.Program, control: co
 
     if (!try checker.execute(arena, &.{ .body = &check_body, .max_offset = std.math.maxInt(usize) })) return error.BodyStructureRejected;
 
-    for (program.expressions, 0..) |source, index| {
-        const restored = try @import("expressions/observed_decode.zig").expression(allocator, table, index);
+    for (0..program.expressions.count()) |index| {
+        const source = program.expressions.at(index);
+        const restored = @import("expressions/read.zig").expression(&candidate, index);
         const before = try std.json.Stringify.valueAlloc(allocator, source, .{});
         const after = try std.json.Stringify.valueAlloc(allocator, restored, .{});
 
@@ -57,7 +50,7 @@ pub fn compare(arena: *std.heap.ArenaAllocator, program: ir.Program, control: co
 
     for (table.kinds) |kind| kinds[@backingInt(kind)] += 1;
 
-    const encoded = try std.json.Stringify.valueAlloc(allocator, .{ .file = program.file_name, .expressions = table.kinds.len, .symbols = program.symbols.count(), .kinds = kinds, .expression_columns_borrowed = true, .expression_roundtrip_equal = true, .body_identity_retained = true, .body_structure_valid = true, .body_local_references_valid = true, .allocation_free_reader = true }, .{});
+    const encoded = try std.json.Stringify.valueAlloc(allocator, .{ .file = program.file_name, .expressions = table.kinds.len, .symbols = program.symbols.count(), .kinds = kinds, .expression_columns_borrowed = true, .expression_readers_equal = true, .body_identity_retained = true, .body_structure_valid = true, .body_local_references_valid = true, .allocation_free_reader = true }, .{});
 
     std.debug.print("canonical-body {s}\n", .{encoded});
 }

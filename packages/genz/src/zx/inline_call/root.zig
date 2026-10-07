@@ -7,7 +7,8 @@ const Self = @This();
 allocator: std.mem.Allocator,
 plan: Plan,
 depth: usize = 0,
-expressions: std.ArrayList(ir.Expression) = .empty,
+
+expressions: ir.ExpressionStorage = .{},
 costs: std.ArrayList(usize) = .empty,
 symbols: ir.SymbolStorage = .{},
 pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!ir.Program {
@@ -50,24 +51,24 @@ pub fn prepare(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
     return result;
 }
 
-const Rebuilt = struct { symbols: ir.SymbolTable, expressions: []const ir.Expression, body: []const ir.Statement };
+const Rebuilt = struct { symbols: ir.SymbolTable, expressions: ir.ExpressionTable, body: []const ir.Statement };
 
-fn rebuild(allocator: std.mem.Allocator, plan: Plan, symbols: ir.SymbolTable, expressions: []const ir.Expression, body: []const ir.Statement, selected: []const bool) Mapping.Error!Rebuilt {
+fn rebuild(allocator: std.mem.Allocator, plan: Plan, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, body: []const ir.Statement, selected: []const bool) Mapping.Error!Rebuilt {
     var unit = Self{ .allocator = allocator, .plan = plan };
     var mapping = try Mapping.init(&unit, symbols, expressions, selected);
 
-    for (expressions, 0..) |_, index| _ = try mapping.expression(@fromBackingInt(@intCast(index)));
+    for (0..expressions.count()) |index| _ = try mapping.expression(@fromBackingInt(@intCast(index)));
 
     const statements = try mapping.value([]const ir.Statement, body);
 
-    return .{ .body = statements, .expressions = try unit.expressions.toOwnedSlice(allocator), .symbols = try unit.symbols.finish(allocator) };
+    return .{ .body = statements, .expressions = try unit.expressions.finish(allocator), .symbols = try unit.symbols.finish(allocator) };
 }
 
 pub fn append(self: *Self, expression: ir.Expression) std.mem.Allocator.Error!ir.ExprId {
-    const id: ir.ExprId = @fromBackingInt(@intCast(self.expressions.items.len));
-    const cost = 1 + @import("cost.zig").count(self.costs.items, expression.value);
+    const id: ir.ExprId = @fromBackingInt(@intCast(self.expressions.count()));
+    _ = try self.expressions.append(self.allocator, expression);
+    const cost = 1 + @import("cost.zig").count(self.costs.items, self.expressions.at(@backingInt(id)).value);
 
-    try self.expressions.append(self.allocator, expression);
     try self.costs.append(self.allocator, cost);
 
     return id;

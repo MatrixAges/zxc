@@ -9,7 +9,7 @@ allocator: std.mem.Allocator,
 types: ir.TypeTable,
 native_modules: []const ir.NativeModule,
 symbols: ir.SymbolStorage = .{},
-expressions: std.ArrayList(ir.Expression) = .empty,
+expressions: ir.ExpressionStorage = .{},
 functions: std.ArrayList(ir.Function) = .empty,
 store_initializers: std.ArrayList(StoreInitializer) = .empty,
 stores: std.ArrayList(ir.StoreSlot) = .empty,
@@ -24,9 +24,8 @@ pub fn symbol(self: *Self, name: []const u8, type_id: ir.TypeId, span: zx.Span) 
 }
 
 pub fn expression(self: *Self, value: ir.Expression) std.mem.Allocator.Error!ir.ExprId {
-    const id: ir.ExprId = @fromBackingInt(@intCast(self.expressions.items.len));
-
-    try self.expressions.append(self.allocator, value);
+    const id: ir.ExprId = @fromBackingInt(@intCast(self.expressions.count()));
+    _ = try self.expressions.append(self.allocator, value);
 
     return id;
 }

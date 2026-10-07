@@ -55,7 +55,9 @@ test "copied get and set nodes reference matching local slots" {
     var store_mask: u8 = 0;
     var writes: usize = 0;
 
-    for (module.function.?.expressions) |expression| {
+    for (0..module.function.?.expressions.count()) |expression_index| {
+        const expression = module.function.?.expressions.at(expression_index);
+
         switch (expression.value) {
             .store_get => |index| {
                 try std.testing.expect(index < module.stores.len);
@@ -70,7 +72,7 @@ test "copied get and set nodes reference matching local slots" {
     for (module.function.?.body) |statement| {
         if (statement == .store_set) {
             try std.testing.expectEqual(@as(u32, 0), statement.store_set.slot);
-            try std.testing.expect(@backingInt(statement.store_set.value) < module.function.?.expressions.len);
+            try std.testing.expect(@backingInt(statement.store_set.value) < module.function.?.expressions.count());
 
             writes += 1;
         }
