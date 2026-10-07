@@ -1,0 +1,43 @@
+pub const zx_type_15 = struct {
+    alpha: u64,
+    zeta: u64,
+};
+
+pub const zx_type_19 = struct { ?error{ Canceled, ConcurrencyUnavailable, FirstFailure, InlineExecution, OutOfMemory, SecondFailure, WaitTimeout, }, ?*const zx_type_15, };
+
+pub const value_zx_type_15_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    alpha: u64,
+    zeta: u64,
+    zx_origin: ?*const zx_type_15 = null,
+};
+
+pub const value_zx_type_19_644ef10ec119781c5c3bb7fa677cbae599c8e2a9d93b37368ed9b21f0629eee9 = struct { ?error{ Canceled, ConcurrencyUnavailable, FirstFailure, InlineExecution, OutOfMemory, SecondFailure, WaitTimeout, }, ?value_zx_type_15_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814, ?*const zx_type_19, };
+
+pub const native = struct {
+    pub const @"zig:host" = struct {
+        pub const first = struct {
+            pub const Input = u64;
+            pub const Output = u64;
+            pub const InputValue = u64;
+            pub const OutputValue = u64;
+        };
+        pub const second = struct {
+            pub const Input = u64;
+            pub const Output = u64;
+            pub const InputValue = u64;
+            pub const OutputValue = u64;
+        };
+        pub const effect = struct {
+            pub const Input = u64;
+            pub const Output = void;
+            pub const InputValue = u64;
+            pub const OutputValue = void;
+        };
+    };
+};
+
+pub const layouts = struct {
+    pub const @"zig:host" = struct {
+    };
+};
+

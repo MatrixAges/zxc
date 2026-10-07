@@ -1,0 +1,107 @@
+const std = @import("std");
+const allocation_testing = @import("allocation_testing");
+const f = @import("fixture.zig");
+
+test "generated effects need no allocator for empty function summaries or missing task targets" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+    defer arena.deinit();
+
+    const program = try f.program(arena.allocator(), &.{}, .none);
+    var storage: [0]u8 = undefined;
+    var fixed = std.heap.FixedBufferAllocator.init(&storage);
+    var result = try f.checks.parallel.functions(fixed.allocator(), program);
+
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 0), result.values.len);
+    try std.testing.expect(try f.checks.parallel.programPure(fixed.allocator(), program));
+    try std.testing.expect(!try f.checks.tasks.callSafe(fixed.allocator(), program.functions, @fromBackingInt(std.math.maxInt(u32))));
+}
+
+test "generated effects retain owned summaries after all input columns are released" {
+    var result = block: {
+        var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+        defer arena.deinit();
+
+        const program = try f.program(arena.allocator(), &.{ .{}, .{ .native = true, .concurrent = true }, .{} }, .none);
+
+        break :block try f.checks.parallel.functions(std.testing.allocator, program);
+    };
+
+    defer result.deinit();
+
+    try std.testing.expectEqualSlices(bool, &.{ true, false, true }, result.values);
+}
+
+test "generated effect summaries stay independent across repeated calls" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+    defer arena.deinit();
+
+    const pure = try f.program(arena.allocator(), &.{.{}}, .none);
+    const impure = try f.program(arena.allocator(), &.{.{ .native = true }}, .none);
+    var first = try f.checks.parallel.functions(std.testing.allocator, pure);
+
+    defer first.deinit();
+
+    var second = try f.checks.parallel.functions(std.testing.allocator, impure);
+
+    defer second.deinit();
+
+    try std.testing.expectEqualSlices(bool, &.{true}, first.values);
+    try std.testing.expectEqualSlices(bool, &.{false}, second.values);
+}
+
+fn summarize(allocator: std.mem.Allocator, program: f.ir.Program) !void {
+    var result = try f.checks.parallel.functions(allocator, program);
+
+    defer result.deinit();
+
+    try std.testing.expectEqualSlices(bool, &.{ true, true, true }, result.values);
+}
+
+fn pure(allocator: std.mem.Allocator, program: f.ir.Program) !void {
+    try std.testing.expect(try f.checks.parallel.programPure(allocator, program));
+}
+
+fn task(allocator: std.mem.Allocator, program: f.ir.Program) !void {
+    try std.testing.expect(try f.checks.tasks.callSafe(allocator, program.functions, @fromBackingInt(2)));
+}
+
+fn failures(operation: anytype) !void {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+    defer arena.deinit();
+
+    const program = try f.program(arena.allocator(), &.{ .{}, .{ .effect = .{ .call = .{ .target = 0 } } }, .{ .effect = .{ .call = .{ .target = 1 } } } }, .{ .call = .{ .target = 2 } });
+
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, operation, .{program});
+}
+
+test "generated function summaries clean up every allocation failure" {
+    try failures(summarize);
+}
+
+test "generated program purity propagates and cleans up every allocation failure" {
+    try failures(pure);
+}
+
+test "generated task call summaries propagate and clean up every allocation failure" {
+    try failures(task);
+}
+
+test "generated program purity rejects Store capabilities before allocating summaries" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+    defer arena.deinit();
+
+    var program = try f.program(arena.allocator(), &.{.{}}, .none);
+    program.stores = try f.stores(arena.allocator(), true);
+
+    var storage: [0]u8 = undefined;
+    var fixed = std.heap.FixedBufferAllocator.init(&storage);
+
+    try std.testing.expect(!try f.checks.parallel.programPure(fixed.allocator(), program));
+}
