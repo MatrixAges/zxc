@@ -1,0 +1,26 @@
+$ packages/test/node_modules/.bin/tsc --noEmit -p packages/test/tsconfig.json
+EXIT=0
+
+$ node scripts/format.mjs --check packages/test/build.zig packages/test/build/catalog.zig packages/test/build/runtime.zig packages/test/tests/support/state_update_whitespace.zig
+EXIT=0
+
+$ zig fmt --check packages/test/build.zig packages/test/build/catalog.zig packages/test/build/runtime.zig packages/test/tests/support/state_update_whitespace.zig
+EXIT=0
+
+$ node_modules/.bin/prettier --check packages/test/src/compound_whitespace/source.ts packages/test/src/generate_compound_whitespace.ts packages/test/suites.json packages/test/src/data/compound_whitespace.json
+Checking formatting...
+All matched files use Prettier code style!
+EXIT=0
+
+$ node packages/test/src/generate_compound_whitespace.ts --check
+tests/language/statements/state_updates/whitespace/multiply.jsonl: 18 named cases
+tests/language/statements/state_updates/whitespace/divide.jsonl: 18 named cases
+tests/language/statements/state_updates/whitespace/remainder.jsonl: 18 named cases
+tests/language/statements/state_updates/whitespace/add.jsonl: 18 named cases
+tests/language/statements/state_updates/whitespace/subtract.jsonl: 18 named cases
+tests/language/types/compound_whitespace/cases.jsonl: 1050 named cases
+upstream/reviews/language/expressions/compound_whitespace.jsonl: 11 named cases
+EXIT=0
+
+$ git diff --check
+EXIT=0

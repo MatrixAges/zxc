@@ -1,0 +1,73 @@
+const check = @import("support").check;
+
+test "language/statements/state_updates/whitespace/add/tab/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000000, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/tab/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000001, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/tab/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000002, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/vertical_tab/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000003, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/vertical_tab/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000004, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/vertical_tab/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000005, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/form_feed/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000006, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/form_feed/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000007, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/form_feed/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000008, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/space/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000009, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/space/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000a, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/space/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000b, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/line_feed/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000c, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/line_feed/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000d, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/line_feed/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000e, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/carriage_return/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000f, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/carriage_return/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000010, 0xc000000000000000);
+}
+
+test "language/statements/state_updates/whitespace/add/carriage_return/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000011, 0xc000000000000000);
+}

@@ -1,0 +1,73 @@
+const check = @import("support").check;
+
+test "language/statements/state_updates/whitespace/multiply/tab/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000000, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/tab/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000001, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/tab/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000002, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/vertical_tab/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000003, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/vertical_tab/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000004, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/vertical_tab/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000005, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/form_feed/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000006, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/form_feed/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000007, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/form_feed/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000008, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/space/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000009, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/space/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000a, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/space/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000b, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/line_feed/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000c, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/line_feed/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000d, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/line_feed/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000e, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/carriage_return/left" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x000000000000000f, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/carriage_return/right" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000010, 0x3ff0000000000000);
+}
+
+test "language/statements/state_updates/whitespace/multiply/carriage_return/both" {
+    try check(@import("program"), 0xbff0000000000000, 0xbff0000000000000, 0x0000000000000011, 0x3ff0000000000000);
+}
