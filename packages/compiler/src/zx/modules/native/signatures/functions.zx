@@ -1,0 +1,42 @@
+import fail from "../../../analysis/semantic/resolving/fail"
+import initialNames from "../../native_names/initial"
+import walkNames from "../../native_names/walk"
+import check from "./check"
+import input from "./input"
+import node from "./node"
+import parameters from "./parameters"
+
+import type { State } from "../../../analysis/semantic/resolving/model"
+import type { Function, Parameter } from "../../../frontend/parser/native/model"
+import type { Signature, Signatures } from "./model"
+
+export type Input = { resolution: State, functions: Function[], parameters: Parameter[] }
+
+export type Output = Signatures
+
+export default function (in: Input): Output {
+    const signatures: Signature[] = []
+
+    const result = loop({ resolution: in.resolution, functions: in.functions, parameters: in.parameters, index: 0, signatures: signatures }, {
+        while: current => current.index < current.functions.length && current.resolution.diagnostic.message == "",
+        next: current => {
+            const declaration = current.functions[current.index]
+            const inputs = input(parameters({ state: current.resolution, declaration: declaration, parameters: current.parameters }))
+            const output = inputs.diagnostic.message == "" ? node({ state: inputs, index: declaration.output }) : inputs
+            const checked = check({ state: output, declaration: declaration, input: inputs.result })
+
+            current.resolution = checked
+
+            if (checked.diagnostic.message == "") {
+                const names = walkNames(initialNames({ source: checked.context.source, parameters: current.parameters, first: declaration.first_parameter, count: declaration.count }))
+
+                current.resolution = names.valid ? checked : fail({ state: checked, code: "unsupported", message: "native arrays of objects, tuples or enums require a named element type exported by the native module", name: { text: "", start: 0, end: 0 } })
+                current.signatures = current.signatures.push({ input: inputs.result, output: checked.result, names: names.names })[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { resolution: result.resolution, signatures: result.signatures }
+}

@@ -1,0 +1,27 @@
+import fail from "../../../analysis/semantic/resolving/fail"
+import node from "./node"
+
+import type { State } from "../../../analysis/semantic/resolving/model"
+import type { Function, Parameter } from "../../../frontend/parser/native/model"
+
+export type Input = { state: State, declaration: Function, parameters: Parameter[] }
+
+export type Output = { resolution: State, types: u32[] }
+
+export default function (in: Input): Output {
+    const types: u32[] = []
+
+    const result = loop({ resolution: in.state, declaration: in.declaration, parameters: in.parameters, index: 0, types: types }, {
+        while: current => current.index < current.declaration.count && current.resolution.diagnostic.message == "",
+        next: current => {
+            const resolved = node({ state: current.resolution, index: current.parameters[current.declaration.first_parameter + current.index].value })
+            const invalid = resolved.diagnostic.message == "" && resolved.result == 0
+
+            current.resolution = invalid ? fail({ state: resolved, code: "type_mismatch", message: "native void inputs use an empty parameter list", name: { text: "", start: current.declaration.name.start, end: current.declaration.name.end } }) : resolved
+            current.types = current.types.push(resolved.result)[0]
+            current.index += 1
+        }
+    })
+
+    return { resolution: result.resolution, types: result.types }
+}

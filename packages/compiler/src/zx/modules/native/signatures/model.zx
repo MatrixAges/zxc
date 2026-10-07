@@ -1,0 +1,8 @@
+import type { Context, State } from "../../../analysis/semantic/resolving/model"
+import type { Function, Parameter } from "../../../frontend/parser/native/model"
+
+export type Input = { context: Context, functions: Function[], parameters: Parameter[] }
+
+export type Signature = { input: u32, output: u32, names: string?[] }
+
+export type Signatures = { resolution: State, signatures: Signature[] }

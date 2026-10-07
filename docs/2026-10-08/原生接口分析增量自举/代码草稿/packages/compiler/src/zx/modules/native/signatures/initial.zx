@@ -1,0 +1,10 @@
+import initial from "../../../analysis/semantic/resolving/initial"
+
+import type { State } from "../../../analysis/semantic/resolving/model"
+import type { Input } from "./model"
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return initial({ context: in.context, initialize: true, named: false, name: { text: "", start: 0, end: 0 }, reference: { enumeration: false, index: 0 } })
+}

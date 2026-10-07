@@ -1,0 +1,15 @@
+import frame from "../../../analysis/semantic/resolving/frame"
+import { Operation } from "../../../analysis/semantic/resolving/model"
+import run from "../../../analysis/semantic/resolving/run"
+
+import type { State } from "../../../analysis/semantic/resolving/model"
+
+export type Input = { state: State, index: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const next = frame({ operation: Operation.Node, name: { text: "", start: 0, end: 0 }, reference: { enumeration: false, index: in.index } })
+
+    return run({ ...in.state, frames: in.state.frames.push(next)[0] })
+}
