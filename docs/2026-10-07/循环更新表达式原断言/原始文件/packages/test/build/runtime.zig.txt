@@ -4,7 +4,6 @@ const application_json = @import("application_json.zig");
 
 pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, suites: []const Suite) *std.Build.Step {
     const step = b.step("test-runtime", "Run conformance cases through generated Zig");
-    const for_updates_step = b.step("test-for-updates", "Execute original numeric for updates through explicit loop state");
     const assignment_boundaries_step = b.step("test-assignment-boundaries", "Execute original assignment targets and ASCII whitespace statements");
     const compound_whitespace_step = b.step("test-compound-whitespace", "Check actual compound update whitespace and signed-zero writes");
     const references_step = b.step("test-compound-references", "Check compound reference resolution and actual original writebacks");
@@ -154,7 +153,6 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
 
         step.dependOn(&run.step);
 
-        if (std.mem.startsWith(u8, suite.name, "for-updates-")) for_updates_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "assignment-boundaries-")) assignment_boundaries_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "state-update-whitespace-")) compound_whitespace_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.name, "state-update-reference-")) references_step.dependOn(&run.step);

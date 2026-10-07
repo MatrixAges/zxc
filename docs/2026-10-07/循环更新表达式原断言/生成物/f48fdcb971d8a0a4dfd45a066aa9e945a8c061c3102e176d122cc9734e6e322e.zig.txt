@@ -1,0 +1,29 @@
+const check = @import("support").check;
+
+test "language/statements/iteration/update/multiply/original" {
+    try check(@import("program"), &.{.i = 1, .j = 0, .limit = 10, .step = 2}, .{ .value = &.{.i = 16, .j = 4, .limit = 10, .step = 2} });
+}
+
+test "language/statements/iteration/update/multiply/control_0" {
+    try check(@import("program"), &.{.i = 1, .j = 3, .limit = 1, .step = 2}, .{ .value = &.{.i = 1, .j = 3, .limit = 1, .step = 2} });
+}
+
+test "language/statements/iteration/update/multiply/control_1" {
+    try check(@import("program"), &.{.i = 12, .j = 1, .limit = 10, .step = 2}, .{ .value = &.{.i = 12, .j = 1, .limit = 10, .step = 2} });
+}
+
+test "language/statements/iteration/update/multiply/control_2" {
+    try check(@import("program"), &.{.i = 1, .j = 0, .limit = 100, .step = 3}, .{ .value = &.{.i = 243, .j = 5, .limit = 100, .step = 3} });
+}
+
+test "language/statements/iteration/update/multiply/control_3" {
+    try check(@import("program"), &.{.i = 0.5, .j = 0, .limit = 4, .step = 2}, .{ .value = &.{.i = 4, .j = 3, .limit = 4, .step = 2} });
+}
+
+test "language/statements/iteration/update/multiply/control_4" {
+    try check(@import("program"), &.{.i = 2, .j = 2, .limit = 9, .step = 2.5}, .{ .value = &.{.i = 12.5, .j = 4, .limit = 9, .step = 2.5} });
+}
+
+test "language/statements/iteration/update/multiply/control_5" {
+    try check(@import("program"), &.{.i = 1, .j = 0, .limit = 4096, .step = 2}, .{ .value = &.{.i = 4096, .j = 12, .limit = 4096, .step = 2} });
+}

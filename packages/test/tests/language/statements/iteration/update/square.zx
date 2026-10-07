@@ -1,0 +1,13 @@
+export type Input = { i: f64, j: f64, limit: f64, step: f64 }
+
+export type Output = Input
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.i < state.limit,
+        next: state => {
+            state.j += 1
+            state.i *= state.i
+        }
+    })
+}
