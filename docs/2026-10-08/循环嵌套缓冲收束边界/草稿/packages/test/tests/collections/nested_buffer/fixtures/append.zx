@@ -1,0 +1,9 @@
+import type { Columns } from "./model"
+
+export type Input = { columns: Columns, value: u64, label: string }
+
+export type Output = Columns
+
+export default function (in: Input): Output {
+    return { values: in.columns.values.push(in.value)[0], offsets: in.columns.offsets.push(in.value + 1)[0], labels: in.columns.labels.push(in.label)[0] }
+}

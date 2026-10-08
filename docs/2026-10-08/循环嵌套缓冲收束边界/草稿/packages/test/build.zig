@@ -496,7 +496,7 @@ pub fn build(b: *std.Build) void {
 
     const native_step = b.step("test-native-declarations", "Validate native declaration diagnostics and allocation failures");
 
-    for ([_][]const u8{ "declarations", "configuration", "type_import", "signatures/root", "namespace/validation", "namespace/order", "namespace/resources", "members/shape", "members/batch", "members/lifetime", "members/resources" }) |name| {
+    for ([_][]const u8{ "declarations", "configuration", "type_import", "signatures/root", "namespace/validation", "namespace/order", "namespace/resources" }) |name| {
         const native_tests = b.addTest(.{
             .root_module = b.createModule(.{
                 .root_source_file = b.path(b.fmt("tests/native/{s}_test.zig", .{name})),

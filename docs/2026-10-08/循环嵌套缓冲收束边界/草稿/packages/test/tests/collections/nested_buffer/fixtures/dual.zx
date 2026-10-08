@@ -1,0 +1,25 @@
+import append from "./append"
+
+import type { Columns, Input, DualResult } from "./model"
+
+export type Output = DualResult
+
+export default function (in: Input): Output {
+    const generated: Columns = { values: [], offsets: [], labels: [] }
+
+    const state = loop({ input: in, generated: generated, first: { values: in.prefix, marker: in.marker }, second: { values: in.prefix, marker: in.marker }, untouched: in.prefix, records: in.records, pairs: in.pairs, index: 0 }, {
+        while: current => current.index < current.input.count,
+        next: current => {
+            current.generated = append({ columns: current.generated, value: current.index, label: current.input.label })
+
+            if (current.input.enabled) {
+                current.first = { values: current.first.values.push(current.index + 11)[0], marker: current.first.marker }
+                current.second = { values: current.second.values.push(current.index + 21)[0], marker: current.second.marker }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { generated: state.generated, first: state.first, second: state.second, untouched: state.untouched, records: state.records, pairs: state.pairs }
+}

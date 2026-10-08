@@ -1,0 +1,25 @@
+import append from "./append"
+
+import type { Columns, Input, Pair, TupleResult } from "./model"
+
+export type Output = TupleResult
+
+export default function (in: Input): Output {
+    const generated: Columns = { values: [], offsets: [], labels: [] }
+    const direct: Pair = [in.prefix, in.marker]
+
+    const state = loop({ input: in, generated: generated, direct: direct, untouched: in.prefix, records: in.records, pairs: in.pairs, index: 0 }, {
+        while: current => current.index < current.input.count,
+        next: current => {
+            current.generated = append({ columns: current.generated, value: current.index, label: current.input.label })
+
+            if (current.input.enabled) {
+                current.direct = [current.direct[0].push(current.index + 11)[0], current.direct[1]]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { generated: state.generated, direct: state.direct, untouched: state.untouched, records: state.records, pairs: state.pairs }
+}

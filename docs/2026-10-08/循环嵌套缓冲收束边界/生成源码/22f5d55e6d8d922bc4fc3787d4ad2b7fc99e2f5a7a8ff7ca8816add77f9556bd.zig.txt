@@ -1,0 +1,128 @@
+pub const zx_type_13 = struct {
+    labels: []const []const u8,
+    offsets: []const u64,
+    values: []const u64,
+};
+
+pub const zx_type_14 = struct {
+    value: u64,
+};
+
+pub const zx_type_15 = struct {
+    count: u64,
+    enabled: bool,
+    label: []const u8,
+    marker: *const zx_type_14,
+    prefix: []const u64,
+};
+
+pub const zx_type_16 = struct {
+    marker: *const zx_type_14,
+    values: []const u64,
+};
+
+pub const zx_type_17 = struct {
+    direct: *const zx_type_16,
+    generated: *const zx_type_13,
+    untouched: []const u64,
+};
+
+pub const zx_type_18 = struct { []const u64, *const zx_type_14, };
+
+pub const zx_type_19 = struct {
+    direct: *const zx_type_18,
+    generated: *const zx_type_13,
+    untouched: []const u64,
+};
+
+pub const zx_type_20 = struct {
+    first: *const zx_type_16,
+    generated: *const zx_type_13,
+    second: *const zx_type_16,
+    untouched: []const u64,
+};
+
+pub const zx_type_21 = struct {
+    columns: *const zx_type_13,
+    label: []const u8,
+    value: u64,
+};
+
+pub const zx_type_22 = struct { []const u64, void, };
+
+pub const zx_type_23 = struct { []const []const u8, void, };
+
+pub const zx_type_24 = struct {
+    direct: *const zx_type_18,
+    generated: *const zx_type_13,
+    index: u64,
+    input: *const zx_type_15,
+    untouched: []const u64,
+};
+
+pub const value_zx_type_13_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = struct {
+    labels: []const []const u8,
+    offsets: []const u64,
+    values: []const u64,
+    zx_origin: ?*const zx_type_13 = null,
+};
+
+pub const value_zx_type_15_2ddc8d81c21e68612e817c7293e54a7cb5f26a22cd74db770ee9bdcef0645bce = struct {
+    count: u64,
+    enabled: bool,
+    label: []const u8,
+    marker: *const zx_type_14,
+    prefix: []const u64,
+    zx_origin: ?*const zx_type_15 = null,
+};
+
+pub const value_zx_type_17_8aba688e92428ec178bbadc7c92370aee8b1dc4844a62c0720bc84c764544a8f = struct {
+    direct: *const zx_type_16,
+    generated: value_zx_type_13_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292,
+    untouched: []const u64,
+    zx_origin: ?*const zx_type_17 = null,
+};
+
+pub const value_zx_type_18_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct { []const u64, *const zx_type_14, ?*const zx_type_18, };
+
+pub const value_zx_type_19_26a87c454292bc18357ccc116fb1066225cf172da320be6a50aef91bc56c63eb = struct {
+    direct: value_zx_type_18_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814,
+    generated: value_zx_type_13_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292,
+    untouched: []const u64,
+    zx_origin: ?*const zx_type_19 = null,
+};
+
+pub const value_zx_type_20_0ae173ac67b7b98de25225b36b9f35ef42c7a39404a299ff73091ed9136a838f = struct {
+    first: *const zx_type_16,
+    generated: value_zx_type_13_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292,
+    second: *const zx_type_16,
+    untouched: []const u64,
+    zx_origin: ?*const zx_type_20 = null,
+};
+
+pub const value_zx_type_21_aee76122a8aa68efe04b2c02a68c8e3c08413ae0f993bee8758d75935e4a54be = struct {
+    columns: value_zx_type_13_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292,
+    label: []const u8,
+    value: u64,
+    zx_origin: ?*const zx_type_21 = null,
+};
+
+pub const value_zx_type_22_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct { []const u64, void, ?*const zx_type_22, };
+
+pub const value_zx_type_23_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct { []const []const u8, void, ?*const zx_type_23, };
+
+pub const value_zx_type_24_ce27b49c60af6c551061e52632c92fd0aa403ae3a84182a5427fc7c08d9ae743 = struct {
+    direct: value_zx_type_18_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814,
+    generated: value_zx_type_13_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292,
+    index: u64,
+    input: value_zx_type_15_2ddc8d81c21e68612e817c7293e54a7cb5f26a22cd74db770ee9bdcef0645bce,
+    untouched: []const u64,
+    zx_origin: ?*const zx_type_24 = null,
+};
+
+pub const native = struct {
+};
+
+pub const layouts = struct {
+};
+

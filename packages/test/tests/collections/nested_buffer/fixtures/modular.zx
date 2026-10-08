@@ -1,0 +1,9 @@
+import fresh from "./fresh"
+
+import type { Input, FreshResult } from "./model"
+
+export type Output = FreshResult
+
+export default function (in: Input): Output {
+    return fresh(in)
+}

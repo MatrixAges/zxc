@@ -1,0 +1,27 @@
+import append from "./append"
+
+import type { Columns, Input, Record, Pair, FreshResult } from "./model"
+
+export type Output = FreshResult
+
+export default function (in: Input): Output {
+    const generated: Columns = { values: [], offsets: [], labels: [] }
+    const object: Record = { values: [], marker: in.marker }
+    const tuple: Pair = [[], in.marker]
+
+    const state = loop({ input: in, generated: generated, object: object, tuple: tuple, untouched: in.prefix, records: in.records, pairs: in.pairs, index: 0 }, {
+        while: current => current.index < current.input.count,
+        next: current => {
+            current.generated = append({ columns: current.generated, value: current.index, label: current.input.label })
+
+            if (current.input.enabled) {
+                current.object.values = current.object.values.push(current.index + 11)[0]
+                current.tuple[0] = current.tuple[0].push(current.index + 21)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { generated: state.generated, object: state.object, tuple: state.tuple, untouched: state.untouched, records: state.records, pairs: state.pairs }
+}

@@ -1,0 +1,23 @@
+{
+    "observed_at": "2026-10-08T13:21:17.025747+00:00",
+    "fixed_source": "f23a658e23f14385086440a4ad963c65809a5dcb",
+    "before_fix_source": "51bfbda2949b9f205b5943e8104ed839aa2a4d26",
+    "identical_test_paths": 12,
+    "fixed_modes": [
+        {
+            "label": "Debug",
+            "summary": "Build Summary: 44/44 steps succeeded; 30/30 tests passed",
+            "actual_executions": 6
+        },
+        {
+            "label": "ReleaseSafe",
+            "summary": "Build Summary: 44/44 steps succeeded; 30/30 tests passed",
+            "actual_executions": 6
+        }
+    ],
+    "before_fix_summary": "Build Summary: 44/44 steps succeeded; 30/30 tests passed",
+    "before_fix_actual_executions": 6,
+    "regression_boundary_proven": false,
+    "reason": "The same test bytes pass before the fix. Current functional success does not prove coverage of readonly nested ABI fields.",
+    "next_action": "Add boxed nested object and tuple record scenarios and repeat the same-byte comparison."
+}

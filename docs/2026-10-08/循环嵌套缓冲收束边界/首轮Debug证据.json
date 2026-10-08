@@ -1,0 +1,518 @@
+{
+    "label": "Debug",
+    "source_commit": "f23a658e23f14385086440a4ad963c65809a5dcb",
+    "input_count": 5709,
+    "exit_code": 1,
+    "summary": "Build Summary: 34/44 steps succeeded (5 failed); 0/20 tests passed (20 failed)",
+    "passed": false,
+    "tests_passed": 0,
+    "tests_total": 20,
+    "commands": [
+        {
+            "line": 1,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib --name configurer -fsingle-threaded --dep @build --dep @dependencies -Mroot=/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/configurer.zig --dep compiler=../compiler --dep core=../core --dep lint=../lint --dep pkgs=../pkgs --dep dsl=../dsl --dep genz=../genz --dep napi=../napi -M../cli=../cli/build.zig --dep dsl=../dsl --dep core=../core --dep genz=../genz --dep lint=../lint -M../compiler=../compiler/build.zig -M../core=../core/build.zig -M../dsl=../dsl/build.zig --dep core=../core -M../genz=../genz/build.zig --dep dsl=../dsl --dep core=../core -M../lint=../lint/build.zig --dep core=../core -M../napi=../napi/build.zig -M../pkgs=../pkgs/build.zig --dep ../cli --dep ../compiler --dep ../core --dep ../dsl --dep ../genz --dep ../lint --dep ../napi --dep ../pkgs -M@dependencies=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/664cc024bcb41b8d2365c77c6ca93203/dependencies.zig --dep cli=../cli --dep compiler=../compiler --dep pkgs=../pkgs -M@build=build.zig --listen=-"
+        },
+        {
+            "line": 2,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 3,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 4,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/068f8693a388b764c97c3f023b2f3aed/standard-catalog /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/f9a904ebdabc6ec3fe99c56ed64ecac6/catalog.json /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/c7a62688a2f2903c1a84a1d1fb2b4a2c/catalog.zig"
+        },
+        {
+            "line": 5,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Odebug --dep compiler --dep rx --dep rx_analysis --dep merge_writer_interface --dep extract_workspace_interface --dep merge_workspace_interface --dep references_interface --dep origin_writer_interface --dep named_columns_interface --dep flow_state_interface --dep semantic_floats --dep semantic_integers -Mroot=../compiler/build/generate_parser.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug --dep dsl --dep frontend --dep rx_options -Mrx=../compiler/src/rx/root.zig -Odebug --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Mmerge_writer_interface=../compiler/src/zx/analysis/semantic/native/merge_writer.d.zx -Mextract_workspace_interface=../compiler/src/zx/analysis/semantic/native/extract_workspace.d.zx -Mmerge_workspace_interface=../compiler/src/zx/analysis/semantic/native/merge_workspace.d.zx -Mreferences_interface=../compiler/src/zx/analysis/semantic/native/references.d.zx -Morigin_writer_interface=../compiler/src/zx/analysis/semantic/native/origin_writer.d.zx -Mnamed_columns_interface=../compiler/src/zx/analysis/semantic/ordering/columns.d.zx -Mflow_state_interface=../compiler/src/zx/analysis/semantic/native/flow_state.d.zx -Msemantic_floats=../compiler/src/zx/analysis/semantic/native/floats.d.zx -Msemantic_integers=../compiler/src/zx/analysis/semantic/native/integers.d.zx -Odebug --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep ownership_seed -Mfrontend=../compiler/src/zx/frontend.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug -Mzx=../core/src/root.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Odebug --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Mrx_options=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/77c1f5e6d2a04327be93efeeeb45b750/options.zig -Odebug --dep zx -Mlexer=../compiler/bootstrap/lexer/lex.zig -Mstandard_interfaces=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/eb975a4d9f7782b870ac7bba9ad3a664/catalog.zig -Mparser_options=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig -Odebug --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Odebug --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Odebug --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Odebug --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Odebug --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Odebug -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Odebug --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Odebug --dep zx -Mownership_seed=../compiler/bootstrap/ownership/check.zig -Odebug -Mnaming=../lint/bootstrap/naming.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name generate-parser --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 6,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 7,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Odebug --dep compiler --dep rx --dep rx_analysis -Mroot=../compiler/build/generate_lexer.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug --dep dsl --dep frontend --dep rx_options -Mrx=../compiler/src/rx/root.zig -Odebug --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Odebug --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep ownership_seed -Mfrontend=../compiler/src/zx/frontend.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug -Mzx=../core/src/root.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Odebug --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Mrx_options=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/77c1f5e6d2a04327be93efeeeb45b750/options.zig -Odebug --dep zx -Mlexer=../compiler/bootstrap/lexer/lex.zig -Mstandard_interfaces=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/eb975a4d9f7782b870ac7bba9ad3a664/catalog.zig -Mparser_options=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig -Odebug --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Odebug --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Odebug --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Odebug --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Odebug --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Odebug -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Odebug --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Odebug --dep zx -Mownership_seed=../compiler/bootstrap/ownership/check.zig -Odebug -Mnaming=../lint/bootstrap/naming.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name generate-lexer --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 8,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/828db47fe97d40c6a0f68149dbe29fc6/generate-lexer ./../compiler/src/zx/frontend/lexer /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/19d9ed38b4309aa4497da5477bbcbab2/lexer.zig"
+        },
+        {
+            "line": 9,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/75b14616221166808733eacf55aedeb4/generate-parser ./../compiler/src /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/parser.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/expression.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/xml.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/paths.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/graph.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/attribute_role.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/attribute_content.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/call_rule.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/path_kind.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/file_kind.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/specifier.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/integer.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_lookup.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/semantic_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/nominal_lookup.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/nominal_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/name_sort.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ordering_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/origin_validation.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/origins_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/origin_production.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/production_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_remap.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/remap_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/merge_preflight.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/preflight_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_extract.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/extract_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_merge.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/merge_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_validation.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/validation_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_resolution.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/resolution_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_construction.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/construction_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_query.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/query_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ownership.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ownership_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_body.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_body_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_stores.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_stores_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_store_call.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_store_call_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_tasks.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_tasks_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_functions.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_functions_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_task_call.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_task_call_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_program_pure.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_program_pure_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_expressions.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_expressions_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contracts.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contracts_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contract_tables.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contract_tables_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_scopes.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_scopes_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_assume.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_assume_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_bind.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_bind_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_type.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_type_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_modules.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_modules_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_export.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_export_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_type.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_type_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_names.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_names_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_interface.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_interface_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/naming.zig ./../lint/src/naming"
+        },
+        {
+            "line": 10,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Odebug --dep compiler -Mroot=tests/collections/nested_buffer/compile.zig -Odebug --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Odebug --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep merge_workspace_view --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep generated_native_interface --dep generated_native_names --dep generated_native_type --dep generated_native_modules --dep generated_native_export --dep generated_ir_scopes --dep generated_refinement_assume --dep generated_refinement_bind --dep generated_refinement_type --dep generated_ownership --dep generated_ir_body --dep generated_ir_tasks --dep generated_ir_functions --dep generated_ir_expressions --dep generated_ir_contracts --dep generated_ir_contract_tables --dep generated_ir_task_call --dep generated_ir_program_pure --dep generated_ir_stores --dep generated_ir_store_call --dep generated_type_resolution --dep generated_type_construction --dep generated_type_query --dep generated_parser --dep generated_expression --dep generated_xml --dep generated_specifier --dep generated_integer --dep generated_native --dep generated_type_lookup --dep generated_nominal_lookup --dep generated_origin_validation --dep generated_origin_production --dep origin_writer --dep generated_name_sort --dep generated_type_remap --dep generated_merge_preflight --dep generated_type_extract --dep generated_type_merge --dep generated_type_validation --dep merge_writer_view --dep extract_workspace_view -Mfrontend=../compiler/src/zx/frontend.zig -Odebug -Mdsl=../dsl/src/root.zig -Odebug -Mzx=../core/src/root.zig -Odebug --dep zx -Mgenz=../genz/src/root.zig -Odebug --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Odebug --dep zx --dep generated -Mlexer=../compiler/src/zx/frontend/lex.zig -Mstandard_interfaces=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/eb975a4d9f7782b870ac7bba9ad3a664/catalog.zig -Mparser_options=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig -Odebug --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Odebug --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Odebug --dep zx -Mmerge_workspace_view=../compiler/src/zx/analysis/semantic/merging/workspace.zig -Odebug --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Odebug --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Odebug -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Odebug --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Odebug --dep integers --dep zxc_standard --dep zxc_abi -Mgenerated_native_interface=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_interface.zig -Odebug --dep zxc_standard --dep zxc_abi=zxc_abi0 -Mgenerated_native_names=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_names.zig -Odebug --dep integers --dep zxc_abi=zxc_abi1 -Mgenerated_native_type=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_type.zig -Odebug --dep zxc_abi=zxc_abi2 --dep integers -Mgenerated_native_modules=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_modules.zig -Odebug --dep zxc_abi=zxc_abi3 --dep integers -Mgenerated_native_export=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_export.zig -Odebug --dep zxc_abi=zxc_abi4 --dep integers --dep flow_state -Mgenerated_ir_scopes=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_scopes.zig -Odebug --dep zxc_abi=zxc_abi5 --dep integers --dep flow_state -Mgenerated_refinement_assume=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_assume.zig -Odebug --dep zxc_abi=zxc_abi6 --dep integers --dep flow_state -Mgenerated_refinement_bind=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_bind.zig -Odebug --dep zxc_abi=zxc_abi7 --dep integers --dep flow_state -Mgenerated_refinement_type=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_type.zig -Odebug --dep zxc_abi=zxc_abi8 --dep integers -Mgenerated_ownership=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ownership.zig -Odebug --dep zxc_abi=zxc_abi9 --dep integers -Mgenerated_ir_body=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_body.zig -Odebug --dep zxc_abi=zxc_abi10 --dep integers -Mgenerated_ir_tasks=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_tasks.zig -Odebug --dep zxc_abi=zxc_abi11 --dep integers -Mgenerated_ir_functions=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_functions.zig -Odebug --dep zxc_abi=zxc_abi12 --dep integers --dep floats -Mgenerated_ir_expressions=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_expressions.zig -Odebug --dep zxc_abi=zxc_abi13 --dep integers --dep floats -Mgenerated_ir_contracts=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contracts.zig -Odebug --dep zxc_abi=zxc_abi14 --dep integers -Mgenerated_ir_contract_tables=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contract_tables.zig -Odebug --dep zxc_abi=zxc_abi15 --dep integers -Mgenerated_ir_task_call=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_task_call.zig -Odebug --dep zxc_abi=zxc_abi16 --dep integers -Mgenerated_ir_program_pure=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_program_pure.zig -Odebug --dep zxc_abi=zxc_abi17 --dep integers -Mgenerated_ir_stores=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_stores.zig -Odebug --dep zxc_abi=zxc_abi18 --dep integers -Mgenerated_ir_store_call=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_store_call.zig -Odebug --dep zxc_standard --dep zxc_abi=zxc_abi19 --dep integers -Mgenerated_type_resolution=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_resolution.zig -Odebug --dep zxc_abi=zxc_abi20 --dep integers -Mgenerated_type_construction=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_construction.zig -Odebug --dep zxc_abi=zxc_abi21 --dep integers -Mgenerated_type_query=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_query.zig -Odebug -Mgenerated_parser=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/parser.zig -Odebug -Mgenerated_expression=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/expression.zig -Odebug -Mgenerated_xml=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/xml.zig -Odebug -Mgenerated_specifier=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/specifier.zig -Odebug -Mgenerated_integer=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/integer.zig -Odebug --dep zxc_abi=zxc_abi22 --dep integers --dep zxc_standard -Mgenerated_native=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native.zig -Odebug --dep integers --dep zxc_abi=zxc_abi23 -Mgenerated_type_lookup=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_lookup.zig -Odebug --dep integers --dep zxc_abi=zxc_abi24 -Mgenerated_nominal_lookup=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/nominal_lookup.zig -Odebug --dep integers --dep zxc_abi=zxc_abi25 -Mgenerated_origin_validation=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/origin_validation.zig -Odebug --dep origin_writer --dep zxc_abi=zxc_abi26 -Mgenerated_origin_production=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/origin_production.zig -Odebug --dep nominal_data --dep zxc_abi=zxc_abi26 -Morigin_writer=../compiler/src/zx/analysis/semantic/native/origin_writer.zig -Odebug --dep zxc_abi=zxc_abi27 --dep named_columns -Mgenerated_name_sort=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/name_sort.zig -Odebug --dep references --dep integers --dep zxc_abi=zxc_abi28 -Mgenerated_type_remap=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_remap.zig -Odebug --dep merge_workspace --dep integers --dep zxc_abi=zxc_abi29 -Mgenerated_merge_preflight=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/merge_preflight.zig -Odebug --dep extract_workspace --dep references --dep integers --dep zxc_abi=zxc_abi30 -Mgenerated_type_extract=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_extract.zig -Odebug --dep merge_writer --dep references --dep integers --dep zxc_abi=zxc_abi31 -Mgenerated_type_merge=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_merge.zig -Odebug --dep integers --dep zxc_abi=zxc_abi32 -Mgenerated_type_validation=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_validation.zig -Odebug --dep zx --dep reference_view --dep nominal_data -Mmerge_writer_view=../compiler/src/zx/analysis/semantic/merging/writer.zig -Odebug --dep zx --dep reference_view --dep nominal_data -Mextract_workspace_view=../compiler/src/zx/analysis/semantic/extracting/workspace.zig -Odebug --dep generated=generated0 -Mnaming=../lint/src/naming/root.zig -Odebug -Mgenerated=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/19d9ed38b4309aa4497da5477bbcbab2/lexer.zig -Odebug -Mintegers=../compiler/src/zx/analysis/semantic/native/integers.zig -Odebug --dep zxc_abi=zxc_abi19 -Mzxc_standard=../compiler/standard/src/root.zig -Odebug -Mzxc_abi=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_interface_abi.zig -Odebug -Mzxc_abi0=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_names_abi.zig -Odebug -Mzxc_abi1=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_type_abi.zig -Odebug -Mzxc_abi2=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_modules_abi.zig -Odebug -Mzxc_abi3=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_export_abi.zig -Odebug -Mzxc_abi4=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_scopes_abi.zig -Odebug --dep flow_workspace -Mflow_state=../compiler/src/zx/analysis/semantic/native/flow_state.zig -Odebug -Mzxc_abi5=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_assume_abi.zig -Odebug -Mzxc_abi6=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_bind_abi.zig -Odebug -Mzxc_abi7=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_type_abi.zig -Odebug -Mzxc_abi8=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ownership_abi.zig -Odebug -Mzxc_abi9=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_body_abi.zig -Odebug -Mzxc_abi10=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_tasks_abi.zig -Odebug -Mzxc_abi11=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_functions_abi.zig -Odebug -Mzxc_abi12=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_expressions_abi.zig -Odebug -Mfloats=../compiler/src/zx/analysis/semantic/native/floats.zig -Odebug -Mzxc_abi13=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contracts_abi.zig -Odebug -Mzxc_abi14=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contract_tables_abi.zig -Odebug -Mzxc_abi15=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_task_call_abi.zig -Odebug -Mzxc_abi16=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_program_pure_abi.zig -Odebug -Mzxc_abi17=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_stores_abi.zig -Odebug -Mzxc_abi18=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_store_call_abi.zig -Odebug -Mzxc_abi19=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/resolution_abi.zig -Odebug -Mzxc_abi20=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/construction_abi.zig -Odebug -Mzxc_abi21=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/query_abi.zig -Odebug -Mzxc_abi22=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_abi.zig -Odebug -Mzxc_abi23=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/semantic_abi.zig -Odebug -Mzxc_abi24=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/nominal_abi.zig -Odebug -Mzxc_abi25=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/origins_abi.zig -Odebug -Mzxc_abi26=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/production_abi.zig -Odebug -Mzxc_abi27=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ordering_abi.zig -Odebug --dep zxc_abi=zxc_abi27 --dep named_view -Mnamed_columns=../compiler/src/zx/analysis/semantic/ordering/columns.zig -Odebug --dep reference_view -Mreferences=../compiler/src/zx/analysis/semantic/native/references.zig -Odebug -Mzxc_abi28=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/remap_abi.zig -Odebug --dep merge_workspace_view --dep zx --dep zxc_abi=zxc_abi29 -Mmerge_workspace=../compiler/src/zx/analysis/semantic/native/merge_workspace.zig -Odebug -Mzxc_abi29=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/preflight_abi.zig -Odebug --dep extract_workspace_view --dep reference_view --dep nominal_data --dep zx --dep zxc_abi=zxc_abi30 -Mextract_workspace=../compiler/src/zx/analysis/semantic/native/extract_workspace.zig -Odebug -Mzxc_abi30=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/extract_abi.zig -Odebug --dep merge_writer_view --dep reference_view --dep nominal_data --dep zxc_abi=zxc_abi31 -Mmerge_writer=../compiler/src/zx/analysis/semantic/native/merge_writer.zig -Odebug -Mzxc_abi31=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/merge_abi.zig -Odebug -Mzxc_abi32=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/validation_abi.zig -Odebug -Mgenerated0=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/naming.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name compile-nested-buffer --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 11,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/756619966af04ea555666875a69d9179/compile-nested-buffer dual /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/source.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/source_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/library.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/library_abi.zig"
+        },
+        {
+            "line": 12,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/nested_buffer/root.zig -Odebug --dep zxc_abi -Mprogram=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/source.zig -Moptions=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/f16efc57138c3a9b47b3c586491c1942/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/source_abi.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name nested-buffer-dual-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 13,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/dc3a8f40655fb4ba0defa4950be28476/nested-buffer-dual-source --cache-dir=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --seed=0x78d7ec35 --listen=-"
+        },
+        {
+            "line": 122,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/nested_buffer/root.zig -Odebug --dep zxc_abi -Mprogram=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/library.zig -Moptions=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/f16efc57138c3a9b47b3c586491c1942/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/library_abi.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name nested-buffer-dual-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 123,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/3760221487c19ef028482be993df3fbe/nested-buffer-dual-library --cache-dir=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --seed=0x78d7ec35 --listen=-"
+        },
+        {
+            "line": 232,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/756619966af04ea555666875a69d9179/compile-nested-buffer tuple /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/6330df8356b604e6f68652b4f1780e95/source.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/6330df8356b604e6f68652b4f1780e95/source_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/6330df8356b604e6f68652b4f1780e95/library.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/6330df8356b604e6f68652b4f1780e95/library_abi.zig"
+        },
+        {
+            "line": 245,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/756619966af04ea555666875a69d9179/compile-nested-buffer object /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/source.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/source_abi.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/library.zig /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/library_abi.zig"
+        },
+        {
+            "line": 246,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/nested_buffer/root.zig -Odebug --dep zxc_abi -Mprogram=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/library.zig -Moptions=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/8ec439c020b07411d80a9baaa1caf57b/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/library_abi.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name nested-buffer-object-library --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 247,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/62e9319d809bfef4c1f1de01d5cf25b3/nested-buffer-object-library --cache-dir=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --seed=0x78d7ec35 --listen=-"
+        },
+        {
+            "line": 355,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Odebug --dep program --dep options --dep allocation_testing -Mroot=tests/collections/nested_buffer/root.zig -Odebug --dep zxc_abi -Mprogram=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/source.zig -Moptions=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/8ec439c020b07411d80a9baaa1caf57b/options.zig -Odebug -Mallocation_testing=tests/support/allocation_testing.zig -Odebug -Mzxc_abi=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/source_abi.zig --cache-dir /Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name nested-buffer-object-source --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 356,
+            "command": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/0db764fb0d46562945032bdd20356c59/nested-buffer-object-source --cache-dir=/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug --seed=0x78d7ec35 --listen=-"
+        }
+    ],
+    "actual_executions": [
+        {
+            "line": 13,
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/dc3a8f40655fb4ba0defa4950be28476/nested-buffer-dual-source",
+            "sha256": "ab4f1cc7475e5c9f2cdf343a2c5f15bbc9e8044e5b710a7f604b767e56af5516",
+            "compiled": {
+                "compile_line": 12,
+                "name": "nested-buffer-dual-source",
+                "root": "tests/collections/nested_buffer/root.zig",
+                "parser_options": null
+            },
+            "association": "single pending compile"
+        },
+        {
+            "line": 123,
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/3760221487c19ef028482be993df3fbe/nested-buffer-dual-library",
+            "sha256": "550c88c70704146883eca1441bde5024dffa746527628d7c939f60999aa241a9",
+            "compiled": {
+                "compile_line": 122,
+                "name": "nested-buffer-dual-library",
+                "root": "tests/collections/nested_buffer/root.zig",
+                "parser_options": null
+            },
+            "association": "single pending compile"
+        },
+        {
+            "line": 247,
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/62e9319d809bfef4c1f1de01d5cf25b3/nested-buffer-object-library",
+            "sha256": "dcfa6445e5bbd14fbd1c4abf1e26c42e22b38c9a915e8abb0f00f3d3e67430a0",
+            "compiled": {
+                "compile_line": 246,
+                "name": "nested-buffer-object-library",
+                "root": "tests/collections/nested_buffer/root.zig",
+                "parser_options": null
+            },
+            "association": "single pending compile"
+        },
+        {
+            "line": 356,
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/0db764fb0d46562945032bdd20356c59/nested-buffer-object-source",
+            "sha256": "020692ca37d5c61ccb2975286b2349f7d6978ef43de163f98bd6695ebd0b1dde",
+            "compiled": {
+                "compile_line": 355,
+                "name": "nested-buffer-object-source",
+                "root": "tests/collections/nested_buffer/root.zig",
+                "parser_options": null
+            },
+            "association": "single pending compile"
+        }
+    ],
+    "generated_source": [
+        {
+            "path": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/configurer.zig",
+            "sha256": "a35ab2a8cf040ba1fb3fd2b52884b8265ec4998d0e297c6061c280ded614f5ff"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig",
+            "sha256": "4ec77bb3007bb875a3ad1e17d75b8ae76f1871b049d559603f7a19fbb5e88fde",
+            "saved": "生成源码/4ec77bb3007bb875a3ad1e17d75b8ae76f1871b049d559603f7a19fbb5e88fde.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig",
+            "sha256": "741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3",
+            "saved": "生成源码/741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_interface.zig",
+            "sha256": "fb80c10e01fa571c03752d2c02f0c7f547324d3a0f0ca0e70cd76e1cf2269509",
+            "saved": "生成源码/fb80c10e01fa571c03752d2c02f0c7f547324d3a0f0ca0e70cd76e1cf2269509.zig.gz",
+            "compression": "gzip"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_names.zig",
+            "sha256": "2404adb7cab207b53f202d445f34e92e0e21a763736ece4e72187cad357253da",
+            "saved": "生成源码/2404adb7cab207b53f202d445f34e92e0e21a763736ece4e72187cad357253da.zig.gz",
+            "compression": "gzip"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_type.zig",
+            "sha256": "4a22333531fac7cc5019208682fd2b77397b85ccc8dbeb4d509234350b170e75",
+            "saved": "生成源码/4a22333531fac7cc5019208682fd2b77397b85ccc8dbeb4d509234350b170e75.zig.gz",
+            "compression": "gzip"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_modules.zig",
+            "sha256": "17f7e03723754d6a4d484a5e7f80c59a5641c10672a06e33f2a05d5c6cecf558"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_export.zig",
+            "sha256": "8ac9abe86a6daa3f5dcadf7ba0885e617a647707487bc75d2a2305de9e61bd5a"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_scopes.zig",
+            "sha256": "af47d356dea65ca46c3624423ee99af85028d2cff36f2c5e2776ab487bb75b10"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_assume.zig",
+            "sha256": "3dede5c4fd883c5f661a4e30ce0d06c7029e089fc234ab2585ef5e0214b88f66"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_bind.zig",
+            "sha256": "d2aaa82ac8138080ddb0a46818c2254e2351faa72649a00801b58bb22e24e0f8"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/refinement_type.zig",
+            "sha256": "d0b16c67ec06bd83f46cb17f01dd61b629cd43528b892d6a9d7a8d951698b7f0"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ownership.zig",
+            "sha256": "e1fcd18258ce4289017e1c509e2f65d5edf038be8dd012a714559f0fdbf6b5d8"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_body.zig",
+            "sha256": "7442d83811e9d2be151fb55338c7afa972f9dc4de491f5eb5e833b92b13f7978"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_tasks.zig",
+            "sha256": "40c57370730781ac0e82fcfafbc2d5c14a3ecea6883bbaa36b9f43016fe7c201"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_functions.zig",
+            "sha256": "48317666d1b4a248a532d9478a2209ed57e77eb781ae6616221421feb90aa7ad"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_expressions.zig",
+            "sha256": "bca1a90e30c8f49bea64c0ef8ac548933d2b75c7fa76c42ac784fc57edc8229e"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contracts.zig",
+            "sha256": "b1ff4903f3d28cac9d8b87d5611cf021821510b863f5dea48d0a4f487e353f3c"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_contract_tables.zig",
+            "sha256": "a3fe6779518175f326348dff9c2e2f1d20f08273367ab04dee15823362acc9fa"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_task_call.zig",
+            "sha256": "b991fe4dde7da81380630af7ea38599cc0c0a3d7d5596292855ab2ac04604e54"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_program_pure.zig",
+            "sha256": "03f2a8e9d06b1d41789d55c960fc1d139da4212f292f434ea10e6aeecffd441e"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_stores.zig",
+            "sha256": "55f1ec043022dc08377711eef92409c2fa284af6edaba31d2dc5059be19b77a3"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/ir_store_call.zig",
+            "sha256": "01eb868a81802f9e42d1ad1ab863cd091330764c78639730a31731b308ddf99f"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_resolution.zig",
+            "sha256": "6b55ab175e38f6d20f3d38c52e583d052c6a367ad75820a4179fea72a2c42e47"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_construction.zig",
+            "sha256": "6ed43e67accb40f2363680a6ab98a02b3e3bead09593a0991723a9d2c5c1cfef"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_query.zig",
+            "sha256": "dc4b8a9c35f935804ec6c9762eaffca5a3d92dd5b2b78e8736ff6452c3f00e69"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/parser.zig",
+            "sha256": "e64403cb5f41d22a6584cc296a2492de53f9e7237e29b27f98adf04468ab5030"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/expression.zig",
+            "sha256": "54981724d5c1ca97b398565a4b393f04d4f84db839a18ad574d27ba443db978a"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/xml.zig",
+            "sha256": "16e0d4f94e7913dc0e5db440e5a02005fb798736b00ac01af7769f97d63cf039"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/specifier.zig",
+            "sha256": "f03dd2025b963d8afc6bfd8706d5f4c4a1f2661c852c976c27b316343d2de3ba"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/integer.zig",
+            "sha256": "ca50295f21e67d2d400a2fe5ecc75aee3688558cfcee554cf3280e16b2a39c24"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native.zig",
+            "sha256": "18c3ef98685185eb1f61c8004657a52401c8a7a82106067dffb773227dc0a1b5",
+            "saved": "生成源码/18c3ef98685185eb1f61c8004657a52401c8a7a82106067dffb773227dc0a1b5.zig.gz",
+            "compression": "gzip"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_lookup.zig",
+            "sha256": "bf4a9c2004d0c313bae978a3ed36c45588303f33470e444080f65267a5a250a9"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/nominal_lookup.zig",
+            "sha256": "027368db5b9ba2f89d4998e33c76e68ddc3fc3ee4e9c1122701489ffdc4db785"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/origin_validation.zig",
+            "sha256": "9fc3a15c8519e2fbcfd5d330b53da3b712ca9f4d2cd79df76a7b35b300326720"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/origin_production.zig",
+            "sha256": "eb9ab45ee68b3f771d56ef12ef9ca92ebafc8cdcb8fd6719bb560c4ff74df716"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/name_sort.zig",
+            "sha256": "80252cdd8abd1b8003726aec122ec340501febeb9d8506630a8145ba501816c5"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_remap.zig",
+            "sha256": "533a4156dd41de330e9ee5bf31d34644410a648b74b8211619bdaa471e9e83a7"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/merge_preflight.zig",
+            "sha256": "7ea59e6bf41fac9e77beb01959f2e37d774fe1615c4f570424f7f991ae4007c2"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_extract.zig",
+            "sha256": "8c34673716771fb18c52242f075ab2d9950032499e594f866e51e66c7ddeb043"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_merge.zig",
+            "sha256": "d4a9294217815c53fdfd88c9474b2a9f8ba2fb9286e6d2886d877ba4536ed672"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/type_validation.zig",
+            "sha256": "b60d5bd8f40717b7636a9027b3a66d4e64d5172c39d0ec8787ba7a2b30e2f864"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/19d9ed38b4309aa4497da5477bbcbab2/lexer.zig",
+            "sha256": "c5d085d214644fa9ff64077977e143386253afd05fd66656cd51dfe173b7f7e4"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/native_interface_abi.zig",
+            "sha256": "ab558716f2a2164417994bbdfc3cd9289fd9ca37cf919bf9e99677c64dd23855"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/826e43221027ba6321d087fa03fecb4b/naming.zig",
+            "sha256": "9935448b5134c27b7a55e6b23e0b09d24700bb2b98f31d4e7a86b5b5dc90a2a8"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/source.zig",
+            "sha256": "f649df7ec52b9dff3ae8d0ad9114b4ad911fb51a25c73b7bb5bd3fd9a7d8e7ef",
+            "saved": "生成源码/f649df7ec52b9dff3ae8d0ad9114b4ad911fb51a25c73b7bb5bd3fd9a7d8e7ef.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/f16efc57138c3a9b47b3c586491c1942/options.zig",
+            "sha256": "95ceebb2f2bac55e4ba6fe3775738c27376540ba157740b2799e3bb0c22dd8f1",
+            "saved": "生成源码/95ceebb2f2bac55e4ba6fe3775738c27376540ba157740b2799e3bb0c22dd8f1.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/source_abi.zig",
+            "sha256": "2daa6764dc152417529878cc724667030111da8a58a43624dd5459f0ff64e4a7",
+            "saved": "生成源码/2daa6764dc152417529878cc724667030111da8a58a43624dd5459f0ff64e4a7.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/library.zig",
+            "sha256": "81e4ef83bd42ae21040c30b408197a59ef5f962a141a95437dd7c68116ae99ad",
+            "saved": "生成源码/81e4ef83bd42ae21040c30b408197a59ef5f962a141a95437dd7c68116ae99ad.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/a8372b13e6472fdb77ab1f84ec726b34/library_abi.zig",
+            "sha256": "2daa6764dc152417529878cc724667030111da8a58a43624dd5459f0ff64e4a7",
+            "saved": "生成源码/2daa6764dc152417529878cc724667030111da8a58a43624dd5459f0ff64e4a7.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/library.zig",
+            "sha256": "5c8b40f890cd7b0557b7a6022294fedecbe987dedf9eddc7b22a4890bedff868",
+            "saved": "生成源码/5c8b40f890cd7b0557b7a6022294fedecbe987dedf9eddc7b22a4890bedff868.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/8ec439c020b07411d80a9baaa1caf57b/options.zig",
+            "sha256": "0dc6e41390ca488651ee8155bb8933c625f15414b3a3bc72a2e3e4327cdfb920",
+            "saved": "生成源码/0dc6e41390ca488651ee8155bb8933c625f15414b3a3bc72a2e3e4327cdfb920.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/library_abi.zig",
+            "sha256": "cdcf259a892028ef79c576d2d08a4ae2c732cd048c483205607614d39ad3e589",
+            "saved": "生成源码/cdcf259a892028ef79c576d2d08a4ae2c732cd048c483205607614d39ad3e589.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/source.zig",
+            "sha256": "fd0499d628d3acee35c2409e29427d7c28e976cc50c12c47612ea093b04e49ce",
+            "saved": "生成源码/fd0499d628d3acee35c2409e29427d7c28e976cc50c12c47612ea093b04e49ce.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/76198122a3f3e44adbb2b1fec771d411/source_abi.zig",
+            "sha256": "cdcf259a892028ef79c576d2d08a4ae2c732cd048c483205607614d39ad3e589",
+            "saved": "生成源码/cdcf259a892028ef79c576d2d08a4ae2c732cd048c483205607614d39ad3e589.zig.txt"
+        }
+    ],
+    "formal_parser_options": [
+        {
+            "test": "compile-nested-buffer",
+            "path": "/Users/xiewendao/.codex/conformance/nested-buffer-f23a658e2/r1/cache-Debug/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig",
+            "sha256": "741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3",
+            "generated_parser": true
+        }
+    ],
+    "cached_entries": [
+        "|     |     +- WriteFile interfaces/0.d.zx cached",
+        "|     |     |  +- run exe standard-catalog (catalog.zig) cached",
+        "|     |     |     +- compile exe standard-catalog fast native cached 50ms MaxRSS:21M",
+        "|     |     |     +- WriteFile catalog.json cached",
+        "|     |     |     +- options cached",
+        "|     |     |     +- WriteFile interfaces/0.d.zx cached",
+        "|     |     |     |  +- run exe standard-catalog (catalog.zig) cached",
+        "|     |     |     |     +- compile exe standard-catalog fast native cached 48ms MaxRSS:21M",
+        "|     |     |     |     +- WriteFile catalog.json cached",
+        "|     |     |     +- options cached",
+        "|     +- options cached",
+        "|     +- options cached",
+        "      +- options cached"
+    ],
+    "native_summaries": [
+        "+- run test nested-buffer-dual-source 0 pass, 5 fail (5 total)",
+        "+- run test nested-buffer-dual-library 0 pass, 5 fail (5 total)",
+        "+- run test nested-buffer-object-library 0 pass, 5 fail (5 total)",
+        "+- run test nested-buffer-object-source 0 pass, 5 fail (5 total)",
+        "+- run test nested-buffer-object-source 0 pass, 5 fail (5 total)",
+        "+- run test nested-buffer-object-library 0 pass, 5 fail (5 total)",
+        "+- run test nested-buffer-tuple-source transitive failure",
+        "+- run test nested-buffer-tuple-library transitive failure",
+        "+- run test nested-buffer-dual-source 0 pass, 5 fail (5 total)",
+        "+- run test nested-buffer-dual-library 0 pass, 5 fail (5 total)"
+    ],
+    "node_summary_lines": [],
+    "errors": [
+        {
+            "line": 16,
+            "text": "error: 'root.test.nested buffer zero rounds preserve borrowed columns and marker identity' failed:"
+        },
+        {
+            "line": 32,
+            "text": "error: 'root.test.nested buffer path reconstruction retains every value across growth' failed:"
+        },
+        {
+            "line": 51,
+            "text": "error: 'root.test.inactive nested columns keep borrowed prefixes while other columns grow' failed:"
+        },
+        {
+            "line": 68,
+            "text": "error: 'root.test.nested buffer active paths clean every allocation failure' failed:"
+        },
+        {
+            "line": 94,
+            "text": "error: 'root.test.nested buffer inactive paths clean every allocation failure' failed:"
+        },
+        {
+            "line": 126,
+            "text": "error: 'root.test.nested buffer zero rounds preserve borrowed columns and marker identity' failed:"
+        },
+        {
+            "line": 142,
+            "text": "error: 'root.test.nested buffer path reconstruction retains every value across growth' failed:"
+        },
+        {
+            "line": 161,
+            "text": "error: 'root.test.inactive nested columns keep borrowed prefixes while other columns grow' failed:"
+        },
+        {
+            "line": 178,
+            "text": "error: 'root.test.nested buffer active paths clean every allocation failure' failed:"
+        },
+        {
+            "line": 204,
+            "text": "error: 'root.test.nested buffer inactive paths clean every allocation failure' failed:"
+        },
+        {
+            "line": 238,
+            "text": "error: InvalidAnalysis"
+        },
+        {
+            "line": 242,
+            "text": "error: process exited with code 1"
+        },
+        {
+            "line": 250,
+            "text": "error: 'root.test.nested buffer zero rounds preserve borrowed columns and marker identity' failed:"
+        },
+        {
+            "line": 267,
+            "text": "error: 'root.test.nested buffer path reconstruction retains every value across growth' failed:"
+        },
+        {
+            "line": 284,
+            "text": "error: 'root.test.inactive nested columns keep borrowed prefixes while other columns grow' failed:"
+        },
+        {
+            "line": 301,
+            "text": "error: 'root.test.nested buffer active paths clean every allocation failure' failed:"
+        },
+        {
+            "line": 327,
+            "text": "error: 'root.test.nested buffer inactive paths clean every allocation failure' failed:"
+        },
+        {
+            "line": 359,
+            "text": "error: 'root.test.nested buffer zero rounds preserve borrowed columns and marker identity' failed:"
+        },
+        {
+            "line": 376,
+            "text": "error: 'root.test.nested buffer path reconstruction retains every value across growth' failed:"
+        },
+        {
+            "line": 393,
+            "text": "error: 'root.test.inactive nested columns keep borrowed prefixes while other columns grow' failed:"
+        },
+        {
+            "line": 410,
+            "text": "error: 'root.test.nested buffer active paths clean every allocation failure' failed:"
+        },
+        {
+            "line": 436,
+            "text": "error: 'root.test.nested buffer inactive paths clean every allocation failure' failed:"
+        }
+    ],
+    "log": "日志/首轮Debug.txt",
+    "log_sha256": "b235abf3d6a2a4ae1600aba26c90d6e8dc80da2795d808c8316a0c4fcffc7cd3",
+    "scope": "Nested loop buffer reconstruction with object, tuple and adjacent paths; direct source and decoded library execution, borrowed inputs and allocation cleanup; actual executions and cached entries remain separate.",
+    "baseline_file": "首轮执行输入.json"
+}

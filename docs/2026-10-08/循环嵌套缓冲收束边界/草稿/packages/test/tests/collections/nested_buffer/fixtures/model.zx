@@ -1,0 +1,17 @@
+export type Columns = { values: u64[], offsets: u64[], labels: string[] }
+
+export type Marker = { value: u64 }
+
+export type Record = { values: u64[], marker: Marker }
+
+export type Pair = [u64[], Marker]
+
+export type Input = { prefix: u64[], count: u64, marker: Marker, enabled: bool, label: string, records: Record[], pairs: Pair[] }
+
+export type ObjectResult = { generated: Columns, direct: Record, untouched: u64[], records: Record[], pairs: Pair[] }
+
+export type TupleResult = { generated: Columns, direct: Pair, untouched: u64[], records: Record[], pairs: Pair[] }
+
+export type DualResult = { generated: Columns, first: Record, second: Record, untouched: u64[], records: Record[], pairs: Pair[] }
+
+export type FreshResult = { generated: Columns, object: Record, tuple: Pair, untouched: u64[], records: Record[], pairs: Pair[] }
