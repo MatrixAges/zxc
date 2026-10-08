@@ -1,0 +1,32 @@
+1/19 names_test.test.builtin precedes resolved alias and preexisting visiting at full depth...OK
+2/19 names_test.test.resolved name precedes alias and preexisting visiting at full depth...OK
+3/19 names_test.test.imported alias precedes preexisting visiting and depth...OK
+4/19 names_test.test.recursive reference precedes full depth and preserves existing marker...OK
+5/19 names_test.test.full visiting depth precedes unknown declaration lookup...OK
+6/19 names_test.test.unknown declaration below full visiting depth keeps exact reference span...OK
+7/19 names_test.test.255 named aliases terminate at builtin without hitting depth limit...OK
+8/19 names_test.test.256 named aliases terminate at builtin at the exact allowed limit...OK
+9/19 names_test.test.257 named aliases reject the 257th reference with its own span...OK
+10/19 names_test.test.unknown tail after 255 names reports unknown rather than depth...OK
+11/19 names_test.test.unknown tail after 256 names reports depth before unknown...OK
+12/19 names_test.test.preexisting 255 markers allow one additional declaration terminating at builtin...OK
+13/19 names_test.test.builtin aliases include every scalar number and boolean without appending rows...OK
+14/19 names_test.test.failed nested alias preserves unrelated visiting and resolved state...OK
+15/19 names_test.test.mutual alias recursion removes only markers owned by the failed call...OK
+16/19 names_test.test.deep container frames do not consume named alias depth...OK
+17/19 names_test.test.resolved void type id zero is a hit before visiting and depth...OK
+18/19 names_test.test.imported void type id zero is a hit before visiting and depth...OK
+19/19 names_test.test.later field failure keeps completed child cache and retries without recursive markers...thread 280059 panic: attempt to use null value
+/Users/xiewendao/.codex/worktrees/current-complete-regression/zxc/packages/test/tests/language/types/resolution/names_test.zig:266:50: 0x108474ea8 in test.later field failure keeps completed child cache and retries without recursive markers (type-resolution-names)
+    const completed = types.resolved.get("Child").?;
+                                                 ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:295:25: 0x10844b16b in mainTerminal (type-resolution-names)
+        if (test_fn.func()) |_| {
+                        ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/test_runner.zig:74:28: 0x10844aadf in main (type-resolution-names)
+        return mainTerminal(init);
+                           ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/start.zig:789:88: 0x108448576 in callMain (type-resolution-names)
+    if (fn_info.param_types[0].? == std.process.Init.Minimal) return wrapMain(root.main(.{
+                                                                                       ^
+???:?:?: 0x7ff81a268780 in start (/usr/lib/dyld)
