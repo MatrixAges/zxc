@@ -1,0 +1,28 @@
+import integers from "zig:integers"
+
+export type Input = { values: u32[], mapping: u64[] }
+
+export type Output = u32[]?
+
+    export default function (in: Input): Output {
+        const values: u32[] = []
+
+        const result = loop({ source: in.values, mapping: in.mapping, values: values, index: 0, valid: true }, {
+            while: current => current.valid && current.index < current.source.length,
+            next: current => {
+                const id = integers.widen(current.source[current.index])
+
+                if (id >= current.mapping.length) {
+                    current.valid = false
+                } else if (current.mapping[id] == 0) {
+                    current.valid = false
+                } else {
+                    current.values = current.values.push(integers.narrow(current.mapping[id] - 1))[0]
+                }
+
+                current.index += 1
+            }
+        })
+
+        return result.valid ? result.values : null
+    }

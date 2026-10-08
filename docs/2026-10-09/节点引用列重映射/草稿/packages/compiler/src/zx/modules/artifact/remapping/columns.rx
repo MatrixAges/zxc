@@ -1,0 +1,21 @@
+<Module>
+    <Task name="types" out={$ctx.ids}>
+        <Call fn="ids" in={{ values: $in.types, mapping: $in.type_mapping }} />
+    </Task>
+
+    <Switch on={$ctx.task.types != null}>
+        <Case value={true}>
+            <Task name="functions" out={$ctx.ids}>
+                <Call fn="ids" in={{ values: $in.functions, mapping: $in.function_mapping }} />
+            </Task>
+
+            <Call fn="pack" in={{ types: $ctx.task.types, functions: $ctx.task.functions }} />
+
+            <Return value={$ctx.pack} />
+        </Case>
+
+        <Default>
+            <Return value={null} />
+        </Default>
+    </Switch>
+</Module>
