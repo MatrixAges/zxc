@@ -1,0 +1,7 @@
+export type Input = { items: i64[], context: { res: bool } }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    return in.items.map((item, context) => context.res, in.context)
+}
