@@ -1,0 +1,60 @@
+1/1 生成源核验.test.generated frontier sources retain physical line limits and stable formatting...0/0/leaf.zxexport enum Noise { Unused }
+
+export enum Mode { First, Second, Third }
+
+export type Leaf = { mode: Mode, value: u64 }
+0/0/main.zximport type { Leaf } from "./leaf"
+import type { Mode } from "./leaf"
+
+export type ScalarZero = void
+
+export type Root = {
+}
+1/1/leaf.zxexport enum Noise { Unused }
+
+export enum Mode { First, Second, Third }
+
+export type Leaf = { mode: Mode, value: u64 }
+1/1/nodes/n_0.zximport type { Mode } from "../leaf"
+import type { Leaf } from "../leaf"
+
+export type Node0 = Leaf?
+
+====== expected this output: =========
+import type { Node0 } from "./nodes/n_0"
+import type { Mode } from "./leaf"
+
+export type ScalarZero = void
+
+export type Root = {
+    f000: Node0
+}
+␃
+
+======== instead found this: =========
+import type { Mode } from "./leaf"
+import type { Node0 } from "./nodes/n_0"
+
+export type ScalarZero = void
+
+export type Root = {
+    f000: Node0
+}
+␃
+
+======================================
+First difference occurs on line 1:
+expected:
+import type { Node0 } from "./nodes/n_0"
+              ^ ('\x4e')
+found:
+import type { Mode } from "./leaf"
+              ^ ('\x4d')
+FAIL (TestExpectedEqual)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:696:9: 0x107c99e15 in expectEqualStrings (test)
+        return error.TestExpectedEqual;
+        ^
+/Users/xiewendao/.codex/worktrees/type-frontier-fixed-conformance/zxc/packages/test/../../../../../../Documents/MatrixAges/zxc/docs/2026-10-09/类型提取深依赖修复复验/生成源核验.zig:28:13: 0x107c9a603 in test.generated frontier sources retain physical line limits and stable formatting (test)
+            try std.testing.expectEqualStrings(file.source, result.source);
+            ^
+0 passed; 0 skipped; 1 failed.
