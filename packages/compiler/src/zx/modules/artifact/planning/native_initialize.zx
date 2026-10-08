@@ -1,0 +1,14 @@
+import integers from "zig:integers"
+
+import type { NativePlan } from "./model"
+
+export type Input = { specifiers: string[] }
+
+export type Output = NativePlan
+
+export default function (in: Input): Output {
+    const mapping: u64[] = in.specifiers.map(value => 0)
+    const order: u32[] = in.specifiers.map(value => integers.narrow(0))
+
+    return { mapping: mapping, order: order, count: 0 }
+}

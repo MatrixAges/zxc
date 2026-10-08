@@ -3,9 +3,9 @@
 
     <Switch on={$ctx.ready}>
         <Case value={true}>
-            <Call fn="native_types" in={$in} />
+            <Call fn="native_dependencies" in={$in} />
 
-            <Return value={$ctx.native_types} />
+            <Return value={$ctx.native_dependencies} />
         </Case>
 
         <Default>

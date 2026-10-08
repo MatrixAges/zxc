@@ -1,0 +1,16 @@
+<Module>
+    <Call fn="../../../analysis/semantic/extracting/planning/ready" in={$in.state} />
+
+    <Switch on={$ctx.ready}>
+        <Case value={true}>
+            <Call fn="type_imports" in={{ request: $in.request, state: $in.state, ids: $in.type_imports }} />
+            <Call module="declared_native" in={{ request: $in.request, state: $ctx.type_imports, modules: $in.modules, natives: $in.natives, dependencies: $in.dependencies }} />
+
+            <Return value={$ctx.declared_native} />
+        </Case>
+
+        <Default>
+            <Return value={{ state: $in.state, natives: $in.natives }} />
+        </Default>
+    </Switch>
+</Module>

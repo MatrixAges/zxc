@@ -1,0 +1,40 @@
+import { Status } from "../../../analysis/semantic/extracting/planning/model"
+import key from "../../../ir/canonical/native/key"
+import includeNative from "./native_include"
+
+import type { Request, State } from "../../../analysis/semantic/extracting/planning/model"
+import type { Modules } from "../../../ir/canonical/native/model"
+import type { Dependencies, NativePlan } from "./model"
+
+export type Input = { request: Request, state: State, modules: Modules, natives: NativePlan, dependencies: Dependencies }
+
+export type Output = { state: State, natives: NativePlan }
+
+export default function (in: Input): Output {
+    const result = loop({ request: in.request, plan: in.state, modules: in.modules, natives: in.natives, dependencies: in.dependencies, index: 0, module: 0, found: false }, {
+        while: current => current.plan.status == Status.Ready && current.index < current.dependencies.is_native.length,
+        next: current => {
+            if (!current.dependencies.is_native[current.index] || current.module >= current.modules.specifiers.length) {
+                if (current.dependencies.is_native[current.index] && !current.found) {
+                    current.plan.status = Status.Invalid
+                }
+
+                current.index += 1
+                current.module = 0
+                current.found = false
+            } else {
+                if (key({ modules: current.modules, index: current.module }) == current.dependencies.keys[current.index]) {
+                    const included = includeNative({ request: current.request, state: current.plan, modules: current.modules, natives: current.natives, index: current.module })
+
+                    current.plan = included.state
+                    current.natives = included.natives
+                    current.found = true
+                }
+
+                current.module += 1
+            }
+        }
+    })
+
+    return { state: result.plan, natives: result.natives }
+}

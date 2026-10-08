@@ -1,0 +1,22 @@
+import integers from "zig:integers"
+
+import { Status } from "../../../analysis/semantic/extracting/planning/model"
+import visit from "../../../analysis/semantic/extracting/planning/visit"
+
+import type { Request, State } from "../../../analysis/semantic/extracting/planning/model"
+
+export type Input = { request: Request, state: State, ids: u32[] }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const result = loop({ request: in.request, plan: in.state, ids: in.ids, index: 0 }, {
+        while: current => current.plan.status == Status.Ready && current.index < current.ids.length,
+        next: current => {
+            current.plan = visit({ request: current.request, state: current.plan, index: integers.widen(current.ids[current.index]) })
+            current.index += 1
+        }
+    })
+
+    return result.plan
+}
