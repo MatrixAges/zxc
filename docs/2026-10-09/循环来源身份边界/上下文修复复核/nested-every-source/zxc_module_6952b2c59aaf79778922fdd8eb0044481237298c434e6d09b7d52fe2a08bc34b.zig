@@ -1,0 +1,12 @@
+const std = @import("std");
+const zx_abi = @import("zxc_abi");
+const zx_native = @import("host");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_621c5078f74fc0a9222f36935ec2bc6c3488c2caed46189d78084b21a67008e3) error{ NativeFailure, }!*const (zx_abi).zx_type_621c5078f74fc0a9222f36935ec2bc6c3488c2caed46189d78084b21a67008e3 {
+    const native_result = (try (zx_native).echo(in));
+
+    _ = allocator;
+
+    return native_result;
+}
+

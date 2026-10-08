@@ -1,0 +1,12 @@
+const std = @import("std");
+const zx_abi = @import("zxc_abi");
+const zx_native = @import("library_native_548342be9273bad8c4760e8d54cb1f8c7458a71351c177953725e1b8a55cdc8b");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_a17a638feca3659c82c168d52479e07d4ef7a83817db4750e5bc21bee42a6d2e) error{ NativeFailure, }!bool {
+    const native_result = (try (zx_native).predicate((in).@"0", (in).@"1"));
+
+    _ = allocator;
+
+    return native_result;
+}
+

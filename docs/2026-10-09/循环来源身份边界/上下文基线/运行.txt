@@ -1,0 +1,13 @@
+1/1 measurement.test.scalar predicate capture capacity does not grow with visits...count=0 capacity=60
+count=1 capacity=160
+count=64 capacity=14868
+count=257 capacity=17672
+count=4096 capacity=330548
+FAIL (TestUnexpectedResult)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1085986ff in expect (root)
+    if (!ok) return error.TestUnexpectedResult;
+             ^
+/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/docs/2026-10-09/循环来源身份边界/上下文基线/../../../../../../../../Documents/MatrixAges/zxc/docs/2026-10-09/集合上下文借用与库消费/容量观察/measurement.zig:33:5: 0x108598e91 in test.scalar predicate capture capacity does not grow with visits (root)
+    try std.testing.expect(last_capacity <= first_capacity);
+    ^
+0 passed; 0 skipped; 1 failed.
