@@ -69,7 +69,7 @@ list_operation 统一产生 `[新列表, 业务值]`。push、sort、reverse、c
 
 concat/splice 的结果缓冲区可以容纳标量或引用槽；聚合借用参数使结果保守地保持借用状态。普通参数只读求值，接收者也可以作为其它参数再次使用；Task 的线性校验不适用于普通列表。当前后端完整的聚合引用表示还在迁移，不能把已有值布局当作最终 ABI。
 
-transform 参数只在自身回调体可见：map/filter/every/some 各一个元素参数，reduce 为累加值和元素两个参数。target 与 initial 在外层求值。回调体不能引用外层符号或 Store slot；验证不能因为 ExprId 已访问而跳过不同作用域的检查。
+transform 参数只在自身回调体可见：map/filter/every/some 无 initial 时只有元素参数；有 initial 时按顺序为元素与显式上下文，initial 类型必须与上下文参数一致且不能为 Task。reduce 始终为累加值和元素两个参数，initial 与结果类型一致。target 与 initial 在外层依次求值一次；非 reduce 的 initial 按共享借用处理，reduce 保留累加器语义。回调体不能引用外层符号或 Store slot；验证不能因为 ExprId 已访问而跳过不同作用域的检查。
 
 every/some 的回调必须返回 bool，不做隐式 truthiness 转换。every 的空列表结果为 true，some 为 false；按输入顺序只求值到首个决定结果的元素，之后不再调用回调，先于决定结果发生的错误直接传播。二者返回 copy bool，不创建结果容器；回调自身的显式分配与错误仍保留。
 

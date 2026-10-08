@@ -11,7 +11,16 @@ export default function (in: Input): Output {
 }
 ```
 
-`map` 和 `filter` 接受单参数回调；`reduce` 接受双参数回调和显式初始累加值。回调体必须是表达式，不能捕获外部值或 Store 句柄，但可以调用导入的函数。
+`map`、`filter`、`every`、`some` 接受单参数回调，也可显式传入上下文：
+
+```typescript
+values.map((item, context) => item + context, offset)
+values.filter((item, context) => item > context.minimum, settings)
+```
+
+提供上下文时，回调参数固定为元素与上下文。上下文在遍历前求值一次，以只读借用传给各次回调；空列表与谓词短路也不会省略上下文求值。Task 句柄不能用作共享上下文。`reduce` 仍接受累加器、元素两个回调参数与显式初值。
+
+回调体必须是表达式，不能隐式捕获外部值或 Store 句柄，但可以调用导入的函数。引用结果的借用范围及代码生成边界见[集合显式上下文参考](https://github.com/MatrixAges/zxc/blob/master/docs/2026-10-08/集合显式上下文/使用参考.md)。
 
 ### 按状态条件重复执行
 
@@ -19,11 +28,11 @@ export default function (in: Input): Output {
 
 ```typescript
 const result = loop(initial, {
-	while: state => state.remaining > 0,
-	next: state => {
-		state.remaining -= 1
-		state.processed += 1
-	}
+    while: state => state.remaining > 0,
+    next: state => {
+        state.remaining -= 1
+        state.processed += 1
+    }
 })
 ```
 
