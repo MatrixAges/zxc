@@ -1,0 +1,68 @@
+import integers from "zig:integers"
+
+import { Kind } from "../types/model"
+import reference from "./reference"
+
+import type { Entry } from "../entries/model"
+import type { Table } from "../types/model"
+import type { Mapping } from "./model"
+
+export type Input = { source: Entry, delta: Table, mapping: Mapping }
+
+export type Output = Table
+
+export default function (in: Input): Output {
+    const source = in.source
+
+    const first = match source.kind {
+        Kind.Object => integers.narrow(in.delta.field_types.length),
+        Kind.Tuple => integers.narrow(in.delta.children.length),
+        Kind.ErrorSet => integers.narrow(in.delta.names.length),
+        Kind.Enumeration => integers.narrow(in.delta.names.length),
+        Kind.Optional => reference({ mapping: in.mapping, id: source.first }),
+        Kind.List => reference({ mapping: in.mapping, id: source.first }),
+        Kind.Task => reference({ mapping: in.mapping, id: source.first }),
+        _ => source.first
+    }
+
+    const code: u8 = match source.kind {
+        Kind.Scalar => 0,
+        Kind.Object => 1,
+        Kind.Optional => 2,
+        Kind.List => 3,
+        Kind.Tuple => 4,
+        Kind.ErrorSet => 5,
+        Kind.Task => 6,
+        Kind.Enumeration => 7,
+        _ => 8
+    }
+
+    const second = source.kind == Kind.Task ? reference({ mapping: in.mapping, id: source.second }) : source.second
+    const members = source.kind == Kind.Object || source.kind == Kind.Tuple || source.kind == Kind.ErrorSet || source.kind == Kind.Enumeration
+
+    const state = loop({ source: source, mapping: in.mapping, delta: in.delta, index: 0, count: members ? source.count : 0 }, {
+        while: current => current.index < current.count,
+        next: current => {
+            const index = current.source.offset + current.index
+
+            if (current.source.kind == Kind.Object) {
+                current.delta.field_names = current.delta.field_names.push(current.source.field_names[index])[0]
+                current.delta.field_types = current.delta.field_types.push(reference({ mapping: current.mapping, id: current.source.field_types[index] }))[0]
+            } else if (current.source.kind == Kind.Tuple) {
+                current.delta.children = current.delta.children.push(reference({ mapping: current.mapping, id: current.source.children[index] }))[0]
+            } else {
+                current.delta.names = current.delta.names.push(current.source.names[index])[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        ...state.delta,
+        kinds: state.delta.kinds.push(code)[0],
+        first: state.delta.first.push(first)[0],
+        second: state.delta.second.push(second)[0],
+        labels: state.delta.labels.push(source.label)[0]
+    }
+}

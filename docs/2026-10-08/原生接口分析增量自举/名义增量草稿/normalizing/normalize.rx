@@ -1,0 +1,16 @@
+<Module>
+    <Call fn="normalize" in={{ base: $in.base, delta: $in.delta, origins: $in.origins, origin: $in.origin }} />
+
+    <Switch on={$ctx.normalize.conflict}>
+        <Case value={true}>
+            <Return value={{ delta: $in.delta, cache: $in.cache, id: $in.id, origins: $ctx.normalize.origins, diagnostic: { code: "type_mismatch", message: "shared nominal declaration has incompatible identity or members", start: 0, end: 0 } }} />
+        </Case>
+
+        <Default>
+            <Call fn="cache" in={{ cache: $in.cache, mapping: { first: $in.base.kinds.length, ids: $ctx.normalize.mapping } }} />
+            <Call fn="reference" in={{ id: $in.id, mapping: { first: $in.base.kinds.length, ids: $ctx.normalize.mapping } }} />
+
+            <Return value={{ delta: $ctx.normalize.delta, cache: $ctx.cache, id: $ctx.reference, origins: $ctx.normalize.origins, diagnostic: { code: "", message: "", start: 0, end: 0 } }} />
+        </Default>
+    </Switch>
+</Module>
