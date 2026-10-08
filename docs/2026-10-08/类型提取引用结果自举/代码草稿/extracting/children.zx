@@ -1,0 +1,23 @@
+import workspace from "zig:extract_workspace"
+import integers from "zig:integers"
+
+import type { Workspace } from "zig:extract_workspace"
+
+export type Input = { values: u32[], offset: u64, count: u64, workspace: Workspace }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const values = in.values.splice(in.offset, in.count, [])[1]
+    const output: u32[] = values.map(id => 0)
+
+    const state = loop({ values: values, output: output, workspace: in.workspace, index: 0 }, {
+        while: current => current.index < current.values.length,
+        next: current => {
+            current.output[current.index] = integers.narrow(workspace.getMapping(current.workspace, integers.widen(current.values[current.index])))
+            current.index += 1
+        }
+    })
+
+    return state.output
+}
