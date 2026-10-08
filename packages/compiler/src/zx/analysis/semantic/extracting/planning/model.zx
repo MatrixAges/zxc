@@ -1,0 +1,21 @@
+import type { Table } from "../../types/model"
+import type { Bindings } from "../../types/nominal/model"
+
+export enum Status { Invalid, MissingOrigin, Ready }
+
+export type State = {
+    mapping: u64[]
+    order: u32[]
+    origins: u64[]
+    count: u64
+    status: Status
+}
+
+export type Request = {
+    table: Table
+    origins: Bindings
+    names: string[]
+    index: u64
+    scalar_count: u64
+    maximum_count: u64
+}

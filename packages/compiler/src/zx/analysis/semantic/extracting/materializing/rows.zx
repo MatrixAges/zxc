@@ -1,0 +1,69 @@
+import integers from "zig:integers"
+
+import kind from "../../types/kind"
+import { Kind } from "../../types/model"
+
+import type { Table } from "../../types/model"
+import type { State } from "../planning/model"
+
+export type Input = { table: Table, plan: State }
+
+export type Output = Table
+
+export default function (in: Input): Output {
+    const empty: Table = { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }
+
+    const result = loop({ source: in.table, plan: in.plan, table: empty, index: 0, member: 0 }, {
+        while: current => current.index < current.plan.count,
+        next: current => {
+            const id = integers.widen(current.plan.order[current.index])
+            const code = current.source.kinds[id]
+            const type_kind = kind(code)
+            const first = current.source.first[id]
+            const second = current.source.second[id]
+            const dynamic = type_kind == Kind.Tuple || type_kind == Kind.Object || type_kind == Kind.ErrorSet || type_kind == Kind.Enumeration
+            const fixed = type_kind == Kind.Optional || type_kind == Kind.List || type_kind == Kind.Task
+            const offset = match type_kind {
+                Kind.Tuple => current.table.children.length,
+                Kind.Object => current.table.field_types.length,
+                _ => current.table.names.length
+            }
+            const fixed_first = fixed ? integers.narrow(current.plan.mapping[integers.widen(first)] - 1) : first
+            const mapped_first = dynamic ? integers.narrow(offset) : fixed_first
+            const mapped_second = type_kind == Kind.Task ? integers.narrow(current.plan.mapping[integers.widen(second)] - 1) : second
+
+            if (current.member == 0) {
+                current.table.kinds = current.table.kinds.push(code)[0]
+                current.table.first = current.table.first.push(mapped_first)[0]
+                current.table.second = current.table.second.push(mapped_second)[0]
+                current.table.labels = current.table.labels.push(current.source.labels[id])[0]
+            }
+
+            if (dynamic && current.member < integers.widen(second)) {
+                const source_index = integers.widen(first) + current.member
+
+                if (type_kind == Kind.Tuple) {
+                    const child = integers.widen(current.source.children[source_index])
+
+                    current.table.children = current.table.children.push(integers.narrow(current.plan.mapping[child] - 1))[0]
+                } else if (type_kind == Kind.Object) {
+                    const child = integers.widen(current.source.field_types[source_index])
+
+                    current.table.field_types = current.table.field_types.push(integers.narrow(current.plan.mapping[child] - 1))[0]
+                    current.table.field_names = current.table.field_names.push(current.source.field_names[source_index])[0]
+                } else {
+                    current.table.names = current.table.names.push(current.source.names[source_index])[0]
+                }
+
+                current.member += 1
+            }
+
+            if (!dynamic || current.member >= integers.widen(second)) {
+                current.index += 1
+                current.member = 0
+            }
+        }
+    })
+
+    return result.table
+}

@@ -1,0 +1,32 @@
+import integers from "zig:integers"
+
+import type { Bindings } from "../../types/nominal/model"
+import type { State } from "../planning/model"
+
+export type Input = { origins: Bindings, plan: State }
+
+export type Output = Bindings
+
+export default function (in: Input): Output {
+    const empty: Bindings = { ids: [], kinds: [], owners: [], members: [] }
+
+    const result = loop({ source: in.origins, plan: in.plan, origins: empty, index: 0 }, {
+        while: current => current.index < current.plan.count,
+        next: current => {
+            const selected = current.plan.origins[current.index]
+
+            if (selected != 0) {
+                const source_index = selected - 1
+
+                current.origins.ids = current.origins.ids.push(integers.narrow(current.index))[0]
+                current.origins.kinds = current.origins.kinds.push(current.source.kinds[source_index])[0]
+                current.origins.owners = current.origins.owners.push(current.source.owners[source_index])[0]
+                current.origins.members = current.origins.members.push(current.source.members[source_index])[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.origins
+}

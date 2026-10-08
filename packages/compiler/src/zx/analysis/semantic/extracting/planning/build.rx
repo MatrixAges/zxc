@@ -1,0 +1,6 @@
+<Module>
+    <Call fn="initialize" in={{ kinds: $in.table.kinds, scalar_count: $in.scalar_count }} />
+    <Call fn="visit" in={{ request: $in, state: $ctx.initialize }} />
+
+    <Return value={$ctx.visit} />
+</Module>

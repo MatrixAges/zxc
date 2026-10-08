@@ -1,0 +1,60 @@
+import integers from "zig:integers"
+
+import kind from "../../types/kind"
+import { Kind } from "../../types/model"
+import dependencies from "../dependencies"
+import origin from "../origin"
+import { Status } from "./model"
+
+import type { State, Request } from "./model"
+
+export type Input = { request: Request, state: State }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const ids: u64[] = [in.request.index]
+    const ready: bool[] = [false]
+
+    const state = loop({ request: in.request, plan: in.state, pending: { ids: ids, ready: ready } }, {
+        while: current => current.plan.status == Status.Ready && current.pending.ids.length > 0,
+        next: current => {
+            const last = current.pending.ids.length - 1
+            const index = current.pending.ids[last]
+            const ready = current.pending.ready[last]
+
+            current.pending.ids = current.pending.ids.pop()[0]
+            current.pending.ready = current.pending.ready.pop()[0]
+
+            if (current.plan.mapping[index] == 0) {
+                if (!ready) {
+                    current.pending.ids = current.pending.ids.push(index)[0]
+                    current.pending.ready = current.pending.ready.push(true)[0]
+                    current.pending = dependencies({ table: current.request.table, index: index, pending: current.pending })
+                } else {
+                    const mapped = current.plan.count
+
+                    current.plan.mapping[index] = mapped + 1
+                    current.plan.order[mapped] = integers.narrow(index)
+                    current.plan.count += 1
+
+                    const type_kind = kind(current.request.table.kinds[index])
+
+                    if (type_kind == Kind.Enumeration || type_kind == Kind.NativeReference) {
+                        const selected = origin({ origins: current.request.origins, names: current.request.names, index: index, name: current.request.table.labels[index] })
+
+                        if (selected == 0) {
+                            current.plan.status = Status.MissingOrigin
+                        } else if (selected == 1) {
+                            current.plan.status = Status.Invalid
+                        } else {
+                            current.plan.origins[mapped] = selected - 1
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    return state.plan
+}

@@ -1,0 +1,26 @@
+import integers from "zig:integers"
+
+import { Status } from "./model"
+
+import type { State } from "./model"
+
+export type Input = { kinds: u8[], scalar_count: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const mapping: u64[] = in.kinds.map(item => 0)
+    const order: u32[] = in.kinds.map(item => integers.narrow(0))
+    const origins: u64[] = in.kinds.map(item => 0)
+
+    const initialized = loop({ mapping: mapping, order: order, index: 0, scalar_count: in.scalar_count }, {
+        while: current => current.index < current.scalar_count,
+        next: current => {
+            current.mapping[current.index] = current.index + 1
+            current.order[current.index] = integers.narrow(current.index)
+            current.index += 1
+        }
+    })
+
+    return { mapping: initialized.mapping, order: initialized.order, origins: origins, count: in.scalar_count, status: Status.Ready }
+}

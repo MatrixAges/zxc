@@ -1,0 +1,6 @@
+<Module>
+    <Call fn="rows" in={{ table: $in.table, plan: $in.plan }} />
+    <Call fn="nominal" in={{ origins: $in.origins, plan: $in.plan }} />
+
+    <Return value={{ table: $ctx.rows, origins: $ctx.nominal }} />
+</Module>
