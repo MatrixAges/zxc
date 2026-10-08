@@ -1,0 +1,46 @@
+import integers from "zig:integers"
+
+import ids from "../remapping/ids"
+
+import type { Modules } from "../../../ir/canonical/native/model"
+import type { NativePlan } from "../planning/model"
+
+export type Input = { modules: Modules, plan: NativePlan, mapping: u64[] }
+
+export type Output = Modules?
+
+export default function (in: Input): Output {
+    const empty: Modules = { identities: [], import_names: [], specifiers: [], type_ids: [], type_names: [], type_namespaces: [] }
+
+    const result = loop({ source: in.modules, plan: in.plan, mapping: in.mapping, identities: empty.identities, import_names: empty.import_names, specifiers: empty.specifiers, type_ids: empty.type_ids, type_names: empty.type_names, type_namespaces: empty.type_namespaces, index: 0, valid: in.plan.count <= in.plan.order.length }, {
+        while: current => current.valid && current.index < current.plan.count,
+        next: current => {
+            const selected = integers.widen(current.plan.order[current.index])
+
+            if (selected >= current.source.specifiers.length) {
+                current.valid = false
+            } else {
+                const mapped = ids({ values: current.source.type_ids[selected], mapping: current.mapping })
+
+                if (mapped == null) {
+                    current.valid = false
+                } else {
+                    current.identities = current.identities.push(current.source.identities[selected])[0]
+                    current.import_names = current.import_names.push(current.source.import_names[selected])[0]
+                    current.specifiers = current.specifiers.push(current.source.specifiers[selected])[0]
+                    current.type_ids = current.type_ids.push(mapped)[0]
+                    current.type_names = current.type_names.push(current.source.type_names[selected])[0]
+                    current.type_namespaces = current.type_namespaces.push(current.source.type_namespaces[selected])[0]
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    if (!result.valid) {
+        return null
+    }
+
+    return { identities: result.identities, import_names: result.import_names, specifiers: result.specifiers, type_ids: result.type_ids, type_names: result.type_names, type_namespaces: result.type_namespaces }
+}
