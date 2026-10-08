@@ -1,0 +1,11 @@
+import workspace from "zig:extract_workspace"
+
+import type { Workspace } from "zig:extract_workspace"
+
+export type Input = { workspace: Workspace, index: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return workspace.hasMapping(in.workspace, in.index) ? workspace.getMapping(in.workspace, in.index) + 2 : 0
+}
