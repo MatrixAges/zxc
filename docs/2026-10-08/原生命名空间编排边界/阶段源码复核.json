@@ -1,0 +1,31 @@
+{
+    "source_commit": "0463f9635a752bca1084e1d82b9626cf45f168f8",
+    "files": {
+        "packages/compiler/src/zx/modules/native/interface.rx": "98382c06a41aed50e4f556314e091022b4dccd35f43eeb86e9e37953c9ac50b9",
+        "packages/compiler/src/zx/modules/native/interface/namespace.zx": "ae4c6fcc0dee0d9bfc70f1f367ab7f49f5b8a128ddda9ce495e8d82f8b4cebb7",
+        "packages/compiler/src/zx/modules/native.zig": "d82230390093b49129e7cb8c2298147e07b7eb0fbacacdd70a0e64a9d03fce02",
+        "packages/compiler/src/zx/modules/native/interface.zig": "dc90c41e2544c41917db001a8f16586fb67a7756a9440af6f25266a9ea26ecf1"
+    },
+    "order": [
+        "source parse",
+        "native declaration validation",
+        "type initialization",
+        "RX namespace decision",
+        "RX export index",
+        "RX export resolution",
+        "RX signature resolution"
+    ],
+    "namespace_contract": {
+        "empty_path": "accepted",
+        "empty_member": "rejected",
+        "embedded_nul": "rejected",
+        "invalid_utf8": "rejected",
+        "identifier_grammar_required": false
+    },
+    "named_tests": 27,
+    "invalid_byte_patterns": 16,
+    "invalid_pattern_positions": 3,
+    "import_modes": 2,
+    "invalid_validation_observations": 96,
+    "runtime_abi_for_each_unicode_member_proven": false
+}
