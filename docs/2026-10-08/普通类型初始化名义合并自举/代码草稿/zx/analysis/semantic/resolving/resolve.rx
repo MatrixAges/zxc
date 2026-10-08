@@ -1,0 +1,27 @@
+<Module>
+    <Call fn="initial" in={$in} />
+
+    <Switch on={$in.initialize}>
+        <Case value={true}>
+            <Call module="initialize" in={$ctx.initial} />
+
+            <Switch on={$ctx.initialize.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Call fn="declarations" in={$ctx.initialize} />
+
+                    <Return value={{ delta: $ctx.declarations.delta, cache: $ctx.declarations.cache, id: $ctx.declarations.result, diagnostic: $ctx.declarations.diagnostic }} />
+                </Case>
+
+                <Default>
+                    <Return value={{ delta: $ctx.initialize.delta, cache: $ctx.initialize.cache, id: $ctx.initialize.result, diagnostic: $ctx.initialize.diagnostic }} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Call fn="run" in={$ctx.initial} />
+
+            <Return value={{ delta: $ctx.run.delta, cache: $ctx.run.cache, id: $ctx.run.result, diagnostic: $ctx.run.diagnostic }} />
+        </Default>
+    </Switch>
+</Module>

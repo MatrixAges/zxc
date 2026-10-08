@@ -1,11 +1,8 @@
 const zx = @import("zx");
-const Types = @import("types.zig");
-const Pool = @import("../modules/link/types.zig");
-const Origins = @import("../modules/nominal_origins.zig");
+const Types = @import("../types.zig");
+const Pool = @import("../../modules/link/types.zig");
 
-pub const Shared = struct { origins: *Origins, origin: Origins.Origin };
-
-pub fn resolve(types: *Types, first: usize, shared: Shared) zx.Error!void {
+pub fn resolve(types: *Types, first: usize, shared: Types.Shared) zx.Error!void {
     const origin_count = shared.origins.items.view().count();
 
     errdefer shared.origins.items.retainPrefix(origin_count);
