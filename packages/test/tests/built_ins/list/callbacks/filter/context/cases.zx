@@ -1,0 +1,7 @@
+export type Input = { items: i64[], context: { res: bool } }
+
+export type Output = i64[]
+
+export default function (in: Input): Output {
+    return in.items.filter((item, context) => context.res, in.context)
+}
