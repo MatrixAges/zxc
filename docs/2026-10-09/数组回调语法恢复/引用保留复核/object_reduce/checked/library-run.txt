@@ -1,0 +1,13 @@
+1/12 root.test.object reduce empty source preserves initial value...OK
+2/12 root.test.object reduce one step preserves borrowed fields...OK
+3/12 root.test.object reduce every new field observes old accumulator...OK
+4/12 root.test.object reduce mixed branch transitions retain values...OK
+5/12 root.test.object reduce long sequence keeps immutable seed...OK
+6/12 root.test.object reduce all zero steps preserve conditional initial alias...OK
+7/12 root.test.object reduce all failed allocations release the arena...OK
+8/12 root.test.object reduce zero branch allocation failures release the arena...OK
+9/12 capacity.test.object reduce allocation remains bounded as source grows...OK
+10/12 capacity.test.object reduce bounded allocation does not require in place resize...OK
+11/12 failure.test.object reduce index failure preserves seed and permits recovery...OK
+12/12 failure.test.object reduce error and recovery release all failed allocations...OK
+All 12 tests passed.

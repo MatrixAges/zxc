@@ -1,0 +1,51 @@
+const std = @import("std");
+const zx_abi = @import("zxc_abi");
+pub const Input = []const i64;
+pub const Output = *const (zx_abi).zx_type_12;
+pub const requires_io = false;
+pub const requires_process = false;
+const zx_shape_0 = .{ .kind = .scalar, };
+const zx_shape_1 = .{ .kind = .scalar, };
+const zx_shape_2 = .{ .kind = .scalar, };
+const zx_shape_3 = .{ .kind = .scalar, };
+const zx_shape_4 = .{ .kind = .scalar, };
+const zx_shape_5 = .{ .kind = .scalar, };
+const zx_shape_6 = .{ .kind = .scalar, };
+const zx_shape_7 = .{ .kind = .scalar, };
+const zx_shape_8 = .{ .kind = .scalar, };
+const zx_shape_9 = .{ .kind = .scalar, };
+const zx_shape_10 = .{ .kind = .string, };
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_7, };
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .original = zx_shape_11, .reversed = zx_shape_11, }, };
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_11, .@"1" = zx_shape_0, }, };
+pub const input_shape = zx_shape_11;
+pub const output_shape = zx_shape_12;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: []const i64) error{ OutOfMemory, }!*const (zx_abi).zx_type_12 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return block_8: {
+        const operand_1 = in;
+
+        const operand_2 = (block_5: {
+            const operand_3 = in;
+            const operand_4 = (try (allocator).alloc(i64, (operand_3).len));
+
+            @memcpy(operand_4, operand_3);
+            ((std).mem).reverse(i64, operand_4);
+
+            break :block_5 @as((zx_abi).zx_type_13, .{ operand_4, {}, });
+        }).@"0";
+
+        break :block_8 block_7: {
+            const operand_6 = (try (allocator).create((zx_abi).zx_type_12));
+
+            (operand_6).* = @as((zx_abi).zx_type_12, (zx_abi).zx_type_12{ .original = operand_1, .reversed = operand_2, });
+
+            break :block_7 @as(*const (zx_abi).zx_type_12, operand_6);
+        };
+    };
+}
+
