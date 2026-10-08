@@ -1,0 +1,14 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+const zx_native = @import("host");
+
+pub fn call(allocator: ((std).mem).Allocator, in: []const []const u8) error{ SourceFailure, }![]const []const u8 {
+    const native_result = (try (zx_native).source(in));
+
+    _ = allocator;
+
+    return native_result;
+}
+
