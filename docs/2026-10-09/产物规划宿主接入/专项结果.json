@@ -1,0 +1,32 @@
+[
+    {
+        "name": "invalid",
+        "run": 0,
+        "log": "1/6 invalid_test.test.extract rejects diagnostic analysis...OK\n2/6 invalid_test.test.extract rejects out of range module index...OK\n3/6 invalid_test.test.extract rejects invalid complete IR before copying...OK\n4/6 invalid_test.test.referenced enum requires a nominal declaration origin...OK\n5/6 invalid_test.test.unreferenced enum without origin does not block a scalar helper...OK\n6/6 invalid_test.test.duplicate origin for a referenced enum is rejected...OK\nAll 6 tests passed.\n"
+    },
+    {
+        "name": "resources",
+        "run": 0,
+        "log": "1/2 resources_test.test.entry artifact extraction cleans every allocation failure...OK\n2/2 resources_test.test.type artifact extraction cleans every allocation failure...OK\nAll 2 tests passed.\n"
+    },
+    {
+        "name": "mixed",
+        "run": 0,
+        "log": "1/10 extract_test.test.real entry artifact closes every type tag and preserves shared children...OK\n2/10 extract_test.test.earlier noise declaration shifts enum and composite local ids...OK\n3/10 extract_test.test.pure type artifact keeps source graph and excludes entry task types...OK\n4/10 extract_test.test.task captures and native call signatures use local artifact references...OK\n5/10 extract_test.test.entry artifact owns native descriptors origins and checked imports after analysis release...OK\n6/10 extract_test.test.pure type artifact owns graph and native metadata after analysis release...OK\n7/10 extract_test.test.missing required native nominal origin rejects real analysis extraction...OK\n8/10 extract_test.test.duplicate required native nominal origin rejects real analysis extraction...OK\n9/10 extract_test.test.wrong required native nominal name rejects real analysis extraction...OK\n10/10 extract_test.test.missing unneeded noise origin does not reject entry extraction...OK\nAll 10 tests passed.\n"
+    },
+    {
+        "name": "mixed-resources",
+        "run": 0,
+        "log": "1/3 resources_test.test.entry extraction alone cleans every allocation failure and preserves input columns...OK\n2/3 resources_test.test.pure type extraction alone cleans every allocation failure and preserves input columns...OK\n3/3 resources_test.test.missing native origin extraction cleans every allocation failure and preserves input columns...OK\nAll 3 tests passed.\n"
+    },
+    {
+        "name": "slots",
+        "run": 0,
+        "log": "1/5 slots_test.test.entry artifact preserves store permissions and slot identities...OK\n2/5 slots_test.test.ordinary helper artifact does not inherit entry capabilities...OK\n3/5 slots_test.test.slot types use local ids after unrelated helper enum is omitted...OK\n4/5 slots_test.test.copied get and set nodes reference matching local slots...OK\n5/5 slots_test.test.slot strings and object fields outlive original analysis mutation and release...OK\nAll 5 tests passed.\n"
+    },
+    {
+        "name": "cache-roundtrip",
+        "run": 0,
+        "log": "1/2 roundtrip_test.test.decoded type artifact owns strings after encoded bytes are destroyed...OK\n2/2 roundtrip_test.test.all decoded artifacts relink after original analysis and encoded bytes are freed...OK\nAll 2 tests passed.\n"
+    }
+]

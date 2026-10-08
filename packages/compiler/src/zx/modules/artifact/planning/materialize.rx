@@ -1,0 +1,16 @@
+<Module>
+    <Call module="plan" in={$in} />
+    <Call fn="../../../analysis/semantic/extracting/planning/ready" in={$ctx.plan.state} />
+
+    <Switch on={$ctx.ready}>
+        <Case value={true}>
+            <Call module="../../../analysis/semantic/extracting/materializing/materialize" in={{ table: $in.request.table, origins: $in.request.origins, plan: $ctx.plan.state }} />
+
+            <Return value={{ plan: $ctx.plan, value: $ctx.materialize }} />
+        </Case>
+
+        <Default>
+            <Return value={{ plan: $ctx.plan, value: null }} />
+        </Default>
+    </Switch>
+</Module>
