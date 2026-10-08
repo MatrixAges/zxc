@@ -1,0 +1,19 @@
+import writer from "zig:merge_writer"
+
+import type { Writer } from "zig:merge_writer"
+
+export type Input = { writer: Writer, first: u64 }
+
+export type Output = void
+
+export default function (in: Input): Output {
+    loop({ writer: in.writer, count: in.first, index: 0 }, {
+        while: current => current.index < current.count,
+        next: current => {
+            writer.setMapping(current.writer, current.index, current.index)
+            current.index += 1
+        }
+    })
+
+    return
+}
