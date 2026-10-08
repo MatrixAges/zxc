@@ -1,0 +1,40 @@
+import text from "../../../analysis/semantic/resolving/source/text"
+import errors from "./member_errors"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Function } from "../../../frontend/parser/native/model"
+import type { Signature } from "../signatures/model"
+
+export type Member = {
+    name: string
+    signature: Signature
+    allocator_argument: bool
+    io_argument: bool
+    process_argument: bool
+    expand_tuple: bool
+    fallible: bool
+    errors: string[]?
+        concurrent: bool
+}
+
+export type Input = { source: u8[], functions: Function[], errors: Span[], signatures: Signature[] }
+
+export type Output = Member[]
+
+export default function (in: Input): Output {
+    const members: Member[] = []
+
+    const result = loop({ input: in, members: members, index: 0 }, {
+        while: current => current.index < current.input.functions.length,
+        next: current => {
+            const declaration = current.input.functions[current.index]
+            const name = text({ source: current.input.source, span: declaration.name }).text
+            const names: string[]? = declaration.errors_present ? errors({ source: current.input.source, declaration: declaration, errors: current.input.errors }) : null
+
+            current.members = current.members.push({ name: name, signature: current.input.signatures[current.index], allocator_argument: declaration.allocator_argument, io_argument: declaration.io_argument, process_argument: declaration.process_argument, expand_tuple: declaration.count > 1, fallible: declaration.fallible, errors: names, concurrent: declaration.concurrent })[0]
+            current.index += 1
+        }
+    })
+
+    return result.members
+}

@@ -1,0 +1,25 @@
+import text from "../../../analysis/semantic/resolving/source/text"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Function } from "../../../frontend/parser/native/model"
+
+export type Input = { source: u8[], declaration: Function, errors: Span[] }
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    const names: string[] = []
+
+    const result = loop({ input: in, names: names, index: 0 }, {
+        while: current => current.index < current.input.declaration.error_count,
+        next: current => {
+            const span = current.input.errors[current.input.declaration.first_error + current.index]
+            const name = text({ source: current.input.source, span: span }).text
+
+            current.names = current.names.push(name)[0]
+            current.index += 1
+        }
+    })
+
+    return result.names
+}
