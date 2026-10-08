@@ -1,0 +1,718 @@
+const std = @import("std");
+
+const zx_native_0 = @import("integers");
+
+const zx_abi = @import("zxc_abi");
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .scalar, };
+
+const zx_shape_12 = .{ .kind = .scalar, };
+
+const zx_shape_13 = .{ .kind = .scalar, };
+
+const zx_shape_14 = .{ .kind = .scalar, };
+
+const zx_shape_15 = .{ .kind = .scalar, };
+
+const zx_shape_16 = .{ .kind = .list, .child = zx_shape_11, };
+
+const zx_shape_17 = .{ .kind = .list, .child = zx_shape_4, };
+
+const zx_shape_18 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_19 = .{ .kind = .list, .child = zx_shape_9, };
+
+const zx_shape_20 = .{ .kind = .list, .child = zx_shape_10, };
+
+const zx_shape_21 = .{ .kind = .list, .child = zx_shape_1, };
+
+const zx_shape_22 = .{ .kind = .optional, .child = zx_shape_4, };
+
+const zx_shape_23 = .{ .kind = .list, .child = zx_shape_22, };
+
+const zx_shape_24 = .{ .kind = .list, .child = zx_shape_12, };
+
+const zx_shape_25 = .{ .kind = .list, .child = zx_shape_13, };
+
+const zx_shape_26 = .{ .kind = .list, .child = zx_shape_14, };
+
+const zx_shape_27 = .{ .kind = .list, .child = zx_shape_15, };
+
+const zx_shape_28 = .{ .kind = .object, .fields = .{ .awaits = zx_shape_17, .binary_left = zx_shape_17, .binary_operators = zx_shape_27, .binary_right = zx_shape_17, .booleans = zx_shape_21, .call_arguments = zx_shape_17, .call_functions = zx_shape_17, .call_store_count = zx_shape_17, .call_store_first = zx_shape_17, .call_stores = zx_shape_17, .cancellations = zx_shape_17, .captures = zx_shape_17, .collection_arguments = zx_shape_17, .collection_count = zx_shape_17, .collection_first = zx_shape_17, .collection_kinds = zx_shape_24, .collection_targets = zx_shape_17, .conditional_conditions = zx_shape_17, .conditional_no = zx_shape_17, .conditional_yes = zx_shape_17, .enumerations = zx_shape_17, .errors = zx_shape_17, .floats = zx_shape_19, .index_targets = zx_shape_17, .index_values = zx_shape_17, .integers = zx_shape_18, .iteration_bodies = zx_shape_17, .iteration_condition_parameters = zx_shape_17, .iteration_conditions = zx_shape_17, .iteration_initials = zx_shape_17, .iteration_parameters = zx_shape_17, .iteration_postconditions = zx_shape_21, .kinds = zx_shape_16, .lengths = zx_shape_17, .match_conditions = zx_shape_17, .match_count = zx_shape_17, .match_fallbacks = zx_shape_17, .match_first = zx_shape_17, .match_results = zx_shape_17, .match_subjects = zx_shape_23, .negative_integers = zx_shape_18, .object_count = zx_shape_17, .object_evaluation_count = zx_shape_17, .object_evaluation_first = zx_shape_17, .object_evaluation_values = zx_shape_17, .object_field_indices = zx_shape_17, .object_field_values = zx_shape_17, .object_first = zx_shape_17, .optional_values = zx_shape_17, .parallel_count = zx_shape_17, .parallel_fields = zx_shape_23, .parallel_first = zx_shape_17, .parallel_tasks = zx_shape_17, .payloads = zx_shape_17, .projection_indices = zx_shape_17, .projection_targets = zx_shape_17, .references = zx_shape_17, .scope_borrows = zx_shape_21, .scope_count = zx_shape_17, .scope_first = zx_shape_17, .scope_results = zx_shape_17, .scope_symbols = zx_shape_23, .scope_values = zx_shape_17, .sequence_count = zx_shape_17, .sequence_first = zx_shape_17, .sequence_items = zx_shape_17, .some = zx_shape_17, .span_end = zx_shape_18, .span_start = zx_shape_18, .stores = zx_shape_17, .strings = zx_shape_20, .task_bodies = zx_shape_17, .task_capture_count = zx_shape_17, .task_capture_first = zx_shape_17, .task_captures = zx_shape_17, .transform_bodies = zx_shape_17, .transform_count = zx_shape_17, .transform_first = zx_shape_17, .transform_initials = zx_shape_23, .transform_kinds = zx_shape_25, .transform_parameters = zx_shape_17, .transform_targets = zx_shape_17, .types = zx_shape_17, .unary_operands = zx_shape_17, .unary_operators = zx_shape_26, .update_indices = zx_shape_17, .update_targets = zx_shape_17, .update_values = zx_shape_17, }, };
+
+const zx_shape_29 = .{ .kind = .object, .fields = .{ .allowed = zx_shape_21, .concurrent = zx_shape_1, .expressions = zx_shape_28, .limit = zx_shape_5, }, };
+
+const zx_shape_30 = .{ .kind = .object, .fields = .{ .allowed = zx_shape_21, .concurrent = zx_shape_1, .expressions = zx_shape_28, .index = zx_shape_5, .limit = zx_shape_5, .valid = zx_shape_1, }, };
+
+const zx_shape_31 = .{ .kind = .object, .fields = .{ .handles = zx_shape_20, .paths = zx_shape_20, .readable = zx_shape_21, .types = zx_shape_17, .writable = zx_shape_21, }, };
+
+const zx_shape_32 = .{ .kind = .list, .child = zx_shape_31, };
+
+const zx_shape_33 = .{ .kind = .list, .child = zx_shape_28, };
+
+const zx_shape_34 = .{ .kind = .object, .fields = .{ .expressions = zx_shape_33, .native_concurrent = zx_shape_21, .native_modules = zx_shape_23, .stores = zx_shape_32, }, };
+
+const zx_shape_35 = .{ .kind = .object, .fields = .{ .concurrent = zx_shape_1, .functions = zx_shape_34, }, };
+
+const zx_shape_36 = .{ .kind = .object, .fields = .{ .index = zx_shape_5, .result = zx_shape_21, .source = zx_shape_23, }, };
+
+const zx_shape_37 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_21, .@"1" = zx_shape_0, }, };
+
+const zx_shape_38 = .{ .kind = .object, .fields = .{ .concurrent = zx_shape_1, .functions = zx_shape_34, .index = zx_shape_5, .values = zx_shape_21, }, };
+
+const zx_shape_39 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_34, }, };
+
+const zx_shape_40 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_34, .@"1" = zx_shape_21, }, };
+
+pub const input_shape = zx_shape_34;
+
+pub const output_shape = zx_shape_21;
+
+pub const Input = *const (zx_abi).zx_type_34;
+
+pub const Output = []const bool;
+
+fn function_0(allocator: ((std).mem).Allocator, in: u32) error{ }!u64 {
+    const native_result = (zx_native_0).widen(in);
+
+    _ = allocator;
+
+    return native_result;
+}
+
+fn function_1(allocator: ((std).mem).Allocator, in: u8) error{ }!u64 {
+    const native_result = (zx_native_0).widenByte(in);
+
+    _ = allocator;
+
+    return native_result;
+}
+
+fn function_2(allocator: ((std).mem).Allocator, in: u64) error{ IntegerOverflow, }!u32 {
+    const native_result = (try (zx_native_0).narrow(in));
+
+    _ = allocator;
+
+    return native_result;
+}
+
+fn function_3(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_29) error{ IndexOutOfBounds, OutOfMemory, }!bool {
+    @setRuntimeSafety(true);
+
+    return block_47: {
+        const state_type_2 = struct {
+            awaits: []const u32,
+            binary_left: []const u32,
+            binary_operators: []const (zx_abi).zx_type_15,
+            binary_right: []const u32,
+            booleans: []const bool,
+            call_arguments: []const u32,
+            call_functions: []const u32,
+            call_store_count: []const u32,
+            call_store_first: []const u32,
+            call_stores: []const u32,
+            cancellations: []const u32,
+            captures: []const u32,
+            collection_arguments: []const u32,
+            collection_count: []const u32,
+            collection_first: []const u32,
+            collection_kinds: []const (zx_abi).zx_type_12,
+            collection_targets: []const u32,
+            conditional_conditions: []const u32,
+            conditional_no: []const u32,
+            conditional_yes: []const u32,
+            enumerations: []const u32,
+            errors: []const u32,
+            floats: []const f64,
+            index_targets: []const u32,
+            index_values: []const u32,
+            integers: []const u64,
+            iteration_bodies: []const u32,
+            iteration_condition_parameters: []const u32,
+            iteration_conditions: []const u32,
+            iteration_initials: []const u32,
+            iteration_parameters: []const u32,
+            iteration_postconditions: []const bool,
+            kinds: []const (zx_abi).zx_type_11,
+            lengths: []const u32,
+            match_conditions: []const u32,
+            match_count: []const u32,
+            match_fallbacks: []const u32,
+            match_first: []const u32,
+            match_results: []const u32,
+            match_subjects: []const ?u32,
+            negative_integers: []const u64,
+            object_count: []const u32,
+            object_evaluation_count: []const u32,
+            object_evaluation_first: []const u32,
+            object_evaluation_values: []const u32,
+            object_field_indices: []const u32,
+            object_field_values: []const u32,
+            object_first: []const u32,
+            optional_values: []const u32,
+            parallel_count: []const u32,
+            parallel_fields: []const ?u32,
+            parallel_first: []const u32,
+            parallel_tasks: []const u32,
+            payloads: []const u32,
+            projection_indices: []const u32,
+            projection_targets: []const u32,
+            references: []const u32,
+            scope_borrows: []const bool,
+            scope_count: []const u32,
+            scope_first: []const u32,
+            scope_results: []const u32,
+            scope_symbols: []const ?u32,
+            scope_values: []const u32,
+            sequence_count: []const u32,
+            sequence_first: []const u32,
+            sequence_items: []const u32,
+            some: []const u32,
+            span_end: []const u64,
+            span_start: []const u64,
+            stores: []const u32,
+            strings: []const []const u8,
+            task_bodies: []const u32,
+            task_capture_count: []const u32,
+            task_capture_first: []const u32,
+            task_captures: []const u32,
+            transform_bodies: []const u32,
+            transform_count: []const u32,
+            transform_first: []const u32,
+            transform_initials: []const ?u32,
+            transform_kinds: []const (zx_abi).zx_type_13,
+            transform_parameters: []const u32,
+            transform_targets: []const u32,
+            types: []const u32,
+            unary_operands: []const u32,
+            unary_operators: []const (zx_abi).zx_type_14,
+            update_indices: []const u32,
+            update_targets: []const u32,
+            update_values: []const u32,
+        };
+        const state_type_3 = struct {
+            allowed: []const bool,
+            concurrent: bool,
+            expressions: state_type_2,
+            index: u64,
+            limit: u64,
+            valid: bool,
+        };
+        const state_type_5 = struct {
+            allowed: []const bool,
+            concurrent: bool,
+            expressions: state_type_2,
+            limit: u64,
+        };
+        const operand_20 = block_19: {
+            const operand_7 = (block_6: {
+                const operand_4 = in;
+
+                break :block_6 state_type_5{ .allowed = (operand_4).allowed, .concurrent = (operand_4).concurrent, .expressions = state_type_2{ .awaits = ((operand_4).expressions).awaits, .binary_left = ((operand_4).expressions).binary_left, .binary_operators = ((operand_4).expressions).binary_operators, .binary_right = ((operand_4).expressions).binary_right, .booleans = ((operand_4).expressions).booleans, .call_arguments = ((operand_4).expressions).call_arguments, .call_functions = ((operand_4).expressions).call_functions, .call_store_count = ((operand_4).expressions).call_store_count, .call_store_first = ((operand_4).expressions).call_store_first, .call_stores = ((operand_4).expressions).call_stores, .cancellations = ((operand_4).expressions).cancellations, .captures = ((operand_4).expressions).captures, .collection_arguments = ((operand_4).expressions).collection_arguments, .collection_count = ((operand_4).expressions).collection_count, .collection_first = ((operand_4).expressions).collection_first, .collection_kinds = ((operand_4).expressions).collection_kinds, .collection_targets = ((operand_4).expressions).collection_targets, .conditional_conditions = ((operand_4).expressions).conditional_conditions, .conditional_no = ((operand_4).expressions).conditional_no, .conditional_yes = ((operand_4).expressions).conditional_yes, .enumerations = ((operand_4).expressions).enumerations, .errors = ((operand_4).expressions).errors, .floats = ((operand_4).expressions).floats, .index_targets = ((operand_4).expressions).index_targets, .index_values = ((operand_4).expressions).index_values, .integers = ((operand_4).expressions).integers, .iteration_bodies = ((operand_4).expressions).iteration_bodies, .iteration_condition_parameters = ((operand_4).expressions).iteration_condition_parameters, .iteration_conditions = ((operand_4).expressions).iteration_conditions, .iteration_initials = ((operand_4).expressions).iteration_initials, .iteration_parameters = ((operand_4).expressions).iteration_parameters, .iteration_postconditions = ((operand_4).expressions).iteration_postconditions, .kinds = ((operand_4).expressions).kinds, .lengths = ((operand_4).expressions).lengths, .match_conditions = ((operand_4).expressions).match_conditions, .match_count = ((operand_4).expressions).match_count, .match_fallbacks = ((operand_4).expressions).match_fallbacks, .match_first = ((operand_4).expressions).match_first, .match_results = ((operand_4).expressions).match_results, .match_subjects = ((operand_4).expressions).match_subjects, .negative_integers = ((operand_4).expressions).negative_integers, .object_count = ((operand_4).expressions).object_count, .object_evaluation_count = ((operand_4).expressions).object_evaluation_count, .object_evaluation_first = ((operand_4).expressions).object_evaluation_first, .object_evaluation_values = ((operand_4).expressions).object_evaluation_values, .object_field_indices = ((operand_4).expressions).object_field_indices, .object_field_values = ((operand_4).expressions).object_field_values, .object_first = ((operand_4).expressions).object_first, .optional_values = ((operand_4).expressions).optional_values, .parallel_count = ((operand_4).expressions).parallel_count, .parallel_fields = ((operand_4).expressions).parallel_fields, .parallel_first = ((operand_4).expressions).parallel_first, .parallel_tasks = ((operand_4).expressions).parallel_tasks, .payloads = ((operand_4).expressions).payloads, .projection_indices = ((operand_4).expressions).projection_indices, .projection_targets = ((operand_4).expressions).projection_targets, .references = ((operand_4).expressions).references, .scope_borrows = ((operand_4).expressions).scope_borrows, .scope_count = ((operand_4).expressions).scope_count, .scope_first = ((operand_4).expressions).scope_first, .scope_results = ((operand_4).expressions).scope_results, .scope_symbols = ((operand_4).expressions).scope_symbols, .scope_values = ((operand_4).expressions).scope_values, .sequence_count = ((operand_4).expressions).sequence_count, .sequence_first = ((operand_4).expressions).sequence_first, .sequence_items = ((operand_4).expressions).sequence_items, .some = ((operand_4).expressions).some, .span_end = ((operand_4).expressions).span_end, .span_start = ((operand_4).expressions).span_start, .stores = ((operand_4).expressions).stores, .strings = ((operand_4).expressions).strings, .task_bodies = ((operand_4).expressions).task_bodies, .task_capture_count = ((operand_4).expressions).task_capture_count, .task_capture_first = ((operand_4).expressions).task_capture_first, .task_captures = ((operand_4).expressions).task_captures, .transform_bodies = ((operand_4).expressions).transform_bodies, .transform_count = ((operand_4).expressions).transform_count, .transform_first = ((operand_4).expressions).transform_first, .transform_initials = ((operand_4).expressions).transform_initials, .transform_kinds = ((operand_4).expressions).transform_kinds, .transform_parameters = ((operand_4).expressions).transform_parameters, .transform_targets = ((operand_4).expressions).transform_targets, .types = ((operand_4).expressions).types, .unary_operands = ((operand_4).expressions).unary_operands, .unary_operators = ((operand_4).expressions).unary_operators, .update_indices = ((operand_4).expressions).update_indices, .update_targets = ((operand_4).expressions).update_targets, .update_values = ((operand_4).expressions).update_values, }, .limit = (operand_4).limit, };
+            }).expressions;
+            const operand_10 = (block_9: {
+                const operand_8 = in;
+
+                break :block_9 state_type_5{ .allowed = (operand_8).allowed, .concurrent = (operand_8).concurrent, .expressions = state_type_2{ .awaits = ((operand_8).expressions).awaits, .binary_left = ((operand_8).expressions).binary_left, .binary_operators = ((operand_8).expressions).binary_operators, .binary_right = ((operand_8).expressions).binary_right, .booleans = ((operand_8).expressions).booleans, .call_arguments = ((operand_8).expressions).call_arguments, .call_functions = ((operand_8).expressions).call_functions, .call_store_count = ((operand_8).expressions).call_store_count, .call_store_first = ((operand_8).expressions).call_store_first, .call_stores = ((operand_8).expressions).call_stores, .cancellations = ((operand_8).expressions).cancellations, .captures = ((operand_8).expressions).captures, .collection_arguments = ((operand_8).expressions).collection_arguments, .collection_count = ((operand_8).expressions).collection_count, .collection_first = ((operand_8).expressions).collection_first, .collection_kinds = ((operand_8).expressions).collection_kinds, .collection_targets = ((operand_8).expressions).collection_targets, .conditional_conditions = ((operand_8).expressions).conditional_conditions, .conditional_no = ((operand_8).expressions).conditional_no, .conditional_yes = ((operand_8).expressions).conditional_yes, .enumerations = ((operand_8).expressions).enumerations, .errors = ((operand_8).expressions).errors, .floats = ((operand_8).expressions).floats, .index_targets = ((operand_8).expressions).index_targets, .index_values = ((operand_8).expressions).index_values, .integers = ((operand_8).expressions).integers, .iteration_bodies = ((operand_8).expressions).iteration_bodies, .iteration_condition_parameters = ((operand_8).expressions).iteration_condition_parameters, .iteration_conditions = ((operand_8).expressions).iteration_conditions, .iteration_initials = ((operand_8).expressions).iteration_initials, .iteration_parameters = ((operand_8).expressions).iteration_parameters, .iteration_postconditions = ((operand_8).expressions).iteration_postconditions, .kinds = ((operand_8).expressions).kinds, .lengths = ((operand_8).expressions).lengths, .match_conditions = ((operand_8).expressions).match_conditions, .match_count = ((operand_8).expressions).match_count, .match_fallbacks = ((operand_8).expressions).match_fallbacks, .match_first = ((operand_8).expressions).match_first, .match_results = ((operand_8).expressions).match_results, .match_subjects = ((operand_8).expressions).match_subjects, .negative_integers = ((operand_8).expressions).negative_integers, .object_count = ((operand_8).expressions).object_count, .object_evaluation_count = ((operand_8).expressions).object_evaluation_count, .object_evaluation_first = ((operand_8).expressions).object_evaluation_first, .object_evaluation_values = ((operand_8).expressions).object_evaluation_values, .object_field_indices = ((operand_8).expressions).object_field_indices, .object_field_values = ((operand_8).expressions).object_field_values, .object_first = ((operand_8).expressions).object_first, .optional_values = ((operand_8).expressions).optional_values, .parallel_count = ((operand_8).expressions).parallel_count, .parallel_fields = ((operand_8).expressions).parallel_fields, .parallel_first = ((operand_8).expressions).parallel_first, .parallel_tasks = ((operand_8).expressions).parallel_tasks, .payloads = ((operand_8).expressions).payloads, .projection_indices = ((operand_8).expressions).projection_indices, .projection_targets = ((operand_8).expressions).projection_targets, .references = ((operand_8).expressions).references, .scope_borrows = ((operand_8).expressions).scope_borrows, .scope_count = ((operand_8).expressions).scope_count, .scope_first = ((operand_8).expressions).scope_first, .scope_results = ((operand_8).expressions).scope_results, .scope_symbols = ((operand_8).expressions).scope_symbols, .scope_values = ((operand_8).expressions).scope_values, .sequence_count = ((operand_8).expressions).sequence_count, .sequence_first = ((operand_8).expressions).sequence_first, .sequence_items = ((operand_8).expressions).sequence_items, .some = ((operand_8).expressions).some, .span_end = ((operand_8).expressions).span_end, .span_start = ((operand_8).expressions).span_start, .stores = ((operand_8).expressions).stores, .strings = ((operand_8).expressions).strings, .task_bodies = ((operand_8).expressions).task_bodies, .task_capture_count = ((operand_8).expressions).task_capture_count, .task_capture_first = ((operand_8).expressions).task_capture_first, .task_captures = ((operand_8).expressions).task_captures, .transform_bodies = ((operand_8).expressions).transform_bodies, .transform_count = ((operand_8).expressions).transform_count, .transform_first = ((operand_8).expressions).transform_first, .transform_initials = ((operand_8).expressions).transform_initials, .transform_kinds = ((operand_8).expressions).transform_kinds, .transform_parameters = ((operand_8).expressions).transform_parameters, .transform_targets = ((operand_8).expressions).transform_targets, .types = ((operand_8).expressions).types, .unary_operands = ((operand_8).expressions).unary_operands, .unary_operators = ((operand_8).expressions).unary_operators, .update_indices = ((operand_8).expressions).update_indices, .update_targets = ((operand_8).expressions).update_targets, .update_values = ((operand_8).expressions).update_values, }, .limit = (operand_8).limit, };
+            }).allowed;
+            const operand_13 = (block_12: {
+                const operand_11 = in;
+
+                break :block_12 state_type_5{ .allowed = (operand_11).allowed, .concurrent = (operand_11).concurrent, .expressions = state_type_2{ .awaits = ((operand_11).expressions).awaits, .binary_left = ((operand_11).expressions).binary_left, .binary_operators = ((operand_11).expressions).binary_operators, .binary_right = ((operand_11).expressions).binary_right, .booleans = ((operand_11).expressions).booleans, .call_arguments = ((operand_11).expressions).call_arguments, .call_functions = ((operand_11).expressions).call_functions, .call_store_count = ((operand_11).expressions).call_store_count, .call_store_first = ((operand_11).expressions).call_store_first, .call_stores = ((operand_11).expressions).call_stores, .cancellations = ((operand_11).expressions).cancellations, .captures = ((operand_11).expressions).captures, .collection_arguments = ((operand_11).expressions).collection_arguments, .collection_count = ((operand_11).expressions).collection_count, .collection_first = ((operand_11).expressions).collection_first, .collection_kinds = ((operand_11).expressions).collection_kinds, .collection_targets = ((operand_11).expressions).collection_targets, .conditional_conditions = ((operand_11).expressions).conditional_conditions, .conditional_no = ((operand_11).expressions).conditional_no, .conditional_yes = ((operand_11).expressions).conditional_yes, .enumerations = ((operand_11).expressions).enumerations, .errors = ((operand_11).expressions).errors, .floats = ((operand_11).expressions).floats, .index_targets = ((operand_11).expressions).index_targets, .index_values = ((operand_11).expressions).index_values, .integers = ((operand_11).expressions).integers, .iteration_bodies = ((operand_11).expressions).iteration_bodies, .iteration_condition_parameters = ((operand_11).expressions).iteration_condition_parameters, .iteration_conditions = ((operand_11).expressions).iteration_conditions, .iteration_initials = ((operand_11).expressions).iteration_initials, .iteration_parameters = ((operand_11).expressions).iteration_parameters, .iteration_postconditions = ((operand_11).expressions).iteration_postconditions, .kinds = ((operand_11).expressions).kinds, .lengths = ((operand_11).expressions).lengths, .match_conditions = ((operand_11).expressions).match_conditions, .match_count = ((operand_11).expressions).match_count, .match_fallbacks = ((operand_11).expressions).match_fallbacks, .match_first = ((operand_11).expressions).match_first, .match_results = ((operand_11).expressions).match_results, .match_subjects = ((operand_11).expressions).match_subjects, .negative_integers = ((operand_11).expressions).negative_integers, .object_count = ((operand_11).expressions).object_count, .object_evaluation_count = ((operand_11).expressions).object_evaluation_count, .object_evaluation_first = ((operand_11).expressions).object_evaluation_first, .object_evaluation_values = ((operand_11).expressions).object_evaluation_values, .object_field_indices = ((operand_11).expressions).object_field_indices, .object_field_values = ((operand_11).expressions).object_field_values, .object_first = ((operand_11).expressions).object_first, .optional_values = ((operand_11).expressions).optional_values, .parallel_count = ((operand_11).expressions).parallel_count, .parallel_fields = ((operand_11).expressions).parallel_fields, .parallel_first = ((operand_11).expressions).parallel_first, .parallel_tasks = ((operand_11).expressions).parallel_tasks, .payloads = ((operand_11).expressions).payloads, .projection_indices = ((operand_11).expressions).projection_indices, .projection_targets = ((operand_11).expressions).projection_targets, .references = ((operand_11).expressions).references, .scope_borrows = ((operand_11).expressions).scope_borrows, .scope_count = ((operand_11).expressions).scope_count, .scope_first = ((operand_11).expressions).scope_first, .scope_results = ((operand_11).expressions).scope_results, .scope_symbols = ((operand_11).expressions).scope_symbols, .scope_values = ((operand_11).expressions).scope_values, .sequence_count = ((operand_11).expressions).sequence_count, .sequence_first = ((operand_11).expressions).sequence_first, .sequence_items = ((operand_11).expressions).sequence_items, .some = ((operand_11).expressions).some, .span_end = ((operand_11).expressions).span_end, .span_start = ((operand_11).expressions).span_start, .stores = ((operand_11).expressions).stores, .strings = ((operand_11).expressions).strings, .task_bodies = ((operand_11).expressions).task_bodies, .task_capture_count = ((operand_11).expressions).task_capture_count, .task_capture_first = ((operand_11).expressions).task_capture_first, .task_captures = ((operand_11).expressions).task_captures, .transform_bodies = ((operand_11).expressions).transform_bodies, .transform_count = ((operand_11).expressions).transform_count, .transform_first = ((operand_11).expressions).transform_first, .transform_initials = ((operand_11).expressions).transform_initials, .transform_kinds = ((operand_11).expressions).transform_kinds, .transform_parameters = ((operand_11).expressions).transform_parameters, .transform_targets = ((operand_11).expressions).transform_targets, .types = ((operand_11).expressions).types, .unary_operands = ((operand_11).expressions).unary_operands, .unary_operators = ((operand_11).expressions).unary_operators, .update_indices = ((operand_11).expressions).update_indices, .update_targets = ((operand_11).expressions).update_targets, .update_values = ((operand_11).expressions).update_values, }, .limit = (operand_11).limit, };
+            }).limit;
+            const operand_16 = (block_15: {
+                const operand_14 = in;
+
+                break :block_15 state_type_5{ .allowed = (operand_14).allowed, .concurrent = (operand_14).concurrent, .expressions = state_type_2{ .awaits = ((operand_14).expressions).awaits, .binary_left = ((operand_14).expressions).binary_left, .binary_operators = ((operand_14).expressions).binary_operators, .binary_right = ((operand_14).expressions).binary_right, .booleans = ((operand_14).expressions).booleans, .call_arguments = ((operand_14).expressions).call_arguments, .call_functions = ((operand_14).expressions).call_functions, .call_store_count = ((operand_14).expressions).call_store_count, .call_store_first = ((operand_14).expressions).call_store_first, .call_stores = ((operand_14).expressions).call_stores, .cancellations = ((operand_14).expressions).cancellations, .captures = ((operand_14).expressions).captures, .collection_arguments = ((operand_14).expressions).collection_arguments, .collection_count = ((operand_14).expressions).collection_count, .collection_first = ((operand_14).expressions).collection_first, .collection_kinds = ((operand_14).expressions).collection_kinds, .collection_targets = ((operand_14).expressions).collection_targets, .conditional_conditions = ((operand_14).expressions).conditional_conditions, .conditional_no = ((operand_14).expressions).conditional_no, .conditional_yes = ((operand_14).expressions).conditional_yes, .enumerations = ((operand_14).expressions).enumerations, .errors = ((operand_14).expressions).errors, .floats = ((operand_14).expressions).floats, .index_targets = ((operand_14).expressions).index_targets, .index_values = ((operand_14).expressions).index_values, .integers = ((operand_14).expressions).integers, .iteration_bodies = ((operand_14).expressions).iteration_bodies, .iteration_condition_parameters = ((operand_14).expressions).iteration_condition_parameters, .iteration_conditions = ((operand_14).expressions).iteration_conditions, .iteration_initials = ((operand_14).expressions).iteration_initials, .iteration_parameters = ((operand_14).expressions).iteration_parameters, .iteration_postconditions = ((operand_14).expressions).iteration_postconditions, .kinds = ((operand_14).expressions).kinds, .lengths = ((operand_14).expressions).lengths, .match_conditions = ((operand_14).expressions).match_conditions, .match_count = ((operand_14).expressions).match_count, .match_fallbacks = ((operand_14).expressions).match_fallbacks, .match_first = ((operand_14).expressions).match_first, .match_results = ((operand_14).expressions).match_results, .match_subjects = ((operand_14).expressions).match_subjects, .negative_integers = ((operand_14).expressions).negative_integers, .object_count = ((operand_14).expressions).object_count, .object_evaluation_count = ((operand_14).expressions).object_evaluation_count, .object_evaluation_first = ((operand_14).expressions).object_evaluation_first, .object_evaluation_values = ((operand_14).expressions).object_evaluation_values, .object_field_indices = ((operand_14).expressions).object_field_indices, .object_field_values = ((operand_14).expressions).object_field_values, .object_first = ((operand_14).expressions).object_first, .optional_values = ((operand_14).expressions).optional_values, .parallel_count = ((operand_14).expressions).parallel_count, .parallel_fields = ((operand_14).expressions).parallel_fields, .parallel_first = ((operand_14).expressions).parallel_first, .parallel_tasks = ((operand_14).expressions).parallel_tasks, .payloads = ((operand_14).expressions).payloads, .projection_indices = ((operand_14).expressions).projection_indices, .projection_targets = ((operand_14).expressions).projection_targets, .references = ((operand_14).expressions).references, .scope_borrows = ((operand_14).expressions).scope_borrows, .scope_count = ((operand_14).expressions).scope_count, .scope_first = ((operand_14).expressions).scope_first, .scope_results = ((operand_14).expressions).scope_results, .scope_symbols = ((operand_14).expressions).scope_symbols, .scope_values = ((operand_14).expressions).scope_values, .sequence_count = ((operand_14).expressions).sequence_count, .sequence_first = ((operand_14).expressions).sequence_first, .sequence_items = ((operand_14).expressions).sequence_items, .some = ((operand_14).expressions).some, .span_end = ((operand_14).expressions).span_end, .span_start = ((operand_14).expressions).span_start, .stores = ((operand_14).expressions).stores, .strings = ((operand_14).expressions).strings, .task_bodies = ((operand_14).expressions).task_bodies, .task_capture_count = ((operand_14).expressions).task_capture_count, .task_capture_first = ((operand_14).expressions).task_capture_first, .task_captures = ((operand_14).expressions).task_captures, .transform_bodies = ((operand_14).expressions).transform_bodies, .transform_count = ((operand_14).expressions).transform_count, .transform_first = ((operand_14).expressions).transform_first, .transform_initials = ((operand_14).expressions).transform_initials, .transform_kinds = ((operand_14).expressions).transform_kinds, .transform_parameters = ((operand_14).expressions).transform_parameters, .transform_targets = ((operand_14).expressions).transform_targets, .types = ((operand_14).expressions).types, .unary_operands = ((operand_14).expressions).unary_operands, .unary_operators = ((operand_14).expressions).unary_operators, .update_indices = ((operand_14).expressions).update_indices, .update_targets = ((operand_14).expressions).update_targets, .update_values = ((operand_14).expressions).update_values, }, .limit = (operand_14).limit, };
+            }).concurrent;
+            const operand_17 = @as(u64, 0);
+            const operand_18 = true;
+
+            break :block_19 state_type_3{ .expressions = operand_7, .allowed = operand_10, .limit = operand_13, .concurrent = operand_16, .index = operand_17, .valid = operand_18, };
+        };
+
+        var state_1: state_type_3 = operand_20;
+
+        var state_changed_21 = false;
+
+        while (((state_1).valid and ((state_1).index < @as(u64, (((state_1).expressions).kinds).len)))) {
+            state_1 = block_46: {
+                const value_3: (zx_abi).zx_type_11 = block_45: {
+                    const operand_43 = ((state_1).expressions).kinds;
+                    const operand_44 = (state_1).index;
+
+                    if ((operand_44 >= (operand_43).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_45 (operand_43)[@intCast(operand_44)];
+                };
+                const value_14: state_type_3 = (if ((value_3 == @as((zx_abi).zx_type_11, .StoreGet))) block_24: {
+                    const value_4: state_type_3 = state_1;
+                    const value_5: state_type_3 = block_23: {
+                        break :block_23 state_type_3{ .allowed = (value_4).allowed, .concurrent = (value_4).concurrent, .expressions = (value_4).expressions, .index = (value_4).index, .limit = (value_4).limit, .valid = false, };
+                    };
+
+                    break :block_24 value_5;
+                } else block_42: {
+                    const value_13: state_type_3 = (if (((!(state_1).concurrent) and ((((value_3 == @as((zx_abi).zx_type_11, .Task)) or (value_3 == @as((zx_abi).zx_type_11, .AwaitTask))) or (value_3 == @as((zx_abi).zx_type_11, .CancelTask))) or (value_3 == @as((zx_abi).zx_type_11, .Parallel))))) block_26: {
+                        const value_6: state_type_3 = state_1;
+                        const value_7: state_type_3 = block_25: {
+                            break :block_25 state_type_3{ .allowed = (value_6).allowed, .concurrent = (value_6).concurrent, .expressions = (value_6).expressions, .index = (value_6).index, .limit = (value_6).limit, .valid = false, };
+                        };
+
+                        break :block_26 value_7;
+                    } else block_41: {
+                        const value_12: state_type_3 = (if ((value_3 == @as((zx_abi).zx_type_11, .Call))) block_40: {
+                            const value_8: u64 = (try function_0(allocator, block_39: {
+                                const operand_37 = ((state_1).expressions).payloads;
+                                const operand_38 = (state_1).index;
+
+                                if ((operand_38 >= (operand_37).len)) {
+                                    return error.IndexOutOfBounds;
+                                }
+
+                                break :block_39 (operand_37)[@intCast(operand_38)];
+                            }));
+                            const value_9: u64 = (try function_0(allocator, block_36: {
+                                const operand_34 = ((state_1).expressions).call_functions;
+                                const operand_35 = value_8;
+
+                                if ((operand_35 >= (operand_34).len)) {
+                                    return error.IndexOutOfBounds;
+                                }
+
+                                break :block_36 (operand_34)[@intCast(operand_35)];
+                            }));
+                            const value_10: state_type_3 = state_1;
+                            const value_11: state_type_3 = block_33: {
+                                break :block_33 state_type_3{ .allowed = (value_10).allowed, .concurrent = (value_10).concurrent, .expressions = (value_10).expressions, .index = (value_10).index, .limit = (value_10).limit, .valid = (((block_29: {
+                                    const operand_27 = ((state_1).expressions).call_store_count;
+                                    const operand_28 = value_8;
+
+                                    if ((operand_28 >= (operand_27).len)) {
+                                        return error.IndexOutOfBounds;
+                                    }
+
+                                    break :block_29 (operand_27)[@intCast(operand_28)];
+                                } == @as(u32, 0)) and (value_9 < (state_1).limit)) and block_32: {
+                                    const operand_30 = (state_1).allowed;
+                                    const operand_31 = value_9;
+
+                                    if ((operand_31 >= (operand_30).len)) {
+                                        return error.IndexOutOfBounds;
+                                    }
+
+                                    break :block_32 (operand_30)[@intCast(operand_31)];
+                                }), };
+                            };
+
+                            break :block_40 value_11;
+                        } else state_1);
+
+                        break :block_41 value_12;
+                    });
+
+                    break :block_42 value_13;
+                });
+                const value_15: state_type_3 = value_14;
+                const value_16: u64 = (value_15).index;
+                const value_17: state_type_3 = block_22: {
+                    break :block_22 state_type_3{ .allowed = (value_15).allowed, .concurrent = (value_15).concurrent, .expressions = (value_15).expressions, .index = (value_16 + @as(u64, 1)), .limit = (value_15).limit, .valid = (value_15).valid, };
+                };
+
+                break :block_46 value_17;
+            };
+
+            state_changed_21 = true;
+        }
+
+        break :block_47 (state_1).valid;
+    };
+}
+
+fn function_4(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_35) error{ IndexOutOfBounds, OutOfMemory, Overflow, }![]const bool {
+    @setRuntimeSafety(true);
+
+    const value_8: []const bool = block_79: {
+        const value_2: []const ?u32 = ((in).functions).native_modules;
+
+        break :block_79 block_78: {
+            const operand_62 = block_61: {
+                const operand_57 = value_2;
+                const operand_58 = @as(u64, 0);
+                const operand_59 = block_60: {
+                    break :block_60 (try (allocator).dupe(bool, (&[_]bool{})));
+                };
+
+                break :block_61 (zx_abi).zx_type_36{ .index = operand_58, .result = operand_59, .source = operand_57, };
+            };
+
+            var state_capacity_63: (std).ArrayList(bool) = .empty;
+
+            var state_capacity_started_64 = false;
+
+            defer (state_capacity_63).deinit(allocator);
+
+            var state_56: (zx_abi).value_zx_type_36_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = (zx_abi).value_zx_type_36_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = (operand_62).index, .result = (operand_62).result, .source = (operand_62).source, .zx_origin = (&operand_62), };
+
+            while (((state_56).index < @as(u64, ((state_56).source).len))) {
+                state_56 = block_76: {
+                    _ = block_75: {
+                        const operand_73 = (state_56).source;
+                        const operand_74 = (state_56).index;
+
+                        if ((operand_74 >= (operand_73).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_75 (operand_73)[@intCast(operand_74)];
+                    };
+
+                    const value_6: bool = false;
+
+                    break :block_76 block_72: {
+                        const operand_65 = (state_56).source;
+                        const operand_66 = ((state_56).index + @as(u64, 1));
+                        const operand_67 = (block_71: {
+                            const operand_68 = (state_56).result;
+                            const operand_70 = block_69: {
+                                break :block_69 value_6;
+                            };
+
+                            _ = (try ((std).math).add(usize, (operand_68).len, 1));
+
+                            if ((!state_capacity_started_64)) {
+                                (try (state_capacity_63).ensureTotalCapacityPrecise(allocator, ((operand_62).source).len));
+
+                                (try (state_capacity_63).appendSlice(allocator, operand_68));
+
+                                state_capacity_started_64 = true;
+                            } else {
+                                ((state_capacity_63).items).len = (operand_68).len;
+                            }
+
+                            (try (state_capacity_63).append(allocator, operand_70));
+
+                            break :block_71 @as((zx_abi).value_zx_type_37_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814, .{ (state_capacity_63).items, {}, null, });
+                        }).@"0";
+
+                        break :block_72 @as((zx_abi).value_zx_type_36_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_36_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = operand_66, .result = operand_67, .source = operand_65, });
+                    };
+                };
+            }
+
+            var state_owned_77: []const bool = (&[_]bool{});
+
+            errdefer (allocator).free(state_owned_77);
+
+            if (state_capacity_started_64) {
+                ((state_capacity_63).items).len = ((state_56).result).len;
+
+                state_owned_77 = (try (state_capacity_63).toOwnedSlice(allocator));
+            }
+
+            if (state_capacity_started_64) {
+                state_56 = (zx_abi).value_zx_type_36_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = (state_56).index, .result = state_owned_77, .source = (state_56).source, };
+            }
+
+            break :block_78 (state_56).result;
+        };
+    };
+
+    return block_55: {
+        const state_type_2 = struct {
+            expressions: []const *const (zx_abi).zx_type_28,
+            native_concurrent: []const bool,
+            native_modules: []const ?u32,
+            stores: []const *const (zx_abi).zx_type_31,
+        };
+        const state_type_3 = struct {
+            concurrent: bool,
+            functions: state_type_2,
+            index: u64,
+            values: []const bool,
+        };
+        const state_type_5 = struct {
+            concurrent: bool,
+            functions: state_type_2,
+        };
+        const operand_14 = block_13: {
+            const operand_7 = (block_6: {
+                const operand_4 = in;
+
+                break :block_6 state_type_5{ .concurrent = (operand_4).concurrent, .functions = state_type_2{ .expressions = ((operand_4).functions).expressions, .native_concurrent = ((operand_4).functions).native_concurrent, .native_modules = ((operand_4).functions).native_modules, .stores = ((operand_4).functions).stores, }, };
+            }).functions;
+            const operand_10 = (block_9: {
+                const operand_8 = in;
+
+                break :block_9 state_type_5{ .concurrent = (operand_8).concurrent, .functions = state_type_2{ .expressions = ((operand_8).functions).expressions, .native_concurrent = ((operand_8).functions).native_concurrent, .native_modules = ((operand_8).functions).native_modules, .stores = ((operand_8).functions).stores, }, };
+            }).concurrent;
+            const operand_11 = value_8;
+            const operand_12 = @as(u64, 0);
+
+            break :block_13 state_type_3{ .functions = operand_7, .concurrent = operand_10, .values = operand_11, .index = operand_12, };
+        };
+
+        var state_items_16: []bool = undefined;
+
+        var state_items_started_17 = false;
+
+        const state_type_29 = struct {
+            handles: []const []const u8,
+            paths: []const []const u8,
+            readable: []const bool,
+            types: []const u32,
+            writable: []const bool,
+        };
+        const state_type_37 = struct {
+            awaits: []const u32,
+            binary_left: []const u32,
+            binary_operators: []const (zx_abi).zx_type_15,
+            binary_right: []const u32,
+            booleans: []const bool,
+            call_arguments: []const u32,
+            call_functions: []const u32,
+            call_store_count: []const u32,
+            call_store_first: []const u32,
+            call_stores: []const u32,
+            cancellations: []const u32,
+            captures: []const u32,
+            collection_arguments: []const u32,
+            collection_count: []const u32,
+            collection_first: []const u32,
+            collection_kinds: []const (zx_abi).zx_type_12,
+            collection_targets: []const u32,
+            conditional_conditions: []const u32,
+            conditional_no: []const u32,
+            conditional_yes: []const u32,
+            enumerations: []const u32,
+            errors: []const u32,
+            floats: []const f64,
+            index_targets: []const u32,
+            index_values: []const u32,
+            integers: []const u64,
+            iteration_bodies: []const u32,
+            iteration_condition_parameters: []const u32,
+            iteration_conditions: []const u32,
+            iteration_initials: []const u32,
+            iteration_parameters: []const u32,
+            iteration_postconditions: []const bool,
+            kinds: []const (zx_abi).zx_type_11,
+            lengths: []const u32,
+            match_conditions: []const u32,
+            match_count: []const u32,
+            match_fallbacks: []const u32,
+            match_first: []const u32,
+            match_results: []const u32,
+            match_subjects: []const ?u32,
+            negative_integers: []const u64,
+            object_count: []const u32,
+            object_evaluation_count: []const u32,
+            object_evaluation_first: []const u32,
+            object_evaluation_values: []const u32,
+            object_field_indices: []const u32,
+            object_field_values: []const u32,
+            object_first: []const u32,
+            optional_values: []const u32,
+            parallel_count: []const u32,
+            parallel_fields: []const ?u32,
+            parallel_first: []const u32,
+            parallel_tasks: []const u32,
+            payloads: []const u32,
+            projection_indices: []const u32,
+            projection_targets: []const u32,
+            references: []const u32,
+            scope_borrows: []const bool,
+            scope_count: []const u32,
+            scope_first: []const u32,
+            scope_results: []const u32,
+            scope_symbols: []const ?u32,
+            scope_values: []const u32,
+            sequence_count: []const u32,
+            sequence_first: []const u32,
+            sequence_items: []const u32,
+            some: []const u32,
+            span_end: []const u64,
+            span_start: []const u64,
+            stores: []const u32,
+            strings: []const []const u8,
+            task_bodies: []const u32,
+            task_capture_count: []const u32,
+            task_capture_first: []const u32,
+            task_captures: []const u32,
+            transform_bodies: []const u32,
+            transform_count: []const u32,
+            transform_first: []const u32,
+            transform_initials: []const ?u32,
+            transform_kinds: []const (zx_abi).zx_type_13,
+            transform_parameters: []const u32,
+            transform_targets: []const u32,
+            types: []const u32,
+            unary_operands: []const u32,
+            unary_operators: []const (zx_abi).zx_type_14,
+            update_indices: []const u32,
+            update_targets: []const u32,
+            update_values: []const u32,
+        };
+        const state_type_38 = struct {
+            allowed: []const bool,
+            concurrent: bool,
+            expressions: state_type_37,
+            limit: u64,
+        };
+
+        var state_1: state_type_3 = operand_14;
+
+        var state_changed_15 = false;
+
+        while (((state_1).index < @as(u64, ((state_1).values).len))) {
+            state_1 = block_54: {
+                const value_11: bool = ((@as(u64, ((block_30: {
+                    const operand_28 = block_27: {
+                        const operand_25 = ((state_1).functions).stores;
+                        const operand_26 = (state_1).index;
+
+                        if ((operand_26 >= (operand_25).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_27 (operand_25)[@intCast(operand_26)];
+                    };
+
+                    break :block_30 state_type_29{ .handles = (operand_28).handles, .paths = (operand_28).paths, .readable = (operand_28).readable, .types = (operand_28).types, .writable = (operand_28).writable, };
+                }).paths).len) == @as(u64, 0)) and (if ((block_33: {
+                    const operand_31 = ((state_1).functions).native_modules;
+                    const operand_32 = (state_1).index;
+
+                    if ((operand_32 >= (operand_31).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_33 (operand_31)[@intCast(operand_32)];
+                } != null)) ((state_1).concurrent and block_36: {
+                    const operand_34 = ((state_1).functions).native_concurrent;
+                    const operand_35 = (state_1).index;
+
+                    if ((operand_35 >= (operand_34).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_36 (operand_34)[@intCast(operand_35)];
+                }) else block_53: {
+                    const operand_49 = block_48: {
+                        const operand_44 = block_43: {
+                            const operand_42 = block_41: {
+                                const operand_39 = ((state_1).functions).expressions;
+                                const operand_40 = (state_1).index;
+
+                                if ((operand_40 >= (operand_39).len)) {
+                                    return error.IndexOutOfBounds;
+                                }
+
+                                break :block_41 (operand_39)[@intCast(operand_40)];
+                            };
+
+                            break :block_43 state_type_37{ .awaits = (operand_42).awaits, .binary_left = (operand_42).binary_left, .binary_operators = (operand_42).binary_operators, .binary_right = (operand_42).binary_right, .booleans = (operand_42).booleans, .call_arguments = (operand_42).call_arguments, .call_functions = (operand_42).call_functions, .call_store_count = (operand_42).call_store_count, .call_store_first = (operand_42).call_store_first, .call_stores = (operand_42).call_stores, .cancellations = (operand_42).cancellations, .captures = (operand_42).captures, .collection_arguments = (operand_42).collection_arguments, .collection_count = (operand_42).collection_count, .collection_first = (operand_42).collection_first, .collection_kinds = (operand_42).collection_kinds, .collection_targets = (operand_42).collection_targets, .conditional_conditions = (operand_42).conditional_conditions, .conditional_no = (operand_42).conditional_no, .conditional_yes = (operand_42).conditional_yes, .enumerations = (operand_42).enumerations, .errors = (operand_42).errors, .floats = (operand_42).floats, .index_targets = (operand_42).index_targets, .index_values = (operand_42).index_values, .integers = (operand_42).integers, .iteration_bodies = (operand_42).iteration_bodies, .iteration_condition_parameters = (operand_42).iteration_condition_parameters, .iteration_conditions = (operand_42).iteration_conditions, .iteration_initials = (operand_42).iteration_initials, .iteration_parameters = (operand_42).iteration_parameters, .iteration_postconditions = (operand_42).iteration_postconditions, .kinds = (operand_42).kinds, .lengths = (operand_42).lengths, .match_conditions = (operand_42).match_conditions, .match_count = (operand_42).match_count, .match_fallbacks = (operand_42).match_fallbacks, .match_first = (operand_42).match_first, .match_results = (operand_42).match_results, .match_subjects = (operand_42).match_subjects, .negative_integers = (operand_42).negative_integers, .object_count = (operand_42).object_count, .object_evaluation_count = (operand_42).object_evaluation_count, .object_evaluation_first = (operand_42).object_evaluation_first, .object_evaluation_values = (operand_42).object_evaluation_values, .object_field_indices = (operand_42).object_field_indices, .object_field_values = (operand_42).object_field_values, .object_first = (operand_42).object_first, .optional_values = (operand_42).optional_values, .parallel_count = (operand_42).parallel_count, .parallel_fields = (operand_42).parallel_fields, .parallel_first = (operand_42).parallel_first, .parallel_tasks = (operand_42).parallel_tasks, .payloads = (operand_42).payloads, .projection_indices = (operand_42).projection_indices, .projection_targets = (operand_42).projection_targets, .references = (operand_42).references, .scope_borrows = (operand_42).scope_borrows, .scope_count = (operand_42).scope_count, .scope_first = (operand_42).scope_first, .scope_results = (operand_42).scope_results, .scope_symbols = (operand_42).scope_symbols, .scope_values = (operand_42).scope_values, .sequence_count = (operand_42).sequence_count, .sequence_first = (operand_42).sequence_first, .sequence_items = (operand_42).sequence_items, .some = (operand_42).some, .span_end = (operand_42).span_end, .span_start = (operand_42).span_start, .stores = (operand_42).stores, .strings = (operand_42).strings, .task_bodies = (operand_42).task_bodies, .task_capture_count = (operand_42).task_capture_count, .task_capture_first = (operand_42).task_capture_first, .task_captures = (operand_42).task_captures, .transform_bodies = (operand_42).transform_bodies, .transform_count = (operand_42).transform_count, .transform_first = (operand_42).transform_first, .transform_initials = (operand_42).transform_initials, .transform_kinds = (operand_42).transform_kinds, .transform_parameters = (operand_42).transform_parameters, .transform_targets = (operand_42).transform_targets, .types = (operand_42).types, .unary_operands = (operand_42).unary_operands, .unary_operators = (operand_42).unary_operators, .update_indices = (operand_42).update_indices, .update_targets = (operand_42).update_targets, .update_values = (operand_42).update_values, };
+                        };
+                        const operand_45 = (state_1).values;
+                        const operand_46 = (state_1).index;
+                        const operand_47 = (state_1).concurrent;
+
+                        break :block_48 state_type_38{ .expressions = operand_44, .allowed = operand_45, .limit = operand_46, .concurrent = operand_47, };
+                    };
+                    const operand_50 = (zx_abi).zx_type_28{ .awaits = ((operand_49).expressions).awaits, .binary_left = ((operand_49).expressions).binary_left, .binary_operators = ((operand_49).expressions).binary_operators, .binary_right = ((operand_49).expressions).binary_right, .booleans = ((operand_49).expressions).booleans, .call_arguments = ((operand_49).expressions).call_arguments, .call_functions = ((operand_49).expressions).call_functions, .call_store_count = ((operand_49).expressions).call_store_count, .call_store_first = ((operand_49).expressions).call_store_first, .call_stores = ((operand_49).expressions).call_stores, .cancellations = ((operand_49).expressions).cancellations, .captures = ((operand_49).expressions).captures, .collection_arguments = ((operand_49).expressions).collection_arguments, .collection_count = ((operand_49).expressions).collection_count, .collection_first = ((operand_49).expressions).collection_first, .collection_kinds = ((operand_49).expressions).collection_kinds, .collection_targets = ((operand_49).expressions).collection_targets, .conditional_conditions = ((operand_49).expressions).conditional_conditions, .conditional_no = ((operand_49).expressions).conditional_no, .conditional_yes = ((operand_49).expressions).conditional_yes, .enumerations = ((operand_49).expressions).enumerations, .errors = ((operand_49).expressions).errors, .floats = ((operand_49).expressions).floats, .index_targets = ((operand_49).expressions).index_targets, .index_values = ((operand_49).expressions).index_values, .integers = ((operand_49).expressions).integers, .iteration_bodies = ((operand_49).expressions).iteration_bodies, .iteration_condition_parameters = ((operand_49).expressions).iteration_condition_parameters, .iteration_conditions = ((operand_49).expressions).iteration_conditions, .iteration_initials = ((operand_49).expressions).iteration_initials, .iteration_parameters = ((operand_49).expressions).iteration_parameters, .iteration_postconditions = ((operand_49).expressions).iteration_postconditions, .kinds = ((operand_49).expressions).kinds, .lengths = ((operand_49).expressions).lengths, .match_conditions = ((operand_49).expressions).match_conditions, .match_count = ((operand_49).expressions).match_count, .match_fallbacks = ((operand_49).expressions).match_fallbacks, .match_first = ((operand_49).expressions).match_first, .match_results = ((operand_49).expressions).match_results, .match_subjects = ((operand_49).expressions).match_subjects, .negative_integers = ((operand_49).expressions).negative_integers, .object_count = ((operand_49).expressions).object_count, .object_evaluation_count = ((operand_49).expressions).object_evaluation_count, .object_evaluation_first = ((operand_49).expressions).object_evaluation_first, .object_evaluation_values = ((operand_49).expressions).object_evaluation_values, .object_field_indices = ((operand_49).expressions).object_field_indices, .object_field_values = ((operand_49).expressions).object_field_values, .object_first = ((operand_49).expressions).object_first, .optional_values = ((operand_49).expressions).optional_values, .parallel_count = ((operand_49).expressions).parallel_count, .parallel_fields = ((operand_49).expressions).parallel_fields, .parallel_first = ((operand_49).expressions).parallel_first, .parallel_tasks = ((operand_49).expressions).parallel_tasks, .payloads = ((operand_49).expressions).payloads, .projection_indices = ((operand_49).expressions).projection_indices, .projection_targets = ((operand_49).expressions).projection_targets, .references = ((operand_49).expressions).references, .scope_borrows = ((operand_49).expressions).scope_borrows, .scope_count = ((operand_49).expressions).scope_count, .scope_first = ((operand_49).expressions).scope_first, .scope_results = ((operand_49).expressions).scope_results, .scope_symbols = ((operand_49).expressions).scope_symbols, .scope_values = ((operand_49).expressions).scope_values, .sequence_count = ((operand_49).expressions).sequence_count, .sequence_first = ((operand_49).expressions).sequence_first, .sequence_items = ((operand_49).expressions).sequence_items, .some = ((operand_49).expressions).some, .span_end = ((operand_49).expressions).span_end, .span_start = ((operand_49).expressions).span_start, .stores = ((operand_49).expressions).stores, .strings = ((operand_49).expressions).strings, .task_bodies = ((operand_49).expressions).task_bodies, .task_capture_count = ((operand_49).expressions).task_capture_count, .task_capture_first = ((operand_49).expressions).task_capture_first, .task_captures = ((operand_49).expressions).task_captures, .transform_bodies = ((operand_49).expressions).transform_bodies, .transform_count = ((operand_49).expressions).transform_count, .transform_first = ((operand_49).expressions).transform_first, .transform_initials = ((operand_49).expressions).transform_initials, .transform_kinds = ((operand_49).expressions).transform_kinds, .transform_parameters = ((operand_49).expressions).transform_parameters, .transform_targets = ((operand_49).expressions).transform_targets, .types = ((operand_49).expressions).types, .unary_operands = ((operand_49).expressions).unary_operands, .unary_operators = ((operand_49).expressions).unary_operators, .update_indices = ((operand_49).expressions).update_indices, .update_targets = ((operand_49).expressions).update_targets, .update_values = ((operand_49).expressions).update_values, };
+                    const operand_51 = (zx_abi).zx_type_29{ .allowed = (operand_49).allowed, .concurrent = (operand_49).concurrent, .expressions = (&operand_50), .limit = (operand_49).limit, };
+                    const operand_52 = (try function_3(allocator, (&operand_51)));
+
+                    break :block_53 operand_52;
+                }));
+                const value_12: state_type_3 = state_1;
+                const value_13: []const bool = (value_12).values;
+                const value_14: u64 = (state_1).index;
+                const value_15: state_type_3 = block_24: {
+                    break :block_24 state_type_3{ .concurrent = (value_12).concurrent, .functions = (value_12).functions, .index = (value_12).index, .values = block_23: {
+                        const operand_19 = value_13;
+                        const operand_20 = value_14;
+
+                        if ((operand_20 >= (operand_19).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        const operand_21 = value_11;
+
+                        break :block_23 block_22: {
+                            if ((!state_items_started_17)) {
+                                state_items_16 = (try (allocator).dupe(bool, operand_19));
+
+                                state_items_started_17 = true;
+                            }
+
+                            (state_items_16)[@intCast(operand_20)] = operand_21;
+
+                            break :block_22 state_items_16;
+                        };
+                    }, };
+                };
+                const value_16: state_type_3 = value_15;
+                const value_17: u64 = (value_16).index;
+                const value_18: state_type_3 = block_18: {
+                    break :block_18 state_type_3{ .concurrent = (value_16).concurrent, .functions = (value_16).functions, .index = (value_17 + @as(u64, 1)), .values = (value_16).values, };
+                };
+
+                break :block_54 value_18;
+            };
+
+            state_changed_15 = true;
+        }
+
+        break :block_55 (state_1).values;
+    };
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_34) error{ IndexOutOfBounds, OutOfMemory, Overflow, }![]const bool {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_1: []const bool = (try function_4(allocator, block_5: {
+        const operand_1 = in;
+        const operand_2 = false;
+
+        break :block_5 block_4: {
+            const operand_3 = (try (allocator).create((zx_abi).zx_type_35));
+
+            (operand_3).* = @as((zx_abi).zx_type_35, (zx_abi).zx_type_35{ .functions = operand_1, .concurrent = operand_2, });
+
+            break :block_4 @as(*const (zx_abi).zx_type_35, operand_3);
+        };
+    }));
+
+    return value_1;
+}
+

@@ -1,0 +1,300 @@
+pub const zx_type_11 = opaque {};
+
+pub const zx_type_12 = struct { *const zx_type_11, u64, u64, u64, u64, };
+
+pub const zx_type_13 = struct { *const zx_type_11, u64, };
+
+pub const zx_type_14 = struct { *const zx_type_11, u64, bool, };
+
+pub const zx_type_15 = struct { *const zx_type_11, u64, u64, };
+
+pub const zx_type_16 = enum { Scalar, Object, Optional, List, Tuple, ErrorSet, Task, Enumeration, NativeReference, };
+
+pub const zx_type_20 = struct {
+    children: []const u32,
+    field_names: []const []const u8,
+    field_types: []const u32,
+    first: []const u32,
+    kinds: []const u8,
+    labels: []const []const u8,
+    names: []const []const u8,
+    second: []const u32,
+};
+
+pub const zx_type_21 = struct {
+    base: *const zx_type_20,
+    delta: *const zx_type_20,
+};
+
+pub const zx_type_22 = struct {
+    delta: bool,
+    first: u32,
+    kind: zx_type_16,
+    label: []const u8,
+    second: u32,
+};
+
+pub const zx_type_23 = struct {
+    names: []const []const u8,
+    types: []const u32,
+};
+
+pub const zx_type_24 = struct {
+    children: []const u32,
+    fields: *const zx_type_23,
+    first: u32,
+    kind: zx_type_16,
+    label: []const u8,
+    names: []const []const u8,
+    second: u32,
+};
+
+pub const zx_type_25 = struct {
+    found: bool,
+    id: u32,
+};
+
+pub const zx_type_26 = struct {
+    delta: *const zx_type_20,
+    id: u32,
+};
+
+pub const zx_type_27 = struct {
+    symbol: u64,
+    table: *const zx_type_20,
+    type_id: u32,
+    writer: *const zx_type_11,
+};
+
+pub const zx_type_28 = struct { *const zx_type_27, };
+
+pub const zx_type_29 = struct { *const zx_type_27, u32, };
+
+pub const value_zx_type_21_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    base: *const zx_type_20,
+    delta: *const zx_type_20,
+    zx_origin: ?*const zx_type_21 = null,
+};
+
+pub const value_zx_type_22_2ddc8d81c21e68612e817c7293e54a7cb5f26a22cd74db770ee9bdcef0645bce = struct {
+    delta: bool,
+    first: u32,
+    kind: zx_type_16,
+    label: []const u8,
+    second: u32,
+    zx_origin: ?*const zx_type_22 = null,
+};
+
+pub const value_zx_type_23_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    names: []const []const u8,
+    types: []const u32,
+    zx_origin: ?*const zx_type_23 = null,
+};
+
+pub const value_zx_type_24_733f63291ddde64b1bc83a721ebf685a0d9d5fe955b56f62c3e2ecdaa3727384 = struct {
+    children: []const u32,
+    fields: value_zx_type_23_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814,
+    first: u32,
+    kind: zx_type_16,
+    label: []const u8,
+    names: []const []const u8,
+    second: u32,
+    zx_origin: ?*const zx_type_24 = null,
+};
+
+pub const value_zx_type_25_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    found: bool,
+    id: u32,
+    zx_origin: ?*const zx_type_25 = null,
+};
+
+pub const value_zx_type_26_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    delta: *const zx_type_20,
+    id: u32,
+    zx_origin: ?*const zx_type_26 = null,
+};
+
+pub const value_zx_type_27_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 = struct {
+    symbol: u64,
+    table: *const zx_type_20,
+    type_id: u32,
+    writer: *const zx_type_11,
+    zx_origin: ?*const zx_type_27 = null,
+};
+
+pub const value_zx_type_28_009b209c29dfed37d6f0ddf10651eb819801430299ea03fd6bf9a11471606d6e = struct { value_zx_type_27_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165, ?*const zx_type_28, };
+
+pub const value_zx_type_29_9068dcb27588fc549cd15008d3bd15e507480c6631115fd15614e1d02077b29f = struct { value_zx_type_27_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165, u32, ?*const zx_type_29, };
+
+pub const native = struct {
+    pub const @"zig:flow_state" = struct {
+        pub const Writer = *const zx_type_11;
+        pub const push = struct {
+            pub const Input = *const zx_type_12;
+            pub const Output = void;
+            pub const InputValue = zx_type_12;
+            pub const OutputValue = void;
+        };
+        pub const pop = struct {
+            pub const Input = *const zx_type_11;
+            pub const Output = void;
+            pub const InputValue = zx_type_11;
+            pub const OutputValue = void;
+        };
+        pub const eventCount = struct {
+            pub const Input = *const zx_type_11;
+            pub const Output = u64;
+            pub const InputValue = zx_type_11;
+            pub const OutputValue = u64;
+        };
+        pub const eventKind = struct {
+            pub const Input = *const zx_type_11;
+            pub const Output = u64;
+            pub const InputValue = zx_type_11;
+            pub const OutputValue = u64;
+        };
+        pub const eventA = struct {
+            pub const Input = *const zx_type_11;
+            pub const Output = u64;
+            pub const InputValue = zx_type_11;
+            pub const OutputValue = u64;
+        };
+        pub const eventB = struct {
+            pub const Input = *const zx_type_11;
+            pub const Output = u64;
+            pub const InputValue = zx_type_11;
+            pub const OutputValue = u64;
+        };
+        pub const eventC = struct {
+            pub const Input = *const zx_type_11;
+            pub const Output = u64;
+            pub const InputValue = zx_type_11;
+            pub const OutputValue = u64;
+        };
+        pub const active = struct {
+            pub const Input = *const zx_type_13;
+            pub const Output = bool;
+            pub const InputValue = zx_type_13;
+            pub const OutputValue = bool;
+        };
+        pub const setActive = struct {
+            pub const Input = *const zx_type_14;
+            pub const Output = void;
+            pub const InputValue = zx_type_14;
+            pub const OutputValue = void;
+        };
+        pub const activeMark = struct {
+            pub const Input = *const zx_type_11;
+            pub const Output = u64;
+            pub const InputValue = zx_type_11;
+            pub const OutputValue = u64;
+        };
+        pub const restoreActive = struct {
+            pub const Input = *const zx_type_13;
+            pub const Output = void;
+            pub const InputValue = zx_type_13;
+            pub const OutputValue = void;
+        };
+        pub const declared = struct {
+            pub const Input = *const zx_type_13;
+            pub const Output = bool;
+            pub const InputValue = zx_type_13;
+            pub const OutputValue = bool;
+        };
+        pub const setDeclared = struct {
+            pub const Input = *const zx_type_13;
+            pub const Output = void;
+            pub const InputValue = zx_type_13;
+            pub const OutputValue = void;
+        };
+        pub const owner = struct {
+            pub const Input = *const zx_type_13;
+            pub const Output = u64;
+            pub const InputValue = zx_type_13;
+            pub const OutputValue = u64;
+        };
+        pub const setOwner = struct {
+            pub const Input = *const zx_type_15;
+            pub const Output = void;
+            pub const InputValue = zx_type_15;
+            pub const OutputValue = void;
+        };
+        pub const factMark = struct {
+            pub const Input = *const zx_type_11;
+            pub const Output = u64;
+            pub const InputValue = zx_type_11;
+            pub const OutputValue = u64;
+        };
+        pub const captureMark = struct {
+            pub const Input = *const zx_type_11;
+            pub const Output = u64;
+            pub const InputValue = zx_type_11;
+            pub const OutputValue = u64;
+        };
+        pub const restoreFacts = struct {
+            pub const Input = *const zx_type_15;
+            pub const Output = void;
+            pub const InputValue = zx_type_15;
+            pub const OutputValue = void;
+        };
+        pub const contains = struct {
+            pub const Input = *const zx_type_13;
+            pub const Output = bool;
+            pub const InputValue = zx_type_13;
+            pub const OutputValue = bool;
+        };
+        pub const appendFact = struct {
+            pub const Input = *const zx_type_13;
+            pub const Output = void;
+            pub const InputValue = zx_type_13;
+            pub const OutputValue = void;
+        };
+        pub const appendCapture = struct {
+            pub const Input = *const zx_type_15;
+            pub const Output = void;
+            pub const InputValue = zx_type_15;
+            pub const OutputValue = void;
+        };
+        pub const captureError = struct {
+            pub const Input = *const zx_type_13;
+            pub const Output = u64;
+            pub const InputValue = zx_type_13;
+            pub const OutputValue = u64;
+        };
+        pub const captureResult = struct {
+            pub const Input = *const zx_type_13;
+            pub const Output = u64;
+            pub const InputValue = zx_type_13;
+            pub const OutputValue = u64;
+        };
+    };
+    pub const @"zig:integers" = struct {
+        pub const widen = struct {
+            pub const Input = u32;
+            pub const Output = u64;
+            pub const InputValue = u32;
+            pub const OutputValue = u64;
+        };
+        pub const widenByte = struct {
+            pub const Input = u8;
+            pub const Output = u64;
+            pub const InputValue = u8;
+            pub const OutputValue = u64;
+        };
+        pub const narrow = struct {
+            pub const Input = u64;
+            pub const Output = u32;
+            pub const InputValue = u64;
+            pub const OutputValue = u32;
+        };
+    };
+};
+
+pub const layouts = struct {
+    pub const @"zig:flow_state" = struct {
+        pub const Writer = zx_type_11;
+    };
+    pub const @"zig:integers" = struct {
+    };
+};
+

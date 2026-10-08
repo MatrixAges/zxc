@@ -1,0 +1,85 @@
+1/25 analysis_test.test_0...OK
+2/25 analysis.parameters_test.test.predicate callbacks may omit every parameter...OK
+3/25 analysis.parameters_test.test.predicate callbacks receive elements...OK
+4/25 analysis.parameters_test.test.predicate callback index has u64 type...OK
+5/25 analysis.parameters_test.test.predicate callbacks receive a typed source array...OK
+6/25 analysis.parameters_test.test.predicate callbacks accept an evaluated ignored second argument...OK
+7/25 analysis.parameters_test.test.predicate callbacks reject parameters beyond the source array...OK
+8/25 analysis.parameters_test.test.predicate calls require an inline callback...OK
+9/25 analysis.parameters_test.test.predicate callbacks reject non bool results...OK
+10/25 analysis.parameters_test.test.predicate calls reject a third argument...OK
+11/25 analysis.captures_test.test.predicate callbacks capture outer scalar bindings...OK
+12/25 analysis.captures_test.test.predicate parameters shadow outer bindings...OK
+13/25 analysis.captures_test.test.nested predicate callbacks capture the enclosing element...OK
+14/25 analysis.captures_test.test.nested predicate callbacks capture a shared outer scalar...OK
+15/25 analysis.captures_test.test.predicate callbacks reject unresolved captures...OK
+16/25 analysis.captures_test.test.predicate callback parameters reject duplicate bindings...OK
+17/25 analysis.captures_test.test.predicate callbacks cannot repeatedly consume an outer task...OK
+18/25 analysis.lowering_test.test.source predicates lower to validated ordinary iterations...OK
+19/25 analysis.lowering_test.test.nested and constant predicates emit validated Zig bundles...OK
+20/25 ir.transform_test.test.legacy predicates retain copy bool results without container effects...FAIL (TestUnexpectedResult)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10623e21f in expect (test)
+    if (!ok) return error.TestUnexpectedResult;
+             ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/fixture.zig:51:5: 0x10623e367 in valid (test)
+    try std.testing.expect(try compiler.validateIr(std.testing.allocator, value) == null);
+    ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/transform_test.zig:45:13: 0x107230c43 in test.legacy predicates retain copy bool results without container effects (test)
+            try f.valid(value);
+            ^
+21/25 ir.transform_test.test.legacy predicates reject an initial without a context parameter...FAIL (TestUnexpectedResult)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10623e21f in expect (test)
+    if (!ok) return error.TestUnexpectedResult;
+             ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/fixture.zig:51:5: 0x10623e367 in valid (test)
+    try std.testing.expect(try compiler.validateIr(std.testing.allocator, value) == null);
+    ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/transform_test.zig:14:9: 0x10623e979 in reject (test)
+        try f.valid(value);
+        ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/transform_test.zig:57:5: 0x107230865 in test.legacy predicates reject an initial without a context parameter (test)
+    try reject(.unexpected_initial);
+    ^
+22/25 ir.transform_test.test.legacy predicates reject a context parameter without an initial...OK
+23/25 ir.transform_test.test.legacy predicates reject non bool callback bodies...FAIL (TestUnexpectedResult)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10623e21f in expect (test)
+    if (!ok) return error.TestUnexpectedResult;
+             ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/fixture.zig:51:5: 0x10623e367 in valid (test)
+    try std.testing.expect(try compiler.validateIr(std.testing.allocator, value) == null);
+    ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/transform_test.zig:14:9: 0x10623e979 in reject (test)
+        try f.valid(value);
+        ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/transform_test.zig:65:5: 0x1072307c8 in test.legacy predicates reject non bool callback bodies (test)
+    try reject(.wrong_body);
+    ^
+24/25 ir.transform_test.test.legacy predicates reject non list targets...FAIL (TestUnexpectedResult)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10623e21f in expect (test)
+    if (!ok) return error.TestUnexpectedResult;
+             ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/fixture.zig:51:5: 0x10623e367 in valid (test)
+    try std.testing.expect(try compiler.validateIr(std.testing.allocator, value) == null);
+    ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/transform_test.zig:14:9: 0x10623e979 in reject (test)
+        try f.valid(value);
+        ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/transform_test.zig:69:5: 0x107230718 in test.legacy predicates reject non list targets (test)
+    try reject(.wrong_target);
+    ^
+25/25 ir.transform_test.test.legacy predicates reject self referencing callback bodies...FAIL (TestUnexpectedResult)
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x10623e21f in expect (test)
+    if (!ok) return error.TestUnexpectedResult;
+             ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/fixture.zig:51:5: 0x10623e367 in valid (test)
+    try std.testing.expect(try compiler.validateIr(std.testing.allocator, value) == null);
+    ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/transform_test.zig:14:9: 0x10623e979 in reject (test)
+        try f.valid(value);
+        ^
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/test/tests/collections/predicates/ir/transform_test.zig:73:5: 0x10623f098 in test.legacy predicates reject self referencing callback bodies (test)
+    try reject(.forward_body);
+    ^
+20 passed; 0 skipped; 5 failed.
+error: the following test command failed with exit code 1:
+/Users/xiewendao/.codex/conformance/predicate-analysis-contract-a5a530222/r1/draft2-Debug --seed=0xc6076055

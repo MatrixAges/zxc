@@ -1,0 +1,25 @@
+const std = @import("std");
+const compiler = @import("compiler");
+const zx = @import("zx");
+
+test "inspect current predicate analysis" {
+    for ([_][]const u8{
+        "export type Input = i64[]\n\nexport type Output = bool\n\nexport default function (in: Input): Output { const limit: i64 = 0\n return in.every(item => item > limit) }",
+        "export type Input = i64[]\n\nexport type Output = bool\n\nexport default function (in: Input): Output {\n    const limit = 0\n\n    return in.every(item => item > limit)\n}",
+        "export type Input = i64[]\n\nexport type Output = bool\n\nexport default function (in: Input): Output { return in.every(item => item > 0) }",
+    }) |source| {
+        var result = try compiler.analyzeProject(std.testing.allocator, &.{.{ .path = "main.zx", .source = source }}, .{ .entry = "main.zx", .root_dir = "/project" });
+
+        defer result.deinit();
+
+        if (result.value == .diagnostic) {
+            std.debug.print("diagnostic: {s} at {d}\n", .{result.value.diagnostic.message, result.value.diagnostic.span.start});
+        } else {
+            const effects = (try zx.error_effects.program(std.testing.allocator, result.value.ir)).?;
+
+            defer std.testing.allocator.free(effects);
+
+            for (effects) |name| std.debug.print("effect: {s}\n", .{name});
+        }
+    }
+}

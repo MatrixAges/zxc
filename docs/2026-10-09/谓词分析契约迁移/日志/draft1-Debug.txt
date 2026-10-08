@@ -1,0 +1,10 @@
+tests/collections/predicates/ir/fixture.zig:4:15: error: 'Span' is not marked 'pub'
+const span: ir.Span = .{ .start = 0, .end = 0 };
+            ~~^~~~~
+/Users/xiewendao/.codex/worktrees/predicate-analysis-contract-conformance/zxc/packages/core/src/ir.zig:3:1: note: declared here
+const Span = @import("source.zig").Span;
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+referenced by:
+    program: tests/collections/predicates/ir/fixture.zig:20:51
+    test.legacy predicates retain copy bool results without container effects: tests/collections/predicates/ir/transform_test.zig:43:40
+    1 reference(s) hidden; use '-freference-trace=3' to see all references
