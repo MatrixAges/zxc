@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="body_valid" in={{ body: $in.body, max_offset: $in.request.max_offset }} />
+
+    <Switch on={$ctx.body_valid}>
+        <Case value={true}>
+            <Call module="reachable" in={{ request: $in.request, body: $in.body }} />
+
+            <Return value={$ctx.reachable} />
+        </Case>
+
+        <Default>
+            <Return value={null} />
+        </Default>
+    </Switch>
+</Module>

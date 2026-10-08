@@ -1,0 +1,27 @@
+<Module>
+    <Switch on={$in.record.has_body}>
+        <Case value={true}>
+            <Switch on={$in.record.body_function == null}>
+                <Case value={true}>
+                    <Call module="with_body" in={{ request: $in, body: $in.entry }} />
+
+                    <Return value={$ctx.with_body} />
+                </Case>
+
+                <Default>
+                    <Call fn="function_body" in={{ functions: $in.functions, index: $in.record.body_function ?? 0 }} />
+
+                    <Call module="with_body" in={{ request: $in, body: $ctx.function_body }} />
+
+                    <Return value={$ctx.with_body} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Call module="reachable" in={{ request: $in, body: null }} />
+
+            <Return value={$ctx.reachable} />
+        </Default>
+    </Switch>
+</Module>

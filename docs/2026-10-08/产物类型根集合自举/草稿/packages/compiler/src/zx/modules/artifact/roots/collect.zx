@@ -1,0 +1,40 @@
+import integers from "zig:integers"
+
+import rootAt from "./root_at"
+
+import type { Selection } from "./model"
+
+export type Input = Selection
+
+export type Output = { needed: bool[], valid: bool }
+
+export default function (in: Input): Output {
+    const needed = in.request.table.kinds.map(item => false)
+
+    const state = loop({ selection: in, needed: needed, range: in.request.record.start, cursor: { stage: 0, index: 0, section: 0, offset: 0 }, valid: true }, {
+        while: current => current.valid && (current.range < current.selection.request.record.end || current.cursor.stage < 5),
+        next: current => {
+            if (current.range < current.selection.request.record.end) {
+                current.needed[current.range] = true
+                current.range += 1
+            } else {
+                const root = rootAt({ selection: current.selection, cursor: current.cursor })
+
+                current.cursor = root.cursor
+                current.valid = root.valid
+
+                if (root.found) {
+                    const index = integers.widen(root.id)
+
+                    if (index >= current.needed.length) {
+                        current.valid = false
+                    } else {
+                        current.needed[index] = true
+                    }
+                }
+            }
+        }
+    })
+
+    return { needed: state.needed, valid: state.valid }
+}

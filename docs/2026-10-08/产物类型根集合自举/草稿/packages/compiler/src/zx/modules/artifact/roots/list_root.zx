@@ -1,0 +1,13 @@
+import type { Cursor, Step } from "./model"
+
+export type Input = { values: u32[], cursor: Cursor }
+
+export type Output = Step
+
+export default function (in: Input): Output {
+    if (in.cursor.index >= in.values.length) {
+        return { cursor: { stage: in.cursor.stage + 1, index: 0, section: 0, offset: 0 }, valid: true, found: false, id: 0 }
+    }
+
+    return { cursor: { ...in.cursor, index: in.cursor.index + 1 }, valid: true, found: true, id: in.values[in.cursor.index] }
+}

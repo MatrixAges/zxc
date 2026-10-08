@@ -1,0 +1,29 @@
+import integers from "zig:integers"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const record = in.record
+    const functions = in.functions
+    const count = functions.count
+
+    if (record.start > record.end || record.end > in.table.kinds.length) {
+        return false
+    }
+
+    if (record.function_ids.length != record.function_inputs.length || record.function_ids.length != record.function_outputs.length || record.import_native.length != record.import_specifiers.length) {
+        return false
+    }
+
+    if (functions.input_types.length != count || functions.output_types.length != count || functions.native_modules.length != count || functions.symbols.length != count || functions.expressions.length != count || functions.contracts.length != count || functions.stores.length != count) {
+        return false
+    }
+
+    const function_id = record.body_function
+
+    return function_id == null || integers.widen(function_id) < count
+}

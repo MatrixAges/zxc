@@ -1,0 +1,34 @@
+import integers from "zig:integers"
+
+import kind from "../../../analysis/semantic/types/kind"
+import { Kind } from "../../../analysis/semantic/types/model"
+
+import type { Table } from "../../../analysis/semantic/types/model"
+
+export type Input = { table: Table, index: u64, edge: u64 }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const type_kind = kind(in.table.kinds[in.index])
+
+        if (type_kind == Kind.Optional || type_kind == Kind.List) {
+            return in.edge == 0 ? in.table.first[in.index] : null
+        }
+
+        if (type_kind == Kind.Task) {
+            if (in.edge >= 2) {
+                return null
+            }
+
+            return in.edge == 0 ? in.table.first[in.index] : in.table.second[in.index]
+        }
+
+        if ((type_kind == Kind.Tuple || type_kind == Kind.Object) && in.edge < integers.widen(in.table.second[in.index])) {
+            const index = integers.widen(in.table.first[in.index]) + in.edge
+
+            return type_kind == Kind.Tuple ? in.table.children[index] : in.table.field_types[index]
+        }
+
+        return null
+    }

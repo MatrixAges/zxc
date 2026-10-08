@@ -1,0 +1,24 @@
+import bodyRoot from "./body_root"
+import functionRoot from "./function_root"
+import listRoot from "./list_root"
+import nativeRoot from "./native_root"
+
+import type { Cursor, Selection, Step } from "./model"
+
+export type Input = { selection: Selection, cursor: Cursor }
+
+export type Output = Step
+
+export default function (in: Input): Output {
+    const request = in.selection.request
+    const body = in.selection.body
+    const cursor = in.cursor
+
+    return match cursor.stage {
+        0 => listRoot({ values: request.record.exports, cursor: cursor }),
+        1 => listRoot({ values: request.record.type_imports, cursor: cursor }),
+        2 => functionRoot({ request: request, cursor: cursor }),
+        3 => nativeRoot({ request: request, cursor: cursor }),
+        _ => body != null ? bodyRoot({ body: body, cursor: cursor }) : { cursor: { stage: 5, index: 0, section: 0, offset: 0 }, valid: true, found: false, id: 0 }
+    }
+}

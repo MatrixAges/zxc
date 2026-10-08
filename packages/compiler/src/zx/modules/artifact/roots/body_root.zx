@@ -1,0 +1,42 @@
+import type { Body, Cursor, Step } from "./model"
+
+export type Input = { body: Body, cursor: Cursor }
+
+export type Output = Step
+
+export default function (in: Input): Output {
+    const cursor = in.cursor
+    const body = in.body
+
+    if (cursor.index == 0 && cursor.section < 2) {
+        return { cursor: { ...cursor, section: cursor.section + 1 }, valid: true, found: true, id: cursor.section == 0 ? body.input_type : body.output_type }
+    }
+
+    if (cursor.index == 3 && cursor.section < body.contracts.kinds.length) {
+        const symbols = body.contracts.symbols[cursor.section].types
+        const expressions = body.contracts.expressions[cursor.section].types
+
+        if (cursor.offset < symbols.length + expressions.length) {
+            const id = cursor.offset < symbols.length ? symbols[cursor.offset] : expressions[cursor.offset - symbols.length]
+
+            return { cursor: { ...cursor, offset: cursor.offset + 1 }, valid: true, found: true, id: id }
+        }
+
+        return { cursor: { ...cursor, section: cursor.section + 1, offset: 0 }, valid: true, found: false, id: 0 }
+    }
+
+    const values: u32[] = match cursor.index {
+        1 => body.symbols.types,
+        2 => body.expressions.types,
+        4 => body.stores.types,
+        _ => []
+    }
+
+    if (cursor.section < values.length) {
+        return { cursor: { ...cursor, section: cursor.section + 1 }, valid: true, found: true, id: values[cursor.section] }
+    }
+
+    const next = cursor.index + 1
+
+    return { cursor: { stage: next == 5 ? cursor.stage + 1 : cursor.stage, index: next == 5 ? 0 : next, section: 0, offset: 0 }, valid: true, found: false, id: 0 }
+}

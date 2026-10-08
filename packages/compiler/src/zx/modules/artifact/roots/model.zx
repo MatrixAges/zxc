@@ -1,0 +1,41 @@
+import type { Table } from "../../../analysis/semantic/types/model"
+import type { Contracts } from "../../../ir/canonical/contracts/model"
+import type { Expressions } from "../../../ir/canonical/expressions/model"
+import type { Modules } from "../../../ir/canonical/native/model"
+import type { Stores } from "../../../ir/canonical/stores/model"
+import type { Symbols } from "../../../ir/canonical/symbols"
+
+export type Functions = {
+    count: u64
+    input_types: u32[]
+    output_types: u32[]
+    native_modules: u32?[]
+    symbols: Symbols[]
+    expressions: Expressions[]
+    contracts: Contracts[]
+    stores: Stores[]
+}
+
+export type Body = { input_type: u32, output_type: u32, symbols: Symbols, expressions: Expressions, contracts: Contracts, stores: Stores }
+
+export type Record = {
+    start: u64
+    end: u64
+    exports: u32[]
+    type_imports: u32[]
+    function_ids: u32[]
+    function_inputs: u32[]
+    function_outputs: u32[]
+    import_native: bool[]
+    import_specifiers: string[]
+    has_body: bool
+    body_function: u32?
+}
+
+export type Request = { table: Table, functions: Functions, modules: Modules, entry: Body, record: Record, max_offset: u64 }
+
+export type Selection = { request: Request, body: Body? }
+
+export type Cursor = { stage: u64, index: u64, section: u64, offset: u64 }
+
+export type Step = { cursor: Cursor, valid: bool, found: bool, id: u32 }

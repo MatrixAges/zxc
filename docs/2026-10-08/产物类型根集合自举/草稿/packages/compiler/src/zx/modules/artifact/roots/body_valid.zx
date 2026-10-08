@@ -1,0 +1,15 @@
+import symbols from "../../../ir/canonical/body/symbols"
+import contracts from "../../../ir/canonical/contracts/tables"
+import expressions from "../../../ir/canonical/expressions/validation/validate"
+
+import type { Body } from "./model"
+
+export type Input = { body: Body, max_offset: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return symbols({ symbols: in.body.symbols, max_offset: in.max_offset }) &&
+        expressions({ table: in.body.expressions, max_offset: in.max_offset }) &&
+        contracts({ contracts: in.body.contracts, max_offset: in.max_offset })
+}

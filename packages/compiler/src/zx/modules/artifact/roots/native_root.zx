@@ -1,0 +1,29 @@
+import type { Cursor, Request, Step } from "./model"
+
+export type Input = { request: Request, cursor: Cursor }
+
+export type Output = Step
+
+export default function (in: Input): Output {
+    const record = in.request.record
+    const modules = in.request.modules
+    const cursor = in.cursor
+
+    if (cursor.index >= record.import_native.length) {
+        return { cursor: { stage: cursor.stage + 1, index: 0, section: 0, offset: 0 }, valid: true, found: false, id: 0 }
+    }
+
+    if (!record.import_native[cursor.index] || cursor.section >= modules.specifiers.length) {
+        return { cursor: { ...cursor, index: cursor.index + 1, section: 0, offset: 0 }, valid: true, found: false, id: 0 }
+    }
+
+    if (record.import_specifiers[cursor.index] == modules.specifiers[cursor.section]) {
+        const values = modules.type_ids[cursor.section]
+
+        if (cursor.offset < values.length) {
+            return { cursor: { ...cursor, offset: cursor.offset + 1 }, valid: true, found: true, id: values[cursor.offset] }
+        }
+    }
+
+    return { cursor: { ...cursor, section: cursor.section + 1, offset: 0 }, valid: true, found: false, id: 0 }
+}

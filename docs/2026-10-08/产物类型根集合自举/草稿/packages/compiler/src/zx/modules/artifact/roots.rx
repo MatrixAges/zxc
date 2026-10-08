@@ -1,0 +1,16 @@
+<Module>
+    <Call fn="../../ir/canonical/native/structure" in={$in.modules} />
+    <Call fn="roots/valid" in={$in} />
+
+    <Switch on={$ctx.structure && $ctx.valid}>
+        <Case value={true}>
+            <Call module="roots/select" in={$in} />
+
+            <Return value={$ctx.select} />
+        </Case>
+
+        <Default>
+            <Return value={null} />
+        </Default>
+    </Switch>
+</Module>

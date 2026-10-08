@@ -1,0 +1,35 @@
+import integers from "zig:integers"
+
+import dependency from "./dependency"
+
+import type { Table } from "../../../analysis/semantic/types/model"
+
+export type Input = { table: Table, needed: bool[] }
+
+export type Output = { needed: bool[], valid: bool }
+
+export default function (in: Input): Output {
+    const state = loop({ table: in.table, needed: in.needed, remaining: in.needed.length, edge: 0, valid: true }, {
+        while: current => current.valid && current.remaining > 0,
+        next: current => {
+            const index = current.remaining - 1
+            const child = current.needed[index] ? dependency({ table: current.table, index: index, edge: current.edge }) : null
+
+            if (child == null) {
+                current.remaining -= 1
+                current.edge = 0
+            } else {
+                const child_index = integers.widen(child)
+
+                if (child_index >= current.needed.length) {
+                    current.valid = false
+                } else {
+                    current.needed[child_index] = true
+                    current.edge += 1
+                }
+            }
+        }
+    })
+
+    return { needed: state.needed, valid: state.valid }
+}

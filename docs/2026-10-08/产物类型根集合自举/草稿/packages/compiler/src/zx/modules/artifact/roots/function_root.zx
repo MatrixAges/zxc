@@ -1,0 +1,53 @@
+import integers from "zig:integers"
+
+import type { Cursor, Request, Step } from "./model"
+
+export type Input = { request: Request, cursor: Cursor }
+
+export type Output = Step
+
+export default function (in: Input): Output {
+    const record = in.request.record
+    const functions = in.request.functions
+    const cursor = in.cursor
+
+    if (cursor.index >= record.function_ids.length) {
+        return { cursor: { stage: cursor.stage + 1, index: 0, section: 0, offset: 0 }, valid: true, found: false, id: 0 }
+    }
+
+    const index = integers.widen(record.function_ids[cursor.index])
+
+    if (index >= functions.count) {
+        return { cursor: cursor, valid: false, found: false, id: 0 }
+    }
+
+    if (cursor.section < 4) {
+        const id = match cursor.section {
+            0 => record.function_inputs[cursor.index],
+            1 => record.function_outputs[cursor.index],
+            2 => functions.input_types[index],
+            _ => functions.output_types[index]
+        }
+
+        return { cursor: { ...cursor, section: cursor.section + 1 }, valid: true, found: true, id: id }
+    }
+
+    const module = functions.native_modules[index]
+
+    if (module != null) {
+        const native = integers.widen(module)
+
+        if (native >= in.request.modules.specifiers.length) {
+            return { cursor: cursor, valid: false, found: false, id: 0 }
+        }
+
+        const values = in.request.modules.type_ids[native]
+        const offset = cursor.section - 4
+
+        if (offset < values.length) {
+            return { cursor: { ...cursor, section: cursor.section + 1 }, valid: true, found: true, id: values[offset] }
+        }
+    }
+
+    return { cursor: { ...cursor, index: cursor.index + 1, section: 0 }, valid: true, found: false, id: 0 }
+}
