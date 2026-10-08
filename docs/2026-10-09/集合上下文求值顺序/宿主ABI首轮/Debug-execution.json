@@ -1,0 +1,61 @@
+{
+    "mode": "Debug",
+    "status": "terminal",
+    "started": "2026-10-08T19:08:45.093108+00:00",
+    "executions": [
+        {
+            "name": "map_used",
+            "names": [
+                "explicit context evaluates once even for empty input",
+                "source precedes one context evaluation and ordered callback visits",
+                "source failure prevents context and callback evaluation",
+                "context failure propagates before any callback even on empty input",
+                "every reachable callback failure preserves preceding context evaluation",
+                "callback failures follow the actual decision boundary",
+                "context is recomputed for each independent execution",
+                "long callback traversal keeps one context and preserves input"
+            ],
+            "command": [
+                "/Users/xiewendao/.codex/conformance/diagnostics/zig-signed-probe-20261009/zig",
+                "test",
+                "-ODebug",
+                "--dep",
+                "program",
+                "--dep",
+                "host",
+                "--dep",
+                "options",
+                "-Mroot=/Users/xiewendao/.codex/worktrees/callback-context-effects-conformance/zxc/packages/test/tests/collections/context_effects/root.zig",
+                "-ODebug",
+                "--dep",
+                "host",
+                "--dep",
+                "zxc_abi",
+                "-Mprogram=/Users/xiewendao/.codex/conformance/callback-context-effects-39d4bf100/r2/Debug/map_used.zig",
+                "-ODebug",
+                "-Mzxc_abi=/Users/xiewendao/.codex/conformance/callback-context-effects-39d4bf100/r2/Debug/map_used_abi.zig",
+                "-ODebug",
+                "-Mhost=/Users/xiewendao/.codex/worktrees/callback-context-effects-conformance/zxc/packages/test/tests/collections/context_effects/host.zig",
+                "-ODebug",
+                "-Moptions=/Users/xiewendao/.codex/conformance/callback-context-effects-39d4bf100/r2/Debug/map_used-options.zig",
+                "--cache-dir",
+                "/Users/xiewendao/.codex/conformance/callback-context-effects-39d4bf100/r2/cache-Debug",
+                "--global-cache-dir",
+                "/Users/xiewendao/.codex/conformance/callback-context-effects-39d4bf100/r2/cache-global",
+                "--test-no-exec",
+                "-femit-bin=/Users/xiewendao/.codex/conformance/callback-context-effects-39d4bf100/r2/Debug/test-map_used",
+                "--entitlements",
+                "/Users/xiewendao/.codex/conformance/diagnostics/zig-signed-probe-20261009/empty.plist"
+            ],
+            "options": "/Users/xiewendao/.codex/conformance/callback-context-effects-39d4bf100/r2/Debug/map_used-options.zig",
+            "options_sha256": "5bed2ed7720fcab36a01dd9d2650c54151d3830637f529b1f938d495c6a4fc50",
+            "binary": "/Users/xiewendao/.codex/conformance/callback-context-effects-39d4bf100/r2/Debug/test-map_used",
+            "compile_exit": 1,
+            "compile_log": "/Users/xiewendao/.codex/conformance/callback-context-effects-39d4bf100/r2/Debug/map_used-runtime-compile.txt",
+            "compile_log_sha256": "0a8142964ef16e65de2c84eccc0e90bb207c6fc14e5f73ac5dee303c1b24f687"
+        }
+    ],
+    "exit_code": 1,
+    "error": "tests/collections/context_effects/check.zig:25:32: error: type '*const map_used_abi.zx_type_13' does not support struct initialization syntax\n    const input = program.Input{ .items = storage[1..][0..args.values.len], .tag = args.tag };\n                  ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nreferenced by:\n    test.explicit context evaluates once even for empty input: tests/collections/context_effects/root.zig:9:22\n",
+    "finished": "2026-10-08T19:08:45.432848+00:00"
+}

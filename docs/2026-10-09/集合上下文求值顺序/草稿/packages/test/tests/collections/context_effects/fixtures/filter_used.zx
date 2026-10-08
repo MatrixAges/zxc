@@ -1,0 +1,11 @@
+import context from "lib:context"
+import source from "lib:source"
+import visit from "lib:visit"
+
+export type Input = { items: i64[], tag: i64 }
+
+export type Output = i64[]
+
+export default function (in: Input): Output {
+    return source(in.items).filter((item, data) => visit({ item: item, context: data }), context(in.tag))
+}

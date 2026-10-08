@@ -1,0 +1,5 @@
+tests/collections/context_effects/check.zig:25:32: error: type '*const map_used_abi.zx_type_13' does not support struct initialization syntax
+    const input = program.Input{ .items = storage[1..][0..args.values.len], .tag = args.tag };
+                  ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+referenced by:
+    test.explicit context evaluates once even for empty input: tests/collections/context_effects/root.zig:9:22
