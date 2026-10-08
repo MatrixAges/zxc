@@ -1,0 +1,55 @@
+import integers from "zig:integers"
+
+import { Status } from "../../../../analysis/semantic/extracting/planning/model"
+import visit from "../../../../analysis/semantic/extracting/planning/visit"
+import nativeInclude from "../native_include"
+
+import type { Request } from "../../../../analysis/semantic/extracting/planning/model"
+import type { Modules } from "../../../../ir/canonical/native/model"
+import type { Signatures, Plan } from "./model"
+
+export type Input = { request: Request, modules: Modules, signatures: Signatures, plan: Plan, index: u64 }
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    if (in.index >= in.signatures.inputs.length) {
+        return { ...in.plan, state: { ...in.plan.state, status: Status.Invalid } }
+    }
+
+    if (in.plan.functions.mapping[in.index] != 0) {
+        return in.plan
+    }
+
+    const native_id = in.signatures.native_modules[in.index]
+
+    const native = native_id == null
+    ? { state: in.plan.state, natives: in.plan.natives }
+    : nativeInclude({ request: in.request, state: in.plan.state, modules: in.modules, natives: in.plan.natives, index: integers.widen(native_id) })
+
+    if (native.state.status != Status.Ready) {
+        return { state: native.state, natives: native.natives, functions: in.plan.functions }
+    }
+
+    const input_id = integers.widen(in.signatures.inputs[in.index])
+
+    if (input_id >= in.request.table.kinds.length) {
+        return { state: { ...native.state, status: Status.Invalid }, natives: native.natives, functions: in.plan.functions }
+    }
+
+    const input_state = visit({ request: in.request, state: native.state, index: input_id })
+
+    if (input_state.status != Status.Ready) {
+        return { state: input_state, natives: native.natives, functions: in.plan.functions }
+    }
+
+    const output_id = integers.widen(in.signatures.outputs[in.index])
+
+    if (output_id >= in.request.table.kinds.length) {
+        return { state: { ...input_state, status: Status.Invalid }, natives: native.natives, functions: in.plan.functions }
+    }
+
+    const output_state = visit({ request: in.request, state: input_state, index: output_id })
+
+    return { state: output_state, natives: native.natives, functions: in.plan.functions }
+}

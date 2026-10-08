@@ -1,0 +1,14 @@
+import integers from "zig:integers"
+
+import type { FunctionPlan } from "./model"
+
+export type Input = { inputs: u32[] }
+
+export type Output = FunctionPlan
+
+export default function (in: Input): Output {
+    const mapping: u64[] = in.inputs.map(value => 0)
+    const order: u32[] = in.inputs.map(value => integers.narrow(0))
+
+    return { mapping: mapping, order: order, count: 0 }
+}

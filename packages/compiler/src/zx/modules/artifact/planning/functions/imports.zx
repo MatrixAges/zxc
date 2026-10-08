@@ -1,0 +1,39 @@
+import integers from "zig:integers"
+
+import { Status } from "../../../../analysis/semantic/extracting/planning/model"
+import dependencies from "./dependencies"
+
+import type { Request } from "../../../../analysis/semantic/extracting/planning/model"
+import type { Modules } from "../../../../ir/canonical/native/model"
+import type { Signatures, Imports, Plan } from "./model"
+
+export type Input = { request: Request, modules: Modules, signatures: Signatures, imports: Imports, plan: Plan }
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    const result = loop({ request: in.request, modules: in.modules, signatures: in.signatures, imports: in.imports, plan: in.plan, index: 0 }, {
+        while: current => current.plan.state.status == Status.Ready && current.index < current.imports.ids.length,
+        next: current => {
+            const id = integers.widen(current.imports.ids[current.index])
+
+            if (id >= current.signatures.inputs.length) {
+                current.plan.state.status = Status.Invalid
+            } else if (current.imports.inputs[current.index] != current.signatures.inputs[id] || current.imports.outputs[current.index] != current.signatures.outputs[id]) {
+                current.plan.state.status = Status.Invalid
+            } else if (current.plan.functions.mapping[id] == 0) {
+                current.plan = dependencies({ request: current.request, modules: current.modules, signatures: current.signatures, plan: current.plan, index: id })
+
+                if (current.plan.state.status == Status.Ready) {
+                    current.plan.functions.mapping[id] = current.plan.functions.count + 1
+                    current.plan.functions.order[current.plan.functions.count] = integers.narrow(id)
+                    current.plan.functions.count += 1
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.plan
+}

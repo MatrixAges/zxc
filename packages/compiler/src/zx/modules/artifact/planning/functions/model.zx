@@ -1,0 +1,10 @@
+import type { State } from "../../../../analysis/semantic/extracting/planning/model"
+import type { NativePlan } from "../model"
+
+export type Signatures = { inputs: u32[], outputs: u32[], native_modules: u32?[] }
+
+export type Imports = { ids: u32[], inputs: u32[], outputs: u32[] }
+
+export type FunctionPlan = { mapping: u64[], order: u32[], count: u64 }
+
+export type Plan = { state: State, natives: NativePlan, functions: FunctionPlan }

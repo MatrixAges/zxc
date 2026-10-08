@@ -1,0 +1,22 @@
+import { Status } from "../../../../analysis/semantic/extracting/planning/model"
+
+import type { Signatures, Imports, Plan } from "./model"
+
+export type Input = { signatures: Signatures, imports: Imports, plan: Plan }
+
+export type Output = Plan
+
+export default function (in: Input): Output {
+    if (in.plan.state.status != Status.Ready) {
+        return in.plan
+    }
+
+    const count = in.signatures.inputs.length
+    const imported = in.imports.ids.length
+
+    if (in.signatures.outputs.length != count || in.signatures.native_modules.length != count || in.imports.inputs.length != imported || in.imports.outputs.length != imported) {
+        return { ...in.plan, state: { ...in.plan.state, status: Status.Invalid } }
+    }
+
+    return in.plan
+}
