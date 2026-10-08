@@ -1,0 +1,7 @@
+export type Context = { limit: i64, payload: i64[] }
+
+export declare function echo(context: Context): Context throws { NativeFailure }
+
+export declare function mapValue(item: i64, context: Context): i64 throws { NativeFailure }
+
+export declare function predicate(item: i64, context: Context): bool throws { NativeFailure }

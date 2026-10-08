@@ -1,0 +1,11 @@
+import host from "zig:host"
+
+import type { Context } from "zig:host"
+
+export type Input = { items: i64[], context: Context }
+
+export type Output = i64[]
+
+export default function (in: Input): Output {
+    return in.items.filter((item, data) => host.predicate(item, data), host.echo(in.context))
+}

@@ -1,0 +1,72 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_c66e6df860adac873dcd6b04506ccbafe5594eb34ad2d48352f9e62c139aab85;
+
+pub const Output = bool;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_7, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_7, .@"1" = zx_shape_11, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .context = zx_shape_11, .items = zx_shape_11, }, };
+
+pub const input_shape = zx_shape_13;
+
+pub const output_shape = zx_shape_1;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_c66e6df860adac873dcd6b04506ccbafe5594eb34ad2d48352f9e62c139aab85) error{ NativeFailure, OutOfMemory, }!bool {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return predicate_2: {
+        const operand_1 = (in).items;
+        const value_2: []const i64 = (try (@import("zxc_module_6952b2c59aaf79778922fdd8eb0044481237298c434e6d09b7d52fe2a08bc34b")).call(allocator, (in).context));
+
+        for (operand_1) |value_1| {
+            if ((block_7: {
+                const operand_6 = @as((zx_abi).zx_type_4104921f11e90e4d6bf26e6e94b650507a41b38bc093e6b16a777eb022cd403c, block_5: {
+                    const operand_3 = value_1;
+                    const operand_4 = value_2;
+
+                    break :block_5 .{ operand_3, operand_4, };
+                });
+
+                break :block_7 (try (@import("zxc_module_814ff6024cb985ff58de1193c93ec7af3e60f8a15a6927d9eb374d84ad388c53")).call(allocator, (&operand_6)));
+            } != true)) {
+                break :predicate_2 false;
+            }
+        }
+
+        break :predicate_2 true;
+    };
+}
+

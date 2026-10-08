@@ -1,0 +1,14 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+const zx_native = @import("host");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_0168994f792ac8ada956b043cd140b77e82eb43d46c29c466a054b976a7159c3) error{ NativeFailure, }!i64 {
+    const native_result = (try (zx_native).mapValue((in).@"0", (in).@"1"));
+
+    _ = allocator;
+
+    return native_result;
+}
+
