@@ -1,0 +1,31 @@
+<Module>
+    <Call module="parse" in={$in.source} />
+
+    <Switch on={$ctx.parse.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call module="analyze" in={{
+                context: {
+                    source: { indexed: { bytes: $in.source, types: $ctx.parse.types, order: $ctx.parse.type_order, declarations: $ctx.parse.declarations, members: $ctx.parse.members }, native: null },
+                    base: $in.base,
+                    resolved: { names: [], ids: [] },
+                    aliases: { names: [], ids: [] },
+                    visiting: [],
+                    native_interface: true
+                },
+                shared: $in.shared,
+                origins: $in.origins,
+                origin: $in.origin,
+                namespace: $in.namespace,
+                functions: $ctx.parse.functions,
+                parameters: $ctx.parse.parameters,
+                errors: $ctx.parse.errors
+            }} />
+
+            <Return value={$ctx.analyze} />
+        </Case>
+
+        <Default>
+            <Return value={{ delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }, cache: { names: [], ids: [] }, diagnostic: $ctx.parse.diagnostic, exports: [], members: [], origins: { ids: [], kinds: [], owners: [], members: [] } }} />
+        </Default>
+    </Switch>
+</Module>
