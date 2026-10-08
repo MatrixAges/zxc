@@ -1,0 +1,8 @@
+import type { Input, State } from "../model"
+
+export default function (in: Input): State {
+    const left = in.left.map(item => item)
+    const right = left
+
+    return { columns: { left, right }, round: 0, count: in.count, delta: in.delta, enabled: in.enabled, left_index: in.left_index, right_index: in.right_index, marker: in.marker }
+}

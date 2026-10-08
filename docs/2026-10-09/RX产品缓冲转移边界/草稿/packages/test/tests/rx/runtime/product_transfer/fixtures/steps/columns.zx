@@ -1,0 +1,18 @@
+import type { State } from "../model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: state => state.round < state.count,
+        next: state => {
+            if (state.enabled) {
+                state.columns.left[state.left_index] += state.delta
+                state.columns.right[state.right_index] -= state.delta
+            }
+            state.round += 1
+        }
+    })
+}

@@ -1,0 +1,7 @@
+export type DataInput = { left: i64[], right: i64[], count: u64, delta: i64, enabled: bool, left_index: u64, right_index: u64, marker: u64 }
+
+export type Columns = { left: i64[], right: i64[] }
+
+export type State = { columns: Columns, round: u64, count: u64, delta: i64, enabled: bool, left_index: u64, right_index: u64, marker: u64 }
+
+export type NestedState = { product: [Columns, u64], round: u64, count: u64, delta: i64, enabled: bool, left_index: u64, right_index: u64 }

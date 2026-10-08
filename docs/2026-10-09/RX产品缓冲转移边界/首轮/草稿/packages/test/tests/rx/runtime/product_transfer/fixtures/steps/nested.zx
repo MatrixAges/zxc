@@ -1,0 +1,14 @@
+import type { NestedState } from "../model"
+
+export default function (in: NestedState): NestedState {
+    return loop(in, {
+        while: state => state.round < state.count,
+        next: state => {
+            if (state.enabled) {
+                state.product[0].left[state.left_index] += state.delta
+                state.product[0].right[state.right_index] -= state.delta
+            }
+            state.round += 1
+        }
+    })
+}

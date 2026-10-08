@@ -1,0 +1,12 @@
+object: 0 transferred slots; formatted RX and ZX; valid IR
+expected 2, found 0
+error: TestExpectedEqual
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:93:17: 0x10b449539 in expectEqualInner__func_874 (build-exe)
+                return error.TestExpectedEqual;
+                ^
+/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:57:5: 0x10b44afc0 in expectEqual (build-exe)
+    return expectEqualInner(T, expected, actual);
+    ^
+/Users/xiewendao/.codex/worktrees/product-buffer-transfer-conformance/zxc/packages/test/tests/rx/runtime/product_transfer/compile.zig:75:5: 0x10b44b175 in main (build-exe)
+    try std.testing.expectEqual(fixture.slots(args[1]), slots);
+    ^

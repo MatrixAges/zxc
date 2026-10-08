@@ -1,0 +1,8 @@
+import type { Input, NestedState } from "../model"
+
+export default function (in: Input): NestedState {
+    const left = in.left.map(item => item)
+    const right = in.right.map(item => item)
+
+    return { product: [{ left, right }, in.marker], round: 0, count: in.count, delta: in.delta, enabled: in.enabled, left_index: in.left_index, right_index: in.right_index }
+}

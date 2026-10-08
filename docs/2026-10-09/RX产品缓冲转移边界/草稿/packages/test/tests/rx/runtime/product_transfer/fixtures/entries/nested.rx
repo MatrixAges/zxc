@@ -1,0 +1,6 @@
+<Module>
+    <Call fn="factories/create" in={$in} />
+    <Call fn="steps/patch" in={$ctx.create} />
+
+    <Return value={{ columns: $ctx.patch.product[0], before: { left: $in.left, right: $in.right }, original: { left: $in.left, right: $in.right }, marker: $ctx.patch.product[1], rounds: $ctx.patch.round }} />
+</Module>
