@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="../../../analysis/semantic/extracting/planning/ready" in={$in.state} />
+
+    <Switch on={$ctx.ready}>
+        <Case value={true}>
+            <Call fn="native_types" in={$in} />
+
+            <Return value={$ctx.native_types} />
+        </Case>
+
+        <Default>
+            <Return value={{ state: $in.state, selected: $in.selected }} />
+        </Default>
+    </Switch>
+</Module>

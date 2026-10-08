@@ -1,0 +1,43 @@
+import integers from "zig:integers"
+
+import { Status } from "../../../analysis/semantic/extracting/planning/model"
+import visit from "../../../analysis/semantic/extracting/planning/visit"
+import kind from "../../../analysis/semantic/types/kind"
+import { Kind } from "../../../analysis/semantic/types/model"
+
+import type { Request, State } from "../../../analysis/semantic/extracting/planning/model"
+import type { Modules } from "../../../ir/canonical/native/model"
+
+export type Input = { request: Request, state: State, modules: Modules, selected: bool[] }
+
+export type Output = { state: State, selected: bool[] }
+
+export default function (in: Input): Output {
+    const result = loop({ request: in.request, plan: in.state, modules: in.modules, selected: in.selected, index: 0, member: 0, including: false }, {
+        while: current => current.plan.status == Status.Ready && current.index < current.modules.specifiers.length,
+        next: current => {
+            const values = current.modules.type_ids[current.index]
+
+            if (current.member >= values.length) {
+                current.index += 1
+                current.member = 0
+                current.including = false
+            } else {
+                const id = integers.widen(values[current.member])
+
+                if (current.including) {
+                    current.plan = visit({ request: current.request, state: current.plan, index: id })
+                    current.member += 1
+                } else if (kind(current.request.table.kinds[id]) == Kind.NativeReference && current.plan.mapping[id] != 0) {
+                    current.selected[current.index] = true
+                    current.including = true
+                    current.member = 0
+                } else {
+                    current.member += 1
+                }
+            }
+        }
+    })
+
+    return { state: result.plan, selected: result.selected }
+}

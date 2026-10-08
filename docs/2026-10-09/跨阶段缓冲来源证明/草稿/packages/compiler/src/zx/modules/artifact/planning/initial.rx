@@ -1,0 +1,8 @@
+<Module>
+    <Call fn="../../../analysis/semantic/extracting/planning/initialize" in={{ kinds: $in.request.table.kinds, scalar_count: $in.request.scalar_count }} />
+    <Call fn="../../../analysis/semantic/extracting/planning/roots" in={{ request: $in.request, state: $ctx.initialize }} />
+    <Call fn="native_selection" in={{ specifiers: $in.modules.specifiers }} />
+    <Call module="expand_native" in={{ request: $in.request, state: $ctx.roots, modules: $in.modules, selected: $ctx.native_selection }} />
+
+    <Return value={$ctx.expand_native} />
+</Module>

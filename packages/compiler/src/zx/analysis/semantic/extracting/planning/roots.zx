@@ -1,0 +1,23 @@
+import { Status } from "./model"
+import visit from "./visit"
+
+import type { Request, State } from "./model"
+
+export type Input = { request: Request, state: State }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const result = loop({ request: in.request, plan: in.state, index: 0 }, {
+        while: current => current.plan.status == Status.Ready && current.index < current.request.roots.length,
+        next: current => {
+            if (current.request.roots[current.index]) {
+                current.plan = visit({ request: current.request, state: current.plan, index: current.index })
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.plan
+}
