@@ -1,0 +1,16 @@
+<Module>
+    <Call fn="signatures/initial" in={{ context: $in.context, functions: $in.functions, parameters: $in.parameters }} />
+    <Call fn="interface/namespace" in={$in.namespace} />
+
+    <Switch on={$ctx.namespace}>
+        <Case value={true}>
+            <Call fn="signatures/functions" in={{ resolution: $ctx.initial, functions: $in.functions, parameters: $in.parameters }} />
+
+            <Return value={{ delta: $ctx.functions.resolution.delta, cache: $ctx.functions.resolution.cache, diagnostic: $ctx.functions.resolution.diagnostic, signatures: $ctx.functions.signatures }} />
+        </Case>
+
+        <Default>
+            <Return value={{ delta: $ctx.initial.delta, cache: $ctx.initial.cache, diagnostic: { code: "module", message: "native namespaces require nonempty UTF-8 member names", start: 0, end: 0 }, signatures: [] }} />
+        </Default>
+    </Switch>
+</Module>

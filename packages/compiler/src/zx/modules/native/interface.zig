@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const Types = @import("../../analysis/types.zig");
-const generated = @import("generated_native_signatures");
+const generated = @import("generated_native_interface");
 const model = @import("../../analysis/semantic/resolving/host/model.zig");
 const Source = @import("../../analysis/semantic/resolving/host/source.zig");
 const Snapshot = @import("../../analysis/semantic/resolving/host/snapshot.zig");
@@ -9,7 +9,7 @@ const layout = @import("../../analysis/semantic/resolving/host/layout.zig");
 
 pub const Signature = struct { input: zx.ir.TypeId, output: zx.ir.TypeId, native: zx.ir.NativeType };
 
-pub fn analyze(types: *Types, view: anytype) zx.Error![]const Signature {
+pub fn analyze(types: *Types, view: anytype, namespace: []const []const u8) zx.Error![]const Signature {
     var arena = std.heap.ArenaAllocator.init(types.allocator);
 
     defer arena.deinit();
@@ -33,6 +33,7 @@ pub fn analyze(types: *Types, view: anytype) zx.Error![]const Signature {
     const Input = std.meta.Child(generated.Input);
 
     const input: Input = .{
+        .namespace = layout.borrow(@FieldType(Input, "namespace"), namespace),
         .context = layout.borrow(@FieldType(Input, "context"), &context),
         .functions = layout.borrow(@FieldType(Input, "functions"), view.storage.functions),
         .parameters = layout.borrow(@FieldType(Input, "parameters"), view.storage.parameters),

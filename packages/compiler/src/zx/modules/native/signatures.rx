@@ -1,6 +1,0 @@
-<Module>
-    <Call fn="signatures/initial" in={$in} />
-    <Call fn="signatures/functions" in={{ resolution: $ctx.initial, functions: $in.functions, parameters: $in.parameters }} />
-
-    <Return value={{ delta: $ctx.functions.resolution.delta, cache: $ctx.functions.resolution.cache, diagnostic: $ctx.functions.resolution.diagnostic, signatures: $ctx.functions.signatures }} />
-</Module>

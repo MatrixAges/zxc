@@ -1,0 +1,19 @@
+import validate from "../../../frontend/lexer/utf8/validate"
+
+export type Input = u8[][]
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ parts: in, index: 0, valid: true }, {
+        while: current => current.index < current.parts.length && current.valid,
+        next: current => {
+            const part = current.parts[current.index]
+
+            current.valid = part.length > 0 && !part.some(byte => byte == 0) && validate(part)
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}
