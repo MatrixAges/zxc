@@ -1,0 +1,21 @@
+[
+    {
+        "file": "15.4.4.20-5-29.js",
+        "case": "constant_false/single",
+        "expected": [],
+        "reason": "保留[11]的结果长度0观察；无副作用零形参回调的固定undefined结果显式映射为单个未使用形参的恒false bool谓词。不证明动态ToBoolean或零形参协议已实现。"
+    },
+    {
+        "file": "15.4.4.20-6-1.js",
+        "case": "constant_false/empty",
+        "expected": [],
+        "reason": "保留空列表输入和输出容器类别、长度0观察。Array.isArray的容器类别映射为静态i64[]输出与实际Zig slice类别与原生完整值比较，不声称动态Array.isArray函数或零形参回调协议。"
+    },
+    {
+        "file": "15.4.4.20-9-c-ii-9.js",
+        "case": "constant_true/single",
+        "expected": [11],
+        "reason": "保留[11]、恒true回调、输出长度1及元素11的全部断言；显式将零形参命名回调改为单个未使用形参的内联bool谓词，不声称零形参调用协议等价。",
+        "role": "existing_review_control"
+    }
+]

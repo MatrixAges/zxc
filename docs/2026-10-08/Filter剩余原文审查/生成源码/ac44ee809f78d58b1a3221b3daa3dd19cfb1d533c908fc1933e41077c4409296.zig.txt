@@ -1,0 +1,57 @@
+const std = @import("std");
+
+pub const Input = []const i64;
+
+pub const Output = []const bool;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_7, };
+
+const zx_shape_12 = .{ .kind = .list, .child = zx_shape_1, };
+
+pub const input_shape = zx_shape_11;
+
+pub const output_shape = zx_shape_12;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: []const i64) error{ OutOfMemory, }![]const bool {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return block_4: {
+        const operand_1 = in;
+        const operand_2 = (try (allocator).alloc(bool, (operand_1).len));
+
+        for (operand_1, 0..) |value_1, index_3| {
+            (operand_2)[index_3] = (value_1 > @as(i64, 10));
+        }
+
+        break :block_4 operand_2;
+    };
+}
+

@@ -1,0 +1,656 @@
+{
+    "source_commit": "9c2fc36067e0c758b083ef07c6853461656e32df",
+    "label": "ReleaseSafe",
+    "exit_code": 0,
+    "summary": "Build Summary: 63/63 steps succeeded; 121/121 tests passed",
+    "passed": true,
+    "steps_passed": 63,
+    "steps_total": 63,
+    "checks_passed": 121,
+    "checks_total": 121,
+    "commands": [
+        {
+            "line": 1,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib --name configurer -fsingle-threaded --dep @build --dep @dependencies -Mroot=/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/configurer.zig --dep compiler=../compiler --dep core=../core --dep lint=../lint --dep pkgs=../pkgs --dep dsl=../dsl --dep genz=../genz --dep napi=../napi -M../cli=../cli/build.zig --dep dsl=../dsl --dep core=../core --dep genz=../genz --dep lint=../lint -M../compiler=../compiler/build.zig -M../core=../core/build.zig -M../dsl=../dsl/build.zig --dep core=../core -M../genz=../genz/build.zig --dep dsl=../dsl --dep core=../core -M../lint=../lint/build.zig --dep core=../core -M../napi=../napi/build.zig -M../pkgs=../pkgs/build.zig --dep ../cli --dep ../compiler --dep ../core --dep ../dsl --dep ../genz --dep ../lint --dep ../napi --dep ../pkgs -M@dependencies=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/664cc024bcb41b8d2365c77c6ca93203/dependencies.zig --dep cli=../cli --dep compiler=../compiler --dep pkgs=../pkgs -M@build=build.zig --listen=-"
+        },
+        {
+            "line": 2,
+            "command": "node ./src/emit_control_tests.ts ./tests/built_ins/list/callbacks/filter/constant_false/cases.jsonl /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/a462a35ea69d3cf2bda4d8a26d4f6798/cases.zig"
+        },
+        {
+            "line": 3,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 4,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig translate-c -lc --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig -Osafe -D YAML_DECLARE_STATIC=1 zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/include/yaml.h --listen=-"
+        },
+        {
+            "line": 5,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/90106607b6366f5f3005c0f981a46d1d/standard-catalog /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/f9a904ebdabc6ec3fe99c56ed64ecac6/catalog.json /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/a97ef63cd04fcf7abab0956b0b378f2e/catalog.zig"
+        },
+        {
+            "line": 6,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Osafe --dep compiler --dep rx --dep rx_analysis --dep merge_writer_interface --dep extract_workspace_interface --dep references_interface --dep origin_writer_interface --dep named_columns_interface --dep flow_state_interface --dep semantic_floats --dep semantic_integers -Mroot=../compiler/build/generate_parser.zig -Osafe --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Osafe --dep dsl --dep frontend --dep rx_options -Mrx=../compiler/src/rx/root.zig -Osafe --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Mmerge_writer_interface=../compiler/src/zx/analysis/semantic/native/merge_writer.d.zx -Mextract_workspace_interface=../compiler/src/zx/analysis/semantic/native/extract_workspace.d.zx -Mreferences_interface=../compiler/src/zx/analysis/semantic/native/references.d.zx -Morigin_writer_interface=../compiler/src/zx/analysis/semantic/native/origin_writer.d.zx -Mnamed_columns_interface=../compiler/src/zx/analysis/semantic/ordering/columns.d.zx -Mflow_state_interface=../compiler/src/zx/analysis/semantic/native/flow_state.d.zx -Msemantic_floats=../compiler/src/zx/analysis/semantic/native/floats.d.zx -Msemantic_integers=../compiler/src/zx/analysis/semantic/native/integers.d.zx -Osafe --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep ownership_seed -Mfrontend=../compiler/src/zx/frontend.zig -Osafe -Mdsl=../dsl/src/root.zig -Osafe -Mzx=../core/src/root.zig -Osafe --dep zx -Mgenz=../genz/src/root.zig -Osafe --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Mrx_options=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/77c1f5e6d2a04327be93efeeeb45b750/options.zig -Osafe --dep zx -Mlexer=../compiler/bootstrap/lexer/lex.zig -Mstandard_interfaces=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/c26524fe70a708c636dfdd9b130ffc9a/catalog.zig -Mparser_options=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig -Osafe --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Osafe --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Osafe --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Osafe --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Osafe -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Osafe --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Osafe --dep zx -Mownership_seed=../compiler/bootstrap/ownership/check.zig -Osafe -Mnaming=../lint/bootstrap/naming.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name generate-parser --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 7,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../cli/build/toolchain/pack.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name bundle-zig --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 8,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/d23c1c199e01000fdd0be1ce74b850b7/bundle-zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/bca2522d9c2765d7fd03abdd2f3d8214/bundle_manifest.json ./../pkgs/index.json /Users/xiewendao/.codex/conformance/toolchains/zig-x86_64-macos-0.17.0.tar.xz /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3b7c2242ce34d58a8caa20e91ef95593/bundle"
+        },
+        {
+            "line": 9,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-lib -cflags -DYAML_DECLARE_STATIC -DYAML_VERSION_MAJOR=0 -DYAML_VERSION_MINOR=2 -DYAML_VERSION_PATCH=5 \"-DYAML_VERSION_STRING=\\\"0.2.5\\\"\" -- zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/api.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/reader.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/scanner.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/parser.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/loader.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/writer.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/emitter.c zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/src/dumper.c -Osafe -I zig-pkg/N-V-__8AAFisCAAMQCHLFuzfjTcHCY_2lOFAyfksvXa7HzDL/include -Mroot -lc --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name yaml -static --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 10,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 11,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Ofast --dep genz -Mroot=../compiler/build/generate_catalog.zig -Ofast --dep zx -Mgenz=../genz/src/root.zig -Ofast -Mzx=../core/src/root.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name standard-catalog --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 12,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe -Osafe --dep compiler --dep rx --dep rx_analysis -Mroot=../compiler/build/generate_lexer.zig -Osafe --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Osafe --dep dsl --dep frontend --dep rx_options -Mrx=../compiler/src/rx/root.zig -Osafe --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Osafe --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep ownership_seed -Mfrontend=../compiler/src/zx/frontend.zig -Osafe -Mdsl=../dsl/src/root.zig -Osafe -Mzx=../core/src/root.zig -Osafe --dep zx -Mgenz=../genz/src/root.zig -Osafe --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Mrx_options=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/77c1f5e6d2a04327be93efeeeb45b750/options.zig -Osafe --dep zx -Mlexer=../compiler/bootstrap/lexer/lex.zig -Mstandard_interfaces=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/c26524fe70a708c636dfdd9b130ffc9a/catalog.zig -Mparser_options=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig -Osafe --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Osafe --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Osafe --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Osafe --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Osafe -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Osafe --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Osafe --dep zx -Mownership_seed=../compiler/bootstrap/ownership/check.zig -Osafe -Mnaming=../lint/bootstrap/naming.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name generate-lexer --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 13,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/c269965a728b083a41a6a4c8200cd04b/generate-parser ./../compiler/src /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/parser.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/expression.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/xml.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/paths.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/graph.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/attribute_role.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/attribute_content.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/call_rule.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/path_kind.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/file_kind.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/specifier.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/integer.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_lookup.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/semantic_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/nominal_lookup.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/nominal_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/name_sort.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ordering_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/origin_validation.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/origins_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/origin_production.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/production_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_remap.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/remap_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/merge_preflight.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/preflight_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_extract.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/extract_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_merge.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/merge_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_validation.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/validation_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_resolution.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/resolution_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_construction.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/construction_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_query.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/query_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ownership.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ownership_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_body.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_body_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_stores.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_stores_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_store_call.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_store_call_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_tasks.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_tasks_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_functions.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_functions_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_task_call.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_task_call_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_program_pure.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_program_pure_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_expressions.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_expressions_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contracts.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contracts_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contract_tables.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contract_tables_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_scopes.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_scopes_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_assume.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_assume_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_bind.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_bind_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_type.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_type_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_modules.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_modules_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_export.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_export_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_type.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_type_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_names.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_names_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_interface.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_interface_abi.zig /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/naming.zig ./../lint/src/naming"
+        },
+        {
+            "line": 14,
+            "command": "node ./src/emit_control_tests.ts ./tests/built_ins/list/callbacks/reduce/arguments/cases.jsonl /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/21211a1cd0083efec922a2e22f2b3dbd/cases.zig"
+        },
+        {
+            "line": 15,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/d33f48eba296404e7570be607df808ed/generate-lexer ./../compiler/src/zx/frontend/lexer /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/9754870455794ee4b2ef7aa56b7f9ff4/lexer.zig"
+        },
+        {
+            "line": 16,
+            "command": "node ./src/emit_control_tests.ts ./tests/built_ins/list/callbacks/reduce/observers/cases.jsonl /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/269a39988d3a4013b81a3e61ee8e8382/cases.zig"
+        },
+        {
+            "line": 17,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig build-exe /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/762b96922d94e4501586750109d424f8/libyaml.a -Osafe -I /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/99643627a011968f089148bb3544ce0e --dep rx --dep rx_analysis --dep lint --dep pkgs --dep compiler --dep napi_resources --dep napi_declarations --dep zx --dep yaml --dep cache_identity --dep bundle -Mroot=../cli/src/main.zig -Osafe --dep dsl --dep frontend --dep rx_options --dep generated_paths --dep generated_graph --dep generated_attribute_role --dep generated_attribute_content --dep generated_call_rule --dep generated_path_kind --dep generated_file_kind -Mrx=../compiler/src/rx/root.zig -Osafe --dep rx --dep dsl --dep zx --dep frontend --dep lint -Mrx_analysis=../compiler/src/rx/analysis/root.zig -Osafe --dep naming --dep dsl --dep zx -Mlint=../lint/src/root.zig -Osafe -Mpkgs=../pkgs/src/root.zig -Osafe --dep frontend --dep dsl --dep zx --dep genz --dep lint -Mcompiler=../compiler/src/root.zig -Osafe -Mnapi_resources=../napi/src/resources.zig -Osafe --dep zx -Mnapi_declarations=../napi/src/declarations.zig -Osafe -Mzx=../core/src/root.zig -Osafe -Myaml=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/b7284f32bfa73933544a560b58950abf/yaml.zig -Mcache_identity=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/53cc74396cbcd91d78cf24d2e99ca332/options.zig -Mbundle=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3b7c2242ce34d58a8caa20e91ef95593/bundle/resources.zig -Osafe -Mdsl=../dsl/src/root.zig -Osafe --dep lexer --dep zx --dep dsl --dep lint --dep standard_interfaces --dep parser_options --dep flow_workspace --dep type_views --dep reference_view --dep nominal_data --dep named_view --dep xml_adapter --dep generated_native_interface --dep generated_native_names --dep generated_native_type --dep generated_native_modules --dep generated_native_export --dep generated_ir_scopes --dep generated_refinement_assume --dep generated_refinement_bind --dep generated_refinement_type --dep generated_ownership --dep generated_ir_body --dep generated_ir_tasks --dep generated_ir_functions --dep generated_ir_expressions --dep generated_ir_contracts --dep generated_ir_contract_tables --dep generated_ir_task_call --dep generated_ir_program_pure --dep generated_ir_stores --dep generated_ir_store_call --dep generated_type_resolution --dep generated_type_construction --dep generated_type_query --dep generated_parser --dep generated_expression --dep generated_xml --dep generated_specifier --dep generated_integer --dep generated_type_lookup --dep generated_nominal_lookup --dep generated_origin_validation --dep generated_origin_production --dep origin_writer --dep generated_name_sort --dep generated_type_remap --dep generated_merge_preflight --dep generated_type_extract --dep generated_type_merge --dep generated_type_validation --dep merge_writer_view --dep extract_workspace_view -Mfrontend=../compiler/src/zx/frontend.zig -Mrx_options=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/7de9bbf52d4ca3eb01b99f66cdc276b5/options.zig -Osafe -Mgenerated_paths=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/paths.zig -Osafe -Mgenerated_graph=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/graph.zig -Osafe -Mgenerated_attribute_role=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/attribute_role.zig -Osafe -Mgenerated_attribute_content=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/attribute_content.zig -Osafe -Mgenerated_call_rule=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/call_rule.zig -Osafe -Mgenerated_path_kind=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/path_kind.zig -Osafe -Mgenerated_file_kind=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/file_kind.zig -Osafe --dep generated -Mnaming=../lint/src/naming/root.zig -Osafe --dep zx -Mgenz=../genz/src/root.zig -Osafe --dep zx --dep generated=generated0 -Mlexer=../compiler/src/zx/frontend/lex.zig -Mstandard_interfaces=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/c26524fe70a708c636dfdd9b130ffc9a/catalog.zig -Mparser_options=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig -Osafe --dep zx -Mflow_workspace=../compiler/src/zx/analysis/semantic/flow/workspace.zig -Osafe --dep zx -Mtype_views=../compiler/src/zx/analysis/types/view.zig -Osafe --dep zx -Mreference_view=../compiler/src/zx/analysis/semantic/remapping/view.zig -Osafe --dep zx -Mnominal_data=../compiler/src/zx/modules/nominal_origins/root.zig -Osafe -Mnamed_view=../compiler/src/zx/analysis/semantic/ordering/view.zig -Osafe --dep dsl -Mxml_adapter=../compiler/src/rx/syntax_adapter/root.zig -Osafe --dep integers --dep zxc_standard --dep zxc_abi -Mgenerated_native_interface=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_interface.zig -Osafe --dep zxc_standard --dep zxc_abi=zxc_abi0 -Mgenerated_native_names=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_names.zig -Osafe --dep integers --dep zxc_abi=zxc_abi1 -Mgenerated_native_type=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_type.zig -Osafe --dep zxc_abi=zxc_abi2 --dep integers -Mgenerated_native_modules=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_modules.zig -Osafe --dep zxc_abi=zxc_abi3 --dep integers -Mgenerated_native_export=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_export.zig -Osafe --dep zxc_abi=zxc_abi4 --dep integers --dep flow_state -Mgenerated_ir_scopes=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_scopes.zig -Osafe --dep zxc_abi=zxc_abi5 --dep integers --dep flow_state -Mgenerated_refinement_assume=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_assume.zig -Osafe --dep zxc_abi=zxc_abi6 --dep integers --dep flow_state -Mgenerated_refinement_bind=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_bind.zig -Osafe --dep zxc_abi=zxc_abi7 --dep integers --dep flow_state -Mgenerated_refinement_type=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_type.zig -Osafe --dep zxc_abi=zxc_abi8 --dep integers -Mgenerated_ownership=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ownership.zig -Osafe --dep zxc_abi=zxc_abi9 --dep integers -Mgenerated_ir_body=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_body.zig -Osafe --dep zxc_abi=zxc_abi10 --dep integers -Mgenerated_ir_tasks=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_tasks.zig -Osafe --dep zxc_abi=zxc_abi11 --dep integers -Mgenerated_ir_functions=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_functions.zig -Osafe --dep zxc_abi=zxc_abi12 --dep integers --dep floats -Mgenerated_ir_expressions=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_expressions.zig -Osafe --dep zxc_abi=zxc_abi13 --dep integers --dep floats -Mgenerated_ir_contracts=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contracts.zig -Osafe --dep zxc_abi=zxc_abi14 --dep integers -Mgenerated_ir_contract_tables=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contract_tables.zig -Osafe --dep zxc_abi=zxc_abi15 --dep integers -Mgenerated_ir_task_call=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_task_call.zig -Osafe --dep zxc_abi=zxc_abi16 --dep integers -Mgenerated_ir_program_pure=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_program_pure.zig -Osafe --dep zxc_abi=zxc_abi17 --dep integers -Mgenerated_ir_stores=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_stores.zig -Osafe --dep zxc_abi=zxc_abi18 --dep integers -Mgenerated_ir_store_call=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_store_call.zig -Osafe --dep zxc_standard --dep zxc_abi=zxc_abi19 --dep integers -Mgenerated_type_resolution=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_resolution.zig -Osafe --dep zxc_abi=zxc_abi20 --dep integers -Mgenerated_type_construction=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_construction.zig -Osafe --dep zxc_abi=zxc_abi21 --dep integers -Mgenerated_type_query=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_query.zig -Osafe -Mgenerated_parser=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/parser.zig -Osafe -Mgenerated_expression=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/expression.zig -Osafe -Mgenerated_xml=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/xml.zig -Osafe -Mgenerated_specifier=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/specifier.zig -Osafe -Mgenerated_integer=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/integer.zig -Osafe --dep integers --dep zxc_abi=zxc_abi22 -Mgenerated_type_lookup=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_lookup.zig -Osafe --dep integers --dep zxc_abi=zxc_abi23 -Mgenerated_nominal_lookup=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/nominal_lookup.zig -Osafe --dep integers --dep zxc_abi=zxc_abi24 -Mgenerated_origin_validation=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/origin_validation.zig -Osafe --dep origin_writer --dep zxc_abi=zxc_abi25 -Mgenerated_origin_production=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/origin_production.zig -Osafe --dep nominal_data --dep zxc_abi=zxc_abi25 -Morigin_writer=../compiler/src/zx/analysis/semantic/native/origin_writer.zig -Osafe --dep zxc_abi=zxc_abi26 --dep named_columns -Mgenerated_name_sort=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/name_sort.zig -Osafe --dep references --dep integers --dep zxc_abi=zxc_abi27 -Mgenerated_type_remap=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_remap.zig -Osafe --dep integers --dep zxc_abi=zxc_abi28 -Mgenerated_merge_preflight=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/merge_preflight.zig -Osafe --dep extract_workspace --dep references --dep integers --dep zxc_abi=zxc_abi29 -Mgenerated_type_extract=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_extract.zig -Osafe --dep merge_writer --dep references --dep integers --dep zxc_abi=zxc_abi30 -Mgenerated_type_merge=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_merge.zig -Osafe --dep integers --dep zxc_abi=zxc_abi31 -Mgenerated_type_validation=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_validation.zig -Osafe --dep zx --dep reference_view --dep nominal_data -Mmerge_writer_view=../compiler/src/zx/analysis/semantic/merging/writer.zig -Osafe --dep zx --dep reference_view --dep nominal_data -Mextract_workspace_view=../compiler/src/zx/analysis/semantic/extracting/workspace.zig -Osafe -Mgenerated=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/naming.zig -Osafe -Mgenerated0=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/9754870455794ee4b2ef7aa56b7f9ff4/lexer.zig -Osafe -Mintegers=../compiler/src/zx/analysis/semantic/native/integers.zig -Osafe --dep zxc_abi=zxc_abi19 -Mzxc_standard=../compiler/standard/src/root.zig -Osafe -Mzxc_abi=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_interface_abi.zig -Osafe -Mzxc_abi0=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_names_abi.zig -Osafe -Mzxc_abi1=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_type_abi.zig -Osafe -Mzxc_abi2=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_modules_abi.zig -Osafe -Mzxc_abi3=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_export_abi.zig -Osafe -Mzxc_abi4=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_scopes_abi.zig -Osafe --dep flow_workspace -Mflow_state=../compiler/src/zx/analysis/semantic/native/flow_state.zig -Osafe -Mzxc_abi5=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_assume_abi.zig -Osafe -Mzxc_abi6=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_bind_abi.zig -Osafe -Mzxc_abi7=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_type_abi.zig -Osafe -Mzxc_abi8=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ownership_abi.zig -Osafe -Mzxc_abi9=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_body_abi.zig -Osafe -Mzxc_abi10=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_tasks_abi.zig -Osafe -Mzxc_abi11=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_functions_abi.zig -Osafe -Mzxc_abi12=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_expressions_abi.zig -Osafe -Mfloats=../compiler/src/zx/analysis/semantic/native/floats.zig -Osafe -Mzxc_abi13=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contracts_abi.zig -Osafe -Mzxc_abi14=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contract_tables_abi.zig -Osafe -Mzxc_abi15=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_task_call_abi.zig -Osafe -Mzxc_abi16=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_program_pure_abi.zig -Osafe -Mzxc_abi17=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_stores_abi.zig -Osafe -Mzxc_abi18=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_store_call_abi.zig -Osafe -Mzxc_abi19=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/resolution_abi.zig -Osafe -Mzxc_abi20=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/construction_abi.zig -Osafe -Mzxc_abi21=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/query_abi.zig -Osafe -Mzxc_abi22=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/semantic_abi.zig -Osafe -Mzxc_abi23=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/nominal_abi.zig -Osafe -Mzxc_abi24=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/origins_abi.zig -Osafe -Mzxc_abi25=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/production_abi.zig -Osafe -Mzxc_abi26=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ordering_abi.zig -Osafe --dep zxc_abi=zxc_abi26 --dep named_view -Mnamed_columns=../compiler/src/zx/analysis/semantic/ordering/columns.zig -Osafe --dep reference_view -Mreferences=../compiler/src/zx/analysis/semantic/native/references.zig -Osafe -Mzxc_abi27=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/remap_abi.zig -Osafe -Mzxc_abi28=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/preflight_abi.zig -Osafe --dep extract_workspace_view --dep reference_view --dep nominal_data --dep zx --dep zxc_abi=zxc_abi29 -Mextract_workspace=../compiler/src/zx/analysis/semantic/native/extract_workspace.zig -Osafe -Mzxc_abi29=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/extract_abi.zig -Osafe --dep merge_writer_view --dep reference_view --dep nominal_data --dep zxc_abi=zxc_abi30 -Mmerge_writer=../compiler/src/zx/analysis/semantic/native/merge_writer.zig -Osafe -Mzxc_abi30=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/merge_abi.zig -Osafe -Mzxc_abi31=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/validation_abi.zig -lc --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name zxc --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 18,
+            "command": "node ./src/emit_control_tests.ts ./tests/built_ins/list/callbacks/map/predicate/cases.jsonl /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/38de7639fe922b84848421c39e2eca3e/cases.zig"
+        },
+        {
+            "line": 19,
+            "command": "node ./src/emit_control_tests.ts ./tests/built_ins/list/callbacks/filter/constant_true/cases.jsonl /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/ab1bfbde66be4b18b020e6fd4d235149/cases.zig"
+        },
+        {
+            "line": 20,
+            "command": "node ./src/emit_control_tests.ts ./tests/built_ins/list/callbacks/filter/predicate/cases.jsonl /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/30fc5d546012f656d465ac85d985c4af/cases.zig"
+        },
+        {
+            "line": 21,
+            "command": "node ./src/emit_control_tests.ts ./tests/built_ins/list/callbacks/reduce/empty/cases.jsonl /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/fc3aa365f8fe56bca1a1a0197c033233/cases.zig"
+        },
+        {
+            "line": 22,
+            "command": "node ./src/emit_control_tests.ts ./tests/built_ins/list/callbacks/reduce/order/cases.jsonl /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1fcef5237b843ae80f02880d4e14c883/cases.zig"
+        },
+        {
+            "line": 23,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e212e23b42bb1b6ececba9cd2551b01/zxc ./tests/built_ins/list/callbacks/filter/constant_false/cases.zx --out /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/690477837b165ba7e97827154a808751/program.zig"
+        },
+        {
+            "line": 24,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/a462a35ea69d3cf2bda4d8a26d4f6798/cases.zig -Osafe -Msupport=tests/support/collections.zig -Osafe -Mprogram=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/690477837b165ba7e97827154a808751/program.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name array-callbacks-filter-constant-false --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 25,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e8bc407dbb261a3db7b2f59f1bb1b81/array-callbacks-filter-constant-false --cache-dir=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --seed=0x1de2796f --listen=-"
+        },
+        {
+            "line": 26,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e212e23b42bb1b6ececba9cd2551b01/zxc ./tests/built_ins/list/callbacks/reduce/arguments/cases.zx --out /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/0fd26accae88871d26c1a0faee8c1147/program.zig"
+        },
+        {
+            "line": 27,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/21211a1cd0083efec922a2e22f2b3dbd/cases.zig -Osafe -Msupport=tests/support/collections.zig -Osafe -Mprogram=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/0fd26accae88871d26c1a0faee8c1147/program.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name array-callbacks-reduce-arguments --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 28,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/61c095847a1efff60ae1b0f64327c795/array-callbacks-reduce-arguments --cache-dir=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --seed=0x1de2796f --listen=-"
+        },
+        {
+            "line": 29,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e212e23b42bb1b6ececba9cd2551b01/zxc ./tests/built_ins/list/callbacks/reduce/observers/cases.zx --out /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1071223cd56e006d982bc0114365fea9/program.zig"
+        },
+        {
+            "line": 30,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/269a39988d3a4013b81a3e61ee8e8382/cases.zig -Osafe -Msupport=tests/support/collections.zig -Osafe -Mprogram=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1071223cd56e006d982bc0114365fea9/program.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name array-callbacks-reduce-observers --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 31,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/2091ad68b8053a1332d858e22f53ece4/array-callbacks-reduce-observers --cache-dir=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --seed=0x1de2796f --listen=-"
+        },
+        {
+            "line": 32,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e212e23b42bb1b6ececba9cd2551b01/zxc ./tests/built_ins/list/callbacks/map/predicate/cases.zx --out /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/9e8b116463743754ae84e912547b6a71/program.zig"
+        },
+        {
+            "line": 33,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/38de7639fe922b84848421c39e2eca3e/cases.zig -Osafe -Msupport=tests/support/collections.zig -Osafe -Mprogram=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/9e8b116463743754ae84e912547b6a71/program.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name array-callbacks-map-predicate --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 34,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/f7ddaeb53f26b7a7fb05b172ff19975f/array-callbacks-map-predicate --cache-dir=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --seed=0x1de2796f --listen=-"
+        },
+        {
+            "line": 35,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e212e23b42bb1b6ececba9cd2551b01/zxc ./tests/built_ins/list/callbacks/filter/constant_true/cases.zx --out /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/90f28a96c18cbd2c26ad244a070b1548/program.zig"
+        },
+        {
+            "line": 36,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/ab1bfbde66be4b18b020e6fd4d235149/cases.zig -Osafe -Msupport=tests/support/collections.zig -Osafe -Mprogram=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/90f28a96c18cbd2c26ad244a070b1548/program.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name array-callbacks-filter-constant-true --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 37,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/8b0fe659e1473b15bc269c34d4478b6c/array-callbacks-filter-constant-true --cache-dir=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --seed=0x1de2796f --listen=-"
+        },
+        {
+            "line": 38,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e212e23b42bb1b6ececba9cd2551b01/zxc ./tests/built_ins/list/callbacks/filter/predicate/cases.zx --out /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/c61860e9feebee9a119a919229de9bb4/program.zig"
+        },
+        {
+            "line": 39,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/30fc5d546012f656d465ac85d985c4af/cases.zig -Osafe -Msupport=tests/support/collections.zig -Osafe -Mprogram=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/c61860e9feebee9a119a919229de9bb4/program.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name array-callbacks-filter-predicate --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 40,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/c4fcc7e25b497ba477702a1a7a58b688/array-callbacks-filter-predicate --cache-dir=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --seed=0x1de2796f --listen=-"
+        },
+        {
+            "line": 41,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e212e23b42bb1b6ececba9cd2551b01/zxc ./tests/built_ins/list/callbacks/reduce/empty/cases.zx --out /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/727d9ea30e9fef02995aa82bc625712d/program.zig"
+        },
+        {
+            "line": 42,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/fc3aa365f8fe56bca1a1a0197c033233/cases.zig -Osafe -Msupport=tests/support/collections.zig -Osafe -Mprogram=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/727d9ea30e9fef02995aa82bc625712d/program.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name array-callbacks-reduce-empty --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 43,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/80c3434a0f5068a78ef42235cca43f1a/array-callbacks-reduce-empty --cache-dir=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --seed=0x1de2796f --listen=-"
+        },
+        {
+            "line": 44,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e212e23b42bb1b6ececba9cd2551b01/zxc ./tests/built_ins/list/callbacks/reduce/order/cases.zx --out /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/966355ed7033f8f5284a81425c246838/program.zig"
+        },
+        {
+            "line": 45,
+            "command": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/zig test -Osafe --dep support --dep program -Mroot=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1fcef5237b843ae80f02880d4e14c883/cases.zig -Osafe -Msupport=tests/support/collections.zig -Osafe -Mprogram=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/966355ed7033f8f5284a81425c246838/program.zig --cache-dir /Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --global-cache-dir /Users/xiewendao/.cache/zig --build-root . --name array-callbacks-reduce-order --zig-lib-dir /Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/ --listen=-"
+        },
+        {
+            "line": 46,
+            "command": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/0c6b58314e08b1871d56cba47290a9fa/array-callbacks-reduce-order --cache-dir=/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe --seed=0x1de2796f --listen=-"
+        }
+    ],
+    "actual_executions": [
+        {
+            "line": 25,
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/3e8bc407dbb261a3db7b2f59f1bb1b81/array-callbacks-filter-constant-false",
+            "sha256": "f569c518eea820f38b8dbdf0fc736963a5084554164cb14130ed6e5bd6abf368",
+            "compiled": {
+                "line": 24,
+                "name": "array-callbacks-filter-constant-false",
+                "root": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/a462a35ea69d3cf2bda4d8a26d4f6798/cases.zig"
+            },
+            "unresolved_candidates": []
+        },
+        {
+            "line": 28,
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/61c095847a1efff60ae1b0f64327c795/array-callbacks-reduce-arguments",
+            "sha256": "9b161018570a53c970425c9686de720053d7ae36171972afd4af30d48a49fa21",
+            "compiled": {
+                "line": 27,
+                "name": "array-callbacks-reduce-arguments",
+                "root": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/21211a1cd0083efec922a2e22f2b3dbd/cases.zig"
+            },
+            "unresolved_candidates": []
+        },
+        {
+            "line": 31,
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/2091ad68b8053a1332d858e22f53ece4/array-callbacks-reduce-observers",
+            "sha256": "aff00824a4fb4bd43b2a8656b87a5fe22a756eaf87517a526164e0946642275d",
+            "compiled": {
+                "line": 30,
+                "name": "array-callbacks-reduce-observers",
+                "root": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/269a39988d3a4013b81a3e61ee8e8382/cases.zig"
+            },
+            "unresolved_candidates": []
+        },
+        {
+            "line": 34,
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/f7ddaeb53f26b7a7fb05b172ff19975f/array-callbacks-map-predicate",
+            "sha256": "8d033574588dc4be9628ce12167dce5fae88236e205e0831999ef8949d06c0a5",
+            "compiled": {
+                "line": 33,
+                "name": "array-callbacks-map-predicate",
+                "root": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/38de7639fe922b84848421c39e2eca3e/cases.zig"
+            },
+            "unresolved_candidates": []
+        },
+        {
+            "line": 37,
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/8b0fe659e1473b15bc269c34d4478b6c/array-callbacks-filter-constant-true",
+            "sha256": "f6a3de2e758dc9e77a80656ca8a13f1ea31d28a45b55e87e4e16bb72e6d14c11",
+            "compiled": {
+                "line": 36,
+                "name": "array-callbacks-filter-constant-true",
+                "root": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/ab1bfbde66be4b18b020e6fd4d235149/cases.zig"
+            },
+            "unresolved_candidates": []
+        },
+        {
+            "line": 40,
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/c4fcc7e25b497ba477702a1a7a58b688/array-callbacks-filter-predicate",
+            "sha256": "63059c5ad3cb2e50390a98aab860ea6de65cf9f344e5afe170053fe729613257",
+            "compiled": {
+                "line": 39,
+                "name": "array-callbacks-filter-predicate",
+                "root": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/30fc5d546012f656d465ac85d985c4af/cases.zig"
+            },
+            "unresolved_candidates": []
+        },
+        {
+            "line": 43,
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/80c3434a0f5068a78ef42235cca43f1a/array-callbacks-reduce-empty",
+            "sha256": "4e0b29032e4b91de914ffd76ede1b4fdfc9e877f87af449318660d5b5c722f4e",
+            "compiled": {
+                "line": 42,
+                "name": "array-callbacks-reduce-empty",
+                "root": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/fc3aa365f8fe56bca1a1a0197c033233/cases.zig"
+            },
+            "unresolved_candidates": []
+        },
+        {
+            "line": 46,
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/0c6b58314e08b1871d56cba47290a9fa/array-callbacks-reduce-order",
+            "sha256": "fd96bd12df3b2239ee6a7505d9663dacdb358e809f03aad30f5751116046ae2d",
+            "compiled": {
+                "line": 45,
+                "name": "array-callbacks-reduce-order",
+                "root": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1fcef5237b843ae80f02880d4e14c883/cases.zig"
+            },
+            "unresolved_candidates": []
+        }
+    ],
+    "generated_source": [
+        {
+            "path": "/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/compiler/configurer.zig",
+            "sha256": "a35ab2a8cf040ba1fb3fd2b52884b8265ec4998d0e297c6061c280ded614f5ff",
+            "saved": "生成源码/a35ab2a8cf040ba1fb3fd2b52884b8265ec4998d0e297c6061c280ded614f5ff.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig",
+            "sha256": "4ec77bb3007bb875a3ad1e17d75b8ae76f1871b049d559603f7a19fbb5e88fde",
+            "saved": "生成源码/4ec77bb3007bb875a3ad1e17d75b8ae76f1871b049d559603f7a19fbb5e88fde.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/paths.zig",
+            "sha256": "cfaa67572719b2bd5db3d0c5324d26a9bf056ada99a8a6979c2df5aa45473577",
+            "saved": "生成源码/cfaa67572719b2bd5db3d0c5324d26a9bf056ada99a8a6979c2df5aa45473577.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/graph.zig",
+            "sha256": "82fdaf7345f8bbbebfd42585a9fbeac148e65a3a08539d4abd53622b0e97f03a",
+            "saved": "生成源码/82fdaf7345f8bbbebfd42585a9fbeac148e65a3a08539d4abd53622b0e97f03a.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/attribute_role.zig",
+            "sha256": "9b73b5c951d57ca0859c5d2ac217a8886a3623d426bb1cd78bada472a352c9ad",
+            "saved": "生成源码/9b73b5c951d57ca0859c5d2ac217a8886a3623d426bb1cd78bada472a352c9ad.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/attribute_content.zig",
+            "sha256": "95424bbae013b177bc5ab6ae640f7722672dd9e7c831bd6a2f953f3498838c8c",
+            "saved": "生成源码/95424bbae013b177bc5ab6ae640f7722672dd9e7c831bd6a2f953f3498838c8c.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/call_rule.zig",
+            "sha256": "07050cfd1d8cdcc896d3c33ab251ff6a49a0839d6156f0bd6d3993504b3a5cfc",
+            "saved": "生成源码/07050cfd1d8cdcc896d3c33ab251ff6a49a0839d6156f0bd6d3993504b3a5cfc.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/path_kind.zig",
+            "sha256": "a25b43a33fb1020b9cf0aea9e0a87c10ceb7754325131f8e426474d253ed7ac7",
+            "saved": "生成源码/a25b43a33fb1020b9cf0aea9e0a87c10ceb7754325131f8e426474d253ed7ac7.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/file_kind.zig",
+            "sha256": "e043739c4d9e736c8a56bed0ae35d7938c6e583e32b9c6b5f86cd40d66081773",
+            "saved": "生成源码/e043739c4d9e736c8a56bed0ae35d7938c6e583e32b9c6b5f86cd40d66081773.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig",
+            "sha256": "741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3",
+            "saved": "生成源码/741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_interface.zig",
+            "sha256": "eec79a65491feb7352bad709f33fdfb9399be78ddd37d9c5c2bca762523eb0bc",
+            "saved": "生成源码/eec79a65491feb7352bad709f33fdfb9399be78ddd37d9c5c2bca762523eb0bc.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_names.zig",
+            "sha256": "2404adb7cab207b53f202d445f34e92e0e21a763736ece4e72187cad357253da",
+            "saved": "生成源码/2404adb7cab207b53f202d445f34e92e0e21a763736ece4e72187cad357253da.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_type.zig",
+            "sha256": "4a22333531fac7cc5019208682fd2b77397b85ccc8dbeb4d509234350b170e75",
+            "saved": "生成源码/4a22333531fac7cc5019208682fd2b77397b85ccc8dbeb4d509234350b170e75.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_modules.zig",
+            "sha256": "17f7e03723754d6a4d484a5e7f80c59a5641c10672a06e33f2a05d5c6cecf558",
+            "saved": "生成源码/17f7e03723754d6a4d484a5e7f80c59a5641c10672a06e33f2a05d5c6cecf558.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_export.zig",
+            "sha256": "8ac9abe86a6daa3f5dcadf7ba0885e617a647707487bc75d2a2305de9e61bd5a",
+            "saved": "生成源码/8ac9abe86a6daa3f5dcadf7ba0885e617a647707487bc75d2a2305de9e61bd5a.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_scopes.zig",
+            "sha256": "af47d356dea65ca46c3624423ee99af85028d2cff36f2c5e2776ab487bb75b10",
+            "saved": "生成源码/af47d356dea65ca46c3624423ee99af85028d2cff36f2c5e2776ab487bb75b10.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_assume.zig",
+            "sha256": "3dede5c4fd883c5f661a4e30ce0d06c7029e089fc234ab2585ef5e0214b88f66",
+            "saved": "生成源码/3dede5c4fd883c5f661a4e30ce0d06c7029e089fc234ab2585ef5e0214b88f66.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_bind.zig",
+            "sha256": "d2aaa82ac8138080ddb0a46818c2254e2351faa72649a00801b58bb22e24e0f8",
+            "saved": "生成源码/d2aaa82ac8138080ddb0a46818c2254e2351faa72649a00801b58bb22e24e0f8.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/refinement_type.zig",
+            "sha256": "d0b16c67ec06bd83f46cb17f01dd61b629cd43528b892d6a9d7a8d951698b7f0",
+            "saved": "生成源码/d0b16c67ec06bd83f46cb17f01dd61b629cd43528b892d6a9d7a8d951698b7f0.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ownership.zig",
+            "sha256": "e1fcd18258ce4289017e1c509e2f65d5edf038be8dd012a714559f0fdbf6b5d8",
+            "saved": "生成源码/e1fcd18258ce4289017e1c509e2f65d5edf038be8dd012a714559f0fdbf6b5d8.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_body.zig",
+            "sha256": "7442d83811e9d2be151fb55338c7afa972f9dc4de491f5eb5e833b92b13f7978",
+            "saved": "生成源码/7442d83811e9d2be151fb55338c7afa972f9dc4de491f5eb5e833b92b13f7978.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_tasks.zig",
+            "sha256": "40c57370730781ac0e82fcfafbc2d5c14a3ecea6883bbaa36b9f43016fe7c201",
+            "saved": "生成源码/40c57370730781ac0e82fcfafbc2d5c14a3ecea6883bbaa36b9f43016fe7c201.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_functions.zig",
+            "sha256": "48317666d1b4a248a532d9478a2209ed57e77eb781ae6616221421feb90aa7ad",
+            "saved": "生成源码/48317666d1b4a248a532d9478a2209ed57e77eb781ae6616221421feb90aa7ad.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_expressions.zig",
+            "sha256": "bca1a90e30c8f49bea64c0ef8ac548933d2b75c7fa76c42ac784fc57edc8229e",
+            "saved": "生成源码/bca1a90e30c8f49bea64c0ef8ac548933d2b75c7fa76c42ac784fc57edc8229e.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contracts.zig",
+            "sha256": "b1ff4903f3d28cac9d8b87d5611cf021821510b863f5dea48d0a4f487e353f3c",
+            "saved": "生成源码/b1ff4903f3d28cac9d8b87d5611cf021821510b863f5dea48d0a4f487e353f3c.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_contract_tables.zig",
+            "sha256": "a3fe6779518175f326348dff9c2e2f1d20f08273367ab04dee15823362acc9fa",
+            "saved": "生成源码/a3fe6779518175f326348dff9c2e2f1d20f08273367ab04dee15823362acc9fa.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_task_call.zig",
+            "sha256": "b991fe4dde7da81380630af7ea38599cc0c0a3d7d5596292855ab2ac04604e54",
+            "saved": "生成源码/b991fe4dde7da81380630af7ea38599cc0c0a3d7d5596292855ab2ac04604e54.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_program_pure.zig",
+            "sha256": "03f2a8e9d06b1d41789d55c960fc1d139da4212f292f434ea10e6aeecffd441e",
+            "saved": "生成源码/03f2a8e9d06b1d41789d55c960fc1d139da4212f292f434ea10e6aeecffd441e.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_stores.zig",
+            "sha256": "55f1ec043022dc08377711eef92409c2fa284af6edaba31d2dc5059be19b77a3",
+            "saved": "生成源码/55f1ec043022dc08377711eef92409c2fa284af6edaba31d2dc5059be19b77a3.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/ir_store_call.zig",
+            "sha256": "01eb868a81802f9e42d1ad1ab863cd091330764c78639730a31731b308ddf99f",
+            "saved": "生成源码/01eb868a81802f9e42d1ad1ab863cd091330764c78639730a31731b308ddf99f.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_resolution.zig",
+            "sha256": "8f82eb8c64f3939163bd1bcace1a64999b7439de214652c02312e14916166718",
+            "saved": "生成源码/8f82eb8c64f3939163bd1bcace1a64999b7439de214652c02312e14916166718.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_construction.zig",
+            "sha256": "6ed43e67accb40f2363680a6ab98a02b3e3bead09593a0991723a9d2c5c1cfef",
+            "saved": "生成源码/6ed43e67accb40f2363680a6ab98a02b3e3bead09593a0991723a9d2c5c1cfef.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_query.zig",
+            "sha256": "dc4b8a9c35f935804ec6c9762eaffca5a3d92dd5b2b78e8736ff6452c3f00e69",
+            "saved": "生成源码/dc4b8a9c35f935804ec6c9762eaffca5a3d92dd5b2b78e8736ff6452c3f00e69.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/parser.zig",
+            "sha256": "e64403cb5f41d22a6584cc296a2492de53f9e7237e29b27f98adf04468ab5030",
+            "saved": "生成源码/e64403cb5f41d22a6584cc296a2492de53f9e7237e29b27f98adf04468ab5030.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/expression.zig",
+            "sha256": "54981724d5c1ca97b398565a4b393f04d4f84db839a18ad574d27ba443db978a",
+            "saved": "生成源码/54981724d5c1ca97b398565a4b393f04d4f84db839a18ad574d27ba443db978a.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/xml.zig",
+            "sha256": "16e0d4f94e7913dc0e5db440e5a02005fb798736b00ac01af7769f97d63cf039",
+            "saved": "生成源码/16e0d4f94e7913dc0e5db440e5a02005fb798736b00ac01af7769f97d63cf039.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/specifier.zig",
+            "sha256": "f03dd2025b963d8afc6bfd8706d5f4c4a1f2661c852c976c27b316343d2de3ba",
+            "saved": "生成源码/f03dd2025b963d8afc6bfd8706d5f4c4a1f2661c852c976c27b316343d2de3ba.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/integer.zig",
+            "sha256": "ca50295f21e67d2d400a2fe5ecc75aee3688558cfcee554cf3280e16b2a39c24",
+            "saved": "生成源码/ca50295f21e67d2d400a2fe5ecc75aee3688558cfcee554cf3280e16b2a39c24.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_lookup.zig",
+            "sha256": "bf4a9c2004d0c313bae978a3ed36c45588303f33470e444080f65267a5a250a9",
+            "saved": "生成源码/bf4a9c2004d0c313bae978a3ed36c45588303f33470e444080f65267a5a250a9.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/nominal_lookup.zig",
+            "sha256": "027368db5b9ba2f89d4998e33c76e68ddc3fc3ee4e9c1122701489ffdc4db785",
+            "saved": "生成源码/027368db5b9ba2f89d4998e33c76e68ddc3fc3ee4e9c1122701489ffdc4db785.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/origin_validation.zig",
+            "sha256": "9fc3a15c8519e2fbcfd5d330b53da3b712ca9f4d2cd79df76a7b35b300326720",
+            "saved": "生成源码/9fc3a15c8519e2fbcfd5d330b53da3b712ca9f4d2cd79df76a7b35b300326720.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/origin_production.zig",
+            "sha256": "eb9ab45ee68b3f771d56ef12ef9ca92ebafc8cdcb8fd6719bb560c4ff74df716",
+            "saved": "生成源码/eb9ab45ee68b3f771d56ef12ef9ca92ebafc8cdcb8fd6719bb560c4ff74df716.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/name_sort.zig",
+            "sha256": "80252cdd8abd1b8003726aec122ec340501febeb9d8506630a8145ba501816c5",
+            "saved": "生成源码/80252cdd8abd1b8003726aec122ec340501febeb9d8506630a8145ba501816c5.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_remap.zig",
+            "sha256": "533a4156dd41de330e9ee5bf31d34644410a648b74b8211619bdaa471e9e83a7",
+            "saved": "生成源码/533a4156dd41de330e9ee5bf31d34644410a648b74b8211619bdaa471e9e83a7.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/merge_preflight.zig",
+            "sha256": "f53d32692becb88b7cde14110f4d9d977ac180fdc805d39b2ba24d4eb35620a6",
+            "saved": "生成源码/f53d32692becb88b7cde14110f4d9d977ac180fdc805d39b2ba24d4eb35620a6.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_extract.zig",
+            "sha256": "9b4282c9ca9c52692de2cf85f72098a9f92c6544d65508bb136823c9a0d1e261",
+            "saved": "生成源码/9b4282c9ca9c52692de2cf85f72098a9f92c6544d65508bb136823c9a0d1e261.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_merge.zig",
+            "sha256": "55f07619734bf85ac9312f36ab1fbc76daf9820eaa290f18a966891b1e101eee",
+            "saved": "生成源码/55f07619734bf85ac9312f36ab1fbc76daf9820eaa290f18a966891b1e101eee.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/type_validation.zig",
+            "sha256": "b60d5bd8f40717b7636a9027b3a66d4e64d5172c39d0ec8787ba7a2b30e2f864",
+            "saved": "生成源码/b60d5bd8f40717b7636a9027b3a66d4e64d5172c39d0ec8787ba7a2b30e2f864.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/naming.zig",
+            "sha256": "9935448b5134c27b7a55e6b23e0b09d24700bb2b98f31d4e7a86b5b5dc90a2a8",
+            "saved": "生成源码/9935448b5134c27b7a55e6b23e0b09d24700bb2b98f31d4e7a86b5b5dc90a2a8.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/9754870455794ee4b2ef7aa56b7f9ff4/lexer.zig",
+            "sha256": "c5d085d214644fa9ff64077977e143386253afd05fd66656cd51dfe173b7f7e4",
+            "saved": "生成源码/c5d085d214644fa9ff64077977e143386253afd05fd66656cd51dfe173b7f7e4.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1a29339b99f25a6e84cd63e132b784d1/native_interface_abi.zig",
+            "sha256": "8140d44109766b59a1e473410decac28a4e6daeafc9186741a8fb442f578ed76",
+            "saved": "生成源码/8140d44109766b59a1e473410decac28a4e6daeafc9186741a8fb442f578ed76.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/a462a35ea69d3cf2bda4d8a26d4f6798/cases.zig",
+            "sha256": "caac50feb862a6fa657f065154528ed67d90061705562f185e245ec497b1ad00",
+            "saved": "生成源码/caac50feb862a6fa657f065154528ed67d90061705562f185e245ec497b1ad00.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/690477837b165ba7e97827154a808751/program.zig",
+            "sha256": "09cc85283242c9d51daff29d632ffd22c69b5667eb619b83035cf916fed342cb",
+            "saved": "生成源码/09cc85283242c9d51daff29d632ffd22c69b5667eb619b83035cf916fed342cb.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/21211a1cd0083efec922a2e22f2b3dbd/cases.zig",
+            "sha256": "c4597f72904507e621af0302bf489663827d17451168c3adaec4ea9eb70916b5",
+            "saved": "生成源码/c4597f72904507e621af0302bf489663827d17451168c3adaec4ea9eb70916b5.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/0fd26accae88871d26c1a0faee8c1147/program.zig",
+            "sha256": "ad01f5201f0b2b565a8367841b8a3a178e4e5db902e26a202c79c43b94c00920",
+            "saved": "生成源码/ad01f5201f0b2b565a8367841b8a3a178e4e5db902e26a202c79c43b94c00920.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/269a39988d3a4013b81a3e61ee8e8382/cases.zig",
+            "sha256": "e86d734c13defcef420ebfa7ad0bc77c4d6be9501cf9e53e650aab4265ecc180",
+            "saved": "生成源码/e86d734c13defcef420ebfa7ad0bc77c4d6be9501cf9e53e650aab4265ecc180.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1071223cd56e006d982bc0114365fea9/program.zig",
+            "sha256": "00c0a65e617823402ffc01be00aa220ff3c27c4e544234f8c8baf80c7bc73cb4",
+            "saved": "生成源码/00c0a65e617823402ffc01be00aa220ff3c27c4e544234f8c8baf80c7bc73cb4.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/38de7639fe922b84848421c39e2eca3e/cases.zig",
+            "sha256": "3a7c9db8deb1b23bdb52af516725659571d98a6a6752a37e13b3335ab9385444",
+            "saved": "生成源码/3a7c9db8deb1b23bdb52af516725659571d98a6a6752a37e13b3335ab9385444.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/9e8b116463743754ae84e912547b6a71/program.zig",
+            "sha256": "ac44ee809f78d58b1a3221b3daa3dd19cfb1d533c908fc1933e41077c4409296",
+            "saved": "生成源码/ac44ee809f78d58b1a3221b3daa3dd19cfb1d533c908fc1933e41077c4409296.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/ab1bfbde66be4b18b020e6fd4d235149/cases.zig",
+            "sha256": "465cb8ffcbc76e4fde7c6528bf553444bfe89b8101ad664efe3ba0994f3fd436",
+            "saved": "生成源码/465cb8ffcbc76e4fde7c6528bf553444bfe89b8101ad664efe3ba0994f3fd436.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/90f28a96c18cbd2c26ad244a070b1548/program.zig",
+            "sha256": "f0fc2783bef5852aa6f57d85f1f773ab2f05491e8124fcfc98fb575308f88b92",
+            "saved": "生成源码/f0fc2783bef5852aa6f57d85f1f773ab2f05491e8124fcfc98fb575308f88b92.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/30fc5d546012f656d465ac85d985c4af/cases.zig",
+            "sha256": "d53c217904d8a0088aded3e177d8254f04ffdb6fffe85aa6c1605eb707d31fde",
+            "saved": "生成源码/d53c217904d8a0088aded3e177d8254f04ffdb6fffe85aa6c1605eb707d31fde.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/c61860e9feebee9a119a919229de9bb4/program.zig",
+            "sha256": "77ee19210418ddc1a23a164a03fc01f9f094ef3b5057d9b9e74951a9ddd114c0",
+            "saved": "生成源码/77ee19210418ddc1a23a164a03fc01f9f094ef3b5057d9b9e74951a9ddd114c0.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/fc3aa365f8fe56bca1a1a0197c033233/cases.zig",
+            "sha256": "08f37be72cd2e5aca7e48c8599b12bc991c257f70e55196c0e07ba277845ea58",
+            "saved": "生成源码/08f37be72cd2e5aca7e48c8599b12bc991c257f70e55196c0e07ba277845ea58.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/727d9ea30e9fef02995aa82bc625712d/program.zig",
+            "sha256": "e8cb8c1e8009206f1ee31dd9421c1ac0623d7060ed9decb95618e5c6495f3cc0",
+            "saved": "生成源码/e8cb8c1e8009206f1ee31dd9421c1ac0623d7060ed9decb95618e5c6495f3cc0.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/1fcef5237b843ae80f02880d4e14c883/cases.zig",
+            "sha256": "b25249909310109eed4638a33292c5187dc72f05d3dc2730e4ff3d5b6bf33164",
+            "saved": "生成源码/b25249909310109eed4638a33292c5187dc72f05d3dc2730e4ff3d5b6bf33164.zig.txt"
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/966355ed7033f8f5284a81425c246838/program.zig",
+            "sha256": "e7793f7c0e7301db7c69313a3824553bf90a324542a2eb409fcbd5820b0b2b95",
+            "saved": "生成源码/e7793f7c0e7301db7c69313a3824553bf90a324542a2eb409fcbd5820b0b2b95.zig.txt"
+        }
+    ],
+    "parser_options": [
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/bc1a5fc18923b6d1c1d8e02b958a5e71/options.zig",
+            "sha256": "4ec77bb3007bb875a3ad1e17d75b8ae76f1871b049d559603f7a19fbb5e88fde",
+            "saved": "解析选项/4ec77bb3007bb875a3ad1e17d75b8ae76f1871b049d559603f7a19fbb5e88fde.zig.txt",
+            "generated_parser": false
+        },
+        {
+            "path": "/Users/xiewendao/.codex/conformance/filter-constant-9c2fc3606/r1/cache-ReleaseSafe/o/9be4782c6bcf1fb6c77178a4cbdd2528/options.zig",
+            "sha256": "741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3",
+            "saved": "解析选项/741e404476454d025db7884b5f38ffe581cf44363bd850d2827004a6d7e1fbd3.zig.txt",
+            "generated_parser": true
+        }
+    ],
+    "cached_entries": [
+        "|           +- WriteFile interfaces/0.d.zx cached",
+        "|           |  +- run exe standard-catalog (catalog.zig) cached",
+        "|           |     +- compile exe standard-catalog fast native cached 50ms MaxRSS:20M",
+        "|           |     +- WriteFile catalog.json cached",
+        "|           |     +- options cached",
+        "|           |     +- WriteFile interfaces/0.d.zx cached",
+        "|           |     |  +- run exe standard-catalog (catalog.zig) cached",
+        "|           |     |     +- compile exe standard-catalog fast native cached 46ms MaxRSS:21M",
+        "|           |     |     +- WriteFile catalog.json cached",
+        "|           |     +- options cached"
+    ],
+    "node_summary_lines": [],
+    "errors": [],
+    "log": "日志/首轮ReleaseSafe.txt",
+    "log_sha256": "12ce88687cf02b070e86fea502bb2b63b856a3a452c1b6a346eef13dad464677",
+    "scope": "Selected array callback catalogs including twenty new constant predicate cases; nested Node checks and cache entries remain separate. Unresolved associations remain explicit.",
+    "archive_limit": "Generated modules and executables remain in the persistent content-addressed cache with SHA identities; only parser options and full raw logs are copied into this document directory."
+}
