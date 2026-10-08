@@ -1,0 +1,20 @@
+import encoding from "std:encoding"
+import integers from "zig:integers"
+
+export type Input = string
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const bytes = encoding.encodeUtf8(in)
+
+    const result = loop({ bytes: bytes, index: 0, value: 0 }, {
+        while: current => current.index < current.bytes.length,
+        next: current => {
+            current.value = (current.value * 131 + integers.widenByte(current.bytes[current.index])) % 4294967291
+            current.index += 1
+        }
+    })
+
+    return result.value
+}

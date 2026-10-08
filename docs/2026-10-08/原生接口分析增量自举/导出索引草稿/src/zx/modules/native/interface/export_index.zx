@@ -1,0 +1,25 @@
+import slot from "./export_slot"
+
+export type Input = string[]
+
+export type Output = u64?[]
+
+export default function (in: Input): Output {
+    const slots: Output = []
+
+    const result = loop({ names: in, slots: slots, capacity: in.length == 0 ? 0 : in.length * 2 + 1, index: 0 }, {
+        while: current => current.slots.length < current.capacity || current.index < current.names.length,
+        next: current => {
+            if (current.slots.length < current.capacity) {
+                current.slots = current.slots.push(null)[0]
+            } else {
+                const selected = slot({ names: current.names, slots: current.slots, name: current.names[current.index] })
+
+                current.slots[selected.slot] = current.index
+                current.index += 1
+            }
+        }
+    })
+
+    return result.slots
+}

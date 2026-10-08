@@ -1,0 +1,31 @@
+import hash from "../name_hash"
+
+export type Input = { names: string[], slots: u64?[], name: string }
+
+export type Output = { slot: u64, position: u64? }
+
+export default function (in: Input): Output {
+    if (in.slots.length == 0) {
+        return { slot: 0, position: null }
+    }
+
+    const position: u64? = null
+
+    const result = loop({ names: in.names, slots: in.slots, name: in.name, slot: hash(in.name) % in.slots.length, position: position, active: true }, {
+        while: current => current.active,
+        next: current => {
+            const selected = current.slots[current.slot]
+
+            if (selected == null) {
+                current.active = false
+            } else if (current.names[selected] == current.name) {
+                current.position = selected
+                current.active = false
+            } else {
+                current.slot = current.slot + 1 == current.slots.length ? 0 : current.slot + 1
+            }
+        }
+    })
+
+    return { slot: result.slot, position: result.position }
+}

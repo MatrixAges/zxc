@@ -1,0 +1,35 @@
+import count from "../../../analysis/semantic/resolving/source/count"
+import declaration from "../../../analysis/semantic/resolving/source/declaration"
+import slot from "./export_slot"
+
+import type { Cache, Diagnostic } from "../../../analysis/semantic/resolving/model"
+import type { Source } from "../../../analysis/semantic/resolving/source/model"
+
+export type Export = { name: string, type_id: u32 }
+
+export type Input = { source: Source, resolved: Cache, slots: u64?[] }
+
+export type Output = { exports: Export[], diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const exports: Export[] = []
+    const diagnostic: Diagnostic = { code: "", message: "", start: 0, end: 0 }
+
+    const result = loop({ input: in, count: count(in.source), index: 0, exports: exports, diagnostic: diagnostic }, {
+        while: current => current.index < current.count && current.diagnostic.message == "",
+        next: current => {
+            const name = declaration({ source: current.input.source, index: current.index }).name
+            const selected = slot({ names: current.input.resolved.names, slots: current.input.slots, name: name.text }).position
+
+            if (selected == null) {
+                current.diagnostic = { code: "contract", message: "internal compiler error: native declaration has no resolved type", start: name.start, end: name.end }
+            } else {
+                current.exports = current.exports.push({ name: name.text, type_id: current.input.resolved.ids[selected] })[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { exports: result.exports, diagnostic: result.diagnostic }
+}
