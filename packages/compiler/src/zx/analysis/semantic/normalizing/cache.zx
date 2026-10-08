@@ -1,0 +1,22 @@
+import reference from "./reference"
+
+import type { Cache } from "../resolving/model"
+import type { Mapping } from "./model"
+
+export type Input = { cache: Cache, mapping: Mapping }
+
+export type Output = Cache
+
+export default function (in: Input): Output {
+    const ids: u32[] = []
+
+    const state = loop({ cache: in.cache, mapping: in.mapping, ids: ids, index: 0 }, {
+        while: current => current.index < current.cache.ids.length,
+        next: current => {
+            current.ids = current.ids.push(reference({ mapping: current.mapping, id: current.cache.ids[current.index] }))[0]
+            current.index += 1
+        }
+    })
+
+    return { names: in.cache.names, ids: state.ids }
+}

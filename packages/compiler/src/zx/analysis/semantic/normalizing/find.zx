@@ -1,0 +1,53 @@
+import integers from "zig:integers"
+
+import row from "../entries/row"
+import { Kind } from "../types/model"
+import { Status } from "../types/nominal/model"
+import equal from "./equal"
+
+import type { Entry } from "../entries/model"
+import type { Tables } from "../types/model"
+import type { Origins, Origin, Search } from "../types/nominal/model"
+import type { Mapping } from "./model"
+
+export type Input = { source: Entry, tables: Tables, origins: Origins, origin: Origin, mapping: Mapping }
+
+export type Output = Search
+
+export default function (in: Input): Output {
+    const nominal = in.source.kind == Kind.Enumeration || in.source.kind == Kind.NativeReference
+    const count = nominal ? in.origins.base.ids.length + in.origins.delta.ids.length : in.tables.base.kinds.length + in.tables.delta.kinds.length
+    const id: u32 = 0
+
+    const state = loop({ input: in, nominal: nominal, count: count, index: 0, status: Status.Missing, id: id }, {
+        while: current => current.status == Status.Missing && current.index < current.count,
+        next: current => {
+            const origin_count = current.input.origins.base.ids.length
+            const new_origin = current.index >= origin_count
+            const bindings = new_origin ? current.input.origins.delta : current.input.origins.base
+            const position = new_origin ? current.index - origin_count : current.index
+            const id = current.nominal ? bindings.ids[position] : integers.narrow(current.index)
+            const index = integers.widen(id)
+            const base_count = current.input.tables.base.kinds.length
+            const delta = index >= base_count
+            const target = row({ table: delta ? current.input.tables.delta : current.input.tables.base, index: delta ? index - base_count : index })
+            const identity = !current.nominal || (bindings.kinds[position] == current.input.origin.kind &&
+                bindings.owners[position] == current.input.origin.owner && bindings.members[position] == current.input.origin.member && target.label == current.input.source.label)
+
+            if (identity) {
+                const matches = equal({ source: current.input.source, target: target, mapping: current.input.mapping })
+
+                current.status = match {
+                    matches => Status.Found,
+                    current.nominal => Status.Conflict,
+                    _ => Status.Missing
+                }
+                current.id = id
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { status: state.status, id: state.id }
+}

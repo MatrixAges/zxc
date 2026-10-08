@@ -1,0 +1,15 @@
+<Module>
+    <Call module="declarations" in={$in.context} />
+
+    <Switch on={$ctx.declarations.diagnostic.message == "" && $in.shared}>
+        <Case value={true}>
+            <Call module="../../analysis/semantic/normalizing/normalize" in={{ base: $in.context.base, delta: $ctx.declarations.delta, cache: $ctx.declarations.cache, id: $ctx.declarations.result, origins: $in.origins, origin: $in.origin }} />
+
+            <Return value={{ resolution: { context: $ctx.declarations.context, delta: $ctx.normalize.delta, cache: $ctx.normalize.cache, frames: $ctx.declarations.frames, scratch: $ctx.declarations.scratch, active: $ctx.declarations.active, result: $ctx.normalize.id, diagnostic: $ctx.normalize.diagnostic }, origins: $ctx.normalize.origins }} />
+        </Case>
+
+        <Default>
+            <Return value={{ resolution: $ctx.declarations, origins: { ids: [], kinds: [], owners: [], members: [] } }} />
+        </Default>
+    </Switch>
+</Module>

@@ -1,0 +1,8 @@
+import type { Table } from "../types/model"
+import type { Bindings, Origin } from "../types/nominal/model"
+
+export type Input = { base: Table, delta: Table, origins: Bindings, origin: Origin }
+
+export type Output = { delta: Table, origins: Bindings, mapping: u32[], conflict: bool }
+
+export type Mapping = { first: u64, ids: u32[] }

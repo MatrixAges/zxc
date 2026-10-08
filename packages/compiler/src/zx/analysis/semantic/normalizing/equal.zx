@@ -1,0 +1,59 @@
+import { Kind } from "../types/model"
+import reference from "./reference"
+
+import type { Entry } from "../entries/model"
+import type { Mapping } from "./model"
+
+export type Input = { source: Entry, target: Entry, mapping: Mapping }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const source = in.source
+    const target = in.target
+
+    if (source.kind != target.kind) {
+        return false
+    }
+
+    if (source.kind == Kind.Scalar) {
+        return source.first == target.first
+    }
+
+    if (source.kind == Kind.Optional || source.kind == Kind.List || source.kind == Kind.Task) {
+        const first = reference({ mapping: in.mapping, id: source.first }) == target.first
+
+        return first && (source.kind != Kind.Task || reference({ mapping: in.mapping, id: source.second }) == target.second)
+    }
+
+    if (source.kind == Kind.NativeReference) {
+        return source.label == target.label
+    }
+
+    if (source.kind == Kind.Enumeration && source.label != target.label) {
+        return false
+    }
+
+    if (source.count != target.count) {
+        return false
+    }
+
+    const state = loop({ source: source, target: target, mapping: in.mapping, index: 0, equal: true }, {
+        while: current => current.equal && current.index < current.source.count,
+        next: current => {
+            const a = current.source.offset + current.index
+            const b = current.target.offset + current.index
+            const equal = match current.source.kind {
+                Kind.Object => current.source.field_names[a] == current.target.field_names[b] &&
+                    reference({ mapping: current.mapping, id: current.source.field_types[a] }) == current.target.field_types[b],
+                Kind.Tuple => reference({ mapping: current.mapping, id: current.source.children[a] }) == current.target.children[b],
+                _ => current.source.names[a] == current.target.names[b]
+            }
+
+            current.equal = equal
+            current.index += 1
+        }
+    })
+
+    return state.equal
+}

@@ -1,0 +1,15 @@
+<Module>
+    <Call module="prepare" in={{ context: $in.context, shared: $in.shared, origins: $in.origins, origin: $in.origin }} />
+
+    <Switch on={$ctx.prepare.resolution.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call module="interface" in={{ resolution: $ctx.prepare.resolution, namespace: $in.namespace, functions: $in.functions, parameters: $in.parameters, errors: $in.errors }} />
+
+            <Return value={{ delta: $ctx.interface.delta, cache: $ctx.interface.cache, diagnostic: $ctx.interface.diagnostic, exports: $ctx.interface.exports, members: $ctx.interface.members, origins: $ctx.prepare.origins }} />
+        </Case>
+
+        <Default>
+            <Return value={{ delta: $ctx.prepare.resolution.delta, cache: $ctx.prepare.resolution.cache, diagnostic: $ctx.prepare.resolution.diagnostic, exports: [], members: [], origins: $ctx.prepare.origins }} />
+        </Default>
+    </Switch>
+</Module>

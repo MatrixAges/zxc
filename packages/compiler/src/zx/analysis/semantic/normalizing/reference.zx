@@ -1,0 +1,13 @@
+import integers from "zig:integers"
+
+import type { Mapping } from "./model"
+
+export type Input = { mapping: Mapping, id: u32 }
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const id = integers.widen(in.id)
+
+    return id < in.mapping.first ? in.id : in.mapping.ids[id - in.mapping.first]
+}
