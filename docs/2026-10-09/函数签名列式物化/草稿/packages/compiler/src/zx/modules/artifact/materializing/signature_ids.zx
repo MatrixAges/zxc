@@ -1,0 +1,38 @@
+import integers from "zig:integers"
+
+export type Input = { input: u32, output: u32, native_module: u32?, types: u64[], natives: u64[] }
+
+export type Output = { input: u32, output: u32, native_module: u32? }?
+
+export default function (in: Input): Output {
+    const input = integers.widen(in.input)
+    const output = integers.widen(in.output)
+
+    if (input >= in.types.length || output >= in.types.length) {
+        return null
+    }
+
+    if (in.types[input] == 0 || in.types[output] == 0) {
+        return null
+    }
+
+    const native_module = in.native_module
+    const mapped_input = integers.narrow(in.types[input] - 1)
+    const mapped_output = integers.narrow(in.types[output] - 1)
+
+    if (native_module == null) {
+        return { input: mapped_input, output: mapped_output, native_module: null }
+    }
+
+    const owner = integers.widen(native_module)
+
+    if (owner >= in.natives.length) {
+        return null
+    }
+
+    if (in.natives[owner] == 0) {
+        return null
+    }
+
+    return { input: mapped_input, output: mapped_output, native_module: integers.narrow(in.natives[owner] - 1) }
+}
