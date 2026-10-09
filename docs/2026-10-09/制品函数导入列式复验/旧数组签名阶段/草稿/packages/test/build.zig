@@ -430,7 +430,7 @@ pub fn build(b: *std.Build) void {
 
     test_step.dependOn(link_boundaries_step);
 
-    for ([_][]const u8{ "extract", "invalid", "resources", "mixed/extract", "mixed/resources", "frontier/graph", "frontier/resources", "imports/mapping", "imports/rejection", "imports/lifetime", "imports/resources", "imports/columns" }) |name| {
+    for ([_][]const u8{ "extract", "invalid", "resources", "mixed/extract", "mixed/resources", "frontier/graph", "frontier/resources", "imports/mapping", "imports/rejection", "imports/lifetime", "imports/resources" }) |name| {
         const artifact_tests = b.addTest(.{
             .root_module = b.createModule(.{
                 .root_source_file = b.path(b.fmt("tests/incremental/artifact/{s}_test.zig", .{name})),

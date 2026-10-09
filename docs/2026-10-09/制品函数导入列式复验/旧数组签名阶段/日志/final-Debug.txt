@@ -1,0 +1,53 @@
+1/52 artifact_imports_gate_test.test_0...OK
+2/52 incremental.artifact.extract_test.test.pure type artifact owns exports and enum declaration origin...OK
+3/52 incremental.artifact.extract_test.test.helper artifact drops unrelated global enums but retains type import...OK
+4/52 incremental.artifact.extract_test.test.entry artifact retains unused checked function and enum imports...OK
+5/52 incremental.artifact.extract_test.test.artifact remains readable after original analysis is destroyed...OK
+6/52 incremental.artifact.extract_test.test.global function id is remapped to the module local import id...OK
+7/52 incremental.artifact.extract_test.test.enum type id is remapped after unrelated earlier declarations are omitted...OK
+8/52 incremental.artifact.invalid_test.test.extract rejects diagnostic analysis...OK
+9/52 incremental.artifact.invalid_test.test.extract rejects out of range module index...OK
+10/52 incremental.artifact.invalid_test.test.extract rejects invalid complete IR before copying...OK
+11/52 incremental.artifact.invalid_test.test.referenced enum requires a nominal declaration origin...OK
+12/52 incremental.artifact.invalid_test.test.unreferenced enum without origin does not block a scalar helper...OK
+13/52 incremental.artifact.invalid_test.test.duplicate origin for a referenced enum is rejected...OK
+14/52 incremental.artifact.resources_test.test.entry artifact extraction cleans every allocation failure...OK
+15/52 incremental.artifact.resources_test.test.type artifact extraction cleans every allocation failure...OK
+16/52 incremental.artifact.mixed.extract_test.test.real entry artifact closes every type tag and preserves shared children...OK
+17/52 incremental.artifact.mixed.extract_test.test.earlier noise declaration shifts enum and composite local ids...OK
+18/52 incremental.artifact.mixed.extract_test.test.pure type artifact keeps source graph and excludes entry task types...OK
+19/52 incremental.artifact.mixed.extract_test.test.task captures and native call signatures use local artifact references...OK
+20/52 incremental.artifact.mixed.extract_test.test.entry artifact owns native descriptors origins and checked imports after analysis release...OK
+21/52 incremental.artifact.mixed.extract_test.test.pure type artifact owns graph and native metadata after analysis release...OK
+22/52 incremental.artifact.mixed.extract_test.test.missing required native nominal origin rejects real analysis extraction...OK
+23/52 incremental.artifact.mixed.extract_test.test.duplicate required native nominal origin rejects real analysis extraction...OK
+24/52 incremental.artifact.mixed.extract_test.test.wrong required native nominal name rejects real analysis extraction...OK
+25/52 incremental.artifact.mixed.extract_test.test.missing unneeded noise origin does not reject entry extraction...OK
+26/52 incremental.artifact.mixed.resources_test.test.entry extraction alone cleans every allocation failure and preserves input columns...OK
+27/52 incremental.artifact.mixed.resources_test.test.pure type extraction alone cleans every allocation failure and preserves input columns...OK
+28/52 incremental.artifact.mixed.resources_test.test.missing native origin extraction cleans every allocation failure and preserves input columns...OK
+29/52 incremental.artifact.frontier.graph_test.test.empty dynamic payload preserves scalar zero and checked imports...OK
+30/52 incremental.artifact.frontier.graph_test.test.wide object frontier retains repeated references and source field order...OK
+31/52 incremental.artifact.frontier.graph_test.test.shared dependency chains preserve optional list tuple and object transitions...OK
+32/52 incremental.artifact.frontier.graph_test.test.mixed dependency frontiers preserve distinct growth boundaries...OK
+33/52 incremental.artifact.frontier.graph_test.test.extracted graph remains owned after both source and analysis arenas are released...OK
+34/52 incremental.artifact.frontier.graph_test.test.releasing one extracted graph preserves the second independent result...OK
+35/52 incremental.artifact.frontier.graph_test.test.module dependency depth limit remains explicit before graph extraction...OK
+36/52 incremental.artifact.frontier.resources_test.test.wide shared extraction cleans every allocation failure without mutating inputs...OK
+37/52 incremental.artifact.frontier.resources_test.test.empty dynamic extraction cleans every allocation failure without mutating inputs...OK
+38/52 incremental.artifact.imports.mapping_test.test.artifact import mappings follow real signatures across all source orderings...OK
+39/52 incremental.artifact.imports.mapping_test.test.two source aliases retain names and share one artifact function signature...OK
+40/52 incremental.artifact.imports.mapping_test.test.uncalled imported signature retains its enum origin and composite types...OK
+41/52 incremental.artifact.imports.rejection_test.test.artifact extraction rejects a function import outside the global function table...OK
+42/52 incremental.artifact.imports.rejection_test.test.artifact extraction rejects an import input that differs from its real signature...OK
+43/52 incremental.artifact.imports.rejection_test.test.artifact extraction rejects an import output that differs from its real signature...OK
+44/52 incremental.artifact.imports.rejection_test.test.artifact extraction rejects an imported input outside the global type table...OK
+45/52 incremental.artifact.imports.rejection_test.test.artifact extraction rejects an imported output outside the global type table...OK
+46/52 incremental.artifact.imports.rejection_test.test.a previously included function still validates a later alias input...OK
+47/52 incremental.artifact.imports.rejection_test.test.a previously included function still validates a later alias output...OK
+48/52 incremental.artifact.imports.lifetime_test.test.artifact alias names dependency paths and enum origins outlive source analysis...OK
+49/52 incremental.artifact.imports.lifetime_test.test.detached artifacts relink valid shared alias calls across every module ordering...OK
+50/52 incremental.artifact.imports.resources_test.test.artifact aliases clean every extraction allocation failure without changing type columns...OK
+51/52 incremental.artifact.imports.resources_test.test.invalid alias input cleans every extraction allocation failure without changing type columns...OK
+52/52 incremental.artifact.imports.resources_test.test.invalid alias output cleans every extraction allocation failure without changing type columns...OK
+All 52 tests passed.
