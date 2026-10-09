@@ -1,0 +1,13 @@
+<Module>
+    <Switch on={$in.seed}>
+        <Case value={true}>
+            <Call module="../../analysis/semantic/origins" in={{ table: $in.destination.types, origins: $in.destination.origins, names: $in.destination.origin_names }} />
+
+            <Return value={$ctx.origins} />
+        </Case>
+
+        <Default>
+            <Return value={true} />
+        </Default>
+    </Switch>
+</Module>

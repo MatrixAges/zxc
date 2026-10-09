@@ -1,0 +1,7 @@
+export type Input = { instance: string, value: string }
+
+export type Output = string
+
+export default function (in: Input): Output {
+    return `library:${in.instance.length}:${in.instance}:${in.value}`
+}

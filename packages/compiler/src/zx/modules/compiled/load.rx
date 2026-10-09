@@ -1,0 +1,45 @@
+<Module>
+    <Call fn="loading/type_base" in={{ table: $in.destination.types, scalar_count: $in.graph.program.context.scalar_count }} />
+    <Call fn="loading/origins" in={{ instance: $in.instance, origins: $in.graph.origins, modules: $in.graph.program.context.modules }} />
+
+    <Call module="loading/types" in={{ source: $in.graph.program.context.table, origins: $ctx.origins, names: $in.graph.origin_names, base: $ctx.type_base, base_origins: $in.destination.origins }} />
+
+    <Switch on={$ctx.types.status == 0}>
+        <Case value={true}>
+            <Call fn="loading/capacity" in={{ existing: $in.destination.function_count, added: $in.graph.program.context.functions.files.length, maximum: $in.graph.program.context.maximum_count }} />
+
+            <Switch on={$ctx.capacity}>
+                <Case value={true}>
+                    <Call fn="loading/native/walk" in={{ source: $in.graph.program.context.modules, base: $in.destination.natives, types: $ctx.types.mapping, instance: $in.instance, maximum: $in.graph.program.context.maximum_count }} />
+
+                    <Switch on={$ctx.walk.status == 0}>
+                        <Case value={true}>
+                            <Call module="loading/publish" in={{ input: $in, base: $ctx.type_base, merged: $ctx.types, native: $ctx.walk }} />
+
+                            <Return value={$ctx.publish} />
+                        </Case>
+
+                        <Default>
+                            <Call fn="empty" in={$ctx.walk.status} />
+
+                            <Return value={$ctx.empty} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Call fn="empty" in={6} />
+
+                    <Return value={$ctx.empty} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Call fn="loading/merge_status" in={$ctx.types.status} />
+            <Call fn="empty" in={$ctx.merge_status} />
+
+            <Return value={$ctx.empty} />
+        </Default>
+    </Switch>
+</Module>

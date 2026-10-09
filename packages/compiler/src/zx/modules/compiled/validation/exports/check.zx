@@ -1,0 +1,32 @@
+import integers from "zig:integers"
+
+import text from "../../../../ir/canonical/native/text"
+import types from "./types"
+
+import type { Graph } from "../../model"
+
+export type Input = { graph: Graph, index: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const exports = in.graph.exports
+    const name = exports.names[in.index]
+    const path = exports.paths[in.index]
+    const function_id = exports.functions[in.index]
+    const functions = in.graph.program.context.functions
+
+    if (!text(name) || !text(path) || exports.type_names[in.index].length != exports.type_ids[in.index].length) {
+        return false
+    }
+
+    if (function_id != null) {
+        const index = integers.widen(function_id)
+
+        if (index >= functions.files.length || functions.native_modules[index] != null || functions.files[index] != path) {
+            return false
+        }
+    }
+
+    return types({ names: exports.type_names[in.index], ids: exports.type_ids[in.index], count: in.graph.program.context.table.kinds.length, function_id: function_id, functions: functions })
+}

@@ -1,0 +1,42 @@
+import step from "compiler/compiled_function"
+
+import type { Contracts } from "core/contract_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Complete } from "core/function_table/complete"
+import type { Stores } from "core/store_table/model"
+import type { Symbols } from "core/symbol_table/model"
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = Complete
+
+export default function (in: Input): Output {
+    const files: string[] = []
+    const input_types: u32[] = []
+    const output_types: u32[] = []
+    const modules: u32?[] = []
+    const symbols: Symbols[] = []
+    const expressions: Expressions[] = []
+    const stores: Stores[] = []
+    const contracts: Contracts[] = []
+
+    const result = loop({ request: in, files: files, inputs: input_types, outputs: output_types, modules: modules, symbols: symbols, expressions: expressions, stores: stores, contracts: contracts, index: 0 }, {
+        while: current => current.index < current.request.source.files.length,
+        next: current => {
+            const value = step({ request: current.request, index: current.index })
+
+            current.files = current.files.push(value.file)[0]
+            current.inputs = current.inputs.push(value.input_type)[0]
+            current.outputs = current.outputs.push(value.output_type)[0]
+            current.modules = current.modules.push(value.native_module)[0]
+            current.symbols = current.symbols.push(value.symbols)[0]
+            current.expressions = current.expressions.push(value.expressions)[0]
+            current.stores = current.stores.push(value.stores)[0]
+            current.contracts = current.contracts.push(value.contracts)[0]
+            current.index += 1
+        }
+    })
+
+    return { ...in.source, files: result.files, input_types: result.inputs, output_types: result.outputs, native_modules: result.modules, symbols: result.symbols, expressions: result.expressions, stores: result.stores, contracts: result.contracts }
+}

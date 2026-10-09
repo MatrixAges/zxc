@@ -1,0 +1,31 @@
+import integers from "zig:integers"
+
+import scope from "../identity/scope"
+import ids from "./remap/ids"
+
+import type { Exports } from "../model"
+
+export type Input = { source: Exports, mapping: u32[], first: u64, instance: string }
+
+export type Output = Exports
+
+export default function (in: Input): Output {
+    const paths: string[] = []
+    const functions: u32?[] = []
+    const types: u32[][] = []
+
+    const result = loop({ input: in, paths: paths, functions: functions, types: types, index: 0 }, {
+        while: current => current.index < current.input.source.names.length,
+        next: current => {
+            const function_id = current.input.source.functions[current.index]
+            const mapped: u32? = function_id == null ? null : integers.narrow(current.input.first + integers.widen(function_id))
+
+            current.paths = current.paths.push(scope({ instance: current.input.instance, value: current.input.source.paths[current.index] }))[0]
+            current.functions = current.functions.push(mapped)[0]
+            current.types = current.types.push(ids({ values: current.input.source.type_ids[current.index], mapping: current.input.mapping }))[0]
+            current.index += 1
+        }
+    })
+
+    return { ...in.source, paths: result.paths, functions: result.functions, type_ids: result.types }
+}

@@ -1,0 +1,9 @@
+import integers from "zig:integers"
+
+export type Input = { values: u32[], mapping: u32[] }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return in.values.map(value => in.mapping[integers.widen(value)])
+}

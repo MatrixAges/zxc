@@ -1,0 +1,19 @@
+import step from "compiler/compiled_native"
+
+import type { Request, State } from "./model"
+
+export type Input = Request
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const initial: State = { delta: { identities: [], import_names: [], specifiers: [], type_ids: [], type_names: [], type_namespaces: [] }, mapping: [], status: 0 }
+
+    return loop({ request: in, state: initial, index: 0 }, {
+        while: current => current.state.status == 0 && current.index < current.request.source.specifiers.length,
+        next: current => {
+            current.state = step({ request: current.request, state: current.state, index: current.index })
+            current.index += 1
+        }
+    }).state
+}

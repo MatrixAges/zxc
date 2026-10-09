@@ -9,3 +9,5 @@ export declare function decodeHex(allocator, in: string): u8[] throws { InvalidC
 export declare function encodeUtf8(in: string): u8[] throws { InvalidUtf8 } concurrent
 
 export declare function decodeUtf8(in: u8[]): string throws { InvalidUtf8 } concurrent
+
+export declare function sliceBytes(text: string, start: u64, end: u64): string throws { InvalidRange } concurrent

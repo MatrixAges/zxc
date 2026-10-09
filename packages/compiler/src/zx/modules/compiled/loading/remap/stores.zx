@@ -1,0 +1,12 @@
+import store from "../../identity/store"
+import ids from "./ids"
+
+import type { Stores } from "core/store_table/model"
+
+export type Input = { source: Stores, mapping: u32[], instance: string }
+
+export type Output = Stores
+
+export default function (in: Input): Output {
+    return { ...in.source, types: ids({ values: in.source.types, mapping: in.mapping }), paths: in.source.paths.map(value => store({ instance: in.instance, value: value })) }
+}

@@ -1,0 +1,20 @@
+import key from "../../../../ir/canonical/native/key"
+import nativeName from "../../identity/native_name"
+import scope from "../../identity/scope"
+import standard from "../../identity/standard"
+
+import type { Modules } from "core/native_module_table/model"
+import type { Value } from "./model"
+
+export type Input = { source: Modules, instance: string, index: u64 }
+
+export type Output = Value
+
+export default function (in: Input): Output {
+    const shared = standard(in.source.specifiers[in.index])
+    const identity = shared ? in.source.identities[in.index] : scope({ instance: in.instance, value: key({ modules: in.source, index: in.index }) })
+    const name = in.source.import_names[in.index]
+    const import_name = shared ? name : nativeName({ instance: in.instance, value: name })
+
+    return { identity: identity, specifier: in.source.specifiers[in.index], import_name: import_name, namespace: in.source.type_namespaces[in.index], names: in.source.type_names[in.index], ids: in.source.type_ids[in.index] }
+}

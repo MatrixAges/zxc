@@ -261,6 +261,11 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[77 + entries.len], .data = ir_validation.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[78 + entries.len], .data = ir_validation.types });
 
+    const compiled_library = try generate(allocator, init.gpa, inputs, sources.items, "zx/modules/compiled/execute.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[79 + entries.len], .data = compiled_library.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[80 + entries.len], .data = compiled_library.types });
+
     const naming = try generate(allocator, init.gpa, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 3], .data = naming.source });

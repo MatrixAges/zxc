@@ -1,0 +1,9 @@
+<Module>
+    <Call fn="header" in={$in} />
+    <Call fn="../remap/symbols" in={{ source: $in.request.source.symbols[$in.index], mapping: $in.request.types }} />
+    <Call fn="../remap/expressions" in={{ source: $in.request.source.expressions[$in.index], mapping: $in.request.types, first: $in.request.first }} />
+    <Call fn="../remap/contracts" in={{ source: $in.request.source.contracts[$in.index], mapping: $in.request.types, first: $in.request.first }} />
+    <Call fn="../remap/stores" in={{ source: $in.request.source.stores[$in.index], mapping: $in.request.types, instance: $in.request.instance }} />
+
+    <Return value={{ ...$ctx.header, symbols: $ctx.symbols, expressions: $ctx.expressions, contracts: $ctx.contracts, stores: $ctx.stores }} />
+</Module>

@@ -1,0 +1,7 @@
+<Module>
+    <Call fn="rebind" in={{ source: $in.request.source, instance: $in.request.instance, index: $in.index }} />
+    <Call fn="../remap/ids" in={{ values: $ctx.rebind.ids, mapping: $in.request.types }} />
+    <Call fn="intern" in={{ base: $in.request.base, value: { ...$ctx.rebind, ids: $ctx.ids }, state: $in.state, maximum: $in.request.maximum }} />
+
+    <Return value={$ctx.intern} />
+</Module>

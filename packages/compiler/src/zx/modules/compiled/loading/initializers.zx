@@ -1,0 +1,13 @@
+import integers from "zig:integers"
+
+import store from "../identity/store"
+
+import type { Initializers } from "../model"
+
+export type Input = { source: Initializers, first: u64, instance: string }
+
+export type Output = Initializers
+
+export default function (in: Input): Output {
+    return { ...in.source, identities: in.source.identities.map(value => store({ instance: in.instance, value: value })), functions: in.source.functions.map(value => integers.narrow(in.first + integers.widen(value))) }
+}

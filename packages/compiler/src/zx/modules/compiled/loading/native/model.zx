@@ -1,0 +1,7 @@
+import type { Modules } from "core/native_module_table/model"
+
+export type Value = { identity: string?, specifier: string, import_name: string, namespace: string[], names: string[], ids: u32[] }
+
+export type State = { delta: Modules, mapping: u32[], status: u64 }
+
+export type Request = { source: Modules, base: Modules, types: u32[], instance: string, maximum: u64 }

@@ -1,0 +1,17 @@
+import type { Result } from "./model"
+
+export type Input = u64
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    return {
+        status: in,
+        types: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] },
+        origins: { ids: [], kinds: [], owners: [], members: [] },
+        natives: { identities: [], import_names: [], specifiers: [], type_ids: [], type_names: [], type_namespaces: [] },
+        functions: { files: [], input_types: [], output_types: [], ownership: [], store_modes: [], contracts: [], native_inputs: [], native_modules: [], native_members: [], native_exports: [], native_allocators: [], native_io: [], native_process: [], native_tuples: [], native_fallible: [], native_errors: [], native_concurrent: [], symbols: [], expressions: [], control: [], roots: [], stores: [] },
+        exports: { names: [], paths: [], functions: [], type_names: [], type_ids: [] },
+        initializers: { identities: [], versions: [], functions: [] }
+    }
+}

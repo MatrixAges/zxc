@@ -1,0 +1,33 @@
+import sort from "../../../analysis/semantic/constructing/fields/sort"
+
+import type { Stores } from "core/store_table/model"
+
+export type Input = Stores[]
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const names: string[] = []
+    const types: u32[] = []
+
+    const collected = loop({ stores: in, names: names, types: types, index: 0 }, {
+        while: current => current.index < current.stores.length,
+        next: current => {
+            current.names = current.names.concat(current.stores[current.index].paths)[0]
+            current.types = current.types.concat(current.stores[current.index].types)[0]
+            current.index += 1
+        }
+    })
+
+    const ordered = sort({ names: collected.names, types: collected.types })
+
+    return loop({ fields: ordered, index: 1, valid: true }, {
+        while: current => current.valid && current.index < current.fields.names.length,
+        next: current => {
+            const index = current.index
+
+            current.valid = current.fields.names[index - 1] != current.fields.names[index] || current.fields.types[index - 1] == current.fields.types[index]
+            current.index += 1
+        }
+    }).valid
+}

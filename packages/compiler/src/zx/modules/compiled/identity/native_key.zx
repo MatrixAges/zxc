@@ -1,0 +1,21 @@
+import key from "../../../ir/canonical/native/key"
+import scope from "./scope"
+import standard from "./standard"
+
+import type { Modules } from "core/native_module_table/model"
+
+export type Input = { instance: string, value: string, modules: Modules }
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const shared = loop({ modules: in.modules, value: in.value, index: 0, found: false }, {
+        while: current => !current.found && current.index < current.modules.specifiers.length,
+        next: current => {
+            current.found = key({ modules: current.modules, index: current.index }) == current.value && standard(current.modules.specifiers[current.index])
+            current.index += 1
+        }
+    }).found
+
+    return shared ? in.value : scope({ instance: in.instance, value: in.value })
+}

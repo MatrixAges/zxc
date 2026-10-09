@@ -1,0 +1,13 @@
+import type { Table } from "core/type_table/model"
+
+export type Input = { base: Table, delta: Table, existing_count: u64 }
+
+export type Output = Table
+
+export default function (in: Input): Output {
+    if (in.existing_count != 0) {
+        return in.delta
+    }
+
+    return { ...in.delta, kinds: in.base.kinds.concat(in.delta.kinds)[0], first: in.base.first.concat(in.delta.first)[0], second: in.base.second.concat(in.delta.second)[0], labels: in.base.labels.concat(in.delta.labels)[0] }
+}

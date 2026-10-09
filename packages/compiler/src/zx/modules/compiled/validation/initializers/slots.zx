@@ -1,0 +1,30 @@
+import type { Stores } from "core/store_table/model"
+
+export type Input = { stores: Stores[], identity: string, type_id: u32 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ stores: in.stores, identity: in.identity, type_id: in.type_id, index: 0, found: false, valid: true }, {
+        while: current => current.valid && current.index < current.stores.length,
+        next: current => {
+            const slots = loop({ stores: current.stores[current.index], identity: current.identity, type_id: current.type_id, index: 0, found: current.found, valid: true }, {
+                while: slot => slot.valid && slot.index < slot.stores.paths.length,
+                next: slot => {
+                    if (slot.stores.paths[slot.index] == slot.identity) {
+                        slot.valid = slot.stores.types[slot.index] == slot.type_id
+                        slot.found = true
+                    }
+
+                    slot.index += 1
+                }
+            })
+
+            current.found = slots.found
+            current.valid = slots.valid
+            current.index += 1
+        }
+    })
+
+    return result.valid && result.found
+}

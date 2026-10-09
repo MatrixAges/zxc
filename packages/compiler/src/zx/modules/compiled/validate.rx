@@ -1,0 +1,73 @@
+<Module>
+    <Call fn="validation/header" in={$in} />
+
+    <Switch on={$ctx.header}>
+        <Case value={true}>
+            <Call module="../../ir/canonical/validation/validate" in={$in.program} />
+
+            <Switch on={$ctx.validate}>
+                <Case value={true}>
+                    <Call module="../../analysis/semantic/origins" in={{ table: $in.program.context.table, origins: $in.origins, names: $in.origin_names }} />
+
+                    <Switch on={$ctx.origins}>
+                        <Case value={true}>
+                            <Call fn="validation/nominal" in={$in} />
+
+                            <Switch on={$ctx.nominal}>
+                                <Case value={true}>
+                                    <Call fn="validation/initializers" in={$in} />
+
+                                    <Switch on={$ctx.initializers}>
+                                        <Case value={true}>
+                                            <Call fn="validation/exports" in={$in} />
+
+                                            <Switch on={$ctx.exports}>
+                                                <Case value={true}>
+                                                    <Call fn="validation/stores" in={$in.program.context.functions.stores} />
+
+                                                    <Switch on={$ctx.stores}>
+                                                        <Case value={true}>
+                                                            <Return value={true} />
+                                                        </Case>
+
+                                                        <Default>
+                                                            <Return value={false} />
+                                                        </Default>
+                                                    </Switch>
+                                                </Case>
+
+                                                <Default>
+                                                    <Return value={false} />
+                                                </Default>
+                                            </Switch>
+                                        </Case>
+
+                                        <Default>
+                                            <Return value={false} />
+                                        </Default>
+                                    </Switch>
+                                </Case>
+
+                                <Default>
+                                    <Return value={false} />
+                                </Default>
+                            </Switch>
+                        </Case>
+
+                        <Default>
+                            <Return value={false} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

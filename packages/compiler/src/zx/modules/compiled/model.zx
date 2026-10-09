@@ -1,0 +1,17 @@
+import type { Complete } from "core/function_table/complete"
+import type { Modules } from "core/native_module_table/model"
+import type { Table } from "core/type_table/model"
+import type { Bindings } from "core/type_table/nominal"
+import type { Program } from "../../ir/canonical/validation/model"
+
+export type Exports = { names: string[], paths: string[], functions: u32?[], type_names: string[][], type_ids: u32[][] }
+
+export type Initializers = { identities: string[], versions: u32[], functions: u32[] }
+
+export type Graph = { program: Program, origins: Bindings, origin_names: string[], exports: Exports, initializers: Initializers }
+
+export type Destination = { types: Table, origins: Bindings, origin_names: string[], natives: Modules, function_count: u64 }
+
+export type Input = { graph: Graph, instance: string, artifact: string, load: bool, seed: bool, destination: Destination }
+
+export type Result = { status: u64, types: Table, origins: Bindings, natives: Modules, functions: Complete, exports: Exports, initializers: Initializers }

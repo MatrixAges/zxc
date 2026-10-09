@@ -1,0 +1,6 @@
+<Module>
+    <Call fn="symbols" in={{ source: $in.symbols, mapping: $in.mapping }} />
+    <Call fn="expressions" in={{ source: $in.expressions, mapping: $in.mapping, first: $in.first }} />
+
+    <Return value={{ symbols: $ctx.symbols, expressions: $ctx.expressions }} />
+</Module>

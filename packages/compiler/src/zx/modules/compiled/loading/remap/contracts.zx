@@ -1,0 +1,27 @@
+import step from "compiler/compiled_contract"
+
+import type { Contracts } from "core/contract_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Symbols } from "core/symbol_table/model"
+
+export type Input = { source: Contracts, mapping: u32[], first: u64 }
+
+export type Output = Contracts
+
+export default function (in: Input): Output {
+    const symbols: Symbols[] = []
+    const expressions: Expressions[] = []
+
+    const result = loop({ input: in, symbols: symbols, expressions: expressions, index: 0 }, {
+        while: current => current.index < current.input.source.kinds.length,
+        next: current => {
+            const mapped = step({ symbols: current.input.source.symbols[current.index], expressions: current.input.source.expressions[current.index], mapping: current.input.mapping, first: current.input.first })
+
+            current.symbols = current.symbols.push(mapped.symbols)[0]
+            current.expressions = current.expressions.push(mapped.expressions)[0]
+            current.index += 1
+        }
+    })
+
+    return { ...in.source, symbols: result.symbols, expressions: result.expressions }
+}

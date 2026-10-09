@@ -1,0 +1,11 @@
+import ids from "./ids"
+
+import type { Symbols } from "core/symbol_table/model"
+
+export type Input = { source: Symbols, mapping: u32[] }
+
+export type Output = Symbols
+
+export default function (in: Input): Output {
+    return { ...in.source, types: ids({ values: in.source.types, mapping: in.mapping }) }
+}

@@ -1,0 +1,8 @@
+<Module>
+    <Call fn="functions/walk" in={{ source: $in.input.graph.program.context.functions, types: $in.merged.mapping, natives: $in.native.mapping, first: $in.input.destination.function_count, instance: $in.input.instance }} />
+    <Call fn="exports" in={{ source: $in.input.graph.exports, mapping: $in.merged.mapping, first: $in.input.destination.function_count, instance: $in.input.instance }} />
+    <Call fn="initializers" in={{ source: $in.input.graph.initializers, first: $in.input.destination.function_count, instance: $in.input.instance }} />
+    <Call fn="type_delta" in={{ base: $in.base, delta: $in.merged.delta, existing_count: $in.input.destination.types.kinds.length }} />
+
+    <Return value={{ status: 0, types: $ctx.type_delta, origins: $in.merged.origins, natives: $in.native.delta, functions: $ctx.walk, exports: $ctx.exports, initializers: $ctx.initializers }} />
+</Module>

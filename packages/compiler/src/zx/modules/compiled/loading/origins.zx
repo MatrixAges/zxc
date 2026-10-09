@@ -1,0 +1,27 @@
+import nativeKey from "../identity/native_key"
+import scope from "../identity/scope"
+
+import type { Modules } from "core/native_module_table/model"
+import type { Bindings } from "core/type_table/nominal"
+
+export type Input = { instance: string, origins: Bindings, modules: Modules }
+
+export type Output = Bindings
+
+export default function (in: Input): Output {
+    const owners: string[] = []
+
+    const values = loop({ input: in, owners: owners, index: 0 }, {
+        while: current => current.index < current.input.origins.ids.length,
+        next: current => {
+            const owner = current.input.origins.owners[current.index]
+            const request = { instance: current.input.instance, value: owner }
+            const rebound = current.input.origins.kinds[current.index] == 0 ? scope(request) : nativeKey({ ...request, modules: current.input.modules })
+
+            current.owners = current.owners.push(rebound)[0]
+            current.index += 1
+        }
+    }).owners
+
+    return { ...in.origins, owners: values }
+}

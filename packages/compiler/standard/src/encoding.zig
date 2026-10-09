@@ -52,3 +52,9 @@ pub fn decodeUtf8(bytes: []const u8) ![]const u8 {
 
     return bytes;
 }
+
+pub fn sliceBytes(text: []const u8, start: u64, end: u64) error{InvalidRange}![]const u8 {
+    if (start > end or end > text.len) return error.InvalidRange;
+
+    return text[@intCast(start)..@intCast(end)];
+}

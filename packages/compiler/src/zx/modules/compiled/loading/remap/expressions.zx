@@ -1,0 +1,13 @@
+import integers from "zig:integers"
+
+import ids from "./ids"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { source: Expressions, mapping: u32[], first: u64 }
+
+export type Output = Expressions
+
+export default function (in: Input): Output {
+    return { ...in.source, types: ids({ values: in.source.types, mapping: in.mapping }), call_functions: in.source.call_functions.map(value => integers.narrow(in.first + integers.widen(value))) }
+}

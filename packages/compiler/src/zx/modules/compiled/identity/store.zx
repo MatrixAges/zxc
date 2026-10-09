@@ -1,0 +1,11 @@
+import encoding from "std:encoding"
+
+export type Input = { instance: string, value: string }
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const tail = encoding.sliceBytes(in.value, 6, in.value.length)
+
+    return `store.library:${in.instance.length}:${in.instance}:${tail}`
+}

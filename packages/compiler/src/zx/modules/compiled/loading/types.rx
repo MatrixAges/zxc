@@ -1,0 +1,17 @@
+<Module>
+    <Call fn="types/initial" in={$in} />
+
+    <Call module="../../../analysis/semantic/preflight" in={{ source: $in.source, target: $in.base, origins: $in.origins, names: $in.names, first: 0 }} />
+
+    <Switch on={$ctx.preflight != null}>
+        <Case value={true}>
+            <Call module="../../../analysis/semantic/merge" in={{ request: { source: $in.source, origins: $in.origins, origin_indices: $ctx.preflight, base: $in.base, base_origins: $in.base_origins, first: 0 }, state: $ctx.initial }} />
+
+            <Return value={$ctx.merge} />
+        </Case>
+
+        <Default>
+            <Return value={{ ...$ctx.initial, status: 3 }} />
+        </Default>
+    </Switch>
+</Module>

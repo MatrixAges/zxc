@@ -1,0 +1,17 @@
+import integers from "zig:integers"
+
+import scope from "../../identity/scope"
+
+import type { Request } from "./model"
+
+export type Input = { request: Request, index: u64 }
+
+export type Output = { file: string, input_type: u32, output_type: u32, native_module: u32? }
+
+export default function (in: Input): Output {
+    const source = in.request.source
+    const native_id = source.native_modules[in.index]
+    const module_id: u32? = native_id == null ? null : in.request.natives[integers.widen(native_id)]
+
+    return { file: scope({ instance: in.request.instance, value: source.files[in.index] }), input_type: in.request.types[integers.widen(source.input_types[in.index])], output_type: in.request.types[integers.widen(source.output_types[in.index])], native_module: module_id }
+}

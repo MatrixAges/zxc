@@ -1,6 +1,9 @@
 const compiler = @import("compiler");
 
 pub const entries: []const compiler.project.Package = &.{
+    .{ .specifier = "compiler/compiled_native", .entry = "zx/modules/compiled/loading/native/step.rx" },
+    .{ .specifier = "compiler/compiled_function", .entry = "zx/modules/compiled/loading/functions/remap.rx" },
+    .{ .specifier = "compiler/compiled_contract", .entry = "zx/modules/compiled/loading/remap/contract.rx" },
     .{ .specifier = "compiler/ir_unit_structure", .entry = "zx/ir/canonical/validation/structure/unit.rx" },
     .{ .specifier = "compiler/ir_function_check", .entry = "zx/ir/canonical/validation/functions/check.rx" },
     .{ .specifier = "compiler/collection_lower", .entry = "zx/analysis/analyzer/collections/lower.rx" },

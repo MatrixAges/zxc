@@ -1,0 +1,15 @@
+import type { Graph } from "../model"
+
+export type Input = Graph
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const exports = in.exports
+    const count = exports.names.length
+    const initializers = in.initializers
+
+    return in.program.unit.type_only && in.program.export_names.length == 0 && in.program.unit.body.stores.paths.length == 0 &&
+        count != 0 && exports.paths.length == count && exports.functions.length == count && exports.type_names.length == count && exports.type_ids.length == count &&
+        initializers.identities.length == initializers.versions.length && initializers.identities.length == initializers.functions.length
+}

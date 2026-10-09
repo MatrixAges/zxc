@@ -1,0 +1,9 @@
+import text from "../../../ir/canonical/native/text"
+
+export type Input = { instance: string, artifact: string, load: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return !in.load || (in.artifact.length != 0 && text(in.instance))
+}

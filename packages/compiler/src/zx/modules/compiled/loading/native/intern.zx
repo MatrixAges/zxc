@@ -1,0 +1,48 @@
+import integers from "zig:integers"
+
+import key from "../../../../ir/canonical/native/key"
+import compatible from "./compatible"
+
+import type { Modules } from "core/native_module_table/model"
+import type { Value, State } from "./model"
+
+export type Input = { base: Modules, value: Value, state: State, maximum: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const identity = in.value.identity
+    const name = identity == null ? in.value.specifier : identity
+    const count = in.base.specifiers.length + in.state.delta.specifiers.length
+
+    const index = loop({ base: in.base, delta: in.state.delta, name: name, import_name: in.value.import_name, count: count, index: 0, found: false }, {
+        while: current => !current.found && current.index < current.count,
+        next: current => {
+            const base = current.index < current.base.specifiers.length
+            const table = base ? current.base : current.delta
+            const index = base ? current.index : current.index - current.base.specifiers.length
+
+            current.found = key({ modules: table, index: index }) == current.name && table.import_names[index] == current.import_name
+
+            if (!current.found) {
+                current.index += 1
+            }
+        }
+    }).index
+
+    if (index < count) {
+        const base = index < in.base.specifiers.length
+        const valid = compatible({ table: base ? in.base : in.state.delta, index: base ? index : index - in.base.specifiers.length, value: in.value })
+
+        return { ...in.state, mapping: in.state.mapping.push(integers.narrow(index))[0], status: valid ? 0 : 5 }
+    }
+
+    if (count >= in.maximum) {
+        return { ...in.state, status: 6 }
+    }
+
+    const delta = in.state.delta
+    const value = in.value
+
+    return { delta: { identities: delta.identities.push(value.identity)[0], import_names: delta.import_names.push(value.import_name)[0], specifiers: delta.specifiers.push(value.specifier)[0], type_ids: delta.type_ids.push(value.ids)[0], type_names: delta.type_names.push(value.names)[0], type_namespaces: delta.type_namespaces.push(value.namespace)[0] }, mapping: in.state.mapping.push(integers.narrow(count))[0], status: 0 }
+}

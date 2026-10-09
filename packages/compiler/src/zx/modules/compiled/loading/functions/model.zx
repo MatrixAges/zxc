@@ -1,0 +1,9 @@
+import type { Contracts } from "core/contract_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Complete } from "core/function_table/complete"
+import type { Stores } from "core/store_table/model"
+import type { Symbols } from "core/symbol_table/model"
+
+export type Request = { source: Complete, types: u32[], natives: u32[], first: u64, instance: string }
+
+export type Mapped = { file: string, input_type: u32, output_type: u32, native_module: u32?, symbols: Symbols, expressions: Expressions, stores: Stores, contracts: Contracts }
