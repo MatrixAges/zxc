@@ -1,0 +1,25 @@
+import check from "./check"
+
+import type { Analysis } from "../model"
+
+export type Input = { analysis: Analysis, names: string[] }
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    return loop({ analysis: in.analysis, names: in.names, index: 0 }, {
+        while: current => current.analysis.state.diagnostic.message == "" && current.index < current.names.length,
+        next: current => {
+            const name = current.names[current.index]
+            const diagnostic = check({ local: current.analysis.state.local, name: name, span: current.analysis.span })
+
+            current.analysis.state.diagnostic = diagnostic
+
+            if (diagnostic.message == "") {
+                current.analysis.state.local.expression_units = current.analysis.state.local.expression_units.push(name)[0]
+            }
+
+            current.index += 1
+        }
+    }).analysis
+}

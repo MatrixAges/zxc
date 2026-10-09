@@ -1,0 +1,25 @@
+import type { Body } from "core/ir/body"
+import type { Ownership } from "core/symbol_table/model"
+import type { Table } from "core/type_table/model"
+import type { Span } from "../../frontend/lexer/token_model"
+import type { Prepared } from "../analyzer/model"
+import type { Diagnostic } from "../semantic/resolving/model"
+
+export type Analysis = {
+    state: Prepared
+    span: Span
+    input_value: u32
+    binding_values: u32[]
+    value: u32
+    root: u32?
+        ownership: Ownership
+}
+
+export type Result = {
+    type_delta: Table
+    body: Body
+    input_type: u32
+    output_type: u32
+    output_ownership: Ownership
+    diagnostic: Diagnostic
+}

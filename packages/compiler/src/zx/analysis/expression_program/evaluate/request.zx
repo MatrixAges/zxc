@@ -1,0 +1,19 @@
+import empty from "core/function_table/empty"
+
+import type { FunctionImports } from "../../analyzer/context"
+import type { Request } from "../../analyzer/expressions/request"
+import type { Functions } from "../../analyzer/functions"
+import type { CompileInput } from "../input"
+import type { Analysis } from "../model"
+
+export type Input = { input: CompileInput, analysis: Analysis }
+
+export type Output = { request: Request, imports: FunctionImports, functions: Functions }
+
+export default function (in: Input): Output {
+    return {
+        request: { state: in.analysis.state, source: { bytes: in.input.bytes, tree: in.input.syntax.expressions, blocks: in.input.syntax.blocks }, node: in.input.syntax.result, expected: in.input.expected },
+        imports: { namespaces: [], names: [], ids: [], input_types: [], output_types: [] },
+        functions: empty()
+    }
+}

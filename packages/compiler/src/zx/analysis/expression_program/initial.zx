@@ -1,0 +1,34 @@
+import { Ownership } from "core/symbol_table/model"
+
+import local from "../analyzer/local/initial"
+
+import type { Types } from "../analyzer/types/model"
+import type { CompileInput } from "./input"
+import type { Analysis } from "./model"
+
+export type Input = CompileInput
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    const span = in.syntax.expressions.nodes[in.syntax.result].span
+    const diagnostic = { code: "", message: "", start: 0, end: 0 }
+
+    const types: Types = {
+        context: {
+            source: { indexed: { bytes: in.bytes, types: in.syntax.types, order: in.syntax.type_order, declarations: [], members: [] }, native: null },
+            base: in.type_base,
+            resolved: { names: [], ids: [] },
+            aliases: { names: [], ids: [] },
+            visiting: [],
+            native_interface: false
+        },
+        delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] },
+        cache: { names: [], ids: [] },
+        nominal_delta: { ids: [], kinds: [], owners: [], members: [] }
+    }
+
+    const scope = local({ signature: { types: types, span: span, input_type: 0, output_type: 0, diagnostic: diagnostic }, stores: { paths: [], types: [], handles: [], readable: [], writable: [] }, allow_store: false })
+
+    return { state: { types: types, local: scope, input_type: 0, diagnostic: diagnostic }, span: span, input_value: 0, binding_values: [], value: 0, root: null, ownership: Ownership.Borrowed }
+}

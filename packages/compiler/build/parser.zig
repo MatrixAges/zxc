@@ -1,6 +1,8 @@
 const std = @import("std");
 
 pub const Sources = struct {
+    expression_analysis: std.Build.LazyPath,
+    expression_analysis_abi: std.Build.LazyPath,
     source_signature: std.Build.LazyPath,
     source_signature_abi: std.Build.LazyPath,
     analyzer: std.Build.LazyPath,
@@ -207,6 +209,8 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const analyzer_abi = run.addOutputFileArg("analyzer_abi.zig");
     const source_signature = run.addOutputFileArg("source_signature.zig");
     const source_signature_abi = run.addOutputFileArg("source_signature_abi.zig");
+    const expression_analysis = run.addOutputFileArg("expression_analysis.zig");
+    const expression_analysis_abi = run.addOutputFileArg("expression_analysis_abi.zig");
     const naming = run.addOutputFileArg("naming.zig");
     const naming_root = lint_dependency.path("src/naming");
 
@@ -218,7 +222,7 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     run.addDirectoryArg2(core_root, .{});
     trackSources(b, run, core_root, core_dependency.builder.root.joinString(b.allocator, "src") catch @panic("out of memory")) catch @panic("unable to track core model sources");
 
-    return .{ .source_signature = source_signature, .source_signature_abi = source_signature_abi, .analyzer = analyzer, .analyzer_abi = analyzer_abi, .refinement_mark = refinement_mark, .refinement_restore = refinement_restore, .refinement_add = refinement_add, .artifact_remap = artifact_remap, .artifact_remap_abi = artifact_remap_abi, .artifact_prepare = artifact_prepare, .artifact_prepare_abi = artifact_prepare_abi, .artifact_roots = artifact_roots, .artifact_roots_abi = artifact_roots_abi, .native_interface = native_interface, .native_interface_abi = native_interface_abi, .native_names = native_names, .native_names_abi = native_names_abi, .native_type = native_type, .native_type_abi = native_type_abi, .native_modules = native_modules, .native_modules_abi = native_modules_abi, .native_export = native_export, .native_export_abi = native_export_abi, .ir_scopes = ir_scopes, .ir_scopes_abi = ir_scopes_abi, .refinement_assume = refinement_assume, .refinement_assume_abi = refinement_assume_abi, .refinement_bind = refinement_bind, .refinement_bind_abi = refinement_bind_abi, .refinement_type = refinement_type, .refinement_type_abi = refinement_type_abi, .ir_contracts = ir_contracts, .ir_contracts_abi = ir_contracts_abi, .ir_contract_tables = ir_contract_tables, .ir_contract_tables_abi = ir_contract_tables_abi, .ir_expressions = ir_expressions, .ir_expressions_abi = ir_expressions_abi, .ownership = ownership, .ownership_abi = ownership_abi, .ir_functions = ir_functions, .ir_functions_abi = ir_functions_abi, .ir_task_call = ir_task_call, .ir_task_call_abi = ir_task_call_abi, .ir_program_pure = ir_program_pure, .ir_program_pure_abi = ir_program_pure_abi, .ir_tasks = ir_tasks, .ir_tasks_abi = ir_tasks_abi, .ir_body = ir_body, .ir_body_abi = ir_body_abi, .ir_stores = ir_stores, .ir_stores_abi = ir_stores_abi, .ir_store_call = ir_store_call, .ir_store_call_abi = ir_store_call_abi, .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
+    return .{ .expression_analysis = expression_analysis, .expression_analysis_abi = expression_analysis_abi, .source_signature = source_signature, .source_signature_abi = source_signature_abi, .analyzer = analyzer, .analyzer_abi = analyzer_abi, .refinement_mark = refinement_mark, .refinement_restore = refinement_restore, .refinement_add = refinement_add, .artifact_remap = artifact_remap, .artifact_remap_abi = artifact_remap_abi, .artifact_prepare = artifact_prepare, .artifact_prepare_abi = artifact_prepare_abi, .artifact_roots = artifact_roots, .artifact_roots_abi = artifact_roots_abi, .native_interface = native_interface, .native_interface_abi = native_interface_abi, .native_names = native_names, .native_names_abi = native_names_abi, .native_type = native_type, .native_type_abi = native_type_abi, .native_modules = native_modules, .native_modules_abi = native_modules_abi, .native_export = native_export, .native_export_abi = native_export_abi, .ir_scopes = ir_scopes, .ir_scopes_abi = ir_scopes_abi, .refinement_assume = refinement_assume, .refinement_assume_abi = refinement_assume_abi, .refinement_bind = refinement_bind, .refinement_bind_abi = refinement_bind_abi, .refinement_type = refinement_type, .refinement_type_abi = refinement_type_abi, .ir_contracts = ir_contracts, .ir_contracts_abi = ir_contracts_abi, .ir_contract_tables = ir_contract_tables, .ir_contract_tables_abi = ir_contract_tables_abi, .ir_expressions = ir_expressions, .ir_expressions_abi = ir_expressions_abi, .ownership = ownership, .ownership_abi = ownership_abi, .ir_functions = ir_functions, .ir_functions_abi = ir_functions_abi, .ir_task_call = ir_task_call, .ir_task_call_abi = ir_task_call_abi, .ir_program_pure = ir_program_pure, .ir_program_pure_abi = ir_program_pure_abi, .ir_tasks = ir_tasks, .ir_tasks_abi = ir_tasks_abi, .ir_body = ir_body, .ir_body_abi = ir_body_abi, .ir_stores = ir_stores, .ir_stores_abi = ir_stores_abi, .ir_store_call = ir_store_call, .ir_store_call_abi = ir_store_call_abi, .naming = naming, .program = program, .expression = expression, .xml = xml, .paths = paths, .graph = graph, .attribute_role = attribute_role, .attribute_content = attribute_content, .call_rule = call_rule, .path_kind = path_kind, .file_kind = file_kind, .specifier = specifier, .integer = integer, .type_lookup = type_lookup, .semantic_abi = semantic_abi, .nominal_lookup = nominal_lookup, .nominal_abi = nominal_abi, .origin_validation = origin_validation, .origins_abi = origins_abi, .origin_production = origin_production, .production_abi = production_abi, .merge_preflight = merge_preflight, .preflight_abi = preflight_abi, .type_merge = type_merge, .merge_abi = merge_abi, .type_validation = type_validation, .validation_abi = validation_abi, .type_resolution = type_resolution, .resolution_abi = resolution_abi, .type_construction = type_construction, .construction_abi = construction_abi, .type_query = type_query, .query_abi = query_abi };
 }
 
 fn trackSources(b: *std.Build, run: *std.Build.Step.Run, root: std.Build.LazyPath, absolute: []const u8) !void {
@@ -378,6 +382,18 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
             .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.source_signature_abi, .target = target, .optimize = optimize }) },
             .{ .name = "zxc_standard", .module = resolution_standard },
             .{ .name = "integers", .module = integers },
+        },
+    });
+
+    const expression_analysis = b.createModule(.{
+        .root_source_file = source.expression_analysis,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.expression_analysis_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_standard", .module = resolution_standard },
+            .{ .name = "integers", .module = integers },
+            .{ .name = "floats", .module = floats },
         },
     });
 
@@ -605,6 +621,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
     });
 
     return .{
+        .expression_analysis = expression_analysis,
         .source_signature = source_signature,
         .analyzer = analyzer,
         .native_interface = native_interface,

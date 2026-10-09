@@ -1,0 +1,28 @@
+import integers from "zig:integers"
+import block from "core/control_table/append/block"
+import constant from "core/control_table/append/constant"
+import result from "core/control_table/append/result"
+
+import type { Analysis } from "./model"
+
+export type Input = Analysis
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    const first = in.state.local.control.statement_kinds.length
+
+    const constants = loop({ table: in.state.local.control, symbols: in.state.local.expression_bindings, values: in.binding_values, index: 0 }, {
+        while: current => current.index < current.values.length,
+        next: current => {
+            current.table = constant({ table: current.table, symbol: current.symbols[current.index], value: current.values[current.index] })
+            current.index += 1
+        }
+    }).table
+
+    const returned = result({ table: constants, value: in.value })
+    const body = block({ table: returned, first: first })
+    const local = { ...in.state.local, control: body.table, output_type: in.state.local.expressions.types[integers.widen(in.value)] }
+
+    return { ...in, state: { ...in.state, local: local }, root: body.id }
+}

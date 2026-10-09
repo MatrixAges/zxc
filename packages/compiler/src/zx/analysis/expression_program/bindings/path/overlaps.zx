@@ -1,0 +1,21 @@
+import encoding from "std:encoding"
+
+export type Input = { left: string, right: string }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const left = encoding.encodeUtf8(in.left)
+    const right = encoding.encodeUtf8(in.right)
+    const count = left.length < right.length ? left.length : right.length
+
+    const equal = loop({ left: left, right: right, count: count, index: 0, equal: true }, {
+        while: current => current.equal && current.index < current.count,
+        next: current => {
+            current.equal = current.left[current.index] == current.right[current.index]
+            current.index += 1
+        }
+    }).equal
+
+    return equal && (left.length == right.length || (left.length < right.length ? right[count] == 46 : left[count] == 46))
+}

@@ -1,0 +1,17 @@
+<Module>
+    <Switch on={!$in.linking && $in.analysis.state.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="ownership/request" in={$in.analysis} />
+
+            <Call module="../../ownership/check" in={$ctx.request} />
+
+            <Call fn="../analyzer/ownership/finish" in={{ state: $in.analysis.state, outcome: $ctx.check }} />
+
+            <Return value={{ ...$in.analysis, state: $ctx.finish.state, ownership: $ctx.finish.ownership }} />
+        </Case>
+
+        <Default>
+            <Return value={$in.analysis} />
+        </Default>
+    </Switch>
+</Module>

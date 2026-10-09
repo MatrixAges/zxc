@@ -1,0 +1,18 @@
+import symbol from "core/symbol_table/append"
+import { Ownership } from "core/symbol_table/model"
+
+import reference from "../../analyzer/collections/building/reference"
+
+import type { Analysis } from "../model"
+
+export type Input = Analysis
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    const binding = symbol({ table: in.state.local.symbols, name: "@environment", type_id: in.state.input_type, span_start: in.span.start, span_end: in.span.end, ownership: Ownership.Copy })
+    const local = { ...in.state.local, symbols: binding.table, active: in.state.local.active.push(binding.id)[0] }
+    const value = reference({ state: { ...in.state, local: local }, symbol: binding.id, span: in.span })
+
+    return { ...in, state: value.state, input_value: value.value }
+}

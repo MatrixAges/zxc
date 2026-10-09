@@ -1,0 +1,13 @@
+<Module>
+    <Switch on={$in.state.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="finish" in={$in} />
+
+            <Return value={$ctx.finish} />
+        </Case>
+
+        <Default>
+            <Return value={$in} />
+        </Default>
+    </Switch>
+</Module>

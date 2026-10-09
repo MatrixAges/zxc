@@ -1,0 +1,16 @@
+import type { Table } from "core/type_table/model"
+import type { Expression } from "../../frontend/parser/syntax/model"
+
+export type CompileInput = {
+    bytes: u8[]
+    syntax: Expression
+    type_base: Table
+    binding_names: string[]
+    binding_types: u32[]
+    unit_bindings: string[]
+    nonnull_bindings: string[]
+    expected: u32?
+        linking: bool
+    scalar_count: u64
+    maximum_type_count: u64
+}

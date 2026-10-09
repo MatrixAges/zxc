@@ -251,6 +251,11 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[73 + entries.len], .data = source_signature.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[74 + entries.len], .data = source_signature.types });
 
+    const expression_analysis = try generate(allocator, init.gpa, inputs, sources.items, "zx/analysis/expression_program/compile.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[75 + entries.len], .data = expression_analysis.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[76 + entries.len], .data = expression_analysis.types });
+
     const naming = try generate(allocator, init.gpa, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 3], .data = naming.source });

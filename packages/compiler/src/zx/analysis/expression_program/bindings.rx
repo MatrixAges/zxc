@@ -1,0 +1,23 @@
+<Module>
+    <Switch on={$in.analysis.state.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="bindings/units" in={{ analysis: $in.analysis, names: $in.input.unit_bindings }} />
+
+            <Switch on={$ctx.units.state.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Call fn="bindings/values" in={{ analysis: $ctx.units, names: $in.input.binding_names, types: $in.input.binding_types }} />
+
+                    <Return value={$ctx.values} />
+                </Case>
+
+                <Default>
+                    <Return value={$ctx.units} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={$in.analysis} />
+        </Default>
+    </Switch>
+</Module>

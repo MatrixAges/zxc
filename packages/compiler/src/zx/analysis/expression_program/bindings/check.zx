@@ -1,0 +1,34 @@
+import overlaps from "./path/overlaps"
+import valid from "./path/valid"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Local } from "../../analyzer/local"
+import type { Diagnostic } from "../../semantic/resolving/model"
+
+export type Input = { local: Local, name: string, span: Span }
+
+export type Output = Diagnostic
+
+export default function (in: Input): Output {
+    if (!valid(in.name)) {
+        return { code: "name", message: "expression bindings require identifier paths", start: in.span.start, end: in.span.end }
+    }
+
+    const symbols = loop({ names: in.local.symbols.names, name: in.name, index: 0, overlap: false }, {
+        while: current => !current.overlap && current.index < current.names.length,
+        next: current => {
+            current.overlap = overlaps({ left: current.names[current.index], right: current.name })
+            current.index += 1
+        }
+    }).overlap
+
+    const units = loop({ names: in.local.expression_units, name: in.name, index: 0, overlap: symbols }, {
+        while: current => !current.overlap && current.index < current.names.length,
+        next: current => {
+            current.overlap = overlaps({ left: current.names[current.index], right: current.name })
+            current.index += 1
+        }
+    }).overlap
+
+    return units ? { code: "name", message: "expression binding paths must not overlap", start: in.span.start, end: in.span.end } : { code: "", message: "", start: 0, end: 0 }
+}

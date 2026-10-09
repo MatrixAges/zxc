@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="initial" in={$in} />
+
+    <Call module="types" in={{ input: $in, analysis: $ctx.initial }} />
+    <Call module="environment" in={{ input: $in, analysis: $ctx.types }} />
+    <Call module="bindings" in={{ input: $in, analysis: $ctx.environment }} />
+    <Call module="facts" in={{ input: $in, analysis: $ctx.bindings }} />
+    <Call module="evaluate" in={{ input: $in, analysis: $ctx.facts }} />
+    <Call module="finish" in={$ctx.evaluate} />
+    <Call module="ownership" in={{ analysis: $ctx.finish, linking: $in.linking }} />
+
+    <Call fn="publish" in={$ctx.ownership} />
+
+    <Return value={$ctx.publish} />
+</Module>

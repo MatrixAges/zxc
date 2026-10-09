@@ -1,0 +1,34 @@
+import add from "../../../ir/canonical/refinement/facts/add"
+
+import type { Analysis } from "../model"
+
+export type Input = { analysis: Analysis, names: string[], bindings: string[] }
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    return loop({ analysis: in.analysis, names: in.names, bindings: in.bindings, index: 0 }, {
+        while: current => current.analysis.state.diagnostic.message == "" && current.index < current.names.length,
+        next: current => {
+            const missing: u32? = null
+            const symbol = loop({ name: current.names[current.index], bindings: current.bindings, symbols: current.analysis.state.local.expression_bindings, index: 0, symbol: missing }, {
+                while: candidate => candidate.symbol == null && candidate.index < candidate.bindings.length,
+                next: candidate => {
+                    if (candidate.name == candidate.bindings[candidate.index]) {
+                        candidate.symbol = candidate.symbols[candidate.index]
+                    }
+
+                    candidate.index += 1
+                }
+            }).symbol
+
+            if (symbol == null) {
+                current.analysis.state.diagnostic = { code: "contract", message: "branch fact requires a visible binding", start: current.analysis.span.start, end: current.analysis.span.end }
+            } else {
+                current.analysis.state.local.refinement.facts = add({ facts: current.analysis.state.local.refinement.facts, symbol: symbol })
+            }
+
+            current.index += 1
+        }
+    }).analysis
+}

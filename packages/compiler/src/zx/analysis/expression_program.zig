@@ -18,15 +18,10 @@ pub fn compileForLinking(allocator: std.mem.Allocator, parsed: Parsed, options: 
 pub fn compileInput(allocator: std.mem.Allocator, input: *const @import("../frontend/expression_result.zig").Result, options: Options, comptime linking: bool) std.mem.Allocator.Error!Result {
     return switch (input.*) {
         .native => |result| compileStage(allocator, result.value.parsed, options, linking),
-        .indexed => |result| if (@import("../frontend/expression_result.zig").indexed_enabled) block: {
-            var scratch = std.heap.ArenaAllocator.init(allocator);
-
-            defer scratch.deinit();
-
-            const view = try result.view(scratch.allocator());
-
-            break :block try compileStage(allocator, .{ .expression = view.expression(result.output.result), .file_name = result.file_name }, options, linking);
-        } else unreachable,
+        .indexed => |result| if (@import("../frontend/expression_result.zig").indexed_enabled)
+            @import("expression_program/host/root.zig").compile(allocator, result, options, linking)
+        else
+            unreachable,
     };
 }
 

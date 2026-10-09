@@ -1,0 +1,37 @@
+import integers from "zig:integers"
+
+import type { Analysis } from "../model"
+
+export type Input = { analysis: Analysis, binding_types: u32[], expected: u32? }
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    if (in.analysis.state.diagnostic.message != "") {
+        return in.analysis
+    }
+
+    const count = in.analysis.state.types.context.base.kinds.length + in.analysis.state.types.delta.kinds.length
+
+    const valid = loop({ types: in.binding_types, count: count, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.types.length,
+        next: current => {
+            current.valid = integers.widen(current.types[current.index]) < current.count
+            current.index += 1
+        }
+    }).valid
+
+    const span = in.analysis.span
+
+    if (!valid) {
+        return { ...in.analysis, state: { ...in.analysis.state, diagnostic: { code: "contract", message: "expression binding type is missing from the shared type table", start: span.start, end: span.end } } }
+    }
+
+    const expected = in.expected
+
+    if (expected != null && integers.widen(expected) >= count) {
+        return { ...in.analysis, state: { ...in.analysis.state, diagnostic: { code: "contract", message: "expected type is missing from the shared type table", start: span.start, end: span.end } } }
+    }
+
+    return in.analysis
+}

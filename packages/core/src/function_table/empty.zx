@@ -1,0 +1,9 @@
+import type { Table } from "./model"
+
+export type Input = void
+
+export type Output = Table
+
+export default function (in: Input): Output {
+    return { input_types: [], output_types: [], ownership: [], stores: [], expressions: [], control: [], roots: [], contracts: [], native_modules: [], native_tuples: [], native_concurrent: [], native_fallible: [], native_errors: [] }
+}

@@ -1,0 +1,39 @@
+import integers from "zig:integers"
+import projection from "core/expression_table/append/projection"
+import symbol from "core/symbol_table/append"
+import { Ownership } from "core/symbol_table/model"
+
+import check from "./check"
+
+import type { Analysis } from "../model"
+
+export type Input = { analysis: Analysis, names: string[], types: u32[] }
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    return loop({ analysis: in.analysis, names: in.names, types: in.types, index: 0 }, {
+        while: current => current.analysis.state.diagnostic.message == "" && current.index < current.names.length,
+        next: current => {
+            const name = current.names[current.index]
+            const type_id = current.types[current.index]
+            const span = current.analysis.span
+            const diagnostic = type_id == 0 ? { code: "type_mismatch", message: "expression bindings cannot have type void", start: span.start, end: span.end } : check({ local: current.analysis.state.local, name: name, span: span })
+
+            current.analysis.state.diagnostic = diagnostic
+
+            if (diagnostic.message == "") {
+                const binding = symbol({ table: current.analysis.state.local.symbols, name: name, type_id: type_id, span_start: span.start, span_end: span.end, ownership: Ownership.Copy })
+                const value = projection({ table: current.analysis.state.local.expressions, metadata: { type_id: type_id, span_start: span.start, span_end: span.end }, target: current.analysis.input_value, index: integers.narrow(current.index), tuple: true })
+
+                current.analysis.state.local.symbols = binding.table
+                current.analysis.state.local.active = current.analysis.state.local.active.push(binding.id)[0]
+                current.analysis.state.local.expression_bindings = current.analysis.state.local.expression_bindings.push(binding.id)[0]
+                current.analysis.state.local.expressions = value.table
+                current.analysis.binding_values = current.analysis.binding_values.push(value.id)[0]
+            }
+
+            current.index += 1
+        }
+    }).analysis
+}

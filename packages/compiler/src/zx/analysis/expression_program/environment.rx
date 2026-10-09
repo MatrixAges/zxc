@@ -1,0 +1,23 @@
+<Module>
+    <Switch on={$in.analysis.state.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="environment/tuple" in={{ analysis: $in.analysis, types: $in.input.binding_types }} />
+
+            <Switch on={$ctx.tuple.state.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Call fn="environment/input" in={$ctx.tuple} />
+
+                    <Return value={$ctx.input} />
+                </Case>
+
+                <Default>
+                    <Return value={$ctx.tuple} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={$in.analysis} />
+        </Default>
+    </Switch>
+</Module>

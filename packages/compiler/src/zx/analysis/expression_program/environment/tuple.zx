@@ -1,0 +1,19 @@
+import { Kind } from "core/type_table/model"
+
+import construct from "../../analyzer/types/construct"
+
+import type { Analysis } from "../model"
+
+export type Input = { analysis: Analysis, types: u32[] }
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    if (in.types.length == 0) {
+        return in.analysis
+    }
+
+    const result = construct({ state: in.analysis.state, candidate: { kind: Kind.Tuple, first: 0, second: 0, label: "", children: in.types, fields: { names: [], types: [] }, names: [] }, span: in.analysis.span })
+
+    return { ...in.analysis, state: { ...result.state, input_type: result.id } }
+}
