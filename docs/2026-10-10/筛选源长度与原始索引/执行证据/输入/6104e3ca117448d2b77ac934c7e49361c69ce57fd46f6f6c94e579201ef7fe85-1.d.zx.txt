@@ -1,0 +1,101 @@
+export type ScryptOptions = { password: u8[]
+ salt: u8[]
+ cost: u32
+ block_size: u32
+ parallelism: u32
+ length: u32
+ max_memory: u64 }
+
+export declare function sha256(allocator, in: u8[]): u8[] throws { OutOfMemory } concurrent
+
+export declare function sha512(allocator, in: u8[]): u8[] throws { OutOfMemory } concurrent
+
+export declare function timingSafeEqual(in: { left: u8[]
+ right: u8[] }): bool throws { LengthMismatch } concurrent
+
+export declare function verifyHmacSha256(in: { key: u8[]
+ data: u8[]
+ tag: u8[] }): bool throws { InvalidTagLength } concurrent
+
+export declare function verifyHmacSha512(in: { key: u8[]
+ data: u8[]
+ tag: u8[] }): bool throws { InvalidTagLength } concurrent
+
+export declare function hmacSha256(allocator, in: { key: u8[]
+ data: u8[] }): u8[] throws { OutOfMemory } concurrent
+
+export declare function hmacSha512(allocator, in: { key: u8[]
+ data: u8[] }): u8[] throws { OutOfMemory } concurrent
+
+export declare function hkdfSha256(allocator, in: { key: u8[]
+ salt: u8[]
+ info: u8[]
+ length: u32 }): u8[] throws { OutOfMemory, OutputTooLong } concurrent
+
+export declare function hkdfSha512(allocator, in: { key: u8[]
+ salt: u8[]
+ info: u8[]
+ length: u32 }): u8[] throws { OutOfMemory, OutputTooLong } concurrent
+
+export declare function pbkdf2Sha256(allocator, in: { password: u8[]
+ salt: u8[]
+ iterations: u32
+ length: u32 }): u8[] throws { InvalidIterations, OutOfMemory, OutputTooLong, WeakParameters } concurrent
+
+export declare function pbkdf2Sha512(allocator, in: { password: u8[]
+ salt: u8[]
+ iterations: u32
+ length: u32 }): u8[] throws { InvalidIterations, OutOfMemory, OutputTooLong, WeakParameters } concurrent
+
+export declare function encryptAes128Gcm(allocator, in: { key: u8[]
+ nonce: u8[]
+ data: u8[]
+ aad: u8[] }): { ciphertext: u8[]
+ tag: u8[] } throws { InputTooLong, InvalidKeyLength, InvalidNonceLength, OutOfMemory } concurrent
+
+export declare function decryptAes128Gcm(allocator, in: { key: u8[]
+ nonce: u8[]
+ ciphertext: u8[]
+ tag: u8[]
+ aad: u8[] }): u8[] throws {
+  AuthenticationFailed, InputTooLong, InvalidKeyLength, InvalidNonceLength,
+  InvalidTagLength, OutOfMemory
+} concurrent
+
+export declare function encryptAes256Gcm(allocator, in: { key: u8[]
+ nonce: u8[]
+ data: u8[]
+ aad: u8[] }): { ciphertext: u8[]
+ tag: u8[] } throws { InputTooLong, InvalidKeyLength, InvalidNonceLength, OutOfMemory } concurrent
+
+export declare function decryptAes256Gcm(allocator, in: { key: u8[]
+ nonce: u8[]
+ ciphertext: u8[]
+ tag: u8[]
+ aad: u8[] }): u8[] throws {
+  AuthenticationFailed, InputTooLong, InvalidKeyLength, InvalidNonceLength,
+  InvalidTagLength, OutOfMemory
+} concurrent
+
+export declare function encryptChaCha20Poly1305(allocator, in: { key: u8[]
+ nonce: u8[]
+ data: u8[]
+ aad: u8[] }): { ciphertext: u8[]
+ tag: u8[] } throws { InputTooLong, InvalidKeyLength, InvalidNonceLength, OutOfMemory } concurrent
+
+export declare function decryptChaCha20Poly1305(allocator, in: { key: u8[]
+ nonce: u8[]
+ ciphertext: u8[]
+ tag: u8[]
+ aad: u8[] }): u8[] throws {
+  AuthenticationFailed, InputTooLong, InvalidKeyLength, InvalidNonceLength,
+  InvalidTagLength, OutOfMemory
+} concurrent
+
+export declare function scrypt(allocator, in: ScryptOptions): u8[] throws {
+  AuthenticationFailed, Canceled, ContextTooLong, IdentityElement, InvalidCost,
+  InvalidEncoding, InvalidKeyLength, InvalidParameters, KeyMismatch,
+  LockedMemoryLimitExceeded, MemoryLimitExceeded, NonCanonical, NotSquare, OutOfMemory,
+  OutputTooLong, PasswordVerificationFailed, SignatureVerificationFailed, SystemResources,
+  ThreadQuotaExceeded, Unexpected, UnexpectedSubgroup, WeakParameters, WeakPublicKey
+} concurrent

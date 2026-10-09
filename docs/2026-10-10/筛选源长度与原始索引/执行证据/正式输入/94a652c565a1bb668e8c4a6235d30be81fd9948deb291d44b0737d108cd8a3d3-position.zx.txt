@@ -1,0 +1,7 @@
+export type Input = { items: i64[], selected_index: u64, selected_value: i64 }
+
+export type Output = { selected: i64[], items: i64[] }
+
+export default function (in: Input): Output {
+    return { selected: in.items.filter((item, index, source) => index == in.selected_index && item == in.selected_value), items: in.items }
+}
