@@ -1,0 +1,29 @@
+{
+    "source_sha256": "f482434ff1c4790c85f40907728f92f60a69738168fe3a6d710d090bc64717a4",
+    "results": [
+        {
+            "check": "Python syntax",
+            "terminal_exit_code": 0,
+            "files": ["收集阶段证据.py", "核验发布范围.py", "核验阶段证据.py", "运行构建模式.py", "运行根门禁.py"]
+        },
+        {
+            "argv": [
+                "/usr/local/bin/node",
+                "packages/test/node_modules/typescript/bin/tsc",
+                "--noEmit",
+                "--project",
+                "packages/test/tsconfig.json"
+            ],
+            "terminal_exit_code": 0
+        },
+        {
+            "argv": [
+                "/usr/local/bin/node",
+                "node_modules/.pnpm/prettier@3.9.8/node_modules/prettier/bin/prettier.cjs",
+                "--check",
+                "packages/test/tests/build_modes/build_test.ts"
+            ],
+            "terminal_exit_code": 0
+        }
+    ]
+}
