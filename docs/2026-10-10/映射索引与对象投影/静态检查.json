@@ -1,0 +1,151 @@
+[
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/docs/2026-10-10/映射索引与对象投影/执行原文.mjs"
+        ],
+        "cwd": "/Users/xiewendao/Documents/MatrixAges/zxc",
+        "exit_code": 0,
+        "output": "PASS: two original executions, two real harness assertions\n"
+    },
+    {
+        "command": ["/usr/local/bin/node", "src/generate_map_projection.ts", "--check"],
+        "cwd": "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test",
+        "exit_code": 0,
+        "output": "tests/built_ins/list/callbacks/map/projection/source_value.jsonl: 73 named cases\ntests/built_ins/list/callbacks/map/projection/indices.jsonl: 12 named cases\ntests/built_ins/list/callbacks/map/projection/length.jsonl: 12 named cases\ntests/built_ins/list/callbacks/map/projection/rotate.jsonl: 12 named cases\ntests/built_ins/list/callbacks/map/projection/records.jsonl: 36 named cases\nupstream/reviews/built_ins/array/map_projection.jsonl: 1 named cases\n"
+    },
+    {
+        "command": ["/usr/local/bin/node", "src/audit_matrix.ts"],
+        "cwd": "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test",
+        "exit_code": 0,
+        "output": "{\n  \"upstream_files\": 53597,\n  \"metadata_files\": 53597,\n  \"reviewed\": {\n    \"adapted\": 844,\n    \"excluded\": 2081,\n    \"equivalent\": 103\n  },\n  \"unreviewed\": 50569,\n  \"catalog_cases\": 129946,\n  \"catalog_by_runner\": {\n    \"runtime\": 85889,\n    \"frontend\": 6687,\n    \"evaluation_order\": 1084,\n    \"safety\": 25604,\n    \"module_graphs\": 10446,\n    \"stores\": 236\n  },\n  \"linked_cases\": 6974,\n  \"execution_status\": \"not measured by this audit; see zig build test results\"\n}\n"
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/node_modules/typescript/bin/tsc",
+            "--ignoreConfig",
+            "--noEmit",
+            "--allowImportingTsExtensions",
+            "--module",
+            "nodenext",
+            "--target",
+            "esnext",
+            "--types",
+            "node",
+            "--typeRoots",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/node_modules/@types",
+            "--strict",
+            "--skipLibCheck",
+            "src/generate_map_projection.ts",
+            "src/models/map_projection.ts",
+            "src/map_projection/cases.ts",
+            "src/map_projection/inputs.ts"
+        ],
+        "cwd": "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test",
+        "exit_code": 0,
+        "output": ""
+    },
+    {
+        "command": [
+            "/Users/xiewendao/.codex/conformance/diagnostics/zig-signed-probe-20261009/zig",
+            "fmt",
+            "--check",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/build.zig"
+        ],
+        "cwd": "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc",
+        "exit_code": 0,
+        "output": ""
+    },
+    {
+        "command": [
+            "/Users/xiewendao/.codex/conformance/diagnostics/zig-signed-probe-20261009/zig",
+            "ast-check",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/build.zig"
+        ],
+        "cwd": "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc",
+        "exit_code": 0,
+        "output": ""
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/scripts/format.mjs",
+            "--check",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/build.zig"
+        ],
+        "cwd": "/Users/xiewendao/Documents/MatrixAges/zxc",
+        "exit_code": 0,
+        "output": ""
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/scripts/format.mjs",
+            "--check",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/tests/built_ins/list/callbacks/map/projection/indices.zx"
+        ],
+        "cwd": "/Users/xiewendao/Documents/MatrixAges/zxc",
+        "exit_code": 0,
+        "output": ""
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/scripts/format.mjs",
+            "--check",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/tests/built_ins/list/callbacks/map/projection/length.zx"
+        ],
+        "cwd": "/Users/xiewendao/Documents/MatrixAges/zxc",
+        "exit_code": 0,
+        "output": ""
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/scripts/format.mjs",
+            "--check",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/tests/built_ins/list/callbacks/map/projection/records.zx"
+        ],
+        "cwd": "/Users/xiewendao/Documents/MatrixAges/zxc",
+        "exit_code": 0,
+        "output": ""
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/scripts/format.mjs",
+            "--check",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/tests/built_ins/list/callbacks/map/projection/rotate.zx"
+        ],
+        "cwd": "/Users/xiewendao/Documents/MatrixAges/zxc",
+        "exit_code": 0,
+        "output": ""
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/scripts/format.mjs",
+            "--check",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/tests/built_ins/list/callbacks/map/projection/source_value.zx"
+        ],
+        "cwd": "/Users/xiewendao/Documents/MatrixAges/zxc",
+        "exit_code": 0,
+        "output": ""
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/node_modules/.pnpm/prettier@3.9.8/node_modules/prettier/bin/prettier.cjs",
+            "--check",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/src/generate_map_projection.ts",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/src/map_projection/cases.ts",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/src/map_projection/inputs.ts",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/src/models/map_projection.ts",
+            "/Users/xiewendao/.codex/worktrees/map-projection-conformance/zxc/packages/test/suites.json"
+        ],
+        "cwd": "/Users/xiewendao/Documents/MatrixAges/zxc",
+        "exit_code": 0,
+        "output": "Checking formatting...\nAll matched files use Prettier code style!\n"
+    }
+]

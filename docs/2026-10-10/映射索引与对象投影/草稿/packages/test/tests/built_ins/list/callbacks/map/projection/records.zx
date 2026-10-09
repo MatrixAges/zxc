@@ -1,0 +1,7 @@
+export type Input = { items: i64[], first: i64 }
+
+export type Output = { mapped: { item: i64, index: u64, length: u64, previous: i64 }[], items: i64[] }
+
+export default function (in: Input): Output {
+    return { mapped: in.items.map((item, index, source) => ({ item, index, length: source.length, previous: index == 0 ? in.first : source[index - 1] })), items: in.items }
+}
