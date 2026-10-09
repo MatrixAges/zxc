@@ -4,14 +4,13 @@ const ir = @import("compiler").ir;
 pub fn check(source: []const u8, program: ir.Program) !void {
     if (std.mem.indexOf(u8, source, "pub fn execute(") == null) return error.MissingExecute;
 
-    var iterations = try countIterations(program.expressions);
+    var iterations: usize = 0;
 
-    for (0..program.functions.count()) |index| {
-        const function = program.functions.at(index);
+    for (0..program.expressions.count()) |index| {
+        const expression = program.expressions.at(index);
 
-        if (function.external != null) continue;
-
-        iterations += try countIterations(function.expressions);
+        if (expression.value == .transform) return error.LegacyCollectionTransform;
+        if (expression.value == .iteration) iterations += 1;
     }
 
     if (iterations != 2) return error.InvalidCollectionIterations;
@@ -35,17 +34,4 @@ pub fn check(source: []const u8, program: ir.Program) !void {
     }
 
     if (!found) return error.MissingReader;
-}
-
-fn countIterations(expressions: ir.ExpressionTable) !usize {
-    var count: usize = 0;
-
-    for (0..expressions.count()) |index| {
-        const expression = expressions.at(index);
-
-        if (expression.value == .transform) return error.LegacyCollectionTransform;
-        if (expression.value == .iteration) count += 1;
-    }
-
-    return count;
 }
