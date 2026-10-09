@@ -256,6 +256,11 @@ pub fn main(init: std.process.Init) !void {
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[75 + entries.len], .data = expression_analysis.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[76 + entries.len], .data = expression_analysis.types });
 
+    const ir_validation = try generate(allocator, init.gpa, inputs, sources.items, "zx/ir/canonical/validation/validate.rx", true, &interfaces);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[77 + entries.len], .data = ir_validation.source });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[78 + entries.len], .data = ir_validation.types });
+
     const naming = try generate(allocator, init.gpa, inputs, sources.items, "lint/naming/check.rx", false, &interfaces);
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[args.len - 3], .data = naming.source });

@@ -1,0 +1,33 @@
+import type { Contracts } from "../contract_table/model"
+import type { Control } from "../control_table/model"
+import type { Expressions } from "../expression_table/model"
+import type { Names, Errors } from "../signature_table/model"
+import type { Stores } from "../store_table/model"
+import type { Symbols, Ownership } from "../symbol_table/model"
+
+export enum StoreMode { transaction, orchestration }
+
+export type Complete = {
+    files: string[]
+    input_types: u32[]
+    output_types: u32[]
+    ownership: Ownership[]
+    store_modes: StoreMode[]
+    contracts: Contracts[]
+    native_inputs: Names?[]
+    native_modules: u32?[]
+    native_members: string[][]
+    native_exports: string?[]
+    native_allocators: bool[]
+    native_io: bool[]
+    native_process: bool[]
+    native_tuples: bool[]
+    native_fallible: bool[]
+    native_errors: Errors[]
+    native_concurrent: bool[]
+    symbols: Symbols[]
+    expressions: Expressions[]
+    control: Control[]
+    roots: u32?[]
+    stores: Stores[]
+}

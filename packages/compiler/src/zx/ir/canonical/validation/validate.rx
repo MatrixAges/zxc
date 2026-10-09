@@ -1,0 +1,45 @@
+<Module>
+    <Call fn="structure/header" in={$in} />
+
+    <Switch on={$ctx.header}>
+        <Case value={true}>
+            <Call module="../../../analysis/semantic/validate_types" in={{ table: $in.context.table, scalar_count: $in.context.scalar_count, maximum_count: $in.context.maximum_count }} />
+
+            <Switch on={$ctx.validate_types}>
+                <Case value={true}>
+                    <Call module="structure" in={$in} />
+
+                    <Switch on={$ctx.structure}>
+                        <Case value={true}>
+                            <Call module="../native_modules_check" in={{ table: $in.context.table, modules: $in.context.modules }} />
+
+                            <Switch on={$ctx.native_modules_check}>
+                                <Case value={true}>
+                                    <Call module="content" in={$in} />
+
+                                    <Return value={$ctx.content} />
+                                </Case>
+
+                                <Default>
+                                    <Return value={false} />
+                                </Default>
+                            </Switch>
+                        </Case>
+
+                        <Default>
+                            <Return value={false} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

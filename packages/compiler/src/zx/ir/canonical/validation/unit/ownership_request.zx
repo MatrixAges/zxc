@@ -1,0 +1,13 @@
+import type { Table } from "core/type_table/model"
+import type { Program } from "../../../../ownership/ir/input_model"
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = Program
+
+export default function (in: Input): Output {
+    const empty: Table = { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }
+
+    return { types: { base: in.context.table, delta: empty }, symbols: in.unit.body.symbols, expressions: in.unit.body.expressions, control: in.unit.body.control, body: in.unit.body.root, functions: { ownership: in.context.functions.ownership, stores: in.context.functions.stores }, type_only: in.unit.type_only }
+}

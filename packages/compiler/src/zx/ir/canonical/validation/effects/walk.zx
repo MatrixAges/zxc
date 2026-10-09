@@ -1,0 +1,20 @@
+import select from "../functions/select"
+import check from "./body"
+
+import type { Program } from "../model"
+
+export type Input = Program
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const valid = check({ context: in.context, unit: in.unit })
+
+    return loop({ context: in.context, index: 0, valid: valid }, {
+        while: current => current.valid && current.index < current.context.functions.files.length,
+        next: current => {
+            current.valid = check({ context: current.context, unit: select({ functions: current.context.functions, index: current.index }) })
+            current.index += 1
+        }
+    }).valid
+}

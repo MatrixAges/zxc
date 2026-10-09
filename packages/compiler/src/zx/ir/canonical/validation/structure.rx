@@ -1,0 +1,15 @@
+<Module>
+    <Call module="structure/unit" in={{ unit: $in.unit, max_offset: $in.context.max_offset }} />
+
+    <Switch on={$ctx.unit}>
+        <Case value={true}>
+            <Call fn="structure/walk" in={$in.context} />
+
+            <Return value={$ctx.walk} />
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

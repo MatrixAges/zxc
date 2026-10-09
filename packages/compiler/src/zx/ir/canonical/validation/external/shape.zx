@@ -1,0 +1,19 @@
+import integers from "zig:integers"
+
+import type { Table } from "core/type_table/model"
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = { table: Table, names: string?[], binding_names: string[], binding_types: u32[], type_id: u32, depth: u64 }?
+
+    export default function (in: Input): Output {
+        const names = in.context.functions.native_inputs[in.index]
+        const module_id = in.context.functions.native_modules[in.index]
+
+        if (names == null || module_id == null) {
+            return null
+        }
+
+        return { table: in.context.table, names: names, binding_names: in.context.modules.type_names[integers.widen(module_id)], binding_types: in.context.modules.type_ids[integers.widen(module_id)], type_id: in.context.functions.input_types[in.index], depth: 0 }
+    }

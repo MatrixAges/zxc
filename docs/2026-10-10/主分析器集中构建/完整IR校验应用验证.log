@@ -1,0 +1,11 @@
+Existing aggregate.rx application build: exit 0.
+/tmp/zxc-ir-validation-aggregate '[1,2,3]'
+{"items":[2,3,4],"total":9}
+Exit: 0
+Existing standard/decoding/errors.zx application build: exit 0.
+/tmp/zxc-ir-validation-decoding '{"kind":1,"text":"616263","bytes":[]}'
+"abc"
+Exit: 0
+/tmp/zxc-ir-validation-decoding '{"kind":1,"text":"gg","bytes":[]}'
+error: InvalidCharacter
+Exit: 1 (expected)

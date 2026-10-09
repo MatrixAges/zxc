@@ -1,0 +1,23 @@
+import { StoreMode } from "core/function_table/complete"
+
+import type { Complete } from "core/function_table/complete"
+import type { Unit } from "../model"
+
+export type Input = { functions: Complete, index: u64 }
+
+export type Output = Unit
+
+export default function (in: Input): Output {
+    const table = in.functions
+    const index = in.index
+
+    return {
+        body: { stores: table.stores[index], symbols: table.symbols[index], expressions: table.expressions[index], control: table.control[index], root: table.roots[index] },
+        contracts: table.contracts[index],
+        input_type: table.input_types[index],
+        output_type: table.output_types[index],
+        output_ownership: table.ownership[index],
+        transaction: table.store_modes[index] == StoreMode.transaction,
+        type_only: false
+    }
+}

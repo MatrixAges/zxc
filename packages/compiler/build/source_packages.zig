@@ -1,6 +1,8 @@
 const compiler = @import("compiler");
 
 pub const entries: []const compiler.project.Package = &.{
+    .{ .specifier = "compiler/ir_unit_structure", .entry = "zx/ir/canonical/validation/structure/unit.rx" },
+    .{ .specifier = "compiler/ir_function_check", .entry = "zx/ir/canonical/validation/functions/check.rx" },
     .{ .specifier = "compiler/collection_lower", .entry = "zx/analysis/analyzer/collections/lower.rx" },
     .{ .specifier = "compiler/error_effects", .entry = "core/error_effects/analyze.rx" },
     .{ .specifier = "compiler/contract", .entry = "zx/analysis/analyzer/contracts/predicate/analyze.rx" },
@@ -49,6 +51,7 @@ pub const entries: []const compiler.project.Package = &.{
     .{ .specifier = "core/expression_table/kinds", .entry = "core/expression_table/kinds.zx" },
     .{ .specifier = "core/expression_table/model", .entry = "core/expression_table/model.zx" },
     .{ .specifier = "core/ir/body", .entry = "core/ir/body.zx" },
+    .{ .specifier = "core/function_table/complete", .entry = "core/function_table/complete.zx" },
     .{ .specifier = "core/function_table/empty", .entry = "core/function_table/empty.zx" },
     .{ .specifier = "core/function_table/model", .entry = "core/function_table/model.zx" },
     .{ .specifier = "core/native_module_table/model", .entry = "core/native_module_table/model.zx" },

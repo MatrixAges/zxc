@@ -1,0 +1,35 @@
+<Module>
+    <Call module="unit/check" in={{ context: $in.context, unit: $in.unit }} />
+
+    <Switch on={$ctx.check}>
+        <Case value={true}>
+            <Call fn="functions/check_all" in={$in.context} />
+
+            <Switch on={$ctx.check_all}>
+                <Case value={true}>
+                    <Call fn="exports" in={$in} />
+
+                    <Switch on={$ctx.exports}>
+                        <Case value={true}>
+                            <Call fn="effects/walk" in={$in} />
+
+                            <Return value={$ctx.walk} />
+                        </Case>
+
+                        <Default>
+                            <Return value={false} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

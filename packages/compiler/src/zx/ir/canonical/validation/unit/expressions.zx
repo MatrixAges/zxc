@@ -1,0 +1,20 @@
+import validate from "../../expressions/rules/validate"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({ request: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.request.unit.body.expressions.kinds.length,
+        next: current => {
+            const body = current.request.unit.body
+            const functions = current.request.context.functions
+
+            current.valid = validate({ table: current.request.context.table, expressions: body.expressions, symbols: body.symbols, stores: body.stores, functions: { input_types: functions.input_types, output_types: functions.output_types, stores: functions.stores }, index: current.index, orchestration: !current.request.unit.transaction })
+            current.index += 1
+        }
+    }).valid
+}

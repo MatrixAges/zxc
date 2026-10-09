@@ -1,0 +1,29 @@
+import integers from "zig:integers"
+import { StoreMode } from "core/function_table/complete"
+import { Ownership } from "core/symbol_table/model"
+
+import text from "../../native/text"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const table = in.context.functions
+    const index = in.index
+    const module_id = table.native_modules[index]
+
+    if (module_id == null || integers.widen(module_id) >= in.context.modules.specifiers.length || table.native_members[index].length == 0 || table.stores[index].paths.length != 0 || table.store_modes[index] != StoreMode.transaction || table.contracts[index].kinds.length != 0 || table.ownership[index] != Ownership.Borrowed || table.symbols[index].names.length != 0 || table.expressions[index].kinds.length != 0 || table.roots[index] != null || integers.widen(table.input_types[index]) >= in.context.table.kinds.length || integers.widen(table.output_types[index]) >= in.context.table.kinds.length) {
+        return false
+    }
+
+    return loop({ members: table.native_members[index], index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.members.length,
+        next: current => {
+            current.valid = text(current.members[current.index])
+            current.index += 1
+        }
+    }).valid
+}

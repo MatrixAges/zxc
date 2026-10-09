@@ -1,0 +1,31 @@
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import contains from "../../../../analysis/semantic/querying/execute"
+import kind from "../../../../analysis/semantic/types/kind"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const input_type = in.context.functions.input_types[in.index]
+    const output_type = in.context.functions.output_types[in.index]
+    const input_kind = kind(in.context.table.kinds[integers.widen(input_type)])
+    const output_kind = kind(in.context.table.kinds[integers.widen(output_type)])
+
+    if (input_kind == Kind.Task || output_kind == Kind.Task) {
+        return false
+    }
+
+    const input_native = contains({ table: in.context.table, id: input_type, native_references: true })
+    const output_native = contains({ table: in.context.table, id: output_type, native_references: true })
+
+    if ((output_native && !input_native) || (in.context.functions.native_concurrent[in.index] && (input_native || output_native))) {
+        return false
+    }
+
+    return !in.context.functions.native_tuples[in.index] || input_kind == Kind.Tuple
+}

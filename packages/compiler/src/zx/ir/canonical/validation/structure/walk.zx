@@ -1,0 +1,21 @@
+import check from "compiler/ir_unit_structure"
+
+import select from "../functions/select"
+
+import type { Context } from "../model"
+
+export type Input = Context
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({ context: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.context.functions.files.length,
+        next: current => {
+            const unit = select({ functions: current.context.functions, index: current.index })
+
+            current.valid = check({ unit: unit, max_offset: current.context.max_offset })
+            current.index += 1
+        }
+    }).valid
+}

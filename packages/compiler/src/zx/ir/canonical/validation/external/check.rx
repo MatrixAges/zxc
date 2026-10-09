@@ -1,0 +1,45 @@
+<Module>
+    <Call fn="header" in={$in} />
+
+    <Switch on={$ctx.header}>
+        <Case value={true}>
+            <Call module="../../native_export_check" in={{ functions: { input_types: $in.context.functions.input_types, output_types: $in.context.functions.output_types, native_modules: $in.context.functions.native_modules, native_members: $in.context.functions.native_members, native_exports: $in.context.functions.native_exports, native_fallible: $in.context.functions.native_fallible, native_errors: $in.context.functions.native_errors, native_concurrent: $in.context.functions.native_concurrent }, modules: $in.context.modules, index: $in.index }} />
+
+            <Switch on={$ctx.native_export_check}>
+                <Case value={true}>
+                    <Call fn="capabilities" in={$in} />
+
+                    <Switch on={$ctx.capabilities}>
+                        <Case value={true}>
+                            <Call fn="shape" in={$in} />
+
+                            <Switch on={$ctx.shape != null}>
+                                <Case value={true}>
+                                    <Call module="../../native_type_check" in={$ctx.shape} />
+
+                                    <Return value={$ctx.native_type_check} />
+                                </Case>
+
+                                <Default>
+                                    <Return value={true} />
+                                </Default>
+                            </Switch>
+                        </Case>
+
+                        <Default>
+                            <Return value={false} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

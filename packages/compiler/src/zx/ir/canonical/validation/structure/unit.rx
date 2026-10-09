@@ -1,0 +1,15 @@
+<Module>
+    <Call module="../../body_check" in={{ body: $in.unit.body, max_offset: $in.max_offset }} />
+
+    <Switch on={$ctx.body_check}>
+        <Case value={true}>
+            <Call module="../../contract_tables_check" in={{ contracts: $in.unit.contracts, max_offset: $in.max_offset }} />
+
+            <Return value={$ctx.contract_tables_check} />
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

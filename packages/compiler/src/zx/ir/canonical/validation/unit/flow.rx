@@ -1,0 +1,29 @@
+<Module>
+    <Call module="../../scopes_check" in={{ table: $in.context.table, body: $in.unit.body, functions: { native_modules: $in.context.functions.native_modules, native_concurrent: $in.context.functions.native_concurrent, stores: $in.context.functions.stores, expressions: $in.context.functions.expressions }, output_type: $in.unit.output_type, transaction: $in.unit.transaction }} />
+
+    <Switch on={$ctx.scopes_check}>
+        <Case value={true}>
+            <Call module="../../tasks_check" in={{ table: $in.context.table, body: $in.unit.body, input_type: $in.unit.input_type, output_type: $in.unit.output_type }} />
+
+            <Switch on={$ctx.tasks_check}>
+                <Case value={true}>
+                    <Call fn="ownership_request" in={$in} />
+
+                    <Call module="../../../../ownership/check" in={$ctx.ownership_request} />
+
+                    <Call fn="ownership_result" in={{ outcome: $ctx.check, declared: $in.unit.output_ownership }} />
+
+                    <Return value={$ctx.ownership_result} />
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

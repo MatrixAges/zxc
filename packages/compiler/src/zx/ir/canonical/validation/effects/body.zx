@@ -1,0 +1,53 @@
+import integers from "zig:integers"
+import analyze from "compiler/error_effects"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Table } from "core/type_table/model"
+import type { Unit, Context } from "../model"
+
+export type Input = { context: Context, unit: Unit }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const empty: Table = { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] }
+    const functions = in.context.functions
+    const context = { types: { base: in.context.table, delta: empty }, functions: { input_types: functions.input_types, output_types: functions.output_types, ownership: functions.ownership, stores: functions.stores, expressions: functions.expressions, control: functions.control, roots: functions.roots, contracts: functions.contracts, native_modules: functions.native_modules, native_tuples: functions.native_tuples, native_concurrent: functions.native_concurrent, native_fallible: functions.native_fallible, native_errors: functions.native_errors } }
+
+    return loop({ context: context, unit: in.unit, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.unit.body.expressions.kinds.length,
+        next: current => {
+            const expressions = current.unit.body.expressions
+            const kind = expressions.kinds[current.index]
+
+            if (kind == ExpressionKind.Capture || kind == ExpressionKind.Task) {
+                const payload = integers.widen(expressions.payloads[current.index])
+                const value = kind == ExpressionKind.Task ? expressions.task_bodies[payload] : expressions.captures[payload]
+                const members = analyze({ context: current.context, expressions: expressions, control: current.unit.body.control, root: current.unit.body.root, contracts: current.unit.contracts, stores: false, expression: value, program: false })
+                const table = current.context.types.base
+                const type_id = integers.widen(expressions.types[current.index])
+                const error_id = kind == ExpressionKind.Task ? table.second[type_id] : table.first[integers.widen(table.children[integers.widen(table.first[type_id])])]
+                const first = integers.widen(table.first[integers.widen(error_id)])
+                const count = integers.widen(table.second[integers.widen(error_id)])
+
+                if (members == null) {
+                    current.valid = false
+                } else {
+                    current.valid = members.length == count
+
+                    if (current.valid) {
+                        current.valid = loop({ names: table.names, members: members, first: first, index: 0, valid: true }, {
+                            while: compared => compared.valid && compared.index < compared.members.length,
+                            next: compared => {
+                                compared.valid = compared.names[compared.first + compared.index] == compared.members[compared.index]
+                                compared.index += 1
+                            }
+                        }).valid
+                    }
+                }
+            }
+
+            current.index += 1
+        }
+    }).valid
+}

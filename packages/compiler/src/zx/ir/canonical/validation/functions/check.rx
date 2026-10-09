@@ -1,0 +1,27 @@
+<Module>
+    <Call fn="forward" in={$in} />
+
+    <Switch on={$ctx.forward}>
+        <Case value={true}>
+            <Switch on={$in.context.functions.native_modules[$in.index] != null}>
+                <Case value={true}>
+                    <Call module="../external/check" in={$in} />
+
+                    <Return value={$ctx.check} />
+                </Case>
+
+                <Default>
+                    <Call fn="select" in={{ functions: $in.context.functions, index: $in.index }} />
+
+                    <Call module="../unit/check" in={{ context: $in.context, unit: $ctx.select }} />
+
+                    <Return value={$ctx.check} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

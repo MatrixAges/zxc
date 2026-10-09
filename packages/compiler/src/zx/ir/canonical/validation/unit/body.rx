@@ -1,0 +1,35 @@
+<Module>
+    <Call module="../../contracts_check" in={{ table: $in.context.table, contracts: $in.unit.contracts, input_type: $in.unit.input_type, output_type: $in.unit.output_type, max_offset: $in.context.max_offset }} />
+
+    <Switch on={$ctx.contracts_check}>
+        <Case value={true}>
+            <Call fn="symbols" in={$in} />
+
+            <Switch on={$ctx.symbols}>
+                <Case value={true}>
+                    <Call fn="expressions" in={$in} />
+
+                    <Switch on={$ctx.expressions}>
+                        <Case value={true}>
+                            <Call module="flow" in={$in} />
+
+                            <Return value={$ctx.flow} />
+                        </Case>
+
+                        <Default>
+                            <Return value={false} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

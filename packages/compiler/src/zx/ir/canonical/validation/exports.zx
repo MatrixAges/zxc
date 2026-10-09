@@ -1,0 +1,41 @@
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import kind from "../../../analysis/semantic/types/kind"
+
+import type { Program } from "./model"
+
+export type Input = Program
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.export_names.length != in.export_types.length) {
+        return false
+    }
+
+    return loop({ table: in.context.table, names: in.export_names, types: in.export_types, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.names.length,
+        next: current => {
+            const type_id = integers.widen(current.types[current.index])
+            const name = current.names[current.index]
+
+            current.valid = type_id < current.table.kinds.length && name.length != 0
+
+            if (current.valid) {
+                current.valid = kind(current.table.kinds[type_id]) != Kind.Task
+            }
+
+            const duplicate = loop({ names: current.names, name: name, limit: current.index, index: 0, found: false }, {
+                while: prior => !prior.found && prior.index < prior.limit,
+                next: prior => {
+                    prior.found = prior.names[prior.index] == prior.name
+                    prior.index += 1
+                }
+            }).found
+
+            current.valid = current.valid && !duplicate
+            current.index += 1
+        }
+    }).valid
+}

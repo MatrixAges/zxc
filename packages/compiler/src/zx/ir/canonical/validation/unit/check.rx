@@ -1,0 +1,35 @@
+<Module>
+    <Call module="../../stores_check" in={{ table: $in.context.table, paths: $in.unit.body.stores.paths, slot_types: $in.unit.body.stores.types, type_only: $in.unit.type_only }} />
+
+    <Switch on={$ctx.stores_check}>
+        <Case value={true}>
+            <Call fn="ports" in={$in} />
+
+            <Switch on={$ctx.ports}>
+                <Case value={true}>
+                    <Switch on={$in.unit.type_only}>
+                        <Case value={true}>
+                            <Call fn="type_only" in={$in.unit} />
+
+                            <Return value={$ctx.type_only} />
+                        </Case>
+
+                        <Default>
+                            <Call module="body" in={$in} />
+
+                            <Return value={$ctx.body} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={false} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>
