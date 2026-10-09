@@ -1,0 +1,75 @@
+export type Url = {
+  scheme: string, username: string, password: string,
+  host: string?, port: u16?, path: string[], opaque_path: string?,
+  query: string?, fragment: string?
+}
+
+export type Resolve = { input: string, base: string? }
+
+export enum Platform { Posix, Windows }
+
+export type FilePath = { path: string, platform: Platform, cwd: string }
+export type FileUrl = { url: Url, platform: Platform }
+
+export declare function parse(allocator, in: string): Url throws {
+  CodepointTooLarge, InvalidDomain, InvalidHost, InvalidIpv4, InvalidIpv6,
+  InvalidPunycode, InvalidUnicodeScalar, InvalidUrl, OutOfMemory,
+  Utf8CannotEncodeSurrogateHalf
+} concurrent
+
+export declare function resolve(allocator, in: Resolve): Url throws {
+  CodepointTooLarge, InvalidDomain, InvalidHost, InvalidIpv4, InvalidIpv6,
+  InvalidPunycode, InvalidUnicodeScalar, InvalidUrl, OutOfMemory,
+  Utf8CannotEncodeSurrogateHalf
+} concurrent
+
+export declare function tryParse(allocator, in: Resolve): Url? throws {
+  CodepointTooLarge, InvalidDomain, InvalidHost, InvalidIpv4, InvalidIpv6,
+  InvalidPunycode, InvalidUnicodeScalar, InvalidUrl, OutOfMemory,
+  Utf8CannotEncodeSurrogateHalf
+} concurrent
+
+export declare function canParse(allocator, in: Resolve): bool throws {
+  CodepointTooLarge, InvalidDomain, InvalidHost, InvalidIpv4, InvalidIpv6,
+  InvalidPunycode, InvalidUnicodeScalar, InvalidUrl, OutOfMemory,
+  Utf8CannotEncodeSurrogateHalf
+} concurrent
+
+export declare function stringify(allocator, in: Url): string throws { NoSpaceLeft, OutOfMemory } concurrent
+
+export declare function pathname(allocator, in: Url): string throws { OutOfMemory } concurrent
+
+export declare function origin(allocator, in: Url): string throws {
+  CodepointTooLarge, InvalidDomain, InvalidHost, InvalidIpv4, InvalidIpv6,
+  InvalidPunycode, InvalidUnicodeScalar, InvalidUrl, OutOfMemory,
+  Utf8CannotEncodeSurrogateHalf
+} concurrent
+
+export declare function domainToASCII(allocator, in: string): string throws {
+  CodepointTooLarge, InvalidDomain, InvalidHost, InvalidIpv4, InvalidIpv6,
+  InvalidPunycode, InvalidUnicodeScalar, OutOfMemory, Utf8CannotEncodeSurrogateHalf
+} concurrent
+
+export declare function domainToUnicode(allocator, in: string): string throws {
+  CodepointTooLarge, InvalidDomain, InvalidHost, InvalidIpv4, InvalidIpv6,
+  InvalidPunycode, InvalidUnicodeScalar, OutOfMemory, Utf8CannotEncodeSurrogateHalf
+} concurrent
+
+export declare function pathToFileURL(allocator, in: FilePath): string throws {
+  CodepointTooLarge, InvalidDomain, InvalidFilePath, InvalidHost, InvalidIpv4,
+  InvalidIpv6, InvalidPunycode, InvalidUnicodeScalar, InvalidUrl, InvalidWorkingDirectory,
+  MissingDriveDirectory, NoSpaceLeft, OutOfMemory, Utf8CannotEncodeSurrogateHalf,
+  WriteFailed
+} concurrent
+
+export declare function fileURLToPath(allocator, in: FileUrl): string throws {
+  CodepointTooLarge, InvalidDomain, InvalidFileUrl, InvalidFileUrlHost,
+  InvalidFileUrlPath, InvalidPunycode, InvalidUnicodeScalar, OutOfMemory,
+  Utf8CannotEncodeSurrogateHalf
+} concurrent
+
+export declare function fileURLToBytes(allocator, in: FileUrl): u8[] throws {
+  CodepointTooLarge, InvalidDomain, InvalidFileUrl, InvalidFileUrlHost,
+  InvalidFileUrlPath, InvalidPunycode, InvalidUnicodeScalar, OutOfMemory,
+  Utf8CannotEncodeSurrogateHalf
+} concurrent

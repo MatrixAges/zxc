@@ -450,7 +450,7 @@ pub fn build(b: *std.Build) void {
 
     const nominal_step = b.step("test-nominal-origins", "Validate source native and external enum origins");
 
-    for ([_][]const u8{ "origins", "resources" }) |name| {
+    for ([_][]const u8{ "origins", "resources", "suffix", "suffix_resources" }) |name| {
         const nominal_tests = b.addTest(.{
             .root_module = b.createModule(.{
                 .root_source_file = b.path(b.fmt("tests/incremental/nominal/{s}_test.zig", .{name})),

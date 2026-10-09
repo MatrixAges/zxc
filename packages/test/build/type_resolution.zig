@@ -4,7 +4,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
     const step = b.step("test-type-resolution", "Validate generated type resolution depth state and source views");
     const frontend = compiler.module("frontend");
 
-    for ([_][]const u8{ "initialization", "names", "nodes", "views", "resources" }) |name| {
+    for ([_][]const u8{ "initialization", "names", "nodes", "ordering", "views", "resources" }) |name| {
         const tests = b.addTest(.{ .name = b.fmt("type-resolution-{s}", .{name}), .root_module = b.createModule(.{
             .root_source_file = b.path(b.fmt("tests/language/types/resolution/{s}_test.zig", .{name})),
             .target = target,
