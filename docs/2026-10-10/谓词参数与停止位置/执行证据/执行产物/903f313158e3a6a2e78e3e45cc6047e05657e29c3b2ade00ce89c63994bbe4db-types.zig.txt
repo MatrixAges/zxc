@@ -1,0 +1,60 @@
+pub const zx_type_55e4e85410968e1de74bac15e77b76c6010e9a63b00ae8bbb22514bf9b6c5054 = struct {
+    index: u64,
+    item: i64,
+    source: []const i64,
+};
+
+pub const zx_type_71455075856f2f5edfc2d71abc47afb64dee79886b227e567729451244a63ab7 = struct {
+    items: []const i64,
+    selected_index: u64,
+    selected_value: i64,
+};
+
+pub const zx_type_f395cc2f40a3dbdf9b624f12a9186a5f12d20bd7da66731edfceff0b691826f0 = struct { *const zx_type_71455075856f2f5edfc2d71abc47afb64dee79886b227e567729451244a63ab7, };
+
+pub const zx_type_8893c29b5af7143f7cbefec4ecc156eccfb089f2c9039704c861648b4e16d939 = struct {
+    captures: *const zx_type_f395cc2f40a3dbdf9b624f12a9186a5f12d20bd7da66731edfceff0b691826f0,
+    index: u64,
+    result: bool,
+    source: []const i64,
+};
+
+pub const value_zx_type_71455075856f2f5edfc2d71abc47afb64dee79886b227e567729451244a63ab7_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = struct {
+    items: []const i64,
+    selected_index: u64,
+    selected_value: i64,
+    zx_origin: ?*const zx_type_71455075856f2f5edfc2d71abc47afb64dee79886b227e567729451244a63ab7 = null,
+};
+
+pub const value_zx_type_f395cc2f40a3dbdf9b624f12a9186a5f12d20bd7da66731edfceff0b691826f0_49129128bed2eab4847d5108d0ed3c4d32810f9cdd95b1d04dcc61383544ee70 = struct { value_zx_type_71455075856f2f5edfc2d71abc47afb64dee79886b227e567729451244a63ab7_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, ?*const zx_type_f395cc2f40a3dbdf9b624f12a9186a5f12d20bd7da66731edfceff0b691826f0, };
+
+pub const value_zx_type_8893c29b5af7143f7cbefec4ecc156eccfb089f2c9039704c861648b4e16d939_2a06c0e1945e2be4ccba75082fecad06e035d1b78594cca1137381b015534d98 = struct {
+    captures: value_zx_type_f395cc2f40a3dbdf9b624f12a9186a5f12d20bd7da66731edfceff0b691826f0_49129128bed2eab4847d5108d0ed3c4d32810f9cdd95b1d04dcc61383544ee70,
+    index: u64,
+    result: bool,
+    source: []const i64,
+    zx_origin: ?*const zx_type_8893c29b5af7143f7cbefec4ecc156eccfb089f2c9039704c861648b4e16d939 = null,
+};
+
+pub const native_by_identity = struct {
+    pub const @"library:10:borrowed@1:zig:host" = struct {
+        pub const source = struct {
+            pub const Input = []const i64;
+            pub const Output = []const i64;
+            pub const InputValue = []const i64;
+            pub const OutputValue = []const i64;
+        };
+        pub const visit = struct {
+            pub const Input = *const zx_type_55e4e85410968e1de74bac15e77b76c6010e9a63b00ae8bbb22514bf9b6c5054;
+            pub const Output = bool;
+            pub const InputValue = zx_type_55e4e85410968e1de74bac15e77b76c6010e9a63b00ae8bbb22514bf9b6c5054;
+            pub const OutputValue = bool;
+        };
+    };
+};
+
+pub const layouts_by_identity = struct {
+    pub const @"library:10:borrowed@1:zig:host" = struct {
+    };
+};
+
