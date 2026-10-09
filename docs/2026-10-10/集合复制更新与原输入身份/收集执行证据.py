@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import hashlib
+import gzip
 import json
 
 doc = Path(__file__).resolve().parent
@@ -42,9 +43,15 @@ for mode in ["Debug", "ReleaseSafe"]:
 records = []
 for name, saved in sorted(files.items()):
     data = Path(name).read_bytes()
+    compressed = len(data) > 50 * 1024 * 1024
+    if compressed:
+        saved += ".gz"
     target = doc / saved
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_bytes(data)
-    records.append({"source": name, "saved": saved, "sha256": hashlib.sha256(data).hexdigest()})
+    target.write_bytes(gzip.compress(data, mtime=0) if compressed else data)
+    record = {"source": name, "saved": saved, "sha256": hashlib.sha256(data).hexdigest()}
+    if compressed:
+        record["encoding"] = "gzip"
+    records.append(record)
 (doc / "证据清单.json").write_text(json.dumps(records, ensure_ascii=False, indent=4) + "\n")
 print("archived", len(records), "evidence records")

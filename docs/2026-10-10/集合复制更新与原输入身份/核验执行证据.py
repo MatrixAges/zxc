@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import hashlib
+import gzip
 import json
 import re
 import subprocess
@@ -10,6 +11,15 @@ inputs = json.loads((doc / "执行输入.json").read_text())
 root = Path(inputs["root"])
 run = Path(inputs["run"])
 sha = lambda data: hashlib.sha256(data).hexdigest()
+
+
+def saved_bytes(record):
+    data = (doc / record["saved"]).read_bytes()
+    encoding = record.get("encoding")
+    assert encoding in [None, "gzip"]
+    return gzip.decompress(data) if encoding == "gzip" else data
+
+
 for record in json.loads((doc / "宿主签名预检清单.json").read_text()):
     assert sha((doc / record["saved"]).read_bytes()) == record["sha256"]
 probe = doc / "宿主签名预检"
@@ -23,7 +33,7 @@ for record in signatures:
     result = subprocess.run(["/usr/bin/codesign", "--verify", "--strict", record["path"]], capture_output=True)
     assert result.returncode == record["signature_exit_code"]
 for record in json.loads((doc / "基线证据清单.json").read_text()):
-    assert sha((doc / record["saved"]).read_bytes()) == record["sha256"]
+    assert sha(saved_bytes(record)) == record["sha256"]
 baseline = json.loads((doc / "基线核验.json").read_text())
 assert baseline["source_commit"] == "6bb97d60c344c1dbbe5f954c2f8c71a2107afbe8"
 assert baseline["verifier_exit_code"] == 0 and baseline["named_executions"] == 1008 and baseline["signed_binaries"] == 16
@@ -59,7 +69,7 @@ for group in ["tools", "external"]:
         assert sha(Path(name).read_bytes()) == identity, name
 for item in json.loads((doc / "证据清单.json").read_text()):
     assert sha(Path(item["source"]).read_bytes()) == item["sha256"]
-    assert sha((doc / item["saved"]).read_bytes()) == item["sha256"]
+    assert sha(saved_bytes(item)) == item["sha256"]
 for check in json.loads((doc / "静态检查.json").read_text()):
     assert check["exit_code"] == 0
     if "path" in check:
