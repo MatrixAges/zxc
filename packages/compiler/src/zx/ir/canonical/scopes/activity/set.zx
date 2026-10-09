@@ -1,0 +1,21 @@
+import type { Activity } from "../model"
+
+export type Input = { activity: Activity, symbol: u64, value: bool }
+
+export type Output = Activity
+
+export default function (in: Input): Output {
+    const previous = in.activity.active[in.symbol]
+
+    if (previous == in.value) {
+        return in.activity
+    }
+
+    return {
+        active: in.activity.active.with(in.symbol, in.value),
+        declared: in.activity.declared,
+        owners: in.activity.owners,
+        changed_symbols: in.activity.changed_symbols.push(in.symbol)[0],
+        changed_values: in.activity.changed_values.push(previous)[0]
+    }
+}

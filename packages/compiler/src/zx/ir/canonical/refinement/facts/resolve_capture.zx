@@ -1,0 +1,20 @@
+import add from "./add"
+
+import type { Facts } from "./model"
+
+export type Input = { facts: Facts, symbol: u32 }
+
+export type Output = Facts
+
+export default function (in: Input): Output {
+    return loop({ facts: in.facts, symbol: in.symbol, index: 0 }, {
+        while: current => current.index < current.facts.capture_errors.length,
+        next: current => {
+            if (current.facts.capture_errors[current.index] == current.symbol) {
+                current.facts = add({ facts: current.facts, symbol: current.facts.capture_results[current.index] })
+            }
+
+            current.index += 1
+        }
+    }).facts
+}

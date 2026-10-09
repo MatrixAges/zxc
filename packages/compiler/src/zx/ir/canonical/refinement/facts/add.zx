@@ -1,0 +1,19 @@
+import contains from "./contains"
+
+import type { Facts } from "./model"
+
+export type Input = { facts: Facts, symbol: u32 }
+
+export type Output = Facts
+
+export default function (in: Input): Output {
+    if (contains(in)) {
+        return in.facts
+    }
+
+    return {
+        nonnull: in.facts.nonnull.push(in.symbol)[0],
+        capture_errors: in.facts.capture_errors,
+        capture_results: in.facts.capture_results
+    }
+}

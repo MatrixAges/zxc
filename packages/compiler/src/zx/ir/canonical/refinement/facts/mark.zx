@@ -1,0 +1,9 @@
+import type { Facts, Mark } from "./model"
+
+export type Input = Facts
+
+export type Output = Mark
+
+export default function (in: Input): Output {
+    return { nonnull: in.nonnull.length, captures: in.capture_errors.length }
+}

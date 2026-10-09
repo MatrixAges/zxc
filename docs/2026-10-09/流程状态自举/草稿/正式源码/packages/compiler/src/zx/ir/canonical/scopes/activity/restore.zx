@@ -1,0 +1,19 @@
+import type { Activity } from "../model"
+
+export type Input = { activity: Activity, mark: u64 }
+
+export type Output = Activity
+
+export default function (in: Input): Output {
+    return loop({ activity: in.activity, mark: in.mark }, {
+        while: current => current.activity.changed_symbols.length > current.mark,
+        next: current => {
+            const position = current.activity.changed_symbols.length - 1
+            const symbol = current.activity.changed_symbols[position]
+
+            current.activity.active[symbol] = current.activity.changed_values[position]
+            current.activity.changed_symbols = current.activity.changed_symbols.pop()[0]
+            current.activity.changed_values = current.activity.changed_values.pop()[0]
+        }
+    }).activity
+}
