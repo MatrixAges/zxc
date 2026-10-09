@@ -1,0 +1,14 @@
+<Module>
+  <Call fn="marker" in={$in.marker} />
+  <Call fn="copy_values" in={$in.left} />
+  <Parallel>
+    <Task name="left" out={{items: $ctx.copy_local, marker: $ctx.marker}}>
+      <Call fn="copy_local" in={$ctx.copy_values} />
+    </Task>
+    <Task name="right">
+      <Call fn="copy_local" in={$in.right} />
+      <Return value={{items: $ctx.copy_local, marker: $ctx.marker}} />
+    </Task>
+  </Parallel>
+  <Return value={{left: $ctx.task.left, right: $ctx.task.right, captured: $ctx.copy_values}} />
+</Module>

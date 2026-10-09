@@ -1,0 +1,8 @@
+const std = @import("std");
+
+pub fn main(init: std.process.Init) !void {
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
+    const names = if (args.len == 4) &[_][]const u8{ "identity.zx", "first.zx" } else args[4..];
+
+    for (names) |name| std.debug.print("{s}\n", .{name});
+}

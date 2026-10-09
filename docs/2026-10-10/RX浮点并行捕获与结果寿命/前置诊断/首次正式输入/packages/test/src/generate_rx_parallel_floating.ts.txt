@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict'
+import cases from './rx_parallel_floating/cases.ts'
+import { writeCatalog, writeOutput } from './shared/catalog.ts'
+
+for (const width of [32, 64] as const) {
+    const base = `tests/rx/runtime/parallel/floating/f${width}`
+
+    for (const variant of ['direct', 'captured'] as const) {
+        const rows = cases(width, variant)
+
+        assert.equal(rows.length, 452)
+        assert.equal(new Set(rows.map(row => row.id)).size, rows.length)
+        writeCatalog(`${base}/${variant}.jsonl`, rows)
+        writeOutput(
+            `${base}/${variant}.rx`,
+            `<Module>
+${variant === 'captured' ? '  <Call fn="copy_values" in={$in.left} />\n' : ''}  <Parallel>
+    <Task name="left" out={{items: $ctx.copy_local, marker: $in.marker}}>
+      <Call fn="copy_local" in={${variant === 'captured' ? '$ctx.copy_values' : '$in.left'}} />
+    </Task>
+    <Task name="right">
+      <Call fn="copy_local" in={$in.right} />
+      <Return value={{items: $ctx.copy_local, marker: $in.marker}} />
+    </Task>
+  </Parallel>
+  <Return value={{left: $ctx.task.left, right: $ctx.task.right, captured: ${variant === 'captured' ? '$ctx.copy_values' : '$in.left'}}} />
+</Module>
+`
+        )
+    }
+
+    for (const name of ['copy_values', 'copy_local'])
+        writeOutput(
+            `${base}/${name}.zx`,
+            `export type Input = f${width}[]
+
+export type Output = f${width}[]
+
+export default function (in: Input): Output {
+    const empty: f${width}[] = []
+    const [copied, _] = empty.concat(in)
+
+    return copied
+}
+`
+        )
+}

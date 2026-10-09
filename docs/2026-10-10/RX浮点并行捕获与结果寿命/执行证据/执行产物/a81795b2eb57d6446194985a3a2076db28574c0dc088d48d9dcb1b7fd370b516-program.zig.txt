@@ -1,0 +1,318 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_9, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_11, .@"1" = zx_shape_0, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .items = zx_shape_11, .marker = zx_shape_9, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .captured = zx_shape_11, .left = zx_shape_13, .right = zx_shape_13, }, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .left = zx_shape_11, .marker = zx_shape_9, .right = zx_shape_11, }, };
+
+const zx_shape_16 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_15, }, };
+
+const zx_shape_17 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_15, .@"1" = zx_shape_9, }, };
+
+const zx_shape_18 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_15, .@"1" = zx_shape_9, .@"2" = zx_shape_11, }, };
+
+const zx_shape_19 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_15, .@"1" = zx_shape_9, .@"2" = zx_shape_13, .@"3" = zx_shape_13, }, };
+
+pub const input_shape = zx_shape_15;
+
+pub const output_shape = zx_shape_14;
+
+pub const Input = *const (zx_abi).zx_type_15;
+
+pub const Output = *const (zx_abi).zx_type_14;
+
+fn function_0(allocator: ((std).mem).Allocator, in: f64) error{ }!f64 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return in;
+}
+
+fn function_1(allocator: ((std).mem).Allocator, in: []const f64) error{ OutOfMemory, Overflow, }![]const f64 {
+    @setRuntimeSafety(true);
+
+    const value_1: []const f64 = block_8: {
+        break :block_8 (try (allocator).dupe(f64, (&[_]f64{})));
+    };
+    const tuple_1 = block_7: {
+        const operand_2 = value_1;
+        const operand_3 = in;
+        const operand_4 = (try (allocator).alloc(f64, (try ((std).math).add(usize, (operand_2).len, (operand_3).len))));
+
+        @memcpy((operand_4)[0..(operand_2).len], operand_2);
+
+        @memcpy((operand_4)[(operand_2).len..], operand_3);
+
+        break :block_7 block_6: {
+            const operand_5 = (try (allocator).create((zx_abi).zx_type_12));
+
+            (operand_5).* = @as((zx_abi).zx_type_12, .{ operand_4, {}, });
+
+            break :block_6 @as(*const (zx_abi).zx_type_12, operand_5);
+        };
+    };
+    const value_2 = (tuple_1).@"0";
+
+    return value_2;
+}
+
+fn function_2(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_17) error{ OutOfMemory, Overflow, }!*const (zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    const value_1: *const (zx_abi).zx_type_15 = (in).@"0";
+    const value_2: f64 = (in).@"1";
+    const value_3: []const f64 = (try function_1(allocator, (value_1).left));
+
+    return block_5: {
+        const operand_1 = value_3;
+        const operand_2 = value_2;
+
+        break :block_5 block_4: {
+            const operand_3 = (try (allocator).create((zx_abi).zx_type_13));
+
+            (operand_3).* = @as((zx_abi).zx_type_13, (zx_abi).zx_type_13{ .items = operand_1, .marker = operand_2, });
+
+            break :block_4 @as(*const (zx_abi).zx_type_13, operand_3);
+        };
+    };
+}
+
+fn function_2_value(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_17) error{ OutOfMemory, Overflow, }!(zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    const value_1: (zx_abi).zx_type_15 = ((in).@"0").*;
+    const value_2: f64 = (in).@"1";
+    const value_3: []const f64 = (try function_1(allocator, ((&value_1)).left));
+
+    return block_8: {
+        const operand_6 = value_3;
+        const operand_7 = value_2;
+
+        break :block_8 (zx_abi).zx_type_13{ .items = operand_6, .marker = operand_7, };
+    };
+}
+
+fn function_3(allocator: ((std).mem).Allocator, in: []const f64) error{ OutOfMemory, Overflow, }![]const f64 {
+    @setRuntimeSafety(true);
+
+    const value_1: []const f64 = block_8: {
+        break :block_8 (try (allocator).dupe(f64, (&[_]f64{})));
+    };
+    const tuple_1 = block_7: {
+        const operand_2 = value_1;
+        const operand_3 = in;
+        const operand_4 = (try (allocator).alloc(f64, (try ((std).math).add(usize, (operand_2).len, (operand_3).len))));
+
+        @memcpy((operand_4)[0..(operand_2).len], operand_2);
+
+        @memcpy((operand_4)[(operand_2).len..], operand_3);
+
+        break :block_7 block_6: {
+            const operand_5 = (try (allocator).create((zx_abi).zx_type_12));
+
+            (operand_5).* = @as((zx_abi).zx_type_12, .{ operand_4, {}, });
+
+            break :block_6 @as(*const (zx_abi).zx_type_12, operand_5);
+        };
+    };
+    const value_2 = (tuple_1).@"0";
+
+    return value_2;
+}
+
+fn function_4(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_17) error{ OutOfMemory, Overflow, }!*const (zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    const value_1: *const (zx_abi).zx_type_15 = (in).@"0";
+    const value_2: f64 = (in).@"1";
+    const value_3: []const f64 = (try function_3(allocator, (value_1).right));
+
+    return block_5: {
+        const operand_1 = value_3;
+        const operand_2 = value_2;
+
+        break :block_5 block_4: {
+            const operand_3 = (try (allocator).create((zx_abi).zx_type_13));
+
+            (operand_3).* = @as((zx_abi).zx_type_13, (zx_abi).zx_type_13{ .items = operand_1, .marker = operand_2, });
+
+            break :block_4 @as(*const (zx_abi).zx_type_13, operand_3);
+        };
+    };
+}
+
+fn function_4_value(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_17) error{ OutOfMemory, Overflow, }!(zx_abi).zx_type_13 {
+    @setRuntimeSafety(true);
+
+    const value_1: (zx_abi).zx_type_15 = ((in).@"0").*;
+    const value_2: f64 = (in).@"1";
+    const value_3: []const f64 = (try function_3(allocator, ((&value_1)).right));
+
+    return block_8: {
+        const operand_6 = value_3;
+        const operand_7 = value_2;
+
+        break :block_8 (zx_abi).zx_type_13{ .items = operand_6, .marker = operand_7, };
+    };
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_15) anyerror!*const (zx_abi).zx_type_14 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_1: f64 = (try function_0(allocator, (in).marker));
+
+    var parallel_allocator_7 = zx_parallel_allocator{ .child = allocator, };
+
+    const parallel_input_9 = block_15: {
+        const operand_11 = in;
+        const operand_12 = value_1;
+
+        break :block_15 block_14: {
+            const operand_13 = (try (allocator).create((zx_abi).zx_type_17));
+
+            (operand_13).* = @as((zx_abi).zx_type_17, .{ operand_11, operand_12, });
+
+            break :block_14 @as(*const (zx_abi).zx_type_17, operand_13);
+        };
+    };
+    const ParallelWorker_8 = struct {
+        allocator: ((std).mem).Allocator,
+        input: *const (zx_abi).zx_type_17,
+        result: anyerror!*const (zx_abi).zx_type_13,
+        fn run(self: *@This()) void {
+            (self).result = function_2((self).allocator, (self).input);
+        }
+    };
+
+    var parallel_worker_10 = ParallelWorker_8{ .allocator = (parallel_allocator_7).allocator(), .input = parallel_input_9, .result = undefined, };
+
+    const parallel_input_18 = block_24: {
+        const operand_20 = in;
+        const operand_21 = value_1;
+
+        break :block_24 block_23: {
+            const operand_22 = (try (allocator).create((zx_abi).zx_type_17));
+
+            (operand_22).* = @as((zx_abi).zx_type_17, .{ operand_20, operand_21, });
+
+            break :block_23 @as(*const (zx_abi).zx_type_17, operand_22);
+        };
+    };
+    const ParallelWorker_17 = struct {
+        allocator: ((std).mem).Allocator,
+        input: *const (zx_abi).zx_type_17,
+        result: anyerror!*const (zx_abi).zx_type_13,
+        fn run(self: *@This()) void {
+            (self).result = function_4((self).allocator, (self).input);
+        }
+    };
+
+    var parallel_worker_19 = ParallelWorker_17{ .allocator = (parallel_allocator_7).allocator(), .input = parallel_input_18, .result = undefined, };
+
+    {
+        const parallel_thread_16 = (try ((std).Thread).spawn(.{ }, (ParallelWorker_8).run, .{ (&parallel_worker_10), }));
+
+        defer (parallel_thread_16).join();
+
+        const parallel_thread_25 = (try ((std).Thread).spawn(.{ }, (ParallelWorker_17).run, .{ (&parallel_worker_19), }));
+
+        defer (parallel_thread_25).join();
+    }
+
+    const value_2 = (try (parallel_worker_10).result);
+    const value_3 = (try (parallel_worker_19).result);
+
+    return block_6: {
+        const operand_1 = value_2;
+        const operand_2 = value_3;
+        const operand_3 = (in).left;
+
+        break :block_6 block_5: {
+            const operand_4 = (try (allocator).create((zx_abi).zx_type_14));
+
+            (operand_4).* = @as((zx_abi).zx_type_14, (zx_abi).zx_type_14{ .left = operand_1, .right = operand_2, .captured = operand_3, });
+
+            break :block_5 @as(*const (zx_abi).zx_type_14, operand_4);
+        };
+    };
+}
+
+const zx_parallel_allocator = struct {
+    child: ((std).mem).Allocator,
+    mutex: ((std).Io).Mutex = .init,
+    fn alloc(context: *anyopaque, len: usize, alignment: ((std).mem).Alignment, ret_addr: usize) ?[*]u8 {
+        const self: *@This() = @ptrCast(@alignCast(context));
+
+        (((std).Io).Threaded).mutexLockUncancelable((&(self).mutex));
+
+        defer (((std).Io).Threaded).mutexUnlock((&(self).mutex));
+
+        return ((self).child).rawAlloc(len, alignment, ret_addr);
+    }
+    fn resize(context: *anyopaque, memory: []u8, alignment: ((std).mem).Alignment, len: usize, ret_addr: usize) bool {
+        const self: *@This() = @ptrCast(@alignCast(context));
+
+        (((std).Io).Threaded).mutexLockUncancelable((&(self).mutex));
+
+        defer (((std).Io).Threaded).mutexUnlock((&(self).mutex));
+
+        return ((self).child).rawResize(memory, alignment, len, ret_addr);
+    }
+    fn remap(context: *anyopaque, memory: []u8, alignment: ((std).mem).Alignment, len: usize, ret_addr: usize) ?[*]u8 {
+        const self: *@This() = @ptrCast(@alignCast(context));
+
+        (((std).Io).Threaded).mutexLockUncancelable((&(self).mutex));
+
+        defer (((std).Io).Threaded).mutexUnlock((&(self).mutex));
+
+        return ((self).child).rawRemap(memory, alignment, len, ret_addr);
+    }
+    fn free(context: *anyopaque, memory: []u8, alignment: ((std).mem).Alignment, ret_addr: usize) void {
+        const self: *@This() = @ptrCast(@alignCast(context));
+
+        (((std).Io).Threaded).mutexLockUncancelable((&(self).mutex));
+
+        defer (((std).Io).Threaded).mutexUnlock((&(self).mutex));
+
+        ((self).child).rawFree(memory, alignment, ret_addr);
+    }
+    fn allocator(self: *@This()) ((std).mem).Allocator {
+        return .{ .ptr = self, .vtable = (&.{ .alloc = alloc, .resize = resize, .remap = remap, .free = free, }), };
+    }
+};
+

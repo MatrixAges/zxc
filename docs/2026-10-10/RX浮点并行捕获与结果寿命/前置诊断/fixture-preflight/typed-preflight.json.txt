@@ -1,0 +1,44 @@
+[
+    {
+        "command": [
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/Debug/compile-rx-floating",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/typed_direct.rx",
+            "source",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/typed-output",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/copy_values.zx",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/copy_local.zx",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/marker.zx"
+        ],
+        "exit_code": 0,
+        "log": "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/typed-generate.txt"
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "src/emit_rx_parallel_floating.ts",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/controls.jsonl",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/controls.zig"
+        ],
+        "exit_code": 0,
+        "log": "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/emit-controls.txt"
+    },
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "tests/rx/runtime/parallel/floating/run_test.ts",
+            "/Users/xiewendao/.codex/conformance/diagnostics/zig-signed-probe-20261009/zig",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/typed-output",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/controls.zig",
+            "Debug",
+            "tests/support/allocation_testing.zig",
+            "--entitlements",
+            "/Users/xiewendao/.codex/conformance/diagnostics/zig-signed-probe-20261009/empty.plist",
+            "--cache-dir",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/cache-probe-tests",
+            "--global-cache-dir",
+            "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/cache-global"
+        ],
+        "exit_code": 0,
+        "log": "/Users/xiewendao/.codex/conformance/rx-parallel-floating-84be0c937/r1/fixture-preflight/execute-controls.txt"
+    }
+]
