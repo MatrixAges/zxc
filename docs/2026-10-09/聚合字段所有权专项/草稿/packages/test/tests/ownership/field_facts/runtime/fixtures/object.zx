@@ -1,0 +1,11 @@
+export type Input = { values: u64[], count: u64, choice: bool }
+
+export type Output = { fresh: u64[], view: u64[] }
+
+export default function (in: Input): Output {
+    const fresh = in.values.map(item => item + 1)
+
+    const box = in.choice ? { fresh: fresh, view: in.values } : { fresh: fresh, view: fresh }
+
+    return { fresh: box.fresh, view: box.view }
+}

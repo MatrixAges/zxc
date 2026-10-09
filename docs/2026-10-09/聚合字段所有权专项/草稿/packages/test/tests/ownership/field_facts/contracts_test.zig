@@ -1,0 +1,91 @@
+const std = @import("std");
+const compiler = @import("compiler");
+const allocation_testing = @import("allocation_testing");
+const check = @import("check.zig");
+const feedback = @import("feedback.zig");
+const h = @import("ownership_case");
+
+fn rejectForged(allocator: std.mem.Allocator, source: []const u8) !void {
+    var result = try check.analyze(allocator, source, .borrowed);
+
+    defer result.deinit();
+
+    for ([_]compiler.ir.Ownership{ .owned, .copy }) |ownership| {
+        var forged = result.value.ir;
+        forged.output_ownership = ownership;
+        const issue = (try compiler.validateIr(allocator, forged)).?;
+
+        try std.testing.expectEqual(.contract, issue.code);
+        try std.testing.expect(try compiler.validateIr(allocator, result.value.ir) == null);
+    }
+}
+
+test "mixed conditional borrowed field cannot forge an owned or copy contract" {
+    try rejectForged(std.testing.allocator,
+        \\export type Input = {choice: bool, items: u64[]}
+        \\
+        \\export type Output = u64[]
+        \\
+        \\export default function (in: Input): Output {
+        \\    const fresh: u64[] = []
+        \\
+        \\    const box = in.choice ? {fresh: fresh, view: in.items} : {fresh: fresh, view: fresh}
+        \\
+        \\    return box.view
+        \\}
+    );
+}
+
+test "multi round borrowed feedback cannot forge an owned or copy contract" {
+    const source = try feedback.source(std.testing.allocator, 5, "v0");
+
+    defer std.testing.allocator.free(source);
+
+    try rejectForged(std.testing.allocator, source);
+}
+
+test "mixed object ownership does not grant alias update permission" {
+    try h.run(.{ .body =
+        \\    const fresh: u64[] = []
+        \\
+        \\    const result = loop({fresh: fresh, view: in, index: 0}, {
+        \\        while: state => state.index < state.view.length,
+        \\        next: state => {
+        \\            const alias = state
+        \\
+        \\            alias.fresh = alias.fresh.push(1)[0]
+        \\            state.index += 1
+        \\        }
+        \\    })
+        \\
+        \\    return result.fresh
+    , .marker = "alias.fresh =" });
+}
+
+test "mixed tuple ownership does not grant alias update permission" {
+    try h.run(.{ .body =
+        \\    const fresh: u64[] = []
+        \\
+        \\    const initial: {mixed: [u64[], u64[]], index: u64, limit: u64} = {mixed: [fresh, in], index: 0, limit: in.length}
+        \\
+        \\    const result = loop(initial, {
+        \\        while: state => state.index < state.limit,
+        \\        next: state => {
+        \\            const alias = state.mixed
+        \\
+        \\            alias[0] = alias[0].push(1)[0]
+        \\            state.index += 1
+        \\        }
+        \\    })
+        \\
+        \\    return result.mixed[0]
+    , .marker = "alias[0] =" });
+}
+
+test "borrowed feedback analysis and forged contracts clean every allocation failure" {
+    const source = try feedback.source(std.testing.allocator, 2, "v0");
+
+    defer std.testing.allocator.free(source);
+
+    try allocation_testing.checkAllAllocationFailures(std.testing.allocator, rejectForged, .{source});
+}

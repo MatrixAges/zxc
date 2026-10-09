@@ -1,0 +1,123 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_41c2e0d9e9dad00ef07f80a4e9d75e8c52254f8ed4f4eb2e3080f7a3c26442b8) error{ IndexOutOfBounds, OutOfMemory, }!u64 {
+    @setRuntimeSafety(true);
+
+    _ = block_49: {
+        const state_type_2 = struct {
+            index: u64,
+            limit: u64,
+        };
+        const state_type_3 = struct { u64, bool, };
+        const state_type_4 = struct {
+            meta: state_type_2,
+            pair: state_type_3,
+            values: []const u64,
+        };
+        const state_type_7 = struct {
+            choice: bool,
+            count: u64,
+            values: []const u64,
+        };
+        const operand_34 = block_33: {
+            const operand_20 = block_19: {
+                const operand_11 = block_10: {
+                    const operand_5 = @as(u64, 0);
+                    const operand_9 = (block_8: {
+                        const operand_6 = in;
+
+                        break :block_8 state_type_7{ .choice = (operand_6).choice, .count = (operand_6).count, .values = (operand_6).values, };
+                    }).count;
+
+                    break :block_10 state_type_2{ .index = operand_5, .limit = operand_9, };
+                };
+                const operand_15 = block_14: {
+                    const operand_12 = @as(u64, 0);
+                    const operand_13 = true;
+
+                    break :block_14 @as(state_type_3, .{ operand_12, operand_13, });
+                };
+                const operand_18 = (block_17: {
+                    const operand_16 = in;
+
+                    break :block_17 state_type_7{ .choice = (operand_16).choice, .count = (operand_16).count, .values = (operand_16).values, };
+                }).values;
+
+                break :block_19 state_type_4{ .meta = operand_11, .pair = operand_15, .values = operand_18, };
+            };
+            const operand_21 = (zx_abi).zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62{ .index = ((operand_20).meta).index, .limit = ((operand_20).meta).limit, };
+            const operand_22 = @as((zx_abi).zx_type_3c6034f6509f68da45da04c72e30fe395fb1cf8d4d17474fcd3bd2268dd60580, .{ ((operand_20).pair).@"0", ((operand_20).pair).@"1", });
+            const operand_23 = (zx_abi).zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e{ .meta = (&operand_21), .pair = (&operand_22), .values = (operand_20).values, };
+            const operand_32 = block_31: {
+                const operand_24 = (&operand_23);
+                const operand_25 = (try (@import("zxc_module_b5b2f899068d80166ad7278ac86add3bcede5ecd89ceff185300cc1fbbd09b4f")).callValue(allocator, (zx_abi).value_zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e_ec79fbfb41a5dbcfa890dddd46cd81beecd48bee1bdf6f24140b7c0429d2b0a8{ .meta = (zx_abi).value_zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814{ .index = ((operand_24).meta).index, .limit = ((operand_24).meta).limit, .zx_origin = (operand_24).meta, }, .pair = @as((zx_abi).value_zx_type_3c6034f6509f68da45da04c72e30fe395fb1cf8d4d17474fcd3bd2268dd60580_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814, .{ ((operand_24).pair).@"0", ((operand_24).pair).@"1", (operand_24).pair, }), .values = (operand_24).values, .zx_origin = operand_24, }));
+
+                break :block_31 (if (((operand_25).zx_origin != null)) ((operand_25).zx_origin.?).* else block_30: {
+                    break :block_30 (zx_abi).zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e{ .meta = (if ((((operand_25).meta).zx_origin != null)) ((operand_25).meta).zx_origin.? else block_27: {
+                        const operand_26 = (try (allocator).create((zx_abi).zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62));
+
+                        (operand_26).* = (zx_abi).zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62{ .index = ((operand_25).meta).index, .limit = ((operand_25).meta).limit, };
+
+                        break :block_27 @as(*const (zx_abi).zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62, operand_26);
+                    }), .pair = (if ((((operand_25).pair).@"2" != null)) ((operand_25).pair).@"2".? else block_29: {
+                        const operand_28 = (try (allocator).create((zx_abi).zx_type_3c6034f6509f68da45da04c72e30fe395fb1cf8d4d17474fcd3bd2268dd60580));
+
+                        (operand_28).* = @as((zx_abi).zx_type_3c6034f6509f68da45da04c72e30fe395fb1cf8d4d17474fcd3bd2268dd60580, .{ ((operand_25).pair).@"0", ((operand_25).pair).@"1", });
+
+                        break :block_29 @as(*const (zx_abi).zx_type_3c6034f6509f68da45da04c72e30fe395fb1cf8d4d17474fcd3bd2268dd60580, operand_28);
+                    }), .values = (operand_25).values, };
+                });
+            };
+
+            break :block_33 state_type_4{ .meta = state_type_2{ .index = ((operand_32).meta).index, .limit = ((operand_32).meta).limit, }, .pair = @as(state_type_3, .{ ((operand_32).pair).@"0", ((operand_32).pair).@"1", }), .values = (operand_32).values, };
+        };
+
+        var state_1: state_type_4 = operand_34;
+
+        while ((((state_1).meta).index < ((state_1).meta).limit)) {
+            state_1 = block_48: {
+                const value_3: u64 = ((state_1).pair).@"0";
+                const value_4: state_type_4 = block_47: {
+                    break :block_47 state_type_4{ .meta = (state_1).meta, .pair = block_46: {
+                        const operand_44 = (value_3 + block_43: {
+                            const operand_41 = (state_1).values;
+                            const operand_42 = ((state_1).meta).index;
+
+                            if ((operand_42 >= (operand_41).len)) {
+                                return error.IndexOutOfBounds;
+                            }
+
+                            break :block_43 (operand_41)[@intCast(operand_42)];
+                        });
+                        const operand_45 = ((state_1).pair).@"1";
+
+                        break :block_46 @as(state_type_3, .{ operand_44, operand_45, });
+                    }, .values = (state_1).values, };
+                };
+                const value_5: state_type_4 = block_40: {
+                    break :block_40 state_type_4{ .meta = (value_4).meta, .pair = block_39: {
+                        const operand_37 = ((value_4).pair).@"0";
+                        const operand_38 = (!((value_4).pair).@"1");
+
+                        break :block_39 @as(state_type_3, .{ operand_37, operand_38, });
+                    }, .values = (value_4).values, };
+                };
+                const value_6: u64 = ((value_5).meta).index;
+                const value_7: state_type_4 = block_36: {
+                    break :block_36 state_type_4{ .meta = block_35: {
+                        break :block_35 state_type_2{ .index = (value_6 + @as(u64, 1)), .limit = ((value_5).meta).limit, };
+                    }, .pair = (value_5).pair, .values = (value_5).values, };
+                };
+
+                break :block_48 value_7;
+            };
+        }
+
+        break :block_49 {};
+    };
+
+    return (in).count;
+}
+

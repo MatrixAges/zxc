@@ -1,0 +1,220 @@
+const std = @import("std");
+
+const zx_type_11 = enum { Static, Value, Expression, };
+
+const zx_type_12 = struct {
+    attribute: []const u8,
+    element: []const u8,
+};
+
+const zx_type_13 = struct { *const zx_type_12, };
+
+const zx_type_14 = struct { *const zx_type_12, zx_type_11, };
+
+const value_zx_type_12_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    attribute: []const u8,
+    element: []const u8,
+    zx_origin: ?*const zx_type_12 = null,
+};
+
+const value_zx_type_13_ed98ab2d684155f0f16edf3c906e8b7cce9beb0c415885713abde878f5ffabc6 = struct { value_zx_type_12_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814, ?*const zx_type_13, };
+
+const value_zx_type_14_758dce47268ce260391b79fcce19430100f29f81aa06dca556ac6c937c9b34ac = struct { value_zx_type_12_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814, zx_type_11, ?*const zx_type_14, };
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .scalar, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .attribute = zx_shape_10, .element = zx_shape_10, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_12, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_12, .@"1" = zx_shape_11, }, };
+
+pub const input_shape = zx_shape_12;
+
+pub const output_shape = zx_shape_11;
+
+pub const Input = *const zx_type_12;
+
+pub const Output = zx_type_11;
+
+fn function_0(allocator: ((std).mem).Allocator, in: *const zx_type_12) error{ }!zx_type_11 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    const switch_1 = (in).element;
+
+    if (block_55: {
+        const operand_53 = switch_1;
+        const operand_54 = @as([]const u8, "Call");
+
+        break :block_55 ((std).mem).eql(u8, operand_53, operand_54);
+    }) {
+        return (if (block_61: {
+            const operand_59 = (in).attribute;
+            const operand_60 = @as([]const u8, "in");
+
+            break :block_61 ((std).mem).eql(u8, operand_59, operand_60);
+        }) @as(zx_type_11, .Value) else (if (block_58: {
+            const operand_56 = (in).attribute;
+            const operand_57 = @as([]const u8, "setter");
+
+            break :block_58 ((std).mem).eql(u8, operand_56, operand_57);
+        }) @as(zx_type_11, .Expression) else @as(zx_type_11, .Static)));
+    } else {
+        if (block_49: {
+            const operand_47 = switch_1;
+            const operand_48 = @as([]const u8, "Switch");
+
+            break :block_49 ((std).mem).eql(u8, operand_47, operand_48);
+        }) {
+            return (if (block_52: {
+                const operand_50 = (in).attribute;
+                const operand_51 = @as([]const u8, "on");
+
+                break :block_52 ((std).mem).eql(u8, operand_50, operand_51);
+            }) @as(zx_type_11, .Value) else @as(zx_type_11, .Static));
+        } else {
+            if (block_43: {
+                const operand_41 = switch_1;
+                const operand_42 = @as([]const u8, "Return");
+
+                break :block_43 ((std).mem).eql(u8, operand_41, operand_42);
+            }) {
+                return (if (block_46: {
+                    const operand_44 = (in).attribute;
+                    const operand_45 = @as([]const u8, "value");
+
+                    break :block_46 ((std).mem).eql(u8, operand_44, operand_45);
+                }) @as(zx_type_11, .Value) else @as(zx_type_11, .Static));
+            } else {
+                if (block_37: {
+                    const operand_35 = switch_1;
+                    const operand_36 = @as([]const u8, "Case");
+
+                    break :block_37 ((std).mem).eql(u8, operand_35, operand_36);
+                }) {
+                    return (if (block_40: {
+                        const operand_38 = (in).attribute;
+                        const operand_39 = @as([]const u8, "value");
+
+                        break :block_40 ((std).mem).eql(u8, operand_38, operand_39);
+                    }) @as(zx_type_11, .Value) else @as(zx_type_11, .Static));
+                } else {
+                    if (block_31: {
+                        const operand_29 = switch_1;
+                        const operand_30 = @as([]const u8, "Emit");
+
+                        break :block_31 ((std).mem).eql(u8, operand_29, operand_30);
+                    }) {
+                        return (if (block_34: {
+                            const operand_32 = (in).attribute;
+                            const operand_33 = @as([]const u8, "value");
+
+                            break :block_34 ((std).mem).eql(u8, operand_32, operand_33);
+                        }) @as(zx_type_11, .Value) else @as(zx_type_11, .Static));
+                    } else {
+                        if (block_25: {
+                            const operand_23 = switch_1;
+                            const operand_24 = @as([]const u8, "Field");
+
+                            break :block_25 ((std).mem).eql(u8, operand_23, operand_24);
+                        }) {
+                            return (if (block_28: {
+                                const operand_26 = (in).attribute;
+                                const operand_27 = @as([]const u8, "value");
+
+                                break :block_28 ((std).mem).eql(u8, operand_26, operand_27);
+                            }) @as(zx_type_11, .Value) else @as(zx_type_11, .Static));
+                        } else {
+                            if (block_19: {
+                                const operand_17 = switch_1;
+                                const operand_18 = @as([]const u8, "Task");
+
+                                break :block_19 ((std).mem).eql(u8, operand_17, operand_18);
+                            }) {
+                                return (if (block_22: {
+                                    const operand_20 = (in).attribute;
+                                    const operand_21 = @as([]const u8, "out");
+
+                                    break :block_22 ((std).mem).eql(u8, operand_20, operand_21);
+                                }) @as(zx_type_11, .Expression) else @as(zx_type_11, .Static));
+                            } else {
+                                if (block_13: {
+                                    const operand_11 = switch_1;
+                                    const operand_12 = @as([]const u8, "Store");
+
+                                    break :block_13 ((std).mem).eql(u8, operand_11, operand_12);
+                                }) {
+                                    return (if (block_16: {
+                                        const operand_14 = (in).attribute;
+                                        const operand_15 = @as([]const u8, "version");
+
+                                        break :block_16 ((std).mem).eql(u8, operand_14, operand_15);
+                                    }) @as(zx_type_11, .Expression) else @as(zx_type_11, .Static));
+                                } else {
+                                    if (block_4: {
+                                        const operand_2 = switch_1;
+                                        const operand_3 = @as([]const u8, "Gateway");
+
+                                        break :block_4 ((std).mem).eql(u8, operand_2, operand_3);
+                                    }) {
+                                        return (if ((block_7: {
+                                            const operand_5 = (in).attribute;
+                                            const operand_6 = @as([]const u8, "max_header_bytes");
+
+                                            break :block_7 ((std).mem).eql(u8, operand_5, operand_6);
+                                        } or block_10: {
+                                            const operand_8 = (in).attribute;
+                                            const operand_9 = @as([]const u8, "max_body_bytes");
+
+                                            break :block_10 ((std).mem).eql(u8, operand_8, operand_9);
+                                        })) @as(zx_type_11, .Expression) else @as(zx_type_11, .Static));
+                                    } else {
+                                        return @as(zx_type_11, .Static);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const zx_type_12) error{ }!zx_type_11 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_1: zx_type_11 = (try function_0(allocator, in));
+
+    return value_1;
+}
+

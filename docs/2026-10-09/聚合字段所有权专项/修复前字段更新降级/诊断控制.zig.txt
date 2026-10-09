@@ -1,0 +1,37 @@
+const std = @import("std");
+const check = @import("check.zig");
+const feedback = @import("feedback.zig");
+const h = @import("ownership_case");
+
+test "distinct stable initial survives borrowed feedback" {
+    const original = try feedback.source(std.testing.allocator, 2, "untouched");
+    defer std.testing.allocator.free(original);
+    const source = try std.mem.replaceOwned(u8, std.testing.allocator, original, "untouched: fresh", "untouched: [1]");
+    defer std.testing.allocator.free(source);
+    var result = try check.analyze(std.testing.allocator, source, .owned);
+    defer result.deinit();
+}
+
+test "postcondition plain list replacement is owned" {
+    try h.run(.{.body =
+        \\    return loop(in, {
+        \\        while: state => false,
+        \\        do: state => {
+        \\            state = state.map(item => item)
+        \\        }
+        \\    })
+    });
+}
+
+test "postcondition mixed literal replacement is owned" {
+    try h.run(.{.body =
+        \\    const result = loop({fresh: in, view: in}, {
+        \\        while: state => false,
+        \\        do: state => {
+        \\            state.fresh = []
+        \\        }
+        \\    })
+        \\
+        \\    return result.fresh
+    });
+}

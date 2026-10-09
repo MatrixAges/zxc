@@ -1,0 +1,198 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_41c2e0d9e9dad00ef07f80a4e9d75e8c52254f8ed4f4eb2e3080f7a3c26442b8;
+
+pub const Output = u64;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .object, .fields = .{ .index = zx_shape_5, .limit = zx_shape_5, }, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .value = zx_shape_5, }, };
+
+const zx_shape_13 = .{ .kind = .optional, .child = zx_shape_12, };
+
+const zx_shape_14 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .meta = zx_shape_11, .previous = zx_shape_13, .values = zx_shape_14, }, };
+
+const zx_shape_16 = .{ .kind = .object, .fields = .{ .choice = zx_shape_1, .count = zx_shape_5, .values = zx_shape_14, }, };
+
+pub const input_shape = zx_shape_16;
+
+pub const output_shape = zx_shape_5;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_41c2e0d9e9dad00ef07f80a4e9d75e8c52254f8ed4f4eb2e3080f7a3c26442b8) error{ IndexOutOfBounds, OutOfMemory, }!u64 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    _ = block_55: {
+        const state_type_2 = struct {
+            index: u64,
+            limit: u64,
+        };
+        const state_type_3 = struct {
+            value: u64,
+        };
+        const state_type_4 = struct {
+            meta: state_type_2,
+            previous: ?state_type_3,
+            values: []const u64,
+        };
+        const state_type_7 = struct {
+            choice: bool,
+            count: u64,
+            values: []const u64,
+        };
+        const operand_37 = block_36: {
+            const operand_21 = block_20: {
+                const operand_11 = block_10: {
+                    const operand_5 = @as(u64, 0);
+                    const operand_9 = (block_8: {
+                        const operand_6 = in;
+
+                        break :block_8 state_type_7{ .choice = (operand_6).choice, .count = (operand_6).count, .values = (operand_6).values, };
+                    }).count;
+
+                    break :block_10 state_type_2{ .index = operand_5, .limit = operand_9, };
+                };
+                const operand_16 = (if ((block_13: {
+                    const operand_12 = in;
+
+                    break :block_13 state_type_7{ .choice = (operand_12).choice, .count = (operand_12).count, .values = (operand_12).values, };
+                }).choice) @as(?state_type_3, block_15: {
+                    const operand_14 = @as(u64, 0);
+
+                    break :block_15 state_type_3{ .value = operand_14, };
+                }) else @as(?state_type_3, null));
+                const operand_19 = (block_18: {
+                    const operand_17 = in;
+
+                    break :block_18 state_type_7{ .choice = (operand_17).choice, .count = (operand_17).count, .values = (operand_17).values, };
+                }).values;
+
+                break :block_20 state_type_4{ .meta = operand_11, .previous = operand_16, .values = operand_19, };
+            };
+            const operand_22 = (zx_abi).zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62{ .index = ((operand_21).meta).index, .limit = ((operand_21).meta).limit, };
+            const operand_23 = (if (((operand_21).previous != null)) (zx_abi).zx_type_0878b70cf59049d641c11484287eed72f49a6a7e77bfa891b8d48dacd6b320be{ .value = ((operand_21).previous.?).value, } else undefined);
+            const operand_24 = (zx_abi).zx_type_fea022f8c3dcc1570a8ceb2c4034be418cb1abee2ed44cc82b89bfc16c2337d2{ .meta = (&operand_22), .previous = @as(?*const (zx_abi).zx_type_0878b70cf59049d641c11484287eed72f49a6a7e77bfa891b8d48dacd6b320be, (if (((operand_21).previous != null)) (&operand_23) else null)), .values = (operand_21).values, };
+            const operand_35 = block_34: {
+                const operand_25 = (&operand_24);
+                const operand_27 = (try (@import("zxc_module_451c2dff984b9b67e3dda7f66c775fbcf34b200007d2f00803776926668a6b9d")).callValue(allocator, (zx_abi).value_zx_type_fea022f8c3dcc1570a8ceb2c4034be418cb1abee2ed44cc82b89bfc16c2337d2_ecf31cdb90d7e290d33b8de09dff831803ccf648c8af058cff4bab8be4b3745a{ .meta = (zx_abi).value_zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814{ .index = ((operand_25).meta).index, .limit = ((operand_25).meta).limit, .zx_origin = (operand_25).meta, }, .previous = @as(?(zx_abi).value_zx_type_0878b70cf59049d641c11484287eed72f49a6a7e77bfa891b8d48dacd6b320be_4f40a753d66cbdf2828707a9f642bbaf44febd927bbdba19d0f7279821ade744, (if (((operand_25).previous != null)) block_26: {
+                    break :block_26 (zx_abi).value_zx_type_0878b70cf59049d641c11484287eed72f49a6a7e77bfa891b8d48dacd6b320be_4f40a753d66cbdf2828707a9f642bbaf44febd927bbdba19d0f7279821ade744{ .value = ((operand_25).previous.?).value, .zx_origin = (operand_25).previous.?, };
+                } else null)), .values = (operand_25).values, .zx_origin = operand_25, }));
+
+                break :block_34 (if (((operand_27).zx_origin != null)) ((operand_27).zx_origin.?).* else block_33: {
+                    break :block_33 (zx_abi).zx_type_fea022f8c3dcc1570a8ceb2c4034be418cb1abee2ed44cc82b89bfc16c2337d2{ .meta = (if ((((operand_27).meta).zx_origin != null)) ((operand_27).meta).zx_origin.? else block_29: {
+                        const operand_28 = (try (allocator).create((zx_abi).zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62));
+
+                        (operand_28).* = (zx_abi).zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62{ .index = ((operand_27).meta).index, .limit = ((operand_27).meta).limit, };
+
+                        break :block_29 @as(*const (zx_abi).zx_type_2ed992585b038613485633b93c4ce97685f84cbf9a1f1637984ac8bcf0069e62, operand_28);
+                    }), .previous = @as(?*const (zx_abi).zx_type_0878b70cf59049d641c11484287eed72f49a6a7e77bfa891b8d48dacd6b320be, (if (((operand_27).previous != null)) block_32: {
+                        break :block_32 (if ((((operand_27).previous.?).zx_origin != null)) ((operand_27).previous.?).zx_origin.? else block_31: {
+                            const operand_30 = (try (allocator).create((zx_abi).zx_type_0878b70cf59049d641c11484287eed72f49a6a7e77bfa891b8d48dacd6b320be));
+
+                            (operand_30).* = (zx_abi).zx_type_0878b70cf59049d641c11484287eed72f49a6a7e77bfa891b8d48dacd6b320be{ .value = ((operand_27).previous.?).value, };
+
+                            break :block_31 @as(*const (zx_abi).zx_type_0878b70cf59049d641c11484287eed72f49a6a7e77bfa891b8d48dacd6b320be, operand_30);
+                        });
+                    } else null)), .values = (operand_27).values, };
+                });
+            };
+
+            break :block_36 state_type_4{ .meta = state_type_2{ .index = ((operand_35).meta).index, .limit = ((operand_35).meta).limit, }, .previous = @as(?state_type_3, (if (((operand_35).previous != null)) state_type_3{ .value = ((operand_35).previous.?).value, } else null)), .values = (operand_35).values, };
+        };
+
+        var state_1: state_type_4 = operand_37;
+
+        while ((((state_1).meta).index < ((state_1).meta).limit)) {
+            state_1 = block_54: {
+                const value_3: ?state_type_3 = (state_1).previous;
+                const value_8: state_type_4 = (if ((value_3 != null)) block_46: {
+                    const value_4: state_type_4 = state_1;
+                    const value_5: state_type_4 = block_45: {
+                        break :block_45 state_type_4{ .meta = (value_4).meta, .previous = @as(?state_type_3, block_44: {
+                            const operand_43 = ((value_3.?).value + block_42: {
+                                const operand_40 = (state_1).values;
+                                const operand_41 = ((state_1).meta).index;
+
+                                if ((operand_41 >= (operand_40).len)) {
+                                    return error.IndexOutOfBounds;
+                                }
+
+                                break :block_42 (operand_40)[@intCast(operand_41)];
+                            });
+
+                            break :block_44 state_type_3{ .value = operand_43, };
+                        }), .values = (value_4).values, };
+                    };
+
+                    break :block_46 value_5;
+                } else block_53: {
+                    const value_6: state_type_4 = state_1;
+                    const value_7: state_type_4 = block_52: {
+                        break :block_52 state_type_4{ .meta = (value_6).meta, .previous = @as(?state_type_3, block_51: {
+                            const operand_50 = block_49: {
+                                const operand_47 = (state_1).values;
+                                const operand_48 = ((state_1).meta).index;
+
+                                if ((operand_48 >= (operand_47).len)) {
+                                    return error.IndexOutOfBounds;
+                                }
+
+                                break :block_49 (operand_47)[@intCast(operand_48)];
+                            };
+
+                            break :block_51 state_type_3{ .value = operand_50, };
+                        }), .values = (value_6).values, };
+                    };
+
+                    break :block_53 value_7;
+                });
+                const value_9: state_type_4 = value_8;
+                const value_10: state_type_2 = (value_9).meta;
+                const value_11: u64 = (value_10).index;
+                const value_12: state_type_4 = block_39: {
+                    break :block_39 state_type_4{ .meta = block_38: {
+                        break :block_38 state_type_2{ .index = (value_11 + @as(u64, 1)), .limit = (value_10).limit, };
+                    }, .previous = (value_9).previous, .values = (value_9).values, };
+                };
+
+                break :block_54 value_12;
+            };
+        }
+
+        break :block_55 {};
+    };
+
+    return (in).count;
+}
+

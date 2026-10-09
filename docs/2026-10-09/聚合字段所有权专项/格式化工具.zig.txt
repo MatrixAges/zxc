@@ -1,0 +1,22 @@
+const std = @import("std");
+const compiler = @import("compiler");
+
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.arena.allocator();
+    const args = try init.minimal.args.toSlice(allocator);
+
+    for (args[1..]) |path| {
+        const text = try std.Io.Dir.cwd().readFileAlloc(init.io, path, allocator, .limited(1024 * 1024));
+        const result = try compiler.format(allocator, text, path);
+
+        defer result.deinit(allocator);
+
+        if (result == .diagnostic) {
+            std.debug.print("{s}: {s}\n", .{path, result.diagnostic.message});
+
+            return error.InvalidFormat;
+        }
+
+        try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = path, .data = result.source });
+    }
+}

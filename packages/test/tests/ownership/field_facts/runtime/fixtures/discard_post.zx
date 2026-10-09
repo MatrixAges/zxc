@@ -1,0 +1,15 @@
+export type Input = { values: u64[], count: u64, choice: bool }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    loop({ meta: { index: 0, limit: in.count }, payload: { sum: 0 }, values: in.values }, {
+        while: state => state.meta.index < state.meta.limit,
+        do: state => {
+            state.payload.sum += state.values[state.meta.index]
+            state.meta.index += 1
+        }
+    })
+
+    return in.count
+}

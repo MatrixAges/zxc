@@ -1,0 +1,88 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_41c2e0d9e9dad00ef07f80a4e9d75e8c52254f8ed4f4eb2e3080f7a3c26442b8) error{ IndexOutOfBounds, OutOfMemory, }!u64 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    _ = block_28: {
+        const state_type_2 = struct {
+            index: u64,
+            limit: u64,
+        };
+        const state_type_3 = struct {
+            sum: u64,
+        };
+        const state_type_4 = struct {
+            meta: state_type_2,
+            payload: state_type_3,
+            values: []const u64,
+        };
+        const state_type_7 = struct {
+            choice: bool,
+            count: u64,
+            values: []const u64,
+        };
+        const operand_19 = block_18: {
+            const operand_11 = block_10: {
+                const operand_5 = @as(u64, 0);
+                const operand_9 = (block_8: {
+                    const operand_6 = in;
+
+                    break :block_8 state_type_7{ .choice = (operand_6).choice, .count = (operand_6).count, .values = (operand_6).values, };
+                }).count;
+
+                break :block_10 state_type_2{ .index = operand_5, .limit = operand_9, };
+            };
+            const operand_14 = block_13: {
+                const operand_12 = @as(u64, 0);
+
+                break :block_13 state_type_3{ .sum = operand_12, };
+            };
+            const operand_17 = (block_16: {
+                const operand_15 = in;
+
+                break :block_16 state_type_7{ .choice = (operand_15).choice, .count = (operand_15).count, .values = (operand_15).values, };
+            }).values;
+
+            break :block_18 state_type_4{ .meta = operand_11, .payload = operand_14, .values = operand_17, };
+        };
+
+        var state_1: state_type_4 = operand_19;
+
+        while ((((state_1).meta).index < ((state_1).meta).limit)) {
+            state_1 = block_27: {
+                const value_3: u64 = ((state_1).payload).sum;
+                const value_4: state_type_4 = block_26: {
+                    break :block_26 state_type_4{ .meta = (state_1).meta, .payload = block_25: {
+                        break :block_25 state_type_3{ .sum = (value_3 + block_24: {
+                            const operand_22 = (state_1).values;
+                            const operand_23 = ((state_1).meta).index;
+
+                            if ((operand_23 >= (operand_22).len)) {
+                                return error.IndexOutOfBounds;
+                            }
+
+                            break :block_24 (operand_22)[@intCast(operand_23)];
+                        }), };
+                    }, .values = (state_1).values, };
+                };
+                const value_5: u64 = ((value_4).meta).index;
+                const value_6: state_type_4 = block_21: {
+                    break :block_21 state_type_4{ .meta = block_20: {
+                        break :block_20 state_type_2{ .index = (value_5 + @as(u64, 1)), .limit = ((value_4).meta).limit, };
+                    }, .payload = (value_4).payload, .values = (value_4).values, };
+                };
+
+                break :block_27 value_6;
+            };
+        }
+
+        break :block_28 {};
+    };
+
+    return (in).count;
+}
+

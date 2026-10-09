@@ -1,0 +1,56 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_41c2e0d9e9dad00ef07f80a4e9d75e8c52254f8ed4f4eb2e3080f7a3c26442b8;
+
+pub const Output = u64;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .object, .fields = .{ .index = zx_shape_5, .limit = zx_shape_5, }, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_5, .@"1" = zx_shape_1, }, };
+
+const zx_shape_13 = .{ .kind = .list, .child = zx_shape_5, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .meta = zx_shape_11, .pair = zx_shape_12, .values = zx_shape_13, }, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .choice = zx_shape_1, .count = zx_shape_5, .values = zx_shape_13, }, };
+
+pub const input_shape = zx_shape_15;
+
+pub const output_shape = zx_shape_5;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_41c2e0d9e9dad00ef07f80a4e9d75e8c52254f8ed4f4eb2e3080f7a3c26442b8) error{ IndexOutOfBounds, OutOfMemory, }!u64 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return (try (@import("zxc_module_db5742f9fced472ebb2d110ff96e4713a70d403a99315d96c0a208efd49501f2")).call(allocator, in));
+}
+

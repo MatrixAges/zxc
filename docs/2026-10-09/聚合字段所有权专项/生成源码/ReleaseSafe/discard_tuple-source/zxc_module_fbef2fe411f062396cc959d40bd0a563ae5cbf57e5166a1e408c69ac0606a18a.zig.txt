@@ -1,0 +1,50 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e) error{ }!*const (zx_abi).zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return in;
+}
+
+pub fn callValue(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e_ec79fbfb41a5dbcfa890dddd46cd81beecd48bee1bdf6f24140b7c0429d2b0a8) error{ }!(zx_abi).value_zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e_ec79fbfb41a5dbcfa890dddd46cd81beecd48bee1bdf6f24140b7c0429d2b0a8 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return in;
+}
+
+pub fn callBuffered(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e_ec79fbfb41a5dbcfa890dddd46cd81beecd48bee1bdf6f24140b7c0429d2b0a8, buffers: struct {
+    lane_0: ?struct {
+        buffer: *(std).ArrayList(u64),
+        started: *bool,
+    },
+}) error{ }!(zx_abi).value_zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e_ec79fbfb41a5dbcfa890dddd46cd81beecd48bee1bdf6f24140b7c0429d2b0a8 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    _ = buffers;
+
+    return in;
+}
+
+pub fn callBufferedPointer(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e, buffers: struct {
+    lane_0: ?struct {
+        buffer: *(std).ArrayList(u64),
+        started: *bool,
+    },
+}) error{ }!*const (zx_abi).zx_type_93c61f0b68d9c62b041108f90e1e2e622a0cc7eb487e869f539e2c496d9e494e {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    _ = buffers;
+
+    return in;
+}
+
