@@ -1,0 +1,174 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_12;
+
+pub const Output = []const i64;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_7, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .count = zx_shape_5, .index = zx_shape_5, .items = zx_shape_11, .replacement = zx_shape_11, .value = zx_shape_7, }, };
+
+pub const input_shape = zx_shape_12;
+
+pub const output_shape = zx_shape_11;
+
+fn function_0(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_12) error{ IndexOutOfBounds, OutOfMemory, }![]const i64 {
+    @setRuntimeSafety(true);
+
+    return block_6: {
+        const operand_1 = (in).items;
+        const operand_2 = (in).index;
+
+        if ((operand_2 >= (operand_1).len)) {
+            return error.IndexOutOfBounds;
+        }
+
+        const operand_3 = (in).value;
+
+        break :block_6 block_5: {
+            const operand_4 = (try (allocator).dupe(i64, operand_1));
+
+            (operand_4)[@intCast(operand_2)] = operand_3;
+
+            break :block_5 operand_4;
+        };
+    };
+}
+
+fn function_0_buffered(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_12, buffers: struct {
+    lane_0: ?struct {
+        buffer: *(std).ArrayList(i64),
+        started: *bool,
+    },
+}) error{ IndexOutOfBounds, OutOfMemory, }![]const i64 {
+    @setRuntimeSafety(true);
+
+    return block_13: {
+        const operand_7 = (in).items;
+        const operand_8 = (in).index;
+
+        if ((operand_8 >= (operand_7).len)) {
+            return error.IndexOutOfBounds;
+        }
+
+        const operand_9 = (in).value;
+
+        break :block_13 @as([]const i64, (if (((buffers).lane_0 != null)) block_10: {
+            if ((!(((buffers).lane_0.?).started).*)) {
+                (try ((((buffers).lane_0.?).buffer).*).appendSlice(allocator, operand_7));
+
+                (((buffers).lane_0.?).started).* = true;
+            } else {
+                (((((buffers).lane_0.?).buffer).*).items).len = (operand_7).len;
+            }
+
+            (((((buffers).lane_0.?).buffer).*).items)[@intCast(operand_8)] = operand_9;
+
+            break :block_10 ((((buffers).lane_0.?).buffer).*).items;
+        } else block_12: {
+            const operand_11 = (try (allocator).dupe(i64, operand_7));
+
+            (operand_11)[@intCast(operand_8)] = operand_9;
+
+            break :block_12 operand_11;
+        }));
+    };
+}
+
+fn function_0_buffered_pointer(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_12, buffers: struct {
+    lane_0: ?struct {
+        buffer: *(std).ArrayList(i64),
+        started: *bool,
+    },
+}) error{ IndexOutOfBounds, OutOfMemory, }![]const i64 {
+    @setRuntimeSafety(true);
+
+    return block_20: {
+        const operand_14 = (in).items;
+        const operand_15 = (in).index;
+
+        if ((operand_15 >= (operand_14).len)) {
+            return error.IndexOutOfBounds;
+        }
+
+        const operand_16 = (in).value;
+
+        break :block_20 @as([]const i64, (if (((buffers).lane_0 != null)) block_17: {
+            if ((!(((buffers).lane_0.?).started).*)) {
+                (try ((((buffers).lane_0.?).buffer).*).appendSlice(allocator, operand_14));
+
+                (((buffers).lane_0.?).started).* = true;
+            } else {
+                (((((buffers).lane_0.?).buffer).*).items).len = (operand_14).len;
+            }
+
+            (((((buffers).lane_0.?).buffer).*).items)[@intCast(operand_15)] = operand_16;
+
+            break :block_17 ((((buffers).lane_0.?).buffer).*).items;
+        } else block_19: {
+            const operand_18 = (try (allocator).dupe(i64, operand_14));
+
+            (operand_18)[@intCast(operand_15)] = operand_16;
+
+            break :block_19 operand_18;
+        }));
+    };
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_12) error{ IndexOutOfBounds, OutOfMemory, }![]const i64 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return (try function_0(allocator, in));
+}
+
+pub fn executeValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_12) error{ IndexOutOfBounds, OutOfMemory, }![]const i64 {
+    @setRuntimeSafety(true);
+
+    return (try function_0(allocator, in));
+}
+
+pub fn executeBuffered(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_12, buffers: struct {
+    lane_0: ?struct {
+        buffer: *(std).ArrayList(i64),
+        started: *bool,
+    },
+}) error{ IndexOutOfBounds, OutOfMemory, }![]const i64 {
+    @setRuntimeSafety(true);
+
+    return block_1: {
+        break :block_1 (try function_0_buffered(allocator, in, .{ .lane_0 = (if (((buffers).lane_0 != null)) .{ .buffer = (&(((buffers).lane_0.?).buffer).*), .started = (&(((buffers).lane_0.?).started).*), } else null), }));
+    };
+}
+
+pub const buffer_lanes = .{ .{ .slot = "lane_0", .input = .{ "items", }, .output = .{ }, }, };
+

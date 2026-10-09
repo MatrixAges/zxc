@@ -1,0 +1,181 @@
+pub const zx_type_11 = enum { Scalar, Object, Optional, List, Tuple, ErrorSet, Task, Enumeration, NativeReference, };
+
+pub const zx_type_15 = struct {
+    children: []const u32,
+    field_names: []const []const u8,
+    field_types: []const u32,
+    first: []const u32,
+    kinds: []const u8,
+    labels: []const []const u8,
+    names: []const []const u8,
+    second: []const u32,
+};
+
+pub const zx_type_16 = struct {
+    base: *const zx_type_15,
+    delta: *const zx_type_15,
+};
+
+pub const zx_type_17 = struct {
+    names: []const []const u8,
+    types: []const u32,
+};
+
+pub const zx_type_18 = struct {
+    delta: bool,
+    first: u32,
+    kind: zx_type_11,
+    label: []const u8,
+    second: u32,
+};
+
+pub const zx_type_19 = struct {
+    kind: u8,
+    member: []const u8,
+    owner: []const u8,
+};
+
+pub const zx_type_20 = struct {
+    ids: []const u32,
+    kinds: []const u8,
+    members: []const []const u8,
+    owners: []const []const u8,
+};
+
+pub const zx_type_21 = struct {
+    base: *const zx_type_20,
+    delta: *const zx_type_20,
+};
+
+pub const zx_type_22 = struct {
+    bindings: *const zx_type_20,
+    first: u64,
+    kinds: []const u8,
+    origin: *const zx_type_19,
+};
+
+pub const zx_type_23 = struct {
+    bindings: *const zx_type_20,
+    index: u64,
+    kinds: []const u8,
+    origin: *const zx_type_19,
+};
+
+pub const zx_type_24 = struct { []const u32, void, };
+
+pub const zx_type_25 = struct { []const u8, void, };
+
+pub const zx_type_26 = struct { []const []const u8, void, };
+
+pub const zx_type_27 = struct { *const zx_type_22, };
+
+pub const zx_type_28 = struct { *const zx_type_22, *const zx_type_20, };
+
+pub const value_zx_type_15_74d420388c65b4f82d1929508045cc03e4c927fc5790f97f65a1df1f97c4c49b = struct {
+    children: []const u32,
+    field_names: []const []const u8,
+    field_types: []const u32,
+    first: []const u32,
+    kinds: []const u8,
+    labels: []const []const u8,
+    names: []const []const u8,
+    second: []const u32,
+    zx_origin: ?*const zx_type_15 = null,
+};
+
+pub const value_zx_type_16_1bf0f3d4598512e2e335a8e5fc12bb2fae6bd59146b286ad0a91789b850ba8e9 = struct {
+    base: value_zx_type_15_74d420388c65b4f82d1929508045cc03e4c927fc5790f97f65a1df1f97c4c49b,
+    delta: value_zx_type_15_74d420388c65b4f82d1929508045cc03e4c927fc5790f97f65a1df1f97c4c49b,
+    zx_origin: ?*const zx_type_16 = null,
+};
+
+pub const value_zx_type_17_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct {
+    names: []const []const u8,
+    types: []const u32,
+    zx_origin: ?*const zx_type_17 = null,
+};
+
+pub const value_zx_type_18_2ddc8d81c21e68612e817c7293e54a7cb5f26a22cd74db770ee9bdcef0645bce = struct {
+    delta: bool,
+    first: u32,
+    kind: zx_type_11,
+    label: []const u8,
+    second: u32,
+    zx_origin: ?*const zx_type_18 = null,
+};
+
+pub const value_zx_type_19_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = struct {
+    kind: u8,
+    member: []const u8,
+    owner: []const u8,
+    zx_origin: ?*const zx_type_19 = null,
+};
+
+pub const value_zx_type_20_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 = struct {
+    ids: []const u32,
+    kinds: []const u8,
+    members: []const []const u8,
+    owners: []const []const u8,
+    zx_origin: ?*const zx_type_20 = null,
+};
+
+pub const value_zx_type_21_34a7043d93013edc2fea5c5649b2eacd4cda88a7491617ddd8833cf1f6d00f53 = struct {
+    base: value_zx_type_20_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165,
+    delta: value_zx_type_20_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165,
+    zx_origin: ?*const zx_type_21 = null,
+};
+
+pub const value_zx_type_22_40a072ffc447d600976c329ca9fa046f09fd06a02cf1678f842d3baefe567355 = struct {
+    bindings: value_zx_type_20_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165,
+    first: u64,
+    kinds: []const u8,
+    origin: value_zx_type_19_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292,
+    zx_origin: ?*const zx_type_22 = null,
+};
+
+pub const value_zx_type_23_40a072ffc447d600976c329ca9fa046f09fd06a02cf1678f842d3baefe567355 = struct {
+    bindings: value_zx_type_20_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165,
+    index: u64,
+    kinds: []const u8,
+    origin: value_zx_type_19_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292,
+    zx_origin: ?*const zx_type_23 = null,
+};
+
+pub const value_zx_type_24_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct { []const u32, void, ?*const zx_type_24, };
+
+pub const value_zx_type_25_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct { []const u8, void, ?*const zx_type_25, };
+
+pub const value_zx_type_26_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814 = struct { []const []const u8, void, ?*const zx_type_26, };
+
+pub const value_zx_type_27_8fb63425289e937d7220262ba65cd83917dc2c26eb4e93bd7c0556459176fb58 = struct { value_zx_type_22_40a072ffc447d600976c329ca9fa046f09fd06a02cf1678f842d3baefe567355, ?*const zx_type_27, };
+
+pub const value_zx_type_28_8b89a66143c52246be814d56f7472e20b461885e8a723a3c15a38d038577940c = struct { value_zx_type_22_40a072ffc447d600976c329ca9fa046f09fd06a02cf1678f842d3baefe567355, value_zx_type_20_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165, ?*const zx_type_28, };
+
+pub const native = struct {
+    pub const @"zig:integers" = struct {
+        pub const widen = struct {
+            pub const Input = u32;
+            pub const Output = u64;
+            pub const InputValue = u32;
+            pub const OutputValue = u64;
+        };
+        pub const widenByte = struct {
+            pub const Input = u8;
+            pub const Output = u64;
+            pub const InputValue = u8;
+            pub const OutputValue = u64;
+        };
+        pub const narrow = struct {
+            pub const Input = u64;
+            pub const Output = u32;
+            pub const InputValue = u64;
+            pub const OutputValue = u32;
+        };
+    };
+};
+
+pub const layouts = struct {
+    pub const @"zig:integers" = struct {
+    };
+};
+

@@ -1,0 +1,7 @@
+export type Input = { items: i64[], index: u64, count: u64, replacement: i64[], value: i64 }
+
+export type Output = i64[]
+
+export default function (in: Input): Output {
+    return in.items.splice(in.index, in.count, in.replacement)[0]
+}

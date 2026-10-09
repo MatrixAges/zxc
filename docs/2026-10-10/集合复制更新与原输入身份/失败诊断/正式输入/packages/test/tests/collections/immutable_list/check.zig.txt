@@ -1,0 +1,65 @@
+const std = @import("std");
+const program = @import("program");
+const allocation_testing = @import("allocation_testing");
+const storage = @import("storage.zig");
+
+pub const Case = struct {
+    input: storage.Input,
+    later: storage.Input,
+    expected: []const i64,
+    following: []const i64,
+};
+
+fn execute(arena: *std.heap.ArenaAllocator, source: *storage.Storage) !program.Output {
+    const before = source.*;
+    const input = source.input();
+    const original = input;
+    const result = program.execute(arena, &input);
+
+    try source.check(&before, input, original);
+
+    return result;
+}
+
+fn output(actual: []const i64, expected: []const i64, source: *storage.Storage) !void {
+    const input = source.input();
+
+    try std.testing.expectEqualSlices(i64, expected, actual);
+    try storage.independent(actual, input.items);
+    try storage.independent(actual, input.replacement);
+}
+
+fn verify(allocator: std.mem.Allocator, data: Case) !void {
+    var source = storage.Storage.init(data.input);
+    var arena = std.heap.ArenaAllocator.init(allocator);
+
+    defer arena.deinit();
+
+    _ = try execute(&arena, &source);
+
+    const first = try execute(&arena, &source);
+
+    try output(first, data.expected, &source);
+
+    source.data = data.later;
+
+    const later = execute(&arena, &source) catch |err| {
+        try output(first, data.expected, &source);
+
+        return err;
+    };
+
+    try output(later, data.following, &source);
+    try storage.independent(first, later);
+    try output(first, data.expected, &source);
+}
+
+pub fn check(kind: enum { values, allocations }, data: Case) !void {
+    if (kind == .allocations) {
+        try allocation_testing.checkAllAllocationFailures(std.testing.allocator, verify, .{data});
+
+        std.debug.print("Immutable list allocation sweep completed\n", .{});
+    } else {
+        try verify(std.testing.allocator, data);
+    }
+}
