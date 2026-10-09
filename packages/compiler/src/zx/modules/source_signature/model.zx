@@ -1,0 +1,15 @@
+import type { Table } from "core/type_table/model"
+import type { Bindings } from "core/type_table/nominal"
+import type { Diagnostic } from "../../analysis/semantic/resolving/model"
+
+export type Result = {
+    type_delta: Table
+    nominal_delta: Bindings
+    input_type: u32
+    output_type: u32
+    export_names: string[]
+    export_types: u32[]
+    type_only: bool
+    has_store: bool
+    diagnostic: Diagnostic
+}

@@ -1,9 +1,9 @@
 <Module>
-    <Call module="declarations" in={$in} />
+    <Call module="declarations" in={{ bytes: $in.bytes, syntax: $in.syntax, type_base: $in.context.type_base, aliases: $in.context.aliases, nominal_base: $in.context.nominal_base, nominal_origin: $in.context.nominal_origin, shared: $in.context.shared }} />
 
     <Switch on={$ctx.declarations.diagnostic.message == ""}>
         <Case value={true}>
-            <Call module="signature" in={{ module: $in, types: $ctx.declarations.types }} />
+            <Call module="signature" in={{ syntax: $in.syntax, types: $ctx.declarations.types }} />
 
             <Switch on={$ctx.signature.diagnostic.message == ""}>
                 <Case value={true}>

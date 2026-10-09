@@ -1,7 +1,7 @@
 <Module>
     <Call fn="signature/initial" in={$in} />
 
-    <Switch on={$in.module.syntax.body != null}>
+    <Switch on={$in.syntax.body != null}>
         <Case value={true}>
             <Task name="input" out={$ctx.resolve}>
                 <Call fn="signature/request" in={{ types: $in.types, span: $ctx.initial.span, name: "Input" }} />

@@ -11,7 +11,7 @@ export type Input = { module: ModuleInput, types: Types, diagnostic: Diagnostic 
 export type Output = Prepared
 
 export default function (in: Input): Output {
-    const signature = initialSignature({ module: in.module, types: in.types })
+    const signature = initialSignature({ syntax: in.module.syntax, types: in.types })
     const local = initialLocal({ signature: signature, stores: { paths: [], types: [], handles: [], readable: [], writable: [] }, allow_store: false })
 
     return { types: in.types, local: local, input_type: signature.input_type, diagnostic: in.diagnostic }

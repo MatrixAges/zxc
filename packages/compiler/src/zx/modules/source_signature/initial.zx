@@ -1,0 +1,22 @@
+import type { Types } from "../../analysis/analyzer/types/model"
+import type { Diagnostic } from "../../analysis/semantic/resolving/model"
+import type { Program } from "../../frontend/parser/syntax/model"
+import type { Result } from "./model"
+
+export type Input = { syntax: Program, types: Types, diagnostic: Diagnostic }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    return {
+        type_delta: in.types.delta,
+        nominal_delta: in.types.nominal_delta,
+        input_type: 0,
+        output_type: 0,
+        export_names: [],
+        export_types: [],
+        type_only: in.syntax.body == null,
+        has_store: in.syntax.has_store,
+        diagnostic: in.diagnostic
+    }
+}

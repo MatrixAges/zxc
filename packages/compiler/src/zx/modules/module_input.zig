@@ -1,4 +1,3 @@
-const std = @import("std");
 const zx = @import("zx");
 const Types = @import("../analysis/types.zig");
 const Signature = @import("source_signature.zig");
@@ -42,17 +41,9 @@ pub const Indexed = if (module_result.indexed_enabled) struct {
     pub fn header(self: Self) @import("../frontend/syntax/header.zig").View(@FieldType(module_result.Indexed, "output")) {
         return .{ .source = self.value.source, .storage = self.value.output };
     }
+
     pub fn signature(self: Self, types: *Types) zx.Error!Signature.Result {
-        var scratch = std.heap.ArenaAllocator.init(self.value.syntax_arena.child_allocator);
-
-        defer scratch.deinit();
-
-        const View = @import("../frontend/syntax/program.zig").View(@TypeOf(self.value.output));
-        const view = try View.init(scratch.allocator(), self.value.source, self.value.output);
-
-        try @import("../analysis/types/resolve.zig").initialize(types, view.types);
-
-        return Signature.resolve(types, view.program(), view.types);
+        return @import("source_signature/host.zig").analyze(types, self.value.source, self.value.output);
     }
     pub fn analyze(self: Self, analyzer: *Analyzer, file_name: []const u8) zx.Error!zx.ir.Program {
         return @import("../analysis/analyzer/host/root.zig").analyze(analyzer, self.value.source, self.value.output, file_name);

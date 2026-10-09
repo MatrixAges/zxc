@@ -3,11 +3,14 @@ import run from "../semantic/resolving/run"
 import text from "../semantic/resolving/source/text"
 
 import type { Declaration } from "../../frontend/parser/declarations/model"
-import type { Prepared } from "./model"
+import type { Diagnostic } from "../semantic/resolving/model"
+import type { Types } from "./types/model"
 
-export type Input = { state: Prepared, bytes: u8[], declarations: Declaration[] }
+export type State = { types: Types, diagnostic: Diagnostic }
 
-export type Output = { state: Prepared, names: string[], types: u32[] }
+export type Input = { state: State, bytes: u8[], declarations: Declaration[] }
+
+export type Output = { state: State, names: string[], types: u32[] }
 
 export default function (in: Input): Output {
     const names: string[] = []
