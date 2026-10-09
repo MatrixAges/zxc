@@ -1,0 +1,17 @@
+import { TargetKind } from "./model"
+
+export type Input = TargetKind[]
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ kinds: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.kinds.length,
+        next: current => {
+            current.valid = current.kinds[current.index] != TargetKind.Compiled
+            current.index += 1
+        }
+    })
+
+    return result.valid
+}
