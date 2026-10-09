@@ -1,0 +1,71 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_51b73bfeed9f217ee68b01a94bf3ec1fd02379b09edb0da8e213d200ea6248b2;
+
+pub const Output = *const (zx_abi).zx_type_8cac9d35a2cd303f3bf5a0f3ddc52b866a1df70fa2eb5469c1dd888df7c03387;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_7, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .items = zx_shape_11, .seed = zx_shape_7, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .current = zx_shape_7, .index = zx_shape_5, .previous = zx_shape_7, .source_length = zx_shape_5, .source_value = zx_shape_7, }, };
+
+const zx_shape_14 = .{ .kind = .list, .child = zx_shape_13, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .value = zx_shape_7, .visits = zx_shape_14, }, };
+
+const zx_shape_16 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_14, .@"1" = zx_shape_0, }, };
+
+const zx_shape_17 = .{ .kind = .object, .fields = .{ .index = zx_shape_5, .result = zx_shape_15, .source = zx_shape_11, }, };
+
+pub const input_shape = zx_shape_12;
+
+pub const output_shape = zx_shape_15;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_51b73bfeed9f217ee68b01a94bf3ec1fd02379b09edb0da8e213d200ea6248b2) error{ IndexOutOfBounds, OutOfMemory, Overflow, }!*const (zx_abi).zx_type_8cac9d35a2cd303f3bf5a0f3ddc52b866a1df70fa2eb5469c1dd888df7c03387 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return block_5: {
+        const operand_1 = in;
+        const operand_2 = (try (@import("zxc_module_db5742f9fced472ebb2d110ff96e4713a70d403a99315d96c0a208efd49501f2")).callValue(allocator, (zx_abi).value_zx_type_51b73bfeed9f217ee68b01a94bf3ec1fd02379b09edb0da8e213d200ea6248b2_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814{ .items = (operand_1).items, .seed = (operand_1).seed, .zx_origin = operand_1, }));
+
+        break :block_5 (if (((operand_2).zx_origin != null)) (operand_2).zx_origin.? else block_4: {
+            const operand_3 = (try (allocator).create((zx_abi).zx_type_8cac9d35a2cd303f3bf5a0f3ddc52b866a1df70fa2eb5469c1dd888df7c03387));
+
+            (operand_3).* = (zx_abi).zx_type_8cac9d35a2cd303f3bf5a0f3ddc52b866a1df70fa2eb5469c1dd888df7c03387{ .value = (operand_2).value, .visits = (operand_2).visits, };
+
+            break :block_4 @as(*const (zx_abi).zx_type_8cac9d35a2cd303f3bf5a0f3ddc52b866a1df70fa2eb5469c1dd888df7c03387, operand_3);
+        });
+    };
+}
+

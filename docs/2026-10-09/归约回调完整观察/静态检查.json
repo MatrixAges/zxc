@@ -1,0 +1,37 @@
+{
+    "generator": {
+        "command": ["node", "src/generate_reduce_observers.ts", "--check"],
+        "exit_code": 0,
+        "saved": "执行证据/generator-check.txt",
+        "sha256": "c7013f1a119a43c031258c15031fed51c7294c990d26318330cf5953eb5fe86b"
+    },
+    "audit": {
+        "command": ["node", "src/audit_matrix.ts"],
+        "exit_code": 0,
+        "saved": "执行证据/audit-check.txt",
+        "sha256": "83a31fae805e1183cba57f3d08ebaffbd41ff8e022f60d9dd7762bb018c81629"
+    },
+    "typecheck": {
+        "command": [
+            "node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/node_modules/typescript/bin/tsc",
+            "--ignoreConfig",
+            "--noEmit",
+            "--allowImportingTsExtensions",
+            "--module",
+            "nodenext",
+            "--target",
+            "esnext",
+            "--types",
+            "node",
+            "--typeRoots",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/node_modules/@types",
+            "--strict",
+            "--skipLibCheck",
+            "src/generate_reduce_observers.ts"
+        ],
+        "exit_code": 0,
+        "saved": "执行证据/typecheck-check.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+}

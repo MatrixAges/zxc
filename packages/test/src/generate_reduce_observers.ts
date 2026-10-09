@@ -29,9 +29,15 @@ const inputs = [
 ]
 
 function expectedValue(input: { items: Array<number>; seed: number }) {
-    const visits: Array<{ previous: number; current: number }> = []
-    const value = input.items.reduce((previous, current) => {
-        visits.push({ previous, current })
+    const visits: Array<{
+        previous: number
+        current: number
+        index: number
+        source_value: number
+        source_length: number
+    }> = []
+    const value = input.items.reduce((previous, current, index, source) => {
+        visits.push({ previous, current, index, source_value: source[index], source_length: source.length })
 
         return current
     }, input.seed)
@@ -43,14 +49,14 @@ writeOutput(
     `tests/${base}/cases.zx`,
     `export type Input = { items: i64[], seed: i64 }
 
-export type Output = { value: i64, visits: { previous: i64, current: i64 }[] }
+export type Output = { value: i64, visits: { previous: i64, current: i64, index: u64, source_value: i64, source_length: u64 }[] }
 
 export default function (in: Input): Output {
     const initial: Output = { value: in.seed, visits: [] }
 
-    return in.items.reduce((state, item) => ({
+    return in.items.reduce((state, item, index, source) => ({
         value: item,
-        visits: state.visits.push({ previous: state.value, current: item })[0]
+        visits: state.visits.push({ previous: state.value, current: item, index, source_value: source[index], source_length: source.length })[0]
     }), initial)
 }
 `
