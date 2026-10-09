@@ -1,0 +1,7 @@
+export type Input = { path: string, file_name: string, type_only: bool }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return !in.type_only && in.path == in.file_name
+}

@@ -1,0 +1,13 @@
+import integers from "zig:integers"
+
+import type { Functions } from "./model"
+
+export type Input = { path: string, functions: Functions, index: u32 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.index)
+
+    return in.functions.native_modules[index] == null && in.path == in.functions.files[index]
+}
