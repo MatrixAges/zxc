@@ -1,0 +1,10 @@
+import host from "zig:host"
+
+export type Input = { items: i64[], seed: i64 }
+
+export type Output = i64
+
+export default function (in: Input): Output {
+    return host.source(in.items).reduce((previous, current, index, source) =>
+        host.visit({ previous, current, index, source }), host.seed(in.seed))
+}
