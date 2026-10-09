@@ -6,8 +6,16 @@ const Lower = @import("lower.zig");
 pub const Consumer = struct { symbol: ir.SymbolId, result: ir.ExprId, layout: bool = false };
 
 pub fn lower(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId, result: ir.ExprId, layout: bool) Lower.Error!?*const node.Expression {
-    if (self.transaction() or self.cache.contains(value)) return null;
+    if (self.cache.contains(value)) return null;
     if (self.program.expression(value).value != .iteration) return null;
+
+    if (!self.cache.contains(result)) {
+        const selected = Consumer{ .symbol = symbol, .result = result, .layout = layout };
+
+        if (try @import("simd/iteration.zig").lower(self, self.program.expression(value).value.iteration, selected)) |vector| return vector;
+    }
+
+    if (self.transaction()) return null;
 
     const scalar = switch (self.program.typeOf(self.program.expression(result).type_id)) {
         .scalar => |kind| kind != .string and kind != .void,

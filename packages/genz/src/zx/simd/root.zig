@@ -15,12 +15,16 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?*con
 
     if (input != output or scalar != .scalar or (scalar.scalar != .f32 and scalar.scalar != .f64)) return null;
 
-    const symbol = value.parameters[0];
+    const context = expression.Context{ .element = value.parameters[0] };
 
-    if (!expression.supported(self.program, value.body, symbol, input)) return null;
+    if (!expression.supported(self.program, value.body, context, input)) return null;
 
+    return emit(self, value.target, value.body, input, context);
+}
+
+pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.TypeId, context: expression.Context) Lower.Error!*const node.Expression {
     var body: std.ArrayList(node.Statement) = .empty;
-    const source = try aggregate.bind(self, &body, try self.expr(value.target));
+    const source = try aggregate.bind(self, &body, try self.expr(target));
     const element_type = self.types[@backingInt(input)];
     const length = try self.field(source, "len");
     const result = try aggregate.bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ element_type, length }, true));
@@ -35,7 +39,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?*con
 
     try vector_body.append(self.allocator, .{ .assignment = .{
         .target = try chunk(self, result, offset, width),
-        .value = try expression.lower(self, value.body, vector_type, element),
+        .value = try expression.lower(self, callback, context, vector_type, element),
     } });
 
     try body.append(self.allocator, .{ .for_loop = .{
@@ -46,16 +50,17 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?*con
 
     const tail = try aggregate.bind(self, &body, try intrinsic.binary(self, .multiply, chunks, width));
     const index_name = try self.fresh("index");
-    const callback = try self.expr(value.body);
+    const element_name = try self.fresh("element");
+    const tail_value = try expression.lower(self, callback, context, null, try self.builder.identifier(element_name));
 
     const assignment = node.Statement{ .assignment = .{
         .target = try self.builder.expression(.{ .index = .{ .target = result, .index = try intrinsic.binary(self, .add, tail, try self.builder.identifier(index_name)) } }),
-        .value = callback,
+        .value = tail_value,
     } };
 
     try body.append(self.allocator, .{ .for_loop = .{
         .iterable = try self.builder.expression(.{ .slice = .{ .target = source, .start = tail } }),
-        .capture = if (self.used[@backingInt(symbol)]) self.names[@backingInt(symbol)] else "_",
+        .capture = if (expression.usesElement(self.program, callback, context)) element_name else "_",
         .index_capture = index_name,
         .body = try self.allocator.dupe(node.Statement, &.{assignment}),
     } });
