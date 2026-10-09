@@ -1,0 +1,15 @@
+import integers from "zig:integers"
+
+export type Input = { mapping: u32[], first: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    return loop({ mapping: in.mapping, first: in.first, index: 0 }, {
+        while: current => current.index < current.first,
+        next: current => {
+            current.mapping = current.mapping.with(current.index, integers.narrow(current.index))
+            current.index += 1
+        }
+    }).mapping
+}

@@ -1,0 +1,17 @@
+import integers from "zig:integers"
+
+import { Status } from "./model"
+
+import type { Search } from "./model"
+
+export type Input = Search
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match in.status {
+        Status.Missing => 0,
+        Status.Conflict => 1,
+        _ => integers.widen(in.id) + 2
+    }
+}

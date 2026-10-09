@@ -1,0 +1,21 @@
+import type { Table } from "../types/model"
+import type { Bindings } from "../types/nominal/model"
+
+export type Request = {
+    source: Table
+    origins: Bindings
+    origin_indices: u64[]
+    base: Table
+    base_origins: Bindings
+    first: u64
+}
+
+export type State = {
+    mapping: u32[]
+    delta: Table
+    origins: Bindings
+    references: u32[]
+    status: u64
+}
+
+export type Input = { request: Request, state: State }

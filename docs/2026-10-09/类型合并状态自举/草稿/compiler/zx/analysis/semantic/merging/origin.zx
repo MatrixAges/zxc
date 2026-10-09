@@ -1,0 +1,14 @@
+import type { Origin, Bindings } from "../types/nominal/model"
+
+export type Input = { bindings: Bindings, origin: Origin, id: u32 }
+
+export type Output = Bindings
+
+export default function (in: Input): Output {
+    return {
+        ids: in.bindings.ids.push(in.id)[0],
+        kinds: in.bindings.kinds.push(in.origin.kind)[0],
+        owners: in.bindings.owners.push(in.origin.owner)[0],
+        members: in.bindings.members.push(in.origin.member)[0]
+    }
+}

@@ -1,0 +1,49 @@
+import integers from "zig:integers"
+
+import { Kind } from "../types/model"
+
+import type { Candidate, Table } from "../types/model"
+
+export type Input = { delta: Table, candidate: Candidate }
+
+export type Output = Table
+
+export default function (in: Input): Output {
+    const code: u8 = match in.candidate.kind {
+        Kind.Scalar => 0,
+        Kind.Object => 1,
+        Kind.Optional => 2,
+        Kind.List => 3,
+        Kind.Tuple => 4,
+        Kind.ErrorSet => 5,
+        Kind.Task => 6,
+        Kind.Enumeration => 7,
+        _ => 8
+    }
+
+    const named = in.candidate.kind == Kind.ErrorSet || in.candidate.kind == Kind.Enumeration
+
+    const first: u32 = match in.candidate.kind {
+        Kind.Object => integers.narrow(in.delta.field_types.length),
+        Kind.Tuple => integers.narrow(in.delta.children.length),
+        Kind.ErrorSet => integers.narrow(in.delta.names.length),
+        Kind.Enumeration => integers.narrow(in.delta.names.length),
+        _ => in.candidate.first
+    }
+
+    const second: u32 = match in.candidate.kind {
+        Kind.Object => integers.narrow(in.candidate.fields.names.length),
+        Kind.Tuple => integers.narrow(in.candidate.children.length),
+        Kind.ErrorSet => integers.narrow(in.candidate.names.length),
+        Kind.Enumeration => integers.narrow(in.candidate.names.length),
+        _ => in.candidate.second
+    }
+
+    return {
+        kinds: in.delta.kinds.push(code)[0], first: in.delta.first.push(first)[0], second: in.delta.second.push(second)[0], labels: in.delta.labels.push(in.candidate.label)[0],
+        children: in.candidate.kind == Kind.Tuple ? in.delta.children.concat(in.candidate.children)[0] : in.delta.children,
+        field_types: in.candidate.kind == Kind.Object ? in.delta.field_types.concat(in.candidate.fields.types)[0] : in.delta.field_types,
+        field_names: in.candidate.kind == Kind.Object ? in.delta.field_names.concat(in.candidate.fields.names)[0] : in.delta.field_names,
+        names: named ? in.delta.names.concat(in.candidate.names)[0] : in.delta.names
+    }
+}

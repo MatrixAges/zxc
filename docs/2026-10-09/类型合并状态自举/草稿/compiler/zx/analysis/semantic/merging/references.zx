@@ -1,0 +1,37 @@
+import integers from "zig:integers"
+
+import kind from "../types/kind"
+import { Kind } from "../types/model"
+
+import type { Table } from "../types/model"
+
+export type Input = { source: Table, index: u64, mapping: u32[], references: u32[] }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const type_kind = kind(in.source.kinds[in.index])
+    const empty = in.references.splice(0, 0, [])[1]
+
+    if (type_kind == Kind.Optional || type_kind == Kind.List || type_kind == Kind.Task) {
+        const first = in.mapping[integers.widen(in.source.first[in.index])]
+        const single = empty.push(first)[0]
+
+        return type_kind == Kind.Task ? single.push(in.mapping[integers.widen(in.source.second[in.index])])[0] : single
+    }
+
+    const dynamic = type_kind == Kind.Tuple || type_kind == Kind.Object
+    const values = type_kind == Kind.Tuple ? in.source.children : in.source.field_types
+    const count = dynamic ? integers.widen(in.source.second[in.index]) : 0
+    const first = integers.widen(in.source.first[in.index])
+
+    return loop({ mapping: in.mapping, values: values, first: first, count: count, index: 0, references: empty }, {
+        while: current => current.index < current.count,
+        next: current => {
+            const id = integers.widen(current.values[current.first + current.index])
+
+            current.references = current.references.push(current.mapping[id])[0]
+            current.index += 1
+        }
+    }).references
+}
