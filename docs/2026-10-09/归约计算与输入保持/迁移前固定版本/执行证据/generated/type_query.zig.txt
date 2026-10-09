@@ -1,0 +1,631 @@
+const std = @import("std");
+
+const zx_native_0 = @import("integers");
+
+const zx_abi = @import("zxc_abi");
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .scalar, };
+
+const zx_shape_12 = .{ .kind = .list, .child = zx_shape_2, };
+
+const zx_shape_13 = .{ .kind = .list, .child = zx_shape_4, };
+
+const zx_shape_14 = .{ .kind = .list, .child = zx_shape_10, };
+
+const zx_shape_15 = .{ .kind = .object, .fields = .{ .children = zx_shape_13, .field_names = zx_shape_14, .field_types = zx_shape_13, .first = zx_shape_13, .kinds = zx_shape_12, .labels = zx_shape_14, .names = zx_shape_14, .second = zx_shape_13, }, };
+
+const zx_shape_16 = .{ .kind = .object, .fields = .{ .base = zx_shape_15, .delta = zx_shape_15, }, };
+
+const zx_shape_17 = .{ .kind = .object, .fields = .{ .delta = zx_shape_1, .first = zx_shape_4, .kind = zx_shape_11, .label = zx_shape_10, .second = zx_shape_4, }, };
+
+const zx_shape_18 = .{ .kind = .object, .fields = .{ .names = zx_shape_14, .types = zx_shape_13, }, };
+
+const zx_shape_19 = .{ .kind = .object, .fields = .{ .children = zx_shape_13, .fields = zx_shape_18, .first = zx_shape_4, .kind = zx_shape_11, .label = zx_shape_10, .names = zx_shape_14, .second = zx_shape_4, }, };
+
+const zx_shape_20 = .{ .kind = .object, .fields = .{ .found = zx_shape_1, .id = zx_shape_4, }, };
+
+const zx_shape_21 = .{ .kind = .object, .fields = .{ .delta = zx_shape_15, .id = zx_shape_4, }, };
+
+const zx_shape_22 = .{ .kind = .object, .fields = .{ .id = zx_shape_4, .tables = zx_shape_16, }, };
+
+const zx_shape_23 = .{ .kind = .list, .child = zx_shape_1, };
+
+const zx_shape_24 = .{ .kind = .object, .fields = .{ .flags = zx_shape_23, .index = zx_shape_5, .native_references = zx_shape_1, .tables = zx_shape_16, }, };
+
+const zx_shape_25 = .{ .kind = .object, .fields = .{ .children = zx_shape_13, .count = zx_shape_5, .flags = zx_shape_23, .found = zx_shape_1, .index = zx_shape_5, .offset = zx_shape_5, }, };
+
+const zx_shape_26 = .{ .kind = .object, .fields = .{ .id = zx_shape_4, .native_references = zx_shape_1, .tables = zx_shape_16, }, };
+
+const zx_shape_27 = .{ .kind = .object, .fields = .{ .found = zx_shape_1, .index = zx_shape_5, .limit = zx_shape_5, .tables = zx_shape_16, .target = zx_shape_11, }, };
+
+const zx_shape_28 = .{ .kind = .object, .fields = .{ .first = zx_shape_5, .flags = zx_shape_23, .index = zx_shape_5, .limit = zx_shape_5, .native_references = zx_shape_1, .tables = zx_shape_16, }, };
+
+const zx_shape_29 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_23, .@"1" = zx_shape_0, }, };
+
+const zx_shape_30 = .{ .kind = .object, .fields = .{ .id = zx_shape_4, .native_references = zx_shape_1, .table = zx_shape_15, }, };
+
+const zx_shape_31 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_30, }, };
+
+const zx_shape_32 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_30, .@"1" = zx_shape_1, }, };
+
+pub const input_shape = zx_shape_30;
+
+pub const output_shape = zx_shape_1;
+
+pub const Input = *const (zx_abi).zx_type_30;
+
+pub const Output = bool;
+
+fn function_0(allocator: ((std).mem).Allocator, in: u32) error{ }!u64 {
+    const native_result = (zx_native_0).widen(in);
+
+    _ = allocator;
+
+    return native_result;
+}
+
+fn function_1(allocator: ((std).mem).Allocator, in: u8) error{ }!u64 {
+    const native_result = (zx_native_0).widenByte(in);
+
+    _ = allocator;
+
+    return native_result;
+}
+
+fn function_2(allocator: ((std).mem).Allocator, in: u64) error{ IntegerOverflow, }!u32 {
+    const native_result = (try (zx_native_0).narrow(in));
+
+    _ = allocator;
+
+    return native_result;
+}
+
+fn function_3(allocator: ((std).mem).Allocator, in: u8) error{ }!(zx_abi).zx_type_11 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return block_2: {
+        const operand_1 = in;
+
+        break :block_2 (if ((operand_1 == @as(u8, 0))) @as((zx_abi).zx_type_11, .Scalar) else (if ((operand_1 == @as(u8, 1))) @as((zx_abi).zx_type_11, .Object) else (if ((operand_1 == @as(u8, 2))) @as((zx_abi).zx_type_11, .Optional) else (if ((operand_1 == @as(u8, 3))) @as((zx_abi).zx_type_11, .List) else (if ((operand_1 == @as(u8, 4))) @as((zx_abi).zx_type_11, .Tuple) else (if ((operand_1 == @as(u8, 5))) @as((zx_abi).zx_type_11, .ErrorSet) else (if ((operand_1 == @as(u8, 6))) @as((zx_abi).zx_type_11, .Task) else (if ((operand_1 == @as(u8, 7))) @as((zx_abi).zx_type_11, .Enumeration) else @as((zx_abi).zx_type_11, .NativeReference)))))))));
+    };
+}
+
+fn function_4(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_22) error{ IndexOutOfBounds, OutOfMemory, }!*const (zx_abi).zx_type_17 {
+    @setRuntimeSafety(true);
+
+    const value_1: u64 = @as(u64, ((((in).tables).base).kinds).len);
+    const value_2: u64 = (try function_0(allocator, (in).id));
+    const value_3: bool = (value_2 >= value_1);
+    const value_4: *const (zx_abi).zx_type_15 = (if (value_3) ((in).tables).delta else ((in).tables).base);
+    const value_5: u64 = (if (value_3) (value_2 - value_1) else value_2);
+
+    return block_20: {
+        const operand_1 = (try function_3(allocator, block_4: {
+            const operand_2 = (value_4).kinds;
+            const operand_3 = value_5;
+
+            if ((operand_3 >= (operand_2).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_4 (operand_2)[@intCast(operand_3)];
+        }));
+        const operand_5 = block_8: {
+            const operand_6 = (value_4).first;
+            const operand_7 = value_5;
+
+            if ((operand_7 >= (operand_6).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_8 (operand_6)[@intCast(operand_7)];
+        };
+        const operand_9 = block_12: {
+            const operand_10 = (value_4).second;
+            const operand_11 = value_5;
+
+            if ((operand_11 >= (operand_10).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_12 (operand_10)[@intCast(operand_11)];
+        };
+        const operand_13 = block_16: {
+            const operand_14 = (value_4).labels;
+            const operand_15 = value_5;
+
+            if ((operand_15 >= (operand_14).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_16 (operand_14)[@intCast(operand_15)];
+        };
+        const operand_17 = value_3;
+
+        break :block_20 block_19: {
+            const operand_18 = (try (allocator).create((zx_abi).zx_type_17));
+
+            (operand_18).* = @as((zx_abi).zx_type_17, (zx_abi).zx_type_17{ .kind = operand_1, .first = operand_5, .second = operand_9, .label = operand_13, .delta = operand_17, });
+
+            break :block_19 @as(*const (zx_abi).zx_type_17, operand_18);
+        };
+    };
+}
+
+fn function_4_value(allocator: ((std).mem).Allocator, in: (zx_abi).value_zx_type_22_7c1fb3c3119eaae5cd4f1cb07357028eca5a8de092f6534ed4fdf3ca985575ec) error{ IndexOutOfBounds, OutOfMemory, }!(zx_abi).value_zx_type_17_2ddc8d81c21e68612e817c7293e54a7cb5f26a22cd74db770ee9bdcef0645bce {
+    @setRuntimeSafety(true);
+
+    const value_1: u64 = @as(u64, ((((in).tables).base).kinds).len);
+    const value_2: u64 = block_58: {
+        const operand_57 = (in).id;
+
+        break :block_58 (try function_0(allocator, operand_57));
+    };
+    const value_3: bool = (block_55: {
+        break :block_55 value_2;
+    } >= block_56: {
+        break :block_56 value_1;
+    });
+    const value_4: (zx_abi).zx_type_15 = (if (block_54: {
+        break :block_54 value_3;
+    }) (((in).tables).delta).* else (((in).tables).base).*);
+    const value_5: u64 = (if (block_50: {
+        break :block_50 value_3;
+    }) (block_51: {
+        break :block_51 value_2;
+    } - block_52: {
+        break :block_52 value_1;
+    }) else block_53: {
+        break :block_53 value_2;
+    });
+
+    return block_49: {
+        const operand_21 = block_28: {
+            const operand_27 = block_26: {
+                const operand_24 = (block_22: {
+                    break :block_22 (&value_4);
+                }).kinds;
+                const operand_25 = block_23: {
+                    break :block_23 value_5;
+                };
+
+                if ((operand_25 >= (operand_24).len)) {
+                    return error.IndexOutOfBounds;
+                }
+
+                break :block_26 (operand_24)[@intCast(operand_25)];
+            };
+
+            break :block_28 (try function_3(allocator, operand_27));
+        };
+        const operand_29 = block_34: {
+            const operand_32 = (block_30: {
+                break :block_30 (&value_4);
+            }).first;
+            const operand_33 = block_31: {
+                break :block_31 value_5;
+            };
+
+            if ((operand_33 >= (operand_32).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_34 (operand_32)[@intCast(operand_33)];
+        };
+        const operand_35 = block_40: {
+            const operand_38 = (block_36: {
+                break :block_36 (&value_4);
+            }).second;
+            const operand_39 = block_37: {
+                break :block_37 value_5;
+            };
+
+            if ((operand_39 >= (operand_38).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_40 (operand_38)[@intCast(operand_39)];
+        };
+        const operand_41 = block_46: {
+            const operand_44 = (block_42: {
+                break :block_42 (&value_4);
+            }).labels;
+            const operand_45 = block_43: {
+                break :block_43 value_5;
+            };
+
+            if ((operand_45 >= (operand_44).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_46 (operand_44)[@intCast(operand_45)];
+        };
+        const operand_47 = block_48: {
+            break :block_48 value_3;
+        };
+
+        break :block_49 @as((zx_abi).value_zx_type_17_2ddc8d81c21e68612e817c7293e54a7cb5f26a22cd74db770ee9bdcef0645bce, (zx_abi).value_zx_type_17_2ddc8d81c21e68612e817c7293e54a7cb5f26a22cd74db770ee9bdcef0645bce{ .kind = operand_21, .first = operand_29, .second = operand_35, .label = operand_41, .delta = operand_47, });
+    };
+}
+
+fn function_5(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_24) error{ IndexOutOfBounds, IntegerOverflow, OutOfMemory, }!bool {
+    @setRuntimeSafety(true);
+
+    const value_1: (zx_abi).zx_type_17 = block_32: {
+        const operand_26 = (in).tables;
+        const operand_27 = (try function_2(allocator, (in).index));
+        const operand_28 = (zx_abi).zx_type_22{ .tables = operand_26, .id = operand_27, };
+        const operand_29 = (&operand_28);
+        const operand_30 = (try function_4_value(allocator, (zx_abi).value_zx_type_22_7c1fb3c3119eaae5cd4f1cb07357028eca5a8de092f6534ed4fdf3ca985575ec{ .id = (operand_29).id, .tables = (zx_abi).value_zx_type_16_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814{ .base = ((operand_29).tables).base, .delta = ((operand_29).tables).delta, .zx_origin = (operand_29).tables, }, .zx_origin = operand_29, }));
+
+        break :block_32 (if (((operand_30).zx_origin != null)) ((operand_30).zx_origin.?).* else block_31: {
+            break :block_31 (zx_abi).zx_type_17{ .delta = (operand_30).delta, .first = (operand_30).first, .kind = (operand_30).kind, .label = (operand_30).label, .second = (operand_30).second, };
+        });
+    };
+    const value_2: (zx_abi).zx_type_11 = ((&value_1)).kind;
+    const value_3: (zx_abi).zx_type_11 = (if ((in).native_references) @as((zx_abi).zx_type_11, .NativeReference) else @as((zx_abi).zx_type_11, .List));
+
+    if ((value_2 == value_3)) {
+        return true;
+    }
+
+    if (((value_2 == @as((zx_abi).zx_type_11, .Optional)) or ((in).native_references and ((value_2 == @as((zx_abi).zx_type_11, .List)) or (value_2 == @as((zx_abi).zx_type_11, .Task)))))) {
+        return block_25: {
+            const operand_23 = (in).flags;
+            const operand_24 = (try function_0(allocator, ((&value_1)).first));
+
+            if ((operand_24 >= (operand_23).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_25 (operand_23)[@intCast(operand_24)];
+        };
+    }
+
+    if (((value_2 != @as((zx_abi).zx_type_11, .Tuple)) and (value_2 != @as((zx_abi).zx_type_11, .Object)))) {
+        return false;
+    }
+
+    const value_4: (zx_abi).zx_type_15 = (if (((&value_1)).delta) (((in).tables).delta).* else (((in).tables).base).*);
+    const value_5: []const u32 = (if ((value_2 == @as((zx_abi).zx_type_11, .Tuple))) ((&value_4)).children else ((&value_4)).field_types);
+
+    return block_22: {
+        const operand_9 = block_8: {
+            const operand_2 = (in).flags;
+            const operand_3 = value_5;
+            const operand_4 = (try function_0(allocator, ((&value_1)).first));
+            const operand_5 = (try function_0(allocator, ((&value_1)).second));
+            const operand_6 = @as(u64, 0);
+            const operand_7 = false;
+
+            break :block_8 (zx_abi).zx_type_25{ .flags = operand_2, .children = operand_3, .offset = operand_4, .count = operand_5, .index = operand_6, .found = operand_7, };
+        };
+
+        var state_1: (zx_abi).value_zx_type_25_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701 = (zx_abi).value_zx_type_25_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701{ .children = (operand_9).children, .count = (operand_9).count, .flags = (operand_9).flags, .found = (operand_9).found, .index = (operand_9).index, .offset = (operand_9).offset, .zx_origin = (&operand_9), };
+
+        while (((!(state_1).found) and ((state_1).index < (state_1).count))) {
+            state_1 = block_21: {
+                const value_8: (zx_abi).value_zx_type_25_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701 = block_20: {
+                    break :block_20 @as((zx_abi).value_zx_type_25_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701, (zx_abi).value_zx_type_25_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701{ .children = (state_1).children, .count = (state_1).count, .flags = (state_1).flags, .found = block_19: {
+                        const operand_17 = (state_1).flags;
+                        const operand_18 = block_16: {
+                            const operand_15 = block_14: {
+                                const operand_12 = (state_1).children;
+                                const operand_13 = ((state_1).offset + (state_1).index);
+
+                                if ((operand_13 >= (operand_12).len)) {
+                                    return error.IndexOutOfBounds;
+                                }
+
+                                break :block_14 (operand_12)[@intCast(operand_13)];
+                            };
+
+                            break :block_16 (try function_0(allocator, operand_15));
+                        };
+
+                        if ((operand_18 >= (operand_17).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_19 (operand_17)[@intCast(operand_18)];
+                    }, .index = (state_1).index, .offset = (state_1).offset, });
+                };
+                const value_9: u64 = (value_8).index;
+                const value_10: (zx_abi).value_zx_type_25_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701 = block_11: {
+                    break :block_11 @as((zx_abi).value_zx_type_25_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701, (zx_abi).value_zx_type_25_c49a07f0cb1fc4a63cf7628de04d8941b125bb18730256ca50477a6a29730701{ .children = (value_8).children, .count = (value_8).count, .flags = (value_8).flags, .found = (value_8).found, .index = (block_10: {
+                        break :block_10 value_9;
+                    } + @as(u64, 1)), .offset = (value_8).offset, });
+                };
+
+                break :block_21 value_10;
+            };
+        }
+
+        break :block_22 (state_1).found;
+    };
+}
+
+fn function_6(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_26) error{ IndexOutOfBounds, IntegerOverflow, OutOfMemory, Overflow, }!bool {
+    @setRuntimeSafety(true);
+
+    const value_1: u64 = (try function_0(allocator, (in).id));
+    const value_2: (zx_abi).zx_type_11 = (if ((in).native_references) @as((zx_abi).zx_type_11, .NativeReference) else @as((zx_abi).zx_type_11, .List));
+
+    if (((block_77: {
+        const operand_71 = (in).tables;
+        const operand_72 = (in).id;
+        const operand_73 = (zx_abi).zx_type_22{ .tables = operand_71, .id = operand_72, };
+        const operand_74 = (&operand_73);
+        const operand_75 = (try function_4_value(allocator, (zx_abi).value_zx_type_22_7c1fb3c3119eaae5cd4f1cb07357028eca5a8de092f6534ed4fdf3ca985575ec{ .id = (operand_74).id, .tables = (zx_abi).value_zx_type_16_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814{ .base = ((operand_74).tables).base, .delta = ((operand_74).tables).delta, .zx_origin = (operand_74).tables, }, .zx_origin = operand_74, }));
+
+        break :block_77 (if (((operand_75).zx_origin != null)) ((operand_75).zx_origin.?).* else block_76: {
+            break :block_76 (zx_abi).zx_type_17{ .delta = (operand_75).delta, .first = (operand_75).first, .kind = (operand_75).kind, .label = (operand_75).label, .second = (operand_75).second, };
+        });
+    }).kind == value_2)) {
+        return true;
+    }
+
+    const value_8: (zx_abi).zx_type_27 = block_70: {
+        const operand_55 = block_54: {
+            const operand_49 = (in).tables;
+            const operand_50 = value_1;
+            const operand_51 = value_2;
+            const operand_52 = @as(u64, 0);
+            const operand_53 = false;
+
+            break :block_54 (zx_abi).zx_type_27{ .tables = operand_49, .limit = operand_50, .target = operand_51, .index = operand_52, .found = operand_53, };
+        };
+
+        var state_48: (zx_abi).value_zx_type_27_eae2123bf93423943f2172cdbbc64d8891f5c5aa82b7fb019a459ba0c881d5bc = (zx_abi).value_zx_type_27_eae2123bf93423943f2172cdbbc64d8891f5c5aa82b7fb019a459ba0c881d5bc{ .found = (operand_55).found, .index = (operand_55).index, .limit = (operand_55).limit, .tables = (zx_abi).value_zx_type_16_b5816fa2b3544d0ae53d8d80e4e8f16090caa096626dd61dae8a75a090525814{ .base = ((operand_55).tables).base, .delta = ((operand_55).tables).delta, .zx_origin = (operand_55).tables, }, .target = (operand_55).target, .zx_origin = (&operand_55), };
+
+        while (((!(state_48).found) and ((state_48).index < (state_48).limit))) {
+            state_48 = block_65: {
+                const value_5: (zx_abi).value_zx_type_27_eae2123bf93423943f2172cdbbc64d8891f5c5aa82b7fb019a459ba0c881d5bc = block_64: {
+                    break :block_64 @as((zx_abi).value_zx_type_27_eae2123bf93423943f2172cdbbc64d8891f5c5aa82b7fb019a459ba0c881d5bc, (zx_abi).value_zx_type_27_eae2123bf93423943f2172cdbbc64d8891f5c5aa82b7fb019a459ba0c881d5bc{ .found = ((block_63: {
+                        break :block_63 (try function_4_value(allocator, block_62: {
+                            const operand_58 = (state_48).tables;
+                            const operand_59 = block_61: {
+                                const operand_60 = (state_48).index;
+
+                                break :block_61 (try function_2(allocator, operand_60));
+                            };
+
+                            break :block_62 @as((zx_abi).value_zx_type_22_7c1fb3c3119eaae5cd4f1cb07357028eca5a8de092f6534ed4fdf3ca985575ec, (zx_abi).value_zx_type_22_7c1fb3c3119eaae5cd4f1cb07357028eca5a8de092f6534ed4fdf3ca985575ec{ .tables = operand_58, .id = operand_59, });
+                        }));
+                    }).kind == (state_48).target), .index = (state_48).index, .limit = (state_48).limit, .tables = (state_48).tables, .target = (state_48).target, });
+                };
+                const value_6: u64 = (value_5).index;
+                const value_7: (zx_abi).value_zx_type_27_eae2123bf93423943f2172cdbbc64d8891f5c5aa82b7fb019a459ba0c881d5bc = block_57: {
+                    break :block_57 @as((zx_abi).value_zx_type_27_eae2123bf93423943f2172cdbbc64d8891f5c5aa82b7fb019a459ba0c881d5bc, (zx_abi).value_zx_type_27_eae2123bf93423943f2172cdbbc64d8891f5c5aa82b7fb019a459ba0c881d5bc{ .found = (value_5).found, .index = (block_56: {
+                        break :block_56 value_6;
+                    } + @as(u64, 1)), .limit = (value_5).limit, .tables = (value_5).tables, .target = (value_5).target, });
+                };
+
+                break :block_65 value_7;
+            };
+        }
+
+        break :block_70 block_69: {
+            break :block_69 (if (((state_48).zx_origin != null)) ((state_48).zx_origin.?).* else block_68: {
+                break :block_68 (zx_abi).zx_type_27{ .found = (state_48).found, .index = (state_48).index, .limit = (state_48).limit, .tables = (if ((((state_48).tables).zx_origin != null)) ((state_48).tables).zx_origin.? else block_67: {
+                    const operand_66 = (try (allocator).create((zx_abi).zx_type_16));
+
+                    (operand_66).* = (zx_abi).zx_type_16{ .base = ((state_48).tables).base, .delta = ((state_48).tables).delta, };
+
+                    break :block_67 @as(*const (zx_abi).zx_type_16, operand_66);
+                }), .target = (state_48).target, };
+            });
+        };
+    };
+
+    if ((!((&value_8)).found)) {
+        return false;
+    }
+
+    const value_9: []const bool = @as([]const bool, (comptime (&[_]bool{})));
+
+    return block_47: {
+        const state_type_2 = struct {
+            children: []const u32,
+            field_names: []const []const u8,
+            field_types: []const u32,
+            first: []const u32,
+            kinds: []const u8,
+            labels: []const []const u8,
+            names: []const []const u8,
+            second: []const u32,
+        };
+        const state_type_3 = struct {
+            base: state_type_2,
+            delta: state_type_2,
+        };
+        const state_type_4 = struct {
+            first: u64,
+            flags: []const bool,
+            index: u64,
+            limit: u64,
+            native_references: bool,
+            tables: state_type_3,
+        };
+        const state_type_6 = struct {
+            id: u32,
+            native_references: bool,
+            tables: state_type_3,
+        };
+        const state_type_11 = struct {
+            found: bool,
+            index: u64,
+            limit: u64,
+            tables: state_type_3,
+            target: (zx_abi).zx_type_11,
+        };
+        const operand_20 = block_19: {
+            const operand_8 = (block_7: {
+                const operand_5 = in;
+
+                break :block_7 state_type_6{ .id = (operand_5).id, .native_references = (operand_5).native_references, .tables = state_type_3{ .base = state_type_2{ .children = (((operand_5).tables).base).children, .field_names = (((operand_5).tables).base).field_names, .field_types = (((operand_5).tables).base).field_types, .first = (((operand_5).tables).base).first, .kinds = (((operand_5).tables).base).kinds, .labels = (((operand_5).tables).base).labels, .names = (((operand_5).tables).base).names, .second = (((operand_5).tables).base).second, }, .delta = state_type_2{ .children = (((operand_5).tables).delta).children, .field_names = (((operand_5).tables).delta).field_names, .field_types = (((operand_5).tables).delta).field_types, .first = (((operand_5).tables).delta).first, .kinds = (((operand_5).tables).delta).kinds, .labels = (((operand_5).tables).delta).labels, .names = (((operand_5).tables).delta).names, .second = (((operand_5).tables).delta).second, }, }, };
+            }).tables;
+            const operand_9 = @as(u64, 0);
+            const operand_13 = ((block_12: {
+                const operand_10 = (&value_8);
+
+                break :block_12 state_type_11{ .found = (operand_10).found, .index = (operand_10).index, .limit = (operand_10).limit, .tables = state_type_3{ .base = state_type_2{ .children = (((operand_10).tables).base).children, .field_names = (((operand_10).tables).base).field_names, .field_types = (((operand_10).tables).base).field_types, .first = (((operand_10).tables).base).first, .kinds = (((operand_10).tables).base).kinds, .labels = (((operand_10).tables).base).labels, .names = (((operand_10).tables).base).names, .second = (((operand_10).tables).base).second, }, .delta = state_type_2{ .children = (((operand_10).tables).delta).children, .field_names = (((operand_10).tables).delta).field_names, .field_types = (((operand_10).tables).delta).field_types, .first = (((operand_10).tables).delta).first, .kinds = (((operand_10).tables).delta).kinds, .labels = (((operand_10).tables).delta).labels, .names = (((operand_10).tables).delta).names, .second = (((operand_10).tables).delta).second, }, }, .target = (operand_10).target, };
+            }).index - @as(u64, 1));
+            const operand_14 = (value_1 + @as(u64, 1));
+            const operand_15 = value_9;
+            const operand_18 = (block_17: {
+                const operand_16 = in;
+
+                break :block_17 state_type_6{ .id = (operand_16).id, .native_references = (operand_16).native_references, .tables = state_type_3{ .base = state_type_2{ .children = (((operand_16).tables).base).children, .field_names = (((operand_16).tables).base).field_names, .field_types = (((operand_16).tables).base).field_types, .first = (((operand_16).tables).base).first, .kinds = (((operand_16).tables).base).kinds, .labels = (((operand_16).tables).base).labels, .names = (((operand_16).tables).base).names, .second = (((operand_16).tables).base).second, }, .delta = state_type_2{ .children = (((operand_16).tables).delta).children, .field_names = (((operand_16).tables).delta).field_names, .field_types = (((operand_16).tables).delta).field_types, .first = (((operand_16).tables).delta).first, .kinds = (((operand_16).tables).delta).kinds, .labels = (((operand_16).tables).delta).labels, .names = (((operand_16).tables).delta).names, .second = (((operand_16).tables).delta).second, }, }, };
+            }).native_references;
+
+            break :block_19 state_type_4{ .tables = operand_8, .index = operand_9, .first = operand_13, .limit = operand_14, .flags = operand_15, .native_references = operand_18, };
+        };
+
+        var state_capacity_22: (std).ArrayList(bool) = .empty;
+
+        var state_capacity_started_23 = false;
+
+        defer (state_capacity_22).deinit(allocator);
+
+        const state_type_25 = struct { []const bool, void, };
+        const state_type_30 = struct {
+            flags: []const bool,
+            index: u64,
+            native_references: bool,
+            tables: state_type_3,
+        };
+
+        var state_1: state_type_4 = operand_20;
+
+        var state_changed_21 = false;
+
+        while (((state_1).index < (state_1).limit)) {
+            state_1 = block_43: {
+                const value_12: bool = (((state_1).index >= (state_1).first) and block_42: {
+                    const operand_36 = block_35: {
+                        const operand_31 = (state_1).tables;
+                        const operand_32 = (state_1).index;
+                        const operand_33 = (state_1).flags;
+                        const operand_34 = (state_1).native_references;
+
+                        break :block_35 state_type_30{ .tables = operand_31, .index = operand_32, .flags = operand_33, .native_references = operand_34, };
+                    };
+                    const operand_37 = (zx_abi).zx_type_15{ .children = (((operand_36).tables).base).children, .field_names = (((operand_36).tables).base).field_names, .field_types = (((operand_36).tables).base).field_types, .first = (((operand_36).tables).base).first, .kinds = (((operand_36).tables).base).kinds, .labels = (((operand_36).tables).base).labels, .names = (((operand_36).tables).base).names, .second = (((operand_36).tables).base).second, };
+                    const operand_38 = (zx_abi).zx_type_15{ .children = (((operand_36).tables).delta).children, .field_names = (((operand_36).tables).delta).field_names, .field_types = (((operand_36).tables).delta).field_types, .first = (((operand_36).tables).delta).first, .kinds = (((operand_36).tables).delta).kinds, .labels = (((operand_36).tables).delta).labels, .names = (((operand_36).tables).delta).names, .second = (((operand_36).tables).delta).second, };
+                    const operand_39 = (zx_abi).zx_type_16{ .base = (&operand_37), .delta = (&operand_38), };
+                    const operand_40 = (zx_abi).zx_type_24{ .flags = (operand_36).flags, .index = (operand_36).index, .native_references = (operand_36).native_references, .tables = (&operand_39), };
+                    const operand_41 = (try function_5(allocator, (&operand_40)));
+
+                    break :block_42 operand_41;
+                });
+                const value_13: state_type_4 = block_29: {
+                    break :block_29 state_type_4{ .first = (state_1).first, .flags = (block_28: {
+                        const operand_26 = (state_1).flags;
+                        const operand_27 = value_12;
+
+                        _ = (try ((std).math).add(usize, (operand_26).len, 1));
+
+                        if ((!state_capacity_started_23)) {
+                            (try (state_capacity_22).appendSlice(allocator, operand_26));
+
+                            state_capacity_started_23 = true;
+                        } else {
+                            ((state_capacity_22).items).len = (operand_26).len;
+                        }
+
+                        (try (state_capacity_22).append(allocator, operand_27));
+
+                        break :block_28 @as(state_type_25, .{ (state_capacity_22).items, {}, });
+                    }).@"0", .index = (state_1).index, .limit = (state_1).limit, .native_references = (state_1).native_references, .tables = (state_1).tables, };
+                };
+                const value_14: u64 = (value_13).index;
+                const value_15: state_type_4 = block_24: {
+                    break :block_24 state_type_4{ .first = (value_13).first, .flags = (value_13).flags, .index = (value_14 + @as(u64, 1)), .limit = (value_13).limit, .native_references = (value_13).native_references, .tables = (value_13).tables, };
+                };
+
+                break :block_43 value_15;
+            };
+
+            state_changed_21 = true;
+        }
+
+        break :block_47 block_46: {
+            const operand_44 = (state_1).flags;
+            const operand_45 = value_1;
+
+            if ((operand_45 >= (operand_44).len)) {
+                return error.IndexOutOfBounds;
+            }
+
+            break :block_46 (operand_44)[@intCast(operand_45)];
+        };
+    };
+}
+
+fn function_7(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_30) error{ IndexOutOfBounds, IntegerOverflow, OutOfMemory, Overflow, }!bool {
+    @setRuntimeSafety(true);
+
+    const value_1: (zx_abi).zx_type_15 = block_17: {
+        const operand_9 = @as([]const u8, (comptime (&[_]u8{})));
+        const operand_10 = @as([]const u32, (comptime (&[_]u32{})));
+        const operand_11 = @as([]const u32, (comptime (&[_]u32{})));
+        const operand_12 = @as([]const []const u8, (comptime (&[_][]const u8{})));
+        const operand_13 = @as([]const u32, (comptime (&[_]u32{})));
+        const operand_14 = @as([]const u32, (comptime (&[_]u32{})));
+        const operand_15 = @as([]const []const u8, (comptime (&[_][]const u8{})));
+        const operand_16 = @as([]const []const u8, (comptime (&[_][]const u8{})));
+
+        break :block_17 (zx_abi).zx_type_15{ .kinds = operand_9, .first = operand_10, .second = operand_11, .labels = operand_12, .children = operand_13, .field_types = operand_14, .field_names = operand_15, .names = operand_16, };
+    };
+
+    return block_8: {
+        const operand_1 = (in).table;
+        const operand_2 = (&value_1);
+        const operand_3 = (zx_abi).zx_type_16{ .base = operand_1, .delta = operand_2, };
+        const operand_4 = (&operand_3);
+        const operand_5 = (in).id;
+        const operand_6 = (in).native_references;
+        const operand_7 = (zx_abi).zx_type_26{ .tables = operand_4, .id = operand_5, .native_references = operand_6, };
+
+        break :block_8 (try function_6(allocator, (&operand_7)));
+    };
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_30) error{ IndexOutOfBounds, IntegerOverflow, OutOfMemory, Overflow, }!bool {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_1: bool = (try function_7(allocator, in));
+
+    return value_1;
+}
+

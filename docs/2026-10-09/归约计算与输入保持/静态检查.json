@@ -1,0 +1,38 @@
+{
+    "generator": {
+        "command": ["node", "src/generate_reduce_fold.ts", "--check"],
+        "exit_code": 0,
+        "saved": "执行证据/generator-check.txt",
+        "sha256": "5124d5e859ac858053f634c19c502a5165d19ea74d69c5957d92696a7ad9592d"
+    },
+    "audit": {
+        "command": ["node", "src/audit_matrix.ts"],
+        "exit_code": 0,
+        "saved": "执行证据/audit-check.txt",
+        "sha256": "5436d119ad0544ff4dbcb15309276edd914d429cd7f4e9836173bf29242dc10f"
+    },
+    "typecheck": {
+        "command": [
+            "node",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/node_modules/typescript/bin/tsc",
+            "--ignoreConfig",
+            "--noEmit",
+            "--allowImportingTsExtensions",
+            "--module",
+            "nodenext",
+            "--target",
+            "esnext",
+            "--types",
+            "node",
+            "--typeRoots",
+            "/Users/xiewendao/Documents/MatrixAges/zxc/packages/test/node_modules/@types",
+            "--strict",
+            "--skipLibCheck",
+            "src/generate_reduce_fold.ts",
+            "src/models/reduce_fold.ts"
+        ],
+        "exit_code": 0,
+        "saved": "执行证据/typecheck-check.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+}

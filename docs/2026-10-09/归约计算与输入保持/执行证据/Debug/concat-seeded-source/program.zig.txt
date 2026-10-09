@@ -1,0 +1,212 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_247ab857f545cdb9552871a5573a102705911360dd3bbd51584d9dffe5c70660;
+
+pub const Output = []const u8;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_10, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .items = zx_shape_11, .seed = zx_shape_10, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .index = zx_shape_5, .result = zx_shape_10, .source = zx_shape_11, }, };
+
+pub const input_shape = zx_shape_12;
+
+pub const output_shape = zx_shape_10;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_247ab857f545cdb9552871a5573a102705911360dd3bbd51584d9dffe5c70660) error{ IndexOutOfBounds, OutOfMemory, }![]const u8 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+
+    return block_32: {
+        const value_3: []const []const u8 = (in).items;
+        const value_8: *const (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399 = block_31: {
+            const operand_8 = block_7: {
+                const operand_2 = value_3;
+                const operand_3 = @as(u64, 0);
+                const operand_4 = (in).seed;
+
+                break :block_7 block_6: {
+                    const operand_5 = (try (allocator).create((zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399));
+
+                    (operand_5).* = @as((zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399, (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399{ .index = operand_3, .result = operand_4, .source = operand_2, });
+
+                    break :block_6 @as(*const (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399, operand_5);
+                };
+            };
+
+            var state_1: (zx_abi).value_zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = (zx_abi).value_zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = (operand_8).index, .result = (operand_8).result, .source = (operand_8).source, .zx_origin = operand_8, };
+
+            var state_changed_9 = false;
+
+            while (((state_1).index < @as(u64, ((state_1).source).len))) {
+                state_1 = block_27: {
+                    const value_6: []const u8 = block_26: {
+                        const operand_24 = (state_1).source;
+                        const operand_25 = (state_1).index;
+
+                        if ((operand_25 >= (operand_24).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_26 (operand_24)[@intCast(operand_25)];
+                    };
+                    const value_1: []const u8 = (state_1).result;
+                    const value_2: []const u8 = block_23: {
+                        break :block_23 value_6;
+                    };
+                    const value_7: []const u8 = block_22: {
+                        const operand_15 = @as([]const u8, "");
+                        const operand_17 = block_16: {
+                            break :block_16 value_1;
+                        };
+                        const operand_18 = @as([]const u8, "");
+                        const operand_20 = block_19: {
+                            break :block_19 value_2;
+                        };
+                        const operand_21 = @as([]const u8, "");
+
+                        break :block_22 (try ((std).mem).concat(allocator, u8, (&[_][]const u8{operand_15, operand_17, operand_18, operand_20, operand_21, })));
+                    };
+
+                    break :block_27 block_14: {
+                        const operand_10 = (state_1).source;
+                        const operand_11 = ((state_1).index + @as(u64, 1));
+                        const operand_12 = block_13: {
+                            break :block_13 value_7;
+                        };
+
+                        break :block_14 @as((zx_abi).value_zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = operand_11, .result = operand_12, .source = operand_10, });
+                    };
+                };
+
+                state_changed_9 = true;
+            }
+
+            break :block_31 (if (state_changed_9) block_30: {
+                break :block_30 (if (((state_1).zx_origin != null)) (state_1).zx_origin.? else block_29: {
+                    const operand_28 = (try (allocator).create((zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399));
+
+                    (operand_28).* = (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399{ .index = (state_1).index, .result = (state_1).result, .source = (state_1).source, };
+
+                    break :block_29 @as(*const (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399, operand_28);
+                });
+            } else operand_8);
+        };
+
+        break :block_32 (value_8).result;
+    };
+}
+
+pub fn executeValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_247ab857f545cdb9552871a5573a102705911360dd3bbd51584d9dffe5c70660) error{ IndexOutOfBounds, OutOfMemory, }![]const u8 {
+    @setRuntimeSafety(true);
+
+    return block_64: {
+        const value_3: []const []const u8 = (in).items;
+        const value_8: *const (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399 = block_63: {
+            const operand_40 = block_39: {
+                const operand_34 = value_3;
+                const operand_35 = @as(u64, 0);
+                const operand_36 = (in).seed;
+
+                break :block_39 block_38: {
+                    const operand_37 = (try (allocator).create((zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399));
+
+                    (operand_37).* = @as((zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399, (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399{ .index = operand_35, .result = operand_36, .source = operand_34, });
+
+                    break :block_38 @as(*const (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399, operand_37);
+                };
+            };
+
+            var state_33: (zx_abi).value_zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = (zx_abi).value_zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = (operand_40).index, .result = (operand_40).result, .source = (operand_40).source, .zx_origin = operand_40, };
+
+            var state_changed_41 = false;
+
+            while (((state_33).index < @as(u64, ((state_33).source).len))) {
+                state_33 = block_59: {
+                    const value_6: []const u8 = block_58: {
+                        const operand_56 = (state_33).source;
+                        const operand_57 = (state_33).index;
+
+                        if ((operand_57 >= (operand_56).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_58 (operand_56)[@intCast(operand_57)];
+                    };
+                    const value_1: []const u8 = (state_33).result;
+                    const value_2: []const u8 = block_55: {
+                        break :block_55 value_6;
+                    };
+                    const value_7: []const u8 = block_54: {
+                        const operand_47 = @as([]const u8, "");
+                        const operand_49 = block_48: {
+                            break :block_48 value_1;
+                        };
+                        const operand_50 = @as([]const u8, "");
+                        const operand_52 = block_51: {
+                            break :block_51 value_2;
+                        };
+                        const operand_53 = @as([]const u8, "");
+
+                        break :block_54 (try ((std).mem).concat(allocator, u8, (&[_][]const u8{operand_47, operand_49, operand_50, operand_52, operand_53, })));
+                    };
+
+                    break :block_59 block_46: {
+                        const operand_42 = (state_33).source;
+                        const operand_43 = ((state_33).index + @as(u64, 1));
+                        const operand_44 = block_45: {
+                            break :block_45 value_7;
+                        };
+
+                        break :block_46 @as((zx_abi).value_zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = operand_43, .result = operand_44, .source = operand_42, });
+                    };
+                };
+
+                state_changed_41 = true;
+            }
+
+            break :block_63 (if (state_changed_41) block_62: {
+                break :block_62 (if (((state_33).zx_origin != null)) (state_33).zx_origin.? else block_61: {
+                    const operand_60 = (try (allocator).create((zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399));
+
+                    (operand_60).* = (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399{ .index = (state_33).index, .result = (state_33).result, .source = (state_33).source, };
+
+                    break :block_61 @as(*const (zx_abi).zx_type_3c9bae5c08db83fc239947cf6d54a0ebc891750995f64164eafc27990cadf399, operand_60);
+                });
+            } else operand_40);
+        };
+
+        break :block_64 (value_8).result;
+    };
+}
+
