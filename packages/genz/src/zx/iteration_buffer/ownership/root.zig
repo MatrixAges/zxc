@@ -24,6 +24,16 @@ pub fn check(allocator: std.mem.Allocator, program: ir.Program, initial: ir.Expr
 
                 current = graph.bindings[@backingInt(symbol)] orelse return false;
             },
+            .field, .tuple_field => |field| {
+                const selected = try arena.allocator().alloc(usize, remaining.len + 1);
+
+                selected[0] = field.index;
+
+                @memcpy(selected[1..], remaining);
+
+                remaining = selected;
+                current = field.target;
+            },
             .object => |object| {
                 if (remaining.len == 0) return false;
 
@@ -42,6 +52,16 @@ pub fn check(allocator: std.mem.Allocator, program: ir.Program, initial: ir.Expr
                 remaining = remaining[1..];
             },
             .scope => |scope| current = scope.result,
+            .iteration => |iteration| {
+                if (try @import("../analysis.zig").analyzeWithCalls(arena.allocator(), program, iteration, remaining, .{
+                    .selected = &.{},
+                    .summaries = &.{},
+                    .readers = &.{},
+                }) == null) return false;
+
+                current = iteration.initial;
+            },
+            .list => |items| return remaining.len == 0 and items.len == 0,
             .call => |call| return remaining.len == 0 and @backingInt(call.function) < allocated_functions.len and allocated_functions[@backingInt(call.function)],
             .transform => |transform| return remaining.len == 0 and (transform.kind == .map or transform.kind == .filter),
             else => return false,
