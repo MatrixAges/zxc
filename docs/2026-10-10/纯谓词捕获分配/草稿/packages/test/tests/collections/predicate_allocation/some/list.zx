@@ -1,0 +1,9 @@
+export type Input = { items: i64[], threshold: i64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const captured = in.items
+
+    return in.items.some((item, index) => item > 0 && captured[index] == item)
+}

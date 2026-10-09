@@ -1,0 +1,79 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_9a5f8801c1941fb224d262b44ee6d826668081570f5640ff82bbe16fc2336ca8) error{ IndexOutOfBounds, OutOfMemory, }!bool {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return block_26: {
+        const value_3: []const i64 = (in).items;
+
+        break :block_26 block_25: {
+            const state_type_2 = struct {
+                items: []const i64,
+                threshold: i64,
+            };
+            const state_type_3 = struct { state_type_2, };
+            const state_type_4 = struct {
+                captures: state_type_3,
+                index: u64,
+                result: bool,
+                source: []const i64,
+            };
+            const operand_14 = block_13: {
+                const operand_5 = value_3;
+                const operand_6 = @as(u64, 0);
+                const operand_7 = true;
+                const operand_12 = block_11: {
+                    const operand_10 = block_9: {
+                        const operand_8 = in;
+
+                        break :block_9 state_type_2{ .items = (operand_8).items, .threshold = (operand_8).threshold, };
+                    };
+
+                    break :block_11 @as(state_type_3, .{ operand_10, });
+                };
+
+                break :block_13 state_type_4{ .captures = operand_12, .index = operand_6, .result = operand_7, .source = operand_5, };
+            };
+
+            var state_1: state_type_4 = operand_14;
+
+            var state_changed_15 = false;
+
+            while ((((state_1).index < @as(u64, ((state_1).source).len)) and (state_1).result)) {
+                state_1 = block_24: {
+                    const value_6: i64 = block_23: {
+                        const operand_21 = (state_1).source;
+                        const operand_22 = (state_1).index;
+
+                        if ((operand_22 >= (operand_21).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_23 (operand_21)[@intCast(operand_22)];
+                    };
+                    const value_2: state_type_2 = ((state_1).captures).@"0";
+                    const value_1: i64 = value_6;
+                    const value_7: bool = (value_1 > (value_2).threshold);
+
+                    break :block_24 block_20: {
+                        const operand_16 = (state_1).source;
+                        const operand_17 = ((state_1).index + @as(u64, 1));
+                        const operand_18 = value_7;
+                        const operand_19 = (state_1).captures;
+
+                        break :block_20 state_type_4{ .captures = operand_19, .index = operand_17, .result = operand_18, .source = operand_16, };
+                    };
+                };
+
+                state_changed_15 = true;
+            }
+
+            break :block_25 (state_1).result;
+        };
+    };
+}
+
