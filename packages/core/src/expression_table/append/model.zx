@@ -1,0 +1,9 @@
+import type { Expressions } from "../model"
+
+export type Metadata = { type_id: u32, span_start: u64, span_end: u64 }
+
+export type Result = { table: Expressions, id: u32 }
+
+export enum ValueKind { Some, Capture, AwaitTask, CancelTask, OptionalValue, EnumValue, ErrorValue, Reference, StoreGet, Length }
+
+export enum SequenceKind { List, Tuple, Template }

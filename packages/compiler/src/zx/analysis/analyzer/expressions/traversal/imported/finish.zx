@@ -1,0 +1,28 @@
+import call from "core/expression_table/append/call"
+import empty from "core/expression_table/append/empty"
+import { SequenceKind } from "core/expression_table/append/model"
+import sequence from "core/expression_table/append/sequence"
+
+import { Phase } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.imported[in.frames.imported.length - 1]
+    const span = in.source.tree.nodes[frame.node].span
+    const metadata = { type_id: in.imports.input_types[frame.import_index], span_start: span.start, span_end: span.end }
+
+    const argument = match {
+        frame.tuple => sequence({ table: in.state.local.expressions, metadata: metadata, kind: SequenceKind.Tuple, values: frame.values }),
+        frame.values.length == 0 => empty({ table: in.state.local.expressions, metadata: metadata, optional: false }),
+        _ => { table: in.state.local.expressions, id: frame.values[0] },
+    }
+
+    const result = call({ table: argument.table, metadata: { ...metadata, type_id: in.imports.output_types[frame.import_index] }, function_id: in.imports.ids[frame.import_index], argument: argument.id, stores: [] })
+
+    return { ...in, state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id, phase: Phase.Complete, frames: { ...in.frames, imported: in.frames.imported.pop()[0] } }
+}

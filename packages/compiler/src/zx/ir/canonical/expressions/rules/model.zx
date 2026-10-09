@@ -1,8 +1,8 @@
-import type { Kind, Table } from "../../../../analysis/semantic/types/model"
-import type { Stores } from "../../stores/model"
-import type { Symbols } from "../../symbols"
-import type { ExpressionKind } from "../kinds"
-import type { Expressions } from "../model"
+import type { ExpressionKind } from "core/expression_table/kinds"
+import type { Expressions } from "core/expression_table/model"
+import type { Stores } from "core/store_table/model"
+import type { Symbols } from "core/symbol_table/model"
+import type { Kind, Table } from "core/type_table/model"
 
 export type Functions = { input_types: u32[], output_types: u32[], stores: Stores[] }
 

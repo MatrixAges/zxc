@@ -1,0 +1,44 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/collection"
+import update from "core/expression_table/append/update"
+import { CollectionKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../../semantic/types/row"
+import construct from "../../../types/construct"
+
+import type { Span } from "../../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../../model"
+import type { Result } from "../../model"
+
+export type Input = { state: Prepared, target: u32, kind: CollectionKind, replacement: bool, values: u32[], span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const list = in.state.local.expressions.types[integers.widen(in.target)]
+
+    if (in.replacement) {
+        const result = update({ table: in.state.local.expressions, metadata: { type_id: list, span_start: in.span.start, span_end: in.span.end }, target: in.target, index: in.values[0], value: in.values[1] })
+
+        return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+    }
+
+    const element = row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: list }).first
+    const payload_type = in.kind == CollectionKind.Splice ? list : 0
+    const slot = in.kind == CollectionKind.Pop ? construct({ state: in.state, candidate: { kind: Kind.Optional, first: element, second: 0, label: "", children: [], fields: { names: [], types: [] }, names: [] }, span: in.span }) : { state: in.state, id: payload_type }
+
+    if (slot.state.diagnostic.message != "") {
+        return { state: slot.state, value: 0 }
+    }
+
+    const tuple = construct({ state: slot.state, candidate: { kind: Kind.Tuple, first: 0, second: 0, label: "", children: [list, slot.id], fields: { names: [], types: [] }, names: [] }, span: in.span })
+
+    if (tuple.state.diagnostic.message != "") {
+        return { state: tuple.state, value: 0 }
+    }
+
+    const result = append({ table: tuple.state.local.expressions, metadata: { type_id: tuple.id, span_start: in.span.start, span_end: in.span.end }, kind: in.kind, target: in.target, arguments: in.values })
+
+    return { state: { ...tuple.state, local: { ...tuple.state.local, expressions: result.table } }, value: result.id }
+}

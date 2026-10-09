@@ -1,0 +1,18 @@
+import append from "core/expression_table/append/string"
+
+import decode from "../../../frontend/string_literal/decode"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Prepared } from "../model"
+import type { Result } from "./model"
+
+export type Input = { state: Prepared, source: u8[], template: bool, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const text = decode({ source: in.source, template: in.template })
+    const result = append({ table: in.state.local.expressions, metadata: { type_id: 10, span_start: in.span.start, span_end: in.span.end }, value: text })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

@@ -1,0 +1,20 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, target: u32, index: u32, tuple: bool }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({ table: in.table, metadata: in.metadata, kind: in.tuple ? ExpressionKind.TupleField : ExpressionKind.Field, payload: integers.narrow(in.table.projection_targets.length) })
+
+    return {
+        table: { ...result.table, projection_targets: result.table.projection_targets.push(in.target)[0], projection_indices: result.table.projection_indices.push(in.index)[0] },
+        id: result.id
+    }
+}

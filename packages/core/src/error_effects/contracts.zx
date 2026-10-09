@@ -1,0 +1,30 @@
+import integers from "zig:integers"
+
+import { ContractKind } from "../contract_table/model"
+import empty from "../control_table/empty"
+import { Operation } from "./model"
+import source from "./source"
+
+import type { Contracts } from "../contract_table/model"
+import type { State } from "./model"
+
+export type Input = { state: State, contracts: Contracts }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return loop({ state: in.state, contracts: in.contracts, index: in.contracts.kinds.length }, {
+        while: current => current.index > 0,
+        next: current => {
+            current.index -= 1
+
+            if (current.contracts.kinds[current.index] == ContractKind.Requires) {
+                const registered = source({ state: current.state, expressions: current.contracts.expressions[current.index], control: empty() })
+
+                current.state = registered.state
+                current.state.names = current.state.names.push("PreconditionFailed")[0]
+                current.state.frames = current.state.frames.push({ operation: Operation.Expression, source: registered.source, index: integers.widen(current.contracts.predicates[current.index]), count: 0 })[0]
+            }
+        }
+    }).state
+}

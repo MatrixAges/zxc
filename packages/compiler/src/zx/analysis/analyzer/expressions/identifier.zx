@@ -1,0 +1,20 @@
+import value from "../bindings/value"
+import reference from "./reference"
+
+import type { Name } from "../../semantic/resolving/source/model"
+import type { Prepared } from "../model"
+import type { Result } from "./model"
+
+export type Input = { state: Prepared, name: Name }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const resolved = value(in)
+
+    if (resolved.state.diagnostic.message != "") {
+        return { state: resolved.state, value: 0 }
+    }
+
+    return reference({ state: resolved.state, symbol: resolved.symbol, span: { start: in.name.start, end: in.name.end } })
+}

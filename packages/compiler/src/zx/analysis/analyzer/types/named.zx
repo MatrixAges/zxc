@@ -1,0 +1,24 @@
+import integers from "zig:integers"
+
+import builtin from "../../semantic/resolving/builtin"
+import lookup from "../../semantic/resolving/lookup"
+
+import type { Search } from "../../semantic/types/model"
+import type { Types } from "./model"
+
+export type Input = { types: Types, name: string }
+
+export type Output = Search
+
+export default function (in: Input): Output {
+    const scalar = builtin(in.name)
+
+    if (scalar != 0) {
+        return { found: true, id: integers.narrow(scalar - 1) }
+    }
+
+    const cached = lookup({ cache: in.types.cache, name: in.name })
+    const resolved = cached.found ? cached : lookup({ cache: in.types.context.resolved, name: in.name })
+
+    return resolved.found ? resolved : lookup({ cache: in.types.context.aliases, name: in.name })
+}

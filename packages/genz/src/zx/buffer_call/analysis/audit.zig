@@ -9,7 +9,7 @@ pub const Rejection = enum { stale_version, contracts, parallel, nested_transfor
 pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
     trace.selected_loops = lane.iterations;
 
-    trace.proven.clearRetainingCapacity();
+    trace.queries.clear();
 
     if (trace.function.contracts.count() != 0) return .contracts;
     if (parallel(trace.function.body.block())) return .parallel;
@@ -108,7 +108,7 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
 fn count(trace: *Trace, id: ir.ExprId, lane: flow.Lane) Error!usize {
     var paths: std.ArrayList([]const u32) = .empty;
 
-    try flow.leaves(trace.allocator, trace.program, trace.function.expressions.at(@backingInt(id)).type_id, &.{}, true, &paths);
+    try flow.leaves(trace.queryAllocator(), trace.program, trace.function.expressions.at(@backingInt(id)).type_id, &.{}, true, &paths);
 
     var total: usize = 0;
 

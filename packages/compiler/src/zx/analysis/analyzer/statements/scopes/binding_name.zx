@@ -1,0 +1,26 @@
+import integers from "zig:integers"
+
+import reserved from "../../bindings/reserved"
+
+import type { Diagnostic } from "../../../semantic/resolving/model"
+import type { Name } from "../../../semantic/resolving/source/model"
+import type { Local } from "../../local"
+import type { Scopes } from "./model"
+
+export type Input = { scopes: Scopes, local: Local, name: Name }
+
+export type Output = Diagnostic
+
+export default function (in: Input): Output {
+    if (reserved(in.name.text)) {
+        return { code: "name", message: "reserved bindings cannot be redeclared; _ is only a tuple discard pattern", start: in.name.start, end: in.name.end }
+    }
+
+    const frame = in.scopes.frames[in.scopes.frames.length - 1]
+
+    if (in.name.text == in.local.symbols.names[integers.widen(frame.state_symbol)]) {
+        return { code: "name", message: "the loop state parameter cannot be redeclared", start: in.name.start, end: in.name.end }
+    }
+
+    return { code: "", message: "", start: 0, end: 0 }
+}

@@ -1,0 +1,5 @@
+import type { Contracts } from "core/contract_table/model"
+import type { Ownership } from "core/symbol_table/model"
+import type { Prepared } from "../model"
+
+export type Analysis = { state: Prepared, root: u32?, contracts: Contracts, names: string[], types: u32[], ownership: Ownership, type_only: bool }

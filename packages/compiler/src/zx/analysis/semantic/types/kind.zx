@@ -1,19 +1,11 @@
-import { Kind } from "./model"
+import run from "core/type_table/kind"
+
+import type { Kind } from "core/type_table/model"
 
 export type Input = u8
 
 export type Output = Kind
 
 export default function (in: Input): Output {
-    return match in {
-        0 => Kind.Scalar,
-        1 => Kind.Object,
-        2 => Kind.Optional,
-        3 => Kind.List,
-        4 => Kind.Tuple,
-        5 => Kind.ErrorSet,
-        6 => Kind.Task,
-        7 => Kind.Enumeration,
-        _ => Kind.NativeReference
-    }
+    return run(in)
 }

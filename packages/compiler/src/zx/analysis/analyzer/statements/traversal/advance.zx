@@ -1,0 +1,38 @@
+import expression from "../../expressions/traversal/advance"
+import { Phase } from "./model"
+import next from "./next"
+import resume from "./resume"
+import selection from "./selection/next"
+import unwind from "./unwind"
+
+import type { Body } from "./model"
+
+export type Input = Body
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const result = loop(in, {
+        while: current => current.expression.state.diagnostic.message == "" && current.phase != Phase.Done,
+        next: current => {
+            const advanced = match current.phase {
+                Phase.Next => next(current),
+                Phase.Resume => resume(current),
+                Phase.Selection => selection(current),
+                _ => { ...current, expression: expression(current.expression), phase: Phase.Resume },
+            }
+
+            current.expression = advanced.expression
+            current.blocks = advanced.blocks
+            current.actions = advanced.actions
+            current.branches = advanced.branches
+            current.selections = advanced.selections
+            current.statement = advanced.statement
+            current.slot = advanced.slot
+            current.value = advanced.value
+            current.phase = advanced.phase
+        }
+    })
+
+    return result.expression.state.diagnostic.message == "" ? result : unwind(result)
+}

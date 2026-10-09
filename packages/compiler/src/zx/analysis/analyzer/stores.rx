@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="stores/resolve" in={{ context: $in.context, signature: $in.signature }} />
+
+    <Switch on={$ctx.resolve.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="stores/authorize" in={{ stores: $ctx.resolve.stores, has_store: $in.has_store, span: $in.signature.span }} />
+
+            <Return value={$ctx.authorize} />
+        </Case>
+
+        <Default>
+            <Return value={{ stores: $ctx.resolve.stores, allow_store: false, diagnostic: $ctx.resolve.diagnostic }} />
+        </Default>
+    </Switch>
+</Module>

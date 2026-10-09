@@ -1,0 +1,12 @@
+import type { Scopes } from "./model"
+
+export type Input = { scopes: Scopes, value: u32 }
+
+export type Output = Scopes
+
+export default function (in: Input): Output {
+    return {
+        ...in.scopes,
+        bindings: { symbols: in.scopes.bindings.symbols.push(null)[0], values: in.scopes.bindings.values.push(in.value)[0], borrows: in.scopes.bindings.borrows.push(false)[0] }
+    }
+}

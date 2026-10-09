@@ -1,0 +1,39 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../expression_table/kinds"
+import { Operation } from "../model"
+import insert from "../seen/insert"
+import children from "./children"
+import intrinsic from "./intrinsic"
+
+import type { State, Frame } from "../model"
+
+export type Input = { state: State, frame: Frame }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const source = in.state.sources[in.frame.source]
+
+    const visited = insert({ seen: source.visited, id: integers.narrow(in.frame.index) })
+
+    if (!visited.fresh) {
+        return { ...in.state, sources: in.state.sources.splice(in.frame.source, 1, [{ ...source, visited: visited.seen }])[0] }
+    }
+
+    const sources = in.state.sources.splice(in.frame.source, 1, [{ ...source, visited: visited.seen }])[0]
+    const expressions = source.expressions
+    const names = intrinsic({ tables: in.state.context.types, expressions: expressions, index: in.frame.index, names: in.state.names })
+    const values = children({ expressions: expressions, index: in.frame.index })
+    const frames = expressions.kinds[in.frame.index] == ExpressionKind.Call ? in.state.frames.push({ operation: Operation.Function, source: 0, index: integers.widen(expressions.call_functions[integers.widen(expressions.payloads[in.frame.index])]), count: 0 })[0] : in.state.frames
+
+    const scheduled = loop({ frames: frames, source: in.frame.source, values: values, index: values.length }, {
+        while: current => current.index > 0,
+        next: current => {
+            current.index -= 1
+            current.frames = current.frames.push({ operation: Operation.Expression, source: current.source, index: integers.widen(current.values[current.index]), count: 0 })[0]
+        }
+    }).frames
+
+    return { ...in.state, sources: sources, names: names, frames: scheduled }
+}

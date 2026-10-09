@@ -1,0 +1,26 @@
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Work } from "../../expressions/traversal/model"
+import type { PredicateOutput } from "./model"
+
+export type Input = Work
+
+export type Output = PredicateOutput
+
+export default function (in: Input): Output {
+    const checked = loop({ expressions: in.state.local.expressions, index: 0, diagnostic: in.state.diagnostic }, {
+        while: current => current.index < current.expressions.kinds.length && current.diagnostic.message == "",
+        next: current => {
+            const kind = current.expressions.kinds[current.index]
+            const forbidden = kind == ExpressionKind.Call || kind == ExpressionKind.StoreGet || kind == ExpressionKind.ListOperation || kind == ExpressionKind.Transform || kind == ExpressionKind.Scope || kind == ExpressionKind.Iteration || kind == ExpressionKind.ListUpdate || kind == ExpressionKind.Capture || kind == ExpressionKind.OptionalValue || kind == ExpressionKind.Task || kind == ExpressionKind.AwaitTask || kind == ExpressionKind.CancelTask || kind == ExpressionKind.Parallel
+
+            if (forbidden) {
+                current.diagnostic = { code: "contract", message: "contracts cannot call functions, transform collections, capture errors, run tasks, unwrap optionals or access injected capabilities", start: current.expressions.span_start[current.index], end: current.expressions.span_end[current.index] }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { types: in.state.types, symbols: in.state.local.symbols, expressions: in.state.local.expressions, predicate: in.value, diagnostic: checked.diagnostic }
+}

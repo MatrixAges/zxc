@@ -1,0 +1,43 @@
+import integers from "zig:integers"
+
+import capture from "../captures/resolve"
+import lookup from "./lookup"
+
+import type { Name } from "../../semantic/resolving/source/model"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, name: Name }
+
+export type Output = { state: Prepared, symbol: u32 }
+
+export default function (in: Input): Output {
+    const local = lookup({ local: in.state.local, name: in.name.text })
+
+    if (local != null) {
+        return { state: in.state, symbol: local }
+    }
+
+    const captured = capture(in)
+    const symbol = captured.symbol
+
+    if (captured.state.diagnostic.message != "") {
+        return { state: captured.state, symbol: 0 }
+    }
+
+    if (symbol != null) {
+        return { state: captured.state, symbol: symbol }
+    }
+
+    const hidden = loop({ local: in.state.local, name: in.name.text, index: 0, found: false }, {
+        while: current => !current.found && current.index < current.local.scope_floor,
+        next: current => {
+            current.found = current.local.symbols.names[integers.widen(current.local.active[current.index])] == current.name
+            current.index += 1
+        }
+    })
+
+    return {
+        state: { ...in.state, diagnostic: { code: hidden.found ? "ownership" : "name", message: hidden.found ? "ZX callbacks cannot capture outer bindings; use explicit callback parameters" : "unknown value or use before declaration", start: in.name.start, end: in.name.end } },
+        symbol: 0
+    }
+}

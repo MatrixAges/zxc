@@ -169,6 +169,7 @@ const Walker = struct {
         const input = switch (invocation.callee) {
             .function => |function| try graph.known(function.program.input_type, span),
             .module => |module_index| self.states[module_index].input,
+            .signature => |signature| try graph.known(signature.input_type, span),
         };
 
         if (attribute) |value| {
@@ -185,6 +186,7 @@ const Walker = struct {
         const output = switch (invocation.callee) {
             .function => |function| try graph.known(function.program.output_type, span),
             .module => |module_index| self.states[module_index].output,
+            .signature => |signature| try graph.known(signature.output_type, span),
         };
 
         try self.bindResult(invocation.node, output, .call);

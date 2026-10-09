@@ -1,0 +1,24 @@
+import integers from "zig:integers"
+import append from "core/control_table/append/evaluate"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import coerce from "../expressions/coerce"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Prepared } from "../model"
+import type { Blocks } from "./blocks/model"
+
+export type Input = { state: Prepared, blocks: Blocks, value: u32, span: Span }
+
+export type Output = { state: Prepared, blocks: Blocks }
+
+export default function (in: Input): Output {
+    const result = in.state.local.expressions.kinds[integers.widen(in.value)] == ExpressionKind.Iteration
+    ? { state: in.state, value: in.value }
+    : coerce({ state: in.state, value: in.value, expected: 0, span: in.span })
+
+    return {
+        state: result.state,
+        blocks: result.state.diagnostic.message == "" ? { ...in.blocks, pending: append({ table: in.blocks.pending, value: result.value }) } : in.blocks
+    }
+}

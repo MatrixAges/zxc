@@ -1,0 +1,23 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/unary"
+import { UnaryOperator } from "core/expression_table/kinds"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+
+export type Input = { state: Prepared, operand: u32, negative: bool, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const type_id = in.state.local.expressions.types[integers.widen(in.operand)]
+
+    if (in.negative && (type_id < 6 || type_id > 9)) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "negation requires a signed integer or float", start: in.span.start, end: in.span.end } }, value: 0 }
+    }
+
+    const result = append({ table: in.state.local.expressions, metadata: { type_id: type_id, span_start: in.span.start, span_end: in.span.end }, operator: in.negative ? UnaryOperator.Negate : UnaryOperator.Not, operand: in.operand })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

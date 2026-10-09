@@ -1,0 +1,61 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/empty"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+import coerce from "../coerce"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Entries } from "./model"
+
+export type Input = { state: Prepared, entries: Entries, evaluation: u32[], hint: u32?, span: Span }
+
+export type Output = { state: Prepared, entries: Entries, evaluation: u32[] }
+
+export default function (in: Input): Output {
+    const hint = in.hint
+
+    if (hint == null) {
+        return { state: in.state, entries: in.entries, evaluation: in.evaluation }
+    }
+
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: hint })
+    const table = target.delta ? tables.delta : tables.base
+
+    const result = loop({ state: in.state, entries: in.entries, evaluation: in.evaluation, span: in.span, types: table.field_types, names: table.field_names, first: integers.widen(target.first), count: integers.widen(target.second), index: 0 }, {
+        while: current => current.index < current.count && current.state.diagnostic.message == "",
+        next: current => {
+            const name = current.names[current.first + current.index]
+            const type_id = current.types[current.first + current.index]
+            const found = loop({ names: current.entries.names, name: name, index: 0 }, {
+                while: item => item.index < item.names.length && item.names[item.index] != item.name,
+                next: item => { item.index += 1 }
+            })
+
+            if (found.index < found.names.length) {
+                const coerced = coerce({ state: current.state, value: current.entries.values[found.index], expected: type_id, span: current.span })
+
+                current.state = coerced.state
+                current.entries.values = current.entries.values.splice(found.index, 1, [coerced.value])[0]
+            } else if (row({ tables: { base: current.state.types.context.base, delta: current.state.types.delta }, id: type_id }).kind != Kind.Optional) {
+                current.state.diagnostic = { code: "type_mismatch", message: "missing required object field", start: current.span.start, end: current.span.end }
+            } else {
+                const value = append({ table: current.state.local.expressions, metadata: { type_id: type_id, span_start: current.span.start, span_end: current.span.end }, optional: true })
+
+                current.state.local.expressions = value.table
+                current.entries.names = current.entries.names.push(name)[0]
+                current.entries.values = current.entries.values.push(value.id)[0]
+                current.evaluation = current.evaluation.push(value.id)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    const extra = result.state.diagnostic.message == "" && result.entries.names.length != integers.widen(target.second)
+    const diagnostic = extra ? { code: "type_mismatch", message: "spread introduces fields outside the required object type", start: in.span.start, end: in.span.end } : result.state.diagnostic
+
+    return { state: { ...result.state, diagnostic: diagnostic }, entries: result.entries, evaluation: result.evaluation }
+}

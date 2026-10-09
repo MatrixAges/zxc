@@ -1,21 +1,6 @@
-export enum Kind { Scalar, Object, Optional, List, Tuple, ErrorSet, Task, Enumeration, NativeReference }
+import type { Kind, Table, Fields, TypeRow } from "core/type_table/model"
 
-export type Table = {
-    kinds: u8[]
-    first: u32[]
-    second: u32[]
-    labels: string[]
-    children: u32[]
-    field_types: u32[]
-    field_names: string[]
-    names: string[]
-}
-
-export type Tables = { base: Table, delta: Table }
-
-export type Row = { kind: Kind, first: u32, second: u32, label: string, delta: bool }
-
-export type Fields = { names: string[], types: u32[] }
+export type Row = TypeRow
 
 export type Candidate = {
     kind: Kind

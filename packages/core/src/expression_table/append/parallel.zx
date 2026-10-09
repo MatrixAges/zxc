@@ -1,0 +1,26 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, tasks: u32[], fields: u32?[] }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({ table: in.table, metadata: in.metadata, kind: ExpressionKind.Parallel, payload: integers.narrow(in.table.parallel_first.length) })
+
+    return {
+        table: {
+            ...result.table,
+            parallel_first: result.table.parallel_first.push(integers.narrow(result.table.parallel_tasks.length))[0],
+            parallel_count: result.table.parallel_count.push(integers.narrow(in.tasks.length))[0],
+            parallel_tasks: result.table.parallel_tasks.concat(in.tasks)[0],
+            parallel_fields: result.table.parallel_fields.concat(in.fields)[0]
+        },
+        id: result.id
+    }
+}

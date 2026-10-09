@@ -1,0 +1,76 @@
+import integers from "zig:integers"
+import appendIndex from "core/expression_table/append/index"
+import project from "core/expression_table/append/projection"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import temporary from "../../statements/scopes/temporary"
+import path from "./path"
+
+import type { Prepared } from "../../model"
+import type { Scopes } from "../../statements/scopes/model"
+import type { Place } from "./model"
+
+export type Input = { state: Prepared, scopes: Scopes, target: u32, state_symbol: u32, read_value: bool }
+
+export type Output = { state: Prepared, scopes: Scopes, places: Place[] }
+
+export default function (in: Input): Output {
+    const source = path({ state: in.state, target: in.target, state_symbol: in.state_symbol, read_value: in.read_value })
+    const places: Place[] = []
+
+    if (source.diagnostic.message != "") {
+        return { state: { ...in.state, diagnostic: source.diagnostic }, scopes: in.scopes, places: places }
+    }
+
+    const result = loop({ state: in.state, scopes: in.scopes, frames: source.frames, index: source.frames.length, places: places }, {
+        while: current => current.index > 0 && current.state.diagnostic.message == "",
+        next: current => {
+            current.index -= 1
+
+            const frame = current.frames[current.index]
+            const expressions = current.state.local.expressions
+            const kind = expressions.kinds[integers.widen(frame.expression)]
+            const payload = expressions.payloads[integers.widen(frame.expression)]
+            const metadata = { type_id: expressions.types[integers.widen(frame.expression)], span_start: expressions.span_start[integers.widen(frame.expression)], span_end: expressions.span_end[integers.widen(frame.expression)] }
+            const parent = current.places.length == 0 ? frame.expression : current.places[current.places.length - 1].value
+            const initial: Place = { value: frame.expression, kind: kind, index: 0 }
+
+            current.places = current.places.push(initial)[0]
+
+            const position = current.places.length - 1
+
+            if (kind == ExpressionKind.Index) {
+                const saved = temporary({ scopes: current.scopes, local: current.state.local, value: expressions.index_values[integers.widen(payload)] })
+
+                current.scopes = saved.scopes
+                current.state.local = saved.local
+                current.state.diagnostic = saved.diagnostic
+
+                if (saved.diagnostic.message == "") {
+                    const value = appendIndex({ table: saved.local.expressions, metadata: metadata, target: parent, index: saved.value })
+
+                    current.state.local.expressions = value.table
+                    current.places = current.places.splice(position, 1, [{ value: value.id, kind: kind, index: saved.value }])[0]
+                }
+            } else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+                const index = expressions.projection_indices[integers.widen(payload)]
+                const value = project({ table: expressions, metadata: metadata, target: parent, index: index, tuple: kind == ExpressionKind.TupleField })
+
+                current.state.local.expressions = value.table
+                current.places = current.places.splice(position, 1, [{ value: value.id, kind: kind, index: index }])[0]
+            }
+
+            if (frame.read_value && current.state.diagnostic.message == "") {
+                const place = current.places[position]
+                const saved = temporary({ scopes: current.scopes, local: current.state.local, value: place.value })
+
+                current.scopes = saved.scopes
+                current.state.local = saved.local
+                current.state.diagnostic = saved.diagnostic
+                current.places = current.places.splice(position, 1, [{ ...place, value: saved.value }])[0]
+            }
+        }
+    })
+
+    return { state: result.state, scopes: result.scopes, places: result.places }
+}

@@ -1,0 +1,33 @@
+export type Input = u64[]
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const capacity = in.length == 0 ? 16 : in.length * 2
+    const slots: u64[] = []
+
+    const empty = loop({ slots: slots, capacity: capacity }, {
+        while: current => current.slots.length < current.capacity,
+        next: current => { current.slots = current.slots.push(0)[0] }
+    }).slots
+
+    const result = loop({ previous: in, slots: empty, index: 0 }, {
+        while: current => current.index < current.previous.length,
+        next: current => {
+            const key = current.previous[current.index]
+
+            if (key != 0) {
+                const position = loop({ slots: current.slots, position: (key * 2654435761) % current.slots.length }, {
+                    while: item => item.slots[item.position] != 0,
+                    next: item => { item.position = (item.position + 1) % item.slots.length }
+                }).position
+
+                current.slots = current.slots.splice(position, 1, [key])[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.slots
+}

@@ -1,0 +1,17 @@
+import integers from "zig:integers"
+
+import row from "../../type_table/row"
+
+import type { Tables } from "../../type_table/model"
+
+export type Input = { tables: Tables, type_id: u32, names: string[] }
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    const task = row({ tables: in.tables, id: in.type_id })
+    const errors = row({ tables: in.tables, id: task.second })
+    const table = errors.delta ? in.tables.delta : in.tables.base
+
+    return in.names.concat(table.names.splice(integers.widen(errors.first), integers.widen(errors.second), [])[1])[0]
+}

@@ -1,0 +1,30 @@
+import append from "core/expression_table/append/binary"
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import field from "../../expressions/projections/field"
+import integer from "../building/integer"
+import object from "../building/object"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, current: u32, source: u32, index: u32, result: u32, captures: bool, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const one = integer({ state: in.state, value: 1, span: in.span })
+    const index = append({ table: one.state.local.expressions, metadata: { type_id: 5, span_start: in.span.start, span_end: in.span.end }, operator: BinaryOperator.Add, left: in.index, right: one.value })
+    const state = { ...one.state, local: { ...one.state.local, expressions: index.table } }
+    const names = ["source", "index", "result"]
+    const values = [in.source, index.id, in.result]
+
+    if (!in.captures) {
+        return object({ state: state, fields: { names: names, values: values }, span: in.span })
+    }
+
+    const captures = field({ state: state, target: in.current, name: { text: "captures", start: in.span.start, end: in.span.end }, span: in.span })
+
+    return object({ state: captures.state, fields: { names: names.push("captures")[0], values: values.push(captures.value)[0] }, span: in.span })
+}

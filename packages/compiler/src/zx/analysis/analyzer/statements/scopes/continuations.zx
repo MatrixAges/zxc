@@ -1,0 +1,8 @@
+import type { Mark } from "../../../../ir/canonical/refinement/facts/model"
+import type { Place } from "../../iteration/update/model"
+
+export type StateUpdate = { statement: u64, places: Place[], target: u32 }
+
+export type StateBranch = { statement: u64, condition: u32, yes: u32, state_symbol: u32, mark: Mark }
+
+export type StateSelection = { statement: u64, cases: u64[], index: u64, subject: u32, state_symbol: u32, conditions: u32[], results: u32[], fallback: u32? }

@@ -3,8 +3,8 @@ import integers from "zig:integers"
 import { Status } from "../../../../analysis/semantic/extracting/planning/model"
 import dependencies from "./dependencies"
 
+import type { Modules } from "core/native_module_table/model"
 import type { Request } from "../../../../analysis/semantic/extracting/planning/model"
-import type { Modules } from "../../../../ir/canonical/native/model"
 import type { Signatures, Imports, Plan } from "./model"
 
 export type Input = { request: Request, modules: Modules, signatures: Signatures, imports: Imports, plan: Plan }

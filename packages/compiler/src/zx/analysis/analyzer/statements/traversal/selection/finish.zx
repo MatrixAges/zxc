@@ -1,0 +1,23 @@
+import integers from "zig:integers"
+import append from "core/control_table/append/selection"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../../semantic/types/row"
+import { Phase } from "../model"
+
+import type { Body } from "../model"
+
+export type Input = Body
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const frame = in.selections[in.selections.length - 1]
+    const state = in.expression.state
+    const type_id = state.local.expressions.types[integers.widen(frame.subject)]
+    const target = row({ tables: { base: state.types.context.base, delta: state.types.delta }, id: type_id })
+    const exhaustive = frame.fallback || ((target.kind == Kind.Enumeration || target.kind == Kind.ErrorSet) && frame.bodies.length == integers.widen(target.second)) || (type_id == 1 && frame.bodies.length == 2)
+    const pending = append({ table: in.blocks.pending, subject: frame.subject, exhaustive: exhaustive, values: frame.values, bodies: frame.bodies })
+
+    return { ...in, blocks: { ...in.blocks, pending: pending }, selections: in.selections.pop()[0], phase: Phase.Next }
+}

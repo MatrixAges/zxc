@@ -1,0 +1,14 @@
+export type Input = { id: u32, negative: bool }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    return match in.id {
+        2 => 255,
+        3 => 65535,
+        4 => 4294967295,
+        6 => in.negative ? 2147483648 : 2147483647,
+        7 => in.negative ? 9223372036854775808 : 9223372036854775807,
+        _ => 18446744073709551615,
+    }
+}

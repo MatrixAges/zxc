@@ -1,0 +1,33 @@
+import integers from "zig:integers"
+import { ValueKind } from "core/expression_table/append/model"
+import scope from "core/expression_table/append/scope"
+import reference from "core/expression_table/append/value"
+
+import restore from "../../../../ir/canonical/refinement/facts/restore"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Local } from "../../local"
+import type { Scopes } from "./model"
+
+export type Input = { scopes: Scopes, local: Local, span: Span }
+
+export type Output = { scopes: Scopes, local: Local, value: u32 }
+
+export default function (in: Input): Output {
+    const frame = in.scopes.frames[in.scopes.frames.length - 1]
+    const metadata = { type_id: in.local.symbols.types[integers.widen(frame.state_symbol)], span_start: in.span.start, span_end: in.span.end }
+    const value = reference({ table: in.local.expressions, metadata: metadata, kind: ValueKind.Reference, value: frame.state_symbol })
+    const first = frame.binding_mark
+    const count = in.scopes.bindings.values.length - first
+    const result = scope({ table: value.table, metadata: metadata, result: value.id, symbols: in.scopes.bindings.symbols.splice(first, count, [])[1], values: in.scopes.bindings.values.splice(first, count, [])[1], borrows: in.scopes.bindings.borrows.splice(first, count, [])[1] })
+    const facts = restore({ facts: in.local.refinement.facts, mark: frame.facts_mark })
+
+    return {
+        scopes: {
+            bindings: { symbols: in.scopes.bindings.symbols.splice(0, first, [])[1], values: in.scopes.bindings.values.splice(0, first, [])[1], borrows: in.scopes.bindings.borrows.splice(0, first, [])[1] },
+            frames: in.scopes.frames.pop()[0]
+        },
+        local: { ...in.local, expressions: result.table, active: in.local.active.splice(0, frame.active_mark, [])[1], refinement: { ...in.local.refinement, facts: facts } },
+        value: result.id
+    }
+}

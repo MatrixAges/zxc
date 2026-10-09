@@ -1,0 +1,65 @@
+import integers from "zig:integers"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import contains from "../../../semantic/querying/contains"
+import row from "../../../semantic/types/row"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, first: u64, symbol_count: u64, concurrent: bool[], span: Span }
+
+export type Output = { state: Prepared, captures: u32[] }
+
+export default function (in: Input): Output {
+    const captures: u32[] = []
+
+    const result = loop({ state: in.state, index: in.first, symbols: in.symbol_count, concurrent: in.concurrent, captures: captures, span: in.span }, {
+        while: current => current.index < current.state.local.expressions.kinds.length && current.state.diagnostic.message == "",
+        next: current => {
+            const expressions = current.state.local.expressions
+            const kind = expressions.kinds[current.index]
+            const payload = expressions.payloads[current.index]
+
+            if (kind == ExpressionKind.Reference) {
+                const symbol = expressions.references[integers.widen(payload)]
+
+                if (integers.widen(symbol) < current.symbols) {
+                    const type_id = current.state.local.symbols.types[integers.widen(symbol)]
+                    const tables = { base: current.state.types.context.base, delta: current.state.types.delta }
+                    const host = contains({ tables: tables, id: type_id, native_references: true })
+                    const task = row({ tables: tables, id: type_id }).kind == Kind.Task
+
+                    if (host || task) {
+                        current.state.diagnostic = { code: host ? "capability" : "ownership", message: host ? "tasks cannot capture host references" : "tasks cannot capture other task handles", start: current.span.start, end: current.span.end }
+                    } else {
+                        const found = loop({ values: current.captures, symbol: symbol, index: 0, found: false }, {
+                            while: item => item.index < item.values.length && !item.found,
+                            next: item => {
+                                item.found = item.values[item.index] == item.symbol
+                                item.index += 1
+                            }
+                        }).found
+
+                        if (!found) {
+                            current.captures = current.captures.push(symbol)[0]
+                        }
+                    }
+                }
+            } else if (kind == ExpressionKind.StoreGet) {
+                current.state.diagnostic = { code: "capability", message: "tasks cannot access Store state", start: current.span.start, end: current.span.end }
+            } else if (kind == ExpressionKind.Call) {
+                const id = integers.widen(expressions.call_functions[integers.widen(payload)])
+
+                if (id >= current.concurrent.length || !current.concurrent[id]) {
+                    current.state.diagnostic = { code: "capability", message: "task calls require Store-free functions and an explicit native concurrency contract", start: current.span.start, end: current.span.end }
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { state: result.state, captures: result.captures }
+}

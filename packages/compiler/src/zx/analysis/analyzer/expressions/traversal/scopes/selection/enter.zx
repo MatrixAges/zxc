@@ -1,0 +1,26 @@
+import { Phase, Action } from "../../model"
+
+import type { StateSelection } from "../../../../statements/scopes/continuations"
+import type { Work } from "../../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const statement = in.source.blocks.statements[in.node]
+    const ids: u64[] = []
+
+    const order = loop({ cases: in.source.blocks.cases, head: statement.head, ids: ids }, {
+        while: current => current.head != 0,
+        next: current => {
+            current.ids = current.ids.push(current.head - 1)[0]
+            current.head = current.cases[current.head - 1].previous
+        }
+    }).ids.reverse()[0]
+
+    const state_symbol = in.scopes.frames[in.scopes.frames.length - 1].state_symbol
+    const frame: StateSelection = { statement: in.node, cases: order, index: 0, subject: 0, state_symbol: state_symbol, conditions: [], results: [], fallback: null }
+
+    return { ...in, node: statement.first, expected: null, phase: Phase.Evaluate, frames: { ...in.frames, switches: in.frames.switches.push(frame)[0], actions: in.frames.actions.push(Action.StateSubject)[0] } }
+}

@@ -1,0 +1,44 @@
+import integers from "zig:integers"
+
+import contracts from "./contracts"
+import { Operation } from "./model"
+import insert from "./seen/insert"
+import source from "./source"
+
+import type { State } from "./model"
+
+export type Input = { state: State, index: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const called = insert({ seen: in.state.called, id: integers.narrow(in.index) })
+    const state = { ...in.state, called: called.seen }
+
+    if (!called.fresh) {
+        return state
+    }
+
+    const functions = state.context.functions
+
+    if (functions.native_modules[in.index] != null) {
+        if (!functions.native_fallible[in.index]) {
+            return state
+        }
+
+        const names = functions.native_errors[in.index]
+
+        return names == null ? { ...state, unknown: true } : { ...state, names: state.names.concat(names)[0] }
+    }
+
+    if (functions.stores[in.index].types.length != 0) {
+        return { ...state, unknown: true }
+    }
+
+    const control = functions.control[in.index]
+    const root = functions.roots[in.index]
+    const registered = source({ state: state, expressions: functions.expressions[in.index], control: control })
+    const frames = root == null ? registered.state.frames : registered.state.frames.push({ operation: Operation.Block, source: registered.source, index: integers.widen(control.block_first[integers.widen(root)]), count: integers.widen(control.block_count[integers.widen(root)]) })[0]
+
+    return contracts({ state: { ...registered.state, frames: frames }, contracts: functions.contracts[in.index] })
+}

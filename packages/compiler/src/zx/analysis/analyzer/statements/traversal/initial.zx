@@ -1,0 +1,21 @@
+import initial from "../../expressions/traversal/initial"
+import enter from "../blocks/enter"
+import empty from "../blocks/initial"
+import { Phase } from "./model"
+
+import type { FunctionImports } from "../../context"
+import type { Source } from "../../expressions/request"
+import type { Functions } from "../../functions"
+import type { Prepared } from "../../model"
+import type { Body } from "./model"
+
+export type Input = { state: Prepared, source: Source, imports: FunctionImports, functions: Functions, block: u64 }
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const expression = initial({ request: { state: in.state, source: in.source, node: 0, expected: null }, imports: in.imports, functions: in.functions })
+    const blocks = enter({ blocks: empty(), local: in.state.local, tree: in.source.blocks, block: in.block })
+
+    return { expression: expression, blocks: blocks, actions: [], branches: [], selections: [], statement: 0, slot: 0, value: 0, phase: Phase.Next }
+}

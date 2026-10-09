@@ -1,0 +1,17 @@
+import append from "core/control_table/append/result"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Prepared } from "../model"
+import type { Blocks } from "./blocks/model"
+
+export type Input = { state: Prepared, blocks: Blocks, value: u32?, span: Span }
+
+export type Output = { state: Prepared, blocks: Blocks }
+
+export default function (in: Input): Output {
+    if (in.value == null && in.state.local.output_type != 0) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "return must provide Output", start: in.span.start, end: in.span.end } }, blocks: in.blocks }
+    }
+
+    return { state: in.state, blocks: { ...in.blocks, pending: append({ table: in.blocks.pending, value: in.value }) } }
+}

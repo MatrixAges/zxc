@@ -1,0 +1,26 @@
+import initial from "../../local/initial"
+
+import type { Prepared } from "../../model"
+import type { Signature } from "../../signature/model"
+import type { Types } from "../../types/model"
+import type { PredicateInput } from "./model"
+
+export type Input = PredicateInput
+
+export type Output = Prepared
+
+export default function (in: Input): Output {
+    const context = in.types.context
+
+    const types: Types = {
+        ...in.types,
+        context: { ...context, source: { ...context.source, indexed: { ...context.source.indexed, declarations: [] }, native: null }, resolved: { names: [], ids: [] }, aliases: in.aliases, visiting: [] },
+        cache: { names: [], ids: [] }
+    }
+
+    const diagnostic = { code: "", message: "", start: 0, end: 0 }
+    const signature: Signature = { types: types, span: in.contract.span, input_type: in.input_type, output_type: 0, diagnostic: diagnostic }
+    const local = initial({ signature: signature, stores: { paths: [], types: [], handles: [], readable: [], writable: [] }, allow_store: false })
+
+    return { types: types, local: local, input_type: in.input_type, diagnostic: diagnostic }
+}

@@ -1,0 +1,37 @@
+import appendBinary from "core/expression_table/append/binary"
+import { ValueKind } from "core/expression_table/append/model"
+import appendUnary from "core/expression_table/append/unary"
+import appendValue from "core/expression_table/append/value"
+import { BinaryOperator, UnaryOperator, TransformKind } from "core/expression_table/kinds"
+
+import field from "../../expressions/projections/field"
+import reference from "../building/reference"
+
+import type { Metadata } from "core/expression_table/append/model"
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, span: Span, kind: TransformKind, parameter: u32 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const current = reference({ state: in.state, symbol: in.parameter, span: in.span })
+    const source = field({ state: current.state, target: current.value, name: { text: "source", start: in.span.start, end: in.span.end }, span: in.span })
+    const metadata: Metadata = { type_id: 5, span_start: in.span.start, span_end: in.span.end }
+    const length = appendValue({ table: source.state.local.expressions, metadata: metadata, kind: ValueKind.Length, value: source.value })
+    const index = field({ state: { ...source.state, local: { ...source.state.local, expressions: length.table } }, target: current.value, name: { text: "index", start: in.span.start, end: in.span.end }, span: in.span })
+    const bound = appendBinary({ table: index.state.local.expressions, metadata: { ...metadata, type_id: 1 }, operator: BinaryOperator.Less, left: index.value, right: length.id })
+    const state = { ...index.state, local: { ...index.state.local, expressions: bound.table } }
+
+    if (in.kind != TransformKind.Every && in.kind != TransformKind.Some) {
+        return { state: state, value: bound.id }
+    }
+
+    const previous = field({ state: state, target: current.value, name: { text: "result", start: in.span.start, end: in.span.end }, span: in.span })
+    const continuing = in.kind == TransformKind.Every ? { table: previous.state.local.expressions, id: previous.value } : appendUnary({ table: previous.state.local.expressions, metadata: { ...metadata, type_id: 1 }, operator: UnaryOperator.Not, operand: previous.value })
+    const result = appendBinary({ table: continuing.table, metadata: { ...metadata, type_id: 1 }, operator: BinaryOperator.LogicalAnd, left: bound.id, right: continuing.id })
+
+    return { state: { ...previous.state, local: { ...previous.state.local, expressions: result.table } }, value: result.id }
+}

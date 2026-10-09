@@ -1,0 +1,33 @@
+import block from "./block"
+import expression from "./expression/visit"
+import call from "./function"
+import { Operation } from "./model"
+
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = State
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => !current.unknown && current.frames.length != 0,
+        next: current => {
+            const frame = current.frames[current.frames.length - 1]
+
+            current.frames = current.frames.pop()[0]
+
+            const result = match frame.operation {
+                Operation.Expression => expression({ state: current, frame: frame }),
+                Operation.Function => call({ state: current, index: frame.index }),
+                _ => block({ state: current, frame: frame }),
+            }
+
+            current.sources = result.sources
+            current.frames = result.frames
+            current.called = result.called
+            current.names = result.names
+            current.unknown = result.unknown
+        }
+    })
+}

@@ -1,0 +1,22 @@
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Stores } from "core/store_table/model"
+import type { Symbols } from "core/symbol_table/model"
+import type { Refinement } from "../../ir/canonical/refinement/model"
+import type { Captures } from "./captures"
+
+export type Local = {
+    symbols: Symbols
+    expressions: Expressions
+    control: Control
+    active: u32[]
+    scope_floor: u64
+    lambda_depth: u64
+    expression_bindings: u32[]
+    expression_units: string[]
+    refinement: Refinement
+    captures: Captures
+    output_type: u32
+    stores: Stores
+    allow_store: bool
+}

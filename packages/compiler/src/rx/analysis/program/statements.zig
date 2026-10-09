@@ -131,7 +131,7 @@ fn invoke(builder: *Builder, invocation: Module.Call) Builder.Error!ir.ExprId {
     for (stores, 0..) |*mapped, index| mapped.* = try builder.store(invocation.callee.stores.at(index));
 
     const span = builder.expressions.view().at(@backingInt(argument)).span;
-    const function = try builder.importFunction(invocation.callee, invocation.store_initializers);
+    const function = try builder.importFunction(invocation.callee, invocation.store_initializers, invocation.function_id);
 
     return builder.expression(.{ .type_id = invocation.callee.output_type, .span = span, .value = .{ .call = .{ .function = function, .argument = argument, .stores = stores } } });
 }

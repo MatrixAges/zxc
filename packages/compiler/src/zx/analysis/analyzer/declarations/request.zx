@@ -1,0 +1,31 @@
+import type { Bindings, Origin } from "core/type_table/nominal"
+import type { Request } from "../../semantic/resolving/model"
+import type { ModuleInput } from "../context"
+
+export type Input = ModuleInput
+
+export type Output = { request: Request, shared: bool, origins: Bindings, origin: Origin }
+
+export default function (in: Input): Output {
+    return {
+        request: {
+            context: {
+                source: { indexed: { bytes: in.bytes, types: in.syntax.types, order: in.syntax.type_order, declarations: in.syntax.declarations, members: in.syntax.members }, native: null },
+                base: in.context.type_base,
+                resolved: { names: [], ids: [] },
+                aliases: in.context.aliases,
+                visiting: [],
+                native_interface: false
+            },
+            delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] },
+            cache: { names: [], ids: [] },
+            initialize: true,
+            named: false,
+            name: { text: "", start: 0, end: 0 },
+            reference: { enumeration: false, index: 0 }
+        },
+        shared: in.context.shared,
+        origins: in.context.nominal_base,
+        origin: in.context.nominal_origin
+    }
+}

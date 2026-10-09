@@ -1,0 +1,36 @@
+import integers from "zig:integers"
+
+import enter from "../../blocks/enter"
+import { Phase, Action } from "../model"
+import request from "../request"
+import finish from "./finish"
+
+import type { Body } from "../model"
+
+export type Input = Body
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const position = in.selections.length - 1
+    const frame = in.selections[position]
+
+    if (frame.index == frame.cases.length) {
+        return finish(in)
+    }
+
+    const source = in.expression.source.blocks.cases[frame.cases[frame.index]]
+
+    if (source.value != 0) {
+        return request({ body: in, node: source.value - 1, expected: in.expression.state.local.expressions.types[integers.widen(frame.subject)], action: Action.Label })
+    }
+
+    if (frame.fallback) {
+        return { ...in, expression: { ...in.expression, state: { ...in.expression.state, diagnostic: { code: "name", message: "duplicate switch default", start: source.span.start, end: source.span.end } } } }
+    }
+
+    const blocks = enter({ blocks: in.blocks, local: in.expression.state.local, tree: in.expression.source.blocks, block: source.body })
+    const selections = in.selections.splice(position, 1, [{ ...frame, fallback: true, values: frame.values.push(null)[0] }])[0]
+
+    return { ...in, blocks: blocks, selections: selections, actions: in.actions.push(Action.Case)[0], phase: Phase.Next }
+}

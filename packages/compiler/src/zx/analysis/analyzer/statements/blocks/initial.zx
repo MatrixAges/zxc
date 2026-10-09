@@ -1,0 +1,11 @@
+import empty from "core/control_table/empty"
+
+import type { Blocks } from "./model"
+
+export type Input = void
+
+export type Output = Blocks
+
+export default function (in: Input): Output {
+    return { pending: empty(), returns: [], frames: [] }
+}

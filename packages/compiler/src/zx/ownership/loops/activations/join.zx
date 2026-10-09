@@ -1,12 +1,12 @@
 import rewrite from "../../facts/rewrite"
 import { RewriteAction } from "../../facts/rewrite/model"
 
-import type { Table } from "../../../analysis/semantic/types/model"
+import type { Tables } from "core/type_table/model"
 import type { Forest } from "../../facts/model"
 import type { Memory } from "../../runtime/model"
 import type { Activations } from "./model"
 
-export type Input = { types: Table, references: bool[], memory: Memory, loops: Activations, index: u64, value: u64 }
+export type Input = { types: Tables, references: bool[], memory: Memory, loops: Activations, index: u64, value: u64 }
 
 export type Output = { forest: Forest, loops: Activations, changed: bool }
 

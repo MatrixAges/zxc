@@ -1,0 +1,52 @@
+import integers from "zig:integers"
+import { ValueKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/value"
+import { Kind } from "core/type_table/model"
+
+import row from "../../semantic/types/row"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Prepared } from "../model"
+import type { Result } from "./model"
+
+export type Input = { state: Prepared, value: u32, expected: u32, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const actual = in.state.local.expressions.types[integers.widen(in.value)]
+    const wrappers: u32[] = []
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+
+    const path = loop({ tables: tables, actual: actual, expected: in.expected, wrappers: wrappers, failed: false }, {
+        while: current => current.expected != current.actual && !current.failed,
+        next: current => {
+            const target = row({ tables: current.tables, id: current.expected })
+
+            if (target.kind == Kind.Optional) {
+                current.wrappers = current.wrappers.push(current.expected)[0]
+                current.expected = target.first
+            } else {
+                current.failed = true
+            }
+        }
+    })
+
+    if (path.failed) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "expression type does not match its context", start: in.span.start, end: in.span.end } }, value: in.value }
+    }
+
+    const result = loop({ table: in.state.local.expressions, value: in.value, wrappers: path.wrappers, index: path.wrappers.length, span: in.span }, {
+        while: current => current.index > 0,
+        next: current => {
+            current.index -= 1
+
+            const next = append({ table: current.table, metadata: { type_id: current.wrappers[current.index], span_start: current.span.start, span_end: current.span.end }, kind: ValueKind.Some, value: current.value })
+
+            current.table = next.table
+            current.value = next.id
+        }
+    })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.value }
+}

@@ -1,0 +1,5 @@
+export type Frames = { starts: u64[], floors: u64[], parents: u32?[], first: u32?[], last: u32?[] }
+
+export type Bindings = { sources: u32[], targets: u32[], values: u32[], next: u32?[] }
+
+export type Captures = { frames: Frames, bindings: Bindings, current: u32? }

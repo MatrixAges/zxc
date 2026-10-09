@@ -1,0 +1,22 @@
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, target: u32, span: Span }
+
+export type Output = Prepared
+
+export default function (in: Input): Output {
+    const type_id = in.state.local.expressions.types[integers.widen(in.target)]
+    const target = row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: type_id })
+
+    if (target.kind == Kind.List || target.kind == Kind.Tuple || type_id == 10) {
+        return in.state
+    }
+
+    return { ...in.state, diagnostic: { code: "type_mismatch", message: "indexing requires a list, tuple or string", start: in.span.start, end: in.span.end } }
+}

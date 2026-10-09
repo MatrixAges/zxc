@@ -1,8 +1,9 @@
 import encode from "../types/nominal/encode"
 import find from "../types/nominal/find"
 
-import type { Candidate, Tables } from "../types/model"
-import type { Origin, Origins } from "../types/nominal/model"
+import type { Tables } from "core/type_table/model"
+import type { Origin, Origins } from "core/type_table/nominal"
+import type { Candidate } from "../types/model"
 
 export type Input = { tables: Tables, origins: Origins, origin: Origin, candidate: Candidate }
 

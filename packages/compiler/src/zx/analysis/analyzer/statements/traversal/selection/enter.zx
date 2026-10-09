@@ -1,0 +1,25 @@
+import { Action } from "../model"
+import request from "../request"
+
+import type { Body, Selection } from "../model"
+
+export type Input = Body
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const statement = in.expression.source.blocks.statements[in.statement]
+    const ids: u64[] = []
+
+    const cases = loop({ cases: in.expression.source.blocks.cases, head: statement.head, ids: ids }, {
+        while: current => current.head != 0,
+        next: current => {
+            current.ids = current.ids.push(current.head - 1)[0]
+            current.head = current.cases[current.head - 1].previous
+        }
+    }).ids.reverse()[0]
+
+    const frame: Selection = { statement: in.statement, cases: cases, index: 0, subject: 0, labels: [], values: [], bodies: [], fallback: false }
+
+    return request({ body: { ...in, selections: in.selections.push(frame)[0] }, node: statement.first, expected: null, action: Action.Subject })
+}

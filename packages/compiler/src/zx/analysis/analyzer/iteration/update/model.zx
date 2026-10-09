@@ -1,0 +1,5 @@
+import type { ExpressionKind } from "core/expression_table/kinds"
+
+export type Frame = { expression: u32, read_value: bool }
+
+export type Place = { value: u32, kind: ExpressionKind, index: u32 }

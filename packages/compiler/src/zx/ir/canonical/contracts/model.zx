@@ -1,9 +1,4 @@
-import type { Table } from "../../../analysis/semantic/types/model"
-import type { Expressions } from "../expressions/model"
-import type { Symbols } from "../symbols"
-
-export enum ContractKind { Requires, Ensures }
-
-export type Contracts = { kinds: ContractKind[], predicates: u32[], symbols: Symbols[], expressions: Expressions[], span_start: u64[], span_end: u64[] }
+import type { Contracts } from "core/contract_table/model"
+import type { Table } from "core/type_table/model"
 
 export type Program = { table: Table, contracts: Contracts, input_type: u32, output_type: u32, max_offset: u64 }

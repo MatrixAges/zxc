@@ -1,0 +1,25 @@
+import type { Bindings, Origin } from "core/type_table/nominal"
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Request } from "../../semantic/resolving/model"
+import type { Types } from "../types/model"
+
+export type Input = { types: Types, span: Span, name: string }
+
+export type Output = { request: Request, shared: bool, origins: Bindings, origin: Origin }
+
+export default function (in: Input): Output {
+    return {
+        request: {
+            context: in.types.context,
+            delta: in.types.delta,
+            cache: in.types.cache,
+            initialize: false,
+            named: true,
+            name: { text: in.name, start: in.span.start, end: in.span.end },
+            reference: { enumeration: false, index: 0 }
+        },
+        shared: false,
+        origins: { ids: [], kinds: [], owners: [], members: [] },
+        origin: { kind: 0, owner: "", member: "" }
+    }
+}

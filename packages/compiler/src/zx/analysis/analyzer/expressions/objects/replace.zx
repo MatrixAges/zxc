@@ -1,0 +1,14 @@
+import type { Entries } from "./model"
+
+export type Input = { entries: Entries, name: string, value: u32 }
+
+export type Output = Entries
+
+export default function (in: Input): Output {
+    const found = loop({ names: in.entries.names, name: in.name, index: 0 }, {
+        while: current => current.index < current.names.length && current.names[current.index] != current.name,
+        next: current => { current.index += 1 }
+    })
+
+    return found.index == found.names.length ? { names: in.entries.names.push(in.name)[0], values: in.entries.values.push(in.value)[0] } : { names: in.entries.names, values: in.entries.values.splice(found.index, 1, [in.value])[0] }
+}

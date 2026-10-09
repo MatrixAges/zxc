@@ -1,0 +1,70 @@
+import integers from "zig:integers"
+
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import typeOf from "../../../../ir/canonical/refinement/type_of"
+import text from "../../../semantic/resolving/source/text"
+import lookup from "../../bindings/lookup"
+import injected from "../injected/lookup"
+import call from "./call"
+
+import type { Context } from "./model"
+
+export type Input = { context: Context, node: u64 }
+
+export type Output = { handled: bool, type_id: u32? }
+
+export default function (in: Input): Output {
+    const state = in.context.state
+    const source = in.context.source
+    const node = source.tree.nodes[in.node]
+    const binding = injected({ local: state.local, source: source, node: in.node })
+
+    if (binding.unit) {
+        return { handled: true, type_id: 0 }
+    }
+
+    const symbol = match {
+        binding.symbol != null => binding.symbol,
+        node.kind == ExprKind.Identifier => lookup({ local: state.local, name: text({ source: source.bytes, span: node.name }).text }),
+        _ => null,
+    }
+
+    if (symbol != null) {
+        return { handled: true, type_id: typeOf({ facts: state.local.refinement.facts, tables: { base: state.types.context.base, delta: state.types.delta }, type_id: state.local.symbols.types[integers.widen(symbol)], symbol: symbol }) }
+    }
+
+    if (node.kind == ExprKind.Identifier) {
+        return { handled: true, type_id: null }
+    }
+
+    if (node.kind == ExprKind.Boolean || node.kind == ExprKind.String) {
+        return { handled: true, type_id: node.kind == ExprKind.Boolean ? 1 : 10 }
+    }
+
+    if (node.kind == ExprKind.Call) {
+        return { handled: true, type_id: call({ context: in.context, callee: node.first }) }
+    }
+
+    if (node.kind == ExprKind.Field && source.tree.nodes[node.first].kind == ExprKind.Identifier) {
+        const owner = text({ source: source.bytes, span: source.tree.nodes[node.first].name }).text
+        const name = text({ source: source.bytes, span: node.name }).text
+        const missing: u32? = null
+
+        const found = loop({ stores: state.local.stores, owner: owner, name: name, index: 0, type_id: missing }, {
+            while: current => current.index < current.stores.types.length && current.type_id == null,
+            next: current => {
+                if (current.name == "value" && current.stores.handles[current.index] == current.owner) {
+                    current.type_id = current.stores.types[current.index]
+                }
+
+                current.index += 1
+            }
+        })
+
+        if (found.type_id != null) {
+            return { handled: true, type_id: found.type_id }
+        }
+    }
+
+    return { handled: false, type_id: null }
+}

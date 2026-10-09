@@ -1,0 +1,11 @@
+import type { FunctionImports } from "../../context"
+import type { Prepared } from "../../model"
+import type { Source } from "../request"
+
+export enum Operation { Probe, Fallback, Field, Index, Task, Optional, MatchLiteral }
+
+export type Frame = { operation: Operation, node: u64 }
+
+export type Context = { state: Prepared, source: Source, imports: FunctionImports }
+
+export type Work = { context: Context, frames: Frame[], result: u32? }

@@ -1,0 +1,57 @@
+import integers from "zig:integers"
+
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import text from "../../../semantic/resolving/source/text"
+import lookup from "../../bindings/lookup"
+import matches from "./matches"
+
+import type { Local } from "../../local"
+import type { Source } from "../request"
+
+export type Input = { local: Local, source: Source, node: u64 }
+
+export type Output = { unit: bool, symbol: u32? }
+
+export default function (in: Input): Output {
+    const root = loop({ tree: in.source.tree, node: in.node }, {
+        while: current => current.tree.nodes[current.node].kind == ExprKind.Field,
+        next: current => { current.node = current.tree.nodes[current.node].first }
+    }).node
+
+    const node = in.source.tree.nodes[root]
+
+    if (node.kind != ExprKind.Identifier) {
+        return { unit: false, symbol: null }
+    }
+
+    const name = text({ source: in.source.bytes, span: node.name })
+    const local = lookup({ local: in.local, name: name.text })
+    const missing: u32? = null
+
+    const result = loop({ source: in.source, node: in.node, local: local, bindings: in.local.expression_bindings, names: in.local.symbols.names, units: in.local.expression_units, index: 0, symbol: missing, unit: false }, {
+        while: current => current.index < current.units.length && current.local == null && !current.unit,
+        next: current => {
+            current.unit = matches({ source: current.source, node: current.node, path: current.units[current.index] })
+            current.index += 1
+        }
+    })
+
+    if (result.unit) {
+        return { unit: true, symbol: null }
+    }
+
+    const found = loop({ ...result, index: 0 }, {
+        while: current => current.index < current.bindings.length && current.symbol == null,
+        next: current => {
+            const symbol = current.bindings[current.index]
+
+            if ((current.local == null || current.local == symbol) && matches({ source: current.source, node: current.node, path: current.names[integers.widen(symbol)] })) {
+                current.symbol = symbol
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { unit: false, symbol: found.symbol }
+}

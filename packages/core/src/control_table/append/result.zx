@@ -1,0 +1,19 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../model"
+import header from "./header"
+
+import type { Control } from "../model"
+
+export type Input = { table: Control, value: u32? }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    const table = header({ table: in.table, kind: StatementKind.Result, payload: integers.narrow(in.table.results.length) })
+
+    return {
+        ...table,
+        results: table.results.push(in.value)[0]
+    }
+}

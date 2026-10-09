@@ -1,0 +1,40 @@
+import integers from "zig:integers"
+import { SequenceKind } from "core/expression_table/append/model"
+import appendObject from "core/expression_table/append/object"
+import project from "core/expression_table/append/projection"
+import appendSequence from "core/expression_table/append/sequence"
+
+import row from "../../../semantic/types/row"
+
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, parent: u32, selected: u32, value: u32, tuple: bool }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const expressions = in.state.local.expressions
+    const metadata = { type_id: expressions.types[integers.widen(in.parent)], span_start: expressions.span_start[integers.widen(in.parent)], span_end: expressions.span_end[integers.widen(in.parent)] }
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: metadata.type_id })
+    const table = target.delta ? tables.delta : tables.base
+    const ids: u32[] = []
+
+    const updated = loop({ expressions: expressions, table: table, first: integers.widen(target.first), count: integers.widen(target.second), index: 0, indices: ids, values: ids, parent: in.parent, selected: integers.widen(in.selected), value: in.value, tuple: in.tuple, metadata: metadata }, {
+        while: current => current.index < current.count,
+        next: current => {
+            const type_id = current.tuple ? current.table.children[current.first + current.index] : current.table.field_types[current.first + current.index]
+            const value = current.index == current.selected ? { table: current.expressions, id: current.value } : project({ table: current.expressions, metadata: { ...current.metadata, type_id: type_id }, target: current.parent, index: integers.narrow(current.index), tuple: current.tuple })
+
+            current.expressions = value.table
+            current.indices = current.indices.push(integers.narrow(current.index))[0]
+            current.values = current.values.push(value.id)[0]
+            current.index += 1
+        }
+    })
+
+    const result = in.tuple ? appendSequence({ table: updated.expressions, metadata: metadata, kind: SequenceKind.Tuple, values: updated.values }) : appendObject({ table: updated.expressions, metadata: metadata, indices: updated.indices, values: updated.values, evaluation: [] })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

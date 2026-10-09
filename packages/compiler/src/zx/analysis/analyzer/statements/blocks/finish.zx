@@ -1,0 +1,21 @@
+import restore from "../../../../ir/canonical/refinement/facts/restore"
+import flush from "../pending/flush"
+
+import type { Local } from "../../local"
+import type { Blocks } from "./model"
+
+export type Input = { blocks: Blocks, local: Local }
+
+export type Output = { blocks: Blocks, local: Local, id: u32 }
+
+export default function (in: Input): Output {
+    const frame = in.blocks.frames[in.blocks.frames.length - 1]
+    const result = flush({ pending: in.blocks.pending, mark: frame.pending_mark, control: in.local.control, returns: in.blocks.returns })
+    const facts = restore({ facts: in.local.refinement.facts, mark: frame.facts_mark })
+
+    return {
+        blocks: { pending: result.pending, returns: result.returns, frames: in.blocks.frames.pop()[0] },
+        local: { ...in.local, control: result.control, active: in.local.active.splice(0, frame.active_mark, [])[1], refinement: { ...in.local.refinement, facts: facts } },
+        id: result.id
+    }
+}

@@ -1,0 +1,230 @@
+install
++- compile test safe native
+   +- run exe generate-parser (parser.zig) failure
+type difference 218/468: object/object
+field contracts
+type difference 217/467: list/list
+type difference 207/464: object/object
+field expressions
+type difference 184/463: list/list
+type difference 31/330: object/object
+field binary_operators
+type difference 30/329: list/list
+type difference 22/324: enumeration/enumeration
+origin 22: .{ .source = { 99, 111, 114, 101, 47, 101, 120, 112, 114, 101, 115, 115, 105, 111, 110, 95, 116, 97, 98, 108, 101, 47, 107, 105, 110, 100, 115, 46, 122, 120 } }
+origin 324: .{ .source = { 108, 105, 98, 114, 97, 114, 121, 58, 49, 56, 58, 99, 111, 109, 112, 105, 108, 101, 114, 45, 98, 111, 111, 116, 115, 116, 114, 97, 112, 58, 99, 111, 114, 101, 47, 101, 120, 112, 114, 101, 115, 115, 105, 111, 110, 95, 116, 97, 98, 108, 101, 47, 107, 105, 110, 100, 115, 46, 122, 120 } }
+zx/analysis/analyzer/expressions/errors.zx:12:123: type_mismatch: expression type does not match its context
+error: InvalidAnalyzerLibrary
+error: process exited with code 1
+failed command: ./.zig-cache/o/68e4a8f3a9e132b981a43231403a80b7/generate-parser ./packages/compiler/src ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/parser.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/expression.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/xml.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/paths.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/graph.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/attribute_role.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/attribute_content.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/call_rule.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/path_kind.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/file_kind.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/specifier.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/integer.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/type_lookup.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/semantic_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/nominal_lookup.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/nominal_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/origin_validation.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/origins_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/origin_production.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/production_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/merge_preflight.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/preflight_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/type_merge.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/merge_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/type_validation.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/validation_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/type_resolution.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/resolution_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/type_construction.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/construction_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/type_query.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/query_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ownership.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ownership_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_body.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_body_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_stores.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_stores_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_store_call.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_store_call_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_tasks.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_tasks_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_functions.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_functions_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_task_call.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_task_call_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_program_pure.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_program_pure_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_expressions.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_expressions_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_contracts.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_contracts_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_contract_tables.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_contract_tables_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_scopes.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/ir_scopes_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/refinement_assume.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/refinement_assume_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/refinement_bind.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/refinement_bind_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/refinement_type.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/refinement_type_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_modules.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_modules_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_export.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_export_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_type.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_type_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_names.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_names_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_interface.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/native_interface_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/artifact_roots.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/artifact_roots_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/artifact_prepare.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/artifact_prepare_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/artifact_remap.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/artifact_remap_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/refinement_mark.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/refinement_restore.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/refinement_add.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/analyzer.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/analyzer_abi.zig ./.zig-cache/o/cca16a18310594acd9cf648bbc2e363a/naming.zig ./packages/lint/src/naming ./packages/core/src
+
+Build Summary: 31/36 steps succeeded (1 failed)
+install transitive failure
++- compile exe dsl-rules safe native cached 46ms MaxRSS:21M
++- compile test safe native transitive failure
+|  +- options cached
+|  +- run exe generate-parser (parser.zig) failure
+|  |  +- compile exe generate-parser safe native success 43s MaxRSS:1G
+|  |     +- options cached
+|  |     +- WriteFile interfaces/0.d.zx cached
+|  |     |  +- run exe standard-catalog (catalog.zig) cached
+|  |     |     +- compile exe standard-catalog fast native cached 54ms MaxRSS:21M
+|  |     |     +- WriteFile catalog.json cached
+|  |     +- options cached
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- WriteFile interfaces/0.d.zx cached
+|  |  +- run exe standard-catalog (catalog.zig) cached
+|  |     +- compile exe standard-catalog fast native cached 54ms MaxRSS:21M
+|  |     +- WriteFile catalog.json cached
+|  +- options cached
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-lexer (lexer.zig) success 79ms
+|  |  +- compile exe generate-lexer safe native success 42s MaxRSS:1G
+|  |     +- options cached
+|  |     +- WriteFile interfaces/0.d.zx cached
+|  |     |  +- run exe standard-catalog (catalog.zig) cached
+|  |     |     +- compile exe standard-catalog fast native cached 48ms MaxRSS:21M
+|  |     |     +- WriteFile catalog.json cached
+|  |     +- options cached
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|  +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- install zxc transitive failure
+|  +- compile exe zxc safe native transitive failure
+|     +- WriteFile cached
+|     +- compile lib yaml safe native cached 43ms MaxRSS:20M
+|     +- compile lib yaml safe native (reused)
+|     +- translate-c cached 43ms MaxRSS:20M
+|     +- options success
+|     +- run exe bundle-zig (bundle) cached
+|     |  +- compile exe bundle-zig fast native cached 48ms MaxRSS:21M
+|     |  +- WriteFile bundle_manifest.json cached
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- WriteFile interfaces/0.d.zx (+1 more reused dependencies)
+|     +- options (reused)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-lexer (lexer.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
+|     +- run exe generate-parser (parser.zig) (+1 more reused dependencies)
++- install dependency to share/zxc/licenses/libyaml.txt cached
++- install build/toolchain/license.txt to share/zxc/licenses/zig.txt cached
+

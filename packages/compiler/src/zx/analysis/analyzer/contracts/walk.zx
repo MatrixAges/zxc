@@ -1,0 +1,32 @@
+import analyze from "compiler/contract"
+import append from "core/contract_table/append"
+import { ContractKind } from "core/contract_table/model"
+
+import type { Contracts } from "core/contract_table/model"
+import type { Prepared } from "../model"
+import type { ContractWork } from "./model"
+
+export type Input = ContractWork
+
+export type Output = { state: Prepared, contracts: Contracts }
+
+export default function (in: Input): Output {
+    const result = loop({ work: in, index: 0 }, {
+        while: current => current.index < current.work.items.length && current.work.state.diagnostic.message == "",
+        next: current => {
+            const item = current.work.items[current.index]
+            const result = analyze({ types: current.work.state.types, aliases: current.work.aliases, source: current.work.source, contract: item, input_type: current.work.state.input_type, output_type: current.work.state.local.output_type })
+
+            current.work.state.types.delta = result.types.delta
+            current.work.state.diagnostic = result.diagnostic
+
+            if (result.diagnostic.message == "") {
+                current.work.contracts = append({ table: current.work.contracts, kind: item.ensures ? ContractKind.Ensures : ContractKind.Requires, symbols: result.symbols, expressions: result.expressions, predicate: result.predicate, span_start: item.span.start, span_end: item.span.end })
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { state: result.work.state, contracts: result.work.contracts }
+}

@@ -1,0 +1,54 @@
+import integers from "zig:integers"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+
+import type { Diagnostic } from "../../../semantic/resolving/model"
+import type { Prepared } from "../../model"
+import type { Frame } from "./model"
+
+export type Input = { state: Prepared, target: u32, state_symbol: u32, read_value: bool }
+
+export type Output = { frames: Frame[], diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const frames: Frame[] = []
+
+    const result = loop({ expressions: in.state.local.expressions, tables: { base: in.state.types.context.base, delta: in.state.types.delta }, symbol: in.state_symbol, target: in.target, read_value: in.read_value, frames: frames, done: false, diagnostic: in.state.diagnostic }, {
+        while: current => !current.done && current.diagnostic.message == "",
+        next: current => {
+            const kind = current.expressions.kinds[integers.widen(current.target)]
+            const payload = current.expressions.payloads[integers.widen(current.target)]
+            const span = { start: current.expressions.span_start[integers.widen(current.target)], end: current.expressions.span_end[integers.widen(current.target)] }
+
+            current.frames = current.frames.push({ expression: current.target, read_value: current.read_value })[0]
+
+            if (kind == ExpressionKind.Reference) {
+                if (current.expressions.references[integers.widen(payload)] != current.symbol) {
+                    current.diagnostic = { code: "ownership", message: "only the loop state parameter can be updated", start: span.start, end: span.end }
+                }
+
+                current.done = true
+            } else if (kind == ExpressionKind.Field || kind == ExpressionKind.TupleField) {
+                const parent = current.expressions.projection_targets[integers.widen(payload)]
+
+                current.target = parent
+                current.read_value = current.expressions.kinds[integers.widen(parent)] == ExpressionKind.Index
+            } else if (kind == ExpressionKind.Index) {
+                const parent = current.expressions.index_targets[integers.widen(payload)]
+
+                if (row({ tables: current.tables, id: current.expressions.types[integers.widen(parent)] }).kind != Kind.List) {
+                    current.diagnostic = { code: "ownership", message: "string bytes are immutable", start: span.start, end: span.end }
+                } else {
+                    current.target = parent
+                    current.read_value = true
+                }
+            } else {
+                current.diagnostic = { code: "ownership", message: "state updates require a field, index or the state parameter", start: span.start, end: span.end }
+            }
+        }
+    })
+
+    return { frames: result.frames, diagnostic: result.diagnostic }
+}

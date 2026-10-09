@@ -1,0 +1,27 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, function_id: u32, argument: u32, stores: u32[] }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({ table: in.table, metadata: in.metadata, kind: ExpressionKind.Call, payload: integers.narrow(in.table.call_functions.length) })
+
+    return {
+        table: {
+            ...result.table,
+            call_functions: result.table.call_functions.push(in.function_id)[0],
+            call_arguments: result.table.call_arguments.push(in.argument)[0],
+            call_store_first: result.table.call_store_first.push(integers.narrow(result.table.call_stores.length))[0],
+            call_store_count: result.table.call_store_count.push(integers.narrow(in.stores.length))[0],
+            call_stores: result.table.call_stores.concat(in.stores)[0]
+        },
+        id: result.id
+    }
+}

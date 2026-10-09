@@ -1,0 +1,23 @@
+import type { Ownership } from "../symbol_table/model"
+
+export type Names = string?[]
+
+export type Errors = string[]?
+
+    export type Table = {
+        files: string[]
+        input_types: u32[]
+        output_types: u32[]
+        ownership: Ownership[]
+        native_inputs: Names?[]
+        native_modules: u32?[]
+        native_members: string[][]
+        native_exports: string?[]
+        native_allocators: bool[]
+        native_io: bool[]
+        native_process: bool[]
+        native_tuples: bool[]
+        native_fallible: bool[]
+        native_errors: Errors[]
+        native_concurrent: bool[]
+    }

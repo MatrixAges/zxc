@@ -1,0 +1,22 @@
+import type { Contracts } from "../contract_table/model"
+import type { Control } from "../control_table/model"
+import type { Expressions } from "../expression_table/model"
+import type { Errors } from "../signature_table/model"
+import type { Stores } from "../store_table/model"
+import type { Ownership } from "../symbol_table/model"
+
+export type Table = {
+    input_types: u32[]
+    output_types: u32[]
+    ownership: Ownership[]
+    stores: Stores[]
+    expressions: Expressions[]
+    control: Control[]
+    roots: u32?[]
+    contracts: Contracts[]
+    native_modules: u32?[]
+    native_tuples: bool[]
+    native_concurrent: bool[]
+    native_fallible: bool[]
+    native_errors: Errors[]
+}

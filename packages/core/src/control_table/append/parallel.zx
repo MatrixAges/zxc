@@ -1,0 +1,22 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../model"
+import header from "./header"
+
+import type { Control } from "../model"
+
+export type Input = { table: Control, symbols: u32?[], values: u32[] }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    const table = header({ table: in.table, kind: StatementKind.Parallel, payload: integers.narrow(in.table.parallel_first.length) })
+
+    return {
+        ...table,
+        parallel_first: table.parallel_first.push(integers.narrow(table.parallel_symbols.length))[0],
+        parallel_count: table.parallel_count.push(integers.narrow(in.symbols.length))[0],
+        parallel_symbols: table.parallel_symbols.concat(in.symbols)[0],
+        parallel_values: table.parallel_values.concat(in.values)[0]
+    }
+}

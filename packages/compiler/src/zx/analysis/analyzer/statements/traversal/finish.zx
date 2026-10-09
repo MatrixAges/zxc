@@ -1,0 +1,23 @@
+import integers from "zig:integers"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Body } from "./model"
+
+export type Input = { body: Body, span: Span }
+
+export type Output = { state: Prepared, root: u32? }
+
+export default function (in: Input): Output {
+    const state = in.body.expression.state
+
+    if (state.diagnostic.message != "") {
+        return { state: state, root: null }
+    }
+
+    if (state.local.output_type != 0 && !in.body.blocks.returns[integers.widen(in.body.value)]) {
+        return { state: { ...state, diagnostic: { code: "return_path", message: "every path must return Output", start: in.span.start, end: in.span.end } }, root: null }
+    }
+
+    return { state: state, root: in.body.value }
+}

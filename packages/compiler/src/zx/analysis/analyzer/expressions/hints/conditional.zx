@@ -1,0 +1,25 @@
+import known from "./known"
+import literal from "./literal"
+
+import type { Context } from "./model"
+
+export type Input = { context: Context, node: u64, expected: u32? }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        if (in.expected != null) {
+            return in.expected
+        }
+
+        const node = in.context.source.tree.nodes[in.node]
+        const yes = known({ context: in.context, node: node.second })
+
+        if (yes != null) {
+            return yes
+        }
+
+        const no = known({ context: in.context, node: node.third })
+
+        return no != null ? no : literal({ source: in.context.source, left: node.second, right: node.third })
+    }

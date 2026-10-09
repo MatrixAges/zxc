@@ -1,0 +1,74 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../expression_table/kinds"
+
+import type { Expressions } from "../../expression_table/model"
+
+export type Input = { expressions: Expressions, index: u64 }
+
+export type Output = u32[]
+
+export default function (in: Input): Output {
+    const table = in.expressions
+    const kind = table.kinds[in.index]
+    const payload = table.payloads[in.index]
+
+    if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
+        return table.sequence_items.splice(integers.widen(table.sequence_first[integers.widen(payload)]), integers.widen(table.sequence_count[integers.widen(payload)]), [])[1]
+    }
+
+    if (kind == ExpressionKind.Object) {
+        const evaluated = table.object_evaluation_values.splice(integers.widen(table.object_evaluation_first[integers.widen(payload)]), integers.widen(table.object_evaluation_count[integers.widen(payload)]), [])[1]
+        const fields = table.object_field_values.splice(integers.widen(table.object_first[integers.widen(payload)]), integers.widen(table.object_count[integers.widen(payload)]), [])[1]
+
+        return evaluated.concat(fields)[0]
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        return [table.collection_targets[integers.widen(payload)]].concat(table.collection_arguments.splice(integers.widen(table.collection_first[integers.widen(payload)]), integers.widen(table.collection_count[integers.widen(payload)]), [])[1])[0]
+    }
+
+    if (kind == ExpressionKind.Transform) {
+        const values = [table.transform_targets[integers.widen(payload)], table.transform_bodies[integers.widen(payload)]]
+        const initial = table.transform_initials[integers.widen(payload)]
+
+        return initial == null ? values : values.push(initial)[0]
+    }
+
+    if (kind == ExpressionKind.Scope) {
+        return table.scope_values.splice(integers.widen(table.scope_first[integers.widen(payload)]), integers.widen(table.scope_count[integers.widen(payload)]), [])[1].push(table.scope_results[integers.widen(payload)])[0]
+    }
+
+    if (kind == ExpressionKind.Match) {
+        const subject = table.match_subjects[integers.widen(payload)]
+        const initial: u32[] = subject == null ? [] : [subject]
+
+        const values = loop({ table: table, index: integers.widen(table.match_first[integers.widen(payload)]), end: integers.widen(table.match_first[integers.widen(payload)]) + integers.widen(table.match_count[integers.widen(payload)]), values: initial }, {
+            while: current => current.index < current.end,
+            next: current => {
+                current.values = current.values.push(current.table.match_conditions[current.index])[0].push(current.table.match_results[current.index])[0]
+                current.index += 1
+            }
+        }).values
+
+        return values.push(table.match_fallbacks[integers.widen(payload)])[0]
+    }
+
+    return match kind {
+        ExpressionKind.CancelTask => [table.cancellations[integers.widen(payload)]],
+        ExpressionKind.AwaitTask => [table.awaits[integers.widen(payload)]],
+        ExpressionKind.Some => [table.some[integers.widen(payload)]],
+        ExpressionKind.OptionalValue => [table.optional_values[integers.widen(payload)]],
+        ExpressionKind.Length => [table.lengths[integers.widen(payload)]],
+        ExpressionKind.Field => [table.projection_targets[integers.widen(payload)]],
+        ExpressionKind.TupleField => [table.projection_targets[integers.widen(payload)]],
+        ExpressionKind.Index => [table.index_targets[integers.widen(payload)], table.index_values[integers.widen(payload)]],
+        ExpressionKind.Iteration => [table.iteration_initials[integers.widen(payload)], table.iteration_conditions[integers.widen(payload)], table.iteration_bodies[integers.widen(payload)]],
+        ExpressionKind.ListUpdate => [table.update_targets[integers.widen(payload)], table.update_indices[integers.widen(payload)], table.update_values[integers.widen(payload)]],
+        ExpressionKind.Call => [table.call_arguments[integers.widen(payload)]],
+        ExpressionKind.Unary => [table.unary_operands[integers.widen(payload)]],
+        ExpressionKind.Binary => [table.binary_left[integers.widen(payload)], table.binary_right[integers.widen(payload)]],
+        ExpressionKind.Conditional => [table.conditional_conditions[integers.widen(payload)], table.conditional_yes[integers.widen(payload)], table.conditional_no[integers.widen(payload)]],
+        _ => [],
+    }
+}

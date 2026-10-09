@@ -1,0 +1,64 @@
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import text from "../../../semantic/resolving/source/text"
+import lookup from "../../bindings/lookup"
+import captured from "./captured"
+import find from "./find"
+import identifier from "./identifier"
+import { Route } from "./model"
+
+import type { FunctionImports } from "../../context"
+import type { Prepared } from "../../model"
+import type { Source } from "../request"
+import type { Dispatch } from "./model"
+
+export type Input = { state: Prepared, source: Source, node: u64, imports: FunctionImports }
+
+export type Output = Dispatch
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const callee = in.source.tree.nodes[node.first]
+
+    if (node.type_argument != 0) {
+        return { state: { ...in.state, diagnostic: { code: "unsupported", message: "generic calls and database operations are not available", start: node.span.start, end: node.span.end } }, route: Route.Failed, index: 0 }
+    }
+
+    if (callee.kind == ExprKind.Identifier) {
+        return identifier({ state: in.state, imports: in.imports, name: text({ source: in.source.bytes, span: callee.name }) })
+    }
+
+    if (callee.kind != ExprKind.Field) {
+        return { state: { ...in.state, diagnostic: { code: "unsupported", message: "only imported functions and collection methods are callable", start: node.span.start, end: node.span.end } }, route: Route.Failed, index: 0 }
+    }
+
+    const owner = in.source.tree.nodes[callee.first]
+
+    if (owner.kind != ExprKind.Identifier) {
+        return { state: in.state, route: Route.Method, index: 0 }
+    }
+
+    const namespace = text({ source: in.source.bytes, span: owner.name })
+
+    if (lookup({ local: in.state.local, name: namespace.text }) != null) {
+        return { state: in.state, route: Route.Method, index: 0 }
+    }
+
+    const capture = captured({ state: in.state, name: namespace })
+
+    if (capture.state.diagnostic.message != "" || capture.found) {
+        return { state: capture.state, route: capture.state.diagnostic.message == "" ? Route.Method : Route.Failed, index: 0 }
+    }
+
+    const name = text({ source: in.source.bytes, span: callee.name })
+    const imported = find({ imports: in.imports, namespace: namespace.text, name: name.text })
+
+    if (imported.found) {
+        return { state: in.state, route: Route.Imported, index: imported.index }
+    }
+
+    if (imported.known_namespace) {
+        return { state: { ...in.state, diagnostic: { code: "name", message: "unknown module member", start: name.start, end: name.end } }, route: Route.Failed, index: 0 }
+    }
+
+    return { state: in.state, route: Route.Method, index: 0 }
+}

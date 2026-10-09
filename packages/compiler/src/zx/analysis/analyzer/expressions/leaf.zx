@@ -1,0 +1,74 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/empty"
+
+import { ExprKind } from "../../../frontend/parser/expressions/state/model"
+import text from "../../semantic/resolving/source/text"
+import boolean from "./boolean"
+import identifier from "./identifier"
+import injected from "./injected/lookup"
+import none from "./none"
+import number from "./number"
+import special from "./projections/special"
+import string from "./string"
+
+import type { Result } from "./model"
+import type { Request } from "./request"
+
+export type Input = Request
+
+export type Output = { handled: bool, result: Result }
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const binding = injected({ local: in.state.local, source: in.source, node: in.node })
+
+    if (binding.unit) {
+        const value = append({ table: in.state.local.expressions, metadata: { type_id: 0, span_start: node.span.start, span_end: node.span.end }, optional: false })
+
+        return { handled: true, result: { state: { ...in.state, local: { ...in.state.local, expressions: value.table } }, value: value.id } }
+    }
+
+    const symbol = binding.symbol
+
+    if (symbol != null) {
+        return { handled: true, result: identifier({ state: in.state, name: { text: in.state.local.symbols.names[integers.widen(symbol)], start: node.span.start, end: node.span.end } }) }
+    }
+
+    if (node.kind == ExprKind.Identifier) {
+        return { handled: true, result: identifier({ state: in.state, name: text({ source: in.source.bytes, span: node.name }) }) }
+    }
+
+    if (node.kind == ExprKind.Field) {
+        return special(in)
+    }
+
+    if (node.kind == ExprKind.Boolean) {
+        return { handled: true, result: boolean({ state: in.state, value: node.flag, span: node.span }) }
+    }
+
+    if (node.kind == ExprKind.Null) {
+        return { handled: true, result: none({ state: in.state, expected: in.expected, span: node.span }) }
+    }
+
+    if (node.kind == ExprKind.String) {
+        return { handled: true, result: string({ state: in.state, source: in.source.bytes.splice(node.span.start + 1, node.span.end - node.span.start - 2, [])[1], template: false, span: node.span }) }
+    }
+
+    if (node.kind == ExprKind.Number) {
+        return { handled: true, result: number({ state: in.state, source: in.source.bytes.splice(node.span.start, node.span.end - node.span.start, [])[1], expected: in.expected, negative: false, span: node.span }) }
+    }
+
+    if (node.kind == ExprKind.Unary && node.flag && in.source.tree.nodes[node.first].kind == ExprKind.Number) {
+        const span = in.source.tree.nodes[node.first].span
+
+        return { handled: true, result: number({ state: in.state, source: in.source.bytes.splice(span.start, span.end - span.start, [])[1], expected: in.expected, negative: true, span: node.span }) }
+    }
+
+    if (node.kind == ExprKind.Lambda || node.kind == ExprKind.StateBlock) {
+        const message = node.kind == ExprKind.Lambda ? "callbacks are only allowed directly in map, filter, reduce or loop rules" : "state update blocks are only allowed in loop"
+
+        return { handled: true, result: { state: { ...in.state, diagnostic: { code: "unsupported", message: message, start: node.span.start, end: node.span.end } }, value: 0 } }
+    }
+
+    return { handled: false, result: { state: in.state, value: 0 } }
+}

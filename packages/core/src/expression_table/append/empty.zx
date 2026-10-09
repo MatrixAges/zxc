@@ -1,0 +1,13 @@
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, optional: bool }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    return header({ table: in.table, metadata: in.metadata, kind: in.optional ? ExpressionKind.None : ExpressionKind.Unit, payload: 0 })
+}

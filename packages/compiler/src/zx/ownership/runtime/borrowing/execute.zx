@@ -2,13 +2,13 @@ import { Phase } from "./execute/model"
 import propagate from "./execute/propagate"
 import query from "./execute/query"
 
-import type { Table } from "../../../analysis/semantic/types/model"
-import type { Expressions } from "../../../ir/canonical/expressions/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Tables } from "core/type_table/model"
 import type { Built } from "../../layout/model"
 import type { Memory } from "../model"
 import type { Session } from "./execute/model"
 
-export type Input = { types: Table, references: bool[], expressions: Expressions, layout: Built, memory: Memory, expression: u64, permanent: bool }
+export type Input = { types: Tables, references: bool[], expressions: Expressions, layout: Built, memory: Memory, expression: u64, permanent: bool }
 
 export type Output = Memory
 

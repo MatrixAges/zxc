@@ -1,0 +1,25 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/projection"
+import { CollectionKind } from "core/expression_table/kinds"
+
+import perform from "../../expressions/calls/list/finish"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, target: u32, value: u32, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const operation = perform({ state: in.state, target: in.target, kind: CollectionKind.Push, replacement: false, values: [in.value], span: in.span })
+
+    if (operation.state.diagnostic.message != "") {
+        return operation
+    }
+
+    const result = append({ table: operation.state.local.expressions, metadata: { type_id: operation.state.local.expressions.types[integers.widen(in.target)], span_start: in.span.start, span_end: in.span.end }, target: operation.value, index: 0, tuple: true })
+
+    return { state: { ...operation.state, local: { ...operation.state.local, expressions: result.table } }, value: result.id }
+}

@@ -1,0 +1,24 @@
+import type { Control } from "core/control_table/model"
+import type { PendingMark } from "./model"
+
+export type Input = Control
+
+export type Output = PendingMark
+
+export default function (in: Input): Output {
+    return {
+        statements: in.statement_kinds.length,
+        evaluations: in.evaluations.length,
+        constants: in.constant_symbols.length,
+        parallels: in.parallel_first.length,
+        parallel_values: in.parallel_symbols.length,
+        destructures: in.destructure_values.length,
+        destructure_symbols: in.destructure_symbols.length,
+        branches: in.branch_conditions.length,
+        selections: in.selection_subjects.length,
+        cases: in.case_values.length,
+        setters: in.setter_slots.length,
+        results: in.results.length,
+        blocks: in.block_first.length
+    }
+}

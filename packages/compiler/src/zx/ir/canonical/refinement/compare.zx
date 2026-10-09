@@ -1,10 +1,10 @@
 import integers from "zig:integers"
+import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
 
-import { BinaryOperator, ExpressionKind } from "../expressions/kinds"
 import add from "./facts/add"
 import resolveCapture from "./facts/resolve_capture"
 
-import type { Expressions } from "../expressions/model"
+import type { Expressions } from "core/expression_table/model"
 import type { Facts } from "./facts/model"
 
 export type Input = { facts: Facts, expressions: Expressions, payload: u64, truth: bool }

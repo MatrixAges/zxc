@@ -1,0 +1,35 @@
+import integers from "zig:integers"
+
+import append from "../../bindings/append"
+import borrow from "./borrow"
+
+import type { Diagnostic } from "../../../semantic/resolving/model"
+import type { Name } from "../../../semantic/resolving/source/model"
+import type { Local } from "../../local"
+import type { Scopes } from "./model"
+
+export type Input = { scopes: Scopes, local: Local, name: Name, value: u32, scope_start: u64 }
+
+export type Output = { scopes: Scopes, local: Local, symbol: u32, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const type_id = in.local.expressions.types[integers.widen(in.value)]
+
+    if (type_id == 0) {
+        return { scopes: in.scopes, local: in.local, symbol: 0, diagnostic: { code: "type_mismatch", message: "void results cannot be bound to a value", start: in.name.start, end: in.name.end } }
+    }
+
+    const result = append({ local: in.local, name: in.name, type_id: type_id, scope_start: in.scope_start })
+
+    if (result.diagnostic.message != "") {
+        return { scopes: in.scopes, local: result.local, symbol: result.id, diagnostic: result.diagnostic }
+    }
+
+    const bindings = {
+        symbols: in.scopes.bindings.symbols.push(result.id)[0],
+        values: in.scopes.bindings.values.push(in.value)[0],
+        borrows: in.scopes.bindings.borrows.push(borrow(in.local.expressions.kinds[integers.widen(in.value)]))[0]
+    }
+
+    return { scopes: { ...in.scopes, bindings: bindings }, local: result.local, symbol: result.id, diagnostic: result.diagnostic }
+}

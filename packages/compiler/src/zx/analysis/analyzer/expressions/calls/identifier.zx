@@ -1,0 +1,41 @@
+import lookup from "../../bindings/lookup"
+import captured from "./captured"
+import find from "./find"
+import { Route } from "./model"
+
+import type { Name } from "../../../semantic/resolving/source/model"
+import type { FunctionImports } from "../../context"
+import type { Prepared } from "../../model"
+import type { Dispatch } from "./model"
+
+export type Input = { state: Prepared, imports: FunctionImports, name: Name }
+
+export type Output = Dispatch
+
+export default function (in: Input): Output {
+    if (lookup({ local: in.state.local, name: in.name.text }) != null) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "a local value is not a callable function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
+    }
+
+    const capture = captured({ state: in.state, name: in.name })
+
+    if (capture.state.diagnostic.message != "") {
+        return { state: capture.state, route: Route.Failed, index: 0 }
+    }
+
+    if (capture.found) {
+        return { state: { ...capture.state, diagnostic: { code: "type_mismatch", message: "a captured value is not a callable function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
+    }
+
+    const imported = find({ imports: in.imports, namespace: null, name: in.name.text })
+
+    if (imported.found) {
+        return { state: in.state, route: Route.Imported, index: imported.index }
+    }
+
+    if (in.name.text == "loop" || in.name.text == "parallel") {
+        return { state: in.state, route: in.name.text == "loop" ? Route.Loop : Route.Parallel, index: 0 }
+    }
+
+    return { state: { ...in.state, diagnostic: { code: "name", message: "unknown imported function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
+}

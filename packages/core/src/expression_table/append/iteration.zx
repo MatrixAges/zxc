@@ -1,0 +1,28 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, initial: u32, condition_parameter: u32, parameter: u32, condition: u32, body: u32, postcondition: bool }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({ table: in.table, metadata: in.metadata, kind: ExpressionKind.Iteration, payload: integers.narrow(in.table.iteration_initials.length) })
+
+    return {
+        table: {
+            ...result.table,
+            iteration_initials: result.table.iteration_initials.push(in.initial)[0],
+            iteration_condition_parameters: result.table.iteration_condition_parameters.push(in.condition_parameter)[0],
+            iteration_parameters: result.table.iteration_parameters.push(in.parameter)[0],
+            iteration_conditions: result.table.iteration_conditions.push(in.condition)[0],
+            iteration_bodies: result.table.iteration_bodies.push(in.body)[0],
+            iteration_postconditions: result.table.iteration_postconditions.push(in.postcondition)[0]
+        },
+        id: result.id
+    }
+}

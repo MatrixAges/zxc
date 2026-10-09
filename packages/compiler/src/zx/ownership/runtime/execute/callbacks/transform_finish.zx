@@ -1,6 +1,7 @@
 import integers from "zig:integers"
+import { TransformKind } from "core/expression_table/kinds"
+import row from "core/type_table/row"
 
-import { TransformKind } from "../../../../ir/canonical/expressions/kinds"
 import summary from "../../../facts/summary"
 import uniform from "../../../facts/uniform"
 import optionalId from "../../../ir/widen_optional"
@@ -44,7 +45,7 @@ export default function (in: Input): Output {
                 const initial_state = summary({ forest: current.memory.forest, fact: current.values[current.values.length - 2] })
                 const result = summary({ forest: current.memory.forest, fact: current.values[current.values.length - 1] })
                 const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.transform_targets[transform])])
-                const element = integers.widen(current.program.types.first[type_id])
+                const element = integers.widen(row({ tables: current.program.types, id: integers.narrow(type_id) }).first)
                 const predicate = current.program.expressions.transform_kinds[transform] == TransformKind.Every || current.program.expressions.transform_kinds[transform] == TransformKind.Some
                 const borrowed = !predicate && ((current.program.expressions.transform_kinds[transform] == TransformKind.Filter && current.references[element]) || result == State.Borrowed || (current.program.expressions.transform_kinds[transform] == TransformKind.Reduce && initial_state == State.Borrowed))
                 const before = current.snapshots.state_first.length - 2

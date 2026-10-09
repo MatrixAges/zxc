@@ -10,7 +10,7 @@ export default function (in: Input): Output {
     const initial: bool[] = []
 
     const result = loop({ types: in.types, index: 0, references: initial }, {
-        while: current => current.index < current.types.kinds.length,
+        while: current => current.index < current.types.base.kinds.length + current.types.delta.kinds.length,
         next: current => {
             const reference = referenceType({ types: current.types, id: current.index })
 

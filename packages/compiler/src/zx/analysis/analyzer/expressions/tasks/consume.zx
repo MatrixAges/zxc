@@ -1,0 +1,26 @@
+import integers from "zig:integers"
+import { ValueKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/value"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+
+export type Input = { state: Prepared, operand: u32, cancellation: bool, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const target = row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: in.state.local.expressions.types[integers.widen(in.operand)] })
+
+    if (target.kind != Kind.Task) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: in.cancellation ? "cancel requires a task" : "await requires a task", start: in.span.start, end: in.span.end } }, value: 0 }
+    }
+
+    const result = append({ table: in.state.local.expressions, metadata: { type_id: in.cancellation ? 0 : target.first, span_start: in.span.start, span_end: in.span.end }, kind: in.cancellation ? ValueKind.CancelTask : ValueKind.AwaitTask, value: in.operand })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

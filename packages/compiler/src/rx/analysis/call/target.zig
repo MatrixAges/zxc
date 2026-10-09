@@ -14,6 +14,7 @@ pub const Options = struct {
 };
 
 pub const Function = struct {
+    id: ?zx.ir.FunctionId = null,
     program: zx.ir.Program,
     nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types"),
     store_initializers: @FieldType(frontend.AnalysisResult, "store_initializers") = &.{},
@@ -57,17 +58,27 @@ fn loadIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Erro
 
     if ((attributes.setter != null) != (options.setter != null) or options.project.context.stores.len != 0) return failure(allocator, .{ .path = options.owner, .location = options.call.location, .code = "capability", .message = "Store calls require explicit per-call authorization from module declarations" });
 
-    if (attributes.module) |module| {
+    const target = optionalAttribute(options.call, "module") orelse attribute(options.call, "fn");
+
+    const path = if (attributes.module) |module| block: {
         const owner = try std.fs.path.resolve(allocator, &.{ options.project.root_dir, options.owner });
 
-        if (!rx.module_reference.isPackage(module, rx.module_reference.dependencies(options.project, owner))) return failure(allocator, .{ .path = options.owner, .location = attribute(options.call, "module").value_location, .code = "unsupported", .message = "local module calls require RX module linking" });
+        if (!rx.module_reference.isPackage(module, rx.module_reference.dependencies(options.project, owner))) return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "unsupported", .message = "local module calls require RX module linking" });
 
-        return @import("compiled.zig").load(allocator, options);
-    }
+        var reporter: zx.Reporter = .{};
 
-    const target = attribute(options.call, "fn");
+        const resolved = frontend.project.resolveModuleTarget(allocator, owner, module, options.project, &reporter, .{ .start = target.value_location.offset, .end = target.value_location.offset }) catch |err| {
+            if (err == error.OutOfMemory) return error.OutOfMemory;
 
-    const path = rx.resolveFunctionPath(allocator, options.owner, target.value) catch |err| {
+            return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "module", .message = reporter.diagnostic.?.message });
+        };
+
+        if (resolved == .compiled) return @import("compiled.zig").load(allocator, options);
+        if (!std.mem.endsWith(u8, resolved.source, ".zx")) return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "module", .message = "source RX module calls require project inference" });
+        if (options.setter != null) return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "capability", .message = "Call.module cannot grant a setter; Store authorization belongs inside the module" });
+
+        break :block resolved.source;
+    } else rx.resolveFunctionPath(allocator, options.owner, target.value) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return failure(allocator, .{ .path = options.owner, .location = target.value_location, .code = "module", .message = "Call.fn must reference a ZX file within the project root" });

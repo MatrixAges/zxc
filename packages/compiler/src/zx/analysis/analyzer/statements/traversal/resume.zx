@@ -1,0 +1,25 @@
+import binding from "./binding"
+import branch from "./branch"
+import { Action } from "./model"
+import selection from "./selection/resume"
+
+import type { Body } from "./model"
+
+export type Input = Body
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const action = in.actions[in.actions.length - 1]
+    const body = { ...in, actions: in.actions.pop()[0] }
+
+    if (action == Action.Condition || action == Action.Yes || action == Action.No) {
+        return branch({ body: body, action: action })
+    }
+
+    if (action == Action.Subject || action == Action.Label || action == Action.Case) {
+        return selection({ body: body, action: action })
+    }
+
+    return binding({ body: body, action: action })
+}

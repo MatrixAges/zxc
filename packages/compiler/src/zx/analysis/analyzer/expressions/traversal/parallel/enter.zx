@@ -1,0 +1,32 @@
+import { ExprKind } from "../../../../../frontend/parser/expressions/state/model"
+import next from "./next"
+
+import type { Work, ParallelFrame } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const argument = node.count == 1 ? in.source.tree.items[node.head - 1].value : in.node
+    const object = in.source.tree.nodes[argument]
+
+    if (node.count != 1 || object.kind != ExprKind.Object) {
+        return { ...in, state: { ...in.state, diagnostic: { code: "type_mismatch", message: "parallel requires an object of zero-argument callbacks", start: node.span.start, end: node.span.end } } }
+    }
+
+    const ids: u64[] = []
+
+    const fields = loop({ fields: in.source.tree.fields, head: object.head, ids: ids }, {
+        while: current => current.head != 0,
+        next: current => {
+            current.ids = current.ids.push(current.head - 1)[0]
+            current.head = current.fields[current.head - 1].previous
+        }
+    }).ids.reverse()[0]
+
+    const frame: ParallelFrame = { node: in.node, fields: fields, index: 0, names: [], type_names: [], types: [], tasks: [], first: 0, symbol_count: 0 }
+
+    return next({ ...in, frames: { ...in.frames, parallels: in.frames.parallels.push(frame)[0] } })
+}

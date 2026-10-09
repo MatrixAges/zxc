@@ -1,0 +1,21 @@
+import integers from "zig:integers"
+
+import type { Local } from "../local"
+
+export type Input = Local
+
+export type Output = { local: Local, frame: u32 }
+
+export default function (in: Input): Output {
+    const frame = integers.narrow(in.captures.frames.starts.length)
+
+    const frames = {
+        starts: in.captures.frames.starts.push(in.active.length)[0],
+        floors: in.captures.frames.floors.push(in.scope_floor)[0],
+        parents: in.captures.frames.parents.push(in.captures.current)[0],
+        first: in.captures.frames.first.push(null)[0],
+        last: in.captures.frames.last.push(null)[0]
+    }
+
+    return { local: { ...in, scope_floor: in.active.length, lambda_depth: in.lambda_depth + 1, captures: { ...in.captures, frames: frames, current: frame } }, frame: frame }
+}

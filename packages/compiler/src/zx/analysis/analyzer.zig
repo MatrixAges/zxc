@@ -42,9 +42,10 @@ pub fn runView(self: *Self, program: anytype, view: anytype, file_name: []const 
 
 fn runInitialized(self: *Self, program: anytype, view: anytype, file_name: []const u8) zx.Error!ir.Program {
     const contract_span = if (program.body) |body| body.span else zx.Span{ .start = 0, .end = 0 };
-    const input_type = if (program.body != null) try self.types.named(.{ .text = "Input", .span = contract_span }) else Types.scalarId(.void);
+    const signature = try @import("../modules/source_signature.zig").ports(&self.types, program);
+    const input_type = signature.input_type;
 
-    self.output_type = if (program.body != null) try self.types.named(.{ .text = "Output", .span = contract_span }) else Types.scalarId(.void);
+    self.output_type = signature.output_type;
 
     try self.resolveStores(program.has_store, contract_span);
 
@@ -56,7 +57,7 @@ fn runInitialized(self: *Self, program: anytype, view: anytype, file_name: []con
 
     if (self.output_type != Types.scalarId(.void) and !self.control.returns(body.?)) return self.reporter.fail(.return_path, contract_span, "every path must return Output");
 
-    const exports = try self.exportTypes(view);
+    const exports = try @import("../modules/source_signature.zig").exports(&self.types, view);
     const contracts = try @import("contracts.zig").analyze(self, program.contracts, input_type, exports);
 
     return self.finish(.{
@@ -75,23 +76,6 @@ fn resolveStores(self: *Self, has_store: bool, span: zx.Span) zx.Error!void {
     self.allow_store = has_store or self.stores.count() > 0;
 
     if (has_store and self.stores.count() == 0) return self.reporter.fail(.capability, span, "Store setters require an authorized call context");
-}
-
-fn exportTypes(self: *Self, view: anytype) zx.Error![]const ir.Export {
-    const declarations = view.declarations();
-    const exports = try self.allocator.alloc(ir.Export, declarations.count());
-    var iterator = declarations.iterator();
-
-    for (exports) |*item| {
-        const declaration = iterator.next().?;
-
-        item.* = .{
-            .name = try self.allocator.dupe(u8, declaration.name.text),
-            .type_id = try self.types.named(declaration.name),
-        };
-    }
-
-    return exports;
 }
 
 const Output = struct {

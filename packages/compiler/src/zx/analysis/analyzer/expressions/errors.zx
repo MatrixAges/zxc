@@ -1,0 +1,13 @@
+import analyze from "compiler/error_effects"
+import empty from "core/control_table/empty"
+
+import type { Functions } from "../functions"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, functions: Functions, value: u32 }
+
+export type Output = string[]?
+
+    export default function (in: Input): Output {
+        return analyze({ context: { types: { base: in.state.types.context.base, delta: in.state.types.delta }, functions: in.functions }, expressions: in.state.local.expressions, control: empty(), root: null, contracts: { kinds: [], predicates: [], symbols: [], expressions: [], span_start: [], span_end: [] }, stores: false, expression: in.value, program: false })
+    }

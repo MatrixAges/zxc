@@ -1,0 +1,21 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../model"
+import header from "./header"
+
+import type { Control } from "../model"
+
+export type Input = { table: Control, condition: u32, yes: u32, no: u32 }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    const table = header({ table: in.table, kind: StatementKind.Branch, payload: integers.narrow(in.table.branch_conditions.length) })
+
+    return {
+        ...table,
+        branch_conditions: table.branch_conditions.push(in.condition)[0],
+        branch_yes: table.branch_yes.push(in.yes)[0],
+        branch_no: table.branch_no.push(in.no)[0]
+    }
+}

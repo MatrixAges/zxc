@@ -1,0 +1,33 @@
+import lower from "compiler/collection_lower"
+import { TransformKind } from "core/expression_table/kinds"
+
+import finish from "../../../collections/callback/finish"
+import { Phase, Action } from "../model"
+import callback from "./callback"
+
+import type { Work } from "../model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const position = work.frames.transforms.length - 1
+    const frame = work.frames.transforms[position]
+
+    if (in.action == Action.TransformSecond) {
+        return callback({ ...work, frames: { ...work.frames, transforms: work.frames.transforms.splice(position, 1, [{ ...frame, second: work.value }])[0] } })
+    }
+
+    const span = work.source.tree.nodes[frame.node].span
+    const completed = finish({ state: work.state, frame: frame.capture_frame, parameters: frame.parameters, body: work.value, kind: frame.kind, result_type: frame.result_type, span: span })
+
+    if (completed.state.diagnostic.message != "") {
+        return { ...work, state: completed.state }
+    }
+
+    const result = lower({ state: completed.state, span: span, kind: frame.kind, target: frame.target, initial: frame.kind == TransformKind.Reduce ? frame.second : null, ignored: frame.kind == TransformKind.Reduce ? null : frame.second, callback: completed.callback, result_type: completed.result_type })
+
+    return { ...work, state: result.state, value: result.value, phase: Phase.Complete, frames: { ...work.frames, transforms: work.frames.transforms.pop()[0] } }
+}

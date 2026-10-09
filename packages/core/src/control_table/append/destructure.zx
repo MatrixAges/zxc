@@ -1,0 +1,22 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../model"
+import header from "./header"
+
+import type { Control } from "../model"
+
+export type Input = { table: Control, value: u32, symbols: u32?[] }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    const table = header({ table: in.table, kind: StatementKind.Destructure, payload: integers.narrow(in.table.destructure_values.length) })
+
+    return {
+        ...table,
+        destructure_values: table.destructure_values.push(in.value)[0],
+        destructure_first: table.destructure_first.push(integers.narrow(table.destructure_symbols.length))[0],
+        destructure_count: table.destructure_count.push(integers.narrow(in.symbols.length))[0],
+        destructure_symbols: table.destructure_symbols.concat(in.symbols)[0]
+    }
+}

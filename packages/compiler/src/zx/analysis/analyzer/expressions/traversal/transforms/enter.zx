@@ -1,0 +1,42 @@
+import { TransformKind } from "core/expression_table/kinds"
+
+import payload from "../../../types/payload"
+import items from "../../items"
+import { Phase, Action } from "../model"
+import callback from "./callback"
+
+import type { Frame } from "../../../collections/model"
+import type { Work } from "../model"
+
+export type Input = { work: Work, name: string }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const method = in.work.frames.methods[in.work.frames.methods.length - 1]
+    const node = in.work.source.tree.nodes[method.node]
+
+    if (node.count < 1 || node.count > 2) {
+        return { ...in.work, state: { ...in.work.state, diagnostic: { code: "type_mismatch", message: "collection operations require a callback and at most one optional method argument", start: node.span.start, end: node.span.end } } }
+    }
+
+    const kind = match in.name {
+        "map" => TransformKind.Map,
+        "filter" => TransformKind.Filter,
+        "reduce" => TransformKind.Reduce,
+        "every" => TransformKind.Every,
+        _ => TransformKind.Some,
+    }
+
+    const arguments = items({ items: in.work.source.tree.items, head: node.head })
+    const frame: Frame = { node: method.node, kind: kind, target: in.work.value, expected: method.expected, second: null, arguments: arguments, capture_frame: 0, parameters: [], result_type: 0 }
+    const work = { ...in.work, frames: { ...in.work.frames, methods: in.work.frames.methods.pop()[0], transforms: in.work.frames.transforms.push(frame)[0] } }
+
+    if (arguments.length == 1) {
+        return callback(work)
+    }
+
+    const expected = kind == TransformKind.Reduce ? payload({ types: work.state.types, expected: method.expected }) : null
+
+    return { ...work, node: arguments[1], expected: expected, phase: Phase.Evaluate, frames: { ...work.frames, actions: work.frames.actions.push(Action.TransformSecond)[0] } }
+}

@@ -1,0 +1,54 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/match"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../../semantic/types/row"
+import { Phase, Action } from "../model"
+import next from "./next"
+import prepare from "./prepare"
+
+import type { Work } from "../model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const position = work.frames.selections.length - 1
+    const frame = work.frames.selections[position]
+    const node = work.source.tree.nodes[frame.node]
+    const type_id = work.state.local.expressions.types[integers.widen(work.value)]
+
+    if (in.action == Action.MatchSubject) {
+        const target = row({ tables: { base: work.state.types.context.base, delta: work.state.types.delta }, id: type_id })
+
+        if (type_id == 0 || (target.kind != Kind.Scalar && target.kind != Kind.Enumeration && target.kind != Kind.ErrorSet)) {
+            return { ...work, state: { ...work.state, diagnostic: { code: "type_mismatch", message: "match subject must be a scalar, enum or finite error", start: node.span.start, end: node.span.end } } }
+        }
+
+        return prepare({ ...work, frames: { ...work.frames, selections: work.frames.selections.splice(position, 1, [{ ...frame, subject: work.value }])[0] } })
+    }
+
+    if (in.action == Action.MatchCondition) {
+        const arm = work.source.tree.arms[frame.arms[frame.index]]
+
+        return {
+            ...work,
+            node: arm.result,
+            expected: frame.expected,
+            phase: Phase.Evaluate,
+            frames: { ...work.frames, actions: work.frames.actions.push(Action.MatchResult)[0], selections: work.frames.selections.splice(position, 1, [{ ...frame, conditions: frame.conditions.push(work.value)[0] }])[0] }
+        }
+    }
+
+    if (in.action == Action.MatchResult) {
+        const selections = work.frames.selections.splice(position, 1, [{ ...frame, expected: type_id, index: frame.index + 1, results: frame.results.push(work.value)[0] }])[0]
+
+        return next({ ...work, frames: { ...work.frames, selections: selections } })
+    }
+
+    const result = append({ table: work.state.local.expressions, metadata: { type_id: type_id, span_start: node.span.start, span_end: node.span.end }, subject: frame.subject, fallback: work.value, conditions: frame.conditions, results: frame.results })
+
+    return { ...work, state: { ...work.state, local: { ...work.state.local, expressions: result.table } }, value: result.id, phase: Phase.Complete, frames: { ...work.frames, selections: work.frames.selections.pop()[0] } }
+}

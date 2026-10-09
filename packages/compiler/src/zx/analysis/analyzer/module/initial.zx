@@ -1,0 +1,12 @@
+import { Ownership } from "core/symbol_table/model"
+
+import type { Prepared } from "../model"
+import type { Analysis } from "./model"
+
+export type Input = { state: Prepared, type_only: bool }
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    return { state: in.state, root: null, contracts: { kinds: [], predicates: [], symbols: [], expressions: [], span_start: [], span_end: [] }, names: [], types: [], ownership: Ownership.Copy, type_only: in.type_only }
+}

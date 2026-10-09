@@ -1,0 +1,33 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/conditional"
+import { TransformKind } from "core/expression_table/kinds"
+
+import push from "../building/push"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, kind: TransformKind, previous: u32, item: u32, value: u32, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (in.kind == TransformKind.Map) {
+        return push({ state: in.state, target: in.previous, value: in.value, span: in.span })
+    }
+
+    if (in.kind != TransformKind.Filter) {
+        return { state: in.state, value: in.value }
+    }
+
+    const yes = push({ state: in.state, target: in.previous, value: in.item, span: in.span })
+
+    if (yes.state.diagnostic.message != "") {
+        return yes
+    }
+
+    const result = append({ table: yes.state.local.expressions, metadata: { type_id: yes.state.local.expressions.types[integers.widen(in.previous)], span_start: in.span.start, span_end: in.span.end }, condition: in.value, yes: yes.value, no: in.previous })
+
+    return { state: { ...yes.state, local: { ...yes.state.local, expressions: result.table } }, value: result.id }
+}

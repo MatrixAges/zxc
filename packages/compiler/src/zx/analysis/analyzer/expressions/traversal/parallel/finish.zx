@@ -1,0 +1,46 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/parallel"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../../semantic/types/row"
+import construct from "../../../types/construct"
+import { Phase } from "../model"
+
+import type { Prepared } from "../../../model"
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.parallels[in.frames.parallels.length - 1]
+    const span = in.source.tree.nodes[frame.node].span
+    const type_id: { state: Prepared, id: u32 } = frame.types.length == 0 ? { state: in.state, id: 0 } : construct({ state: in.state, candidate: { kind: Kind.Object, first: 0, second: 0, label: "", children: [], fields: { names: frame.type_names, types: frame.types }, names: [] }, span: span })
+
+    if (type_id.state.diagnostic.message != "") {
+        return { ...in, state: type_id.state }
+    }
+
+    const tables = { base: type_id.state.types.context.base, delta: type_id.state.types.delta }
+    const target = row({ tables: tables, id: type_id.id })
+    const table = target.delta ? tables.delta : tables.base
+    const fields: u32?[] = []
+
+    const mapped = loop({ names: frame.names, fields: table.field_names, first: integers.widen(target.first), count: integers.widen(target.second), indices: fields, index: 0 }, {
+        while: current => current.index < current.names.length,
+        next: current => {
+            const found = loop({ fields: current.fields, first: current.first, count: current.count, name: current.names[current.index], index: 0 }, {
+                while: item => item.index < item.count && item.fields[item.first + item.index] != item.name,
+                next: item => { item.index += 1 }
+            })
+
+            current.indices = current.indices.push(found.index == current.count ? null : integers.narrow(found.index))[0]
+            current.index += 1
+        }
+    }).indices
+
+    const result = append({ table: type_id.state.local.expressions, metadata: { type_id: type_id.id, span_start: span.start, span_end: span.end }, tasks: frame.tasks, fields: mapped })
+
+    return { ...in, state: { ...type_id.state, local: { ...type_id.state.local, expressions: result.table } }, value: result.id, phase: Phase.Complete, frames: { ...in.frames, parallels: in.frames.parallels.pop()[0] } }
+}

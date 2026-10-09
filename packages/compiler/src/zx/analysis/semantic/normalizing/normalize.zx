@@ -1,13 +1,13 @@
 import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
 
 import row from "../entries/row"
-import { Kind } from "../types/model"
 import { Status } from "../types/nominal/model"
 import append from "./append"
 import find from "./find"
 
-import type { Table } from "../types/model"
-import type { Bindings } from "../types/nominal/model"
+import type { Table } from "core/type_table/model"
+import type { Bindings } from "core/type_table/nominal"
 import type { Input, Output } from "./model"
 
 export default function (in: Input): Output {

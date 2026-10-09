@@ -1,0 +1,62 @@
+import { StatementKind } from "../../../../../frontend/parser/body/model"
+import text from "../../../../semantic/resolving/source/text"
+import bindingName from "../../../statements/scopes/binding_name"
+import finish from "../../../statements/scopes/finish"
+import annotation from "../../../types/annotation"
+import { Phase, Action } from "../model"
+
+import type { Prepared } from "../../../model"
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const position = in.scopes.frames.length - 1
+    const frame = in.scopes.frames[position]
+
+    if (frame.next == frame.statements.length) {
+        const result = finish({ scopes: in.scopes, local: in.state.local, span: in.source.blocks.blocks[frame.source_block].span })
+
+        return { ...in, scopes: result.scopes, state: { ...in.state, local: result.local }, value: result.value, phase: Phase.Complete }
+    }
+
+    const id = frame.statements[frame.next]
+    const statement = in.source.blocks.statements[id]
+    const scopes = { ...in.scopes, frames: in.scopes.frames.splice(position, 1, [{ ...frame, next: frame.next + 1 }])[0] }
+    const work: Work = { ...in, scopes: scopes, node: statement.first, expected: null, phase: Phase.Evaluate }
+
+    if (statement.kind == StatementKind.Result || statement.kind == StatementKind.StoreSet) {
+        const returning = statement.kind == StatementKind.Result
+
+        return { ...work, state: { ...work.state, diagnostic: { code: returning ? "return_path" : "capability", message: returning ? "loop steps yield state at the block end; return is not allowed" : "Store writes are not allowed in loop callbacks", start: statement.span.start, end: statement.span.end } } }
+    }
+
+    if (statement.kind == StatementKind.Constant) {
+        const name = text({ source: work.source.bytes, span: statement.name })
+        const diagnostic = bindingName({ scopes: work.scopes, local: work.state.local, name: name })
+
+        if (diagnostic.message != "") {
+            return { ...work, state: { ...work.state, diagnostic: diagnostic } }
+        }
+
+        const resolved: { state: Prepared, id: u32 } = statement.annotation == 0 ? { state: work.state, id: 0 } : annotation({ state: work.state, reference: statement.annotation - 1 })
+
+        return { ...work, state: resolved.state, expected: statement.annotation == 0 ? null : resolved.id, frames: { ...work.frames, statements: work.frames.statements.push(id)[0], actions: work.frames.actions.push(Action.StateConstant)[0] } }
+    }
+
+    if (statement.kind == StatementKind.StateUpdate) {
+        return { ...work, frames: { ...work.frames, updates: work.frames.updates.push({ statement: id, places: [], target: 0 })[0], actions: work.frames.actions.push(Action.StateTarget)[0] } }
+    }
+
+    if (statement.kind == StatementKind.Branch) {
+        return { ...work, expected: 1, frames: { ...work.frames, branches: work.frames.branches.push({ statement: id, condition: 0, yes: 0, state_symbol: frame.state_symbol, mark: { nonnull: 0, captures: 0 } })[0], actions: work.frames.actions.push(Action.StateCondition)[0] } }
+    }
+
+    if (statement.kind == StatementKind.Switch) {
+        return { ...work, node: id, phase: Phase.StateSwitch }
+    }
+
+    return { ...work, frames: { ...work.frames, statements: work.frames.statements.push(id)[0], actions: work.frames.actions.push(statement.kind == StatementKind.Evaluate ? Action.StateEvaluate : Action.StateDestructure)[0] } }
+}

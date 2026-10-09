@@ -6,6 +6,9 @@ pub const Result = model.Result;
 pub const Module = model.Module;
 pub const Error = model.Error;
 pub const type_link = @import("type_link.zig");
+pub const program_link = @import("link/program.zig");
+pub const function_table = @import("link/function_table.zig");
+pub const source_link = @import("link/source.zig");
 pub const native_link = @import("link/native.zig");
 pub const linker = @import("link.zig");
 

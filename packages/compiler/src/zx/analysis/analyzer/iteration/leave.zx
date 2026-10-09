@@ -1,0 +1,10 @@
+import type { Local } from "../local"
+import type { Context } from "./model"
+
+export type Input = { local: Local, context: Context }
+
+export type Output = Local
+
+export default function (in: Input): Output {
+    return { ...in.local, active: in.local.active.splice(0, in.context.active, [])[1], scope_floor: in.context.floor, lambda_depth: in.context.depth, captures: { ...in.local.captures, current: in.context.captures } }
+}

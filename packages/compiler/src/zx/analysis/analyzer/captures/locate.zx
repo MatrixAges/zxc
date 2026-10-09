@@ -1,0 +1,26 @@
+import integers from "zig:integers"
+
+import type { Local } from "../local"
+
+export type Input = { local: Local, frame: u32, name: string }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const missing: u32? = null
+
+        const result = loop({ local: in.local, name: in.name, index: in.local.captures.frames.starts[integers.widen(in.frame)], floor: in.local.captures.frames.floors[integers.widen(in.frame)], found: missing }, {
+            while: current => current.found == null && current.index > current.floor,
+            next: current => {
+                current.index -= 1
+
+                const id = current.local.active[current.index]
+
+                if (current.local.symbols.names[integers.widen(id)] == current.name) {
+                    current.found = id
+                }
+            }
+        })
+
+        return result.found
+    }

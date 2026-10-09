@@ -1,0 +1,55 @@
+import encoding from "std:encoding"
+
+export type Input = { source: u8[], template: bool }
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const scan = loop({ source: in.source, template: in.template, index: 0, rewrite: false }, {
+        while: current => !current.rewrite && current.index < current.source.length,
+        next: current => {
+            const byte = current.source[current.index]
+
+            current.rewrite = byte == 92 || (current.template && byte == 13)
+            current.index += 1
+        }
+    })
+
+    if (!scan.rewrite) {
+        return encoding.decodeUtf8(in.source)
+    }
+
+    const bytes: u8[] = []
+
+    const result = loop({ source: in.source, template: in.template, index: 0, bytes: bytes }, {
+        while: current => current.index < current.source.length,
+        next: current => {
+            const byte = current.source[current.index]
+
+            current.index += 1
+
+            if (current.template && byte == 13) {
+                if (current.index < current.source.length && current.source[current.index] == 10) {
+                    current.index += 1
+                }
+
+                current.bytes = current.bytes.push(10)[0]
+            } else if (byte == 92 && current.index < current.source.length) {
+                const escaped = current.source[current.index]
+                const value: u8 = match escaped {
+                    110 => 10,
+                    114 => 13,
+                    116 => 9,
+                    _ => escaped,
+                }
+
+                current.bytes = current.bytes.push(value)[0]
+                current.index += 1
+            } else {
+                current.bytes = current.bytes.push(byte)[0]
+            }
+        }
+    })
+
+    return encoding.decodeUtf8(result.bytes)
+}

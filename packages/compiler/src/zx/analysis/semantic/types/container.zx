@@ -1,8 +1,10 @@
+import { Kind } from "core/type_table/model"
+
 import { Violation } from "./container_model"
-import { Kind } from "./model"
 import row from "./row"
 
-import type { Candidate, Tables } from "./model"
+import type { Tables } from "core/type_table/model"
+import type { Candidate } from "./model"
 
 export type Input = { tables: Tables, candidate: Candidate }
 

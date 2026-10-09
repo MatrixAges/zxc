@@ -1,0 +1,54 @@
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../../../semantic/types/row"
+import enter from "../../../../statements/scopes/enter"
+import label from "../../../../statements/selection/label"
+import { Phase, Action } from "../../model"
+import next from "./next"
+
+import type { Work } from "../../model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const position = work.frames.switches.length - 1
+    const frame = work.frames.switches[position]
+
+    if (in.action == Action.StateSubject) {
+        const type_id = work.state.local.expressions.types[integers.widen(work.value)]
+        const target = row({ tables: { base: work.state.types.context.base, delta: work.state.types.delta }, id: type_id })
+
+        if (target.kind != Kind.Enumeration && target.kind != Kind.ErrorSet && !(type_id >= 2 && type_id <= 7) && type_id != 1 && type_id != 10) {
+            const statement = work.source.blocks.statements[frame.statement]
+            const span = work.source.tree.nodes[statement.first].span
+
+            return { ...work, state: { ...work.state, diagnostic: { code: "type_mismatch", message: "switch requires an enum, finite error, integer, bool or string", start: span.start, end: span.end } } }
+        }
+
+        return next({ ...work, frames: { ...work.frames, switches: work.frames.switches.splice(position, 1, [{ ...frame, subject: work.value }])[0] } })
+    }
+
+    const source = work.source.blocks.cases[frame.cases[frame.index]]
+
+    if (in.action == Action.StateLabel) {
+        const state = label({ state: work.state, value: work.value, previous: frame.conditions, span: work.source.tree.nodes[source.value - 1].span })
+
+        if (state.diagnostic.message != "") {
+            return { ...work, state: state }
+        }
+
+        const scopes = enter({ scopes: work.scopes, local: state.local, tree: work.source.blocks, block: source.body, state_symbol: frame.state_symbol })
+        const switches = work.frames.switches.splice(position, 1, [{ ...frame, conditions: frame.conditions.push(work.value)[0] }])[0]
+
+        return { ...work, state: state, scopes: scopes, phase: Phase.ScopeNext, frames: { ...work.frames, switches: switches, actions: work.frames.actions.push(Action.StateCase)[0] } }
+    }
+
+    const fallback: u32? = source.value == 0 ? work.value : frame.fallback
+    const updated = { ...frame, index: frame.index + 1, fallback: fallback, results: source.value == 0 ? frame.results : frame.results.push(work.value)[0] }
+
+    return next({ ...work, frames: { ...work.frames, switches: work.frames.switches.splice(position, 1, [updated])[0] } })
+}

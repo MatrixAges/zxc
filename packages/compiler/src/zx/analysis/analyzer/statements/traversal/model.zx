@@ -1,0 +1,23 @@
+import type { Mark } from "../../../../ir/canonical/refinement/facts/model"
+import type { Work } from "../../expressions/traversal/model"
+import type { Blocks } from "../blocks/model"
+
+export enum Phase { Next, Expression, Resume, Selection, Done }
+
+export enum Action { Constant, Destructure, Evaluate, Result, Setter, Condition, Yes, No, Subject, Label, Case }
+
+export type Branch = { statement: u64, condition: u32, yes: u32, mark: Mark }
+
+export type Selection = { statement: u64, cases: u64[], index: u64, subject: u32, labels: u32[], values: u32?[], bodies: u32[], fallback: bool }
+
+export type Body = {
+    expression: Work
+    blocks: Blocks
+    actions: Action[]
+    branches: Branch[]
+    selections: Selection[]
+    statement: u64
+    slot: u32
+    value: u32
+    phase: Phase
+}

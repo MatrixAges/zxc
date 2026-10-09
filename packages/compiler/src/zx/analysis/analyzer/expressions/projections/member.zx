@@ -1,0 +1,35 @@
+import integers from "zig:integers"
+import { ValueKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/value"
+
+import row from "../../../semantic/types/row"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Name } from "../../../semantic/resolving/source/model"
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+
+export type Input = { state: Prepared, type_id: u32, name: Name, span: Span, error_member: bool }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: in.type_id })
+    const table = target.delta ? tables.delta : tables.base
+
+    const found = loop({ names: table.names, first: integers.widen(target.first), count: integers.widen(target.second), name: in.name.text, index: 0 }, {
+        while: current => current.index < current.count && current.names[current.first + current.index] != current.name,
+        next: current => { current.index += 1 }
+    })
+
+    if (found.index == found.count) {
+        const message = in.error_member ? "error is not a member of this expression's finite error set" : "unknown enum member"
+
+        return { state: { ...in.state, diagnostic: { code: "name", message: message, start: in.name.start, end: in.name.end } }, value: 0 }
+    }
+
+    const result = append({ table: in.state.local.expressions, metadata: { type_id: in.type_id, span_start: in.span.start, span_end: in.span.end }, kind: in.error_member ? ValueKind.ErrorValue : ValueKind.EnumValue, value: integers.narrow(found.index) })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

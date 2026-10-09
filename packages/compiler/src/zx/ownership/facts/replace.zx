@@ -1,19 +1,19 @@
 import integers from "zig:integers"
+import row from "core/type_table/row"
 
 import fieldType from "./field_type"
 import product from "./product"
 import project from "./project"
 import summary from "./summary"
 
-import type { Table } from "../../analysis/semantic/types/model"
+import type { Tables } from "core/type_table/model"
 import type { Forest, Result } from "./model"
 
-export type Input = { types: Table, references: bool[], forest: Forest, fact: u64, type_id: u32, index: u64, value: u64 }
+export type Input = { types: Tables, references: bool[], forest: Forest, fact: u64, type_id: u32, index: u64, value: u64 }
 
 export type Output = Result
 
 export default function (in: Input): Output {
-    const type_id = integers.widen(in.type_id)
     const child_type = fieldType({ types: in.types, type_id: in.type_id, index: in.index })
     const previous = project({ forest: in.forest, fact: in.fact, index: in.index, reference: in.references[integers.widen(child_type)] })
 
@@ -23,7 +23,7 @@ export default function (in: Input): Output {
 
     const empty: u64[] = []
 
-    const result = loop({ types: in.types, references: in.references, forest: in.forest, fact: in.fact, type_id: in.type_id, target: in.index, value: in.value, count: integers.widen(in.types.second[type_id]), children: empty, index: 0 }, {
+    const result = loop({ types: in.types, references: in.references, forest: in.forest, fact: in.fact, type_id: in.type_id, target: in.index, value: in.value, count: integers.widen(row({ tables: in.types, id: in.type_id }).second), children: empty, index: 0 }, {
         while: current => current.index < current.count,
         next: current => {
             const child_type = fieldType({ types: current.types, type_id: current.type_id, index: current.index })

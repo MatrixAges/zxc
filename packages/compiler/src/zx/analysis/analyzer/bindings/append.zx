@@ -1,0 +1,36 @@
+import encoding from "std:encoding"
+import integers from "zig:integers"
+import append from "core/symbol_table/append"
+import { Ownership } from "core/symbol_table/model"
+
+import type { Diagnostic } from "../../semantic/resolving/model"
+import type { Name } from "../../semantic/resolving/source/model"
+import type { Local } from "../local"
+
+export type Input = { local: Local, name: Name, type_id: u32, scope_start: u64 }
+
+export type Output = { local: Local, id: u32, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const bytes = encoding.encodeUtf8(in.name.text)
+
+    if (bytes.length != 0 && bytes[0] == 36) {
+        return { local: in.local, id: 0, diagnostic: { code: "capability", message: "$ names are reserved for Call-injected handles", start: in.name.start, end: in.name.end } }
+    }
+
+    const duplicate = loop({ active: in.local.active, names: in.local.symbols.names, name: in.name.text, index: in.scope_start, found: false }, {
+        while: current => !current.found && current.index < current.active.length,
+        next: current => {
+            current.found = current.names[integers.widen(current.active[current.index])] == current.name
+            current.index += 1
+        }
+    })
+
+    if (duplicate.found) {
+        return { local: in.local, id: 0, diagnostic: { code: "name", message: "duplicate binding in the same scope", start: in.name.start, end: in.name.end } }
+    }
+
+    const symbol = append({ table: in.local.symbols, name: in.name.text, type_id: in.type_id, span_start: in.name.start, span_end: in.name.end, ownership: Ownership.Copy })
+
+    return { local: { ...in.local, symbols: symbol.table, active: in.local.active.push(symbol.id)[0] }, id: symbol.id, diagnostic: { code: "", message: "", start: 0, end: 0 } }
+}

@@ -1,0 +1,36 @@
+import integers from "zig:integers"
+
+import row from "../../../../semantic/types/row"
+import items from "../../items"
+import next from "./next"
+
+import type { Work, Imported } from "../model"
+
+export type Input = { work: Work, index: u64 }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const node = work.source.tree.nodes[work.node]
+    const id = work.imports.ids[in.index]
+
+    if (work.functions.stores[integers.widen(id)].types.length != 0) {
+        return { ...work, state: { ...work.state, diagnostic: { code: "capability", message: "Store functions require an explicitly authorized orchestration Call", start: node.span.start, end: node.span.end } } }
+    }
+
+    const tuple = work.functions.native_modules[integers.widen(id)] != null && work.functions.native_tuples[integers.widen(id)]
+    const input = work.imports.input_types[in.index]
+    const target = row({ tables: { base: work.state.types.context.base, delta: work.state.types.delta }, id: input })
+    const valid = tuple ? node.count == integers.widen(target.second) : node.count == 1 || (input == 0 && node.count == 0)
+
+    if (!valid) {
+        const message = tuple ? "native argument count does not match its registered signature" : "a ZX function requires one Input argument; void Input permits no arguments"
+
+        return { ...work, state: { ...work.state, diagnostic: { code: "type_mismatch", message: message, start: node.span.start, end: node.span.end } } }
+    }
+
+    const frame: Imported = { node: work.node, import_index: in.index, tuple: tuple, arguments: items({ items: work.source.tree.items, head: node.head }), index: 0, values: [] }
+
+    return next({ ...work, frames: { ...work.frames, imported: work.frames.imported.push(frame)[0] } })
+}

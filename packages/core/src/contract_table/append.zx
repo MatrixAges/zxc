@@ -1,0 +1,18 @@
+import type { Expressions } from "../expression_table/model"
+import type { Symbols } from "../symbol_table/model"
+import type { Contracts, ContractKind } from "./model"
+
+export type Input = { table: Contracts, kind: ContractKind, symbols: Symbols, expressions: Expressions, predicate: u32, span_start: u64, span_end: u64 }
+
+export type Output = Contracts
+
+export default function (in: Input): Output {
+    return {
+        kinds: in.table.kinds.push(in.kind)[0],
+        predicates: in.table.predicates.push(in.predicate)[0],
+        symbols: in.table.symbols.push(in.symbols)[0],
+        expressions: in.table.expressions.push(in.expressions)[0],
+        span_start: in.table.span_start.push(in.span_start)[0],
+        span_end: in.table.span_end.push(in.span_end)[0]
+    }
+}

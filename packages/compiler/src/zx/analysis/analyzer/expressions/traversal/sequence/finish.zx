@@ -1,0 +1,27 @@
+import { SequenceKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/sequence"
+import { Kind } from "core/type_table/model"
+
+import construct from "../../../types/construct"
+import { Phase } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.sequences[in.frames.sequences.length - 1]
+    const span = in.source.tree.nodes[frame.node].span
+    const tuple = frame.tuple
+    const type_id = tuple != null ? { state: in.state, id: tuple } : construct({ state: in.state, candidate: { kind: Kind.List, first: frame.element ?? 0, second: 0, label: "", children: [], fields: { names: [], types: [] }, names: [] }, span: span })
+
+    if (type_id.state.diagnostic.message != "") {
+        return { ...in, state: type_id.state }
+    }
+
+    const result = append({ table: type_id.state.local.expressions, metadata: { type_id: type_id.id, span_start: span.start, span_end: span.end }, kind: tuple != null ? SequenceKind.Tuple : SequenceKind.List, values: frame.values })
+
+    return { ...in, state: { ...type_id.state, local: { ...type_id.state.local, expressions: result.table } }, value: result.id, phase: Phase.Complete, frames: { ...in.frames, sequences: in.frames.sequences.pop()[0] } }
+}

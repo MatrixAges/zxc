@@ -1,0 +1,36 @@
+import integers from "zig:integers"
+import { SequenceKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/sequence"
+import { Kind } from "core/type_table/model"
+
+import construct from "../../types/construct"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, values: u32[], span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const types: u32[] = []
+
+    const fields = loop({ types: in.state.local.expressions.types, values: in.values, fields: types, index: 0 }, {
+        while: current => current.index < current.values.length,
+        next: current => {
+            current.fields = current.fields.push(current.types[integers.widen(current.values[current.index])])[0]
+            current.index += 1
+        }
+    }).fields
+
+    const constructed = construct({ state: in.state, candidate: { kind: Kind.Tuple, first: 0, second: 0, label: "", children: fields, fields: { names: [], types: [] }, names: [] }, span: in.span })
+
+    if (constructed.state.diagnostic.message != "") {
+        return { state: constructed.state, value: 0 }
+    }
+
+    const result = append({ table: constructed.state.local.expressions, metadata: { type_id: constructed.id, span_start: in.span.start, span_end: in.span.end }, kind: SequenceKind.Tuple, values: in.values })
+
+    return { state: { ...constructed.state, local: { ...constructed.state.local, expressions: result.table } }, value: result.id }
+}

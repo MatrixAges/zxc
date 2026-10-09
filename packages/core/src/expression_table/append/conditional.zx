@@ -1,0 +1,25 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, condition: u32, yes: u32, no: u32 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({ table: in.table, metadata: in.metadata, kind: ExpressionKind.Conditional, payload: integers.narrow(in.table.conditional_conditions.length) })
+
+    return {
+        table: {
+            ...result.table,
+            conditional_conditions: result.table.conditional_conditions.push(in.condition)[0],
+            conditional_yes: result.table.conditional_yes.push(in.yes)[0],
+            conditional_no: result.table.conditional_no.push(in.no)[0]
+        },
+        id: result.id
+    }
+}

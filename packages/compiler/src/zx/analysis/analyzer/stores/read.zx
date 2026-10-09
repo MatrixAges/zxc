@@ -1,0 +1,31 @@
+import integers from "zig:integers"
+import { ValueKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/value"
+
+import slot from "./slot"
+
+import type { Result } from "../expressions/model"
+import type { Source } from "../expressions/request"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, source: Source, node: u64 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const resolved = slot(in)
+
+    if (resolved.state.diagnostic.message != "") {
+        return { state: resolved.state, value: 0 }
+    }
+
+    const span = in.source.tree.nodes[in.node].span
+
+    if (!in.state.local.stores.readable[integers.widen(resolved.slot)]) {
+        return { state: { ...in.state, diagnostic: { code: "capability", message: "the Call did not grant read access to this Store handle", start: span.start, end: span.end } }, value: 0 }
+    }
+
+    const result = append({ table: in.state.local.expressions, metadata: { type_id: in.state.local.stores.types[integers.widen(resolved.slot)], span_start: span.start, span_end: span.end }, kind: ValueKind.StoreGet, value: resolved.slot })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

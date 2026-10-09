@@ -1,0 +1,83 @@
+import type { CollectionKind } from "core/expression_table/kinds"
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Mark } from "../../../../ir/canonical/refinement/facts/model"
+import type { Frame } from "../../collections/model"
+import type { FunctionImports } from "../../context"
+import type { Functions } from "../../functions"
+import type { IterationFrame } from "../../iteration/model"
+import type { Prepared } from "../../model"
+import type { StateUpdate, StateBranch, StateSelection } from "../../statements/scopes/continuations"
+import type { Scopes } from "../../statements/scopes/model"
+import type { Entries } from "../objects/model"
+import type { Source } from "../request"
+
+export enum Phase { Evaluate, Complete, StateBlock, ScopeNext, StateSwitch, Done }
+
+export enum Action { Coerce, Unary, Field, IndexTarget, IndexValue, BinaryLeft, BinaryRight, Condition, Yes, No, MatchSubject, MatchCondition, MatchResult, MatchFallback, Sequence, Object, Imported, MethodTarget, ListArgument, Template, TaskValue, CaptureValue, AsyncBody, ParallelBody, TransformSecond, TransformBody, IterationInitial, IterationCondition, IterationStep, StateEvaluate, StateConstant, StateDestructure, StateTarget, StateValue, StateCondition, StateYes, StateNo, StateSubject, StateLabel, StateCase }
+
+export type Coercion = { expected: u32, span: Span }
+
+export type Index = { node: u64, target: u32 }
+
+export type Binary = { node: u64, left: u32, mark: Mark }
+
+export type Conditional = { node: u64, expected: u32?, condition: u32, yes: u32, mark: Mark }
+
+export type Selection = { node: u64, subject: u32?, expected: u32?, arms: u64[], index: u64, conditions: u32[], results: u32[] }
+
+export type Sequence = { node: u64, tuple: u32?, element: u32?, items: u64[], index: u64, values: u32[] }
+
+export type Object = { node: u64, hint: u32?, fields: u64[], index: u64, entries: Entries, evaluation: u32[] }
+
+export type Imported = { node: u64, import_index: u64, tuple: bool, arguments: u64[], index: u64, values: u32[] }
+
+export type Method = { node: u64, expected: u32?, target: u32 }
+
+export type ListCall = { node: u64, target: u32, kind: CollectionKind, replacement: bool, arguments: u64[], hints: u32[], index: u64, values: u32[] }
+
+export type Template = { node: u64, parts: u64[], index: u64, values: u32[] }
+
+export type Boundary = { active: u64, floor: u64, depth: u64, captures: u32?, facts: Mark }
+
+export type AsyncFrame = { node: u64, first: u64, symbol_count: u64 }
+
+export type ParallelFrame = { node: u64, fields: u64[], index: u64, names: string[], type_names: string[], types: u32[], tasks: u32[], first: u64, symbol_count: u64 }
+
+export type Frames = {
+    actions: Action[]
+    coercions: Coercion[]
+    singles: u64[]
+    indices: Index[]
+    binaries: Binary[]
+    conditionals: Conditional[]
+    selections: Selection[]
+    sequences: Sequence[]
+    objects: Object[]
+    imported: Imported[]
+    methods: Method[]
+    lists: ListCall[]
+    templates: Template[]
+    transforms: Frame[]
+    iterations: IterationFrame[]
+    statements: u64[]
+    updates: StateUpdate[]
+    branches: StateBranch[]
+    switches: StateSelection[]
+    asynchronous: AsyncFrame[]
+    parallels: ParallelFrame[]
+}
+
+export type Work = {
+    state: Prepared
+    source: Source
+    imports: FunctionImports
+    functions: Functions
+    concurrent: bool[]
+    scopes: Scopes
+    boundary: Boundary
+    frames: Frames
+    node: u64
+    expected: u32?
+        value: u32
+    phase: Phase
+}

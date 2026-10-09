@@ -2,14 +2,14 @@ import bind from "../../facts/bind"
 import apply from "../../runtime/snapshots/apply"
 import { Action } from "../../runtime/snapshots/model"
 
-import type { Table } from "../../../analysis/semantic/types/model"
+import type { Tables } from "core/type_table/model"
 import type { Layout } from "../../places/model"
 import type { Memory } from "../../runtime/model"
 import type { Stack } from "../../runtime/snapshots/model"
 import type { Domains } from "../model"
 import type { Activations } from "./model"
 
-export type Input = { types: Table, references: bool[], layout: Layout, memory: Memory, snapshots: Stack, domains: Domains, loops: Activations, expression: u64, index: u64, exiting: bool }
+export type Input = { types: Tables, references: bool[], layout: Layout, memory: Memory, snapshots: Stack, domains: Domains, loops: Activations, expression: u64, index: u64, exiting: bool }
 
 export type Output = Memory
 

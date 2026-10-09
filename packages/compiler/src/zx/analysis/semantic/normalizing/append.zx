@@ -1,10 +1,10 @@
 import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
 
-import { Kind } from "../types/model"
 import reference from "./reference"
 
+import type { Table } from "core/type_table/model"
 import type { Entry } from "../entries/model"
-import type { Table } from "../types/model"
 import type { Mapping } from "./model"
 
 export type Input = { source: Entry, delta: Table, mapping: Mapping }

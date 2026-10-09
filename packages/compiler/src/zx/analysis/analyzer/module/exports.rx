@@ -1,0 +1,13 @@
+<Module>
+    <Switch on={$in.analysis.state.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="../exports" in={{ state: $in.analysis.state, bytes: $in.module.bytes, declarations: $in.module.syntax.declarations }} />
+
+            <Return value={{ ...$in.analysis, state: $ctx.exports.state, names: $ctx.exports.names, types: $ctx.exports.types }} />
+        </Case>
+
+        <Default>
+            <Return value={$in.analysis} />
+        </Default>
+    </Switch>
+</Module>

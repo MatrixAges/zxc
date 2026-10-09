@@ -1,0 +1,13 @@
+<Module>
+    <Switch on={$in.analysis.state.diagnostic.message == "" && !$in.analysis.type_only}>
+        <Case value={true}>
+            <Call module="../body" in={{ state: $in.analysis.state, source: { bytes: $in.module.bytes, tree: $in.module.syntax.expressions, blocks: $in.module.syntax.blocks }, imports: $in.module.context.function_imports, functions: $in.module.context.functions, block: $in.module.syntax.body ?? 0, span: $in.module.syntax.blocks.blocks[$in.module.syntax.body ?? 0].span }} />
+
+            <Return value={{ ...$in.analysis, state: $ctx.body.state, root: $ctx.body.root }} />
+        </Case>
+
+        <Default>
+            <Return value={$in.analysis} />
+        </Default>
+    </Switch>
+</Module>

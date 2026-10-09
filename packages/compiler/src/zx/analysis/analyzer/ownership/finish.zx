@@ -1,0 +1,37 @@
+import { Ownership } from "core/symbol_table/model"
+
+import { State } from "../../../ownership/places/model"
+
+import type { Outcome } from "../../../ownership/runtime/work/model"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, outcome: Outcome }
+
+export type Output = { state: Prepared, ownership: Ownership }
+
+export default function (in: Input): Output {
+    if (!in.outcome.complete) {
+        return { state: { ...in.state, diagnostic: { code: "contract", message: "internal compiler error: generated ownership check is incomplete", start: 0, end: 0 } }, ownership: Ownership.Copy }
+    }
+
+    if (in.outcome.failed) {
+        const index = in.outcome.expression
+        const expressions = in.state.local.expressions
+
+        if (index >= expressions.kinds.length) {
+            return { state: { ...in.state, diagnostic: { code: "contract", message: "internal compiler error: generated ownership location is invalid", start: 0, end: 0 } }, ownership: Ownership.Copy }
+        }
+
+        return { state: { ...in.state, diagnostic: { code: "ownership", message: "the previous owner was consumed; use the new binding returned by the operation", start: expressions.span_start[index], end: expressions.span_end[index] } }, ownership: Ownership.Copy }
+    }
+
+    if (in.outcome.output == State.Loaned || in.outcome.output == State.Moved) {
+        return { state: { ...in.state, diagnostic: { code: "contract", message: "internal compiler error: generated ownership result is invalid", start: 0, end: 0 } }, ownership: Ownership.Copy }
+    }
+
+    return { state: in.state, ownership: match in.outcome.output {
+        State.Copy => Ownership.Copy,
+        State.Owned => Ownership.Owned,
+        _ => Ownership.Borrowed,
+    } }
+}

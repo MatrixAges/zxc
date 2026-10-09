@@ -1,0 +1,17 @@
+import type { Stores } from "core/store_table/model"
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Diagnostic } from "../../semantic/resolving/model"
+
+export type Input = { stores: Stores, has_store: bool, span: Span }
+
+export type Output = { stores: Stores, allow_store: bool, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const missing = in.has_store && in.stores.types.length == 0
+
+    return {
+        stores: in.stores,
+        allow_store: in.has_store || in.stores.types.length != 0,
+        diagnostic: { code: missing ? "capability" : "", message: missing ? "Store setters require an authorized call context" : "", start: missing ? in.span.start : 0, end: missing ? in.span.end : 0 }
+    }
+}

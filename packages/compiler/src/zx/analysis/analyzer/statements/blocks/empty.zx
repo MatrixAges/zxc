@@ -1,0 +1,14 @@
+import block from "core/control_table/append/block"
+
+import type { Local } from "../../local"
+import type { Blocks } from "./model"
+
+export type Input = { blocks: Blocks, local: Local }
+
+export type Output = { blocks: Blocks, local: Local, id: u32 }
+
+export default function (in: Input): Output {
+    const result = block({ table: in.local.control, first: in.local.control.statement_kinds.length })
+
+    return { blocks: { ...in.blocks, returns: in.blocks.returns.push(false)[0] }, local: { ...in.local, control: result.table }, id: result.id }
+}

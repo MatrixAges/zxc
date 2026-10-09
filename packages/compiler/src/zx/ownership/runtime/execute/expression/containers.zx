@@ -1,6 +1,7 @@
 import integers from "zig:integers"
+import { ExpressionKind } from "core/expression_table/kinds"
+import row from "core/type_table/row"
 
-import { ExpressionKind } from "../../../../ir/canonical/expressions/kinds"
 import begin from "../../../facts/builders/begin"
 import uniform from "../../../facts/uniform"
 import { State } from "../../../places/model"
@@ -19,7 +20,7 @@ export default function (in: Input): Output {
     }
 
     if (in.kind == ExpressionKind.Object) {
-        const count = integers.widen(in.machine.program.types.second[integers.widen(in.machine.program.expressions.types[in.frame.subject])])
+        const count = integers.widen(row({ tables: in.machine.program.types, id: in.machine.program.expressions.types[in.frame.subject] }).second)
         const builder = begin({ forest: in.machine.memory.forest, builders: in.machine.builders, count: count })
         const captured = save({ memory: in.machine.memory, stack: in.machine.snapshots, capture: Capture.Memo })
         const work = push({ work: in.machine.work, frame: { action: WorkAction.ObjectFinish, subject: in.frame.subject, moving: false, index: captured.frame } })
@@ -40,7 +41,7 @@ export default function (in: Input): Output {
     }
 
     if (in.kind == ExpressionKind.Tuple) {
-        const count = integers.widen(in.machine.program.types.second[integers.widen(in.machine.program.expressions.types[in.frame.subject])])
+        const count = integers.widen(row({ tables: in.machine.program.types, id: in.machine.program.expressions.types[in.frame.subject] }).second)
         const builder = begin({ forest: in.machine.memory.forest, builders: in.machine.builders, count: count })
 
         return { ...in.machine, builders: builder.builders, memory: { ...in.machine.memory, forest: builder.forest }, work: push({ work: in.machine.work, frame: { action: WorkAction.Sequence, subject: in.frame.subject, moving: in.frame.moving, index: 0 } }) }

@@ -1,0 +1,39 @@
+import integers from "zig:integers"
+
+import { ExprKind } from "../../../frontend/parser/expressions/state/model"
+import text from "../../semantic/resolving/source/text"
+
+import type { Source } from "../expressions/request"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, source: Source, node: u64 }
+
+export type Output = { state: Prepared, slot: u32 }
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const field = node.kind == ExprKind.Field
+    const owner = in.source.tree.nodes[field ? node.first : in.node]
+    const name = text({ source: in.source.bytes, span: node.name }).text
+
+    if (!field || owner.kind != ExprKind.Identifier || name != "value") {
+        return { state: { ...in.state, diagnostic: { code: "capability", message: "Store handles only expose the value getter and setter", start: node.span.start, end: node.span.end } }, slot: 0 }
+    }
+
+    if (in.state.local.lambda_depth != 0) {
+        return { state: { ...in.state, diagnostic: { code: "capability", message: "a callback cannot capture an injected Store handle", start: node.span.start, end: node.span.end } }, slot: 0 }
+    }
+
+    const handle = text({ source: in.source.bytes, span: owner.name }).text
+
+    const found = loop({ handles: in.state.local.stores.handles, handle: handle, index: 0 }, {
+        while: current => current.index < current.handles.length && current.handles[current.index] != current.handle,
+        next: current => { current.index += 1 }
+    })
+
+    if (found.index == found.handles.length) {
+        return { state: { ...in.state, diagnostic: { code: "capability", message: "this Store handle was not injected by the Call", start: node.span.start, end: node.span.end } }, slot: 0 }
+    }
+
+    return { state: in.state, slot: integers.narrow(found.index) }
+}

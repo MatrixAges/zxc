@@ -1,8 +1,7 @@
 import integers from "zig:integers"
+import { ExpressionKind } from "core/expression_table/kinds"
 
-import { ExpressionKind } from "../expressions/kinds"
-
-import type { Expressions } from "../expressions/model"
+import type { Expressions } from "core/expression_table/model"
 
 export type Input = { expressions: Expressions, left: u64, right: u64 }
 

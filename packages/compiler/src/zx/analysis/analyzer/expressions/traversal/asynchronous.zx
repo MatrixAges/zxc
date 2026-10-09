@@ -1,0 +1,15 @@
+import finish from "../tasks/finish"
+import { Phase } from "./model"
+
+import type { Work } from "./model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.asynchronous[in.frames.asynchronous.length - 1]
+    const result = finish({ state: in.state, functions: in.functions, concurrent: in.concurrent, first: frame.first, symbol_count: frame.symbol_count, body: in.value, span: in.source.tree.nodes[frame.node].span })
+
+    return { ...in, state: result.state, value: result.value, phase: Phase.Complete, frames: { ...in.frames, asynchronous: in.frames.asynchronous.pop()[0] } }
+}

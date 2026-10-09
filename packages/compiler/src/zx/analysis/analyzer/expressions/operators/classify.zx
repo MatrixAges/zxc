@@ -1,0 +1,12 @@
+import { BinaryOperator } from "core/expression_table/kinds"
+
+export type Input = BinaryOperator
+
+export type Output = { logical: bool, comparison: bool, equality: bool }
+
+export default function (in: Input): Output {
+    const equality = in == BinaryOperator.Equal || in == BinaryOperator.NotEqual
+    const ordered = in == BinaryOperator.Less || in == BinaryOperator.LessEqual || in == BinaryOperator.Greater || in == BinaryOperator.GreaterEqual
+
+    return { logical: in == BinaryOperator.LogicalAnd || in == BinaryOperator.LogicalOr, comparison: equality || ordered, equality: equality }
+}

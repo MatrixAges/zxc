@@ -1,0 +1,7 @@
+<Module>
+    <Call fn="statements/traversal/initial" in={{ state: $in.state, source: $in.source, imports: $in.imports, functions: $in.functions, block: $in.block }} />
+    <Call fn="statements/traversal/advance" in={$ctx.initial} />
+    <Call fn="statements/traversal/finish" in={{ body: $ctx.advance, span: $in.span }} />
+
+    <Return value={$ctx.finish} />
+</Module>

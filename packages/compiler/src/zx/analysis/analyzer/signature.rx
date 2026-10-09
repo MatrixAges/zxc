@@ -1,0 +1,33 @@
+<Module>
+    <Call fn="signature/initial" in={$in} />
+
+    <Switch on={$in.module.syntax.body != null}>
+        <Case value={true}>
+            <Task name="input" out={$ctx.resolve}>
+                <Call fn="signature/request" in={{ types: $in.types, span: $ctx.initial.span, name: "Input" }} />
+
+                <Call module="../semantic/resolve" in={$ctx.request} />
+            </Task>
+
+            <Switch on={$ctx.task.input.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Task name="output" out={$ctx.resolve}>
+                        <Call fn="signature/request" in={{ types: { context: $in.types.context, delta: $ctx.task.input.delta, cache: $ctx.task.input.cache, nominal_delta: $in.types.nominal_delta }, span: $ctx.initial.span, name: "Output" }} />
+
+                        <Call module="../semantic/resolve" in={$ctx.request} />
+                    </Task>
+
+                    <Return value={{ types: { context: $in.types.context, delta: $ctx.task.output.delta, cache: $ctx.task.output.cache, nominal_delta: $in.types.nominal_delta }, span: $ctx.initial.span, input_type: $ctx.task.input.id, output_type: $ctx.task.output.id, diagnostic: $ctx.task.output.diagnostic }} />
+                </Case>
+
+                <Default>
+                    <Return value={{ types: { context: $in.types.context, delta: $ctx.task.input.delta, cache: $ctx.task.input.cache, nominal_delta: $in.types.nominal_delta }, span: $ctx.initial.span, input_type: $ctx.initial.input_type, output_type: $ctx.initial.output_type, diagnostic: $ctx.task.input.diagnostic }} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={$ctx.initial} />
+        </Default>
+    </Switch>
+</Module>

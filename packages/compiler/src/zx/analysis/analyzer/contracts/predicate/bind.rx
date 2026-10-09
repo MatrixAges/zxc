@@ -1,0 +1,19 @@
+<Module>
+    <Task name="input" out={$ctx.append}>
+        <Call fn="../../bindings/append" in={{ local: $in.state.local, name: { text: "in", start: $in.contract.span.start, end: $in.contract.span.end }, type_id: $in.state.input_type, scope_start: 0 }} />
+    </Task>
+
+    <Switch on={$ctx.task.input.diagnostic.message == "" && $in.contract.ensures}>
+        <Case value={true}>
+            <Task name="output" out={{ ...$in.state, local: $ctx.append.local, diagnostic: $ctx.append.diagnostic }}>
+                <Call fn="../../bindings/append" in={{ local: $ctx.task.input.local, name: { text: "out", start: $in.contract.span.start, end: $in.contract.span.end }, type_id: $in.output_type, scope_start: 0 }} />
+            </Task>
+
+            <Return value={$ctx.task.output} />
+        </Case>
+
+        <Default>
+            <Return value={{ ...$in.state, local: $ctx.task.input.local, diagnostic: $ctx.task.input.diagnostic }} />
+        </Default>
+    </Switch>
+</Module>

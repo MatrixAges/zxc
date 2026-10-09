@@ -1,0 +1,26 @@
+<Module>
+    <Call fn="step/bindings" in={$in} />
+    <Call fn="step/result" in={{ state: $ctx.bindings.state, kind: $in.kind, previous: $ctx.bindings.previous, item: $ctx.bindings.item, value: $ctx.bindings.value, span: $in.span }} />
+
+    <Switch on={$ctx.result.state.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="step/state" in={{ state: $ctx.result.state, current: $ctx.bindings.current, source: $ctx.bindings.source, index: $ctx.bindings.index, result: $ctx.result.value, captures: $in.callback.captures.targets.length != 0, span: $in.span }} />
+
+            <Switch on={$ctx.state.state.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Call fn="step/scope" in={{ state: $ctx.state.state, current: $ctx.bindings.current, result: $ctx.state.value, bindings: $ctx.bindings.bindings, span: $in.span }} />
+
+                    <Return value={$ctx.scope} />
+                </Case>
+
+                <Default>
+                    <Return value={$ctx.state} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={$ctx.result} />
+        </Default>
+    </Switch>
+</Module>

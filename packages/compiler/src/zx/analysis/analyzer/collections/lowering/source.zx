@@ -1,0 +1,33 @@
+import integers from "zig:integers"
+import { Ownership } from "core/symbol_table/model"
+
+import reference from "../building/reference"
+import symbol from "../building/symbol"
+
+import type { Prepared } from "../../model"
+import type { Options, Bindings } from "../model"
+
+export type Input = Options
+
+export type Output = { state: Prepared, source: u32, bindings: Bindings }
+
+export default function (in: Input): Output {
+    const source = symbol({ state: in.state, name: "$collection_source", type_id: in.state.local.expressions.types[integers.widen(in.target)], ownership: Ownership.Copy, span: in.span })
+    const value = reference({ state: source.state, symbol: source.symbol, span: in.span })
+    const bindings: Bindings = { symbols: [source.symbol], values: [in.target], borrows: [true] }
+    const ignored = in.ignored
+
+    if (ignored == null) {
+        return { state: value.state, source: value.value, bindings: bindings }
+    }
+
+    const type_id = value.state.local.expressions.types[integers.widen(ignored)]
+
+    if (type_id == 0) {
+        return { state: value.state, source: value.value, bindings: { symbols: bindings.symbols.push(null)[0], values: bindings.values.push(ignored)[0], borrows: bindings.borrows.push(true)[0] } }
+    }
+
+    const argument = symbol({ state: value.state, name: "$collection_argument", type_id: type_id, ownership: Ownership.Copy, span: in.span })
+
+    return { state: argument.state, source: value.value, bindings: { symbols: bindings.symbols.push(argument.symbol)[0], values: bindings.values.push(ignored)[0], borrows: bindings.borrows.push(true)[0] } }
+}

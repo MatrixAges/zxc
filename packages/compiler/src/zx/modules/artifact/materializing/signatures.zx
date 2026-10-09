@@ -2,54 +2,54 @@ import integers from "zig:integers"
 
 import signatureIds from "./signature_ids"
 
-import type { Table } from "../../../ir/canonical/signatures"
+import type { Table } from "core/signature_table/model"
 import type { FunctionPlan } from "../planning/functions/model"
 
 export type Input = { source: Table, plan: FunctionPlan, types: u64[], natives: u64[] }
 
 export type Output = Table?
 
-export default function (in: Input): Output {
-    const empty: Table = { files: [], input_types: [], output_types: [], ownership: [], native_inputs: [], native_modules: [], native_members: [], native_exports: [], native_allocators: [], native_io: [], native_process: [], native_tuples: [], native_fallible: [], native_errors: [], native_concurrent: [] }
+    export default function (in: Input): Output {
+        const empty: Table = { files: [], input_types: [], output_types: [], ownership: [], native_inputs: [], native_modules: [], native_members: [], native_exports: [], native_allocators: [], native_io: [], native_process: [], native_tuples: [], native_fallible: [], native_errors: [], native_concurrent: [] }
 
-    const result = loop({ source: in.source, plan: in.plan, types: in.types, natives: in.natives, files: empty.files, input_types: empty.input_types, output_types: empty.output_types, ownership: empty.ownership, native_inputs: empty.native_inputs, native_modules: empty.native_modules, native_members: empty.native_members, native_exports: empty.native_exports, native_allocators: empty.native_allocators, native_io: empty.native_io, native_process: empty.native_process, native_tuples: empty.native_tuples, native_fallible: empty.native_fallible, native_errors: empty.native_errors, native_concurrent: empty.native_concurrent, index: 0, valid: in.plan.count <= in.plan.order.length }, {
-        while: current => current.valid && current.index < current.plan.count,
-        next: current => {
-            const selected = integers.widen(current.plan.order[current.index])
+        const result = loop({ source: in.source, plan: in.plan, types: in.types, natives: in.natives, files: empty.files, input_types: empty.input_types, output_types: empty.output_types, ownership: empty.ownership, native_inputs: empty.native_inputs, native_modules: empty.native_modules, native_members: empty.native_members, native_exports: empty.native_exports, native_allocators: empty.native_allocators, native_io: empty.native_io, native_process: empty.native_process, native_tuples: empty.native_tuples, native_fallible: empty.native_fallible, native_errors: empty.native_errors, native_concurrent: empty.native_concurrent, index: 0, valid: in.plan.count <= in.plan.order.length }, {
+            while: current => current.valid && current.index < current.plan.count,
+            next: current => {
+                const selected = integers.widen(current.plan.order[current.index])
 
-            if (selected >= current.source.files.length) {
-                current.valid = false
-            } else {
-                const mapped = signatureIds({ input: current.source.input_types[selected], output: current.source.output_types[selected], native_module: current.source.native_modules[selected], types: current.types, natives: current.natives })
-
-                if (mapped == null) {
+                if (selected >= current.source.files.length) {
                     current.valid = false
                 } else {
-                    current.files = current.files.push(current.source.files[selected])[0]
-                    current.input_types = current.input_types.push(mapped.input)[0]
-                    current.output_types = current.output_types.push(mapped.output)[0]
-                    current.ownership = current.ownership.push(current.source.ownership[selected])[0]
-                    current.native_inputs = current.native_inputs.push(current.source.native_inputs[selected])[0]
-                    current.native_modules = current.native_modules.push(mapped.native_module)[0]
-                    current.native_members = current.native_members.push(current.source.native_members[selected])[0]
-                    current.native_exports = current.native_exports.push(current.source.native_exports[selected])[0]
-                    current.native_allocators = current.native_allocators.push(current.source.native_allocators[selected])[0]
-                    current.native_io = current.native_io.push(current.source.native_io[selected])[0]
-                    current.native_process = current.native_process.push(current.source.native_process[selected])[0]
-                    current.native_tuples = current.native_tuples.push(current.source.native_tuples[selected])[0]
-                    current.native_fallible = current.native_fallible.push(current.source.native_fallible[selected])[0]
-                    current.native_errors = current.native_errors.push(current.source.native_errors[selected])[0]
-                    current.native_concurrent = current.native_concurrent.push(current.source.native_concurrent[selected])[0]
+                    const mapped = signatureIds({ input: current.source.input_types[selected], output: current.source.output_types[selected], native_module: current.source.native_modules[selected], types: current.types, natives: current.natives })
+
+                    if (mapped == null) {
+                        current.valid = false
+                    } else {
+                        current.files = current.files.push(current.source.files[selected])[0]
+                        current.input_types = current.input_types.push(mapped.input)[0]
+                        current.output_types = current.output_types.push(mapped.output)[0]
+                        current.ownership = current.ownership.push(current.source.ownership[selected])[0]
+                        current.native_inputs = current.native_inputs.push(current.source.native_inputs[selected])[0]
+                        current.native_modules = current.native_modules.push(mapped.native_module)[0]
+                        current.native_members = current.native_members.push(current.source.native_members[selected])[0]
+                        current.native_exports = current.native_exports.push(current.source.native_exports[selected])[0]
+                        current.native_allocators = current.native_allocators.push(current.source.native_allocators[selected])[0]
+                        current.native_io = current.native_io.push(current.source.native_io[selected])[0]
+                        current.native_process = current.native_process.push(current.source.native_process[selected])[0]
+                        current.native_tuples = current.native_tuples.push(current.source.native_tuples[selected])[0]
+                        current.native_fallible = current.native_fallible.push(current.source.native_fallible[selected])[0]
+                        current.native_errors = current.native_errors.push(current.source.native_errors[selected])[0]
+                        current.native_concurrent = current.native_concurrent.push(current.source.native_concurrent[selected])[0]
+                    }
                 }
+
+                current.index += 1
             }
+        })
 
-            current.index += 1
+        if (!result.valid) {
+            return null
         }
-    })
 
-    if (!result.valid) {
-        return null
+        return { files: result.files, input_types: result.input_types, output_types: result.output_types, ownership: result.ownership, native_inputs: result.native_inputs, native_modules: result.native_modules, native_members: result.native_members, native_exports: result.native_exports, native_allocators: result.native_allocators, native_io: result.native_io, native_process: result.native_process, native_tuples: result.native_tuples, native_fallible: result.native_fallible, native_errors: result.native_errors, native_concurrent: result.native_concurrent }
     }
-
-    return { files: result.files, input_types: result.input_types, output_types: result.output_types, ownership: result.ownership, native_inputs: result.native_inputs, native_modules: result.native_modules, native_members: result.native_members, native_exports: result.native_exports, native_allocators: result.native_allocators, native_io: result.native_io, native_process: result.native_process, native_tuples: result.native_tuples, native_fallible: result.native_fallible, native_errors: result.native_errors, native_concurrent: result.native_concurrent }
-}

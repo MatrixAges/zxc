@@ -1,0 +1,20 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../model"
+import header from "./header"
+
+import type { Control } from "../model"
+
+export type Input = { table: Control, symbol: u32, value: u32 }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    const table = header({ table: in.table, kind: StatementKind.Constant, payload: integers.narrow(in.table.constant_symbols.length) })
+
+    return {
+        ...table,
+        constant_symbols: table.constant_symbols.push(in.symbol)[0],
+        constant_values: table.constant_values.push(in.value)[0]
+    }
+}

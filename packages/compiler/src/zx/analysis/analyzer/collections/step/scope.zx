@@ -1,0 +1,17 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/scope"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+import type { Bindings } from "../model"
+
+export type Input = { state: Prepared, current: u32, result: u32, bindings: Bindings, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = append({ table: in.state.local.expressions, metadata: { type_id: in.state.local.expressions.types[integers.widen(in.current)], span_start: in.span.start, span_end: in.span.end }, result: in.result, symbols: in.bindings.symbols, values: in.bindings.values, borrows: in.bindings.borrows })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

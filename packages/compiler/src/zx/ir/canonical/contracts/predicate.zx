@@ -1,11 +1,11 @@
 import integers from "zig:integers"
+import { ContractKind } from "core/contract_table/model"
 
 import expression from "../expressions/rules/validate"
 import allowed from "./allowed"
-import { ContractKind } from "./model"
 
+import type { Stores } from "core/store_table/model"
 import type { Functions } from "../expressions/rules/model"
-import type { Stores } from "../stores/model"
 import type { Program } from "./model"
 
 export type Input = { program: Program, index: u64 }

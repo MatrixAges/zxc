@@ -1,0 +1,14 @@
+import type { Control } from "core/control_table/model"
+import type { Mark } from "../../../../ir/canonical/refinement/facts/model"
+import type { PendingMark } from "../pending/model"
+
+export type Frame = {
+    source_block: u64
+    statements: u64[]
+    next: u64
+    pending_mark: PendingMark
+    active_mark: u64
+    facts_mark: Mark
+}
+
+export type Blocks = { pending: Control, returns: bool[], frames: Frame[] }

@@ -1,0 +1,65 @@
+import integers from "zig:integers"
+import appendIndex from "core/expression_table/append/index"
+import project from "core/expression_table/append/projection"
+import { TransformKind } from "core/expression_table/kinds"
+import { Ownership } from "core/symbol_table/model"
+
+import row from "../../../semantic/types/row"
+import field from "../../expressions/projections/field"
+import reference from "../building/reference"
+import symbol from "../building/symbol"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+import type { Callback, Bindings } from "../model"
+
+export type Input = { state: Prepared, kind: TransformKind, parameter: u32, callback: Callback, span: Span }
+
+export type Output = { state: Prepared, current: u32, source: u32, index: u32, previous: u32, item: u32, value: u32, bindings: Bindings }
+
+export default function (in: Input): Output {
+    const current = reference({ state: in.state, symbol: in.parameter, span: in.span })
+    const source = field({ state: current.state, target: current.value, name: { text: "source", start: in.span.start, end: in.span.end }, span: in.span })
+    const index = field({ state: source.state, target: current.value, name: { text: "index", start: in.span.start, end: in.span.end }, span: in.span })
+    const previous = field({ state: index.state, target: current.value, name: { text: "result", start: in.span.start, end: in.span.end }, span: in.span })
+    const element_type = row({ tables: { base: previous.state.types.context.base, delta: previous.state.types.delta }, id: previous.state.local.expressions.types[integers.widen(source.value)] }).first
+    const element = appendIndex({ table: previous.state.local.expressions, metadata: { type_id: element_type, span_start: in.span.start, span_end: in.span.end }, target: source.value, index: index.value })
+    const item_symbol = symbol({ state: { ...previous.state, local: { ...previous.state.local, expressions: element.table } }, name: "$collection_item", type_id: element_type, ownership: Ownership.Copy, span: in.span })
+    const item = reference({ state: item_symbol.state, symbol: item_symbol.symbol, span: in.span })
+    const initial: Bindings = { symbols: [item_symbol.symbol], values: [element.id], borrows: [true] }
+    const context: Result = in.callback.captures.targets.length == 0 ? { state: item.state, value: 0 } : field({ state: item.state, target: current.value, name: { text: "captures", start: in.span.start, end: in.span.end }, span: in.span })
+
+    const captured = loop({ state: context.state, context: context.value, targets: in.callback.captures.targets, bindings: initial, index: 0, span: in.span }, {
+        while: active => active.index < active.targets.length,
+        next: active => {
+            const target = active.targets[active.index]
+            const value = project({ table: active.state.local.expressions, metadata: { type_id: active.state.local.symbols.types[integers.widen(target)], span_start: active.span.start, span_end: active.span.end }, target: active.context, index: integers.narrow(active.index), tuple: true })
+
+            active.state.local.expressions = value.table
+            active.bindings.symbols = active.bindings.symbols.push(target)[0]
+            active.bindings.values = active.bindings.values.push(value.id)[0]
+            active.bindings.borrows = active.bindings.borrows.push(true)[0]
+            active.index += 1
+        }
+    })
+
+    const reducing = in.kind == TransformKind.Reduce
+    const values = reducing ? [previous.value, item.value, index.value, source.value] : [item.value, index.value, source.value]
+
+    const parameters = loop({ bindings: captured.bindings, parameters: in.callback.parameters, values: values, reducing: reducing, index: 0 }, {
+        while: active => active.index < active.parameters.length,
+        next: active => {
+            active.bindings.symbols = active.bindings.symbols.push(active.parameters[active.index])[0]
+            active.bindings.values = active.bindings.values.push(active.values[active.index])[0]
+            active.bindings.borrows = active.bindings.borrows.push(!active.reducing || active.index != 0)[0]
+            active.index += 1
+        }
+    })
+
+    const computed = symbol({ state: captured.state, name: "$collection_value", type_id: captured.state.local.expressions.types[integers.widen(in.callback.body)], ownership: Ownership.Copy, span: in.span })
+    const value = reference({ state: computed.state, symbol: computed.symbol, span: in.span })
+    const bindings = { symbols: parameters.bindings.symbols.push(computed.symbol)[0], values: parameters.bindings.values.push(in.callback.body)[0], borrows: parameters.bindings.borrows.push(false)[0] }
+
+    return { state: value.state, current: current.value, source: source.value, index: index.value, previous: previous.value, item: item.value, value: value.value, bindings: bindings }
+}

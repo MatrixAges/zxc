@@ -1,0 +1,25 @@
+import integers from "zig:integers"
+
+import kind from "./kind"
+
+import type { Tables, TypeRow } from "./model"
+
+export type Input = { tables: Tables, id: u32 }
+
+export type Output = TypeRow
+
+export default function (in: Input): Output {
+    const base_count = in.tables.base.kinds.length
+    const id = integers.widen(in.id)
+    const delta = id >= base_count
+    const table = delta ? in.tables.delta : in.tables.base
+    const index = delta ? id - base_count : id
+
+    return {
+        kind: kind(table.kinds[index]),
+        first: table.first[index],
+        second: table.second[index],
+        label: table.labels[index],
+        delta: delta
+    }
+}

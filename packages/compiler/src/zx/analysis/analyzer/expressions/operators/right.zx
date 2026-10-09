@@ -1,0 +1,32 @@
+import integers from "zig:integers"
+import { BinaryOperator } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import assume from "../../../../ir/canonical/refinement/assume"
+import row from "../../../semantic/types/row"
+import classify from "./classify"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, operator: BinaryOperator, left: u32, span: Span }
+
+export type Output = { state: Prepared, expected: u32 }
+
+export default function (in: Input): Output {
+    const type_id = in.state.local.expressions.types[integers.widen(in.left)]
+
+    if (in.operator == BinaryOperator.Coalesce) {
+        const target = row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: type_id })
+
+        if (target.kind != Kind.Optional) {
+            return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "?? requires an optional left operand", start: in.span.start, end: in.span.end } }, expected: type_id }
+        }
+
+        return { state: in.state, expected: target.first }
+    }
+
+    const refinement = classify(in.operator).logical ? assume({ state: in.state.local.refinement, expressions: in.state.local.expressions, condition: integers.widen(in.left), truth: in.operator == BinaryOperator.LogicalAnd }) : in.state.local.refinement
+
+    return { state: { ...in.state, local: { ...in.state.local, refinement: refinement } }, expected: type_id }
+}

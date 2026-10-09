@@ -1,0 +1,19 @@
+import integers from "zig:integers"
+
+import type { Local } from "../local"
+
+export type Input = { local: Local, frame: u32 }
+
+export type Output = Local
+
+export default function (in: Input): Output {
+    const frames = in.local.captures.frames
+
+    return {
+        ...in.local,
+        active: in.local.active.splice(0, frames.starts[integers.widen(in.frame)], [])[1],
+        scope_floor: frames.floors[integers.widen(in.frame)],
+        lambda_depth: in.local.lambda_depth - 1,
+        captures: { ...in.local.captures, current: frames.parents[integers.widen(in.frame)] }
+    }
+}

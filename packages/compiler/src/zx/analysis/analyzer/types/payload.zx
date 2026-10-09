@@ -1,0 +1,34 @@
+import { Kind } from "core/type_table/model"
+
+import row from "../../semantic/types/row"
+
+import type { Types } from "./model"
+
+export type Input = { types: Types, expected: u32? }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const expected = in.expected
+
+        if (expected == null) {
+            return null
+        }
+
+        const tables = { base: in.types.context.base, delta: in.types.delta }
+
+        const result = loop({ tables: tables, id: expected, done: false }, {
+            while: current => !current.done,
+            next: current => {
+                const value = row({ tables: current.tables, id: current.id })
+
+                if (value.kind == Kind.Optional) {
+                    current.id = value.first
+                } else {
+                    current.done = true
+                }
+            }
+        })
+
+        return result.id
+    }

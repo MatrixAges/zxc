@@ -1,0 +1,23 @@
+import type { Table } from "core/type_table/model"
+import type { Bindings, Origin } from "core/type_table/nominal"
+import type { Program } from "../../frontend/parser/syntax/model"
+import type { Cache } from "../semantic/resolving/model"
+import type { Functions } from "./functions"
+
+export type FunctionImports = { namespaces: string?[], names: string[], ids: u32[], input_types: u32[], output_types: u32[] }
+
+export type StoreBindings = { handles: string[], paths: string[], type_names: string?[], type_ids: u32?[], readable: bool[], writable: bool[] }
+
+export type Context = {
+    type_base: Table
+    aliases: Cache
+    nominal_base: Bindings
+    nominal_origin: Origin
+    shared: bool
+    function_imports: FunctionImports
+    functions: Functions
+    store_bindings: StoreBindings
+    store_type_count: u64
+}
+
+export type ModuleInput = { bytes: u8[], file_name: string, syntax: Program, context: Context }

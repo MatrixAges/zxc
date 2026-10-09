@@ -1,0 +1,26 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, body: u32, captures: u32[] }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({ table: in.table, metadata: in.metadata, kind: ExpressionKind.Task, payload: integers.narrow(in.table.task_bodies.length) })
+
+    return {
+        table: {
+            ...result.table,
+            task_bodies: result.table.task_bodies.push(in.body)[0],
+            task_capture_first: result.table.task_capture_first.push(integers.narrow(result.table.task_captures.length))[0],
+            task_capture_count: result.table.task_capture_count.push(integers.narrow(in.captures.length))[0],
+            task_captures: result.table.task_captures.concat(in.captures)[0]
+        },
+        id: result.id
+    }
+}

@@ -1,0 +1,46 @@
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../../semantic/types/row"
+import payload from "../../../types/payload"
+import next from "./next"
+
+import type { Work, Sequence } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const hint = payload({ types: in.state.types, expected: in.expected })
+    const target = row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: hint ?? 0 })
+    const tuple = hint != null && target.kind == Kind.Tuple
+
+    const message = match {
+        tuple && integers.widen(target.second) != node.count => "tuple arity does not match the declared type",
+        hint != null && !tuple && target.kind != Kind.List => "a list literal requires a list or tuple type",
+        hint == null && node.count == 0 => "an empty list requires a declared element type",
+        _ => "",
+    }
+
+    if (message != "") {
+        return { ...in, state: { ...in.state, diagnostic: { code: "type_mismatch", message: message, start: node.span.start, end: node.span.end } } }
+    }
+
+    const items: u64[] = []
+
+    const ordered = loop({ tree: in.source.tree, head: node.head, items: items }, {
+        while: current => current.head != 0,
+        next: current => {
+            const item = current.tree.items[current.head - 1]
+
+            current.items = current.items.push(item.value)[0]
+            current.head = item.previous
+        }
+    })
+
+    const frame: Sequence = { node: in.node, tuple: tuple ? hint : null, element: hint != null && !tuple ? target.first : null, items: ordered.items.reverse()[0], index: 0, values: [] }
+
+    return next({ ...in, frames: { ...in.frames, sequences: in.frames.sequences.push(frame)[0] } })
+}

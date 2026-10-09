@@ -1,0 +1,15 @@
+import append from "core/symbol_table/append"
+
+import type { Ownership } from "core/symbol_table/model"
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, name: string, type_id: u32, ownership: Ownership, span: Span }
+
+export type Output = { state: Prepared, symbol: u32 }
+
+export default function (in: Input): Output {
+    const result = append({ table: in.state.local.symbols, name: in.name, type_id: in.type_id, span_start: in.span.start, span_end: in.span.end, ownership: in.ownership })
+
+    return { state: { ...in.state, local: { ...in.state.local, symbols: result.table } }, symbol: result.id }
+}

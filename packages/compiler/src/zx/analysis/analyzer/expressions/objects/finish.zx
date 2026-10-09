@@ -1,0 +1,62 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/object"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+import construct from "../../types/construct"
+import conform from "./conform"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+import type { Entries } from "./model"
+
+export type Input = { state: Prepared, entries: Entries, evaluation: u32[], hint: u32?, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const checked = conform(in)
+
+    if (checked.state.diagnostic.message != "") {
+        return { state: checked.state, value: 0 }
+    }
+
+    const field_types: u32[] = []
+
+    const fields = loop({ values: checked.entries.values, types: checked.state.local.expressions.types, output: field_types, index: 0 }, {
+        while: current => current.index < current.values.length,
+        next: current => {
+            current.output = current.output.push(current.types[integers.widen(current.values[current.index])])[0]
+            current.index += 1
+        }
+    })
+
+    const constructed = construct({ state: checked.state, candidate: { kind: Kind.Object, first: 0, second: 0, label: "", children: [], fields: { names: checked.entries.names, types: fields.output }, names: [] }, span: in.span })
+
+    if (constructed.state.diagnostic.message != "") {
+        return { state: constructed.state, value: 0 }
+    }
+
+    const tables = { base: constructed.state.types.context.base, delta: constructed.state.types.delta }
+    const target = row({ tables: tables, id: constructed.id })
+    const table = target.delta ? tables.delta : tables.base
+    const indices: u32[] = []
+
+    const indexed = loop({ names: checked.entries.names, fields: table.field_names, first: integers.widen(target.first), count: integers.widen(target.second), indices: indices, index: 0 }, {
+        while: current => current.index < current.names.length,
+        next: current => {
+            const found = loop({ names: current.fields, first: current.first, count: current.count, name: current.names[current.index], index: 0 }, {
+                while: item => item.index < item.count && item.names[item.first + item.index] != item.name,
+                next: item => { item.index += 1 }
+            })
+
+            current.indices = current.indices.push(integers.narrow(found.index))[0]
+            current.index += 1
+        }
+    })
+
+    const result = append({ table: constructed.state.local.expressions, metadata: { type_id: constructed.id, span_start: in.span.start, span_end: in.span.end }, indices: indexed.indices, values: checked.entries.values, evaluation: checked.evaluation })
+
+    return { state: { ...constructed.state, local: { ...constructed.state.local, expressions: result.table } }, value: result.id }
+}

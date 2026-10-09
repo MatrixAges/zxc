@@ -1,0 +1,5 @@
+import type { Diagnostic } from "../semantic/resolving/model"
+import type { Local } from "./local"
+import type { Types } from "./types/model"
+
+export type Prepared = { types: Types, local: Local, input_type: u32, diagnostic: Diagnostic }

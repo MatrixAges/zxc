@@ -1,7 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const flow = @import("flow.zig");
-const independent = @import("independent.zig");
 const Self = @This();
 const Error = std.mem.Allocator.Error;
 
@@ -12,17 +11,18 @@ summaries: []const []const flow.Lane,
 readers: []const bool = &.{},
 bindings: []?ir.ExprId,
 iterations: []?ir.ExprId,
-assumptions: std.ArrayList(independent.Proof) = .empty,
-proven: std.ArrayList(independent.Proof) = .empty,
 results: std.ArrayList(ir.ExprId) = .empty,
 appends: std.ArrayList(ir.ExprId) = .empty,
 pops: std.ArrayList(ir.ExprId) = .empty,
 updates: std.ArrayList(ir.ExprId) = .empty,
 loops: std.ArrayList(flow.Iteration) = .empty,
 selected_loops: []const flow.Iteration = &.{},
+queries: @import("queries.zig") = .{},
+callees: []?*Self,
+input_paths: ?[]const []const u32 = null,
 calls: std.ArrayList(flow.Call) = .empty,
-pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Function, summaries: []const []const flow.Lane) Error!Self {
-    var self = Self{ .allocator = allocator, .program = program, .function = function, .summaries = summaries, .bindings = try allocator.alloc(?ir.ExprId, function.symbols.count()), .iterations = try allocator.alloc(?ir.ExprId, function.symbols.count()) };
+pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Function, summaries: []const []const flow.Lane, callees: []?*Self) Error!Self {
+    var self = Self{ .allocator = allocator, .program = program, .function = function, .summaries = summaries, .callees = callees, .bindings = try allocator.alloc(?ir.ExprId, function.symbols.count()), .iterations = try allocator.alloc(?ir.ExprId, function.symbols.count()) };
 
     @memset(self.bindings, null);
     @memset(self.iterations, null);
@@ -56,6 +56,33 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Func
     }
 
     return self;
+}
+
+pub fn queryAllocator(self: *Self) std.mem.Allocator {
+    return self.queries.storage(self.allocator);
+}
+
+pub fn inputPaths(self: *Self) Error![]const []const u32 {
+    if (self.input_paths) |paths| return paths;
+
+    var paths: std.ArrayList([]const u32) = .empty;
+
+    try flow.leaves(self.allocator, self.program, self.function.input_type, &.{}, true, &paths);
+
+    self.input_paths = paths.items;
+
+    return paths.items;
+}
+
+pub fn callee(self: *Self, index: usize) Error!*Self {
+    if (self.callees[index]) |existing| return existing;
+
+    const nested = try self.allocator.create(Self);
+
+    nested.* = try Self.init(self.allocator, self.program, self.program.functions.at(index), self.summaries[0..index], self.callees);
+    self.callees[index] = nested;
+
+    return nested;
 }
 
 pub fn lane(self: *Self, output: []const u32) Error!?flow.Lane {

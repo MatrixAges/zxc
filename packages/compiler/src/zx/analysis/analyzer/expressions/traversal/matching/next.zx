@@ -1,0 +1,24 @@
+import integers from "zig:integers"
+
+import { Phase, Action } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.selections[in.frames.selections.length - 1]
+    const node = in.source.tree.nodes[frame.node]
+
+    if (frame.index == frame.arms.length) {
+        return { ...in, node: node.second, expected: frame.expected, phase: Phase.Evaluate, frames: { ...in.frames, actions: in.frames.actions.push(Action.MatchFallback)[0] } }
+    }
+
+    const arm = in.source.tree.arms[frame.arms[frame.index]]
+    const subject = frame.subject
+    const expected: u32 = subject == null ? 1 : in.state.local.expressions.types[integers.widen(subject)]
+
+    return { ...in, node: arm.condition, expected: expected, phase: Phase.Evaluate, frames: { ...in.frames, actions: in.frames.actions.push(Action.MatchCondition)[0] } }
+}

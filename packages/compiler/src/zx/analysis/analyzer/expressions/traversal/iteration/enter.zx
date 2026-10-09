@@ -1,0 +1,22 @@
+import rules from "../../../iteration/rules"
+import payload from "../../../types/payload"
+import { Phase, Action } from "../model"
+
+import type { IterationFrame } from "../../../iteration/model"
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const prepared = rules({ source: in.source, node: in.node })
+
+    if (prepared.diagnostic.message != "") {
+        return { ...in, state: { ...in.state, diagnostic: prepared.diagnostic } }
+    }
+
+    const frame: IterationFrame = { node: in.node, initial_node: prepared.initial, condition_node: prepared.condition, step_node: prepared.step, postcondition: prepared.postcondition, initial: 0, condition_parameter: 0, condition: 0, parameter: 0, context: { active: 0, floor: 0, depth: 0, captures: null } }
+
+    return { ...in, node: prepared.initial, expected: payload({ types: in.state.types, expected: in.expected }), phase: Phase.Evaluate, frames: { ...in.frames, iterations: in.frames.iterations.push(frame)[0], actions: in.frames.actions.push(Action.IterationInitial)[0] } }
+}

@@ -12,10 +12,10 @@ import state from "./rewrite/state"
 import summary from "./summary"
 import uniform from "./uniform"
 
-import type { Table } from "../../analysis/semantic/types/model"
+import type { Tables } from "core/type_table/model"
 import type { Forest, Result } from "./model"
 
-export type Input = { types: Table, references: bool[], forest: Forest, left: u64, right: u64, action: RewriteAction }
+export type Input = { types: Tables, references: bool[], forest: Forest, left: u64, right: u64, action: RewriteAction }
 
 export type Output = Result
 

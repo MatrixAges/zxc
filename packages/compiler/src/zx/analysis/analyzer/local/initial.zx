@@ -1,0 +1,28 @@
+import control from "core/control_table/empty"
+import expressions from "core/expression_table/empty"
+
+import type { Stores } from "core/store_table/model"
+import type { Local } from "../local"
+import type { Signature } from "../signature/model"
+
+export type Input = { signature: Signature, stores: Stores, allow_store: bool }
+
+export type Output = Local
+
+export default function (in: Input): Output {
+    return {
+        symbols: { names: [], types: [], span_start: [], span_end: [], ownership: [] },
+        expressions: expressions(),
+        control: control(),
+        active: [],
+        scope_floor: 0,
+        lambda_depth: 0,
+        expression_bindings: [],
+        expression_units: [],
+        refinement: { facts: { nonnull: [], capture_errors: [], capture_results: [] }, conditions: [], truths: [] },
+        captures: { frames: { starts: [], floors: [], parents: [], first: [], last: [] }, bindings: { sources: [], targets: [], values: [], next: [] }, current: null },
+        output_type: in.signature.output_type,
+        stores: in.stores,
+        allow_store: in.allow_store
+    }
+}

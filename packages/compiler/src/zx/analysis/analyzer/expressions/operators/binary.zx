@@ -1,0 +1,46 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/binary"
+import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+import classify from "./classify"
+import comparable from "./comparable"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+
+export type Input = { state: Prepared, operator: BinaryOperator, left: u32, right: u32, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const expressions = in.state.local.expressions
+    const operand = expressions.types[integers.widen(in.left)]
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: operand })
+    const flags = classify(in.operator)
+    const numeric = operand >= 2 && operand <= 9
+    const optional_aggregate = flags.equality && target.kind == Kind.Optional && !comparable({ tables: tables, type_id: operand })
+
+    if (optional_aggregate && expressions.kinds[integers.widen(in.left)] != ExpressionKind.None && expressions.kinds[integers.widen(in.right)] != ExpressionKind.None) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "optional aggregates can only be compared with null", start: in.span.start, end: in.span.end } }, value: 0 }
+    }
+
+    const equality = flags.equality && (operand == 1 || operand == 10 || target.kind == Kind.Enumeration || target.kind == Kind.ErrorSet || target.kind == Kind.Optional)
+
+    if (in.operator != BinaryOperator.Coalesce && !flags.logical && !numeric && !equality) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "operator is not supported for these operand types", start: in.span.start, end: in.span.end } }, value: 0 }
+    }
+
+    const type_id = match {
+        in.operator == BinaryOperator.Coalesce => target.first,
+        flags.logical || flags.comparison => 1,
+        _ => operand,
+    }
+
+    const result = append({ table: expressions, metadata: { type_id: type_id, span_start: in.span.start, span_end: in.span.end }, operator: in.operator, left: in.left, right: in.right })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

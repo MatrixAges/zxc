@@ -1,0 +1,30 @@
+<Module>
+    <Call fn="lowering/source" in={$in} />
+    <Call fn="lowering/initial_result" in={{ state: $ctx.source.state, span: $in.span, kind: $in.kind, source: $ctx.source.source, initial: $in.initial, result_type: $in.result_type }} />
+    <Call fn="lowering/initial_state" in={{ state: $ctx.initial_result.state, span: $in.span, kind: $in.kind, source: $ctx.source.source, result: $ctx.initial_result.value, initial: $in.initial, captures: $in.callback.captures.values }} />
+
+    <Switch on={$ctx.initial_state.state.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="lowering/parameters" in={{ state: $ctx.initial_state.state, initial: $ctx.initial_state.value, span: $in.span }} />
+            <Call fn="lowering/condition" in={{ state: $ctx.parameters.state, span: $in.span, kind: $in.kind, parameter: $ctx.parameters.condition_parameter }} />
+
+            <Call module="step" in={{ state: $ctx.condition.state, kind: $in.kind, parameter: $ctx.parameters.parameter, callback: $in.callback, span: $in.span }} />
+
+            <Switch on={$ctx.step.state.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Call fn="lowering/finish" in={{ state: $ctx.step.state, initial: $ctx.initial_state.value, condition_parameter: $ctx.parameters.condition_parameter, parameter: $ctx.parameters.parameter, condition: $ctx.condition.value, body: $ctx.step.value, bindings: $ctx.source.bindings, result_type: $in.result_type, span: $in.span }} />
+
+                    <Return value={$ctx.finish} />
+                </Case>
+
+                <Default>
+                    <Return value={$ctx.step} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={$ctx.initial_state} />
+        </Default>
+    </Switch>
+</Module>

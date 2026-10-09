@@ -1,0 +1,49 @@
+import integers from "zig:integers"
+
+import ensure from "./ensure"
+import locate from "./locate"
+
+import type { Name } from "../../semantic/resolving/source/model"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, name: Name }
+
+export type Output = { state: Prepared, symbol: u32? }
+
+export default function (in: Input): Output {
+    const path: u32[] = []
+    const missing: u32? = null
+
+    const found = loop({ local: in.state.local, name: in.name.text, frame: in.state.local.captures.current, path: path, symbol: missing }, {
+        while: current => current.frame != null && current.symbol == null,
+        next: current => {
+            const frame = current.frame
+
+            if (frame != null) {
+                current.path = current.path.push(frame)[0]
+                current.symbol = locate({ local: current.local, frame: frame, name: current.name })
+                current.frame = current.local.captures.frames.parents[integers.widen(frame)]
+            }
+        }
+    })
+
+    const symbol = found.symbol
+
+    if (symbol == null) {
+        return { state: in.state, symbol: null }
+    }
+
+    const result = loop({ state: in.state, path: found.path, index: found.path.length, symbol: symbol, span: { start: in.name.start, end: in.name.end } }, {
+        while: current => current.index > 0 && current.state.diagnostic.message == "",
+        next: current => {
+            current.index -= 1
+
+            const value = ensure({ state: current.state, frame: current.path[current.index], source: current.symbol, span: current.span })
+
+            current.state = value.state
+            current.symbol = value.symbol
+        }
+    })
+
+    return { state: result.state, symbol: result.symbol }
+}

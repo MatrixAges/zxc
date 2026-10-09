@@ -1,0 +1,32 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+import { SequenceKind } from "./model"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, kind: SequenceKind, values: u32[] }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const kind = match in.kind {
+        SequenceKind.List => ExpressionKind.List,
+        SequenceKind.Tuple => ExpressionKind.Tuple,
+        _ => ExpressionKind.Template,
+    }
+
+    const result = header({ table: in.table, metadata: in.metadata, kind: kind, payload: integers.narrow(in.table.sequence_first.length) })
+
+    return {
+        table: {
+            ...result.table,
+            sequence_first: result.table.sequence_first.push(integers.narrow(result.table.sequence_items.length))[0],
+            sequence_count: result.table.sequence_count.push(integers.narrow(in.values.length))[0],
+            sequence_items: result.table.sequence_items.concat(in.values)[0]
+        },
+        id: result.id
+    }
+}

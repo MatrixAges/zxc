@@ -1,0 +1,33 @@
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import classify from "../numbers/classify"
+
+import type { Source } from "../request"
+
+export type Input = { source: Source, left: u64, right: u64 }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const result = loop({ source: in.source, nodes: [in.left, in.right], index: 0, signed: false, floating: false }, {
+            while: current => current.index < current.nodes.length && !current.floating,
+            next: current => {
+                const node = current.source.tree.nodes[current.nodes[current.index]]
+                const negative = node.kind == ExprKind.Unary && node.flag
+                const value = negative ? current.source.tree.nodes[node.first] : node
+
+                current.signed = current.signed || negative
+
+                if (value.kind == ExprKind.Number) {
+                    current.floating = classify(current.source.bytes.splice(value.span.start, value.span.end - value.span.start, [])[1]).floating
+                }
+
+                current.index += 1
+            }
+        })
+
+        return match {
+            result.floating => 9,
+            result.signed => 7,
+            _ => null,
+        }
+    }

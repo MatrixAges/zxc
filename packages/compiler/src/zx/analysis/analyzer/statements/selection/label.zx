@@ -1,0 +1,30 @@
+import integers from "zig:integers"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import same from "../../../../ir/canonical/scopes/same"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, value: u32, previous: u32[], span: Span }
+
+export type Output = Prepared
+
+export default function (in: Input): Output {
+    const kind = in.state.local.expressions.kinds[integers.widen(in.value)]
+    const constant = kind == ExpressionKind.Integer || kind == ExpressionKind.NegativeInteger || kind == ExpressionKind.Boolean || kind == ExpressionKind.String || kind == ExpressionKind.EnumValue || kind == ExpressionKind.ErrorValue
+
+    if (!constant) {
+        return { ...in.state, diagnostic: { code: "type_mismatch", message: "case labels must be literals, enum members or finite errors", start: in.span.start, end: in.span.end } }
+    }
+
+    const duplicate = loop({ expressions: in.state.local.expressions, previous: in.previous, value: integers.widen(in.value), index: 0, found: false }, {
+        while: current => current.index < current.previous.length && !current.found,
+        next: current => {
+            current.found = same({ expressions: current.expressions, left: current.value, right: integers.widen(current.previous[current.index]) })
+            current.index += 1
+        }
+    }).found
+
+    return duplicate ? { ...in.state, diagnostic: { code: "name", message: "duplicate switch case", start: in.span.start, end: in.span.end } } : in.state
+}

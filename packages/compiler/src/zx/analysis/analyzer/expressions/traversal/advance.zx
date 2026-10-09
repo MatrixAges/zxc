@@ -1,0 +1,38 @@
+import complete from "./complete"
+import enter from "./enter"
+import { Phase } from "./model"
+import scope from "./scopes/enter"
+import next from "./scopes/next"
+import selection from "./scopes/selection/enter"
+import unwind from "./unwind"
+
+import type { Work } from "./model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const result = loop(in, {
+        while: current => current.state.diagnostic.message == "" && current.phase != Phase.Done,
+        next: current => {
+            const result = match current.phase {
+                Phase.Evaluate => enter(current),
+                Phase.Complete => complete(current),
+                Phase.StateBlock => scope(current),
+                Phase.ScopeNext => next(current),
+                _ => selection(current),
+            }
+
+            current.state = result.state
+            current.frames = result.frames
+            current.scopes = result.scopes
+            current.node = result.node
+            current.expected = result.expected
+            current.value = result.value
+            current.phase = result.phase
+        }
+    })
+
+    return result.state.diagnostic.message == "" ? result : unwind(result)
+}

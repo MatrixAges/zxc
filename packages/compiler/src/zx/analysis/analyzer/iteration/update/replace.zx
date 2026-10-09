@@ -1,0 +1,40 @@
+import integers from "zig:integers"
+import update from "core/expression_table/append/update"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import aggregate from "./aggregate"
+
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+import type { Place } from "./model"
+
+export type Input = { state: Prepared, places: Place[], value: u32 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = loop({ state: in.state, places: in.places, value: in.value, index: in.places.length - 1 }, {
+        while: current => current.index > 0,
+        next: current => {
+            const place = current.places[current.index]
+            const parent = current.places[current.index - 1].value
+
+            if (place.kind == ExpressionKind.Index) {
+                const expressions = current.state.local.expressions
+                const value = update({ table: expressions, metadata: { type_id: expressions.types[integers.widen(parent)], span_start: expressions.span_start[integers.widen(parent)], span_end: expressions.span_end[integers.widen(parent)] }, target: parent, index: place.index, value: current.value })
+
+                current.state.local.expressions = value.table
+                current.value = value.id
+            } else {
+                const value = aggregate({ state: current.state, parent: parent, selected: place.index, value: current.value, tuple: place.kind == ExpressionKind.TupleField })
+
+                current.state = value.state
+                current.value = value.value
+            }
+
+            current.index -= 1
+        }
+    })
+
+    return { state: result.state, value: result.value }
+}

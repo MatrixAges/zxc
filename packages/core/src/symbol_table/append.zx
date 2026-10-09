@@ -1,0 +1,22 @@
+import integers from "zig:integers"
+
+import type { Symbols, Ownership } from "./model"
+
+export type Input = { table: Symbols, name: string, type_id: u32, span_start: u64, span_end: u64, ownership: Ownership }
+
+export type Output = { table: Symbols, id: u32 }
+
+export default function (in: Input): Output {
+    const id = integers.narrow(in.table.names.length)
+
+    return {
+        table: {
+            names: in.table.names.push(in.name)[0],
+            types: in.table.types.push(in.type_id)[0],
+            span_start: in.table.span_start.push(in.span_start)[0],
+            span_end: in.table.span_end.push(in.span_end)[0],
+            ownership: in.table.ownership.push(in.ownership)[0]
+        },
+        id: id
+    }
+}

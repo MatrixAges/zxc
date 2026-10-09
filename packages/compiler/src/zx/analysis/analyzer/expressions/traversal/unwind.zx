@@ -1,0 +1,28 @@
+import restore from "../../../../ir/canonical/refinement/facts/restore"
+
+import type { Work } from "./model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const local = in.state.local
+    const facts = restore({ facts: local.refinement.facts, mark: in.boundary.facts })
+
+    return {
+        ...in,
+        scopes: { bindings: { symbols: [], values: [], borrows: [] }, frames: [] },
+        state: {
+            ...in.state,
+            local: {
+                ...local,
+                active: local.active.splice(0, in.boundary.active, [])[1],
+                scope_floor: in.boundary.floor,
+                lambda_depth: in.boundary.depth,
+                captures: { ...local.captures, current: in.boundary.captures },
+                refinement: { ...local.refinement, facts: facts }
+            }
+        }
+    }
+}

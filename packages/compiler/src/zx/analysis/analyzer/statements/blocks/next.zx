@@ -1,0 +1,30 @@
+import terminates from "../pending/terminates"
+
+import type { BlockTree } from "../../../../frontend/parser/body/model"
+import type { Diagnostic } from "../../../semantic/resolving/model"
+import type { Blocks } from "./model"
+
+export type Input = { blocks: Blocks, tree: BlockTree }
+
+export type Output = { blocks: Blocks, done: bool, source: u64, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const index = in.blocks.frames.length - 1
+    const frame = in.blocks.frames[index]
+
+    if (frame.next == frame.statements.length) {
+        return { blocks: in.blocks, done: true, source: 0, diagnostic: { code: "", message: "", start: 0, end: 0 } }
+    }
+
+    const source = frame.statements[frame.next]
+
+    if (terminates({ table: in.blocks.pending, first: frame.pending_mark.statements, returns: in.blocks.returns })) {
+        const span = in.tree.statements[source].span
+
+        return { blocks: in.blocks, done: false, source: source, diagnostic: { code: "return_path", message: "unreachable statement after a terminating branch or return", start: span.start, end: span.end } }
+    }
+
+    const frames = in.blocks.frames.splice(index, 1, [{ ...frame, next: frame.next + 1 }])[0]
+
+    return { blocks: { ...in.blocks, frames: frames }, done: false, source: source, diagnostic: { code: "", message: "", start: 0, end: 0 } }
+}

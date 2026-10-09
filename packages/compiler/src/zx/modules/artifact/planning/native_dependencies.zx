@@ -3,8 +3,8 @@ import key from "../../../ir/canonical/native/key"
 import { TargetKind } from "../dependencies/model"
 import includeNative from "./native_include"
 
+import type { Modules } from "core/native_module_table/model"
 import type { Request, State } from "../../../analysis/semantic/extracting/planning/model"
-import type { Modules } from "../../../ir/canonical/native/model"
 import type { Dependencies, NativePlan } from "./model"
 
 export type Input = { request: Request, state: State, modules: Modules, natives: NativePlan, dependencies: Dependencies }

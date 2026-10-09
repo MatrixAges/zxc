@@ -1,0 +1,108 @@
+import coerce from "../coerce"
+import asynchronous from "./asynchronous"
+import binary from "./binary"
+import target from "./calls/target"
+import conditional from "./conditional"
+import imported from "./imported/resume"
+import iteration from "./iteration/resume"
+import list from "./lists/resume"
+import matching from "./matching/resume"
+import { Phase, Action } from "./model"
+import object from "./objects/resume"
+import parallel from "./parallel/resume"
+import projection from "./projection"
+import binding from "./scopes/binding"
+import branch from "./scopes/branch"
+import selection from "./scopes/selection/resume"
+import update from "./scopes/update"
+import sequence from "./sequence/resume"
+import template from "./templates/resume"
+import transform from "./transforms/resume"
+
+import type { Work } from "./model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    if (in.frames.actions.length == 0) {
+        return { ...in, phase: Phase.Done }
+    }
+
+    const action = in.frames.actions[in.frames.actions.length - 1]
+    const work = { ...in, frames: { ...in.frames, actions: in.frames.actions.pop()[0] } }
+
+    if (action == Action.AsyncBody) {
+        return asynchronous(work)
+    }
+
+    if (action == Action.ParallelBody) {
+        return parallel(work)
+    }
+
+    if (action == Action.Coerce) {
+        const frame = work.frames.coercions[work.frames.coercions.length - 1]
+        const result = coerce({ state: work.state, value: work.value, expected: frame.expected, span: frame.span })
+
+        return { ...work, state: result.state, value: result.value, frames: { ...work.frames, coercions: work.frames.coercions.pop()[0] } }
+    }
+
+    if (action == Action.BinaryLeft || action == Action.BinaryRight) {
+        return binary({ work: work, action: action })
+    }
+
+    if (action == Action.Condition || action == Action.Yes || action == Action.No) {
+        return conditional({ work: work, action: action })
+    }
+
+    if (action == Action.MatchSubject || action == Action.MatchCondition || action == Action.MatchResult || action == Action.MatchFallback) {
+        return matching({ work: work, action: action })
+    }
+
+    if (action == Action.Object) {
+        return object(work)
+    }
+
+    if (action == Action.Imported) {
+        return imported(work)
+    }
+
+    if (action == Action.MethodTarget) {
+        return target(work)
+    }
+
+    if (action == Action.ListArgument) {
+        return list(work)
+    }
+
+    if (action == Action.Template) {
+        return template(work)
+    }
+
+    if (action == Action.TransformSecond || action == Action.TransformBody) {
+        return transform({ work: work, action: action })
+    }
+
+    if (action == Action.IterationInitial || action == Action.IterationCondition || action == Action.IterationStep) {
+        return iteration({ work: work, action: action })
+    }
+
+    if (action == Action.StateEvaluate || action == Action.StateConstant || action == Action.StateDestructure) {
+        return binding({ work: work, action: action })
+    }
+
+    if (action == Action.StateTarget || action == Action.StateValue) {
+        return update({ work: work, action: action })
+    }
+
+    if (action == Action.StateCondition || action == Action.StateYes || action == Action.StateNo) {
+        return branch({ work: work, action: action })
+    }
+
+    if (action == Action.StateSubject || action == Action.StateLabel || action == Action.StateCase) {
+        return selection({ work: work, action: action })
+    }
+
+    return action == Action.Sequence ? sequence(work) : projection({ work: work, action: action })
+}

@@ -1,0 +1,22 @@
+import type { Item } from "../../../../frontend/parser/body/model"
+
+export type Input = { items: Item[], head: u64, count: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const statements: u64[] = []
+
+    const result = loop({ items: in.items, head: in.head, remaining: in.count, statements: statements }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            const item = current.items[current.head - 1]
+
+            current.statements = current.statements.push(item.value)[0]
+            current.head = item.previous
+            current.remaining -= 1
+        }
+    })
+
+    return result.statements.reverse()[0]
+}

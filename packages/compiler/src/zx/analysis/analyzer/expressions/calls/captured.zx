@@ -1,0 +1,26 @@
+import integers from "zig:integers"
+
+import resolve from "../../bindings/value"
+
+import type { Name } from "../../../semantic/resolving/source/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, name: Name }
+
+export type Output = { state: Prepared, found: bool }
+
+export default function (in: Input): Output {
+    const found = loop({ active: in.state.local.active, names: in.state.local.symbols.names, floor: in.state.local.scope_floor, name: in.name.text, index: 0, found: false }, {
+        while: current => current.index < current.floor && !current.found,
+        next: current => {
+            current.found = current.names[integers.widen(current.active[current.index])] == current.name
+            current.index += 1
+        }
+    }).found
+
+    if (!found) {
+        return { state: in.state, found: false }
+    }
+
+    return { state: resolve(in).state, found: true }
+}

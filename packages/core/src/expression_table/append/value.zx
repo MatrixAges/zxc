@@ -1,0 +1,59 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+import { ValueKind } from "./model"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, kind: ValueKind, value: u32 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const kind = match in.kind {
+        ValueKind.Some => ExpressionKind.Some,
+        ValueKind.Capture => ExpressionKind.Capture,
+        ValueKind.AwaitTask => ExpressionKind.AwaitTask,
+        ValueKind.CancelTask => ExpressionKind.CancelTask,
+        ValueKind.OptionalValue => ExpressionKind.OptionalValue,
+        ValueKind.EnumValue => ExpressionKind.EnumValue,
+        ValueKind.ErrorValue => ExpressionKind.ErrorValue,
+        ValueKind.Reference => ExpressionKind.Reference,
+        ValueKind.StoreGet => ExpressionKind.StoreGet,
+        _ => ExpressionKind.Length,
+    }
+
+    const count = match in.kind {
+        ValueKind.Some => in.table.some.length,
+        ValueKind.Capture => in.table.captures.length,
+        ValueKind.AwaitTask => in.table.awaits.length,
+        ValueKind.CancelTask => in.table.cancellations.length,
+        ValueKind.OptionalValue => in.table.optional_values.length,
+        ValueKind.EnumValue => in.table.enumerations.length,
+        ValueKind.ErrorValue => in.table.errors.length,
+        ValueKind.Reference => in.table.references.length,
+        ValueKind.StoreGet => in.table.stores.length,
+        _ => in.table.lengths.length,
+    }
+
+    const result = header({ table: in.table, metadata: in.metadata, kind: kind, payload: integers.narrow(count) })
+
+    return {
+        table: {
+            ...result.table,
+            some: in.kind == ValueKind.Some ? result.table.some.push(in.value)[0] : result.table.some,
+            captures: in.kind == ValueKind.Capture ? result.table.captures.push(in.value)[0] : result.table.captures,
+            awaits: in.kind == ValueKind.AwaitTask ? result.table.awaits.push(in.value)[0] : result.table.awaits,
+            cancellations: in.kind == ValueKind.CancelTask ? result.table.cancellations.push(in.value)[0] : result.table.cancellations,
+            optional_values: in.kind == ValueKind.OptionalValue ? result.table.optional_values.push(in.value)[0] : result.table.optional_values,
+            enumerations: in.kind == ValueKind.EnumValue ? result.table.enumerations.push(in.value)[0] : result.table.enumerations,
+            errors: in.kind == ValueKind.ErrorValue ? result.table.errors.push(in.value)[0] : result.table.errors,
+            references: in.kind == ValueKind.Reference ? result.table.references.push(in.value)[0] : result.table.references,
+            stores: in.kind == ValueKind.StoreGet ? result.table.stores.push(in.value)[0] : result.table.stores,
+            lengths: in.kind == ValueKind.Length ? result.table.lengths.push(in.value)[0] : result.table.lengths
+        },
+        id: result.id
+    }
+}

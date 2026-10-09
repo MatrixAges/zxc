@@ -1,0 +1,45 @@
+import parseInteger from "../../../integer/parse"
+import classify from "./classify"
+import clean from "./clean"
+import exact from "./exact/check"
+import floating from "./floating"
+import maximum from "./maximum"
+import target from "./target"
+
+import type { Value } from "./model"
+
+export type Input = { source: u8[], expected: u32?, negative: bool }
+
+export type Output = Value
+
+export default function (in: Input): Output {
+    const source = classify(in.source)
+    const selected = target({ expected: in.expected, floating: source.floating, negative: in.negative })
+
+    if (!selected.floating && !selected.integer) {
+        return { target: selected, integer: 0, floating: 0, message: "a numeric literal requires a numeric type" }
+    }
+
+    if (selected.floating) {
+        const bytes = source.separators ? clean(in.source) : in.source
+        const value = floating({ bytes: bytes, single: selected.id == 8, negative: in.negative })
+        const precision = selected.id == 8 ? 24 : 53
+        const message = value.message == "" && !source.floating ? exact({ bytes: bytes, precision: precision }) : value.message
+
+        return { target: selected, integer: 0, floating: value.value, message: message }
+    }
+
+    if (source.floating) {
+        return { target: selected, integer: 0, floating: 0, message: "floating-point literals cannot be implicitly converted to integers" }
+    }
+
+    const value = parseInteger(in.source)
+
+    if (value == null) {
+        return { target: selected, integer: 0, floating: 0, message: "integer literal is outside the supported range" }
+    }
+
+    const invalid = value > maximum({ id: selected.id, negative: in.negative }) || (in.negative && !selected.signed)
+
+    return { target: selected, integer: value, floating: 0, message: invalid ? "integer literal does not fit its type" : "" }
+}

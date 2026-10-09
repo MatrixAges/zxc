@@ -38,7 +38,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     std.debug.assert(output_type != null);
 
-    var nested = Flow{ .allocator = allocator, .owner = parent.owner, .types = types.items.view(), .native_modules = parent.native_modules, .output_type = output_type.?, .loaded = parent.loaded, .results = parent.results, .tasks = parent.tasks, .next_binding = parent.next_binding, .unit_input = parent.unit_input };
+    var nested = Flow{ .allocator = allocator, .owner = parent.owner, .types = types.items.view(), .native_modules = parent.native_modules, .shared_functions = parent.shared_functions, .output_type = output_type.?, .loaded = parent.loaded, .results = parent.results, .tasks = parent.tasks, .next_binding = parent.next_binding, .unit_input = parent.unit_input };
 
     try nested.bindings.appendSlice(allocator, captures);
 
@@ -75,7 +75,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     parent.types = types.items.view();
 
-    const native_modules = @import("module_native.zig").merge(allocator, nested.calls.items, parent.types, parent.native_modules) catch |err| {
+    const native_modules = if (parent.shared_functions != null) parent.native_modules else @import("module_native.zig").merge(allocator, nested.calls.items, parent.types, parent.native_modules) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return failure(parent, node, .{ .code = .contract, .span = .{ .start = node.location.offset, .end = node.location.offset }, .message = "Parallel Task calls contain conflicting native interfaces" });
@@ -83,7 +83,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     const owner = try std.fmt.allocPrint(allocator, "{s}#parallel-task-{d}", .{ parent.owner, branch.id });
 
-    const lowered = @import("program.zig").lower(allocator, .{ .owner = owner, .types = parent.types, .input_type = input_type, .output_type = output_type.?, .captures = selected, .calls = nested.calls.items, .native_modules = native_modules, .steps = body }) catch |err| {
+    const lowered = @import("program.zig").lower(allocator, .{ .owner = owner, .types = parent.types, .input_type = input_type, .output_type = output_type.?, .captures = selected, .calls = nested.calls.items, .native_modules = native_modules, .shared_functions = parent.shared_functions, .steps = body }) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return failure(parent, node, .{ .code = if (err == error.IncompleteFlow or err == error.UnreachableFlow) .return_path else .contract, .span = .{ .start = node.location.offset, .end = node.location.offset }, .message = if (err == error.IncompleteFlow) "every Parallel Task path must return its output" else "Parallel Task expressions cannot be linked" });

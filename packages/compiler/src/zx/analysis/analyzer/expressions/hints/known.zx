@@ -1,0 +1,43 @@
+import enter from "./enter"
+import matchLiteral from "./match_literal"
+import { Operation } from "./model"
+import project from "./project"
+
+import type { Context, Work, Frame } from "./model"
+
+export type Input = { context: Context, node: u64 }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const frames: Frame[] = [{ operation: Operation.Probe, node: in.node }]
+        const initial: Work = { context: in.context, frames: frames, result: null }
+
+        const result = loop(initial, {
+            while: current => current.frames.length > 0,
+            next: current => {
+                const frame = current.frames[current.frames.length - 1]
+
+                current.frames = current.frames.pop()[0]
+
+                if (frame.operation == Operation.Probe || (frame.operation == Operation.Fallback && current.result == null)) {
+                    const result = enter({ work: current, node: frame.node })
+
+                    current.frames = result.frames
+                    current.result = result.result
+                } else if (frame.operation == Operation.MatchLiteral) {
+                    if (current.result == null) {
+                        current.result = matchLiteral({ source: current.context.source, node: frame.node })
+                    }
+                } else if (frame.operation != Operation.Fallback) {
+                    const type_id = current.result
+
+                    if (type_id != null) {
+                        current.result = project({ context: current.context, frame: frame, type_id: type_id })
+                    }
+                }
+            }
+        })
+
+        return result.result
+    }

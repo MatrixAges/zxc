@@ -1,0 +1,12 @@
+import restart from "../../expressions/traversal/restart"
+import { Phase } from "./model"
+
+import type { Body, Action } from "./model"
+
+export type Input = { body: Body, node: u64, expected: u32?, action: Action }
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    return { ...in.body, expression: restart({ work: in.body.expression, node: in.node, expected: in.expected }), actions: in.body.actions.push(in.action)[0], phase: Phase.Expression }
+}

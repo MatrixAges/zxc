@@ -1,0 +1,18 @@
+import integers from "zig:integers"
+
+import next from "./next"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const position = in.frames.sequences.length - 1
+    const frame = in.frames.sequences[position]
+    const element = frame.element ?? in.state.local.expressions.types[integers.widen(in.value)]
+    const sequences = in.frames.sequences.splice(position, 1, [{ ...frame, element: element, index: frame.index + 1, values: frame.values.push(in.value)[0] }])[0]
+
+    return next({ ...in, frames: { ...in.frames, sequences: sequences } })
+}

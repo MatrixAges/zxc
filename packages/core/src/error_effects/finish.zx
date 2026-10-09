@@ -1,0 +1,27 @@
+import type { State } from "./model"
+
+export type Input = State
+
+export type Output = string[]?
+
+    export default function (in: Input): Output {
+        if (in.unknown) {
+            return null
+        }
+
+        const names = in.names.sort()[0]
+        const values: string[] = []
+
+        const result = loop({ names: names, values: values, index: 0 }, {
+            while: current => current.index < current.names.length,
+            next: current => {
+                if (current.index == 0 || current.names[current.index] != current.names[current.index - 1]) {
+                    current.values = current.values.push(current.names[current.index])[0]
+                }
+
+                current.index += 1
+            }
+        })
+
+        return result.values
+    }

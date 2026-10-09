@@ -1,0 +1,9 @@
+import type { Control, StatementKind } from "../model"
+
+export type Input = { table: Control, kind: StatementKind, payload: u32 }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    return { ...in.table, statement_kinds: in.table.statement_kinds.push(in.kind)[0], statement_payloads: in.table.statement_payloads.push(in.payload)[0] }
+}

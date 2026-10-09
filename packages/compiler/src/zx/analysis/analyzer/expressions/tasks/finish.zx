@@ -1,0 +1,41 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/task"
+import { Kind } from "core/type_table/model"
+
+import construct from "../../types/construct"
+import errors from "../errors"
+import captures from "./captures"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Functions } from "../../functions"
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+
+export type Input = { state: Prepared, functions: Functions, concurrent: bool[], first: u64, symbol_count: u64, body: u32, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const captured = captures({ state: in.state, first: in.first, symbol_count: in.symbol_count, concurrent: in.concurrent, span: in.span })
+
+    if (captured.state.diagnostic.message != "") {
+        return { state: captured.state, value: 0 }
+    }
+
+    const members = errors({ state: captured.state, functions: in.functions, value: in.body })
+
+    if (members == null) {
+        return { state: { ...captured.state, diagnostic: { code: "type_mismatch", message: "a task requires a finite error contract", start: in.span.start, end: in.span.end } }, value: 0 }
+    }
+
+    const error_type = construct({ state: captured.state, candidate: { kind: Kind.ErrorSet, first: 0, second: 0, label: "", children: [], fields: { names: [], types: [] }, names: members }, span: in.span })
+    const task = construct({ state: error_type.state, candidate: { kind: Kind.Task, first: error_type.state.local.expressions.types[integers.widen(in.body)], second: error_type.id, label: "", children: [], fields: { names: [], types: [] }, names: [] }, span: in.span })
+
+    if (task.state.diagnostic.message != "") {
+        return { state: task.state, value: 0 }
+    }
+
+    const result = append({ table: task.state.local.expressions, metadata: { type_id: task.id, span_start: in.span.start, span_end: in.span.end }, body: in.body, captures: captured.captures })
+
+    return { state: { ...task.state, local: { ...task.state.local, expressions: result.table } }, value: result.id }
+}

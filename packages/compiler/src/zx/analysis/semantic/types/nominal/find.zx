@@ -2,8 +2,10 @@ import equal from "../equal"
 import row from "../row"
 import { Status } from "./model"
 
-import type { Candidate, Tables } from "../model"
-import type { Origin, Origins, Search } from "./model"
+import type { Tables } from "core/type_table/model"
+import type { Origin, Origins } from "core/type_table/nominal"
+import type { Candidate } from "../model"
+import type { Search } from "./model"
 
 export type Input = { tables: Tables, origins: Origins, origin: Origin, candidate: Candidate }
 

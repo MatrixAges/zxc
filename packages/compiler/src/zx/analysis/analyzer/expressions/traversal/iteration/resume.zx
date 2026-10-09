@@ -1,0 +1,47 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/iteration"
+
+import callback from "../../../iteration/callback"
+import leave from "../../../iteration/leave"
+import { Phase, Action } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const position = work.frames.iterations.length - 1
+    const frame = work.frames.iterations[position]
+
+    if (in.action == Action.IterationInitial) {
+        const type_id = work.state.local.expressions.types[integers.widen(work.value)]
+
+        if (type_id == 0) {
+            const span = work.source.tree.nodes[frame.initial_node].span
+
+            return { ...work, state: { ...work.state, diagnostic: { code: "type_mismatch", message: "loop state cannot be void", start: span.start, end: span.end } } }
+        }
+
+        const entered = callback({ state: work.state, source: work.source, node: frame.condition_node, type_id: type_id, updating: false })
+        const iterations = work.frames.iterations.splice(position, 1, [{ ...frame, initial: work.value, condition_parameter: entered.parameter, context: entered.context }])[0]
+
+        return { ...work, state: entered.state, node: entered.body, expected: 1, phase: Phase.Evaluate, frames: { ...work.frames, iterations: iterations, actions: work.frames.actions.push(Action.IterationCondition)[0] } }
+    }
+
+    const state = { ...work.state, local: leave({ local: work.state.local, context: frame.context }) }
+
+    if (in.action == Action.IterationCondition) {
+        const entered = callback({ state: state, source: work.source, node: frame.step_node, type_id: state.local.expressions.types[integers.widen(frame.initial)], updating: true })
+        const iterations = work.frames.iterations.splice(position, 1, [{ ...frame, condition: work.value, parameter: entered.parameter, context: entered.context }])[0]
+
+        return { ...work, state: entered.state, node: entered.body, expected: null, phase: Phase.StateBlock, frames: { ...work.frames, iterations: iterations, actions: work.frames.actions.push(Action.IterationStep)[0] } }
+    }
+
+    const span = work.source.tree.nodes[frame.node].span
+    const result = append({ table: state.local.expressions, metadata: { type_id: state.local.expressions.types[integers.widen(frame.initial)], span_start: span.start, span_end: span.end }, initial: frame.initial, condition_parameter: frame.condition_parameter, parameter: frame.parameter, condition: frame.condition, body: work.value, postcondition: frame.postcondition })
+
+    return { ...work, state: { ...state, local: { ...state.local, expressions: result.table } }, value: result.id, phase: Phase.Complete, frames: { ...work.frames, iterations: work.frames.iterations.pop()[0] } }
+}

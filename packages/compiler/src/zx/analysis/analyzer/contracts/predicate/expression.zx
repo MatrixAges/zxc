@@ -1,0 +1,17 @@
+import initial from "../../expressions/traversal/initial"
+
+import type { Source } from "../../expressions/request"
+import type { Work } from "../../expressions/traversal/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, source: Source, node: u64 }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    return initial({
+        request: { state: in.state, source: in.source, node: in.node, expected: 1 },
+        imports: { namespaces: [], names: [], ids: [], input_types: [], output_types: [] },
+        functions: { input_types: [], output_types: [], ownership: [], stores: [], expressions: [], control: [], roots: [], contracts: [], native_modules: [], native_tuples: [], native_concurrent: [], native_fallible: [], native_errors: [] }
+    })
+}

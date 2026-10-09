@@ -4,11 +4,11 @@ import fieldType from "../field_type"
 import project from "../project"
 import summary from "../summary"
 
-import type { Table } from "../../../analysis/semantic/types/model"
+import type { Tables } from "core/type_table/model"
 import type { State } from "../../places/model"
 import type { Forest } from "../model"
 
-export type Input = { types: Table, references: bool[], forest: Forest, fact: u64, type_id: u32, shell: State, children: u64[], first: u64, count: u64 }
+export type Input = { types: Tables, references: bool[], forest: Forest, fact: u64, type_id: u32, shell: State, children: u64[], first: u64, count: u64 }
 
 export type Output = bool
 

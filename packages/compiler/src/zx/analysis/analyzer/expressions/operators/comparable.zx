@@ -1,0 +1,27 @@
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+
+import type { Tables } from "core/type_table/model"
+
+export type Input = { tables: Tables, type_id: u32 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const result = loop({ tables: in.tables, id: in.type_id, done: false, comparable: false }, {
+        while: current => !current.done,
+        next: current => {
+            const value = row({ tables: current.tables, id: current.id })
+
+            if (value.kind == Kind.Optional) {
+                current.id = value.first
+            } else {
+                current.comparable = (value.kind == Kind.Scalar && value.first != 0) || value.kind == Kind.Enumeration || value.kind == Kind.ErrorSet
+                current.done = true
+            }
+        }
+    })
+
+    return result.comparable
+}

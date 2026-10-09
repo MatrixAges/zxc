@@ -1,0 +1,73 @@
+import { Operator } from "../../../../frontend/parser/expressions/prepare/model"
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import direct from "./direct"
+import { Operation } from "./model"
+
+import type { Work, Frame } from "./model"
+
+export type Input = { work: Work, node: u64 }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const known = direct({ context: in.work.context, node: in.node })
+
+    if (known.handled) {
+        return { ...in.work, result: known.type_id }
+    }
+
+    const tree = in.work.context.source.tree
+    const node = tree.nodes[in.node]
+    const work = { ...in.work, result: known.type_id }
+    const child: Frame = { operation: Operation.Probe, node: node.first }
+
+    if (node.kind == ExprKind.Field || node.kind == ExprKind.Index) {
+        const operation = node.kind == ExprKind.Field ? Operation.Field : Operation.Index
+
+        return { ...work, frames: work.frames.push({ operation: operation, node: in.node })[0].push(child)[0] }
+    }
+
+    if (node.kind == ExprKind.Await) {
+        if (tree.nodes[node.first].kind == ExprKind.Async) {
+            return { ...work, frames: work.frames.push({ operation: Operation.Probe, node: tree.nodes[node.first].first })[0] }
+        }
+
+        return { ...work, frames: work.frames.push({ operation: Operation.Task, node: in.node })[0].push(child)[0] }
+    }
+
+    if (node.kind == ExprKind.Unary) {
+        return node.flag ? { ...work, frames: work.frames.push(child)[0] } : { ...work, result: 1 }
+    }
+
+    if (node.kind == ExprKind.Binary) {
+        if (node.operator == Operator.Coalesce) {
+            return { ...work, frames: work.frames.push({ operation: Operation.Optional, node: in.node })[0].push(child)[0] }
+        }
+
+        const boolean = node.operator == Operator.Equal || node.operator == Operator.NotEqual || node.operator == Operator.Less || node.operator == Operator.LessEqual || node.operator == Operator.Greater || node.operator == Operator.GreaterEqual || node.operator == Operator.And || node.operator == Operator.Or
+
+        return boolean ? { ...work, result: 1 } : { ...work, frames: work.frames.push({ operation: Operation.Fallback, node: node.second })[0].push(child)[0] }
+    }
+
+    if (node.kind == ExprKind.Conditional) {
+        return { ...work, frames: work.frames.push({ operation: Operation.Fallback, node: node.third })[0].push({ operation: Operation.Probe, node: node.second })[0] }
+    }
+
+    if (node.kind == ExprKind.Match) {
+        const frames = work.frames.push({ operation: Operation.MatchLiteral, node: in.node })[0].push({ operation: Operation.Fallback, node: node.second })[0]
+
+        const scheduled = loop({ tree: tree, frames: frames, head: node.head }, {
+            while: current => current.head != 0,
+            next: current => {
+                const arm = current.tree.arms[current.head - 1]
+
+                current.frames = current.frames.push({ operation: Operation.Fallback, node: arm.result })[0]
+                current.head = arm.previous
+            }
+        })
+
+        return { ...work, frames: scheduled.frames }
+    }
+
+    return work
+}

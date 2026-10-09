@@ -1,0 +1,28 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, result: u32, symbols: u32?[], values: u32[], borrows: bool[] }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({ table: in.table, metadata: in.metadata, kind: ExpressionKind.Scope, payload: integers.narrow(in.table.scope_results.length) })
+
+    return {
+        table: {
+            ...result.table,
+            scope_results: result.table.scope_results.push(in.result)[0],
+            scope_first: result.table.scope_first.push(integers.narrow(result.table.scope_symbols.length))[0],
+            scope_count: result.table.scope_count.push(integers.narrow(in.symbols.length))[0],
+            scope_symbols: result.table.scope_symbols.concat(in.symbols)[0],
+            scope_values: result.table.scope_values.concat(in.values)[0],
+            scope_borrows: result.table.scope_borrows.concat(in.borrows)[0]
+        },
+        id: result.id
+    }
+}

@@ -1,0 +1,58 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/conditional"
+
+import assume from "../../../../../ir/canonical/refinement/assume"
+import mark from "../../../../../ir/canonical/refinement/facts/mark"
+import restore from "../../../../../ir/canonical/refinement/facts/restore"
+import reference from "../../../collections/building/reference"
+import advance from "../../../statements/scopes/advance"
+import enter from "../../../statements/scopes/enter"
+import { Phase, Action } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const position = work.frames.branches.length - 1
+    const frame = work.frames.branches[position]
+    const statement = work.source.blocks.statements[frame.statement]
+
+    if (in.action == Action.StateCondition) {
+        const before = mark(work.state.local.refinement.facts)
+        const refinement = assume({ state: work.state.local.refinement, expressions: work.state.local.expressions, condition: integers.widen(work.value), truth: true })
+        const local = { ...work.state.local, refinement: refinement }
+        const scopes = enter({ scopes: work.scopes, local: local, tree: work.source.blocks, block: statement.second, state_symbol: frame.state_symbol })
+        const branches = work.frames.branches.splice(position, 1, [{ ...frame, condition: work.value, mark: before }])[0]
+
+        return { ...work, state: { ...work.state, local: local }, scopes: scopes, phase: Phase.ScopeNext, frames: { ...work.frames, branches: branches, actions: work.frames.actions.push(Action.StateYes)[0] } }
+    }
+
+    const facts = restore({ facts: work.state.local.refinement.facts, mark: frame.mark })
+    const restored = { ...work.state.local.refinement, facts: facts }
+
+    if (in.action == Action.StateYes) {
+        const refinement = assume({ state: restored, expressions: work.state.local.expressions, condition: integers.widen(frame.condition), truth: false })
+        const state = { ...work.state, local: { ...work.state.local, refinement: refinement } }
+        const branches = work.frames.branches.splice(position, 1, [{ ...frame, yes: work.value }])[0]
+        const frames = { ...work.frames, branches: branches, actions: work.frames.actions.push(Action.StateNo)[0] }
+
+        if (statement.third == 0) {
+            const result = reference({ state: state, symbol: frame.state_symbol, span: statement.span })
+
+            return { ...work, state: result.state, value: result.value, phase: Phase.Complete, frames: frames }
+        }
+
+        const scopes = enter({ scopes: work.scopes, local: state.local, tree: work.source.blocks, block: statement.third - 1, state_symbol: frame.state_symbol })
+
+        return { ...work, state: state, scopes: scopes, phase: Phase.ScopeNext, frames: frames }
+    }
+
+    const value = append({ table: work.state.local.expressions, metadata: { type_id: work.state.local.expressions.types[integers.widen(frame.yes)], span_start: statement.span.start, span_end: statement.span.end }, condition: frame.condition, yes: frame.yes, no: work.value })
+    const result = advance({ scopes: work.scopes, local: { ...work.state.local, expressions: value.table, refinement: restored }, value: value.id, span: statement.span })
+
+    return { ...work, state: { ...work.state, local: result.local, diagnostic: result.diagnostic }, scopes: result.scopes, phase: Phase.ScopeNext, frames: { ...work.frames, branches: work.frames.branches.pop()[0] } }
+}

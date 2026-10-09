@@ -1,9 +1,9 @@
 import integers from "zig:integers"
+import { ExpressionKind } from "core/expression_table/kinds"
 
-import { ExpressionKind } from "../expressions/kinds"
 import bind from "./bind"
 
-import type { Expressions } from "../expressions/model"
+import type { Expressions } from "core/expression_table/model"
 import type { Facts } from "./facts/model"
 
 export type Input = { facts: Facts, expressions: Expressions, first: u64, count: u64 }

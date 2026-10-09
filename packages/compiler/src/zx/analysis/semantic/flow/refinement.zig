@@ -70,10 +70,13 @@ pub fn assume(self: *Self, allocator: std.mem.Allocator, expressions: ir.Express
 pub fn typeOf(self: *const Self, types: ir.TypeTable, id: ir.TypeId, symbol: ir.SymbolId) ir.TypeId {
     const generated = @import("generated_refinement_type");
     const Input = std.meta.Child(generated.Input);
-    const Table = std.meta.Child(@FieldType(Input, "table"));
-    const table = ir.TypeTable.borrow(Table, types);
+    const Tables = std.meta.Child(@FieldType(Input, "tables"));
+    const Table = std.meta.Child(@FieldType(Tables, "base"));
+    const base = ir.TypeTable.borrow(Table, types);
+    const delta = ir.TypeTable.borrow(Table, .{});
+    const tables: Tables = .{ .base = &base, .delta = &delta };
     const facts = abi.facts(std.meta.Child(@FieldType(Input, "facts")), self.state.facts);
-    const input: Input = .{ .facts = &facts, .table = &table, .type_id = @backingInt(id), .symbol = @backingInt(symbol) };
+    const input: Input = .{ .facts = &facts, .tables = &tables, .type_id = @backingInt(id), .symbol = @backingInt(symbol) };
 
     return @fromBackingInt(abi.read(generated, &input));
 }

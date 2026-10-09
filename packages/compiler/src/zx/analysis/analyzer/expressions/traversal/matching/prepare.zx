@@ -1,0 +1,17 @@
+import known from "../../hints/known"
+import next from "./next"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const index = in.frames.selections.length - 1
+    const frame = in.frames.selections[index]
+    const expected = frame.expected != null ? frame.expected : known({ context: { state: in.state, source: in.source, imports: in.imports }, node: frame.node })
+    const selections = in.frames.selections.splice(index, 1, [{ ...frame, expected: expected }])[0]
+
+    return next({ ...in, frames: { ...in.frames, selections: selections } })
+}

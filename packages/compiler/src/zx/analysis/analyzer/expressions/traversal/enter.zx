@@ -1,0 +1,106 @@
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import payload from "../../types/payload"
+import binaryHint from "../hints/binary"
+import leaf from "../leaf"
+import call from "./calls/enter"
+import matching from "./matching/enter"
+import { Phase, Action } from "./model"
+import object from "./objects/enter"
+import sequence from "./sequence/enter"
+import template from "./templates/enter"
+
+import type { Work } from "./model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const expected = in.expected
+
+    const frames = expected == null ? in.frames : {
+        ...in.frames,
+        actions: in.frames.actions.push(Action.Coerce)[0],
+        coercions: in.frames.coercions.push({ expected: expected, span: node.span })[0]
+    }
+
+    const result = leaf({ state: in.state, source: in.source, node: in.node, expected: expected })
+    const work = { ...in, frames: frames, state: result.result.state }
+
+    if (result.handled) {
+        return { ...work, value: result.result.value, phase: Phase.Complete }
+    }
+
+    if (node.kind == ExprKind.Async) {
+        return { ...work, node: node.first, expected: null, frames: { ...frames, actions: frames.actions.push(Action.AsyncBody)[0], asynchronous: frames.asynchronous.push({ node: in.node, first: work.state.local.expressions.kinds.length, symbol_count: work.state.local.symbols.names.length })[0] } }
+    }
+
+    if (node.kind == ExprKind.Await || node.kind == ExprKind.Cancel || node.kind == ExprKind.Capture) {
+        return { ...work, node: node.first, expected: null, frames: { ...frames, actions: frames.actions.push(node.kind == ExprKind.Capture ? Action.CaptureValue : Action.TaskValue)[0], singles: frames.singles.push(in.node)[0] } }
+    }
+
+    if (node.kind == ExprKind.Unary || node.kind == ExprKind.Field) {
+        const unary = node.kind == ExprKind.Unary
+
+        const hint: u32? = match {
+            !unary => null,
+            node.flag => payload({ types: work.state.types, expected: expected }),
+            _ => 1,
+        }
+
+        return {
+            ...work,
+            node: node.first,
+            expected: hint,
+            frames: { ...frames, actions: frames.actions.push(unary ? Action.Unary : Action.Field)[0], singles: frames.singles.push(in.node)[0] }
+        }
+    }
+
+    if (node.kind == ExprKind.Index) {
+        return {
+            ...work,
+            node: node.first,
+            expected: null,
+            frames: { ...frames, actions: frames.actions.push(Action.IndexTarget)[0], indices: frames.indices.push({ node: in.node, target: 0 })[0] }
+        }
+    }
+
+    if (node.kind == ExprKind.Binary) {
+        const hint = binaryHint({ context: { state: work.state, source: work.source, imports: work.imports }, node: in.node, expected: expected })
+
+        return {
+            ...work,
+            node: node.first,
+            expected: hint,
+            frames: { ...frames, actions: frames.actions.push(Action.BinaryLeft)[0], binaries: frames.binaries.push({ node: in.node, left: 0, mark: { nonnull: 0, captures: 0 } })[0] }
+        }
+    }
+
+    if (node.kind == ExprKind.Conditional) {
+        return {
+            ...work,
+            node: node.first,
+            expected: 1,
+            frames: { ...frames, actions: frames.actions.push(Action.Condition)[0], conditionals: frames.conditionals.push({ node: in.node, expected: expected, condition: 0, yes: 0, mark: { nonnull: 0, captures: 0 } })[0] }
+        }
+    }
+
+    if (node.kind == ExprKind.List) {
+        return sequence(work)
+    }
+
+    if (node.kind == ExprKind.Object) {
+        return object(work)
+    }
+
+    if (node.kind == ExprKind.Call) {
+        return call(work)
+    }
+
+    if (node.kind == ExprKind.Template) {
+        return template(work)
+    }
+
+    return matching(work)
+}

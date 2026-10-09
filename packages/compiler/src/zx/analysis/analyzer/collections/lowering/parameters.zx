@@ -1,0 +1,19 @@
+import integers from "zig:integers"
+import { Ownership } from "core/symbol_table/model"
+
+import symbol from "../building/symbol"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, initial: u32, span: Span }
+
+export type Output = { state: Prepared, condition_parameter: u32, parameter: u32 }
+
+export default function (in: Input): Output {
+    const type_id = in.state.local.expressions.types[integers.widen(in.initial)]
+    const condition = symbol({ state: in.state, name: "$collection_condition", type_id: type_id, ownership: Ownership.Borrowed, span: in.span })
+    const body = symbol({ state: condition.state, name: "$collection_state", type_id: type_id, ownership: Ownership.Borrowed, span: in.span })
+
+    return { state: body.state, condition_parameter: condition.symbol, parameter: body.symbol }
+}

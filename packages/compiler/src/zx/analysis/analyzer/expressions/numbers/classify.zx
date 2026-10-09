@@ -1,0 +1,18 @@
+export type Input = u8[]
+
+export type Output = { floating: bool, separators: bool }
+
+export default function (in: Input): Output {
+    const result = loop({ source: in, floating: false, separators: false, index: 0 }, {
+        while: current => current.index < current.source.length,
+        next: current => {
+            const byte = current.source[current.index]
+
+            current.floating = current.floating || byte == 46 || byte == 101 || byte == 69
+            current.separators = current.separators || byte == 95
+            current.index += 1
+        }
+    })
+
+    return { floating: result.floating, separators: result.separators }
+}

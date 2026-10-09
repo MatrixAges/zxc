@@ -38,7 +38,9 @@ pub fn execute(types: *Types, view: anytype, request: Request(@TypeOf(view))) zx
     };
 
     const name = if (request.name) |value| @import("resolving/host/native.zig").named(value) else model.empty_name;
-    const selected: model.Request = .{ .context = &context, .initialize = request.initialize, .named = request.name != null, .name = &name, .reference = &source.reference };
+    const delta = zx.ir.TypeTable.borrow(model.Table, .{});
+    const cache: model.Cache = .{ .names = &.{}, .ids = &.{} };
+    const selected: model.Request = .{ .context = &context, .delta = &delta, .cache = &cache, .initialize = request.initialize, .named = request.name != null, .name = &name, .reference = &source.reference };
     const origins = Origins.Table.borrow(model.Bindings, if (types.shared) |shared| shared.origins.items.view() else .{});
     const origin: Origins.Origin = if (types.shared) |shared| shared.origin else .{ .source = "" };
 

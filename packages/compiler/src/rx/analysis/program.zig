@@ -12,15 +12,19 @@ pub const Options = struct {
     captures: ?[]const @import("frontend").expressions.Binding = null,
     calls: []const Module.Call,
     native_modules: ir.NativeModuleTable,
+    shared_functions: ?ir.FunctionTable = null,
+    store_initializers: []const @import("frontend").project.compiled.StoreInitializer = &.{},
     steps: []const @import("program/flow.zig").Step,
 };
 
 pub const Result = struct { program: ir.Program, store_initializers: []const @import("frontend").project.compiled.StoreInitializer };
 
 pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Result {
-    var builder = Builder{ .allocator = allocator, .types = contract.types, .native_modules = contract.native_modules };
+    var builder = Builder{ .allocator = allocator, .types = contract.types, .native_modules = contract.native_modules, .base_functions = contract.shared_functions orelse .{}, .shared = contract.shared_functions != null };
 
     defer builder.body.deinit(allocator);
+
+    for (contract.store_initializers) |initial| try builder.initializer(initial);
 
     const start = zx.Span{ .start = 0, .end = 0 };
 
@@ -49,7 +53,7 @@ pub fn lower(allocator: std.mem.Allocator, contract: Options) Builder.Error!Resu
         .input_type = contract.input_type,
         .output_type = contract.output_type,
         .body = try builder.control.finish(allocator, root),
-        .functions = builder.functions.view(),
+        .functions = try @import("frontend").project.artifact.function_table.join(allocator, builder.base_functions, builder.functions.view()),
         .stores = builder.stores.view(),
         .store_mode = .orchestration,
         .native_modules = contract.native_modules,

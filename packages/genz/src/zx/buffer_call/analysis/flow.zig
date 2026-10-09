@@ -17,6 +17,10 @@ pub const Lane = struct {
 
 pub fn functions(allocator: std.mem.Allocator, program: ir.Program, value_functions: []const bool, pure_functions: []const bool) std.mem.Allocator.Error![]const []const Lane {
     const summaries = try allocator.alloc([]const Lane, program.functions.count());
+    const callees = try allocator.alloc(?*Trace, program.functions.count());
+
+    @memset(callees, null);
+
     const readers = try allocator.alloc(bool, program.functions.count());
 
     defer allocator.free(readers);
@@ -34,7 +38,7 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program, value_functi
 
         if (!value_functions[index] and !(pure_functions[index] and function.external == null and program.typeOf(function.output_type) == .list)) continue;
 
-        summaries[index] = try analyzeLanes(allocator, program, function, summaries[0..index], readers[0..index]);
+        summaries[index] = try analyzeLanes(allocator, program, function, summaries[0..index], readers[0..index], callees);
     }
 
     return summaries;
@@ -62,16 +66,19 @@ pub fn entry(allocator: std.mem.Allocator, program: ir.Program, summaries: []con
         .output_ownership = program.output_ownership,
     };
 
-    return analyzeLanes(allocator, program, function, summaries, readers);
+    const callees = try allocator.alloc(?*Trace, program.functions.count());
+
+    @memset(callees, null);
+
+    return analyzeLanes(allocator, program, function, summaries, readers, callees);
 }
 
-fn analyzeLanes(allocator: std.mem.Allocator, program: ir.Program, function: ir.Function, summaries: []const []const Lane, readers: []const bool) std.mem.Allocator.Error![]const Lane {
+fn analyzeLanes(allocator: std.mem.Allocator, program: ir.Program, function: ir.Function, summaries: []const []const Lane, readers: []const bool, callees: []?*Trace) std.mem.Allocator.Error![]const Lane {
     var paths: std.ArrayList([]const u32) = .empty;
 
     try leaves(allocator, program, function.output_type, &.{}, false, &paths);
 
-    var trace = try Trace.init(allocator, program, function, summaries);
-
+    var trace = try Trace.init(allocator, program, function, summaries, callees);
     trace.readers = readers;
 
     var lanes: std.ArrayList(Lane) = .empty;

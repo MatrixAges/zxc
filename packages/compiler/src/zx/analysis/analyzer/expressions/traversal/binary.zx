@@ -1,0 +1,40 @@
+import mark from "../../../../ir/canonical/refinement/facts/mark"
+import restore from "../../../../ir/canonical/refinement/facts/restore"
+import finish from "../operators/binary"
+import decode from "../operators/decode"
+import right from "../operators/right"
+import { Phase, Action } from "./model"
+
+import type { Work } from "./model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const position = work.frames.binaries.length - 1
+    const frame = work.frames.binaries[position]
+    const node = work.source.tree.nodes[frame.node]
+    const operator = decode(node.operator)
+
+    if (in.action == Action.BinaryLeft) {
+        const before = mark(work.state.local.refinement.facts)
+        const result = right({ state: work.state, operator: operator, left: work.value, span: node.span })
+
+        return {
+            ...work,
+            state: result.state,
+            node: node.second,
+            expected: result.expected,
+            phase: Phase.Evaluate,
+            frames: { ...work.frames, actions: work.frames.actions.push(Action.BinaryRight)[0], binaries: work.frames.binaries.splice(position, 1, [{ ...frame, left: work.value, mark: before }])[0] }
+        }
+    }
+
+    const facts = restore({ facts: work.state.local.refinement.facts, mark: frame.mark })
+    const state = { ...work.state, local: { ...work.state.local, refinement: { ...work.state.local.refinement, facts: facts } } }
+    const result = finish({ state: state, operator: operator, left: frame.left, right: work.value, span: node.span })
+
+    return { ...work, state: result.state, value: result.value, frames: { ...work.frames, binaries: work.frames.binaries.pop()[0] } }
+}

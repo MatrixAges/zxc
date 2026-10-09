@@ -1,0 +1,29 @@
+import concurrency from "../../../../ir/canonical/functions/analyze"
+import mark from "../../../../ir/canonical/refinement/facts/mark"
+import { Phase } from "./model"
+
+import type { FunctionImports } from "../../context"
+import type { Functions } from "../../functions"
+import type { Request } from "../request"
+import type { Work } from "./model"
+
+export type Input = { request: Request, imports: FunctionImports, functions: Functions }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    return {
+        state: in.request.state,
+        source: in.request.source,
+        imports: in.imports,
+        functions: in.functions,
+        concurrent: concurrency({ functions: { native_modules: in.functions.native_modules, native_concurrent: in.functions.native_concurrent, stores: in.functions.stores, expressions: in.functions.expressions }, concurrent: true }),
+        scopes: { bindings: { symbols: [], values: [], borrows: [] }, frames: [] },
+        boundary: { active: in.request.state.local.active.length, floor: in.request.state.local.scope_floor, depth: in.request.state.local.lambda_depth, captures: in.request.state.local.captures.current, facts: mark(in.request.state.local.refinement.facts) },
+        frames: { actions: [], coercions: [], singles: [], indices: [], binaries: [], conditionals: [], selections: [], sequences: [], objects: [], imported: [], methods: [], lists: [], templates: [], transforms: [], iterations: [], statements: [], updates: [], branches: [], switches: [], asynchronous: [], parallels: [] },
+        node: in.request.node,
+        expected: in.request.expected,
+        value: 0,
+        phase: Phase.Evaluate
+    }
+}

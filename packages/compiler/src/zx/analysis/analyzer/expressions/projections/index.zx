@@ -1,0 +1,43 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/index"
+import project from "core/expression_table/append/projection"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+
+export type Input = { state: Prepared, target: u32, index: u32, index_span: Span, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const expressions = in.state.local.expressions
+    const type_id = expressions.types[integers.widen(in.target)]
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: type_id })
+
+    if (target.kind == Kind.Tuple) {
+        if (expressions.kinds[integers.widen(in.index)] != ExpressionKind.Integer) {
+            return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "tuple indexing requires an integer literal", start: in.index_span.start, end: in.index_span.end } }, value: 0 }
+        }
+
+        const index = expressions.integers[integers.widen(expressions.payloads[integers.widen(in.index)])]
+
+        if (index >= integers.widen(target.second)) {
+            return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "tuple index is out of bounds", start: in.index_span.start, end: in.index_span.end } }, value: 0 }
+        }
+
+        const table = target.delta ? tables.delta : tables.base
+        const result = project({ table: expressions, metadata: { type_id: table.children[integers.widen(target.first) + index], span_start: in.span.start, span_end: in.span.end }, target: in.target, index: integers.narrow(index), tuple: true })
+
+        return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+    }
+
+    const result = append({ table: expressions, metadata: { type_id: type_id == 10 ? 2 : target.first, span_start: in.span.start, span_end: in.span.end }, target: in.target, index: in.index })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

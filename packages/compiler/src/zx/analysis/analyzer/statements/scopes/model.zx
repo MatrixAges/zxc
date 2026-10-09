@@ -1,0 +1,7 @@
+import type { Mark } from "../../../../ir/canonical/refinement/facts/model"
+
+export type Bindings = { symbols: u32?[], values: u32[], borrows: bool[] }
+
+export type Frame = { source_block: u64, state_symbol: u32, statements: u64[], next: u64, binding_mark: u64, active_mark: u64, facts_mark: Mark }
+
+export type Scopes = { bindings: Bindings, frames: Frame[] }

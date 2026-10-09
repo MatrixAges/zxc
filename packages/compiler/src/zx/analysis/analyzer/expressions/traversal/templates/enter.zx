@@ -1,0 +1,24 @@
+import next from "./next"
+
+import type { Work, Template } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const parts: u64[] = []
+
+    const ordered = loop({ tree: in.source.tree, head: node.head, parts: parts }, {
+        while: current => current.head != 0,
+        next: current => {
+            current.parts = current.parts.push(current.head - 1)[0]
+            current.head = current.tree.parts[current.head - 1].previous
+        }
+    })
+
+    const frame: Template = { node: in.node, parts: ordered.parts.reverse()[0], index: 0, values: [] }
+
+    return next({ ...in, frames: { ...in.frames, templates: in.frames.templates.push(frame)[0] } })
+}

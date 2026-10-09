@@ -1,0 +1,30 @@
+import { Phase, Action } from "../model"
+import prepare from "./prepare"
+
+import type { Work, Selection } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const arms: u64[] = []
+
+    const ordered = loop({ tree: in.source.tree, head: node.head, arms: arms }, {
+        while: current => current.head != 0,
+        next: current => {
+            current.arms = current.arms.push(current.head - 1)[0]
+            current.head = current.tree.arms[current.head - 1].previous
+        }
+    })
+
+    const frame: Selection = { node: in.node, subject: null, expected: in.expected, arms: ordered.arms.reverse()[0], index: 0, conditions: [], results: [] }
+    const work = { ...in, frames: { ...in.frames, selections: in.frames.selections.push(frame)[0] } }
+
+    if (node.first == 0) {
+        return prepare(work)
+    }
+
+    return { ...work, node: node.first - 1, expected: null, phase: Phase.Evaluate, frames: { ...work.frames, actions: work.frames.actions.push(Action.MatchSubject)[0] } }
+}

@@ -1,23 +1,20 @@
 import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+import row from "core/type_table/row"
 
-import kind from "../../analysis/semantic/types/kind"
-import { Kind } from "../../analysis/semantic/types/model"
+import type { Tables } from "core/type_table/model"
 
-import type { Table } from "../../analysis/semantic/types/model"
-
-export type Input = { types: Table, id: u64 }
+export type Input = { types: Tables, id: u64 }
 
 export type Output = bool
 
 export default function (in: Input): Output {
-    const result = loop({ types: in.types, id: in.id }, {
-        while: current => kind(current.types.kinds[current.id]) == Kind.Optional,
+    const result = loop({ types: in.types, target: row({ tables: in.types, id: integers.narrow(in.id) }) }, {
+        while: current => current.target.kind == Kind.Optional,
         next: current => {
-            current.id = integers.widen(current.types.first[current.id])
+            current.target = row({ tables: current.types, id: current.target.first })
         }
-    })
+    }).target
 
-    const type_kind = kind(result.types.kinds[result.id])
-
-    return type_kind == Kind.List || type_kind == Kind.Object || type_kind == Kind.Tuple || type_kind == Kind.Task || (type_kind == Kind.Scalar && result.types.first[result.id] == 10)
+    return result.kind == Kind.List || result.kind == Kind.Object || result.kind == Kind.Tuple || result.kind == Kind.Task || (result.kind == Kind.Scalar && result.first == 10)
 }

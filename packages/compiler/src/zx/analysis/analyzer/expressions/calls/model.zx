@@ -1,0 +1,5 @@
+import type { Prepared } from "../../model"
+
+export enum Route { Imported, Method, Loop, Parallel, Failed }
+
+export type Dispatch = { state: Prepared, route: Route, index: u64 }

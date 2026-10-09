@@ -1,0 +1,47 @@
+import integers from "zig:integers"
+import { ValueKind } from "core/expression_table/append/model"
+import project from "core/expression_table/append/projection"
+import append from "core/expression_table/append/value"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Name } from "../../../semantic/resolving/source/model"
+import type { Prepared } from "../../model"
+import type { Result } from "../model"
+
+export type Input = { state: Prepared, target: u32, name: Name, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const type_id = in.state.local.expressions.types[integers.widen(in.target)]
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: type_id })
+
+    if ((target.kind == Kind.List || type_id == 10) && in.name.text == "length") {
+        const result = append({ table: in.state.local.expressions, metadata: { type_id: 5, span_start: in.span.start, span_end: in.span.end }, kind: ValueKind.Length, value: in.target })
+
+        return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+    }
+
+    if (target.kind != Kind.Object) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "field access requires an object", start: in.name.start, end: in.name.end } }, value: 0 }
+    }
+
+    const table = target.delta ? tables.delta : tables.base
+
+    const found = loop({ names: table.field_names, first: integers.widen(target.first), count: integers.widen(target.second), name: in.name.text, index: 0 }, {
+        while: current => current.index < current.count && current.names[current.first + current.index] != current.name,
+        next: current => { current.index += 1 }
+    })
+
+    if (found.index == found.count) {
+        return { state: { ...in.state, diagnostic: { code: "name", message: "unknown object field", start: in.name.start, end: in.name.end } }, value: 0 }
+    }
+
+    const result = project({ table: in.state.local.expressions, metadata: { type_id: table.field_types[found.first + found.index], span_start: in.span.start, span_end: in.span.end }, target: in.target, index: integers.narrow(found.index), tuple: false })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

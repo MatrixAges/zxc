@@ -1,0 +1,6 @@
+import type { Expressions } from "../expression_table/model"
+import type { Symbols } from "../symbol_table/model"
+
+export enum ContractKind { Requires, Ensures }
+
+export type Contracts = { kinds: ContractKind[], predicates: u32[], symbols: Symbols[], expressions: Expressions[], span_start: u64[], span_end: u64[] }

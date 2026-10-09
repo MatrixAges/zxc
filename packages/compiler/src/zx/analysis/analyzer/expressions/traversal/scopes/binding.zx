@@ -1,0 +1,38 @@
+import integers from "zig:integers"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import text from "../../../../semantic/resolving/source/text"
+import bind from "../../../statements/scopes/bind"
+import destructure from "../../../statements/scopes/destructure"
+import evaluate from "../../../statements/scopes/evaluate"
+import coerce from "../../coerce"
+import { Phase, Action } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const id = in.work.frames.statements[in.work.frames.statements.length - 1]
+    const statement = in.work.source.blocks.statements[id]
+    const work = { ...in.work, frames: { ...in.work.frames, statements: in.work.frames.statements.pop()[0] }, phase: Phase.ScopeNext }
+
+    if (in.action == Action.StateEvaluate) {
+        const result = work.state.local.expressions.kinds[integers.widen(work.value)] == ExpressionKind.Iteration ? { state: work.state, value: work.value } : coerce({ state: work.state, value: work.value, expected: 0, span: work.source.tree.nodes[statement.first].span })
+
+        return { ...work, state: result.state, scopes: result.state.diagnostic.message == "" ? evaluate({ scopes: work.scopes, value: result.value }) : work.scopes }
+    }
+
+    if (in.action == Action.StateDestructure) {
+        const result = destructure({ state: work.state, scopes: work.scopes, source: work.source, statement: id, value: work.value })
+
+        return { ...work, state: result.state, scopes: result.scopes }
+    }
+
+    const frame = work.scopes.frames[work.scopes.frames.length - 1]
+    const result = bind({ scopes: work.scopes, local: work.state.local, name: text({ source: work.source.bytes, span: statement.name }), value: work.value, scope_start: frame.active_mark })
+
+    return { ...work, scopes: result.scopes, state: { ...work.state, local: result.local, diagnostic: result.diagnostic } }
+}

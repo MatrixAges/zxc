@@ -1,10 +1,10 @@
 import integers from "zig:integers"
+import { ExpressionKind } from "core/expression_table/kinds"
 
-import { ExpressionKind } from "../../ir/canonical/expressions/kinds"
 import lookup from "../layout/lookup"
 import projection from "../layout/projection"
 
-import type { Expressions } from "../../ir/canonical/expressions/model"
+import type { Expressions } from "core/expression_table/model"
 import type { Built } from "../layout/model"
 
 export type Input = { expressions: Expressions, layout: Built, memo: u64[], expression: u64, trail: u64[] }

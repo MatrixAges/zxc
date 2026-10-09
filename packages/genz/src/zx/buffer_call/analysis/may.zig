@@ -2,10 +2,33 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const Trace = @import("trace.zig");
 const flow = @import("flow.zig");
-const independent = @import("independent.zig");
 const Error = std.mem.Allocator.Error;
 
 pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const u32) Error!bool {
+    const parent = trace.queries.current;
+    const query = try trace.queries.lookup(trace.allocator, .{ .expression = id, .path = path, .origin = origin });
+
+    if (query.existing) {
+        const node = trace.queries.nodes.items[query.index];
+
+        if (node.active) if (parent) |caller| trace.queries.connect(caller, query.index);
+
+        return node.value;
+    }
+
+    trace.queries.current = query.index;
+    defer trace.queries.current = parent;
+
+    const value = try evaluate(trace, id, path, origin);
+
+    trace.queries.finish(query.index, value);
+
+    if (parent) |caller| trace.queries.connect(caller, trace.queries.nodes.items[query.index].low);
+
+    return trace.queries.nodes.items[query.index].value;
+}
+
+fn evaluate(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const u32) Error!bool {
     const expression = trace.function.expressions.at(@backingInt(id));
     var selected = expression.type_id;
 
@@ -31,7 +54,7 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
                 break :blk try contains(trace, value.initial, path, origin);
             };
 
-            break :blk if (try independent.projection(trace, id, path, origin)) false else try contains(trace, value.initial, &.{}, origin) or try contains(trace, value.body, &.{}, origin);
+            break :blk try contains(trace, value.initial, path, origin) or try contains(trace, value.body, path, origin);
         },
         .list_update => |value| try contains(trace, value.target, &.{}, origin) or try contains(trace, value.value, &.{}, origin),
         .scope => |scope| contains(trace, scope.result, path, origin),
@@ -39,13 +62,10 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
             prefix(path, origin) or prefix(origin, path)
         else if (trace.bindings[@backingInt(symbol)]) |binding|
             contains(trace, binding, path, origin)
-        else blk: {
-            if (trace.iterations[@backingInt(symbol)]) |iteration_id| for (trace.selected_loops) |loop| {
-                if (loop.expression == iteration_id and std.mem.eql(u32, loop.path, path)) break :blk try contains(trace, trace.function.expressions.at(@backingInt(iteration_id)).value.iteration.initial, path, origin);
-            };
-
-            break :blk !try independent.parameter(trace, symbol, path, origin);
-        },
+        else if (trace.iterations[@backingInt(symbol)]) |iteration_id|
+            contains(trace, iteration_id, path, origin)
+        else
+            true,
         .conditional => |value| try contains(trace, value.yes, path, origin) or try contains(trace, value.no, path, origin),
         .match_expr => |value| blk: {
             if (try contains(trace, value.fallback, path, origin)) break :blk true;
@@ -59,7 +79,7 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
             break :blk false;
         },
         .field, .tuple_field => |projection| blk: {
-            const nested = try trace.allocator.alloc(u32, path.len + 1);
+            const nested = try trace.queryAllocator().alloc(u32, path.len + 1);
 
             nested[0] = projection.index;
 
@@ -103,17 +123,15 @@ pub fn contains(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const
 
             if (callee.external != null or callee.stores.count() != 0 or index >= trace.summaries.len) break :blk try contains(trace, call.argument, &.{}, origin);
 
-            var nested = try Trace.init(trace.allocator, trace.program, callee, trace.summaries[0..index]);
-            var inputs: std.ArrayList([]const u32) = .empty;
+            const nested = try trace.callee(index);
+            const inputs = try nested.inputPaths();
 
-            try flow.leaves(trace.allocator, trace.program, callee.input_type, &.{}, true, &inputs);
+            for (inputs) |input| {
+                const dependent = for (nested.results.items) |result| {
+                    if (try contains(nested, result, path, input)) break true;
+                } else false;
 
-            for (inputs.items) |input| {
-                if (!try contains(trace, call.argument, input, origin)) continue;
-
-                for (nested.results.items) |result| {
-                    if (try contains(&nested, result, path, input)) break :blk true;
-                }
+                if (dependent and try contains(trace, call.argument, input, origin)) break :blk true;
             }
 
             break :blk false;

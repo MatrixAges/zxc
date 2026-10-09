@@ -1,13 +1,14 @@
 import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
 
 import row from "../entries/row"
-import { Kind } from "../types/model"
 import { Status } from "../types/nominal/model"
 import equal from "./equal"
 
+import type { Tables } from "core/type_table/model"
+import type { Origins, Origin } from "core/type_table/nominal"
 import type { Entry } from "../entries/model"
-import type { Tables } from "../types/model"
-import type { Origins, Origin, Search } from "../types/nominal/model"
+import type { Search } from "../types/nominal/model"
 import type { Mapping } from "./model"
 
 export type Input = { source: Entry, tables: Tables, origins: Origins, origin: Origin, mapping: Mapping }

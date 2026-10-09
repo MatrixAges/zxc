@@ -1,0 +1,42 @@
+import integers from "zig:integers"
+import { Ownership } from "core/symbol_table/model"
+
+import { ExprKind } from "../../../frontend/parser/expressions/state/model"
+import text from "../../semantic/resolving/source/text"
+import bind from "../bindings/append"
+
+import type { Source } from "../expressions/request"
+import type { Local } from "../local"
+import type { Prepared } from "../model"
+import type { Context } from "./model"
+
+export type Input = { state: Prepared, source: Source, node: u64, type_id: u32, updating: bool }
+
+export type Output = { state: Prepared, context: Context, parameter: u32, body: u64 }
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const context: Context = { active: in.state.local.active.length, floor: in.state.local.scope_floor, depth: in.state.local.lambda_depth, captures: in.state.local.captures.current }
+
+    if (node.kind != ExprKind.Lambda || node.count != 1) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "loop callbacks require one inline state parameter", start: node.span.start, end: node.span.end } }, context: context, parameter: 0, body: 0 }
+    }
+
+    const body = in.source.tree.nodes[node.first]
+
+    if (in.updating && body.kind != ExprKind.StateBlock) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "loop next and do require a state update block", start: body.span.start, end: body.span.end } }, context: context, parameter: 0, body: 0 }
+    }
+
+    const local: Local = { ...in.state.local, scope_floor: context.active, lambda_depth: context.depth + 1, captures: { ...in.state.local.captures, current: null } }
+    const name = text({ source: in.source.bytes, span: in.source.tree.parameters[node.head - 1].name })
+    const binding = bind({ local: local, name: name, type_id: in.type_id, scope_start: context.active })
+
+    if (binding.diagnostic.message != "") {
+        return { state: { ...in.state, diagnostic: binding.diagnostic }, context: context, parameter: 0, body: 0 }
+    }
+
+    const ownership = binding.local.symbols.ownership.splice(integers.widen(binding.id), 1, [Ownership.Borrowed])[0]
+
+    return { state: { ...in.state, local: { ...binding.local, symbols: { ...binding.local.symbols, ownership: ownership } } }, context: context, parameter: binding.id, body: node.first }
+}

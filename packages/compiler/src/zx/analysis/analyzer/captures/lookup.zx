@@ -1,0 +1,28 @@
+import integers from "zig:integers"
+
+import type { Captures } from "../captures"
+
+export type Input = { captures: Captures, frame: u32, source: u32 }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const missing: u32? = null
+
+        const result = loop({ bindings: in.captures.bindings, row: in.captures.frames.first[integers.widen(in.frame)], source: in.source, found: missing }, {
+            while: current => current.row != null && current.found == null,
+            next: current => {
+                const row = current.row
+
+                if (row != null) {
+                    if (current.bindings.sources[integers.widen(row)] == current.source) {
+                        current.found = current.bindings.targets[integers.widen(row)]
+                    }
+
+                    current.row = current.bindings.next[integers.widen(row)]
+                }
+            }
+        })
+
+        return result.found
+    }

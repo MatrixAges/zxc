@@ -1,0 +1,81 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../../../../frontend/parser/body/model"
+import text from "../../../semantic/resolving/source/text"
+import writeSlot from "../../stores/write_slot"
+import annotation from "../../types/annotation"
+import bindingName from "../binding_name"
+import finish from "../blocks/finish"
+import next from "../blocks/next"
+import result from "../result"
+import { Phase, Action } from "./model"
+import request from "./request"
+import selection from "./selection/enter"
+
+import type { Prepared } from "../../model"
+import type { Body } from "./model"
+
+export type Input = Body
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const stepped = next({ blocks: in.blocks, tree: in.expression.source.blocks })
+    const body = { ...in, blocks: stepped.blocks, expression: { ...in.expression, state: { ...in.expression.state, diagnostic: stepped.diagnostic } }, statement: stepped.source }
+
+    if (stepped.diagnostic.message != "") {
+        return body
+    }
+
+    if (stepped.done) {
+        const done = finish({ blocks: body.blocks, local: body.expression.state.local })
+
+        return { ...body, blocks: done.blocks, expression: { ...body.expression, state: { ...body.expression.state, local: done.local } }, value: done.id, phase: body.actions.length == 0 ? Phase.Done : Phase.Resume }
+    }
+
+    const statement = body.expression.source.blocks.statements[body.statement]
+    const state = body.expression.state
+
+    if (statement.kind == StatementKind.StateUpdate) {
+        return { ...body, expression: { ...body.expression, state: { ...state, diagnostic: { code: "unsupported", message: "state updates are only allowed in loop", start: statement.span.start, end: statement.span.end } } } }
+    }
+
+    if (statement.kind == StatementKind.Constant) {
+        const diagnostic = bindingName(text({ source: body.expression.source.bytes, span: statement.name }))
+
+        if (diagnostic.message != "") {
+            return { ...body, expression: { ...body.expression, state: { ...state, diagnostic: diagnostic } } }
+        }
+
+        const resolved: { state: Prepared, id: u32 } = statement.annotation == 0 ? { state: state, id: 0 } : annotation({ state: state, reference: statement.annotation - 1 })
+
+        return request({ body: { ...body, expression: { ...body.expression, state: resolved.state } }, node: statement.first, expected: statement.annotation == 0 ? null : resolved.id, action: Action.Constant })
+    }
+
+    if (statement.kind == StatementKind.Result && statement.first == 0) {
+        const completed = result({ state: state, blocks: body.blocks, value: null, span: statement.span })
+
+        return { ...body, expression: { ...body.expression, state: completed.state }, blocks: completed.blocks }
+    }
+
+    if (statement.kind == StatementKind.StoreSet) {
+        const resolved = writeSlot({ state: state, source: body.expression.source, node: statement.first, span: statement.span })
+        const prepared = { ...body, expression: { ...body.expression, state: resolved.state }, slot: resolved.slot }
+
+        return resolved.state.diagnostic.message != "" ? prepared : request({ body: prepared, node: statement.second, expected: state.local.stores.types[integers.widen(resolved.slot)], action: Action.Setter })
+    }
+
+    if (statement.kind == StatementKind.Switch) {
+        return selection(body)
+    }
+
+    if (statement.kind == StatementKind.Branch) {
+        return request({ body: { ...body, branches: body.branches.push({ statement: body.statement, condition: 0, yes: 0, mark: { nonnull: 0, captures: 0 } })[0] }, node: statement.first, expected: 1, action: Action.Condition })
+    }
+
+    return request({ body: body, node: statement.kind == StatementKind.Result ? statement.first - 1 : statement.first, expected: statement.kind == StatementKind.Result ? state.local.output_type : null, action: match statement.kind {
+        StatementKind.Result => Action.Result,
+        StatementKind.Evaluate => Action.Evaluate,
+        _ => Action.Destructure,
+    } })
+}

@@ -1,9 +1,9 @@
 import integers from "zig:integers"
+import { ExpressionKind, TransformKind } from "core/expression_table/kinds"
 
-import { ExpressionKind, TransformKind } from "../../../ir/canonical/expressions/kinds"
 import projection from "../../layout/projection"
 
-import type { Expressions } from "../../../ir/canonical/expressions/model"
+import type { Expressions } from "core/expression_table/model"
 
 export type Input = { expressions: Expressions, expression: u64, index: u64, permanent: bool }
 

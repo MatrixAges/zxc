@@ -1,0 +1,6 @@
+<Module>
+    <Call fn="contracts/initial" in={$in} />
+    <Call fn="contracts/walk" in={$ctx.initial} />
+
+    <Return value={$ctx.walk} />
+</Module>

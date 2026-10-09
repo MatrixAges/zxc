@@ -1,0 +1,21 @@
+<Module>
+    <Call fn="initial" in={$in} />
+
+    <Call module="bind" in={{ state: $ctx.initial, contract: $in.contract, output_type: $in.output_type }} />
+
+    <Switch on={$ctx.bind.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="expression" in={{ state: $ctx.bind, source: $in.source, node: $in.contract.predicate }} />
+            <Call fn="../../expressions/traversal/advance" in={$ctx.expression} />
+            <Call fn="check" in={$ctx.advance} />
+
+            <Return value={$ctx.check} />
+        </Case>
+
+        <Default>
+            <Call fn="failed" in={$ctx.bind} />
+
+            <Return value={$ctx.failed} />
+        </Default>
+    </Switch>
+</Module>

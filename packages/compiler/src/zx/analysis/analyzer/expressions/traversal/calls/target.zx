@@ -1,0 +1,48 @@
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import text from "../../../../semantic/resolving/source/text"
+import row from "../../../../semantic/types/row"
+import plan from "../../calls/list/plan"
+import items from "../../items"
+import next from "../lists/next"
+import transform from "../transforms/enter"
+
+import type { Work, ListCall } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const position = in.frames.methods.length - 1
+    const frame = in.frames.methods[position]
+    const node = in.source.tree.nodes[frame.node]
+    const callee = in.source.tree.nodes[node.first]
+    const name = text({ source: in.source.bytes, span: callee.name })
+
+    if (name.text == "clone") {
+        return { ...in, state: { ...in.state, diagnostic: { code: "unsupported", message: "deep copying is not supported; move an owned value or borrow it read-only", start: node.span.start, end: node.span.end } } }
+    }
+
+    const list = in.state.local.expressions.types[integers.widen(in.value)]
+    const target = row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: list })
+
+    if (target.kind != Kind.List) {
+        return { ...in, state: { ...in.state, diagnostic: { code: "type_mismatch", message: "collection methods require a list", start: name.start, end: name.end } } }
+    }
+
+    if (name.text == "map" || name.text == "filter" || name.text == "reduce" || name.text == "every" || name.text == "some") {
+        return transform({ work: in, name: name.text })
+    }
+
+    const planned = plan({ name: name.text, count: node.count, list: list, element: target.first })
+
+    if (planned.message != "") {
+        return { ...in, state: { ...in.state, diagnostic: { code: planned.code, message: planned.message, start: node.span.start, end: node.span.end } } }
+    }
+
+    const call: ListCall = { node: frame.node, target: in.value, kind: planned.kind, replacement: planned.replacement, arguments: items({ items: in.source.tree.items, head: node.head }), hints: planned.hints, index: 0, values: [] }
+
+    return next({ ...in, frames: { ...in.frames, methods: in.frames.methods.pop()[0], lists: in.frames.lists.push(call)[0] } })
+}

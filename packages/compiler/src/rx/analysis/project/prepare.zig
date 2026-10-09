@@ -4,14 +4,27 @@ const rx = @import("rx");
 const target = @import("../call/target.zig");
 const Store = @import("../store.zig");
 const Flow = @import("flow.zig");
-pub const Call = struct { getters: []const Store.Binding = &.{}, node: rx.ast.Node, callee: union(enum) { function: target.Function, module: usize } };
+pub const Call = struct { setter: ?target.Setter = null, getters: []const Store.Binding = &.{}, node: rx.ast.Node, callee: union(enum) { function: target.Function, module: usize, signature: frontend.project.signature_project.Ports } };
 pub const Module = struct { source: rx.ModuleSource, calls: []const Call, steps: []const Flow.Step };
 pub const Loaded = struct { modules: []const Module, project: frontend.project.Options };
 pub const Value = union(enum) { loaded: Loaded, diagnostic: target.Diagnostic };
 
 pub fn load(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const frontend.project.Source, initial_project: frontend.project.Options, definitions: []const Store.Definition) std.mem.Allocator.Error!Value {
+    return loadWithSignatures(allocator, modules, sources, initial_project, definitions, null);
+}
+
+pub fn loadSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const frontend.project.Source, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
+    var project = initial_project;
+    project.context.types = signatures.types;
+    project.context.nominal_types = signatures.nominal_types;
+    project.context.native_modules = signatures.native_modules;
+
+    return loadWithSignatures(allocator, modules, sources, project, definitions, signatures);
+}
+
+fn loadWithSignatures(allocator: std.mem.Allocator, modules: []const rx.ModuleSource, sources: []const frontend.project.Source, initial_project: frontend.project.Options, definitions: []const Store.Definition, signatures: ?frontend.project.signature_project.Data) std.mem.Allocator.Error!Value {
     const plans = try allocator.alloc(Module, modules.len);
-    var loader = Loader{ .allocator = allocator, .modules = modules, .sources = sources, .project = initial_project };
+    var loader = Loader{ .allocator = allocator, .modules = modules, .sources = sources, .project = initial_project, .signatures = signatures };
 
     for (modules, plans) |source, *plan| {
         loader.owner = source.path;
@@ -41,6 +54,7 @@ const Loader = struct {
     modules: []const rx.ModuleSource,
     sources: []const frontend.project.Source,
     project: frontend.project.Options,
+    signatures: ?frontend.project.signature_project.Data = null,
     owner: []const u8 = "",
     stores: []const Store.Binding = &.{},
     calls: std.ArrayList(Call) = .empty,
@@ -123,22 +137,33 @@ const Loader = struct {
         }
 
         const capability = authorized.authorized;
-        const owner = try std.fs.path.resolve(self.allocator, &.{ self.project.root_dir, self.owner });
-        const packages = rx.module_reference.dependencies(self.project, owner);
-        const reference = target.optionalAttribute(node, "module");
+        const reference = try @import("reference.zig").resolve(self.allocator, self.owner, node, self.modules, self.project);
 
-        if (reference != null and !rx.module_reference.isPackage(reference.?.value, packages)) {
-            const attribute = reference.?;
+        if (reference == .diagnostic) {
+            self.issue = reference.diagnostic;
 
-            const path = rx.resolveModulePath(self.allocator, self.owner, attribute.value) catch |err| {
-                if (err == error.OutOfMemory) return error.OutOfMemory;
+            return error.InvalidFlow;
+        }
 
-                return self.fail(attribute.value_location, "module", "Call.module must stay within the project root");
-            };
+        if (reference == .module) {
+            try self.calls.append(self.allocator, .{ .node = node, .setter = capability.setter, .getters = capability.getters, .callee = .{ .module = reference.module } });
+        } else if (self.signatures != null and reference == .source) {
+            const attribute = target.optionalAttribute(node, "module") orelse target.attribute(node, "fn");
+            const path = reference.source;
+            var found = false;
 
-            const module_index = find(self.modules, path) orelse return self.fail(attribute.value_location, "module", "Call.module target is not registered");
+            for (self.signatures.?.modules) |module| {
+                if (!std.mem.eql(u8, module.path, path)) continue;
+                if (module.signature.type_only) return self.fail(attribute.value_location, "module", "Call.fn requires an executable ZX module with a default function");
+                if (capability.setter != null and !module.signature.has_store) return self.fail(attribute.value_location, "capability", "a Call.setter target must declare its second parameter as { store }");
+                try self.calls.append(self.allocator, .{ .node = node, .setter = capability.setter, .getters = capability.getters, .callee = .{ .signature = module.signature.ports } });
 
-            try self.calls.append(self.allocator, .{ .node = node, .getters = capability.getters, .callee = .{ .module = module_index } });
+                found = true;
+
+                break;
+            }
+
+            if (!found) return self.fail(attribute.value_location, "module", "source function signature is missing from the analyzed input set");
         } else {
             const result = try target.load(self.allocator, .{ .owner = self.owner, .call = node, .sources = self.sources, .project = self.project, .setter = capability.setter });
 
@@ -154,7 +179,7 @@ const Loader = struct {
             self.project.context.nominal_types = function.nominal_types;
             self.project.context.native_modules = function.program.native_modules;
 
-            try self.calls.append(self.allocator, .{ .node = node, .getters = capability.getters, .callee = .{ .function = function } });
+            try self.calls.append(self.allocator, .{ .node = node, .setter = capability.setter, .getters = capability.getters, .callee = .{ .function = function } });
         }
 
         return index;

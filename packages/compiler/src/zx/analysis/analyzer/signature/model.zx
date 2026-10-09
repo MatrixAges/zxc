@@ -1,0 +1,5 @@
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Diagnostic } from "../../semantic/resolving/model"
+import type { Types } from "../types/model"
+
+export type Signature = { types: Types, span: Span, input_type: u32, output_type: u32, diagnostic: Diagnostic }

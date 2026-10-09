@@ -1,0 +1,28 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { CollectionKind } from "../kinds"
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, kind: CollectionKind, target: u32, arguments: u32[] }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({ table: in.table, metadata: in.metadata, kind: ExpressionKind.ListOperation, payload: integers.narrow(in.table.collection_kinds.length) })
+
+    return {
+        table: {
+            ...result.table,
+            collection_kinds: result.table.collection_kinds.push(in.kind)[0],
+            collection_targets: result.table.collection_targets.push(in.target)[0],
+            collection_first: result.table.collection_first.push(integers.narrow(result.table.collection_arguments.length))[0],
+            collection_count: result.table.collection_count.push(integers.narrow(in.arguments.length))[0],
+            collection_arguments: result.table.collection_arguments.concat(in.arguments)[0]
+        },
+        id: result.id
+    }
+}

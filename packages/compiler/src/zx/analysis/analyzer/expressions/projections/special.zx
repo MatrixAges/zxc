@@ -1,0 +1,56 @@
+import { Kind } from "core/type_table/model"
+
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import text from "../../../semantic/resolving/source/text"
+import row from "../../../semantic/types/row"
+import lookup from "../../bindings/lookup"
+import readStore from "../../stores/read"
+import named from "../../types/named"
+import payload from "../../types/payload"
+import injected from "../injected/lookup"
+import member from "./member"
+
+import type { Result } from "../model"
+import type { Request } from "../request"
+
+export type Input = Request
+
+export type Output = { handled: bool, result: Result }
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+    const owner = in.source.tree.nodes[node.first]
+    const unhandled: Output = { handled: false, result: { state: in.state, value: 0 } }
+
+    if (owner.kind != ExprKind.Identifier) {
+        return unhandled
+    }
+
+    const root = text({ source: in.source.bytes, span: owner.name })
+    const name = text({ source: in.source.bytes, span: node.name })
+    const binding = injected({ local: in.state.local, source: in.source, node: node.first })
+
+    if (in.source.bytes[owner.name.start] == 36 && binding.symbol == null && !binding.unit) {
+        return { handled: true, result: readStore({ state: in.state, source: in.source, node: in.node }) }
+    }
+
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+
+    if (root.text == "error" && lookup({ local: in.state.local, name: root.text }) == null) {
+        const expected = payload({ types: in.state.types, expected: in.expected })
+
+        if (expected == null || row({ tables: tables, id: expected }).kind != Kind.ErrorSet) {
+            return { handled: true, result: { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "an error member requires a finite error-set context", start: node.span.start, end: node.span.end } }, value: 0 } }
+        }
+
+        return { handled: true, result: member({ state: in.state, type_id: expected, name: name, span: node.span, error_member: true }) }
+    }
+
+    const type_id = named({ types: in.state.types, name: root.text })
+
+    if (type_id.found && row({ tables: tables, id: type_id.id }).kind == Kind.Enumeration) {
+        return { handled: true, result: member({ state: in.state, type_id: type_id.id, name: name, span: node.span, error_member: false }) }
+    }
+
+    return unhandled
+}

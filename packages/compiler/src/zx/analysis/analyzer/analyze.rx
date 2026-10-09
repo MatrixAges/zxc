@@ -1,0 +1,14 @@
+<Module>
+    <Call module="prepare" in={$in} />
+
+    <Call fn="module/initial" in={{ state: $ctx.prepare, type_only: $in.syntax.body == null }} />
+
+    <Call module="module/body" in={{ module: $in, analysis: $ctx.initial }} />
+    <Call module="module/exports" in={{ module: $in, analysis: $ctx.body }} />
+    <Call module="module/contracts" in={{ module: $in, analysis: $ctx.exports }} />
+    <Call module="module/ownership" in={{ module: $in, analysis: $ctx.contracts }} />
+
+    <Call fn="module/publish" in={$ctx.ownership} />
+
+    <Return value={$ctx.publish} />
+</Module>

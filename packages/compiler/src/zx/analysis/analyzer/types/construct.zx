@@ -1,0 +1,16 @@
+import update from "../../semantic/constructing/update"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Candidate } from "../../semantic/types/model"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, candidate: Candidate, span: Span }
+
+export type Output = { state: Prepared, id: u32 }
+
+export default function (in: Input): Output {
+    const result = update({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, candidate: in.candidate })
+    const diagnostic = result.diagnostic.message == "" ? in.state.diagnostic : { code: result.diagnostic.code, message: result.diagnostic.message, start: in.span.start, end: in.span.end }
+
+    return { state: { ...in.state, types: { ...in.state.types, delta: result.delta }, diagnostic: diagnostic }, id: result.id }
+}

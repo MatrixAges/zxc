@@ -9,6 +9,7 @@ const Analysis = @import("../analysis/analyze.zig");
 const NominalOrigins = @import("nominal_origins.zig");
 const ModuleRecord = @import("module_record.zig");
 const Input = @import("module_input.zig");
+pub const signature_project = @import("signature_project.zig");
 pub const Source = struct { path: []const u8, source: []const u8 };
 pub const compiled = @import("compiled.zig");
 pub const External = @import("interface.zig").External;
@@ -24,6 +25,9 @@ const Unit = struct {
     path: []const u8,
     state: enum { fresh, visiting, done } = .fresh,
     program: ?ir.Program = null,
+    signature: ?@import("source_signature.zig").Result = null,
+    signature_aliases: []const ir.Export = &.{},
+    signature_imports: []const Analyzer.FunctionImport = &.{},
     function: ?ir.FunctionId = null,
     context_digest: [32]u8 = undefined,
     reused: bool = false,
@@ -51,6 +55,7 @@ const Project = struct {
     sources: []const Source,
     parse_cache: *ParseCache,
     semantic_cache: ?*SemanticCache = null,
+    phase: enum { body, signature } = .body,
     units: []Unit,
     options: Options,
     reporter: *zx.Reporter,
@@ -64,6 +69,15 @@ const Project = struct {
     compiled_units: std.AutoHashMapUnmanaged(usize, []const compiled.Export) = .empty,
     current_source: usize = 0,
     fn load(self: *Project, index: usize) zx.Error!ir.Program {
+        try self.loadFrames(index);
+
+        var program = self.units[index].program.?;
+
+        program.types = self.types.view();
+
+        return program;
+    }
+    fn loadFrames(self: *Project, index: usize) zx.Error!void {
         var frames: std.ArrayList(LoadFrame) = .empty;
 
         try self.pushFrame(&frames, index);
@@ -83,12 +97,6 @@ const Project = struct {
                 _ = frames.pop();
             }
         }
-
-        var program = self.units[index].program.?;
-
-        program.types = self.types.view();
-
-        return program;
     }
     fn pushFrame(self: *Project, frames: *std.ArrayList(LoadFrame), index: usize) zx.Error!void {
         const unit = &self.units[index];
@@ -152,8 +160,19 @@ const Project = struct {
                     continue;
                 }
 
-                break :target_block try resolveTarget(self.allocator, unit.path, item.path, self.options, self.reporter, item.span);
+                break :target_block if (self.phase == .signature)
+                    try resolveModuleTarget(self.allocator, unit.path, item.path, self.options, self.reporter, item.span)
+                else
+                    try resolveTarget(self.allocator, unit.path, item.path, self.options, self.reporter, item.span);
             };
+
+            if (self.phase == .signature and item.kind == .function) {
+                if (item.nameCount() != 1) return self.reporter.fail(.module, item.span, "default imports require one binding");
+
+                frame.pending = null;
+
+                continue;
+            }
 
             const imported = switch (target) {
                 .source => |path| block: {
@@ -163,6 +182,12 @@ const Project = struct {
                         frame.pending = target;
 
                         return dependency;
+                    }
+
+                    if (self.phase == .signature) {
+                        const signature = self.units[dependency].signature.?;
+
+                        break :block Imported{ .type_only = signature.type_only, .function = null, .input_type = signature.ports.input_type, .output_type = signature.ports.output_type, .exports = signature.exports };
                     }
 
                     const program = self.units[dependency].program.?;
@@ -207,7 +232,23 @@ const Project = struct {
             }));
         }
 
-        try self.finishInput(frame, input);
+        if (self.phase == .signature) {
+            var types = @import("../analysis/types.zig"){
+                .allocator = self.allocator,
+                .reporter = self.reporter,
+                .declarations = &.{},
+                .aliases = aliases.items,
+                .shared = .{ .origins = &self.nominal_origins, .origin = .{ .source = unit.path } },
+                .items = self.types,
+            };
+
+            self.types = .{};
+            defer self.types = types.items;
+            unit.signature = try input.signature(&types);
+            unit.signature_aliases = aliases.items;
+            unit.signature_imports = imports.items;
+            unit.state = .done;
+        } else try self.finishInput(frame, input);
 
         return null;
     }
@@ -500,6 +541,84 @@ pub fn analyzeIncremental(allocator: std.mem.Allocator, sources: []const Source,
     return analyzeWithCaches(allocator, sources, options, &cache.parse_cache, cache);
 }
 
+pub fn analyzeSignatures(allocator: std.mem.Allocator, sources: []const Source, entries: []const []const u8, options: Options) std.mem.Allocator.Error!signature_project.Result {
+    var arena = std.heap.ArenaAllocator.init(allocator);
+
+    errdefer arena.deinit();
+
+    const owned = arena.allocator();
+    var cache = ParseCache{ .allocator = owned };
+
+    defer cache.deinit();
+
+    var reporter: zx.Reporter = .{};
+    const units = try owned.alloc(Unit, sources.len);
+
+    for (sources, 0..) |source, index| units[index] = .{ .path = try std.fs.path.resolve(owned, &.{ options.root_dir, source.path }) };
+
+    var project = Project{ .arena = &arena, .allocator = owned, .sources = sources, .parse_cache = &cache, .phase = .signature, .units = units, .options = options, .reporter = &reporter, .nominal_origins = .{ .allocator = owned } };
+
+    if (options.context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.context.types)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared type table" } } };
+    if (!@import("native_context.zig").valid(options.context.types, options.context.native_modules)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared native module table" } } };
+
+    project.types = try @import("../analysis/type_table.zig").storage(owned, options.context.types);
+    project.native_modules = try @import("native_context.zig").storage(owned, options.context.native_modules);
+
+    project.nominal_origins.seed(project.types.view(), options.context.nominal_types) catch |err| {
+        if (err == error.OutOfMemory) return error.OutOfMemory;
+
+        return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared nominal type table" } } };
+    };
+
+    for (units, 0..) |unit, index| {
+        for (units[0..index]) |previous| {
+            if (std.mem.eql(u8, unit.path, previous.path)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "source paths must be unique after normalization" } } };
+        }
+    }
+
+    const modules = try owned.alloc(signature_project.Module, entries.len);
+
+    for (entries, modules) |entry, *module| {
+        const path = try std.fs.path.resolve(owned, &.{ options.root_dir, entry });
+        const index = project.find(path) orelse return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "signature entry module is missing" } } };
+
+        project.loadFrames(index) catch |err| {
+            if (err == error.OutOfMemory) return error.OutOfMemory;
+
+            var issue = reporter.diagnostic.?;
+            issue.source_index = project.current_source;
+
+            return .{ .arena = arena, .value = .{ .diagnostic = issue } };
+        };
+
+        module.* = .{
+            .path = units[index].path,
+            .signature = units[index].signature.?,
+            .type_imports = units[index].signature_aliases,
+            .function_imports = units[index].signature_imports,
+        };
+    }
+
+    const libraries = try owned.alloc(signature_project.Library, project.compiled_units.count());
+    var iterator = project.compiled_units.iterator();
+
+    for (libraries) |*library| {
+        const entry = iterator.next().?;
+
+        library.* = .{ .index = entry.key_ptr.*, .exports = entry.value_ptr.* };
+    }
+
+    return .{ .arena = arena, .value = .{ .data = .{
+        .types = project.types.view(),
+        .nominal_types = project.nominal_origins.items.view(),
+        .native_modules = project.native_modules.view(),
+        .functions = project.functions.view(),
+        .store_initializers = project.store_initializers.items,
+        .modules = modules,
+        .libraries = libraries,
+    } } };
+}
+
 fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, options: Options, cache: *ParseCache, semantic_cache: ?*SemanticCache) std.mem.Allocator.Error!Analysis.Result {
     var arena = std.heap.ArenaAllocator.init(allocator);
 
@@ -615,6 +734,14 @@ pub fn resolveImport(allocator: std.mem.Allocator, from: []const u8, path: []con
 }
 
 pub fn resolveTarget(allocator: std.mem.Allocator, from: []const u8, path: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error!ImportTarget {
+    const target = try resolveModuleTarget(allocator, from, path, options, reporter, span);
+
+    if (target == .source and !std.mem.endsWith(u8, target.source, ".zx")) return reporter.fail(.module, span, "ZX package entry must be a .zx source file");
+
+    return target;
+}
+
+pub fn resolveModuleTarget(allocator: std.mem.Allocator, from: []const u8, path: []const u8, options: Options, reporter: *zx.Reporter, span: zx.Span) zx.Error!ImportTarget {
     const kind = specifier.classify(path) catch return reporter.fail(.module, span, "invalid or unknown import specifier");
     const owner = package_scope.owner(options.package_scopes, from);
     const root = if (owner) |index| options.package_scopes[index].root else options.root_dir;
@@ -647,7 +774,7 @@ pub fn resolveTarget(allocator: std.mem.Allocator, from: []const u8, path: []con
                 .name = try allocator.dupe(u8, value.name),
             } };
         } else {
-            if (!std.mem.endsWith(u8, package.entry, ".zx")) return reporter.fail(.module, span, "ZX package entry must be a .zx source file");
+            if (!std.mem.endsWith(u8, package.entry, ".zx") and !std.mem.endsWith(u8, package.entry, ".rx")) return reporter.fail(.module, span, "package entry must be a .zx or .rx source file");
 
             target = .{ .source = try std.fs.path.resolve(allocator, &.{ options.root_dir, package.entry }) };
         }

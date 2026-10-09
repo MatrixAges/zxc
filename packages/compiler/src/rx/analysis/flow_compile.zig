@@ -15,6 +15,7 @@ allocator: std.mem.Allocator,
 owner: []const u8,
 types: zx.ir.TypeTable,
 native_modules: zx.ir.NativeModuleTable = .{},
+shared_functions: ?zx.ir.FunctionTable = null,
 output_type: zx.ir.TypeId,
 loaded: []const Module.Loaded,
 results: []const Module.Binding,
@@ -162,7 +163,7 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 
     const index = self.calls.items.len;
 
-    try self.calls.append(self.allocator, .{ .callee = loaded.function.program, .store_initializers = loaded.function.store_initializers, .argument = argument, .input_omitted = target.optionalAttribute(loaded.node, "in") == null, .out = out, .getters = loaded.getters });
+    try self.calls.append(self.allocator, .{ .function_id = loaded.function.id, .callee = loaded.function.program, .store_initializers = loaded.function.store_initializers, .argument = argument, .input_omitted = target.optionalAttribute(loaded.node, "in") == null, .out = out, .getters = loaded.getters });
 
     return index;
 }

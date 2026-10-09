@@ -1,0 +1,34 @@
+import setter from "core/control_table/append/setter"
+
+import text from "../../../semantic/resolving/source/text"
+import constant from "../constant"
+import destructure from "../destructure"
+import evaluate from "../evaluate"
+import result from "../result"
+import { Phase, Action } from "./model"
+
+import type { Body } from "./model"
+
+export type Input = { body: Body, action: Action }
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const body = { ...in.body, phase: Phase.Next }
+    const statement = body.expression.source.blocks.statements[body.statement]
+    const state = body.expression.state
+    const value = body.expression.value
+
+    if (in.action == Action.Setter) {
+        return { ...body, blocks: { ...body.blocks, pending: setter({ table: body.blocks.pending, slot: body.slot, value: value }) } }
+    }
+
+    const completed = match in.action {
+        Action.Constant => constant({ state: state, blocks: body.blocks, name: text({ source: body.expression.source.bytes, span: statement.name }), value: value }),
+        Action.Destructure => destructure({ state: state, blocks: body.blocks, source: body.expression.source, statement: body.statement, value: value }),
+        Action.Evaluate => evaluate({ state: state, blocks: body.blocks, value: value, span: body.expression.source.tree.nodes[statement.first].span }),
+        _ => result({ state: state, blocks: body.blocks, value: value, span: statement.span }),
+    }
+
+    return { ...body, expression: { ...body.expression, state: completed.state }, blocks: completed.blocks }
+}

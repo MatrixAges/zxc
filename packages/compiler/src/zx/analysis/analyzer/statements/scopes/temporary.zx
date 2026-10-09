@@ -1,0 +1,26 @@
+import integers from "zig:integers"
+import { ValueKind } from "core/expression_table/append/model"
+import reference from "core/expression_table/append/value"
+
+import bind from "./bind"
+
+import type { Diagnostic } from "../../../semantic/resolving/model"
+import type { Local } from "../../local"
+import type { Scopes } from "./model"
+
+export type Input = { scopes: Scopes, local: Local, value: u32 }
+
+export type Output = { scopes: Scopes, local: Local, value: u32, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const metadata = { type_id: in.local.expressions.types[integers.widen(in.value)], span_start: in.local.expressions.span_start[integers.widen(in.value)], span_end: in.local.expressions.span_end[integers.widen(in.value)] }
+    const result = bind({ scopes: in.scopes, local: in.local, name: { text: "iteration_value", start: metadata.span_start, end: metadata.span_end }, value: in.value, scope_start: in.local.active.length })
+
+    if (result.diagnostic.message != "") {
+        return { scopes: result.scopes, local: result.local, value: in.value, diagnostic: result.diagnostic }
+    }
+
+    const value = reference({ table: result.local.expressions, metadata: metadata, kind: ValueKind.Reference, value: result.symbol })
+
+    return { scopes: result.scopes, local: { ...result.local, active: result.local.active.pop()[0], expressions: value.table }, value: value.id, diagnostic: result.diagnostic }
+}

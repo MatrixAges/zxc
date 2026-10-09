@@ -1,0 +1,69 @@
+import integers from "zig:integers"
+
+import { ExpressionKind, CollectionKind, TransformKind } from "../../expression_table/kinds"
+import { Kind } from "../../type_table/model"
+import row from "../../type_table/row"
+import taskErrors from "./task_errors"
+
+import type { Expressions } from "../../expression_table/model"
+import type { Tables } from "../../type_table/model"
+
+export type Input = { tables: Tables, expressions: Expressions, index: u64, names: string[] }
+
+export type Output = string[]
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const kind = expressions.kinds[in.index]
+    const payload = expressions.payloads[in.index]
+
+    if (kind == ExpressionKind.AwaitTask) {
+        return taskErrors({ tables: in.tables, type_id: expressions.types[integers.widen(expressions.awaits[integers.widen(payload)])], names: in.names })
+    }
+
+    if (kind == ExpressionKind.Parallel) {
+        const names = in.names.push("ConcurrencyUnavailable")[0]
+        const initial = expressions.types[in.index] == 0 ? names : names.push("OutOfMemory")[0]
+
+        return loop({ tables: in.tables, expressions: expressions, index: integers.widen(expressions.parallel_first[integers.widen(payload)]), end: integers.widen(expressions.parallel_first[integers.widen(payload)]) + integers.widen(expressions.parallel_count[integers.widen(payload)]), names: initial }, {
+            while: current => current.index < current.end,
+            next: current => {
+                current.names = taskErrors({ tables: current.tables, type_id: current.expressions.types[integers.widen(current.expressions.parallel_tasks[current.index])], names: current.names })
+                current.index += 1
+            }
+        }).names
+    }
+
+    if (kind == ExpressionKind.Index) {
+        return in.names.push("IndexOutOfBounds")[0]
+    }
+
+    if (kind == ExpressionKind.ListUpdate) {
+        return in.names.push("OutOfMemory")[0].push("IndexOutOfBounds")[0]
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        const operation = expressions.collection_kinds[integers.widen(payload)]
+        const allocated = in.names.push("OutOfMemory")[0]
+        const overflow = operation == CollectionKind.Push || operation == CollectionKind.Concat || operation == CollectionKind.Splice
+        const names = overflow ? allocated.push("Overflow")[0] : allocated
+
+        return operation == CollectionKind.Splice ? names.push("IndexOutOfBounds")[0] : names
+    }
+
+    if (kind == ExpressionKind.Iteration) {
+        const target = row({ tables: in.tables, id: expressions.types[in.index] })
+
+        return target.kind == Kind.Object || target.kind == Kind.Tuple ? in.names.push("OutOfMemory")[0] : in.names
+    }
+
+    if (kind == ExpressionKind.Transform) {
+        const operation = expressions.transform_kinds[integers.widen(payload)]
+
+        return operation == TransformKind.Map || operation == TransformKind.Filter ? in.names.push("OutOfMemory")[0] : in.names
+    }
+
+    const allocating = kind == ExpressionKind.Capture || kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template || kind == ExpressionKind.Object
+
+    return allocating ? in.names.push("OutOfMemory")[0] : in.names
+}

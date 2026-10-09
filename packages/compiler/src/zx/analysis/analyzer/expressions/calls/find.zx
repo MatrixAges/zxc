@@ -1,0 +1,23 @@
+import type { FunctionImports } from "../../context"
+
+export type Input = { imports: FunctionImports, namespace: string?, name: string }
+
+export type Output = { found: bool, known_namespace: bool, index: u64 }
+
+export default function (in: Input): Output {
+    const result = loop({ imports: in.imports, namespace: in.namespace, name: in.name, index: 0, found: false, known_namespace: false }, {
+        while: current => current.index < current.imports.names.length && !current.found,
+        next: current => {
+            if (current.imports.namespaces[current.index] == current.namespace) {
+                current.known_namespace = current.namespace != null
+                current.found = current.imports.names[current.index] == current.name
+            }
+
+            if (!current.found) {
+                current.index += 1
+            }
+        }
+    })
+
+    return { found: result.found, known_namespace: result.known_namespace, index: result.index }
+}

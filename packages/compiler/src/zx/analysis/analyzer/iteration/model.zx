@@ -1,0 +1,3 @@
+export type Context = { active: u64, floor: u64, depth: u64, captures: u32? }
+
+export type IterationFrame = { node: u64, initial_node: u64, condition_node: u64, step_node: u64, postcondition: bool, initial: u32, condition_parameter: u32, condition: u32, parameter: u32, context: Context }

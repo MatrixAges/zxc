@@ -1,0 +1,10 @@
+import type { Prepared } from "../../model"
+import type { PredicateOutput } from "./model"
+
+export type Input = Prepared
+
+export type Output = PredicateOutput
+
+export default function (in: Input): Output {
+    return { types: in.types, symbols: in.local.symbols, expressions: in.local.expressions, predicate: 0, diagnostic: in.diagnostic }
+}

@@ -1,0 +1,28 @@
+import integers from "zig:integers"
+import iteration from "core/expression_table/append/iteration"
+import scope from "core/expression_table/append/scope"
+import { Ownership } from "core/symbol_table/model"
+
+import field from "../../expressions/projections/field"
+import reference from "../building/reference"
+import symbol from "../building/symbol"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+import type { Bindings } from "../model"
+
+export type Input = { state: Prepared, initial: u32, condition_parameter: u32, parameter: u32, condition: u32, body: u32, bindings: Bindings, result_type: u32, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const type_id = in.state.local.expressions.types[integers.widen(in.initial)]
+    const iterated = iteration({ table: in.state.local.expressions, metadata: { type_id: type_id, span_start: in.span.start, span_end: in.span.end }, initial: in.initial, condition_parameter: in.condition_parameter, parameter: in.parameter, condition: in.condition, body: in.body, postcondition: false })
+    const result_symbol = symbol({ state: { ...in.state, local: { ...in.state.local, expressions: iterated.table } }, name: "$collection_result", type_id: type_id, ownership: Ownership.Copy, span: in.span })
+    const current = reference({ state: result_symbol.state, symbol: result_symbol.symbol, span: in.span })
+    const value = field({ state: current.state, target: current.value, name: { text: "result", start: in.span.start, end: in.span.end }, span: in.span })
+    const result = scope({ table: value.state.local.expressions, metadata: { type_id: in.result_type, span_start: in.span.start, span_end: in.span.end }, result: value.value, symbols: in.bindings.symbols.push(result_symbol.symbol)[0], values: in.bindings.values.push(iterated.id)[0], borrows: in.bindings.borrows.push(false)[0] })
+
+    return { state: { ...value.state, local: { ...value.state.local, expressions: result.table } }, value: result.id }
+}

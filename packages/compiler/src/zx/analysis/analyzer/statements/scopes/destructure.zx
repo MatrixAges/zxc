@@ -1,0 +1,74 @@
+import integers from "zig:integers"
+import project from "core/expression_table/append/projection"
+import { Kind } from "core/type_table/model"
+
+import refine from "../../../../ir/canonical/refinement/bind"
+import text from "../../../semantic/resolving/source/text"
+import row from "../../../semantic/types/row"
+import bind from "./bind"
+import bindingName from "./binding_name"
+import temporary from "./temporary"
+
+import type { Source } from "../../expressions/request"
+import type { Prepared } from "../../model"
+import type { Scopes } from "./model"
+
+export type Input = { state: Prepared, scopes: Scopes, source: Source, statement: u64, value: u32 }
+
+export type Output = { state: Prepared, scopes: Scopes }
+
+export default function (in: Input): Output {
+    const statement = in.source.blocks.statements[in.statement]
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: in.state.local.expressions.types[integers.widen(in.value)] })
+
+    if (target.kind != Kind.Tuple || integers.widen(target.second) != statement.count) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "tuple destructuring must match every result slot", start: statement.span.start, end: statement.span.end } }, scopes: in.scopes }
+    }
+
+    const table = target.delta ? tables.delta : tables.base
+    const ids: u64[] = []
+
+    const order = loop({ names: in.source.blocks.names, head: statement.head, ids: ids }, {
+        while: current => current.head != 0,
+        next: current => {
+            current.ids = current.ids.push(current.head - 1)[0]
+            current.head = current.names[current.head - 1].previous
+        }
+    }).ids.reverse()[0]
+
+    const saved = temporary({ scopes: in.scopes, local: in.state.local, value: in.value })
+    const symbols: u32?[] = []
+    const start = in.scopes.frames[in.scopes.frames.length - 1].active_mark
+
+    const result = loop({ state: { ...in.state, local: saved.local, diagnostic: saved.diagnostic }, scopes: saved.scopes, source: in.source, types: table.children, first: integers.widen(target.first), order: order, symbols: symbols, saved: saved.value, start: start, index: 0 }, {
+        while: current => current.index < current.order.length && current.state.diagnostic.message == "",
+        next: current => {
+            const name = text({ source: current.source.bytes, span: current.source.blocks.names[current.order[current.index]].span })
+
+            if (name.text == "_") {
+                current.symbols = current.symbols.push(null)[0]
+            } else {
+                current.state.diagnostic = bindingName({ scopes: current.scopes, local: current.state.local, name: name })
+
+                if (current.state.diagnostic.message == "") {
+                    const item = project({ table: current.state.local.expressions, metadata: { type_id: current.types[current.first + current.index], span_start: name.start, span_end: name.end }, target: current.saved, index: integers.narrow(current.index), tuple: true })
+                    const bound = bind({ scopes: current.scopes, local: { ...current.state.local, expressions: item.table }, name: name, value: item.id, scope_start: current.start })
+
+                    current.scopes = bound.scopes
+                    current.state.local = bound.local
+                    current.state.diagnostic = bound.diagnostic
+                    current.symbols = current.symbols.push(bound.symbol)[0]
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    const err = result.symbols.length == 2 ? result.symbols[0] : null
+    const value = result.symbols.length == 2 ? result.symbols[1] : null
+    const facts = result.state.diagnostic.message == "" ? refine({ facts: result.state.local.refinement.facts, expressions: result.state.local.expressions, value: integers.widen(in.value), count: result.symbols.length, err: err, result: value }) : result.state.local.refinement.facts
+
+    return { state: { ...result.state, local: { ...result.state.local, refinement: { ...result.state.local.refinement, facts: facts } } }, scopes: result.scopes }
+}

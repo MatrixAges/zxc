@@ -1,0 +1,38 @@
+import index from "core/expression_table/append/index"
+import { SequenceKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/sequence"
+import { TransformKind } from "core/expression_table/kinds"
+
+import boolean from "../../expressions/boolean"
+import integer from "../building/integer"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, span: Span, kind: TransformKind, source: u32, initial: u32?, result_type: u32 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    if (in.kind == TransformKind.Map || in.kind == TransformKind.Filter) {
+        const result = append({ table: in.state.local.expressions, metadata: { type_id: in.result_type, span_start: in.span.start, span_end: in.span.end }, kind: SequenceKind.List, values: [] })
+
+        return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+    }
+
+    if (in.kind == TransformKind.Every || in.kind == TransformKind.Some) {
+        return boolean({ state: in.state, value: in.kind == TransformKind.Every, span: in.span })
+    }
+
+    const initial = in.initial
+
+    if (initial != null) {
+        return { state: in.state, value: initial }
+    }
+
+    const zero = integer({ state: in.state, value: 0, span: in.span })
+    const result = index({ table: zero.state.local.expressions, metadata: { type_id: in.result_type, span_start: in.span.start, span_end: in.span.end }, target: in.source, index: zero.value })
+
+    return { state: { ...zero.state, local: { ...zero.state.local, expressions: result.table } }, value: result.id }
+}

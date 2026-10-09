@@ -1,0 +1,27 @@
+import integers from "zig:integers"
+
+import bind from "./bind"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Diagnostic } from "../../../semantic/resolving/model"
+import type { Local } from "../../local"
+import type { Scopes } from "./model"
+
+export type Input = { scopes: Scopes, local: Local, value: u32, span: Span }
+
+export type Output = { scopes: Scopes, local: Local, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const index = in.scopes.frames.length - 1
+    const frame = in.scopes.frames[index]
+    const name = { text: in.local.symbols.names[integers.widen(frame.state_symbol)], start: in.span.start, end: in.span.end }
+    const result = bind({ scopes: in.scopes, local: in.local, name: name, value: in.value, scope_start: in.local.active.length })
+
+    if (result.diagnostic.message != "") {
+        return { scopes: result.scopes, local: result.local, diagnostic: result.diagnostic }
+    }
+
+    const frames = result.scopes.frames.splice(index, 1, [{ ...frame, state_symbol: result.symbol }])[0]
+
+    return { scopes: { ...result.scopes, frames: frames }, local: result.local, diagnostic: result.diagnostic }
+}

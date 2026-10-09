@@ -1,0 +1,15 @@
+import append from "core/expression_table/append/integer"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, value: u64, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = append({ table: in.state.local.expressions, metadata: { type_id: 5, span_start: in.span.start, span_end: in.span.end }, value: in.value, negative: false })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

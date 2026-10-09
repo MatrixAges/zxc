@@ -1,0 +1,15 @@
+import restore from "../../../../ir/canonical/refinement/facts/restore"
+
+import type { Body } from "./model"
+
+export type Input = Body
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const frame = in.blocks.frames[0]
+    const state = in.expression.state
+    const facts = restore({ facts: state.local.refinement.facts, mark: frame.facts_mark })
+
+    return { ...in, expression: { ...in.expression, state: { ...state, local: { ...state.local, active: state.local.active.splice(0, frame.active_mark, [])[1], refinement: { ...state.local.refinement, facts: facts } } } } }
+}

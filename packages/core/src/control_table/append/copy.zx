@@ -1,0 +1,51 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../model"
+import branch from "./branch"
+import constant from "./constant"
+import destructure from "./destructure"
+import evaluate from "./evaluate"
+import parallel from "./parallel"
+import result from "./result"
+import selection from "./selection"
+import setter from "./setter"
+
+import type { Control } from "../model"
+
+export type Input = { source: Control, target: Control, index: u64 }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    const kind = in.source.statement_kinds[in.index]
+    const payload = in.source.statement_payloads[in.index]
+
+    if (kind == StatementKind.Parallel) {
+        const first = integers.widen(in.source.parallel_first[integers.widen(payload)])
+        const count = integers.widen(in.source.parallel_count[integers.widen(payload)])
+
+        return parallel({ table: in.target, symbols: in.source.parallel_symbols.splice(first, count, [])[1], values: in.source.parallel_values.splice(first, count, [])[1] })
+    }
+
+    if (kind == StatementKind.Destructure) {
+        const first = integers.widen(in.source.destructure_first[integers.widen(payload)])
+        const count = integers.widen(in.source.destructure_count[integers.widen(payload)])
+
+        return destructure({ table: in.target, value: in.source.destructure_values[integers.widen(payload)], symbols: in.source.destructure_symbols.splice(first, count, [])[1] })
+    }
+
+    if (kind == StatementKind.Switch) {
+        const first = integers.widen(in.source.selection_first[integers.widen(payload)])
+        const count = integers.widen(in.source.selection_count[integers.widen(payload)])
+
+        return selection({ table: in.target, subject: in.source.selection_subjects[integers.widen(payload)], exhaustive: in.source.selection_exhaustive[integers.widen(payload)], values: in.source.case_values.splice(first, count, [])[1], bodies: in.source.case_bodies.splice(first, count, [])[1] })
+    }
+
+    return match kind {
+        StatementKind.Evaluate => evaluate({ table: in.target, value: in.source.evaluations[integers.widen(payload)] }),
+        StatementKind.Constant => constant({ table: in.target, symbol: in.source.constant_symbols[integers.widen(payload)], value: in.source.constant_values[integers.widen(payload)] }),
+        StatementKind.Branch => branch({ table: in.target, condition: in.source.branch_conditions[integers.widen(payload)], yes: in.source.branch_yes[integers.widen(payload)], no: in.source.branch_no[integers.widen(payload)] }),
+        StatementKind.StoreSet => setter({ table: in.target, slot: in.source.setter_slots[integers.widen(payload)], value: in.source.setter_values[integers.widen(payload)] }),
+        _ => result({ table: in.target, value: in.source.results[integers.widen(payload)] }),
+    }
+}

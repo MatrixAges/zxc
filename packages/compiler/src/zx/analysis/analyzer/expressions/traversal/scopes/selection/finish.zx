@@ -1,0 +1,23 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/match"
+
+import reference from "../../../../collections/building/reference"
+import advance from "../../../../statements/scopes/advance"
+import { Phase } from "../../model"
+
+import type { Work } from "../../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.switches[in.frames.switches.length - 1]
+    const span = in.source.blocks.statements[frame.statement].span
+    const fallback = frame.fallback
+    const value = fallback == null ? reference({ state: in.state, symbol: frame.state_symbol, span: span }) : { state: in.state, value: fallback }
+    const result = append({ table: value.state.local.expressions, metadata: { type_id: value.state.local.symbols.types[integers.widen(frame.state_symbol)], span_start: span.start, span_end: span.end }, subject: frame.subject, fallback: value.value, conditions: frame.conditions, results: frame.results })
+    const advanced = advance({ scopes: in.scopes, local: { ...value.state.local, expressions: result.table }, value: result.id, span: span })
+
+    return { ...in, state: { ...value.state, local: advanced.local, diagnostic: advanced.diagnostic }, scopes: advanced.scopes, phase: Phase.ScopeNext, frames: { ...in.frames, switches: in.frames.switches.pop()[0] } }
+}

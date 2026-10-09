@@ -1,0 +1,52 @@
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../../semantic/types/row"
+import enter from "../../blocks/enter"
+import label from "../../selection/label"
+import { Phase, Action } from "../model"
+
+import type { Body } from "../model"
+
+export type Input = { body: Body, action: Action }
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const body = in.body
+    const position = body.selections.length - 1
+    const frame = body.selections[position]
+    const state = body.expression.state
+    const value = body.expression.value
+
+    if (in.action == Action.Subject) {
+        const type_id = state.local.expressions.types[integers.widen(value)]
+        const target = row({ tables: { base: state.types.context.base, delta: state.types.delta }, id: type_id })
+
+        if (target.kind != Kind.Enumeration && target.kind != Kind.ErrorSet && !(type_id >= 2 && type_id <= 7) && type_id != 1 && type_id != 10) {
+            const statement = body.expression.source.blocks.statements[frame.statement]
+            const span = body.expression.source.tree.nodes[statement.first].span
+
+            return { ...body, expression: { ...body.expression, state: { ...state, diagnostic: { code: "type_mismatch", message: "switch requires an enum, finite error, integer, bool or string", start: span.start, end: span.end } } } }
+        }
+
+        return { ...body, selections: body.selections.splice(position, 1, [{ ...frame, subject: value }])[0], phase: Phase.Selection }
+    }
+
+    const source = body.expression.source.blocks.cases[frame.cases[frame.index]]
+
+    if (in.action == Action.Label) {
+        const checked = label({ state: state, value: value, previous: frame.labels, span: body.expression.source.tree.nodes[source.value - 1].span })
+
+        if (checked.diagnostic.message != "") {
+            return { ...body, expression: { ...body.expression, state: checked } }
+        }
+
+        const blocks = enter({ blocks: body.blocks, local: checked.local, tree: body.expression.source.blocks, block: source.body })
+        const selections = body.selections.splice(position, 1, [{ ...frame, labels: frame.labels.push(value)[0], values: frame.values.push(value)[0] }])[0]
+
+        return { ...body, expression: { ...body.expression, state: checked }, blocks: blocks, selections: selections, actions: body.actions.push(Action.Case)[0], phase: Phase.Next }
+    }
+
+    return { ...body, selections: body.selections.splice(position, 1, [{ ...frame, index: frame.index + 1, bodies: frame.bodies.push(body.value)[0] }])[0], phase: Phase.Selection }
+}

@@ -1,0 +1,7 @@
+<Module>
+    <Call fn="initial" in={$in} />
+    <Call fn="walk" in={$ctx.initial} />
+    <Call fn="finish" in={$ctx.walk} />
+
+    <Return value={$ctx.finish} />
+</Module>

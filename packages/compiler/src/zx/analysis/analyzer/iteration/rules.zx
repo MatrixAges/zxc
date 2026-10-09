@@ -1,0 +1,73 @@
+import { ExprKind } from "../../../frontend/parser/expressions/state/model"
+import text from "../../semantic/resolving/source/text"
+import items from "../expressions/items"
+
+import type { Diagnostic } from "../../semantic/resolving/model"
+import type { Source } from "../expressions/request"
+
+export type Input = { source: Source, node: u64 }
+
+export type Output = { initial: u64, condition: u64, step: u64, postcondition: bool, diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+
+    if (node.count != 2) {
+        return { initial: 0, condition: 0, step: 0, postcondition: false, diagnostic: { code: "type_mismatch", message: "loop requires an initial state and a rule literal", start: node.span.start, end: node.span.end } }
+    }
+
+    const arguments = items({ items: in.source.tree.items, head: node.head })
+    const rules = in.source.tree.nodes[arguments[1]]
+
+    if (rules.kind != ExprKind.Object) {
+        return { initial: arguments[0], condition: 0, step: 0, postcondition: false, diagnostic: { code: "type_mismatch", message: "loop rules must be an inline literal", start: rules.span.start, end: rules.span.end } }
+    }
+
+    const ids: u64[] = []
+
+    const ordered = loop({ tree: in.source.tree, head: rules.head, ids: ids }, {
+        while: current => current.head != 0,
+        next: current => {
+            current.ids = current.ids.push(current.head - 1)[0]
+            current.head = current.tree.fields[current.head - 1].previous
+        }
+    }).ids.reverse()[0]
+
+    const missing: u64? = null
+    const diagnostic: Diagnostic = { code: "", message: "", start: 0, end: 0 }
+
+    const found = loop({ source: in.source, fields: ordered, index: 0, condition: missing, step: missing, postcondition: false, diagnostic: diagnostic }, {
+        while: current => current.index < current.fields.length && current.diagnostic.message == "",
+        next: current => {
+            const field = current.source.tree.fields[current.fields[current.index]]
+            const name = text({ source: current.source.bytes, span: field.name })
+
+            if (field.spread) {
+                const span = current.source.tree.nodes[field.value].span
+
+                current.diagnostic = { code: "type_mismatch", message: "loop rules cannot use spread", start: span.start, end: span.end }
+            } else if (name.text == "while") {
+                if (current.condition != null) {
+                    current.diagnostic = { code: "name", message: "duplicate loop condition", start: name.start, end: name.end }
+                } else {
+                    current.condition = field.value
+                }
+            } else if (name.text == "next" || name.text == "do") {
+                if (current.step != null) {
+                    current.diagnostic = { code: "name", message: "loop requires exactly one next or do step", start: name.start, end: name.end }
+                } else {
+                    current.step = field.value
+                    current.postcondition = name.text == "do"
+                }
+            } else {
+                current.diagnostic = { code: "name", message: "unknown loop rule; expected while and next or do", start: name.start, end: name.end }
+            }
+
+            current.index += 1
+        }
+    })
+
+    const incomplete = found.diagnostic.message == "" && (found.condition == null || found.step == null)
+
+    return { initial: arguments[0], condition: found.condition ?? 0, step: found.step ?? 0, postcondition: found.postcondition, diagnostic: incomplete ? { code: "type_mismatch", message: "loop requires while and exactly one next or do step", start: rules.span.start, end: rules.span.end } : found.diagnostic }
+}

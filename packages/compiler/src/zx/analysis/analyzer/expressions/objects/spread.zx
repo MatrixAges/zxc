@@ -1,0 +1,39 @@
+import integers from "zig:integers"
+import project from "core/expression_table/append/projection"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../semantic/types/row"
+import replace from "./replace"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Entries } from "./model"
+
+export type Input = { state: Prepared, entries: Entries, value: u32, span: Span }
+
+export type Output = { state: Prepared, entries: Entries }
+
+export default function (in: Input): Output {
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: in.state.local.expressions.types[integers.widen(in.value)] })
+
+    if (target.kind != Kind.Object) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "only objects can be spread", start: in.span.start, end: in.span.end } }, entries: in.entries }
+    }
+
+    const table = target.delta ? tables.delta : tables.base
+
+    const result = loop({ expressions: in.state.local.expressions, entries: in.entries, types: table.field_types, names: table.field_names, first: integers.widen(target.first), count: integers.widen(target.second), index: 0, value: in.value, span: in.span }, {
+        while: current => current.index < current.count,
+        next: current => {
+            const position = current.first + current.index
+            const projected = project({ table: current.expressions, metadata: { type_id: current.types[position], span_start: current.span.start, span_end: current.span.end }, target: current.value, index: integers.narrow(current.index), tuple: false })
+
+            current.expressions = projected.table
+            current.entries = replace({ entries: current.entries, name: current.names[position], value: projected.id })
+            current.index += 1
+        }
+    })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.expressions } }, entries: result.entries }
+}

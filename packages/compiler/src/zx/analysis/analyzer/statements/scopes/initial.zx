@@ -1,0 +1,9 @@
+import type { Scopes } from "./model"
+
+export type Input = void
+
+export type Output = Scopes
+
+export default function (in: Input): Output {
+    return { bindings: { symbols: [], values: [], borrows: [] }, frames: [] }
+}

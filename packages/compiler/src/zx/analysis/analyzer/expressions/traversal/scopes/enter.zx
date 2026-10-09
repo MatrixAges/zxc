@@ -1,0 +1,16 @@
+import enter from "../../../statements/scopes/enter"
+import { Phase } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.iterations[in.frames.iterations.length - 1]
+    const block = in.source.tree.nodes[in.node].first
+    const scopes = enter({ scopes: in.scopes, local: in.state.local, tree: in.source.blocks, block: block, state_symbol: frame.parameter })
+
+    return { ...in, scopes: scopes, phase: Phase.ScopeNext }
+}

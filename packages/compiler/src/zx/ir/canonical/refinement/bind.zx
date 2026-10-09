@@ -1,7 +1,8 @@
-import { ExpressionKind } from "../expressions/kinds"
+import { ExpressionKind } from "core/expression_table/kinds"
+
 import capture from "./facts/capture"
 
-import type { Expressions } from "../expressions/model"
+import type { Expressions } from "core/expression_table/model"
 import type { Facts } from "./facts/model"
 
 export type Input = { facts: Facts, expressions: Expressions, value: u64, count: u64, err: u32?, result: u32? }

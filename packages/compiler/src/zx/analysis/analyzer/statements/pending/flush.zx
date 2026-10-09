@@ -1,0 +1,29 @@
+import block from "core/control_table/append/block"
+import copy from "core/control_table/append/copy"
+
+import restore from "./restore"
+import terminates from "./terminates"
+
+import type { Control } from "core/control_table/model"
+import type { PendingMark } from "./model"
+
+export type Input = { pending: Control, mark: PendingMark, control: Control, returns: bool[] }
+
+export type Output = { pending: Control, control: Control, id: u32, returns: bool[] }
+
+export default function (in: Input): Output {
+    const first = in.control.statement_kinds.length
+
+    const result = loop({ source: in.pending, target: in.control, index: in.mark.statements }, {
+        while: current => current.index < current.source.statement_kinds.length,
+        next: current => {
+            current.target = copy({ source: current.source, target: current.target, index: current.index })
+            current.index += 1
+        }
+    })
+
+    const returned = terminates({ table: in.pending, first: in.mark.statements, returns: in.returns })
+    const completed = block({ table: result.target, first: first })
+
+    return { pending: restore({ table: in.pending, mark: in.mark }), control: completed.table, id: completed.id, returns: in.returns.push(returned)[0] }
+}

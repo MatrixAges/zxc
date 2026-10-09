@@ -1,0 +1,67 @@
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import parseInteger from "../../../integer/parse"
+import text from "../../../semantic/resolving/source/text"
+import row from "../../../semantic/types/row"
+import { Operation } from "./model"
+
+import type { Context, Frame } from "./model"
+
+export type Input = { context: Context, frame: Frame, type_id: u32 }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const state = in.context.state
+        const source = in.context.source
+        const node = source.tree.nodes[in.frame.node]
+        const tables = { base: state.types.context.base, delta: state.types.delta }
+        const target = row({ tables: tables, id: in.type_id })
+        const table = target.delta ? tables.delta : tables.base
+
+        if (in.frame.operation == Operation.Task) {
+            return target.kind == Kind.Task ? target.first : null
+        }
+
+        if (in.frame.operation == Operation.Optional) {
+            return target.kind == Kind.Optional ? target.first : null
+        }
+
+        if (in.frame.operation == Operation.Index) {
+            if (in.type_id == 10 || target.kind == Kind.List) {
+                return in.type_id == 10 ? 2 : target.first
+            }
+
+            const index = source.tree.nodes[node.second]
+
+            if (target.kind != Kind.Tuple || index.kind != ExprKind.Number) {
+                return null
+            }
+
+            const value = parseInteger(source.bytes.splice(index.span.start, index.span.end - index.span.start, [])[1])
+
+            return value != null && value < integers.widen(target.second) ? table.children[integers.widen(target.first) + value] : null
+        }
+
+        const name = text({ source: source.bytes, span: node.name }).text
+
+        if ((target.kind == Kind.List || in.type_id == 10) && name == "length") {
+            return 5
+        }
+
+        if (target.kind != Kind.Object) {
+            return null
+        }
+
+        const first = integers.widen(target.first)
+        const count = integers.widen(target.second)
+
+        const found = loop({ names: table.field_names, first: first, count: count, name: name, index: 0 }, {
+            while: current => current.index < current.count && current.names[current.first + current.index] != current.name,
+            next: current => { current.index += 1 }
+        })
+
+        return found.index < count ? table.field_types[first + found.index] : null
+    }

@@ -1,9 +1,9 @@
 import integers from "zig:integers"
+import { BinaryOperator, ExpressionKind, UnaryOperator } from "core/expression_table/kinds"
 
-import { BinaryOperator, ExpressionKind, UnaryOperator } from "../expressions/kinds"
 import compare from "./compare"
 
-import type { Expressions } from "../expressions/model"
+import type { Expressions } from "core/expression_table/model"
 import type { Refinement } from "./model"
 
 export type Input = { state: Refinement, expressions: Expressions, condition: u64, truth: bool }

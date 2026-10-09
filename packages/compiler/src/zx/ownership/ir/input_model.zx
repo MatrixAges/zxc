@@ -1,11 +1,9 @@
-import type { Table } from "../../analysis/semantic/types/model"
-import type { Control } from "../../ir/canonical/control/model"
-import type { Expressions } from "../../ir/canonical/expressions/model"
-import type { Stores } from "../../ir/canonical/stores/model"
-import type { Symbols } from "../../ir/canonical/symbols"
-
-export enum Ownership { Copy, Borrowed, Owned }
+import type { Control } from "core/control_table/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Stores } from "core/store_table/model"
+import type { Symbols, Ownership } from "core/symbol_table/model"
+import type { Tables } from "core/type_table/model"
 
 export type Functions = { ownership: Ownership[], stores: Stores[] }
 
-export type Program = { types: Table, symbols: Symbols, expressions: Expressions, control: Control, body: u32?, functions: Functions, type_only: bool }
+export type Program = { types: Tables, symbols: Symbols, expressions: Expressions, control: Control, body: u32?, functions: Functions, type_only: bool }

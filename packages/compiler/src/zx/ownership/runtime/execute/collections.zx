@@ -1,6 +1,7 @@
 import integers from "zig:integers"
+import { CollectionKind } from "core/expression_table/kinds"
+import row from "core/type_table/row"
 
-import { CollectionKind } from "../../../ir/canonical/expressions/kinds"
 import summary from "../../facts/summary"
 import uniform from "../../facts/uniform"
 import { State } from "../../places/model"
@@ -30,7 +31,7 @@ export default function (in: Input): Output {
             if (frame.action == WorkAction.CollectionTarget) {
                 const collection = integers.widen(current.program.expressions.payloads[frame.subject])
                 const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.collection_targets[collection])])
-                const element = integers.widen(current.program.types.first[type_id])
+                const element = integers.widen(row({ tables: current.program.types, id: integers.narrow(type_id) }).first)
                 const shares = current.program.expressions.collection_kinds[collection] == CollectionKind.Pop || current.program.expressions.collection_kinds[collection] == CollectionKind.Splice || current.references[element]
                 const borrowed = shares && (summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed || summary({ forest: current.memory.forest, fact: current.value }) == State.Loaned)
 
@@ -54,7 +55,7 @@ export default function (in: Input): Output {
             } else if (frame.action == WorkAction.CollectionResult) {
                 const collection = integers.widen(current.program.expressions.payloads[frame.subject])
                 const type_id = integers.widen(current.program.expressions.types[integers.widen(current.program.expressions.collection_targets[collection])])
-                const element = integers.widen(current.program.types.first[type_id])
+                const element = integers.widen(row({ tables: current.program.types, id: integers.narrow(type_id) }).first)
 
                 if (current.references[element] && (summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed || summary({ forest: current.memory.forest, fact: current.value }) == State.Loaned)) {
                     current.values[current.values.length - 1] = uniform(State.Borrowed)
@@ -71,7 +72,7 @@ export default function (in: Input): Output {
             } else if (frame.action == WorkAction.UpdateResult) {
                 const update = integers.widen(current.program.expressions.payloads[frame.subject])
                 const type_id = integers.widen(current.program.expressions.types[frame.subject])
-                const element = integers.widen(current.program.types.first[type_id])
+                const element = integers.widen(row({ tables: current.program.types, id: integers.narrow(type_id) }).first)
                 const borrowed = current.references[element] || summary({ forest: current.memory.forest, fact: current.value }) == State.Borrowed || summary({ forest: current.memory.forest, fact: current.value }) == State.Loaned
 
                 if (borrowed) {

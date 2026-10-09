@@ -1,0 +1,33 @@
+import integers from "zig:integers"
+
+import enter from "../../../../statements/scopes/enter"
+import { Phase, Action } from "../../model"
+import finish from "./finish"
+
+import type { Work } from "../../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.switches[in.frames.switches.length - 1]
+
+    if (frame.index == frame.cases.length) {
+        return finish(in)
+    }
+
+    const source = in.source.blocks.cases[frame.cases[frame.index]]
+
+    if (source.value != 0) {
+        return { ...in, node: source.value - 1, expected: in.state.local.expressions.types[integers.widen(frame.subject)], phase: Phase.Evaluate, frames: { ...in.frames, actions: in.frames.actions.push(Action.StateLabel)[0] } }
+    }
+
+    if (frame.fallback != null) {
+        return { ...in, state: { ...in.state, diagnostic: { code: "name", message: "duplicate switch default", start: source.span.start, end: source.span.end } } }
+    }
+
+    const scopes = enter({ scopes: in.scopes, local: in.state.local, tree: in.source.blocks, block: source.body, state_symbol: frame.state_symbol })
+
+    return { ...in, scopes: scopes, phase: Phase.ScopeNext, frames: { ...in.frames, actions: in.frames.actions.push(Action.StateCase)[0] } }
+}

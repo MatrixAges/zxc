@@ -1,0 +1,37 @@
+import initial from "../semantic/resolving/initial"
+import run from "../semantic/resolving/run"
+import text from "../semantic/resolving/source/text"
+
+import type { Declaration } from "../../frontend/parser/declarations/model"
+import type { Prepared } from "./model"
+
+export type Input = { state: Prepared, bytes: u8[], declarations: Declaration[] }
+
+export type Output = { state: Prepared, names: string[], types: u32[] }
+
+export default function (in: Input): Output {
+    const names: string[] = []
+    const types: u32[] = []
+
+    const result = loop({ state: in.state, bytes: in.bytes, declarations: in.declarations, names: names, types: types, index: 0 }, {
+        while: current => current.index < current.declarations.length && current.state.diagnostic.message == "",
+        next: current => {
+            const name = text({ source: current.bytes, span: current.declarations[current.index].name })
+            const prepared = initial({ context: current.state.types.context, delta: current.state.types.delta, cache: current.state.types.cache, initialize: false, named: true, name: name, reference: { enumeration: false, index: 0 } })
+            const resolved = run(prepared)
+
+            current.state.types.delta = resolved.delta
+            current.state.types.cache = resolved.cache
+            current.state.diagnostic = resolved.diagnostic
+
+            if (resolved.diagnostic.message == "") {
+                current.names = current.names.push(name.text)[0]
+                current.types = current.types.push(resolved.result)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { state: result.state, names: result.names, types: result.types }
+}

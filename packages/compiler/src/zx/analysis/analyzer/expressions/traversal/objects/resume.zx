@@ -1,0 +1,25 @@
+import text from "../../../../semantic/resolving/source/text"
+import replace from "../../objects/replace"
+import spread from "../../objects/spread"
+import next from "./next"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const position = in.frames.objects.length - 1
+    const frame = in.frames.objects[position]
+    const field = in.source.tree.fields[frame.fields[frame.index]]
+    const result = field.spread ? spread({ state: in.state, entries: frame.entries, value: in.value, span: in.source.tree.nodes[field.value].span }) : { state: in.state, entries: replace({ entries: frame.entries, name: text({ source: in.source.bytes, span: field.name }).text, value: in.value }) }
+
+    if (result.state.diagnostic.message != "") {
+        return { ...in, state: result.state }
+    }
+
+    const objects = in.frames.objects.splice(position, 1, [{ ...frame, index: frame.index + 1, entries: result.entries, evaluation: frame.evaluation.push(in.value)[0] }])[0]
+
+    return next({ ...in, state: result.state, frames: { ...in.frames, objects: objects } })
+}

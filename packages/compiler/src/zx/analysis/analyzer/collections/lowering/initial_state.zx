@@ -1,0 +1,31 @@
+import { TransformKind } from "core/expression_table/kinds"
+
+import integer from "../building/integer"
+import object from "../building/object"
+import tuple from "../building/tuple"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Result } from "../../expressions/model"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, span: Span, kind: TransformKind, source: u32, result: u32, initial: u32?, captures: u32[] }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const index = integer({ state: in.state, value: in.kind == TransformKind.Reduce && in.initial == null ? 1 : 0, span: in.span })
+    const names = ["source", "index", "result"]
+    const values = [in.source, index.value, in.result]
+
+    if (in.captures.length == 0) {
+        return object({ state: index.state, fields: { names: names, values: values }, span: in.span })
+    }
+
+    const captures = tuple({ state: index.state, values: in.captures, span: in.span })
+
+    if (captures.state.diagnostic.message != "") {
+        return captures
+    }
+
+    return object({ state: captures.state, fields: { names: names.push("captures")[0], values: values.push(captures.value)[0] }, span: in.span })
+}

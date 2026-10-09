@@ -3,12 +3,12 @@ import rewrite from "../../facts/rewrite"
 import { RewriteAction } from "../../facts/rewrite/model"
 import { Action } from "./model"
 
-import type { Table } from "../../../analysis/semantic/types/model"
+import type { Tables } from "core/type_table/model"
 import type { Layout } from "../../places/model"
 import type { Memory } from "../model"
 import type { Stack } from "./model"
 
-export type Input = { types: Table, references: bool[], layout: Layout, memory: Memory, stack: Stack, frame: u64, action: Action }
+export type Input = { types: Tables, references: bool[], layout: Layout, memory: Memory, stack: Stack, frame: u64, action: Action }
 
 export type Output = Memory
 

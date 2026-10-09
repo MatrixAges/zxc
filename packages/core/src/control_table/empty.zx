@@ -1,0 +1,37 @@
+import type { Control } from "./model"
+
+export type Input = void
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    return {
+        statement_kinds: [],
+        statement_payloads: [],
+        evaluations: [],
+        constant_symbols: [],
+        constant_values: [],
+        parallel_first: [],
+        parallel_count: [],
+        parallel_symbols: [],
+        parallel_values: [],
+        destructure_values: [],
+        destructure_first: [],
+        destructure_count: [],
+        destructure_symbols: [],
+        branch_conditions: [],
+        branch_yes: [],
+        branch_no: [],
+        selection_subjects: [],
+        selection_first: [],
+        selection_count: [],
+        selection_exhaustive: [],
+        case_values: [],
+        case_bodies: [],
+        setter_slots: [],
+        setter_values: [],
+        results: [],
+        block_first: [],
+        block_count: []
+    }
+}

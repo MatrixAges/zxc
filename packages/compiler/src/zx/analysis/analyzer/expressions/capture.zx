@@ -1,0 +1,43 @@
+import integers from "zig:integers"
+import { ValueKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/value"
+import { Kind } from "core/type_table/model"
+
+import construct from "../types/construct"
+import errors from "./errors"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Functions } from "../functions"
+import type { Prepared } from "../model"
+import type { Result } from "./model"
+
+export type Input = { state: Prepared, functions: Functions, operand: u32, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const members = errors({ state: in.state, functions: in.functions, value: in.operand })
+
+    if (members == null) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "try requires a finite error contract; declare the native function's throws members", start: in.span.start, end: in.span.end } }, value: 0 }
+    }
+
+    const set = construct({ state: in.state, candidate: { kind: Kind.ErrorSet, first: 0, second: 0, label: "", children: [], fields: { names: [], types: [] }, names: members }, span: in.span })
+    const error_type = construct({ state: set.state, candidate: { kind: Kind.Optional, first: set.id, second: 0, label: "", children: [], fields: { names: [], types: [] }, names: [] }, span: in.span })
+    const payload = in.state.local.expressions.types[integers.widen(in.operand)]
+    const result_type = payload == 0 ? { state: error_type.state, id: payload } : construct({ state: error_type.state, candidate: { kind: Kind.Optional, first: payload, second: 0, label: "", children: [], fields: { names: [], types: [] }, names: [] }, span: in.span })
+
+    if (result_type.state.diagnostic.message != "") {
+        return { state: result_type.state, value: 0 }
+    }
+
+    const tuple = construct({ state: result_type.state, candidate: { kind: Kind.Tuple, first: 0, second: 0, label: "", children: [error_type.id, result_type.id], fields: { names: [], types: [] }, names: [] }, span: in.span })
+
+    if (tuple.state.diagnostic.message != "") {
+        return { state: tuple.state, value: 0 }
+    }
+
+    const result = append({ table: tuple.state.local.expressions, metadata: { type_id: tuple.id, span_start: in.span.start, span_end: in.span.end }, kind: ValueKind.Capture, value: in.operand })
+
+    return { state: { ...tuple.state, local: { ...tuple.state.local, expressions: result.table } }, value: result.id }
+}

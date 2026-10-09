@@ -1,0 +1,24 @@
+import integers from "zig:integers"
+
+import { StatementKind } from "../model"
+import header from "./header"
+
+import type { Control } from "../model"
+
+export type Input = { table: Control, subject: u32, exhaustive: bool, values: u32?[], bodies: u32[] }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    const table = header({ table: in.table, kind: StatementKind.Switch, payload: integers.narrow(in.table.selection_subjects.length) })
+
+    return {
+        ...table,
+        selection_subjects: table.selection_subjects.push(in.subject)[0],
+        selection_exhaustive: table.selection_exhaustive.push(in.exhaustive)[0],
+        selection_first: table.selection_first.push(integers.narrow(table.case_values.length))[0],
+        selection_count: table.selection_count.push(integers.narrow(in.values.length))[0],
+        case_values: table.case_values.concat(in.values)[0],
+        case_bodies: table.case_bodies.concat(in.bodies)[0]
+    }
+}

@@ -1,0 +1,27 @@
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import row from "../../../../semantic/types/row"
+import next from "./next"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const position = in.frames.templates.length - 1
+    const frame = in.frames.templates[position]
+    const type_id = in.state.local.expressions.types[integers.widen(in.value)]
+
+    if (type_id == 0 || row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: type_id }).kind != Kind.Scalar) {
+        const span = in.source.tree.nodes[frame.node].span
+
+        return { ...in, state: { ...in.state, diagnostic: { code: "type_mismatch", message: "template interpolation requires a scalar value", start: span.start, end: span.end } } }
+    }
+
+    const templates = in.frames.templates.splice(position, 1, [{ ...frame, index: frame.index + 1, values: frame.values.push(in.value)[0] }])[0]
+
+    return next({ ...in, frames: { ...in.frames, templates: templates } })
+}

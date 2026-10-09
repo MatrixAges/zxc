@@ -1,0 +1,49 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/binary"
+
+import { Operator } from "../../../../../frontend/parser/expressions/prepare/model"
+import prepare from "../../../iteration/update/prepare"
+import replace from "../../../iteration/update/replace"
+import advance from "../../../statements/scopes/advance"
+import decode from "../../operators/decode"
+import { Phase, Action } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const position = work.frames.updates.length - 1
+    const frame = work.frames.updates[position]
+    const statement = work.source.blocks.statements[frame.statement]
+
+    if (in.action == Action.StateTarget) {
+        const state_symbol = work.scopes.frames[work.scopes.frames.length - 1].state_symbol
+        const prepared = prepare({ state: work.state, scopes: work.scopes, target: work.value, state_symbol: state_symbol, read_value: statement.operator != Operator.None })
+
+        if (prepared.state.diagnostic.message != "") {
+            return { ...work, state: prepared.state, scopes: prepared.scopes }
+        }
+
+        const target = prepared.places[prepared.places.length - 1].value
+        const updates = work.frames.updates.splice(position, 1, [{ ...frame, places: prepared.places, target: target }])[0]
+
+        return { ...work, state: prepared.state, scopes: prepared.scopes, node: statement.second, expected: prepared.state.local.expressions.types[integers.widen(target)], phase: Phase.Evaluate, frames: { ...work.frames, updates: updates, actions: work.frames.actions.push(Action.StateValue)[0] } }
+    }
+
+    const compound = statement.operator != Operator.None
+    const type_id = work.state.local.expressions.types[integers.widen(frame.target)]
+
+    if (compound && (type_id < 2 || type_id > 9)) {
+        return { ...work, state: { ...work.state, diagnostic: { code: "type_mismatch", message: "compound updates require numeric state values", start: statement.span.start, end: statement.span.end } } }
+    }
+
+    const value = compound ? append({ table: work.state.local.expressions, metadata: { type_id: type_id, span_start: statement.span.start, span_end: statement.span.end }, operator: decode(statement.operator), left: frame.target, right: work.value }) : { table: work.state.local.expressions, id: work.value }
+    const replaced = replace({ state: { ...work.state, local: { ...work.state.local, expressions: value.table } }, places: frame.places, value: value.id })
+    const result = advance({ scopes: work.scopes, local: replaced.state.local, value: replaced.value, span: statement.span })
+
+    return { ...work, state: { ...replaced.state, local: result.local, diagnostic: result.diagnostic }, scopes: result.scopes, phase: Phase.ScopeNext, frames: { ...work.frames, updates: work.frames.updates.pop()[0] } }
+}

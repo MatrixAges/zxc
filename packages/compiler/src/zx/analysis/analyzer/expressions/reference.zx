@@ -1,0 +1,22 @@
+import integers from "zig:integers"
+import { ValueKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/value"
+
+import typeOf from "../../../ir/canonical/refinement/type_of"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Prepared } from "../model"
+import type { Result } from "./model"
+
+export type Input = { state: Prepared, symbol: u32, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const original = in.state.local.symbols.types[integers.widen(in.symbol)]
+    const value = append({ table: in.state.local.expressions, metadata: { type_id: original, span_start: in.span.start, span_end: in.span.end }, kind: ValueKind.Reference, value: in.symbol })
+    const refined = typeOf({ facts: in.state.local.refinement.facts, tables: { base: in.state.types.context.base, delta: in.state.types.delta }, type_id: original, symbol: in.symbol })
+    const result = refined == original ? value : append({ table: value.table, metadata: { type_id: refined, span_start: in.span.start, span_end: in.span.end }, kind: ValueKind.OptionalValue, value: value.id })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

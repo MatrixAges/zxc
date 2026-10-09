@@ -1,0 +1,54 @@
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import text from "../../../semantic/resolving/source/text"
+import capture from "../capture"
+import unary from "../operators/unary"
+import field from "../projections/field"
+import index from "../projections/index"
+import indexable from "../projections/indexable"
+import consume from "../tasks/consume"
+import { Phase, Action } from "./model"
+
+import type { Work } from "./model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+
+    if (in.action == Action.TaskValue || in.action == Action.CaptureValue) {
+        const node = work.source.tree.nodes[work.frames.singles[work.frames.singles.length - 1]]
+        const result = in.action == Action.CaptureValue ? capture({ state: work.state, functions: work.functions, operand: work.value, span: node.span }) : consume({ state: work.state, operand: work.value, cancellation: node.kind == ExprKind.Cancel, span: node.span })
+
+        return { ...work, state: result.state, value: result.value, frames: { ...work.frames, singles: work.frames.singles.pop()[0] } }
+    }
+
+    if (in.action == Action.Unary || in.action == Action.Field) {
+        const node = work.source.tree.nodes[work.frames.singles[work.frames.singles.length - 1]]
+        const result = in.action == Action.Unary ? unary({ state: work.state, operand: work.value, negative: node.flag, span: node.span }) : field({ state: work.state, target: work.value, name: text({ source: work.source.bytes, span: node.name }), span: node.span })
+
+        return { ...work, state: result.state, value: result.value, frames: { ...work.frames, singles: work.frames.singles.pop()[0] } }
+    }
+
+    const position = work.frames.indices.length - 1
+    const frame = work.frames.indices[position]
+    const node = work.source.tree.nodes[frame.node]
+
+    if (in.action == Action.IndexTarget) {
+        const state = indexable({ state: work.state, target: work.value, span: node.span })
+
+        return {
+            ...work,
+            state: state,
+            node: node.second,
+            expected: 5,
+            phase: Phase.Evaluate,
+            frames: { ...work.frames, actions: work.frames.actions.push(Action.IndexValue)[0], indices: work.frames.indices.splice(position, 1, [{ ...frame, target: work.value }])[0] }
+        }
+    }
+
+    const result = index({ state: work.state, target: frame.target, index: work.value, index_span: work.source.tree.nodes[node.second].span, span: node.span })
+
+    return { ...work, state: result.state, value: result.value, frames: { ...work.frames, indices: work.frames.indices.pop()[0] } }
+}

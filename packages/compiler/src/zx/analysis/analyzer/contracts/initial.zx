@@ -1,0 +1,18 @@
+import type { Contract } from "../../../frontend/parser/header/model"
+import type { Source } from "../expressions/request"
+import type { Prepared } from "../model"
+import type { ContractWork } from "./model"
+
+export type Input = { state: Prepared, source: Source, items: Contract[], names: string[], types: u32[] }
+
+export type Output = ContractWork
+
+export default function (in: Input): Output {
+    return {
+        state: in.state,
+        source: in.source,
+        items: in.items,
+        aliases: in.items.length == 0 ? in.state.types.context.aliases : { names: in.state.types.context.aliases.names.concat(in.names)[0], ids: in.state.types.context.aliases.ids.concat(in.types)[0] },
+        contracts: { kinds: [], predicates: [], symbols: [], expressions: [], span_start: [], span_end: [] }
+    }
+}

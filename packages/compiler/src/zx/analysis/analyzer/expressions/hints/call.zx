@@ -1,0 +1,48 @@
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import text from "../../../semantic/resolving/source/text"
+import lookup from "../../bindings/lookup"
+
+import type { Context } from "./model"
+
+export type Input = { context: Context, callee: u64 }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const source = in.context.source
+        const callee = source.tree.nodes[in.callee]
+        const field = callee.kind == ExprKind.Field
+
+        if (callee.kind != ExprKind.Identifier && !field) {
+            return null
+        }
+
+        const owner = field ? source.tree.nodes[callee.first] : callee
+
+        if (owner.kind != ExprKind.Identifier) {
+            return null
+        }
+
+        const root_name = text({ source: source.bytes, span: owner.name }).text
+
+        if (lookup({ local: in.context.state.local, name: root_name }) != null) {
+            return null
+        }
+
+        const name = text({ source: source.bytes, span: callee.name }).text
+        const namespace: string? = field ? root_name : null
+        const missing: u32? = null
+
+        const found = loop({ imports: in.context.imports, namespace: namespace, name: name, index: 0, result: missing }, {
+            while: current => current.index < current.imports.names.length && current.result == null,
+            next: current => {
+                if (current.imports.namespaces[current.index] == current.namespace && current.imports.names[current.index] == current.name) {
+                    current.result = current.imports.output_types[current.index]
+                }
+
+                current.index += 1
+            }
+        })
+
+        return found.result
+    }

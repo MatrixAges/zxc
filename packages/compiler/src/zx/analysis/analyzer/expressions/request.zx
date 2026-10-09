@@ -1,0 +1,7 @@
+import type { BlockTree } from "../../../frontend/parser/body/model"
+import type { ExprTree } from "../../../frontend/parser/expressions/state/model"
+import type { Prepared } from "../model"
+
+export type Source = { bytes: u8[], tree: ExprTree, blocks: BlockTree }
+
+export type Request = { state: Prepared, source: Source, node: u64, expected: u32? }

@@ -1,0 +1,60 @@
+import integers from "zig:integers"
+
+import { ExprKind } from "../../../frontend/parser/expressions/state/model"
+import text from "../../semantic/resolving/source/text"
+import matches from "../expressions/injected/matches"
+import slot from "./slot"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Source } from "../expressions/request"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, source: Source, node: u64, span: Span }
+
+export type Output = { state: Prepared, slot: u32 }
+
+export default function (in: Input): Output {
+    if (!in.state.local.allow_store || in.state.local.lambda_depth != 0) {
+        return { state: { ...in.state, diagnostic: { code: "capability", message: "Store writes require the explicit setter parameter and cannot occur in a lambda", start: in.span.start, end: in.span.end } }, slot: 0 }
+    }
+
+    const node = in.source.tree.nodes[in.node]
+    const owner = in.source.tree.nodes[node.kind == ExprKind.Field ? node.first : in.node]
+
+    if (node.kind == ExprKind.Field && owner.kind == ExprKind.Identifier) {
+        const result = slot({ state: in.state, source: in.source, node: in.node })
+
+        if (result.state.diagnostic.message != "") {
+            return result
+        }
+
+        return in.state.local.stores.writable[integers.widen(result.slot)] ? result : { state: { ...in.state, diagnostic: { code: "capability", message: "the Call did not grant write access to this Store handle", start: node.span.start, end: node.span.end } }, slot: result.slot }
+    }
+
+    const root = in.source.tree.nodes[owner.kind == ExprKind.Field ? owner.first : in.node]
+
+    if (node.kind != ExprKind.Field || owner.kind != ExprKind.Field || root.kind != ExprKind.Identifier || text({ source: in.source.bytes, span: root.name }).text != "store") {
+        return { state: { ...in.state, diagnostic: { code: "capability", message: "a Store setter must replace a complete Object", start: node.span.start, end: node.span.end } }, slot: 0 }
+    }
+
+    const found = loop({ paths: in.state.local.stores.paths, source: in.source, node: in.node, index: 0, found: false }, {
+        while: current => current.index < current.paths.length && !current.found,
+        next: current => {
+            current.found = matches({ source: current.source, node: current.node, path: current.paths[current.index] })
+
+            if (!current.found) {
+                current.index += 1
+            }
+        }
+    })
+
+    if (!found.found) {
+        return { state: { ...in.state, diagnostic: { code: "capability", message: "Store Object is not authorized by this Call", start: node.span.start, end: node.span.end } }, slot: 0 }
+    }
+
+    if (!in.state.local.stores.writable[found.index]) {
+        return { state: { ...in.state, diagnostic: { code: "capability", message: "the Call did not grant write access to this Store handle", start: node.span.start, end: node.span.end } }, slot: integers.narrow(found.index) }
+    }
+
+    return { state: in.state, slot: integers.narrow(found.index) }
+}

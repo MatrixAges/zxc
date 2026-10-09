@@ -1,0 +1,18 @@
+import type { Contracts } from "../contract_table/model"
+import type { Control } from "../control_table/model"
+import type { Expressions } from "../expression_table/model"
+import type { Table } from "../function_table/model"
+import type { Tables } from "../type_table/model"
+import type { Seen } from "./seen/model"
+
+export enum Operation { Expression, Function, Block }
+
+export type Frame = { operation: Operation, source: u64, index: u64, count: u64 }
+
+export type Source = { expressions: Expressions, control: Control, returns: bool[], visited: Seen }
+
+export type Context = { types: Tables, functions: Table }
+
+export type State = { context: Context, sources: Source[], frames: Frame[], called: Seen, names: string[], unknown: bool }
+
+export type Request = { context: Context, expressions: Expressions, control: Control, root: u32?, contracts: Contracts, stores: bool, expression: u32, program: bool }

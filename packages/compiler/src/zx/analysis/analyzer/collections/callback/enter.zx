@@ -1,0 +1,65 @@
+import integers from "zig:integers"
+import { Ownership } from "core/symbol_table/model"
+
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import contains from "../../../semantic/querying/contains"
+import text from "../../../semantic/resolving/source/text"
+import bind from "../../bindings/append"
+import enter from "../../captures/enter"
+
+import type { Source } from "../../expressions/request"
+import type { Prepared } from "../../model"
+
+export type Input = { state: Prepared, source: Source, node: u64, types: u32[] }
+
+export type Output = { state: Prepared, frame: u32, parameters: u32[], body: u64 }
+
+export default function (in: Input): Output {
+    const node = in.source.tree.nodes[in.node]
+
+    const message = match {
+        node.kind != ExprKind.Lambda => "collection callback must be an inline lambda",
+        node.count > in.types.length => "too many collection callback parameters",
+        _ => "",
+    }
+
+    if (message != "") {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: message, start: node.span.start, end: node.span.end } }, frame: 0, parameters: [], body: 0 }
+    }
+
+    const ids: u64[] = []
+
+    const order = loop({ tree: in.source.tree, head: node.head, ids: ids }, {
+        while: current => current.head != 0,
+        next: current => {
+            current.ids = current.ids.push(current.head - 1)[0]
+            current.head = current.tree.parameters[current.head - 1].previous
+        }
+    })
+
+    const entered = enter(in.state.local)
+    const parameters: u32[] = []
+
+    const result = loop({ state: { ...in.state, local: entered.local }, source: in.source, order: order.ids.reverse()[0], types: in.types, parameters: parameters, start: in.state.local.active.length, index: 0 }, {
+        while: current => current.index < current.order.length && current.state.diagnostic.message == "",
+        next: current => {
+            const name = text({ source: current.source.bytes, span: current.source.tree.parameters[current.order[current.index]].name })
+            const type_id = current.types[current.index]
+            const binding = bind({ local: current.state.local, name: name, type_id: type_id, scope_start: current.start })
+
+            current.state.local = binding.local
+            current.state.diagnostic = binding.diagnostic
+
+            if (binding.diagnostic.message == "") {
+                const ownership = contains({ tables: { base: current.state.types.context.base, delta: current.state.types.delta }, id: type_id, native_references: false }) ? Ownership.Borrowed : Ownership.Copy
+
+                current.state.local.symbols.ownership = current.state.local.symbols.ownership.splice(integers.widen(binding.id), 1, [ownership])[0]
+                current.parameters = current.parameters.push(binding.id)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { state: result.state, frame: entered.frame, parameters: result.parameters, body: node.first }
+}

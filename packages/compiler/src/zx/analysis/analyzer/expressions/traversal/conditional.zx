@@ -1,0 +1,61 @@
+import integers from "zig:integers"
+import append from "core/expression_table/append/conditional"
+
+import assume from "../../../../ir/canonical/refinement/assume"
+import mark from "../../../../ir/canonical/refinement/facts/mark"
+import restore from "../../../../ir/canonical/refinement/facts/restore"
+import hint from "../hints/conditional"
+import { Phase, Action } from "./model"
+
+import type { Work } from "./model"
+
+export type Input = { work: Work, action: Action }
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const work = in.work
+    const position = work.frames.conditionals.length - 1
+    const frame = work.frames.conditionals[position]
+    const node = work.source.tree.nodes[frame.node]
+
+    if (in.action == Action.Condition) {
+        const expected = hint({ context: { state: work.state, source: work.source, imports: work.imports }, node: frame.node, expected: frame.expected })
+        const before = mark(work.state.local.refinement.facts)
+        const refinement = assume({ state: work.state.local.refinement, expressions: work.state.local.expressions, condition: integers.widen(work.value), truth: true })
+
+        return {
+            ...work,
+            state: { ...work.state, local: { ...work.state.local, refinement: refinement } },
+            node: node.second,
+            expected: expected,
+            phase: Phase.Evaluate,
+            frames: { ...work.frames, actions: work.frames.actions.push(Action.Yes)[0], conditionals: work.frames.conditionals.splice(position, 1, [{ ...frame, condition: work.value, mark: before }])[0] }
+        }
+    }
+
+    const facts = restore({ facts: work.state.local.refinement.facts, mark: frame.mark })
+    const restored = { ...work.state.local.refinement, facts: facts }
+
+    if (in.action == Action.Yes) {
+        const refinement = assume({ state: restored, expressions: work.state.local.expressions, condition: integers.widen(frame.condition), truth: false })
+
+        return {
+            ...work,
+            state: { ...work.state, local: { ...work.state.local, refinement: refinement } },
+            node: node.third,
+            expected: work.state.local.expressions.types[integers.widen(work.value)],
+            phase: Phase.Evaluate,
+            frames: { ...work.frames, actions: work.frames.actions.push(Action.No)[0], conditionals: work.frames.conditionals.splice(position, 1, [{ ...frame, yes: work.value }])[0] }
+        }
+    }
+
+    const result = append({ table: work.state.local.expressions, metadata: { type_id: work.state.local.expressions.types[integers.widen(frame.yes)], span_start: node.span.start, span_end: node.span.end }, condition: frame.condition, yes: frame.yes, no: work.value })
+
+    return {
+        ...work,
+        state: { ...work.state, local: { ...work.state.local, refinement: restored, expressions: result.table } },
+        value: result.id,
+        frames: { ...work.frames, conditionals: work.frames.conditionals.pop()[0] }
+    }
+}

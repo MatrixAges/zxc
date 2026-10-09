@@ -1,0 +1,41 @@
+<Module>
+    <Call module="declarations" in={$in} />
+
+    <Switch on={$ctx.declarations.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call module="signature" in={{ module: $in, types: $ctx.declarations.types }} />
+
+            <Switch on={$ctx.signature.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Call module="stores" in={{ context: $in.context, signature: $ctx.signature, has_store: $in.syntax.has_store }} />
+
+                    <Switch on={$ctx.stores.diagnostic.message == ""}>
+                        <Case value={true}>
+                            <Call module="initialize" in={{ signature: $ctx.signature, stores: $ctx.stores.stores, allow_store: $ctx.stores.allow_store, has_body: $in.syntax.body != null }} />
+
+                            <Return value={{ types: $ctx.signature.types, local: $ctx.initialize.local, input_type: $ctx.signature.input_type, diagnostic: $ctx.initialize.diagnostic }} />
+                        </Case>
+
+                        <Default>
+                            <Call fn="failure" in={{ module: $in, types: $ctx.signature.types, diagnostic: $ctx.stores.diagnostic }} />
+
+                            <Return value={$ctx.failure} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Call fn="failure" in={{ module: $in, types: $ctx.signature.types, diagnostic: $ctx.signature.diagnostic }} />
+
+                    <Return value={$ctx.failure} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Call fn="failure" in={{ module: $in, types: $ctx.declarations.types, diagnostic: $ctx.declarations.diagnostic }} />
+
+            <Return value={$ctx.failure} />
+        </Default>
+    </Switch>
+</Module>

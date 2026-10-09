@@ -1,0 +1,65 @@
+import encoding from "std:encoding"
+import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
+
+import contains from "../../semantic/querying/contains"
+import row from "../../semantic/types/row"
+import named from "../types/named"
+
+import type { StoreBindings } from "../context"
+import type { Types } from "../types/model"
+
+export type Input = { bindings: StoreBindings, index: u64, types: Types, type_count: u64 }
+
+export type Output = { code: string, message: string, id: u32 }
+
+export default function (in: Input): Output {
+    const handles = in.bindings.handles
+    const paths = in.bindings.paths
+    const bytes = encoding.encodeUtf8(handles[in.index])
+
+    if (bytes.length < 2 || bytes[0] != 36) {
+        return { code: "capability", message: "injected Store handles must start with $", id: 0 }
+    }
+
+    const duplicate = loop({ handles: handles, paths: paths, target: in.index, index: 0, found: false }, {
+        while: current => !current.found && current.index < current.target,
+        next: current => {
+            current.found = current.handles[current.index] == current.handles[current.target] || current.paths[current.index] == current.paths[current.target]
+            current.index += 1
+        }
+    })
+
+    if (duplicate.found) {
+        return { code: "capability", message: "Store handle and Object path must be unique in a Call", id: 0 }
+    }
+
+    const name = in.bindings.type_names[in.index]
+    const supplied = in.bindings.type_ids[in.index]
+
+    if ((name == null) == (supplied == null)) {
+        return { code: "capability", message: "Store bindings require exactly one named type or shared type ID", id: 0 }
+    }
+
+    if (supplied != null && integers.widen(supplied) >= in.type_count) {
+        return { code: "capability", message: "Store type ID must belong to the supplied shared type table", id: 0 }
+    }
+
+    const selected = supplied != null ? { found: true, id: supplied } : named({ types: in.types, name: name ?? "" })
+
+    if (!selected.found) {
+        return { code: "name", message: "unknown or unsupported type", id: 0 }
+    }
+
+    const tables = { base: in.types.context.base, delta: in.types.delta }
+
+    if (contains({ tables: tables, id: selected.id, native_references: true })) {
+        return { code: "capability", message: "Store cannot retain host references", id: 0 }
+    }
+
+    if (row({ tables: tables, id: selected.id }).kind != Kind.Object) {
+        return { code: "capability", message: "a Store handle must refer to a complete Object type", id: 0 }
+    }
+
+    return { code: "", message: "", id: selected.id }
+}

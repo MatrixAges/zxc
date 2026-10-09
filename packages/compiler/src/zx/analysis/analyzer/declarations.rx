@@ -1,0 +1,7 @@
+<Module>
+    <Call fn="declarations/request" in={$in} />
+
+    <Call module="../semantic/resolve" in={$ctx.request} />
+
+    <Return value={{ types: { context: $ctx.request.request.context, delta: $ctx.resolve.delta, cache: $ctx.resolve.cache, nominal_delta: $ctx.resolve.origins }, diagnostic: $ctx.resolve.diagnostic }} />
+</Module>

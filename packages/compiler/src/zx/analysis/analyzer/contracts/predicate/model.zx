@@ -1,0 +1,10 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Symbols } from "core/symbol_table/model"
+import type { Contract } from "../../../../frontend/parser/header/model"
+import type { Diagnostic, Cache } from "../../../semantic/resolving/model"
+import type { Source } from "../../expressions/request"
+import type { Types } from "../../types/model"
+
+export type PredicateInput = { types: Types, aliases: Cache, source: Source, contract: Contract, input_type: u32, output_type: u32 }
+
+export type PredicateOutput = { types: Types, symbols: Symbols, expressions: Expressions, predicate: u32, diagnostic: Diagnostic }

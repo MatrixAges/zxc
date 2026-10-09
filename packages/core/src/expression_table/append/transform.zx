@@ -1,0 +1,30 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../kinds"
+import header from "./header"
+
+import type { TransformKind } from "../kinds"
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, kind: TransformKind, target: u32, body: u32, initial: u32?, parameters: u32[] }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = header({ table: in.table, metadata: in.metadata, kind: ExpressionKind.Transform, payload: integers.narrow(in.table.transform_kinds.length) })
+
+    return {
+        table: {
+            ...result.table,
+            transform_kinds: result.table.transform_kinds.push(in.kind)[0],
+            transform_targets: result.table.transform_targets.push(in.target)[0],
+            transform_bodies: result.table.transform_bodies.push(in.body)[0],
+            transform_initials: result.table.transform_initials.push(in.initial)[0],
+            transform_first: result.table.transform_first.push(integers.narrow(result.table.transform_parameters.length))[0],
+            transform_count: result.table.transform_count.push(integers.narrow(in.parameters.length))[0],
+            transform_parameters: result.table.transform_parameters.concat(in.parameters)[0]
+        },
+        id: result.id
+    }
+}

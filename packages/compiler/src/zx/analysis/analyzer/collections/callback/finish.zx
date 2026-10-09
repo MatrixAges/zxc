@@ -1,0 +1,23 @@
+import integers from "zig:integers"
+import { TransformKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import gather from "../../captures/gather"
+import leave from "../../captures/leave"
+import construct from "../../types/construct"
+
+import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Prepared } from "../../model"
+import type { Callback } from "../model"
+
+export type Input = { state: Prepared, frame: u32, parameters: u32[], body: u32, kind: TransformKind, result_type: u32, span: Span }
+
+export type Output = { state: Prepared, callback: Callback, result_type: u32 }
+
+export default function (in: Input): Output {
+    const captures = gather({ captures: in.state.local.captures, frame: in.frame })
+    const state = { ...in.state, local: leave({ local: in.state.local, frame: in.frame }) }
+    const result = in.kind == TransformKind.Map ? construct({ state: state, candidate: { kind: Kind.List, first: state.local.expressions.types[integers.widen(in.body)], second: 0, label: "", children: [], fields: { names: [], types: [] }, names: [] }, span: in.span }) : { state: state, id: in.result_type }
+
+    return { state: result.state, callback: { parameters: in.parameters, captures: captures, body: in.body }, result_type: result.id }
+}

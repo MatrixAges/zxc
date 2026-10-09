@@ -1,0 +1,26 @@
+import appendFloat from "core/expression_table/append/float"
+import appendInteger from "core/expression_table/append/integer"
+
+import payload from "../types/payload"
+import decode from "./numbers/decode"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Prepared } from "../model"
+import type { Result } from "./model"
+
+export type Input = { state: Prepared, source: u8[], expected: u32?, negative: bool, span: Span }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const value = decode({ source: in.source, expected: payload({ types: in.state.types, expected: in.expected }), negative: in.negative })
+
+    if (value.message != "") {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: value.message, start: in.span.start, end: in.span.end } }, value: 0 }
+    }
+
+    const metadata = { type_id: value.target.id, span_start: in.span.start, span_end: in.span.end }
+    const result = value.target.floating ? appendFloat({ table: in.state.local.expressions, metadata: metadata, value: value.floating }) : appendInteger({ table: in.state.local.expressions, metadata: metadata, value: value.integer, negative: in.negative })
+
+    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+}

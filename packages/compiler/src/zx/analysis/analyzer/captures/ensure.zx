@@ -1,0 +1,37 @@
+import integers from "zig:integers"
+import symbol from "core/symbol_table/append"
+import { Ownership } from "core/symbol_table/model"
+import { Kind } from "core/type_table/model"
+
+import row from "../../semantic/types/row"
+import reference from "../expressions/reference"
+import link from "./link"
+import lookup from "./lookup"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, frame: u32, source: u32, span: Span }
+
+export type Output = { state: Prepared, symbol: u32 }
+
+export default function (in: Input): Output {
+    const found = lookup({ captures: in.state.local.captures, frame: in.frame, source: in.source })
+
+    if (found != null) {
+        return { state: in.state, symbol: found }
+    }
+
+    const value = reference({ state: in.state, symbol: in.source, span: in.span })
+    const type_id = value.state.local.expressions.types[integers.widen(value.value)]
+    const target = row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: type_id })
+
+    if (target.kind == Kind.Task) {
+        return { state: { ...value.state, diagnostic: { code: "ownership", message: "collection callbacks cannot repeatedly consume a captured task handle", start: in.span.start, end: in.span.end } }, symbol: in.source }
+    }
+
+    const bound = symbol({ table: value.state.local.symbols, name: value.state.local.symbols.names[integers.widen(in.source)], type_id: type_id, span_start: in.span.start, span_end: in.span.end, ownership: Ownership.Borrowed })
+    const captures = link({ captures: value.state.local.captures, frame: in.frame, source: in.source, target: bound.id, value: value.value })
+
+    return { state: { ...value.state, local: { ...value.state.local, symbols: bound.table, captures: captures } }, symbol: bound.id }
+}

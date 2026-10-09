@@ -1,4 +1,4 @@
-import type { Bindings } from "./model"
+import type { Bindings } from "core/type_table/nominal"
 
 export type Input = { origins: Bindings, names: string[] }
 
@@ -9,8 +9,8 @@ export default function (in: Input): Output {
 
     if (in.origins.kinds.length != count || in.origins.owners.length != count ||
         in.origins.members.length != count || in.names.length != count) {
-        return false
-    }
+            return false
+        }
 
     const state = loop({ origins: in.origins, count: count, index: 0, valid: true }, {
         while: current => current.valid && current.index < current.count,

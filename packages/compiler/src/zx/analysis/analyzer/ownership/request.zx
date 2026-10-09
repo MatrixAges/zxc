@@ -1,0 +1,19 @@
+import type { Program } from "../../../ownership/ir/input_model"
+import type { Functions } from "../functions"
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, root: u32?, functions: Functions, type_only: bool }
+
+export type Output = Program
+
+export default function (in: Input): Output {
+    return {
+        types: { base: in.state.types.context.base, delta: in.state.types.delta },
+        symbols: in.state.local.symbols,
+        expressions: in.state.local.expressions,
+        control: in.state.local.control,
+        body: in.root,
+        functions: { ownership: in.functions.ownership, stores: in.functions.stores },
+        type_only: in.type_only
+    }
+}

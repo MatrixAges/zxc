@@ -1,0 +1,19 @@
+import type { Target } from "./model"
+
+export type Input = { expected: u32?, floating: bool, negative: bool }
+
+export type Output = Target
+
+export default function (in: Input): Output {
+    const unsigned: u32 = 5
+    const signed: u32 = 7
+    const floating: u32 = 9
+
+    const id = in.expected ?? match {
+        in.floating => floating,
+        in.negative => signed,
+        _ => unsigned,
+    }
+
+    return { id: id, floating: id == 8 || id == 9, integer: id >= 2 && id <= 7, signed: id == 6 || id == 7 }
+}

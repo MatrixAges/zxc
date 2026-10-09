@@ -1,0 +1,25 @@
+import integers from "zig:integers"
+
+import type { ExpressionKind } from "../kinds"
+import type { Expressions } from "../model"
+import type { Metadata, Result } from "./model"
+
+export type Input = { table: Expressions, metadata: Metadata, kind: ExpressionKind, payload: u32 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const id = integers.narrow(in.table.kinds.length)
+
+    return {
+        table: {
+            ...in.table,
+            kinds: in.table.kinds.push(in.kind)[0],
+            types: in.table.types.push(in.metadata.type_id)[0],
+            span_start: in.table.span_start.push(in.metadata.span_start)[0],
+            span_end: in.table.span_end.push(in.metadata.span_end)[0],
+            payloads: in.table.payloads.push(in.payload)[0]
+        },
+        id: id
+    }
+}

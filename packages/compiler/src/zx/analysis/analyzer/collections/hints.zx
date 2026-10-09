@@ -1,0 +1,38 @@
+import integers from "zig:integers"
+import { TransformKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import row from "../../semantic/types/row"
+import payload from "../types/payload"
+
+import type { Prepared } from "../model"
+
+export type Input = { state: Prepared, kind: TransformKind, target: u32, second: u32?, expected: u32? }
+
+export type Output = { parameters: u32[], body: u32?, result: u32 }
+
+export default function (in: Input): Output {
+    const source = in.state.local.expressions.types[integers.widen(in.target)]
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const element = row({ tables: tables, id: source }).first
+    const second = in.second
+    const accumulator = in.kind == TransformKind.Reduce && second != null ? in.state.local.expressions.types[integers.widen(second)] : element
+    const hint = payload({ types: in.state.types, expected: in.expected })
+    const target = row({ tables: tables, id: hint ?? 0 })
+    const predicate = in.kind == TransformKind.Filter || in.kind == TransformKind.Every || in.kind == TransformKind.Some
+
+    const body: u32? = match {
+        predicate => 1,
+        in.kind == TransformKind.Reduce => accumulator,
+        hint != null && target.kind == Kind.List => target.first,
+        _ => null,
+    }
+
+    const parameters: u32[] = in.kind == TransformKind.Reduce ? [accumulator, element, 5, source] : [element, 5, source]
+
+    return { parameters: parameters, body: body, result: match in.kind {
+        TransformKind.Filter => source,
+        TransformKind.Reduce => accumulator,
+        _ => 1,
+    } }
+}

@@ -1,10 +1,10 @@
 import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
 
 import kind from "../kind"
-import { Kind } from "../model"
 import ascending from "./ascending"
 
-import type { Table } from "../model"
+import type { Table } from "core/type_table/model"
 
 export type Input = { table: Table, index: u64, first: u64, count: u64, object: bool }
 

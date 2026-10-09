@@ -1,0 +1,44 @@
+import { ExprKind } from "../../../../../frontend/parser/expressions/state/model"
+import text from "../../../../semantic/resolving/source/text"
+import { Phase, Action } from "../model"
+import finish from "./finish"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const position = in.frames.parallels.length - 1
+    const frame = in.frames.parallels[position]
+
+    if (frame.index == frame.fields.length) {
+        return finish(in)
+    }
+
+    const field = in.source.tree.fields[frame.fields[frame.index]]
+    const callback = in.source.tree.nodes[field.value]
+
+    if (field.spread || callback.kind != ExprKind.Lambda || callback.count != 0) {
+        return { ...in, state: { ...in.state, diagnostic: { code: "type_mismatch", message: "parallel branches must be zero-argument callbacks", start: callback.span.start, end: callback.span.end } } }
+    }
+
+    const name = text({ source: in.source.bytes, span: field.name })
+
+    const duplicate = loop({ names: frame.names, name: name.text, index: 0, found: false }, {
+        while: current => current.index < current.names.length && !current.found,
+        next: current => {
+            current.found = current.names[current.index] == current.name
+            current.index += 1
+        }
+    }).found
+
+    if (duplicate) {
+        return { ...in, state: { ...in.state, diagnostic: { code: "name", message: "duplicate parallel branch name", start: name.start, end: name.end } } }
+    }
+
+    const updated = { ...frame, names: frame.names.push(name.text)[0], first: in.state.local.expressions.kinds.length, symbol_count: in.state.local.symbols.names.length }
+
+    return { ...in, node: callback.first, expected: null, phase: Phase.Evaluate, frames: { ...in.frames, parallels: in.frames.parallels.splice(position, 1, [updated])[0], actions: in.frames.actions.push(Action.ParallelBody)[0] } }
+}

@@ -1,0 +1,27 @@
+import integers from "zig:integers"
+
+import row from "../../../../semantic/types/row"
+import { Phase, Action } from "../model"
+import finish from "./finish"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const frame = in.frames.imported[in.frames.imported.length - 1]
+
+    if (frame.index == frame.arguments.length) {
+        return finish(in)
+    }
+
+    const input = in.imports.input_types[frame.import_index]
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: input })
+    const table = target.delta ? tables.delta : tables.base
+    const expected = frame.tuple ? table.children[integers.widen(target.first) + frame.index] : input
+
+    return { ...in, node: frame.arguments[frame.index], expected: expected, phase: Phase.Evaluate, frames: { ...in.frames, actions: in.frames.actions.push(Action.Imported)[0] } }
+}

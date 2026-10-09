@@ -1,0 +1,59 @@
+import integers from "zig:integers"
+import append from "core/control_table/append/branch"
+
+import assume from "../../../../ir/canonical/refinement/assume"
+import mark from "../../../../ir/canonical/refinement/facts/mark"
+import restore from "../../../../ir/canonical/refinement/facts/restore"
+import empty from "../blocks/empty"
+import enter from "../blocks/enter"
+import { Phase, Action } from "./model"
+
+import type { Body } from "./model"
+
+export type Input = { body: Body, action: Action }
+
+export type Output = Body
+
+export default function (in: Input): Output {
+    const body = in.body
+    const position = body.branches.length - 1
+    const frame = body.branches[position]
+    const statement = body.expression.source.blocks.statements[frame.statement]
+    const state = body.expression.state
+
+    if (in.action == Action.Condition) {
+        const before = mark(state.local.refinement.facts)
+        const refinement = assume({ state: state.local.refinement, expressions: state.local.expressions, condition: integers.widen(body.expression.value), truth: true })
+        const local = { ...state.local, refinement: refinement }
+        const blocks = enter({ blocks: body.blocks, local: local, tree: body.expression.source.blocks, block: statement.second })
+        const branches = body.branches.splice(position, 1, [{ ...frame, condition: body.expression.value, mark: before }])[0]
+
+        return { ...body, expression: { ...body.expression, state: { ...state, local: local } }, blocks: blocks, branches: branches, actions: body.actions.push(Action.Yes)[0], phase: Phase.Next }
+    }
+
+    const facts = restore({ facts: state.local.refinement.facts, mark: frame.mark })
+    const restored = { ...state.local.refinement, facts: facts }
+
+    if (in.action == Action.Yes) {
+        const refinement = assume({ state: restored, expressions: state.local.expressions, condition: integers.widen(frame.condition), truth: false })
+        const local = { ...state.local, refinement: refinement }
+        const branches = body.branches.splice(position, 1, [{ ...frame, yes: body.value }])[0]
+        const actions = body.actions.push(Action.No)[0]
+
+        if (statement.third == 0) {
+            const result = empty({ blocks: body.blocks, local: local })
+
+            return { ...body, expression: { ...body.expression, state: { ...state, local: result.local } }, blocks: result.blocks, branches: branches, actions: actions, value: result.id, phase: Phase.Resume }
+        }
+
+        const blocks = enter({ blocks: body.blocks, local: local, tree: body.expression.source.blocks, block: statement.third - 1 })
+
+        return { ...body, expression: { ...body.expression, state: { ...state, local: local } }, blocks: blocks, branches: branches, actions: actions, phase: Phase.Next }
+    }
+
+    const after_yes = body.blocks.returns[integers.widen(frame.yes)] ? assume({ state: restored, expressions: state.local.expressions, condition: integers.widen(frame.condition), truth: false }) : restored
+    const refinement = body.blocks.returns[integers.widen(body.value)] ? assume({ state: after_yes, expressions: state.local.expressions, condition: integers.widen(frame.condition), truth: true }) : after_yes
+    const pending = append({ table: body.blocks.pending, condition: frame.condition, yes: frame.yes, no: body.value })
+
+    return { ...body, expression: { ...body.expression, state: { ...state, local: { ...state.local, refinement: refinement } } }, blocks: { ...body.blocks, pending: pending }, branches: body.branches.pop()[0], phase: Phase.Next }
+}

@@ -1,0 +1,23 @@
+import integers from "zig:integers"
+
+import grow from "./grow"
+
+import type { Seen } from "./model"
+
+export type Input = { seen: Seen, id: u32 }
+
+export type Output = { seen: Seen, fresh: bool }
+
+export default function (in: Input): Output {
+    const slots = in.seen.count * 2 >= in.seen.slots.length ? grow(in.seen.slots) : in.seen.slots
+    const key = integers.widen(in.id) + 1
+
+    const position = loop({ slots: slots, key: key, position: (key * 2654435761) % slots.length }, {
+        while: current => current.slots[current.position] != 0 && current.slots[current.position] != current.key,
+        next: current => { current.position = (current.position + 1) % current.slots.length }
+    }).position
+
+    const fresh = slots[position] == 0
+
+    return { seen: { slots: fresh ? slots.splice(position, 1, [key])[0] : slots, count: fresh ? in.seen.count + 1 : in.seen.count }, fresh: fresh }
+}

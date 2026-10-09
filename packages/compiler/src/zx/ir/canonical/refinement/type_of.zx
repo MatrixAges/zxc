@@ -1,18 +1,17 @@
-import integers from "zig:integers"
+import { Kind } from "core/type_table/model"
 
-import kind from "../../../analysis/semantic/types/kind"
-import { Kind } from "../../../analysis/semantic/types/model"
+import row from "../../../analysis/semantic/types/row"
 import contains from "./facts/contains"
 
-import type { Table } from "../../../analysis/semantic/types/model"
+import type { Tables } from "core/type_table/model"
 import type { Facts } from "./facts/model"
 
-export type Input = { facts: Facts, table: Table, type_id: u32, symbol: u32 }
+export type Input = { facts: Facts, tables: Tables, type_id: u32, symbol: u32 }
 
 export type Output = u32
 
 export default function (in: Input): Output {
-    const index = integers.widen(in.type_id)
+    const value = row({ tables: in.tables, id: in.type_id })
 
-    return kind(in.table.kinds[index]) == Kind.Optional && contains({ facts: in.facts, symbol: in.symbol }) ? in.table.first[index] : in.type_id
+    return value.kind == Kind.Optional && contains({ facts: in.facts, symbol: in.symbol }) ? value.first : in.type_id
 }

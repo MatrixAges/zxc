@@ -1,5 +1,5 @@
-import type { Table } from "../../../../analysis/semantic/types/model"
-import type { Expressions } from "../../../../ir/canonical/expressions/model"
+import type { Expressions } from "core/expression_table/model"
+import type { Tables } from "core/type_table/model"
 import type { Forest } from "../../../facts/model"
 import type { Built } from "../../../layout/model"
 import type { State } from "../../../places/model"
@@ -7,7 +7,7 @@ import type { State } from "../../../places/model"
 export enum Phase { Next, Query, Descend, Expand, Enter, Done }
 
 export type Session = {
-    types: Table,
+    types: Tables,
     references: bool[],
     forest: Forest,
     facts: u64[],

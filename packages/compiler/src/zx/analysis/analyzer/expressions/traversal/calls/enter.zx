@@ -1,0 +1,43 @@
+import dispatch from "../../calls/dispatch"
+import { Route } from "../../calls/model"
+import imported from "../imported/enter"
+import iteration from "../iteration/enter"
+import { Phase, Action } from "../model"
+import parallel from "../parallel/enter"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const result = dispatch({ state: in.state, source: in.source, node: in.node, imports: in.imports })
+    const work = { ...in, state: result.state }
+
+    if (result.route == Route.Failed) {
+        return work
+    }
+
+    if (result.route == Route.Imported) {
+        return imported({ work: work, index: result.index })
+    }
+
+    if (result.route == Route.Loop) {
+        return iteration(work)
+    }
+
+    if (result.route == Route.Method) {
+        const callee = work.source.tree.nodes[work.source.tree.nodes[work.node].first]
+
+        return {
+            ...work,
+            node: callee.first,
+            expected: null,
+            phase: Phase.Evaluate,
+            frames: { ...work.frames, actions: work.frames.actions.push(Action.MethodTarget)[0], methods: work.frames.methods.push({ node: work.node, expected: work.expected, target: 0 })[0] }
+        }
+    }
+
+    return parallel(work)
+}

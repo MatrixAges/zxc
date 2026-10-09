@@ -16,6 +16,8 @@ pub const Options = struct {
     types: zx.ir.TypeTable,
     nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types"),
     native_modules: zx.ir.NativeModuleTable = .{},
+    shared_functions: ?zx.ir.FunctionTable = null,
+    store_initializers: []const frontend.project.compiled.StoreInitializer = &.{},
     input_type: zx.ir.TypeId,
     output_type: zx.ir.TypeId,
 };
@@ -26,6 +28,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
         .owner = options.owner,
         .types = options.types,
         .native_modules = options.native_modules,
+        .shared_functions = options.shared_functions,
         .output_type = options.output_type,
         .loaded = options.calls,
         .results = options.bindings,
@@ -45,7 +48,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
     const calls = flow.calls;
     var result: ?zx.ir.Program = if (steps.len != 0 and steps[steps.len - 1] == .result) steps[steps.len - 1].result else null;
 
-    const native_modules = @import("module_native.zig").merge(allocator, calls.items, types, options.native_modules) catch |err| {
+    const native_modules = if (options.shared_functions != null) options.native_modules else @import("module_native.zig").merge(allocator, calls.items, types, options.native_modules) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         const failed = try target.failure(allocator, .{ .path = options.owner, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "contract", .message = "RX calls contain conflicting native interfaces" });
@@ -66,7 +69,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
         program.native_modules = native_modules;
     }
 
-    const lowered = @import("program.zig").lower(allocator, .{ .owner = options.owner, .types = types, .input_type = options.input_type, .output_type = options.output_type, .calls = calls.items, .native_modules = native_modules, .steps = steps }) catch |err| {
+    const lowered = @import("program.zig").lower(allocator, .{ .owner = options.owner, .types = types, .input_type = options.input_type, .output_type = options.output_type, .calls = calls.items, .native_modules = native_modules, .shared_functions = options.shared_functions, .store_initializers = options.store_initializers, .steps = steps }) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
         if (err == error.UnreachableFlow or err == error.IncompleteFlow) return invalid(allocator, options, .{ .code = .return_path, .span = .{ .start = 0, .end = 0 }, .message = if (err == error.UnreachableFlow) "steps after a terminating Return or Switch are unreachable" else "every RX path must return Output" });
 

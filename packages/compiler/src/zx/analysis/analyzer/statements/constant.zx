@@ -1,0 +1,37 @@
+import integers from "zig:integers"
+import append from "core/control_table/append/constant"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import row from "../../semantic/types/row"
+import bind from "../bindings/append"
+
+import type { Name } from "../../semantic/resolving/source/model"
+import type { Prepared } from "../model"
+import type { Blocks } from "./blocks/model"
+
+export type Input = { state: Prepared, blocks: Blocks, name: Name, value: u32 }
+
+export type Output = { state: Prepared, blocks: Blocks }
+
+export default function (in: Input): Output {
+    const type_id = in.state.local.expressions.types[integers.widen(in.value)]
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+
+    if (row({ tables: tables, id: type_id }).kind == Kind.Task && in.state.local.expressions.kinds[integers.widen(in.value)] != ExpressionKind.Task) {
+        return { state: { ...in.state, diagnostic: { code: "ownership", message: "a task binding must create its own task; task handles cannot be copied", start: in.name.start, end: in.name.end } }, blocks: in.blocks }
+    }
+
+    if (type_id == 0) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "void results cannot be bound to a value", start: in.name.start, end: in.name.end } }, blocks: in.blocks }
+    }
+
+    const frame = in.blocks.frames[in.blocks.frames.length - 1]
+    const result = bind({ local: in.state.local, name: in.name, type_id: type_id, scope_start: frame.active_mark })
+    const state = { ...in.state, local: result.local, diagnostic: result.diagnostic }
+
+    return {
+        state: state,
+        blocks: result.diagnostic.message == "" ? { ...in.blocks, pending: append({ table: in.blocks.pending, symbol: result.id, value: in.value }) } : in.blocks
+    }
+}

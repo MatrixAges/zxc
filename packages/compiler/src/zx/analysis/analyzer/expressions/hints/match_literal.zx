@@ -1,0 +1,28 @@
+import literal from "./literal"
+
+import type { Source } from "../request"
+
+export type Input = { source: Source, node: u64 }
+
+export type Output = u32?
+
+    export default function (in: Input): Output {
+        const node = in.source.tree.nodes[in.node]
+        const missing: u32? = null
+
+        const result = loop({ source: in.source, head: node.head, fallback: node.second, type_id: missing }, {
+            while: current => current.head != 0 && current.type_id != 9,
+            next: current => {
+                const arm = current.source.tree.arms[current.head - 1]
+                const hint = literal({ source: current.source, left: arm.result, right: current.fallback })
+
+                if (hint != null) {
+                    current.type_id = hint
+                }
+
+                current.head = arm.previous
+            }
+        })
+
+        return result.type_id
+    }

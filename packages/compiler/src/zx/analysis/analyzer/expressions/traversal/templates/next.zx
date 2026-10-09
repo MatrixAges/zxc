@@ -1,0 +1,39 @@
+import { SequenceKind } from "core/expression_table/append/model"
+import append from "core/expression_table/append/sequence"
+
+import string from "../../string"
+import { Phase, Action } from "../model"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const position = in.frames.templates.length - 1
+    const frame = in.frames.templates[position]
+    const span = in.source.tree.nodes[frame.node].span
+
+    const text = loop({ state: in.state, source: in.source, frame: frame, span: span }, {
+        while: current => current.frame.index < current.frame.parts.length && !current.source.tree.parts[current.frame.parts[current.frame.index]].expression,
+        next: current => {
+            const part = current.source.tree.parts[current.frame.parts[current.frame.index]]
+            const value = string({ state: current.state, source: current.source.bytes.splice(part.span.start, part.span.end - part.span.start, [])[1], template: true, span: current.span })
+
+            current.state = value.state
+            current.frame.values = current.frame.values.push(value.value)[0]
+            current.frame.index += 1
+        }
+    })
+
+    if (text.frame.index == text.frame.parts.length) {
+        const result = append({ table: text.state.local.expressions, metadata: { type_id: 10, span_start: span.start, span_end: span.end }, kind: SequenceKind.Template, values: text.frame.values })
+
+        return { ...in, state: { ...text.state, local: { ...text.state.local, expressions: result.table } }, value: result.id, phase: Phase.Complete, frames: { ...in.frames, templates: in.frames.templates.pop()[0] } }
+    }
+
+    const part = in.source.tree.parts[text.frame.parts[text.frame.index]]
+
+    return { ...in, state: text.state, node: part.value, expected: null, phase: Phase.Evaluate, frames: { ...in.frames, actions: in.frames.actions.push(Action.Template)[0], templates: in.frames.templates.splice(position, 1, [text.frame])[0] } }
+}

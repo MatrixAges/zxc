@@ -1,4 +1,4 @@
-import type { Table } from "../types/model"
+import type { Table } from "core/type_table/model"
 import type { Source, Name, Reference } from "./source/model"
 
 export enum Operation { Name, FinishName, Node, Wrap, Tuple, Object }
@@ -27,6 +27,6 @@ export type Scratch = { types: u32[], names: string[] }
 
 export type State = { context: Context, delta: Table, cache: Cache, frames: Frame[], scratch: Scratch, active: string[], result: u32, diagnostic: Diagnostic }
 
-export type Request = { context: Context, initialize: bool, named: bool, name: Name, reference: Reference }
+export type Request = { context: Context, delta: Table, cache: Cache, initialize: bool, named: bool, name: Name, reference: Reference }
 
 export type Result = { delta: Table, cache: Cache, id: u32, diagnostic: Diagnostic }

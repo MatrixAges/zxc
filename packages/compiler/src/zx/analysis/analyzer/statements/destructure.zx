@@ -1,0 +1,80 @@
+import integers from "zig:integers"
+import append from "core/control_table/append/destructure"
+import { Kind } from "core/type_table/model"
+
+import refine from "../../../ir/canonical/refinement/bind"
+import text from "../../semantic/resolving/source/text"
+import row from "../../semantic/types/row"
+import bind from "../bindings/append"
+import bindingName from "./binding_name"
+
+import type { Source } from "../expressions/request"
+import type { Prepared } from "../model"
+import type { Blocks } from "./blocks/model"
+
+export type Input = { state: Prepared, blocks: Blocks, source: Source, statement: u64, value: u32 }
+
+export type Output = { state: Prepared, blocks: Blocks }
+
+export default function (in: Input): Output {
+    const statement = in.source.blocks.statements[in.statement]
+    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const target = row({ tables: tables, id: in.state.local.expressions.types[integers.widen(in.value)] })
+
+    if (target.kind != Kind.Tuple || integers.widen(target.second) != statement.count) {
+        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "tuple destructuring must match every result slot; use _ to discard a slot", start: statement.span.start, end: statement.span.end } }, blocks: in.blocks }
+    }
+
+    const ids: u64[] = []
+
+    const order = loop({ names: in.source.blocks.names, head: statement.head, ids: ids }, {
+        while: current => current.head != 0,
+        next: current => {
+            current.ids = current.ids.push(current.head - 1)[0]
+            current.head = current.names[current.head - 1].previous
+        }
+    }).ids.reverse()[0]
+
+    const table = target.delta ? tables.delta : tables.base
+    const symbols: u32?[] = []
+    const start = in.blocks.frames[in.blocks.frames.length - 1].active_mark
+
+    const result = loop({ state: in.state, source: in.source, types: table.children, first: integers.widen(target.first), order: order, symbols: symbols, start: start, index: 0 }, {
+        while: current => current.index < current.order.length && current.state.diagnostic.message == "",
+        next: current => {
+            const name = text({ source: current.source.bytes, span: current.source.blocks.names[current.order[current.index]].span })
+            const type_id = current.types[current.first + current.index]
+
+            if (name.text == "_") {
+                current.symbols = current.symbols.push(null)[0]
+            } else {
+                current.state.diagnostic = bindingName(name)
+
+                if (current.state.diagnostic.message == "" && type_id == 0) {
+                    current.state.diagnostic = { code: "type_mismatch", message: "void tuple results must be discarded with _", start: name.start, end: name.end }
+                }
+
+                if (current.state.diagnostic.message == "") {
+                    const bound = bind({ local: current.state.local, name: name, type_id: type_id, scope_start: current.start })
+
+                    current.state.local = bound.local
+                    current.state.diagnostic = bound.diagnostic
+                    current.symbols = current.symbols.push(bound.id)[0]
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    if (result.state.diagnostic.message != "") {
+        return { state: result.state, blocks: in.blocks }
+    }
+
+    const facts = refine({ facts: result.state.local.refinement.facts, expressions: result.state.local.expressions, value: integers.widen(in.value), count: result.symbols.length, err: result.symbols.length == 2 ? result.symbols[0] : null, result: result.symbols.length == 2 ? result.symbols[1] : null })
+
+    return {
+        state: { ...result.state, local: { ...result.state.local, refinement: { ...result.state.local.refinement, facts: facts } } },
+        blocks: { ...in.blocks, pending: append({ table: in.blocks.pending, value: in.value, symbols: result.symbols }) }
+    }
+}

@@ -1,0 +1,13 @@
+import type { TransformKind } from "core/expression_table/kinds"
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { Prepared } from "../model"
+
+export type Captures = { sources: u32[], targets: u32[], values: u32[] }
+
+export type Callback = { parameters: u32[], captures: Captures, body: u32 }
+
+export type Bindings = { symbols: u32?[], values: u32[], borrows: bool[] }
+
+export type Options = { state: Prepared, span: Span, kind: TransformKind, target: u32, initial: u32?, ignored: u32?, callback: Callback, result_type: u32 }
+
+export type Frame = { node: u64, kind: TransformKind, target: u32, expected: u32?, second: u32?, arguments: u64[], capture_frame: u32, parameters: u32[], result_type: u32 }

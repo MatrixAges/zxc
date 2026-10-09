@@ -1,0 +1,22 @@
+export type Input = u8[]
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const bytes: u8[] = []
+
+    const result = loop({ source: in, bytes: bytes, index: 0 }, {
+        while: current => current.index < current.source.length,
+        next: current => {
+            const byte = current.source[current.index]
+
+            if (byte != 95) {
+                current.bytes = current.bytes.push(byte)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return result.bytes
+}

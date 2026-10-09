@@ -1,0 +1,28 @@
+import integers from "zig:integers"
+
+import row from "../../../../semantic/types/row"
+import finish from "../../tasks/finish"
+import next from "./next"
+
+import type { Work } from "../model"
+
+export type Input = Work
+
+export type Output = Work
+
+export default function (in: Input): Output {
+    const position = in.frames.parallels.length - 1
+    const frame = in.frames.parallels[position]
+    const field = in.source.tree.fields[frame.fields[frame.index]]
+    const span = in.source.tree.nodes[field.value].span
+    const result = finish({ state: in.state, functions: in.functions, concurrent: in.concurrent, first: frame.first, symbol_count: frame.symbol_count, body: in.value, span: span })
+
+    if (result.state.diagnostic.message != "") {
+        return { ...in, state: result.state }
+    }
+
+    const type_id = row({ tables: { base: result.state.types.context.base, delta: result.state.types.delta }, id: result.state.local.expressions.types[integers.widen(result.value)] }).first
+    const updated = { ...frame, index: frame.index + 1, tasks: frame.tasks.push(result.value)[0], type_names: type_id == 0 ? frame.type_names : frame.type_names.push(frame.names[frame.index])[0], types: type_id == 0 ? frame.types : frame.types.push(type_id)[0] }
+
+    return next({ ...in, state: result.state, frames: { ...in.frames, parallels: in.frames.parallels.splice(position, 1, [updated])[0] } })
+}

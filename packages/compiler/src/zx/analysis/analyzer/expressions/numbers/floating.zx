@@ -1,0 +1,20 @@
+import floats from "zig:floats"
+
+export type Input = { bytes: u8[], single: bool, negative: bool }
+
+export type Output = { value: f64, message: string }
+
+export default function (in: Input): Output {
+    const single = in.single ? floats.parse32(in.bytes) : null
+
+    const widened: f64? = single != null ? floats.widen(single) : null
+    const value = in.single ? widened : floats.parse64(in.bytes)
+
+    if (value == null) {
+        return { value: 0, message: "invalid floating-point literal" }
+    }
+
+    const signed = in.negative ? -value : value
+
+    return { value: signed, message: floats.isFinite(signed) ? "" : "floating-point literal is outside the target range" }
+}

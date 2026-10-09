@@ -1,0 +1,26 @@
+import { BinaryOperator } from "core/expression_table/kinds"
+
+import { Operator } from "../../../../frontend/parser/expressions/prepare/model"
+
+export type Input = Operator
+
+export type Output = BinaryOperator
+
+export default function (in: Input): Output {
+    return match in {
+        Operator.Coalesce => BinaryOperator.Coalesce,
+        Operator.Add => BinaryOperator.Add,
+        Operator.Subtract => BinaryOperator.Subtract,
+        Operator.Multiply => BinaryOperator.Multiply,
+        Operator.Divide => BinaryOperator.Divide,
+        Operator.Remainder => BinaryOperator.Remainder,
+        Operator.Equal => BinaryOperator.Equal,
+        Operator.NotEqual => BinaryOperator.NotEqual,
+        Operator.Less => BinaryOperator.Less,
+        Operator.LessEqual => BinaryOperator.LessEqual,
+        Operator.Greater => BinaryOperator.Greater,
+        Operator.GreaterEqual => BinaryOperator.GreaterEqual,
+        Operator.And => BinaryOperator.LogicalAnd,
+        _ => BinaryOperator.LogicalOr,
+    }
+}

@@ -1,0 +1,38 @@
+import type { Control } from "core/control_table/model"
+import type { PendingMark } from "./model"
+
+export type Input = { table: Control, mark: PendingMark }
+
+export type Output = Control
+
+export default function (in: Input): Output {
+    return {
+        statement_kinds: in.table.statement_kinds.splice(0, in.mark.statements, [])[1],
+        statement_payloads: in.table.statement_payloads.splice(0, in.mark.statements, [])[1],
+        evaluations: in.table.evaluations.splice(0, in.mark.evaluations, [])[1],
+        constant_symbols: in.table.constant_symbols.splice(0, in.mark.constants, [])[1],
+        constant_values: in.table.constant_values.splice(0, in.mark.constants, [])[1],
+        parallel_first: in.table.parallel_first.splice(0, in.mark.parallels, [])[1],
+        parallel_count: in.table.parallel_count.splice(0, in.mark.parallels, [])[1],
+        parallel_symbols: in.table.parallel_symbols.splice(0, in.mark.parallel_values, [])[1],
+        parallel_values: in.table.parallel_values.splice(0, in.mark.parallel_values, [])[1],
+        destructure_values: in.table.destructure_values.splice(0, in.mark.destructures, [])[1],
+        destructure_first: in.table.destructure_first.splice(0, in.mark.destructures, [])[1],
+        destructure_count: in.table.destructure_count.splice(0, in.mark.destructures, [])[1],
+        destructure_symbols: in.table.destructure_symbols.splice(0, in.mark.destructure_symbols, [])[1],
+        branch_conditions: in.table.branch_conditions.splice(0, in.mark.branches, [])[1],
+        branch_yes: in.table.branch_yes.splice(0, in.mark.branches, [])[1],
+        branch_no: in.table.branch_no.splice(0, in.mark.branches, [])[1],
+        selection_subjects: in.table.selection_subjects.splice(0, in.mark.selections, [])[1],
+        selection_first: in.table.selection_first.splice(0, in.mark.selections, [])[1],
+        selection_count: in.table.selection_count.splice(0, in.mark.selections, [])[1],
+        selection_exhaustive: in.table.selection_exhaustive.splice(0, in.mark.selections, [])[1],
+        case_values: in.table.case_values.splice(0, in.mark.cases, [])[1],
+        case_bodies: in.table.case_bodies.splice(0, in.mark.cases, [])[1],
+        setter_slots: in.table.setter_slots.splice(0, in.mark.setters, [])[1],
+        setter_values: in.table.setter_values.splice(0, in.mark.setters, [])[1],
+        results: in.table.results.splice(0, in.mark.results, [])[1],
+        block_first: in.table.block_first.splice(0, in.mark.blocks, [])[1],
+        block_count: in.table.block_count.splice(0, in.mark.blocks, [])[1]
+    }
+}

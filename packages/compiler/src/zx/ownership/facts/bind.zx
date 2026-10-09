@@ -2,11 +2,11 @@ import project from "./project"
 import replace from "./replace"
 import summary from "./summary"
 
-import type { Table } from "../../analysis/semantic/types/model"
+import type { Tables } from "core/type_table/model"
 import type { Layout } from "../places/model"
 import type { Storage } from "./storage"
 
-export type Input = { types: Table, references: bool[], layout: Layout, storage: Storage, id: u64, fact: u64 }
+export type Input = { types: Tables, references: bool[], layout: Layout, storage: Storage, id: u64, fact: u64 }
 
 export type Output = Storage
 

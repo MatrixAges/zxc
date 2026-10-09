@@ -1,0 +1,95 @@
+原递归证明
+OS Version:      macOS 26.1 (25B78)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         48.0G
+Physical footprint (peak):  48.0G
+Idle exit:                  untracked
+----
+
+Call graph:
+    578 Thread_702816   DispatchQueue_1: com.apple.main-thread  (serial)
+      578 start  (in dyld) + 3457  [0x7ff8070ef781]
+        578 main  (in generate-parser) + 4135  [0x10a887177]  start.zig:754
+          578 generate_parser.main  (in generate-parser) + 17502  [0x10a88568e]  generate_parser.zig:244
+            578 generate_parser.generate  (in generate-parser) + 9172  [0x10a87bf64]  generate_parser.zig:277
+              578 zx.render.initialize  (in generate-parser) + 3441  [0x10a8fad91]  render.zig:52
+                578 zx.buffer_call.analysis.flow.analyzeLanes  (in generate-parser) + 5097  [0x10a904719]  flow.zig:93
+                  578 zx.buffer_call.analysis.audit.count  (in generate-parser) + 308  [0x10a90e7a4]  audit.zig:116
+                    578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 5740  [0x10a90fe7c]  may.zig:47
+                      578 zx.buffer_call.analysis.independent.parameter  (in generate-parser) + 220  [0x10a9101bc]  independent.zig:15
+                        578 zx.buffer_call.analysis.independent.projection  (in generate-parser) + 460  [0x10a9104fc]  independent.zig:37
+                          578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 3459  [0x10a90f593]  may.zig:0
+                            578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 1815  [0x10a90ef27]  may.zig:41
+                              578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 4196  [0x10a90f874]  may.zig:75
+                                578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 1618  [0x10a90ee62]  may.zig:68
+                                  578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 1815  [0x10a90ef27]  may.zig:41
+                                    578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 4196  [0x10a90f874]  may.zig:75
+                                      578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 1618  [0x10a90ee62]  may.zig:68
+                                        578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 1815  [0x10a90ef27]  may.zig:41
+                                          578 zx.buffer_call.analysis.may.contains  (in generate-parser) + 4196  [0x10a90f874]  may.zig:75
+
+假设上下文缓存
+OS Version:      macOS 26.1 (25B78)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         22.4G
+Physical footprint (peak):  22.4G
+Idle exit:                  untracked
+----
+
+Call graph:
+    713 Thread_708439   DispatchQueue_1: com.apple.main-thread  (serial)
+      713 start  (in dyld) + 3457  [0x7ff8070ef781]
+        713 main  (in generate-parser) + 4135  [0x10702f177]  start.zig:754
+          713 generate_parser.main  (in generate-parser) + 17502  [0x10702d68e]  generate_parser.zig:244
+            713 generate_parser.generate  (in generate-parser) + 9172  [0x107023f64]  generate_parser.zig:277
+              713 zx.render.initialize  (in generate-parser) + 3451  [0x1070a2efb]  render.zig:52
+                713 zx.buffer_call.analysis.flow.analyzeLanes  (in generate-parser) + 5353  [0x1070aca19]  flow.zig:100
+                  713 zx.buffer_call.analysis.audit.count  (in generate-parser) + 308  [0x1070b6ab4]  audit.zig:117
+                    713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6309  [0x1070b83c5]  may.zig:13
+                      713 zx.buffer_call.analysis.independent.parameter  (in generate-parser) + 488  [0x1070b9e88]  independent.zig:15
+                        713 zx.buffer_call.analysis.independent.evaluate  (in generate-parser) + 773  [0x1070ba715]  independent.zig:55
+                          713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 3810  [0x1070b7a02]  may.zig:13
+                            713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 2159  [0x1070b738f]  may.zig:13
+                              713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 4416  [0x1070b7c60]  may.zig:13
+                                713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 1939  [0x1070b72b3]  may.zig:13
+                                  713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 2159  [0x1070b738f]  may.zig:13
+                                    713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 4416  [0x1070b7c60]  may.zig:13
+                                      713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 1939  [0x1070b72b3]  may.zig:13
+                                        713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 2159  [0x1070b738f]  may.zig:13
+                                          713 zx.buffer_call.analysis.may.contains  (in generate-parser) + 4416  [0x1070b7c60]  may.zig:13
+
+强连通分量查询
+OS Version:      macOS 26.1 (25B78)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         16.8G
+Physical footprint (peak):  16.8G
+Idle exit:                  untracked
+----
+
+Call graph:
+    685 Thread_712833   DispatchQueue_1: com.apple.main-thread  (serial)
+      685 start  (in dyld) + 3457  [0x7ff8070ef781]
+        685 main  (in generate-parser) + 4135  [0x101a50177]  start.zig:754
+          685 generate_parser.main  (in generate-parser) + 17502  [0x101a4e68e]  generate_parser.zig:244
+            685 generate_parser.generate  (in generate-parser) + 9172  [0x101a44f64]  generate_parser.zig:277
+              685 zx.render.initialize  (in generate-parser) + 3451  [0x101ac3efb]  render.zig:52
+                445 zx.buffer_call.analysis.flow.analyzeLanes  (in generate-parser) + 5305  [0x101acd9e9]  flow.zig:101
+                + 437 zx.buffer_call.analysis.audit.count  (in generate-parser) + 388  [0x101ad7b84]  audit.zig:116
+                + ! 326 zx.buffer_call.analysis.may.contains  (in generate-parser) + 7338  [0x101ad989a]  may.zig:23
+                + ! : 236 zx.buffer_call.analysis.may.contains  (in generate-parser) + 4778  [0x101ad8e9a]  may.zig:23
+                + ! : | 211 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6618  [0x101ad95ca]  may.zig:23
+                + ! : | + 114 zx.buffer_call.analysis.may.contains  (in generate-parser) + 8005  [0x101ad9b35]  may.zig:23
+                + ! : | + ! 114 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6618  [0x101ad95ca]  may.zig:23
+                + ! : | + !   114 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6618  [0x101ad95ca]  may.zig:23
+                + ! : | + !     86 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6182  [0x101ad9416]  may.zig:23
+                + ! : | + !     : 85 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6618  [0x101ad95ca]  may.zig:23
+                + ! : | + !     : | 82 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6618  [0x101ad95ca]  may.zig:23
+                + ! : | + !     : | + 53 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6182  [0x101ad9416]  may.zig:23
+                + ! : | + !     : | + ! 53 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6618  [0x101ad95ca]  may.zig:23
+                + ! : | + !     : | + !   53 zx.buffer_call.analysis.may.contains  (in generate-parser) + 6618  [0x101ad95ca]  may.zig:23

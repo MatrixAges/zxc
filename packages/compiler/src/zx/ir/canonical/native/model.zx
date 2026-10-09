@@ -1,10 +1,5 @@
-import type { Table } from "../../../analysis/semantic/types/model"
-
-export type Modules = { identities: string?[], import_names: string[], specifiers: string[], type_ids: u32[][], type_names: string[][], type_namespaces: string[][] }
-
-export type Errors = string[]?
-
-    export type Functions = { input_types: u32[], output_types: u32[], native_modules: u32?[], native_members: string[][], native_exports: string?[], native_fallible: bool[], native_errors: Errors[], native_concurrent: bool[] }
+import type { Modules, Functions } from "core/native_module_table/model"
+import type { Table } from "core/type_table/model"
 
 export type Context = { table: Table, modules: Modules }
 
