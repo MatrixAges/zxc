@@ -303,8 +303,10 @@ const Project = struct {
             defer self.types = analyzer.types.items;
 
             var analyzed = try input.analyze(&analyzer, unit.path);
+
             analyzed.functions = try self.functions.view().snapshot(self.allocator);
-            analyzed.output_ownership = try @import("../ownership/check.zig").analyze(self.allocator, analyzed, self.reporter);
+
+            if (!@TypeOf(input).completes_ownership) analyzed.output_ownership = try @import("../ownership/check.zig").analyze(self.allocator, analyzed, self.reporter);
 
             break :analyze_block analyzed;
         };

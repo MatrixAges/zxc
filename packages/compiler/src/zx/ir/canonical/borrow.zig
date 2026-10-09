@@ -21,6 +21,8 @@ pub fn columns(comptime Target: type, value: anytype) Target {
 }
 
 pub fn slice(comptime Target: type, source: anytype) Target {
+    @setEvalBranchQuota(100_000);
+
     if (Target == @TypeOf(source)) return source;
 
     comptime compatible(Target, @TypeOf(source));
@@ -31,6 +33,8 @@ pub fn slice(comptime Target: type, source: anytype) Target {
 }
 
 pub fn pointer(comptime Target: type, source: anytype) Target {
+    @setEvalBranchQuota(100_000);
+
     if (Target == @TypeOf(source)) return source;
 
     comptime compatible(Target, @TypeOf(source));

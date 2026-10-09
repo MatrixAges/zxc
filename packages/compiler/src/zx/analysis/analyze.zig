@@ -115,7 +115,7 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
     program.functions = functions;
     program.native_modules = if (resolved != null) context.native_modules else try @import("../modules/native_context.zig").copy(allocator, context.native_modules);
 
-    program.output_ownership = @import("../ownership/check.zig").analyze(allocator, program, &reporter) catch |err| {
+    if (!@TypeOf(input).completes_ownership) program.output_ownership = @import("../ownership/check.zig").analyze(allocator, program, &reporter) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .value = .{ .diagnostic = reporter.diagnostic.? } };

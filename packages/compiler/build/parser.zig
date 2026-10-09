@@ -354,20 +354,13 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const analyzer_abi = b.createModule(.{ .root_source_file = source.analyzer_abi, .target = target, .optimize = optimize });
 
-    const analyzer_standard = b.createModule(.{
-        .root_source_file = b.path("standard/src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{.{ .name = "zxc_abi", .module = analyzer_abi }},
-    });
-
     const analyzer = b.createModule(.{
         .root_source_file = source.analyzer,
         .target = target,
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zxc_abi", .module = analyzer_abi },
-            .{ .name = "zxc_standard", .module = analyzer_standard },
+            .{ .name = "zxc_standard", .module = resolution_standard },
             .{ .name = "integers", .module = integers },
             .{ .name = "floats", .module = floats },
         },
