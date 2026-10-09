@@ -5,7 +5,7 @@ pub const RuntimeSuite = struct {
     path: []const u8,
     shared_abi: bool = false,
     sources: []const []const u8 = &.{},
-    kind: enum { application_json, predicate_trace, filter_trace, reduce_trace, state_update, state_update_whitespace, floating, floating_unary, floating_comparison, floating_ternary, control, collections, optional_selection, string_storage, floating_optional },
+    kind: enum { application_json, predicate_trace, filter_trace, map_trace, reduce_trace, state_update, state_update_whitespace, floating, floating_unary, floating_comparison, floating_ternary, control, collections, optional_selection, string_storage, floating_optional },
 };
 
 pub const Suites = struct {
