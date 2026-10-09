@@ -1,0 +1,178 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub const Input = *const (zx_abi).zx_type_babebd4047ea5e09bb3117b6f86f52b733603787e4d118e4844fcb3c09310568;
+
+pub const Output = f32;
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .list, .child = zx_shape_8, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .items = zx_shape_11, .seed = zx_shape_8, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .index = zx_shape_5, .result = zx_shape_8, .source = zx_shape_11, }, };
+
+pub const input_shape = zx_shape_12;
+
+pub const output_shape = zx_shape_8;
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const (zx_abi).zx_type_babebd4047ea5e09bb3117b6f86f52b733603787e4d118e4844fcb3c09310568) error{ IndexOutOfBounds, OutOfMemory, }!f32 {
+    @setRuntimeSafety(true);
+
+    _ = arena;
+
+    return block_23: {
+        const value_3: []const f32 = (in).items;
+
+        break :block_23 block_22: {
+            const operand_9 = block_8: {
+                const operand_2 = value_3;
+                const operand_3 = @as(u64, 1);
+                const operand_4 = block_7: {
+                    const operand_5 = operand_2;
+                    const operand_6 = @as(u64, 0);
+
+                    if ((operand_6 >= (operand_5).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_7 (operand_5)[@intCast(operand_6)];
+                };
+
+                break :block_8 (zx_abi).zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2{ .index = operand_3, .result = operand_4, .source = operand_2, };
+            };
+
+            var state_1: (zx_abi).value_zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = (zx_abi).value_zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = (operand_9).index, .result = (operand_9).result, .source = (operand_9).source, .zx_origin = (&operand_9), };
+
+            while (((state_1).index < @as(u64, ((state_1).source).len))) {
+                state_1 = block_21: {
+                    const value_6: f32 = block_20: {
+                        const operand_18 = (state_1).source;
+                        const operand_19 = (state_1).index;
+
+                        if ((operand_19 >= (operand_18).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_20 (operand_18)[@intCast(operand_19)];
+                    };
+                    const value_1: f32 = (state_1).result;
+                    const value_2: f32 = block_17: {
+                        break :block_17 value_6;
+                    };
+                    const value_7: f32 = (block_15: {
+                        break :block_15 value_1;
+                    } / block_16: {
+                        break :block_16 value_2;
+                    });
+
+                    break :block_21 block_14: {
+                        const operand_10 = (state_1).source;
+                        const operand_11 = ((state_1).index + @as(u64, 1));
+                        const operand_12 = block_13: {
+                            break :block_13 value_7;
+                        };
+
+                        break :block_14 @as((zx_abi).value_zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = operand_11, .result = operand_12, .source = operand_10, });
+                    };
+                };
+            }
+
+            break :block_22 (state_1).result;
+        };
+    };
+}
+
+pub fn executeValue(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_babebd4047ea5e09bb3117b6f86f52b733603787e4d118e4844fcb3c09310568) error{ IndexOutOfBounds, OutOfMemory, }!f32 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return block_46: {
+        const value_3: []const f32 = (in).items;
+
+        break :block_46 block_45: {
+            const operand_32 = block_31: {
+                const operand_25 = value_3;
+                const operand_26 = @as(u64, 1);
+                const operand_27 = block_30: {
+                    const operand_28 = operand_25;
+                    const operand_29 = @as(u64, 0);
+
+                    if ((operand_29 >= (operand_28).len)) {
+                        return error.IndexOutOfBounds;
+                    }
+
+                    break :block_30 (operand_28)[@intCast(operand_29)];
+                };
+
+                break :block_31 (zx_abi).zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2{ .index = operand_26, .result = operand_27, .source = operand_25, };
+            };
+
+            var state_24: (zx_abi).value_zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = (zx_abi).value_zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = (operand_32).index, .result = (operand_32).result, .source = (operand_32).source, .zx_origin = (&operand_32), };
+
+            while (((state_24).index < @as(u64, ((state_24).source).len))) {
+                state_24 = block_44: {
+                    const value_6: f32 = block_43: {
+                        const operand_41 = (state_24).source;
+                        const operand_42 = (state_24).index;
+
+                        if ((operand_42 >= (operand_41).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_43 (operand_41)[@intCast(operand_42)];
+                    };
+                    const value_1: f32 = (state_24).result;
+                    const value_2: f32 = block_40: {
+                        break :block_40 value_6;
+                    };
+                    const value_7: f32 = (block_38: {
+                        break :block_38 value_1;
+                    } / block_39: {
+                        break :block_39 value_2;
+                    });
+
+                    break :block_44 block_37: {
+                        const operand_33 = (state_24).source;
+                        const operand_34 = ((state_24).index + @as(u64, 1));
+                        const operand_35 = block_36: {
+                            break :block_36 value_7;
+                        };
+
+                        break :block_37 @as((zx_abi).value_zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_b60112c392ee9e9aec9d129f3400630680b731fa7b338ca1ade648d8f71fe0f2_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = operand_34, .result = operand_35, .source = operand_33, });
+                    };
+                };
+            }
+
+            break :block_45 (state_24).result;
+        };
+    };
+}
+

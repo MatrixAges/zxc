@@ -1,0 +1,1569 @@
+const std = @import("std");
+const program = @import("program");
+const Input = std.meta.Child(program.Input);
+const Scalar = @typeInfo(@FieldType(Input, "items")).pointer.child;
+const Bits = @Int(.unsigned, @bitSizeOf(Scalar));
+
+pub fn check(values: []const Bits, seed: Bits, expected: union(enum) { value: ?Bits, missing_initial }) !void {
+    var storage: [4098]Bits = @splat(std.math.maxInt(Bits));
+
+    try std.testing.expect(values.len <= storage.len - 2);
+
+    @memcpy(storage[1..][0..values.len], values);
+
+    const snapshot = storage;
+
+    const input: Input = .{
+        .items = std.mem.bytesAsSlice(Scalar, std.mem.sliceAsBytes(storage[1..][0..values.len])),
+        .seed = @bitCast(seed),
+    };
+
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+
+    defer arena.deinit();
+
+    const original_items = input.items;
+    const actual = program.execute(&arena, &input);
+
+    try std.testing.expectEqualSlices(Bits, &snapshot, &storage);
+    try std.testing.expectEqual(seed, @as(Bits, @bitCast(input.seed)));
+    try std.testing.expectEqual(values.len, input.items.len);
+    try std.testing.expectEqual(@intFromPtr(original_items.ptr), @intFromPtr(input.items.ptr));
+
+    switch (expected) {
+        .missing_initial => try std.testing.expectError(error.IndexOutOfBounds, actual),
+        .value => |bits| {
+            const value = try actual;
+
+            if (bits) |pattern| {
+                try std.testing.expectEqual(pattern, @as(Bits, @bitCast(value)));
+            } else {
+                try std.testing.expect(std.math.isNan(value));
+            }
+        },
+    }
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_zero" {
+    try check(&.{}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_zero" {
+    try check(&.{0x00000000}, 0x00000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/negative_zero" {
+    try check(&.{0x80000000}, 0x00000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_min_normal" {
+    try check(&.{0x00800000}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/negative_min_normal" {
+    try check(&.{0x80800000}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_half" {
+    try check(&.{0x3f000000}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_one" {
+    try check(&.{0x3f800000}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/negative_one" {
+    try check(&.{0xbf800000}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_above_one" {
+    try check(&.{0x3f800001}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_infinity" {
+    try check(&.{0x7f800000}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/negative_infinity" {
+    try check(&.{0xff800000}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/nan" {
+    try check(&.{0x7fc00000}, 0x00000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x00000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_zero/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/negative_zero" {
+    try check(&.{}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_zero" {
+    try check(&.{0x00000000}, 0x80000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/negative_zero" {
+    try check(&.{0x80000000}, 0x80000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_min_normal" {
+    try check(&.{0x00800000}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/negative_min_normal" {
+    try check(&.{0x80800000}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_half" {
+    try check(&.{0x3f000000}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_one" {
+    try check(&.{0x3f800000}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/negative_one" {
+    try check(&.{0xbf800000}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_above_one" {
+    try check(&.{0x3f800001}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_infinity" {
+    try check(&.{0x7f800000}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/negative_infinity" {
+    try check(&.{0xff800000}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/nan" {
+    try check(&.{0x7fc00000}, 0x80000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x80000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_zero/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_min_subnormal" {
+    try check(&.{}, 0x00000001, .{ .value = 0x00000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_zero" {
+    try check(&.{0x00000000}, 0x00000001, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/negative_zero" {
+    try check(&.{0x80000000}, 0x00000001, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x00000001, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x00000001, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x00000001, .{ .value = 0x34000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_min_normal" {
+    try check(&.{0x00800000}, 0x00000001, .{ .value = 0x34000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/negative_min_normal" {
+    try check(&.{0x80800000}, 0x00000001, .{ .value = 0xb4000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_half" {
+    try check(&.{0x3f000000}, 0x00000001, .{ .value = 0x00000002 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_one" {
+    try check(&.{0x3f800000}, 0x00000001, .{ .value = 0x00000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/negative_one" {
+    try check(&.{0xbf800000}, 0x00000001, .{ .value = 0x80000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_above_one" {
+    try check(&.{0x3f800001}, 0x00000001, .{ .value = 0x00000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x00000001, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x00000001, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_infinity" {
+    try check(&.{0x7f800000}, 0x00000001, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/negative_infinity" {
+    try check(&.{0xff800000}, 0x00000001, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/nan" {
+    try check(&.{0x7fc00000}, 0x00000001, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x00000001, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_subnormal/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x00000001, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/negative_min_subnormal" {
+    try check(&.{}, 0x80000001, .{ .value = 0x80000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_zero" {
+    try check(&.{0x00000000}, 0x80000001, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/negative_zero" {
+    try check(&.{0x80000000}, 0x80000001, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x80000001, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x80000001, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x80000001, .{ .value = 0xb4000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_min_normal" {
+    try check(&.{0x00800000}, 0x80000001, .{ .value = 0xb4000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/negative_min_normal" {
+    try check(&.{0x80800000}, 0x80000001, .{ .value = 0x34000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_half" {
+    try check(&.{0x3f000000}, 0x80000001, .{ .value = 0x80000002 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_one" {
+    try check(&.{0x3f800000}, 0x80000001, .{ .value = 0x80000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/negative_one" {
+    try check(&.{0xbf800000}, 0x80000001, .{ .value = 0x00000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_above_one" {
+    try check(&.{0x3f800001}, 0x80000001, .{ .value = 0x80000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x80000001, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x80000001, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_infinity" {
+    try check(&.{0x7f800000}, 0x80000001, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/negative_infinity" {
+    try check(&.{0xff800000}, 0x80000001, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/nan" {
+    try check(&.{0x7fc00000}, 0x80000001, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x80000001, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_subnormal/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x80000001, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_max_subnormal" {
+    try check(&.{}, 0x007fffff, .{ .value = 0x007fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_zero" {
+    try check(&.{0x00000000}, 0x007fffff, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/negative_zero" {
+    try check(&.{0x80000000}, 0x007fffff, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x007fffff, .{ .value = 0x4afffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x007fffff, .{ .value = 0xcafffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x007fffff, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_min_normal" {
+    try check(&.{0x00800000}, 0x007fffff, .{ .value = 0x3f7ffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/negative_min_normal" {
+    try check(&.{0x80800000}, 0x007fffff, .{ .value = 0xbf7ffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_half" {
+    try check(&.{0x3f000000}, 0x007fffff, .{ .value = 0x00fffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_one" {
+    try check(&.{0x3f800000}, 0x007fffff, .{ .value = 0x007fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/negative_one" {
+    try check(&.{0xbf800000}, 0x007fffff, .{ .value = 0x807fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_above_one" {
+    try check(&.{0x3f800001}, 0x007fffff, .{ .value = 0x007ffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x007fffff, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x007fffff, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_infinity" {
+    try check(&.{0x7f800000}, 0x007fffff, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/negative_infinity" {
+    try check(&.{0xff800000}, 0x007fffff, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/nan" {
+    try check(&.{0x7fc00000}, 0x007fffff, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x007fffff, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_subnormal/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x007fffff, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_min_normal" {
+    try check(&.{}, 0x00800000, .{ .value = 0x00800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_zero" {
+    try check(&.{0x00000000}, 0x00800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/negative_zero" {
+    try check(&.{0x80000000}, 0x00800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x00800000, .{ .value = 0x4b000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x00800000, .{ .value = 0xcb000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x00800000, .{ .value = 0x3f800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_min_normal" {
+    try check(&.{0x00800000}, 0x00800000, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/negative_min_normal" {
+    try check(&.{0x80800000}, 0x00800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_half" {
+    try check(&.{0x3f000000}, 0x00800000, .{ .value = 0x01000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_one" {
+    try check(&.{0x3f800000}, 0x00800000, .{ .value = 0x00800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/negative_one" {
+    try check(&.{0xbf800000}, 0x00800000, .{ .value = 0x80800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_above_one" {
+    try check(&.{0x3f800001}, 0x00800000, .{ .value = 0x007fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x00800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x00800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_infinity" {
+    try check(&.{0x7f800000}, 0x00800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/negative_infinity" {
+    try check(&.{0xff800000}, 0x00800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/nan" {
+    try check(&.{0x7fc00000}, 0x00800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x00800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_min_normal/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x00800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/negative_min_normal" {
+    try check(&.{}, 0x80800000, .{ .value = 0x80800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_zero" {
+    try check(&.{0x00000000}, 0x80800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/negative_zero" {
+    try check(&.{0x80000000}, 0x80800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x80800000, .{ .value = 0xcb000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x80800000, .{ .value = 0x4b000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x80800000, .{ .value = 0xbf800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_min_normal" {
+    try check(&.{0x00800000}, 0x80800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/negative_min_normal" {
+    try check(&.{0x80800000}, 0x80800000, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_half" {
+    try check(&.{0x3f000000}, 0x80800000, .{ .value = 0x81000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_one" {
+    try check(&.{0x3f800000}, 0x80800000, .{ .value = 0x80800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/negative_one" {
+    try check(&.{0xbf800000}, 0x80800000, .{ .value = 0x00800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_above_one" {
+    try check(&.{0x3f800001}, 0x80800000, .{ .value = 0x807fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x80800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x80800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_infinity" {
+    try check(&.{0x7f800000}, 0x80800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/negative_infinity" {
+    try check(&.{0xff800000}, 0x80800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/nan" {
+    try check(&.{0x7fc00000}, 0x80800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x80800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_min_normal/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x80800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_half" {
+    try check(&.{}, 0x3f000000, .{ .value = 0x3f000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_zero" {
+    try check(&.{0x00000000}, 0x3f000000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/negative_zero" {
+    try check(&.{0x80000000}, 0x3f000000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x3f000000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x3f000000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x3f000000, .{ .value = 0x7e000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_min_normal" {
+    try check(&.{0x00800000}, 0x3f000000, .{ .value = 0x7e000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/negative_min_normal" {
+    try check(&.{0x80800000}, 0x3f000000, .{ .value = 0xfe000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_half" {
+    try check(&.{0x3f000000}, 0x3f000000, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_one" {
+    try check(&.{0x3f800000}, 0x3f000000, .{ .value = 0x3f000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/negative_one" {
+    try check(&.{0xbf800000}, 0x3f000000, .{ .value = 0xbf000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_above_one" {
+    try check(&.{0x3f800001}, 0x3f000000, .{ .value = 0x3efffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x3f000000, .{ .value = 0x00100000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x3f000000, .{ .value = 0x80100000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_infinity" {
+    try check(&.{0x7f800000}, 0x3f000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/negative_infinity" {
+    try check(&.{0xff800000}, 0x3f000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/nan" {
+    try check(&.{0x7fc00000}, 0x3f000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x3f000000, .{ .value = 0x33000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_half/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x3f000000, .{ .value = 0xb3000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_one" {
+    try check(&.{}, 0x3f800000, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_zero" {
+    try check(&.{0x00000000}, 0x3f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/negative_zero" {
+    try check(&.{0x80000000}, 0x3f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x3f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x3f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x3f800000, .{ .value = 0x7e800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_min_normal" {
+    try check(&.{0x00800000}, 0x3f800000, .{ .value = 0x7e800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/negative_min_normal" {
+    try check(&.{0x80800000}, 0x3f800000, .{ .value = 0xfe800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_half" {
+    try check(&.{0x3f000000}, 0x3f800000, .{ .value = 0x40000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_one" {
+    try check(&.{0x3f800000}, 0x3f800000, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/negative_one" {
+    try check(&.{0xbf800000}, 0x3f800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_above_one" {
+    try check(&.{0x3f800001}, 0x3f800000, .{ .value = 0x3f7ffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x3f800000, .{ .value = 0x00200000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x3f800000, .{ .value = 0x80200000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_infinity" {
+    try check(&.{0x7f800000}, 0x3f800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/negative_infinity" {
+    try check(&.{0xff800000}, 0x3f800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/nan" {
+    try check(&.{0x7fc00000}, 0x3f800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x3f800000, .{ .value = 0x33800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_one/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x3f800000, .{ .value = 0xb3800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/negative_one" {
+    try check(&.{}, 0xbf800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_zero" {
+    try check(&.{0x00000000}, 0xbf800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/negative_zero" {
+    try check(&.{0x80000000}, 0xbf800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0xbf800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0xbf800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0xbf800000, .{ .value = 0xfe800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_min_normal" {
+    try check(&.{0x00800000}, 0xbf800000, .{ .value = 0xfe800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/negative_min_normal" {
+    try check(&.{0x80800000}, 0xbf800000, .{ .value = 0x7e800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_half" {
+    try check(&.{0x3f000000}, 0xbf800000, .{ .value = 0xc0000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_one" {
+    try check(&.{0x3f800000}, 0xbf800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/negative_one" {
+    try check(&.{0xbf800000}, 0xbf800000, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_above_one" {
+    try check(&.{0x3f800001}, 0xbf800000, .{ .value = 0xbf7ffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0xbf800000, .{ .value = 0x80200000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0xbf800000, .{ .value = 0x00200000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_infinity" {
+    try check(&.{0x7f800000}, 0xbf800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/negative_infinity" {
+    try check(&.{0xff800000}, 0xbf800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/nan" {
+    try check(&.{0x7fc00000}, 0xbf800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0xbf800000, .{ .value = 0xb3800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_one/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0xbf800000, .{ .value = 0x33800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_above_one" {
+    try check(&.{}, 0x3f800001, .{ .value = 0x3f800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_zero" {
+    try check(&.{0x00000000}, 0x3f800001, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/negative_zero" {
+    try check(&.{0x80000000}, 0x3f800001, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x3f800001, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x3f800001, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x3f800001, .{ .value = 0x7e800002 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_min_normal" {
+    try check(&.{0x00800000}, 0x3f800001, .{ .value = 0x7e800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/negative_min_normal" {
+    try check(&.{0x80800000}, 0x3f800001, .{ .value = 0xfe800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_half" {
+    try check(&.{0x3f000000}, 0x3f800001, .{ .value = 0x40000001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_one" {
+    try check(&.{0x3f800000}, 0x3f800001, .{ .value = 0x3f800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/negative_one" {
+    try check(&.{0xbf800000}, 0x3f800001, .{ .value = 0xbf800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_above_one" {
+    try check(&.{0x3f800001}, 0x3f800001, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x3f800001, .{ .value = 0x00200000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x3f800001, .{ .value = 0x80200000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_infinity" {
+    try check(&.{0x7f800000}, 0x3f800001, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/negative_infinity" {
+    try check(&.{0xff800000}, 0x3f800001, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/nan" {
+    try check(&.{0x7fc00000}, 0x3f800001, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x3f800001, .{ .value = 0x33800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_above_one/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x3f800001, .{ .value = 0xb3800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_max_finite" {
+    try check(&.{}, 0x7f7fffff, .{ .value = 0x7f7fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_zero" {
+    try check(&.{0x00000000}, 0x7f7fffff, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/negative_zero" {
+    try check(&.{0x80000000}, 0x7f7fffff, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x7f7fffff, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x7f7fffff, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x7f7fffff, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_min_normal" {
+    try check(&.{0x00800000}, 0x7f7fffff, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/negative_min_normal" {
+    try check(&.{0x80800000}, 0x7f7fffff, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_half" {
+    try check(&.{0x3f000000}, 0x7f7fffff, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_one" {
+    try check(&.{0x3f800000}, 0x7f7fffff, .{ .value = 0x7f7fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/negative_one" {
+    try check(&.{0xbf800000}, 0x7f7fffff, .{ .value = 0xff7fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_above_one" {
+    try check(&.{0x3f800001}, 0x7f7fffff, .{ .value = 0x7f7ffffd });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x7f7fffff, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x7f7fffff, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_infinity" {
+    try check(&.{0x7f800000}, 0x7f7fffff, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/negative_infinity" {
+    try check(&.{0xff800000}, 0x7f7fffff, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/nan" {
+    try check(&.{0x7fc00000}, 0x7f7fffff, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x7f7fffff, .{ .value = 0x737fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_max_finite/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x7f7fffff, .{ .value = 0xf37fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/negative_max_finite" {
+    try check(&.{}, 0xff7fffff, .{ .value = 0xff7fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_zero" {
+    try check(&.{0x00000000}, 0xff7fffff, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/negative_zero" {
+    try check(&.{0x80000000}, 0xff7fffff, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0xff7fffff, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0xff7fffff, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0xff7fffff, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_min_normal" {
+    try check(&.{0x00800000}, 0xff7fffff, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/negative_min_normal" {
+    try check(&.{0x80800000}, 0xff7fffff, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_half" {
+    try check(&.{0x3f000000}, 0xff7fffff, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_one" {
+    try check(&.{0x3f800000}, 0xff7fffff, .{ .value = 0xff7fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/negative_one" {
+    try check(&.{0xbf800000}, 0xff7fffff, .{ .value = 0x7f7fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_above_one" {
+    try check(&.{0x3f800001}, 0xff7fffff, .{ .value = 0xff7ffffd });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0xff7fffff, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0xff7fffff, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_infinity" {
+    try check(&.{0x7f800000}, 0xff7fffff, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/negative_infinity" {
+    try check(&.{0xff800000}, 0xff7fffff, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/nan" {
+    try check(&.{0x7fc00000}, 0xff7fffff, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0xff7fffff, .{ .value = 0xf37fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_max_finite/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0xff7fffff, .{ .value = 0x737fffff });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_infinity" {
+    try check(&.{}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_zero" {
+    try check(&.{0x00000000}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/negative_zero" {
+    try check(&.{0x80000000}, 0x7f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x7f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_min_normal" {
+    try check(&.{0x00800000}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/negative_min_normal" {
+    try check(&.{0x80800000}, 0x7f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_half" {
+    try check(&.{0x3f000000}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_one" {
+    try check(&.{0x3f800000}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/negative_one" {
+    try check(&.{0xbf800000}, 0x7f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_above_one" {
+    try check(&.{0x3f800001}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x7f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_infinity" {
+    try check(&.{0x7f800000}, 0x7f800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/negative_infinity" {
+    try check(&.{0xff800000}, 0x7f800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/nan" {
+    try check(&.{0x7fc00000}, 0x7f800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x7f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_infinity/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x7f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/negative_infinity" {
+    try check(&.{}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_zero" {
+    try check(&.{0x00000000}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/negative_zero" {
+    try check(&.{0x80000000}, 0xff800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0xff800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_min_normal" {
+    try check(&.{0x00800000}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/negative_min_normal" {
+    try check(&.{0x80800000}, 0xff800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_half" {
+    try check(&.{0x3f000000}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_one" {
+    try check(&.{0x3f800000}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/negative_one" {
+    try check(&.{0xbf800000}, 0xff800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_above_one" {
+    try check(&.{0x3f800001}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0xff800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_infinity" {
+    try check(&.{0x7f800000}, 0xff800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/negative_infinity" {
+    try check(&.{0xff800000}, 0xff800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/nan" {
+    try check(&.{0x7fc00000}, 0xff800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0xff800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_infinity/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0xff800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/nan" {
+    try check(&.{}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_zero" {
+    try check(&.{0x00000000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/negative_zero" {
+    try check(&.{0x80000000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_min_normal" {
+    try check(&.{0x00800000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/negative_min_normal" {
+    try check(&.{0x80800000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_half" {
+    try check(&.{0x3f000000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_one" {
+    try check(&.{0x3f800000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/negative_one" {
+    try check(&.{0xbf800000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_above_one" {
+    try check(&.{0x3f800001}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_infinity" {
+    try check(&.{0x7f800000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/negative_infinity" {
+    try check(&.{0xff800000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/nan" {
+    try check(&.{0x7fc00000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/nan/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x7fc00000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/positive_integer_limit" {
+    try check(&.{}, 0x4b800000, .{ .value = 0x4b800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_zero" {
+    try check(&.{0x00000000}, 0x4b800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/negative_zero" {
+    try check(&.{0x80000000}, 0x4b800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0x4b800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0x4b800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0x4b800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_min_normal" {
+    try check(&.{0x00800000}, 0x4b800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/negative_min_normal" {
+    try check(&.{0x80800000}, 0x4b800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_half" {
+    try check(&.{0x3f000000}, 0x4b800000, .{ .value = 0x4c000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_one" {
+    try check(&.{0x3f800000}, 0x4b800000, .{ .value = 0x4b800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/negative_one" {
+    try check(&.{0xbf800000}, 0x4b800000, .{ .value = 0xcb800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_above_one" {
+    try check(&.{0x3f800001}, 0x4b800000, .{ .value = 0x4b7ffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0x4b800000, .{ .value = 0x0b800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0x4b800000, .{ .value = 0x8b800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_infinity" {
+    try check(&.{0x7f800000}, 0x4b800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/negative_infinity" {
+    try check(&.{0xff800000}, 0x4b800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/nan" {
+    try check(&.{0x7fc00000}, 0x4b800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0x4b800000, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/positive_integer_limit/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0x4b800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/empty/negative_integer_limit" {
+    try check(&.{}, 0xcb800000, .{ .value = 0xcb800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_zero" {
+    try check(&.{0x00000000}, 0xcb800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/negative_zero" {
+    try check(&.{0x80000000}, 0xcb800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_min_subnormal" {
+    try check(&.{0x00000001}, 0xcb800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/negative_min_subnormal" {
+    try check(&.{0x80000001}, 0xcb800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_max_subnormal" {
+    try check(&.{0x007fffff}, 0xcb800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_min_normal" {
+    try check(&.{0x00800000}, 0xcb800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/negative_min_normal" {
+    try check(&.{0x80800000}, 0xcb800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_half" {
+    try check(&.{0x3f000000}, 0xcb800000, .{ .value = 0xcc000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_one" {
+    try check(&.{0x3f800000}, 0xcb800000, .{ .value = 0xcb800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/negative_one" {
+    try check(&.{0xbf800000}, 0xcb800000, .{ .value = 0x4b800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_above_one" {
+    try check(&.{0x3f800001}, 0xcb800000, .{ .value = 0xcb7ffffe });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_max_finite" {
+    try check(&.{0x7f7fffff}, 0xcb800000, .{ .value = 0x8b800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/negative_max_finite" {
+    try check(&.{0xff7fffff}, 0xcb800000, .{ .value = 0x0b800001 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_infinity" {
+    try check(&.{0x7f800000}, 0xcb800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/negative_infinity" {
+    try check(&.{0xff800000}, 0xcb800000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/nan" {
+    try check(&.{0x7fc00000}, 0xcb800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/positive_integer_limit" {
+    try check(&.{0x4b800000}, 0xcb800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/single/negative_integer_limit/negative_integer_limit" {
+    try check(&.{0xcb800000}, 0xcb800000, .{ .value = 0x3f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/cancel_lost/positive_zero" {
+    try check(&.{0x4b800000, 0x3f800000, 0xcb800000}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/cancel_lost/negative_zero" {
+    try check(&.{0x4b800000, 0x3f800000, 0xcb800000}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/cancel_lost/positive_one" {
+    try check(&.{0x4b800000, 0x3f800000, 0xcb800000}, 0x3f800000, .{ .value = 0xa7800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/cancel_retained/positive_zero" {
+    try check(&.{0x4b800000, 0xcb800000, 0x3f800000}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/cancel_retained/negative_zero" {
+    try check(&.{0x4b800000, 0xcb800000, 0x3f800000}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/cancel_retained/positive_one" {
+    try check(&.{0x4b800000, 0xcb800000, 0x3f800000}, 0x3f800000, .{ .value = 0xa7800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/overflow_first/positive_zero" {
+    try check(&.{0x7f7fffff, 0x7f7fffff, 0xff7fffff}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/overflow_first/negative_zero" {
+    try check(&.{0x7f7fffff, 0x7f7fffff, 0xff7fffff}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/overflow_first/positive_one" {
+    try check(&.{0x7f7fffff, 0x7f7fffff, 0xff7fffff}, 0x3f800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/cancel_before_large/positive_zero" {
+    try check(&.{0x7f7fffff, 0xff7fffff, 0x7f7fffff}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/cancel_before_large/negative_zero" {
+    try check(&.{0x7f7fffff, 0xff7fffff, 0x7f7fffff}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/cancel_before_large/positive_one" {
+    try check(&.{0x7f7fffff, 0xff7fffff, 0x7f7fffff}, 0x3f800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/tiny_first/positive_zero" {
+    try check(&.{0x3f800000, 0x00000001, 0xbf800000}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/tiny_first/negative_zero" {
+    try check(&.{0x3f800000, 0x00000001, 0xbf800000}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/tiny_first/positive_one" {
+    try check(&.{0x3f800000, 0x00000001, 0xbf800000}, 0x3f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/tiny_last/positive_zero" {
+    try check(&.{0x3f800000, 0xbf800000, 0x00000001}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/tiny_last/negative_zero" {
+    try check(&.{0x3f800000, 0xbf800000, 0x00000001}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/tiny_last/positive_one" {
+    try check(&.{0x3f800000, 0xbf800000, 0x00000001}, 0x3f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/negative_zeros/positive_zero" {
+    try check(&.{0x80000000, 0x80000000, 0x80000000}, 0x00000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/negative_zeros/negative_zero" {
+    try check(&.{0x80000000, 0x80000000, 0x80000000}, 0x80000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/negative_zeros/positive_one" {
+    try check(&.{0x80000000, 0x80000000, 0x80000000}, 0x3f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/mixed_zeros/positive_zero" {
+    try check(&.{0x80000000, 0x00000000, 0x80000000}, 0x00000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/mixed_zeros/negative_zero" {
+    try check(&.{0x80000000, 0x00000000, 0x80000000}, 0x80000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/mixed_zeros/positive_one" {
+    try check(&.{0x80000000, 0x00000000, 0x80000000}, 0x3f800000, .{ .value = 0x7f800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/infinity_cancellation/positive_zero" {
+    try check(&.{0x7f800000, 0xff800000, 0x3f800000}, 0x00000000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/infinity_cancellation/negative_zero" {
+    try check(&.{0x7f800000, 0xff800000, 0x3f800000}, 0x80000000, .{ .value = 0x00000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/infinity_cancellation/positive_one" {
+    try check(&.{0x7f800000, 0xff800000, 0x3f800000}, 0x3f800000, .{ .value = 0x80000000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/late_nan/positive_zero" {
+    try check(&.{0x3f800000, 0x3f000000, 0x7fc00000}, 0x00000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/late_nan/negative_zero" {
+    try check(&.{0x3f800000, 0x3f000000, 0x7fc00000}, 0x80000000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/sequence/late_nan/positive_one" {
+    try check(&.{0x3f800000, 0x3f000000, 0x7fc00000}, 0x3f800000, .{ .value = null });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/growth/17/positive_one" {
+    try check(&.{0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000}, 0x3f800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/growth/17/positive_above_one" {
+    try check(&.{0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001}, 0x3f800000, .{ .value = 0xbf7fffe8 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/growth/17/positive_min_subnormal" {
+    try check(&.{0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001}, 0x3f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/growth/257/positive_one" {
+    try check(&.{0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000}, 0x3f800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/growth/257/positive_above_one" {
+    try check(&.{0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001}, 0x3f800000, .{ .value = 0xbf7ffea8 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/growth/257/positive_min_subnormal" {
+    try check(&.{0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001}, 0x3f800000, .{ .value = 0xff800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/growth/1024/positive_one" {
+    try check(&.{0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000, 0x3f800000, 0xbf800000, 0x3f800000}, 0x3f800000, .{ .value = 0xbf800000 });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/growth/1024/positive_above_one" {
+    try check(&.{0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001, 0x3f800001, 0xbf800000, 0x3f800001}, 0x3f800000, .{ .value = 0xbf7ffaaa });
+}
+
+test "built_ins/list/callbacks/reduce/floating/f32/divide/seeded/growth/1024/positive_min_subnormal" {
+    try check(&.{0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001, 0x00000001, 0xbf800000, 0x00000001}, 0x3f800000, .{ .value = 0xff800000 });
+}

@@ -1,0 +1,62 @@
+const std = @import("std");
+
+const zx_abi = @import("zxc_abi");
+
+pub fn call(allocator: ((std).mem).Allocator, in: *const (zx_abi).zx_type_e5aaa0751735c91ddf9d77c604a3281c7c7c21a8ce53e6c4ba4d918e5df1b759) error{ IndexOutOfBounds, OutOfMemory, }!f64 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    return block_20: {
+        const value_3: []const f64 = (in).items;
+
+        break :block_20 block_19: {
+            const operand_6 = block_5: {
+                const operand_2 = value_3;
+                const operand_3 = @as(u64, 0);
+                const operand_4 = (in).seed;
+
+                break :block_5 (zx_abi).zx_type_b685659b3b6e1869bf090f9bda5282e02b4cbdacfd22f9bedc8ddb46cc17c51e{ .index = operand_3, .result = operand_4, .source = operand_2, };
+            };
+
+            var state_1: (zx_abi).value_zx_type_b685659b3b6e1869bf090f9bda5282e02b4cbdacfd22f9bedc8ddb46cc17c51e_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = (zx_abi).value_zx_type_b685659b3b6e1869bf090f9bda5282e02b4cbdacfd22f9bedc8ddb46cc17c51e_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = (operand_6).index, .result = (operand_6).result, .source = (operand_6).source, .zx_origin = (&operand_6), };
+
+            while (((state_1).index < @as(u64, ((state_1).source).len))) {
+                state_1 = block_18: {
+                    const value_6: f64 = block_17: {
+                        const operand_15 = (state_1).source;
+                        const operand_16 = (state_1).index;
+
+                        if ((operand_16 >= (operand_15).len)) {
+                            return error.IndexOutOfBounds;
+                        }
+
+                        break :block_17 (operand_15)[@intCast(operand_16)];
+                    };
+                    const value_1: f64 = (state_1).result;
+                    const value_2: f64 = block_14: {
+                        break :block_14 value_6;
+                    };
+                    const value_7: f64 = (block_12: {
+                        break :block_12 value_1;
+                    } - block_13: {
+                        break :block_13 value_2;
+                    });
+
+                    break :block_18 block_11: {
+                        const operand_7 = (state_1).source;
+                        const operand_8 = ((state_1).index + @as(u64, 1));
+                        const operand_9 = block_10: {
+                            break :block_10 value_7;
+                        };
+
+                        break :block_11 @as((zx_abi).value_zx_type_b685659b3b6e1869bf090f9bda5282e02b4cbdacfd22f9bedc8ddb46cc17c51e_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292, (zx_abi).value_zx_type_b685659b3b6e1869bf090f9bda5282e02b4cbdacfd22f9bedc8ddb46cc17c51e_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292{ .index = operand_8, .result = operand_9, .source = operand_7, });
+                    };
+                };
+            }
+
+            break :block_19 (state_1).result;
+        };
+    };
+}
+

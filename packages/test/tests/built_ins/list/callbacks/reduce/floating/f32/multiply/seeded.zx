@@ -1,0 +1,7 @@
+export type Input = { items: f32[], seed: f32 }
+
+export type Output = f32
+
+export default function (in: Input): Output {
+    return in.items.reduce((previous, current) => previous * current, in.seed)
+}
