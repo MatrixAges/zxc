@@ -1,0 +1,17 @@
+1/16 root.test.reduce fresh initial allows push and consumes resulting accumulator...OK
+2/16 root.test.reduce mapped initial allows conditional push and pop...OK
+3/16 root.test.reduce owned initial survives identity callback...OK
+4/16 root.test.reduce nested borrowed rows can be concatenated into owned accumulator...OK
+5/16 root.test.reduce scalar accumulator stays copy...OK
+6/16 root.test.reduce borrowed initial can remain borrowed...OK
+7/16 root.test.reduce borrowed initial can produce an appended value...OK
+8/16 root.test.reduce source elements can produce reversed copies...OK
+9/16 root.test.reduce borrowed callback result downgrades owned initial...OK
+10/16 root.test.reduce borrowed callback result can produce a later reversed copy...OK
+11/16 root.test.reduce next iteration preserves possibly borrowed accumulator...OK
+12/16 root.test.reduce initial remains usable after identity callback...OK
+13/16 root.test.reduce reduce scalar result releases source temporary loan...OK
+14/16 root.test.reduce source can also be the immutable initial value...OK
+15/16 root.test.reduce owned success cleans allocation failures...OK
+16/16 root.test.reduce borrowed recurrence cleans allocation failures...OK
+All 16 tests passed.
