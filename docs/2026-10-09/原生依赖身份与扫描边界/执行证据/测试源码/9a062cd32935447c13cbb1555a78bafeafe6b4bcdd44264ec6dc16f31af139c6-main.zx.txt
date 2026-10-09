@@ -1,0 +1,24 @@
+import native from "zig:host"
+
+import noise from "./noise"
+
+import type { Request, Response } from "./types"
+
+export type Input = Request
+
+export type Output = Response
+
+export default function (in: Input): Output {
+    const count = in.record.count
+    const work = async native.compute(count)
+    const total = await work
+
+    return {
+        node: native.identity(in.node),
+        record: { count: total, mode: in.record.mode },
+        pair: in.pair,
+        values: in.values,
+        saved: in.saved,
+        total: total
+    }
+}

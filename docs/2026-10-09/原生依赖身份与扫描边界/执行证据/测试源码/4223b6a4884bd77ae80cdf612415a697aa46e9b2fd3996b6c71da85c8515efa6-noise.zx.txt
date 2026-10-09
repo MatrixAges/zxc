@@ -1,0 +1,9 @@
+export enum Noise { First, Second }
+
+export type Input = { noise: Noise }
+
+export type Output = Noise
+
+export default function (in: Input): Output {
+    return in.noise
+}

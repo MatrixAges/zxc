@@ -1,0 +1,102 @@
+const std = @import("std");
+
+const zx_type_11 = enum { None, Target, Input, Setter, };
+
+const zx_type_12 = struct {
+    has_function: bool,
+    has_input: bool,
+    has_module: bool,
+    has_setter: bool,
+};
+
+const zx_type_13 = struct { *const zx_type_12, };
+
+const zx_type_14 = struct { *const zx_type_12, zx_type_11, };
+
+const value_zx_type_12_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165 = struct {
+    has_function: bool,
+    has_input: bool,
+    has_module: bool,
+    has_setter: bool,
+    zx_origin: ?*const zx_type_12 = null,
+};
+
+const value_zx_type_13_009b209c29dfed37d6f0ddf10651eb819801430299ea03fd6bf9a11471606d6e = struct { value_zx_type_12_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165, ?*const zx_type_13, };
+
+const value_zx_type_14_9068dcb27588fc549cd15008d3bd15e507480c6631115fd15614e1d02077b29f = struct { value_zx_type_12_268ac4b4059d05d5a9982d9acb60fad8e26591753d205e05b9629059f7c70165, zx_type_11, ?*const zx_type_14, };
+
+pub const requires_io = false;
+
+pub const requires_process = false;
+
+const zx_shape_0 = .{ .kind = .scalar, };
+
+const zx_shape_1 = .{ .kind = .scalar, };
+
+const zx_shape_2 = .{ .kind = .scalar, };
+
+const zx_shape_3 = .{ .kind = .scalar, };
+
+const zx_shape_4 = .{ .kind = .scalar, };
+
+const zx_shape_5 = .{ .kind = .scalar, };
+
+const zx_shape_6 = .{ .kind = .scalar, };
+
+const zx_shape_7 = .{ .kind = .scalar, };
+
+const zx_shape_8 = .{ .kind = .scalar, };
+
+const zx_shape_9 = .{ .kind = .scalar, };
+
+const zx_shape_10 = .{ .kind = .string, };
+
+const zx_shape_11 = .{ .kind = .scalar, };
+
+const zx_shape_12 = .{ .kind = .object, .fields = .{ .has_function = zx_shape_1, .has_input = zx_shape_1, .has_module = zx_shape_1, .has_setter = zx_shape_1, }, };
+
+const zx_shape_13 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_12, }, };
+
+const zx_shape_14 = .{ .kind = .object, .fields = .{ .@"0" = zx_shape_12, .@"1" = zx_shape_11, }, };
+
+pub const input_shape = zx_shape_12;
+
+pub const output_shape = zx_shape_11;
+
+pub const Input = *const zx_type_12;
+
+pub const Output = zx_type_11;
+
+fn function_0(allocator: ((std).mem).Allocator, in: *const zx_type_12) error{ }!zx_type_11 {
+    @setRuntimeSafety(true);
+
+    _ = allocator;
+
+    if (((in).has_function == (in).has_module)) {
+        return @as(zx_type_11, .Target);
+    }
+
+    if (((!(in).has_input) and (!(in).has_module))) {
+        return @as(zx_type_11, .Input);
+    }
+
+    return (if (((in).has_module and (in).has_setter)) @as(zx_type_11, .Setter) else @as(zx_type_11, .None));
+}
+
+pub fn execute(arena: *((std).heap).ArenaAllocator, in: *const zx_type_12) error{ }!zx_type_11 {
+    @setRuntimeSafety(true);
+
+    const allocator = (arena).allocator();
+    const value_1: zx_type_11 = (try function_0(allocator, in));
+
+    return value_1;
+}
+
+pub fn executeValue(allocator: ((std).mem).Allocator, in: *const zx_type_12) error{ }!zx_type_11 {
+    @setRuntimeSafety(true);
+
+    const value_1: zx_type_11 = (try function_0(allocator, in));
+
+    return value_1;
+}
+
