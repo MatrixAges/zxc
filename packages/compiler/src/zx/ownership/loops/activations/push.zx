@@ -1,0 +1,68 @@
+import type { Program } from "../../ir/input_model"
+import type { Layout } from "../../places/model"
+import type { Memory } from "../../runtime/model"
+import type { Domains } from "../model"
+import type { Activations } from "./model"
+
+export type Input = { program: Program, layout: Layout, domains: Domains, memory: Memory, loops: Activations, expression: u64, value: u64, entry: u64 }
+
+export type Output = Activations
+
+export default function (in: Input): Output {
+    const flags: bool[] = []
+
+    const initialized = loop({ flags: flags, count: in.layout.parents.length, symbols: in.program.symbols.types.length }, {
+        while: current => current.flags.length < current.count,
+        next: current => {
+            current.flags = current.flags.push(current.flags.length < current.symbols)[0]
+        }
+    })
+
+    const locals = loop({ flags: initialized.flags, symbols: in.domains.symbols, first: in.domains.first[in.expression], count: in.domains.count[in.expression], index: 0 }, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.flags[current.symbols[current.first + current.index]] = false
+            current.index += 1
+        }
+    })
+
+    const active = loop({ flags: locals.flags, memo: in.memory.memo, parents: in.layout.parents, index: 0 }, {
+        while: current => current.index < current.memo.length,
+        next: current => {
+            const position = current.memo[current.index]
+
+            if (position != 0) {
+                const root = loop({ parents: current.parents, id: position - 1 }, {
+                    while: node => node.parents[node.id] != 0,
+                    next: node => {
+                        node.id = node.parents[node.id] - 1
+                    }
+                })
+
+                current.flags[root.id] = true
+            }
+
+            current.index += 1
+        }
+    })
+
+    const collected = loop({ flags: active.flags, source: in.memory.facts, roots: in.loops.roots, facts: in.loops.facts, outputs: in.loops.outputs, index: 0 }, {
+        while: current => current.index < current.flags.length,
+        next: current => {
+            if (current.flags[current.index]) {
+                current.roots = current.roots.push(current.index)[0]
+                current.facts = current.facts.push(current.source[current.index])[0]
+                current.outputs = current.outputs.push(0)[0]
+            }
+
+            current.index += 1
+        }
+    })
+
+    return {
+        heads: in.loops.heads.push(in.value)[0], exits: in.loops.exits.push(0)[0], seen: in.loops.seen.push(false)[0],
+        entries: in.loops.entries.push(in.entry)[0], boundaries: in.loops.boundaries.push(0)[0],
+        first: in.loops.first.push(in.loops.roots.length)[0], count: in.loops.count.push(collected.roots.length - in.loops.roots.length)[0],
+        roots: collected.roots, facts: collected.facts, outputs: collected.outputs
+    }
+}

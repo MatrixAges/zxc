@@ -1,0 +1,45 @@
+import summary from "../../../../facts/summary"
+import finish from "../../../../loops/activations/drop"
+import join from "../../../../loops/activations/join"
+import restore from "../../../../loops/activations/restore"
+import { State } from "../../../../places/model"
+import drop from "../../../snapshots/drop"
+import { WorkAction } from "../../../work/model"
+import pop from "../../../work/pop"
+import push from "../../../work/push"
+import top from "../../../work/top"
+
+import type { Machine } from "../../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.IterationAdvance || current.work.actions[current.work.actions.length - 1] == WorkAction.IterationFinish),
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.IterationAdvance) {
+                const joined = join({ types: current.program.types, references: current.references, memory: current.memory, loops: current.loops, index: frame.index, value: current.value })
+
+                current.memory = { ...current.memory, forest: joined.forest }
+                current.loops = joined.loops
+                current.work = push({ work: current.work, frame: { action: joined.changed ? WorkAction.IterationRound : WorkAction.IterationFinish, subject: frame.subject, moving: false, index: frame.index } })
+            } else {
+                const value = current.loops.exits[frame.index]
+                const moved = summary({ forest: current.memory.forest, fact: value }) == State.Moved
+
+                current.memory = restore({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, snapshots: current.snapshots, domains: current.domains, loops: current.loops, expression: frame.subject, index: frame.index, exiting: true })
+                current.snapshots = drop({ stack: current.snapshots, frame: current.loops.entries[frame.index] })
+                current.loops = finish(current.loops)
+                current.value = value
+                current.failed = moved
+                current.expression = moved ? frame.subject : current.expression
+            }
+        }
+    })
+}

@@ -1,0 +1,48 @@
+import integers from "zig:integers"
+
+import activate from "../../../../loops/activations/push"
+import restore from "../../../../loops/activations/restore"
+import { Capture } from "../../../snapshots/model"
+import save from "../../../snapshots/save"
+import { WorkAction } from "../../../work/model"
+import pop from "../../../work/pop"
+import push from "../../../work/push"
+import top from "../../../work/top"
+import prepare from "./prepare"
+
+import type { Machine } from "../../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.IterationInitial || current.work.actions[current.work.actions.length - 1] == WorkAction.IterationRound),
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            if (frame.action == WorkAction.IterationInitial) {
+                const captured = save({ memory: current.memory, stack: current.snapshots, capture: Capture.Both })
+                const index = current.loops.heads.length
+
+                current.loops = activate({ program: current.program, layout: current.layout.tree, domains: current.domains, memory: current.memory, loops: current.loops, expression: frame.subject, value: current.value, entry: captured.frame })
+                current.snapshots = captured.stack
+                current.work = push({ work: current.work, frame: { action: WorkAction.IterationRound, subject: frame.subject, moving: false, index: index } })
+            } else {
+                const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+
+                current.memory = restore({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, snapshots: current.snapshots, domains: current.domains, loops: current.loops, expression: frame.subject, index: frame.index, exiting: false })
+
+                const prepared = prepare({ machine: current, expression: frame.subject, index: frame.index, condition: !current.program.expressions.iteration_postconditions[iteration], value: current.loops.heads[frame.index] })
+
+                current.memory = prepared.memory
+                current.snapshots = prepared.snapshots
+                current.work = prepared.work
+                current.loops.boundaries[frame.index] = prepared.boundary
+            }
+        }
+    })
+}

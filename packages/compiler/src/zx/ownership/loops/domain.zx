@@ -1,0 +1,62 @@
+import integers from "zig:integers"
+
+import children from "./children"
+import declarations from "./declarations"
+
+import type { Program } from "../ir/input_model"
+
+export type Input = { program: Program, expression: u64 }
+
+export type Output = bool[]
+
+export default function (in: Input): Output {
+    const empty: bool[] = []
+    const payload = integers.widen(in.program.expressions.payloads[in.expression])
+    const condition = integers.widen(in.program.expressions.iteration_conditions[payload])
+    const body = integers.widen(in.program.expressions.iteration_bodies[payload])
+    const count = (condition > body ? condition : body) + 1
+
+    const initialized = loop({ reachable: empty, locals: empty, count: count, symbols: in.program.symbols.types.length, condition: condition, body: body }, {
+        while: current => current.reachable.length < current.count || current.locals.length < current.symbols,
+        next: current => {
+            if (current.reachable.length < current.count) {
+                const index = current.reachable.length
+
+                current.reachable = current.reachable.push(index == current.condition || index == current.body)[0]
+            }
+
+            if (current.locals.length < current.symbols) {
+                current.locals = current.locals.push(false)[0]
+            }
+        }
+    })
+
+    const parameters = declarations({ expressions: in.program.expressions, expression: in.expression, locals: initialized.locals })
+
+    const result = loop({ expressions: in.program.expressions, reachable: initialized.reachable, locals: parameters, remaining: count, index: 0 }, {
+        while: current => current.remaining != 0,
+        next: current => {
+            const expression = current.remaining - 1
+
+            if (!current.reachable[expression]) {
+                current.remaining -= 1
+            } else {
+                if (current.index == 0) {
+                    current.locals = declarations({ expressions: current.expressions, expression: expression, locals: current.locals })
+                }
+
+                const child = children({ expressions: current.expressions, expression: expression, index: current.index })
+
+                if (child.found) {
+                    current.reachable[child.expression] = true
+                    current.index += 1
+                } else {
+                    current.remaining -= 1
+                    current.index = 0
+                }
+            }
+        }
+    })
+
+    return result.locals
+}

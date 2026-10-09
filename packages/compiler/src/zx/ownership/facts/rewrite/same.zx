@@ -1,0 +1,30 @@
+import integers from "zig:integers"
+
+import fieldType from "../field_type"
+import project from "../project"
+import summary from "../summary"
+
+import type { Table } from "../../../analysis/semantic/types/model"
+import type { State } from "../../places/model"
+import type { Forest } from "../model"
+
+export type Input = { types: Table, references: bool[], forest: Forest, fact: u64, type_id: u32, shell: State, children: u64[], first: u64, count: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const shell = in.fact < 5 ? summary({ forest: in.forest, fact: in.fact }) : in.forest.shells[in.fact - 5]
+
+    const result = loop({ types: in.types, references: in.references, forest: in.forest, fact: in.fact, type_id: in.type_id, children: in.children, first: in.first, count: in.count, index: 0, same: shell == in.shell }, {
+        while: current => current.same && current.index < current.count,
+        next: current => {
+            const type_id = fieldType({ types: current.types, type_id: current.type_id, index: current.index })
+            const previous = project({ forest: current.forest, fact: current.fact, index: current.index, reference: current.references[integers.widen(type_id)] })
+
+            current.same = previous == current.children[current.first + current.index]
+            current.index += 1
+        }
+    })
+
+    return result.same
+}

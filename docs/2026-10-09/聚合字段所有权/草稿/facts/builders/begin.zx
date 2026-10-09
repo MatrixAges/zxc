@@ -1,0 +1,23 @@
+import type { Forest } from "../model"
+import type { Builders } from "./model"
+
+export type Input = { forest: Forest, builders: Builders, count: u64 }
+
+export type Output = { forest: Forest, builders: Builders }
+
+export default function (in: Input): Output {
+    const first = in.forest.children.length
+
+    const result = loop({ children: in.forest.children, count: in.count, index: 0 }, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.children = current.children.push(0)[0]
+            current.index += 1
+        }
+    })
+
+    return {
+        forest: { ...in.forest, children: result.children },
+        builders: { first: in.builders.first.push(first)[0], count: in.builders.count.push(in.count)[0] }
+    }
+}

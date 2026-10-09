@@ -1,0 +1,10 @@
+export type Input = { left: u64, right: u64, capacity: u64 }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    const left = ((in.left % 4294967291) * 2654435761) % 4294967291
+    const right = ((in.right % 4294967279) * 2246822519) % 4294967279
+
+    return (left + right) % in.capacity
+}

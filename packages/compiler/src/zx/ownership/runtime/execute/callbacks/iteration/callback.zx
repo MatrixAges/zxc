@@ -1,0 +1,56 @@
+import integers from "zig:integers"
+
+import capture from "../../../../loops/activations/exit"
+import apply from "../../../snapshots/apply"
+import drop from "../../../snapshots/drop"
+import { Action } from "../../../snapshots/model"
+import { WorkAction } from "../../../work/model"
+import pop from "../../../work/pop"
+import push from "../../../work/push"
+import top from "../../../work/top"
+import prepare from "./prepare"
+
+import type { Machine } from "../../model"
+
+export type Input = Machine
+
+export type Output = Machine
+
+export default function (in: Input): Output {
+    return loop(in, {
+        while: current => current.active && current.complete && !current.failed && current.work.actions.length != 0 && (current.work.actions[current.work.actions.length - 1] == WorkAction.IterationCondition || current.work.actions[current.work.actions.length - 1] == WorkAction.IterationBody),
+        next: current => {
+            const frame = top(current.work)
+
+            current.work = pop(current.work)
+
+            const iteration = integers.widen(current.program.expressions.payloads[frame.subject])
+            const condition = frame.action == WorkAction.IterationCondition
+            const postcondition = current.program.expressions.iteration_postconditions[iteration]
+            const boundary = current.loops.boundaries[frame.index]
+
+            current.memory = apply({ types: current.program.types, references: current.references, layout: current.layout.tree, memory: current.memory, stack: current.snapshots, frame: boundary, action: Action.ReleaseNewLoans })
+            current.snapshots = drop({ stack: current.snapshots, frame: boundary })
+
+            if (condition) {
+                const value = current.memory.facts[integers.widen(current.program.expressions.iteration_condition_parameters[iteration])]
+                const captured = capture({ types: current.program.types, references: current.references, memory: current.memory, loops: current.loops, index: frame.index, value: value })
+
+                current.memory = { ...current.memory, forest: captured.forest }
+                current.loops = captured.loops
+                current.value = value
+            }
+
+            if (condition == postcondition) {
+                current.work = push({ work: current.work, frame: { action: WorkAction.IterationAdvance, subject: frame.subject, moving: false, index: frame.index } })
+            } else {
+                const prepared = prepare({ machine: current, expression: frame.subject, index: frame.index, condition: !condition, value: current.value })
+
+                current.memory = prepared.memory
+                current.snapshots = prepared.snapshots
+                current.work = prepared.work
+                current.loops.boundaries[frame.index] = prepared.boundary
+            }
+        }
+    })
+}

@@ -1,0 +1,12 @@
+import type { State } from "../places/model"
+
+export type Forest = {
+    types: u32[]
+    first: u64[]
+    count: u64[]
+    shells: State[]
+    states: State[]
+    children: u64[]
+}
+
+export type Result = { forest: Forest, fact: u64 }

@@ -1,0 +1,43 @@
+import { ExpressionKind } from "../../ir/canonical/expressions/kinds"
+import domain from "./domain"
+
+import type { Program } from "../ir/input_model"
+import type { Domains } from "./model"
+
+export type Input = Program
+
+export type Output = Domains
+
+export default function (in: Input): Output {
+    const empty: u64[] = []
+
+    const result = loop({ program: in, first: empty, count: empty, symbols: empty, index: 0 }, {
+        while: current => current.index < current.program.expressions.kinds.length,
+        next: current => {
+            const first = current.symbols.length
+
+            current.first = current.first.push(first)[0]
+
+            if (current.program.expressions.kinds[current.index] == ExpressionKind.Iteration) {
+                const locals = domain({ program: current.program, expression: current.index })
+                const collected = loop({ locals: locals, symbols: current.symbols, index: 0 }, {
+                    while: item => item.index < item.locals.length,
+                    next: item => {
+                        if (item.locals[item.index]) {
+                            item.symbols = item.symbols.push(item.index)[0]
+                        }
+
+                        item.index += 1
+                    }
+                })
+
+                current.symbols = collected.symbols
+            }
+
+            current.count = current.count.push(current.symbols.length - first)[0]
+            current.index += 1
+        }
+    })
+
+    return { first: result.first, count: result.count, symbols: result.symbols }
+}

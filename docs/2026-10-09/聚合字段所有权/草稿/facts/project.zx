@@ -1,0 +1,13 @@
+import type { Forest } from "./model"
+
+export type Input = { forest: Forest, fact: u64, index: u64, reference: bool }
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in.fact >= 5) {
+        return in.forest.children[in.forest.first[in.fact - 5] + in.index]
+    }
+
+    return in.reference || in.fact == 4 ? in.fact : 0
+}

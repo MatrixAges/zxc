@@ -1,0 +1,29 @@
+import join from "../../places/join"
+import { State } from "../../places/model"
+import { RewriteAction } from "./model"
+
+export type Input = { left: State, right: State, action: RewriteAction }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    if (in.action == RewriteAction.Join) {
+        return join({ left: in.left, right: in.right })
+    }
+
+    if (in.action == RewriteAction.Read) {
+        return in.left == State.Loaned ? State.Borrowed : in.left
+    }
+
+    if (in.action == RewriteAction.Borrow) {
+        return in.left == State.Owned ? State.Loaned : in.left
+    }
+
+    if (in.action == RewriteAction.Freeze) {
+        return in.left == State.Owned || in.left == State.Loaned ? State.Borrowed : in.left
+    }
+
+    const release = in.action == RewriteAction.ReleaseAllLoans || in.right != State.Loaned
+
+    return in.left == State.Loaned && release ? State.Owned : in.left
+}

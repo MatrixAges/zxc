@@ -1,0 +1,29 @@
+import integers from "zig:integers"
+
+import { Operation } from "../../../../places/model"
+import place from "../../../place"
+import { Capture } from "../../../snapshots/model"
+import save from "../../../snapshots/save"
+import { WorkAction } from "../../../work/model"
+import push from "../../../work/push"
+
+import type { Memory } from "../../../model"
+import type { Stack } from "../../../snapshots/model"
+import type { Work } from "../../../work/model"
+import type { Machine } from "../../model"
+
+export type Input = { machine: Machine, expression: u64, index: u64, condition: bool, value: u64 }
+
+export type Output = { memory: Memory, snapshots: Stack, work: Work, boundary: u64 }
+
+export default function (in: Input): Output {
+    const machine = in.machine
+    const iteration = integers.widen(machine.program.expressions.payloads[in.expression])
+    const parameter = integers.widen(in.condition ? machine.program.expressions.iteration_condition_parameters[iteration] : machine.program.expressions.iteration_parameters[iteration])
+    const expression = integers.widen(in.condition ? machine.program.expressions.iteration_conditions[iteration] : machine.program.expressions.iteration_bodies[iteration])
+    const memory = place({ types: machine.program.types, references: machine.references, layout: machine.layout.tree, memory: machine.memory, id: parameter, operation: Operation.Assign, fact: in.value })
+    const captured = save({ memory: memory, stack: machine.snapshots, capture: Capture.States })
+    const work = push({ work: machine.work, frame: { action: in.condition ? WorkAction.IterationCondition : WorkAction.IterationBody, subject: in.expression, moving: false, index: in.index } })
+
+    return { memory: memory, snapshots: captured.stack, boundary: captured.frame, work: push({ work: work, frame: { action: WorkAction.Value, subject: expression, moving: !in.condition, index: 0 } }) }
+}

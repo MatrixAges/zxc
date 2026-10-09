@@ -1,0 +1,22 @@
+import publish from "./publish"
+
+import type { State } from "../places/model"
+import type { Forest, Result } from "./model"
+
+export type Input = { forest: Forest, type_id: u32, shell: State, children: u64[], first: u64, count: u64 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const first = in.forest.children.length
+
+    const result = loop({ children: in.forest.children, source: in.children, first: in.first, count: in.count, index: 0 }, {
+        while: current => current.index < current.count,
+        next: current => {
+            current.children = current.children.push(current.source[current.first + current.index])[0]
+            current.index += 1
+        }
+    })
+
+    return publish({ forest: { ...in.forest, children: result.children }, type_id: in.type_id, shell: in.shell, first: first, count: in.count })
+}

@@ -1,0 +1,93 @@
+import integers from "zig:integers"
+
+import fieldType from "./field_type"
+import product from "./product"
+import project from "./project"
+import cache from "./rewrite/cache"
+import find from "./rewrite/find"
+import { RewriteAction } from "./rewrite/model"
+import rewind from "./rewrite/rewind"
+import same from "./rewrite/same"
+import state from "./rewrite/state"
+import summary from "./summary"
+import uniform from "./uniform"
+
+import type { Table } from "../../analysis/semantic/types/model"
+import type { Forest, Result } from "./model"
+
+export type Input = { types: Table, references: bool[], forest: Forest, left: u64, right: u64, action: RewriteAction }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const empty: u64[] = []
+    const paired = in.action == RewriteAction.Join || in.action == RewriteAction.ReleaseNewLoans
+
+    const result = loop({ types: in.types, references: in.references, forest: in.forest, action: in.action, paired: paired, left: [in.left], right: [paired ? in.right : 0], indices: [0], first: [0], children: empty, cache: { left: empty, right: empty, values: empty, slots: empty }, value: 0 }, {
+        while: current => current.left.length != 0,
+        next: current => {
+            const top = current.left.length - 1
+            const left = current.left[top]
+            const right = current.right[top]
+            const first = current.first[top]
+            const saved = find({ cache: current.cache, left: left, right: right })
+            const identical = current.paired && left == right
+            const unchanged = current.action == RewriteAction.ReleaseNewLoans && ((left < 5 && left != 2) || right == 2)
+            const uniform_pair = left < 5 && right < 5
+
+            if (saved.found || identical || unchanged || uniform_pair) {
+                current.value = saved.found ? saved.value : left
+
+                if (!saved.found && !identical && !unchanged) {
+                    current.value = uniform(state({ left: summary({ forest: current.forest, fact: left }), right: summary({ forest: current.forest, fact: right }), action: current.action }))
+                }
+
+                current.left = current.left.pop()[0]
+                current.right = current.right.pop()[0]
+                current.indices = current.indices.pop()[0]
+                current.first = current.first.pop()[0]
+                current.children = rewind({ values: current.children, count: first })
+
+                if (current.left.length != 0) {
+                    current.children = current.children.push(current.value)[0]
+                }
+            } else {
+                const node = (left >= 5 ? left : right) - 5
+                const type_id = current.forest.types[node]
+                const count = current.forest.count[node]
+                const index = current.indices[top]
+
+                if (index < count) {
+                    const child_type = fieldType({ types: current.types, type_id: type_id, index: index })
+                    const reference = current.references[integers.widen(child_type)]
+                    const child_left = project({ forest: current.forest, fact: left, index: index, reference: reference })
+                    const child_right = current.paired ? project({ forest: current.forest, fact: right, index: index, reference: reference }) : 0
+
+                    current.indices[top] = index + 1
+                    current.left = current.left.push(child_left)[0]
+                    current.right = current.right.push(child_right)[0]
+                    current.indices = current.indices.push(0)[0]
+                    current.first = current.first.push(current.children.length)[0]
+                } else {
+                    const left_shell = left < 5 ? summary({ forest: current.forest, fact: left }) : current.forest.shells[left - 5]
+                    const right_shell = right < 5 ? summary({ forest: current.forest, fact: right }) : current.forest.shells[right - 5]
+                    const shell = state({ left: left_shell, right: right_shell, action: current.action })
+                    const unchanged = same({ types: current.types, references: current.references, forest: current.forest, fact: left, type_id: type_id, shell: shell, children: current.children, first: first, count: count })
+
+                    current.value = left
+
+                    if (!unchanged) {
+                        const built = product({ forest: current.forest, type_id: type_id, shell: shell, children: current.children, first: first, count: count })
+
+                        current.forest = built.forest
+                        current.value = built.fact
+                    }
+
+                    current.cache = cache({ cache: current.cache, left: left, right: right, value: current.value })
+                }
+            }
+        }
+    })
+
+    return { forest: result.forest, fact: result.value }
+}

@@ -1,0 +1,20 @@
+import { State } from "../../places/model"
+import publish from "../publish"
+
+import type { Forest } from "../model"
+import type { Builders } from "./model"
+
+export type Input = { forest: Forest, builders: Builders, type_id: u32 }
+
+export type Output = { forest: Forest, builders: Builders, fact: u64 }
+
+export default function (in: Input): Output {
+    const top = in.builders.first.length - 1
+    const result = publish({ forest: in.forest, type_id: in.type_id, shell: State.Owned, first: in.builders.first[top], count: in.builders.count[top] })
+
+    return {
+        forest: result.forest,
+        builders: { first: in.builders.first.pop()[0], count: in.builders.count.pop()[0] },
+        fact: result.fact
+    }
+}

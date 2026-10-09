@@ -1,0 +1,67 @@
+import project from "./project"
+import replace from "./replace"
+import summary from "./summary"
+
+import type { Table } from "../../analysis/semantic/types/model"
+import type { Layout } from "../places/model"
+import type { Storage } from "./storage"
+
+export type Input = { types: Table, references: bool[], layout: Layout, storage: Storage, id: u64, fact: u64 }
+
+export type Output = Storage
+
+export default function (in: Input): Output {
+    const fact = in.layout.references[in.id] || in.fact == 4 ? in.fact : 0
+
+    const result = loop({ types: in.types, references: in.references, layout: in.layout, forest: in.storage.forest, facts: in.storage.facts, states: in.storage.states, id: in.id, root: in.id, fact: fact, ascending: true, leaving: false, active: true }, {
+        while: current => current.active,
+        next: current => {
+            if (current.ascending) {
+                current.facts[current.id] = current.fact
+                current.states[current.id] = summary({ forest: current.forest, fact: current.fact })
+
+                const parent = current.layout.parents[current.id]
+
+                if (parent == 0) {
+                    current.root = current.id
+                    current.ascending = false
+                } else {
+                    const changed = replace({ types: current.types, references: current.references, forest: current.forest, fact: current.facts[parent - 1], type_id: current.layout.types[parent - 1], index: current.layout.field_indices[current.id], value: current.fact })
+
+                    current.forest = changed.forest
+                    current.fact = changed.fact
+                    current.id = parent - 1
+                }
+            } else if (!current.leaving) {
+                if (current.id != current.root) {
+                    const parent = current.layout.parents[current.id] - 1
+                    const child_fact = project({ forest: current.forest, fact: current.facts[parent], index: current.layout.field_indices[current.id], reference: current.layout.references[current.id] })
+
+                    current.facts[current.id] = child_fact
+                    current.states[current.id] = summary({ forest: current.forest, fact: child_fact })
+                }
+
+                const child = current.layout.children[current.id]
+
+                if (child == 0) {
+                    current.leaving = true
+                } else {
+                    current.id = child - 1
+                }
+            } else if (current.id == current.root) {
+                current.active = false
+            } else {
+                const sibling = current.layout.siblings[current.id]
+
+                if (sibling == 0) {
+                    current.id = current.layout.parents[current.id] - 1
+                } else {
+                    current.id = sibling - 1
+                    current.leaving = false
+                }
+            }
+        }
+    })
+
+    return { forest: result.forest, facts: result.facts, states: result.states }
+}

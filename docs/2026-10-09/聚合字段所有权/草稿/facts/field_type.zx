@@ -1,0 +1,17 @@
+import integers from "zig:integers"
+
+import kind from "../../analysis/semantic/types/kind"
+import { Kind } from "../../analysis/semantic/types/model"
+
+import type { Table } from "../../analysis/semantic/types/model"
+
+export type Input = { types: Table, type_id: u32, index: u64 }
+
+export type Output = u32
+
+export default function (in: Input): Output {
+    const type_id = integers.widen(in.type_id)
+    const position = integers.widen(in.types.first[type_id]) + in.index
+
+    return kind(in.types.kinds[type_id]) == Kind.Object ? in.types.field_types[position] : in.types.children[position]
+}

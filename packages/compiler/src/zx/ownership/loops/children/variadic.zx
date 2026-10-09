@@ -1,0 +1,65 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../../ir/canonical/expressions/kinds"
+import matchChildren from "./match"
+
+import type { Child, Input } from "./model"
+
+export type Output = Child
+
+export default function (in: Input): Output {
+    const kind = in.expressions.kinds[in.expression]
+    const payload = integers.widen(in.expressions.payloads[in.expression])
+
+    if (kind == ExpressionKind.List || kind == ExpressionKind.Tuple || kind == ExpressionKind.Template) {
+        const count = integers.widen(in.expressions.sequence_count[payload])
+        const first = integers.widen(in.expressions.sequence_first[payload])
+
+        return { found: in.index < count, expression: in.index < count ? integers.widen(in.expressions.sequence_items[first + in.index]) : 0 }
+    }
+
+    if (kind == ExpressionKind.Parallel) {
+        const count = integers.widen(in.expressions.parallel_count[payload])
+        const first = integers.widen(in.expressions.parallel_first[payload])
+
+        return { found: in.index < count, expression: in.index < count ? integers.widen(in.expressions.parallel_tasks[first + in.index]) : 0 }
+    }
+
+    if (kind == ExpressionKind.Object) {
+        const evaluations = integers.widen(in.expressions.object_evaluation_count[payload])
+        const fields = integers.widen(in.expressions.object_count[payload])
+
+        if (in.index < evaluations) {
+            return { found: true, expression: integers.widen(in.expressions.object_evaluation_values[integers.widen(in.expressions.object_evaluation_first[payload]) + in.index]) }
+        }
+
+        const index = in.index - evaluations
+
+        return { found: index < fields, expression: index < fields ? integers.widen(in.expressions.object_field_values[integers.widen(in.expressions.object_first[payload]) + index]) : 0 }
+    }
+
+    if (kind == ExpressionKind.Scope) {
+        const count = integers.widen(in.expressions.scope_count[payload])
+        const first = integers.widen(in.expressions.scope_first[payload])
+
+        return { found: in.index <= count, expression: in.index < count ? integers.widen(in.expressions.scope_values[first + in.index]) : integers.widen(in.expressions.scope_results[payload]) }
+    }
+
+    if (kind == ExpressionKind.ListOperation) {
+        if (in.index == 0) {
+            return { found: true, expression: integers.widen(in.expressions.collection_targets[payload]) }
+        }
+
+        const index = in.index - 1
+        const count = integers.widen(in.expressions.collection_count[payload])
+        const first = integers.widen(in.expressions.collection_first[payload])
+
+        return { found: index < count, expression: index < count ? integers.widen(in.expressions.collection_arguments[first + index]) : 0 }
+    }
+
+    if (kind == ExpressionKind.Match) {
+        return matchChildren(in)
+    }
+
+    return { found: false, expression: 0 }
+}

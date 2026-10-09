@@ -1,0 +1,40 @@
+import find from "./find"
+
+import type { Cache } from "./model"
+
+export type Input = { cache: Cache, left: u64, right: u64, value: u64 }
+
+export type Output = Cache
+
+export default function (in: Input): Output {
+    const grow = in.cache.slots.length == 0 || in.cache.values.length >= in.cache.slots.length / 2
+    const empty: u64[] = []
+    const capacity = in.cache.slots.length == 0 ? 16 : in.cache.slots.length * 2
+
+    const result = loop({ cache: { ...in.cache, slots: grow ? empty : in.cache.slots }, left: in.left, right: in.right, value: in.value, capacity: capacity, grow: grow, index: 0, active: true }, {
+        while: current => current.active,
+        next: current => {
+            if (current.grow && current.cache.slots.length < current.capacity) {
+                current.cache = { ...current.cache, slots: current.cache.slots.push(0)[0] }
+            } else if (current.grow && current.index < current.cache.values.length) {
+                const location = find({ cache: current.cache, left: current.cache.left[current.index], right: current.cache.right[current.index] })
+
+                current.cache.slots[location.slot] = current.index + 1
+                current.index += 1
+            } else {
+                const location = find({ cache: current.cache, left: current.left, right: current.right })
+
+                current.cache.slots[location.slot] = current.cache.values.length + 1
+                current.cache = {
+                    left: current.cache.left.push(current.left)[0],
+                    right: current.cache.right.push(current.right)[0],
+                    values: current.cache.values.push(current.value)[0],
+                    slots: current.cache.slots
+                }
+                current.active = false
+            }
+        }
+    })
+
+    return result.cache
+}

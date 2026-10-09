@@ -1,0 +1,36 @@
+import rewrite from "../../facts/rewrite"
+import { RewriteAction } from "../../facts/rewrite/model"
+
+import type { Table } from "../../../analysis/semantic/types/model"
+import type { Forest } from "../../facts/model"
+import type { Memory } from "../../runtime/model"
+import type { Activations } from "./model"
+
+export type Input = { types: Table, references: bool[], memory: Memory, loops: Activations, index: u64, value: u64 }
+
+export type Output = { forest: Forest, loops: Activations, changed: bool }
+
+export default function (in: Input): Output {
+    const value = rewrite({ types: in.types, references: in.references, forest: in.memory.forest, left: in.loops.heads[in.index], right: in.value, action: RewriteAction.Join })
+
+    const result = loop({ types: in.types, references: in.references, forest: value.forest, loops: in.loops, facts: in.memory.facts, value: value.fact, activation: in.index, first: in.loops.first[in.index], count: in.loops.count[in.index], changed: value.fact != in.loops.heads[in.index], index: 0 }, {
+        while: current => current.index <= current.count,
+        next: current => {
+            if (current.index < current.count) {
+                const position = current.first + current.index
+                const previous = current.loops.facts[position]
+                const joined = rewrite({ types: current.types, references: current.references, forest: current.forest, left: previous, right: current.facts[current.loops.roots[position]], action: RewriteAction.Join })
+
+                current.forest = joined.forest
+                current.loops.facts[position] = joined.fact
+                current.changed = current.changed || joined.fact != previous
+            } else {
+                current.loops.heads[current.activation] = current.value
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { forest: result.forest, loops: result.loops, changed: result.changed }
+}

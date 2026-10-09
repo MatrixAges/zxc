@@ -1,0 +1,14 @@
+1/13 root.test.temporary object argument loans end after scalar-returning call...OK
+2/13 root.test.temporary tuple argument loans end after scalar-returning call...OK
+3/13 root.test.temporary list argument loans end after scalar-returning call...OK
+4/13 root.test.object argument preserves earlier borrow during later copying...OK
+5/13 root.test.tuple argument preserves earlier borrow during later copying...OK
+6/13 root.test.nested object argument protects outer borrowed value...OK
+7/13 root.test.nested scalar call cannot release an existing outer argument loan...OK
+8/13 root.test.completed scalar inner call does not loan its input into outer argument...OK
+9/13 root.test.fresh mapped argument does not loan its scalar source list...OK
+10/13 root.test.borrowed return keeps aggregate argument source frozen after call...OK
+11/13 root.test.later scalar call cannot release an already escaped borrow...OK
+12/13 root.test.temporary borrow success releases analysis allocation failures...OK
+13/13 root.test.shared argument copying releases analysis allocation failures...OK
+All 13 tests passed.

@@ -1,0 +1,33 @@
+import join from "../places/join"
+import summary from "./summary"
+
+import type { State } from "../places/model"
+import type { Forest, Result } from "./model"
+
+export type Input = { forest: Forest, type_id: u32, shell: State, first: u64, count: u64 }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    const result = loop({ forest: in.forest, first: in.first, count: in.count, state: in.shell, index: 0 }, {
+        while: current => current.index < current.count,
+        next: current => {
+            const fact = current.forest.children[current.first + current.index]
+
+            current.state = join({ left: current.state, right: summary({ forest: current.forest, fact: fact }) })
+            current.index += 1
+        }
+    })
+
+    return {
+        forest: {
+            types: in.forest.types.push(in.type_id)[0],
+            first: in.forest.first.push(in.first)[0],
+            count: in.forest.count.push(in.count)[0],
+            shells: in.forest.shells.push(in.shell)[0],
+            states: in.forest.states.push(result.state)[0],
+            children: in.forest.children
+        },
+        fact: in.forest.types.length + 5
+    }
+}

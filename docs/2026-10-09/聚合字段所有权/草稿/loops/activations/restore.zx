@@ -1,0 +1,36 @@
+import bind from "../../facts/bind"
+import apply from "../../runtime/snapshots/apply"
+import { Action } from "../../runtime/snapshots/model"
+
+import type { Table } from "../../../analysis/semantic/types/model"
+import type { Layout } from "../../places/model"
+import type { Memory } from "../../runtime/model"
+import type { Stack } from "../../runtime/snapshots/model"
+import type { Domains } from "../model"
+import type { Activations } from "./model"
+
+export type Input = { types: Table, references: bool[], layout: Layout, memory: Memory, snapshots: Stack, domains: Domains, loops: Activations, expression: u64, index: u64, exiting: bool }
+
+export type Output = Memory
+
+export default function (in: Input): Output {
+    const states = apply({ types: in.types, references: in.references, layout: in.layout, memory: in.memory, stack: in.snapshots, frame: in.loops.entries[in.index], action: Action.RestoreStates })
+    const memo = apply({ types: in.types, references: in.references, layout: in.layout, memory: states, stack: in.snapshots, frame: in.loops.entries[in.index], action: Action.RestoreMemo })
+    const locals = in.domains.count[in.expression]
+
+    const result = loop({ types: in.types, references: in.references, layout: in.layout, memory: memo, symbols: in.domains.symbols, local_first: in.domains.first[in.expression], locals: locals, roots: in.loops.roots, facts: in.exiting ? in.loops.outputs : in.loops.facts, first: in.loops.first[in.index], count: in.loops.count[in.index], index: 0 }, {
+        while: current => current.index < current.locals + current.count,
+        next: current => {
+            const local = current.index < current.locals
+            const position = local ? current.local_first + current.index : current.first + current.index - current.locals
+            const id = local ? current.symbols[position] : current.roots[position]
+            const fact = local ? 0 : current.facts[position]
+            const bound = bind({ types: current.types, references: current.references, layout: current.layout, storage: { forest: current.memory.forest, facts: current.memory.facts, states: current.memory.states }, id: id, fact: fact })
+
+            current.memory = { ...current.memory, forest: bound.forest, facts: bound.facts, states: bound.states }
+            current.index += 1
+        }
+    })
+
+    return result.memory
+}

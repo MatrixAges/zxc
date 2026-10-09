@@ -1,0 +1,14 @@
+export type Input = { values: u64[], count: u64 }
+
+export type Output = u64[]
+
+export default function (in: Input): Output {
+    const result = loop(in, {
+        while: current => current.values.length > current.count,
+        next: current => {
+            current.values = current.values.pop()[0]
+        }
+    })
+
+    return result.values
+}

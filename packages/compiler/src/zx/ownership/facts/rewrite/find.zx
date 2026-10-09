@@ -1,0 +1,32 @@
+import hash from "./hash"
+
+import type { Cache } from "./model"
+
+export type Input = { cache: Cache, left: u64, right: u64 }
+
+export type Output = { found: bool, slot: u64, value: u64 }
+
+export default function (in: Input): Output {
+    if (in.cache.slots.length == 0) {
+        return { found: false, slot: 0, value: 0 }
+    }
+
+    const result = loop({ cache: in.cache, left: in.left, right: in.right, slot: hash({ left: in.left, right: in.right, capacity: in.cache.slots.length }), found: false, value: 0, active: true }, {
+        while: current => current.active,
+        next: current => {
+            const record = current.cache.slots[current.slot]
+
+            if (record == 0) {
+                current.active = false
+            } else if (current.cache.left[record - 1] == current.left && current.cache.right[record - 1] == current.right) {
+                current.found = true
+                current.value = current.cache.values[record - 1]
+                current.active = false
+            } else {
+                current.slot = current.slot + 1 == current.cache.slots.length ? 0 : current.slot + 1
+            }
+        }
+    })
+
+    return { found: result.found, slot: result.slot, value: result.value }
+}

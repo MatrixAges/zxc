@@ -1,0 +1,62 @@
+import integers from "zig:integers"
+
+import { ExpressionKind } from "../../ir/canonical/expressions/kinds"
+import variadic from "./children/variadic"
+
+import type { Child, Input } from "./children/model"
+
+export type Output = Child
+
+export default function (in: Input): Output {
+    const kind = in.expressions.kinds[in.expression]
+    const payload = integers.widen(in.expressions.payloads[in.expression])
+
+    const single: u32? = match kind {
+        ExpressionKind.Some => in.expressions.some[payload],
+        ExpressionKind.Capture => in.expressions.captures[payload],
+        ExpressionKind.Task => in.expressions.task_bodies[payload],
+        ExpressionKind.AwaitTask => in.expressions.awaits[payload],
+        ExpressionKind.CancelTask => in.expressions.cancellations[payload],
+        ExpressionKind.OptionalValue => in.expressions.optional_values[payload],
+        ExpressionKind.Field => in.expressions.projection_targets[payload],
+        ExpressionKind.TupleField => in.expressions.projection_targets[payload],
+        ExpressionKind.Length => in.expressions.lengths[payload],
+        ExpressionKind.Call => in.expressions.call_arguments[payload],
+        ExpressionKind.Unary => in.expressions.unary_operands[payload],
+        _ => null
+    }
+
+    if (single != null) {
+        return { found: in.index == 0, expression: integers.widen(single) }
+    }
+
+    if (kind == ExpressionKind.Index || kind == ExpressionKind.Binary) {
+        const first = kind == ExpressionKind.Index ? in.expressions.index_targets[payload] : in.expressions.binary_left[payload]
+        const second = kind == ExpressionKind.Index ? in.expressions.index_values[payload] : in.expressions.binary_right[payload]
+        const value = in.index == 0 ? first : second
+
+        return { found: in.index < 2, expression: integers.widen(value) }
+    }
+
+    if (kind == ExpressionKind.Iteration || kind == ExpressionKind.ListUpdate || kind == ExpressionKind.Conditional) {
+        const value = match kind {
+            ExpressionKind.Iteration => match in.index { 0 => in.expressions.iteration_initials[payload], 1 => in.expressions.iteration_conditions[payload], _ => in.expressions.iteration_bodies[payload] },
+            ExpressionKind.ListUpdate => match in.index { 0 => in.expressions.update_targets[payload], 1 => in.expressions.update_indices[payload], _ => in.expressions.update_values[payload] },
+            _ => match in.index { 0 => in.expressions.conditional_conditions[payload], 1 => in.expressions.conditional_yes[payload], _ => in.expressions.conditional_no[payload] }
+        }
+
+        return { found: in.index < 3, expression: integers.widen(value) }
+    }
+
+    if (kind == ExpressionKind.Transform) {
+        if (in.index < 2) {
+            return { found: true, expression: integers.widen(in.index == 0 ? in.expressions.transform_targets[payload] : in.expressions.transform_bodies[payload]) }
+        }
+
+        const initial = in.expressions.transform_initials[payload]
+
+        return { found: in.index == 2 && initial != null, expression: initial == null ? 0 : integers.widen(initial) }
+    }
+
+    return variadic(in)
+}

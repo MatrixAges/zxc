@@ -1,0 +1,21 @@
+import { State } from "./model"
+
+export type Input = { left: State, right: State }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    if (in.left == State.Moved || in.right == State.Moved) {
+        return State.Moved
+    }
+
+    if (in.left == State.Borrowed || in.right == State.Borrowed) {
+        return State.Borrowed
+    }
+
+    if (in.left == State.Loaned || in.right == State.Loaned) {
+        return State.Loaned
+    }
+
+    return in.left == State.Owned || in.right == State.Owned ? State.Owned : State.Copy
+}

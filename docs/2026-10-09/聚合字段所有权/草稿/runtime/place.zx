@@ -1,0 +1,21 @@
+import bind from "../facts/bind"
+import rewrite from "../facts/rewrite"
+import { RewriteAction } from "../facts/rewrite/model"
+import { Operation } from "../places/model"
+
+import type { Table } from "../../analysis/semantic/types/model"
+import type { Layout } from "../places/model"
+import type { Memory } from "./model"
+
+export type Input = { types: Table, references: bool[], layout: Layout, memory: Memory, id: u64, operation: Operation, fact: u64 }
+
+export type Output = Memory
+
+export default function (in: Input): Output {
+    const action = in.operation == Operation.Borrow ? RewriteAction.Borrow : RewriteAction.Freeze
+
+    const changed = in.operation == Operation.Assign ? { forest: in.memory.forest, fact: in.fact } : rewrite({ types: in.types, references: in.references, forest: in.memory.forest, left: in.memory.facts[in.id], right: 0, action: action })
+    const bound = bind({ types: in.types, references: in.references, layout: in.layout, storage: { forest: changed.forest, facts: in.memory.facts, states: in.memory.states }, id: in.id, fact: changed.fact })
+
+    return { forest: bound.forest, facts: bound.facts, states: bound.states, memo: in.memory.memo, trail: in.memory.trail }
+}

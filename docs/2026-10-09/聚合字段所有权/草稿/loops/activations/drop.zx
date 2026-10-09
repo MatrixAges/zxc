@@ -1,0 +1,18 @@
+import type { Activations } from "./model"
+
+export type Input = Activations
+
+export type Output = Activations
+
+export default function (in: Input): Output {
+    const first = in.first[in.first.length - 1]
+
+    return {
+        heads: in.heads.pop()[0], exits: in.exits.pop()[0], seen: in.seen.pop()[0],
+        entries: in.entries.pop()[0], boundaries: in.boundaries.pop()[0],
+        first: in.first.pop()[0], count: in.count.pop()[0],
+        roots: in.roots.splice(0, first, [])[1],
+        facts: in.facts.splice(0, first, [])[1],
+        outputs: in.outputs.splice(0, first, [])[1]
+    }
+}

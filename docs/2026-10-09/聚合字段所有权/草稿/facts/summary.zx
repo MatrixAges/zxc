@@ -1,0 +1,27 @@
+import { State } from "../places/model"
+
+import type { Forest } from "./model"
+
+export type Input = { forest: Forest, fact: u64 }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    if (in.fact >= 5) {
+        return in.forest.states[in.fact - 5]
+    }
+
+    if (in.fact == 0) {
+        return State.Copy
+    }
+
+    if (in.fact == 1) {
+        return State.Owned
+    }
+
+    if (in.fact == 2) {
+        return State.Loaned
+    }
+
+    return in.fact == 3 ? State.Borrowed : State.Moved
+}

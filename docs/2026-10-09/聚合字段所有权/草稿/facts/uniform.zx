@@ -1,0 +1,21 @@
+import { State } from "../places/model"
+
+export type Input = State
+
+export type Output = u64
+
+export default function (in: Input): Output {
+    if (in == State.Copy) {
+        return 0
+    }
+
+    if (in == State.Owned) {
+        return 1
+    }
+
+    if (in == State.Loaned) {
+        return 2
+    }
+
+    return in == State.Borrowed ? 3 : 4
+}

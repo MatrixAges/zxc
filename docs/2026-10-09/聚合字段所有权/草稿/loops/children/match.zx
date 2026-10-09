@@ -1,0 +1,27 @@
+import integers from "zig:integers"
+
+import type { Child, Input } from "./model"
+
+export type Output = Child
+
+export default function (in: Input): Output {
+    const payload = integers.widen(in.expressions.payloads[in.expression])
+    const subject = in.expressions.match_subjects[payload]
+
+    if (subject != null && in.index == 0) {
+        return { found: true, expression: integers.widen(subject) }
+    }
+
+    const index = in.index - (subject == null ? 0 : 1)
+    const count = integers.widen(in.expressions.match_count[payload])
+    const first = integers.widen(in.expressions.match_first[payload])
+
+    if (index < count * 2) {
+        const position = first + index / 2
+        const value = index % 2 == 0 ? in.expressions.match_conditions[position] : in.expressions.match_results[position]
+
+        return { found: true, expression: integers.widen(value) }
+    }
+
+    return { found: index == count * 2, expression: integers.widen(in.expressions.match_fallbacks[payload]) }
+}
