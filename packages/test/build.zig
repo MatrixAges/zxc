@@ -14,6 +14,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(@import("build/filter_result_kind.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/context_effects.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/context_borrow.zig").add(b, compiler, target, optimize));
+    test_step.dependOn(@import("build/callback_arguments.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/reduce_initial.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/reduce_runtime.zig").add(b, cli_dependency, target, optimize));
     test_step.dependOn(@import("build/multiple_append.zig").add(b, compiler, target, optimize));

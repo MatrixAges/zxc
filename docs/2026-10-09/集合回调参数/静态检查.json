@@ -1,0 +1,36 @@
+[
+    {
+        "command": [
+            "/usr/local/bin/node",
+            "node_modules/typescript/bin/tsc",
+            "--ignoreConfig",
+            "--noEmit",
+            "--allowImportingTsExtensions",
+            "--module",
+            "nodenext",
+            "--target",
+            "esnext",
+            "--types",
+            "node",
+            "--strict",
+            "--skipLibCheck",
+            "src/generate_callback_arguments.ts",
+            "tests/collections/callback_arguments/run_test.ts"
+        ],
+        "exit_code": 0,
+        "log": "类型检查.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+        "command": ["/usr/local/bin/node", "src/generate_callback_arguments.ts", "--check"],
+        "exit_code": 0,
+        "log": "生成幂等.txt",
+        "sha256": "7afd4ab6827136ba2ebe122eaeb7740102a2e9f626c027fbc22242f0a769e3e8"
+    },
+    {
+        "command": ["/usr/local/bin/node", "src/audit_matrix.ts"],
+        "exit_code": 0,
+        "log": "矩阵审计.json.txt",
+        "sha256": "018fca08621f8e3ee18250f6023a5c3cd4f06c163ca818c4c4c8a3cb7202cbb8"
+    }
+]

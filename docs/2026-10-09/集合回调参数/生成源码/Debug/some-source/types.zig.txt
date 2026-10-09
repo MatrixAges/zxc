@@ -1,0 +1,41 @@
+pub const zx_type_55e4e85410968e1de74bac15e77b76c6010e9a63b00ae8bbb22514bf9b6c5054 = struct {
+    index: u64,
+    item: i64,
+    source: []const i64,
+};
+
+pub const zx_type_6f29b97f56d4db3bd751242185c40590ad842b5ab153a6fcca934f711870a621 = struct {
+    index: u64,
+    result: bool,
+    source: []const i64,
+};
+
+pub const value_zx_type_6f29b97f56d4db3bd751242185c40590ad842b5ab153a6fcca934f711870a621_01b64116cded339e0425481afb235b18d36a68077b7c6c7e6676de6f82bf2292 = struct {
+    index: u64,
+    result: bool,
+    source: []const i64,
+    zx_origin: ?*const zx_type_6f29b97f56d4db3bd751242185c40590ad842b5ab153a6fcca934f711870a621 = null,
+};
+
+pub const native = struct {
+    pub const @"zig:host" = struct {
+        pub const source = struct {
+            pub const Input = []const i64;
+            pub const Output = []const i64;
+            pub const InputValue = []const i64;
+            pub const OutputValue = []const i64;
+        };
+        pub const visit = struct {
+            pub const Input = *const zx_type_55e4e85410968e1de74bac15e77b76c6010e9a63b00ae8bbb22514bf9b6c5054;
+            pub const Output = bool;
+            pub const InputValue = zx_type_55e4e85410968e1de74bac15e77b76c6010e9a63b00ae8bbb22514bf9b6c5054;
+            pub const OutputValue = bool;
+        };
+    };
+};
+
+pub const layouts = struct {
+    pub const @"zig:host" = struct {
+    };
+};
+
