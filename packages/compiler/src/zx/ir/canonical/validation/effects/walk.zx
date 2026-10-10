@@ -10,7 +10,7 @@ export type Output = bool
 export default function (in: Input): Output {
     const valid = check({ context: in.context, unit: in.unit })
 
-    return loop({ context: in.context, index: 0, valid: valid }, {
+    return loop({ context: in.context, index: in.context.verified, valid: valid }, {
         while: current => current.valid && current.index < current.context.functions.files.length,
         next: current => {
             current.valid = check({ context: current.context, unit: select({ functions: current.context.functions, index: current.index }) })

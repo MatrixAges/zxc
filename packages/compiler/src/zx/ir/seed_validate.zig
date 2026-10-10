@@ -2,11 +2,11 @@ const std = @import("std");
 const zx = @import("zx");
 const ir = zx.ir;
 
-pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!?zx.Diagnostic {
+pub fn validate(allocator: std.mem.Allocator, program: ir.Program, verified: usize) std.mem.Allocator.Error!?zx.Diagnostic {
     if (program.version != zx.ir_version or !program.functions.validStructure() or !@import("type_rules.zig").validate(program.types)) return invalid();
     if (!try @import("body_structure.zig").valid(allocator, program) or !@import("contracts.zig").tables(program.contracts)) return invalid();
 
-    for (0..program.functions.count()) |item_row| {
+    for (verified..program.functions.count()) |item_row| {
         const item = program.functions.at(item_row);
 
         if (!try @import("body_structure.zig").valid(allocator, item) or !@import("contracts.zig").tables(item.contracts)) return invalid();
@@ -15,7 +15,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
     if (!@import("native_modules.zig").validate(program)) return invalid();
     if (!try function(allocator, program)) return invalid();
 
-    for (0..program.functions.count()) |function_index| {
+    for (verified..program.functions.count()) |function_index| {
         const item = program.functions.at(function_index);
 
         if (!item.symbols.validStructure()) return invalid();
@@ -72,7 +72,7 @@ pub fn validate(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloc
         }
     }
 
-    if (!try @import("error_contracts.zig").validate(allocator, program)) return invalid();
+    if (!try @import("error_contracts.zig").validate(allocator, program, verified)) return invalid();
 
     return null;
 }

@@ -38,7 +38,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
 
     std.debug.assert(output_type != null);
 
-    var nested = Flow{ .allocator = allocator, .owner = parent.owner, .types = types.items.view(), .native_modules = parent.native_modules, .shared_functions = parent.shared_functions, .output_type = output_type.?, .loaded = parent.loaded, .results = parent.results, .tasks = parent.tasks, .next_binding = parent.next_binding, .unit_input = parent.unit_input };
+    var nested = Flow{ .allocator = allocator, .owner = parent.owner, .types = types.items.view(), .native_modules = parent.native_modules, .shared_functions = parent.shared_functions, .verified_functions = parent.verified_functions, .output_type = output_type.?, .loaded = parent.loaded, .results = parent.results, .tasks = parent.tasks, .next_binding = parent.next_binding, .unit_input = parent.unit_input };
 
     try nested.bindings.appendSlice(allocator, captures);
 
@@ -99,7 +99,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
         return failure(parent, node, reporter.diagnostic.?);
     };
 
-    if (try frontend.validateIr(allocator, program)) |issue| return failure(parent, node, issue);
+    if (try frontend.validateIrExtending(allocator, program, parent.verified_functions)) |issue| return failure(parent, node, issue);
 
     const argument = try @import("program/capture.zig").argument(allocator, parent.owner, parent.types, environment_type, environment, input_type, selected, .{ .start = node.location.offset, .end = node.location.offset });
     var out: ?[]const u8 = null;

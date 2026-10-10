@@ -44,6 +44,7 @@ pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []co
         .nominal_types = state.types.origins.items.view(),
         .native_modules = state.native_modules.view(),
         .shared_functions = base,
+        .verified_functions = state.verifiedFunctions(),
         .store_initializers = state.initializers.items,
         .input_type = signature.input_type,
         .output_type = signature.output_type,
@@ -65,16 +66,17 @@ pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []co
 
     destination.temporary = allocator;
 
-    const loaded = Source.appendBody(.{
+    const loaded = state.linked(Source.appendBody(.{
         .program = contract.program,
         .base_functions = base_view,
+        .verified_functions = state.verifiedFunctions(),
         .nominal_types = contract.nominal_types,
         .store_initializers = contract.store_initializers,
     }, destination) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return state.fail(module.source.node.location, "RX module body cannot be linked to its shared compilation context");
-    };
+    });
 
     if (!entry) return .{ .loaded = loaded, .contract = null };
 

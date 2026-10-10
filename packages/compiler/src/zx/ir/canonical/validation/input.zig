@@ -17,7 +17,7 @@ pub fn Storage(comptime Input: type) type {
         context: Context,
         unit: Unit,
         input: Input,
-        pub fn init(self: *Self, allocator: std.mem.Allocator, program: *const ir.Program) std.mem.Allocator.Error!void {
+        pub fn init(self: *Self, allocator: std.mem.Allocator, program: *const ir.Program, verified: usize) std.mem.Allocator.Error!void {
             self.table = ir.TypeTable.borrow(@TypeOf(self.table), program.types);
             self.functions = @import("../functions/input.zig").view(@TypeOf(self.functions), program.functions);
 
@@ -28,6 +28,7 @@ pub fn Storage(comptime Input: type) type {
                 .max_offset = std.math.maxInt(usize),
                 .scalar_count = std.enums.values(ir.Scalar).len,
                 .maximum_count = std.math.maxInt(u32),
+                .verified = verified,
             };
 
             self.body = .{

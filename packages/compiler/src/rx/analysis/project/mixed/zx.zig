@@ -38,6 +38,7 @@ pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []co
         .aliases = signature.type_imports,
         .imports = imports,
         .functions = base,
+        .verified_functions = state.verifiedFunctions(),
         .store_initializers = state.initializers.items,
     });
 
@@ -58,16 +59,17 @@ pub fn compile(state: *State, cache: *frontend.project.ParseCache, sources: []co
 
     destination.temporary = temporary;
 
-    return Source.appendBody(.{
+    return state.linked(Source.appendBody(.{
         .program = program,
         .base_functions = base,
+        .verified_functions = state.verifiedFunctions(),
         .nominal_types = result.nominal_types,
         .store_initializers = result.store_initializers,
     }, destination) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return state.fail(.{ .offset = 0, .line = 1, .column = 1 }, "source module body cannot be linked to its shared compilation context");
-    };
+    });
 }
 
 fn diagnostic(state: *State, source: []const u8, issue: zx.Diagnostic) State.Error {

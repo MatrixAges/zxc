@@ -57,7 +57,7 @@ export default function (in: Input): Output {
     return {
         version: in.version,
         expected_version: in.version,
-        context: { table: in.types, functions: functions, modules: in.request.modules, max_offset: in.max_offset, scalar_count: in.scalar_count, maximum_count: in.maximum_count },
+        context: { table: in.types, functions: functions, modules: in.request.modules, max_offset: in.max_offset, scalar_count: in.scalar_count, maximum_count: in.maximum_count, verified: 0 },
         unit: { body: body, contracts: contracts, input_type: zero, output_type: zero, output_ownership: Ownership.Borrowed, transaction: true, type_only: true },
         export_names: in.request.export_names,
         export_types: in.request.export_types

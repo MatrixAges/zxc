@@ -17,6 +17,7 @@ pub const Options = struct {
     nominal_types: @FieldType(frontend.AnalysisResult, "nominal_types"),
     native_modules: zx.ir.NativeModuleTable = .{},
     shared_functions: ?zx.ir.FunctionTable = null,
+    verified_functions: zx.ir.FunctionTable = .{},
     store_initializers: []const frontend.project.compiled.StoreInitializer = &.{},
     input_type: zx.ir.TypeId,
     output_type: zx.ir.TypeId,
@@ -29,6 +30,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
         .types = options.types,
         .native_modules = options.native_modules,
         .shared_functions = options.shared_functions,
+        .verified_functions = options.verified_functions,
         .output_type = options.output_type,
         .loaded = options.calls,
         .results = options.bindings,
@@ -61,7 +63,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
         call.argument.types = types;
         call.argument.native_modules = native_modules;
 
-        if (try frontend.validateIr(allocator, call.callee)) |issue| return invalid(allocator, options, issue);
+        if (try frontend.validateIrExtending(allocator, call.callee, options.verified_functions)) |issue| return invalid(allocator, options, issue);
     }
 
     if (result) |*program| {
@@ -85,7 +87,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
         return invalid(allocator, options, reporter.diagnostic.?);
     };
 
-    if (try frontend.validateIr(allocator, program)) |issue| return invalid(allocator, options, issue);
+    if (try frontend.validateIrExtending(allocator, program, options.verified_functions)) |issue| return invalid(allocator, options, issue);
 
     return .{ .contract = .{ .program = program, .store_initializers = lowered.store_initializers, .types = types, .nominal_types = options.nominal_types, .input_type = options.input_type, .output_type = options.output_type, .calls = calls.items, .result = result, .native_modules = native_modules } };
 }

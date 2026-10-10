@@ -16,6 +16,7 @@ graph: SourceGraph,
 signatures: frontend.project.signature_project.Data,
 types: Types,
 functions: ir.FunctionStorage = .{},
+verified: usize = 0,
 native_modules: ir.NativeModuleStorage = .{},
 initializers: std.ArrayList(frontend.project.compiled.StoreInitializer) = .empty,
 libraries: std.AutoHashMapUnmanaged(usize, []const frontend.project.compiled.Export) = .empty,
@@ -51,6 +52,16 @@ pub fn init(allocator: std.mem.Allocator, graph: SourceGraph, signatures: fronte
 
 pub fn destination(self: *Self) frontend.project.artifact.program_link.Destination {
     return .{ .allocator = self.allocator, .temporary = self.allocator, .types = &self.types, .functions = &self.functions, .native_modules = &self.native_modules };
+}
+
+pub fn verifiedFunctions(self: *const Self) ir.FunctionTable {
+    return self.functions.view().prefix(self.verified);
+}
+
+pub fn linked(self: *Self, loaded: Source.Loaded) Source.Loaded {
+    self.verified = self.functions.count();
+
+    return loaded;
 }
 
 pub fn signature(self: *const Self, index: usize) ?frontend.project.signature_project.Module {

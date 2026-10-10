@@ -8,6 +8,7 @@ const Initializer = @import("../compiled.zig").StoreInitializer;
 pub const Input = struct {
     program: ir.Program,
     base_functions: ?ir.FunctionTable = null,
+    verified_functions: ir.FunctionTable = .{},
     nominal_types: Origins.Table,
     store_initializers: []const Initializer = &.{},
 };
@@ -32,7 +33,7 @@ pub fn appendBody(input: Input, destination: program_link.Destination) program_l
 
     if (!sameView(base, destination.functions.view()) or !sameView(program.native_modules, destination.native_modules.view())) return error.InvalidModule;
     if (!@import("function_table.zig").hasPrefix(program.functions, base)) return error.InvalidModule;
-    if (try @import("../../ir/validate.zig").validate(destination.temporary, program) != null) return error.InvalidIr;
+    if (try @import("../../ir/validate.zig").validateExtending(destination.temporary, program, input.verified_functions) != null) return error.InvalidIr;
 
     const mapping = try destination.types.appendFrom(destination.temporary, program.types, input.nominal_types, destination.types.items.count());
     const functions = try destination.temporary.alloc(?ir.FunctionId, program.functions.count());
