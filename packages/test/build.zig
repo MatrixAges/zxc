@@ -9,6 +9,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run ZX conformance catalogs and their integrity checks");
     const suites = @import("build/catalog.zig").load(b);
 
+    test_step.dependOn(@import("build/function_analysis.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/function_updates.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/predicates.zig").add(b, compiler, target, optimize));
     test_step.dependOn(@import("build/predicate_allocation.zig").add(b, compiler, target, optimize));
