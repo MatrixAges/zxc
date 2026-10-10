@@ -8,6 +8,8 @@ pub fn build(b: *std.Build) void {
     const lexer_source = lexer.generate(b, optimize);
     const parser = @import("build/parser.zig");
     const parser_source = parser.generate(b, optimize);
+    const generated_debug = b.option(bool, "generated-debug", "Keep debug information in generated bootstrap modules (slower and heavier zxc compiles)") orelse false;
+    const generated_strip: ?bool = if (generated_debug) null else true;
 
     b.addNamedLazyPath("naming", parser_source.naming);
 
@@ -15,7 +17,7 @@ pub fn build(b: *std.Build) void {
 
     b.modules.put(b.allocator, "lint", lint) catch @panic("out of memory");
 
-    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source), parser.modules(b, target, optimize, parser_source), lint);
+    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source, generated_strip), parser.modules(b, target, optimize, parser_source, generated_strip), lint);
     const frontend = modules.frontend;
     const module = modules.compiler;
 
@@ -38,13 +40,13 @@ pub fn build(b: *std.Build) void {
     rx_options.addOption(bool, "generated_graph", true);
     rx_options.addOption(bool, "generated_rules", true);
     rx.addOptions("rx_options", rx_options);
-    rx.addImport("generated_paths", b.createModule(.{ .root_source_file = parser_source.paths, .target = target, .optimize = optimize }));
-    rx.addImport("generated_graph", b.createModule(.{ .root_source_file = parser_source.graph, .target = target, .optimize = optimize }));
-    rx.addImport("generated_attribute_role", b.createModule(.{ .root_source_file = parser_source.attribute_role, .target = target, .optimize = optimize }));
-    rx.addImport("generated_attribute_content", b.createModule(.{ .root_source_file = parser_source.attribute_content, .target = target, .optimize = optimize }));
-    rx.addImport("generated_call_rule", b.createModule(.{ .root_source_file = parser_source.call_rule, .target = target, .optimize = optimize }));
-    rx.addImport("generated_path_kind", b.createModule(.{ .root_source_file = parser_source.path_kind, .target = target, .optimize = optimize }));
-    rx.addImport("generated_file_kind", b.createModule(.{ .root_source_file = parser_source.file_kind, .target = target, .optimize = optimize }));
+    rx.addImport("generated_paths", b.createModule(.{ .root_source_file = parser_source.paths, .target = target, .optimize = optimize, .strip = generated_strip }));
+    rx.addImport("generated_graph", b.createModule(.{ .root_source_file = parser_source.graph, .target = target, .optimize = optimize, .strip = generated_strip }));
+    rx.addImport("generated_attribute_role", b.createModule(.{ .root_source_file = parser_source.attribute_role, .target = target, .optimize = optimize, .strip = generated_strip }));
+    rx.addImport("generated_attribute_content", b.createModule(.{ .root_source_file = parser_source.attribute_content, .target = target, .optimize = optimize, .strip = generated_strip }));
+    rx.addImport("generated_call_rule", b.createModule(.{ .root_source_file = parser_source.call_rule, .target = target, .optimize = optimize, .strip = generated_strip }));
+    rx.addImport("generated_path_kind", b.createModule(.{ .root_source_file = parser_source.path_kind, .target = target, .optimize = optimize, .strip = generated_strip }));
+    rx.addImport("generated_file_kind", b.createModule(.{ .root_source_file = parser_source.file_kind, .target = target, .optimize = optimize, .strip = generated_strip }));
 
     _ = b.addModule("rx_analysis", .{
         .root_source_file = b.path("src/rx/analysis/root.zig"),

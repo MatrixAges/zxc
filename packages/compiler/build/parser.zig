@@ -274,71 +274,72 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
     return std.mem.lessThan(u8, left, right);
 }
 
-pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources) @import("compiler.zig").ParserModules {
+/// Generated bootstrap modules omit debug information when strip is set; hand-written host modules keep theirs.
+pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, strip: ?bool) @import("compiler.zig").ParserModules {
     const integers = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/integers.zig"), .target = target, .optimize = optimize });
     const floats = b.createModule(.{ .root_source_file = b.path("src/zx/analysis/semantic/native/floats.zig"), .target = target, .optimize = optimize });
-    const lookup = b.createModule(.{ .root_source_file = source.type_lookup, .target = target, .optimize = optimize });
+    const lookup = b.createModule(.{ .root_source_file = source.type_lookup, .target = target, .optimize = optimize, .strip = strip });
 
     lookup.addImport("integers", integers);
-    lookup.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.semantic_abi, .target = target, .optimize = optimize }));
+    lookup.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.semantic_abi, .target = target, .optimize = optimize, .strip = strip }));
 
-    const nominal = b.createModule(.{ .root_source_file = source.nominal_lookup, .target = target, .optimize = optimize });
+    const nominal = b.createModule(.{ .root_source_file = source.nominal_lookup, .target = target, .optimize = optimize, .strip = strip });
 
     nominal.addImport("integers", integers);
-    nominal.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.nominal_abi, .target = target, .optimize = optimize }));
+    nominal.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.nominal_abi, .target = target, .optimize = optimize, .strip = strip }));
 
-    const origins = b.createModule(.{ .root_source_file = source.origin_validation, .target = target, .optimize = optimize });
+    const origins = b.createModule(.{ .root_source_file = source.origin_validation, .target = target, .optimize = optimize, .strip = strip });
 
     origins.addImport("integers", integers);
-    origins.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.origins_abi, .target = target, .optimize = optimize }));
+    origins.addImport("zxc_abi", b.createModule(.{ .root_source_file = source.origins_abi, .target = target, .optimize = optimize, .strip = strip }));
 
     const nominal_data = @import("compiler.zig").nominalData(b, target, optimize);
-    const production_abi = b.createModule(.{ .root_source_file = source.production_abi, .target = target, .optimize = optimize });
-    const production = b.createModule(.{ .root_source_file = source.origin_production, .target = target, .optimize = optimize });
+    const production_abi = b.createModule(.{ .root_source_file = source.production_abi, .target = target, .optimize = optimize, .strip = strip });
+    const production = b.createModule(.{ .root_source_file = source.origin_production, .target = target, .optimize = optimize, .strip = strip });
 
     production.addImport("integers", integers);
     production.addImport("zxc_abi", production_abi);
 
-    const preflight_abi = b.createModule(.{ .root_source_file = source.preflight_abi, .target = target, .optimize = optimize });
-    const preflight = b.createModule(.{ .root_source_file = source.merge_preflight, .target = target, .optimize = optimize });
+    const preflight_abi = b.createModule(.{ .root_source_file = source.preflight_abi, .target = target, .optimize = optimize, .strip = strip });
+    const preflight = b.createModule(.{ .root_source_file = source.merge_preflight, .target = target, .optimize = optimize, .strip = strip });
 
     preflight.addImport("integers", integers);
     preflight.addImport("zxc_abi", preflight_abi);
 
-    const artifact_roots_abi = b.createModule(.{ .root_source_file = source.artifact_roots_abi, .target = target, .optimize = optimize });
-    const artifact_roots = b.createModule(.{ .root_source_file = source.artifact_roots, .target = target, .optimize = optimize });
+    const artifact_roots_abi = b.createModule(.{ .root_source_file = source.artifact_roots_abi, .target = target, .optimize = optimize, .strip = strip });
+    const artifact_roots = b.createModule(.{ .root_source_file = source.artifact_roots, .target = target, .optimize = optimize, .strip = strip });
 
     artifact_roots.addImport("integers", integers);
     artifact_roots.addImport("zxc_abi", artifact_roots_abi);
 
-    const artifact_prepare_abi = b.createModule(.{ .root_source_file = source.artifact_prepare_abi, .target = target, .optimize = optimize });
-    const artifact_prepare = b.createModule(.{ .root_source_file = source.artifact_prepare, .target = target, .optimize = optimize });
+    const artifact_prepare_abi = b.createModule(.{ .root_source_file = source.artifact_prepare_abi, .target = target, .optimize = optimize, .strip = strip });
+    const artifact_prepare = b.createModule(.{ .root_source_file = source.artifact_prepare, .target = target, .optimize = optimize, .strip = strip });
 
     artifact_prepare.addImport("integers", integers);
     artifact_prepare.addImport("zxc_abi", artifact_prepare_abi);
 
-    const artifact_remap_abi = b.createModule(.{ .root_source_file = source.artifact_remap_abi, .target = target, .optimize = optimize });
-    const artifact_remap = b.createModule(.{ .root_source_file = source.artifact_remap, .target = target, .optimize = optimize });
+    const artifact_remap_abi = b.createModule(.{ .root_source_file = source.artifact_remap_abi, .target = target, .optimize = optimize, .strip = strip });
+    const artifact_remap = b.createModule(.{ .root_source_file = source.artifact_remap, .target = target, .optimize = optimize, .strip = strip });
 
     artifact_remap.addImport("integers", integers);
     artifact_remap.addImport("zxc_abi", artifact_remap_abi);
 
-    const merge_abi = b.createModule(.{ .root_source_file = source.merge_abi, .target = target, .optimize = optimize });
-    const merge = b.createModule(.{ .root_source_file = source.type_merge, .target = target, .optimize = optimize });
+    const merge_abi = b.createModule(.{ .root_source_file = source.merge_abi, .target = target, .optimize = optimize, .strip = strip });
+    const merge = b.createModule(.{ .root_source_file = source.type_merge, .target = target, .optimize = optimize, .strip = strip });
 
     merge.addImport("integers", integers);
     merge.addImport("zxc_abi", merge_abi);
 
-    const validation_abi = b.createModule(.{ .root_source_file = source.validation_abi, .target = target, .optimize = optimize });
-    const type_validation = b.createModule(.{ .root_source_file = source.type_validation, .target = target, .optimize = optimize });
+    const validation_abi = b.createModule(.{ .root_source_file = source.validation_abi, .target = target, .optimize = optimize, .strip = strip });
+    const type_validation = b.createModule(.{ .root_source_file = source.type_validation, .target = target, .optimize = optimize, .strip = strip });
 
     type_validation.addImport("integers", integers);
     type_validation.addImport("zxc_abi", validation_abi);
 
-    const program = b.createModule(.{ .root_source_file = source.program, .target = target, .optimize = optimize });
-    const expression = b.createModule(.{ .root_source_file = source.expression, .target = target, .optimize = optimize });
+    const program = b.createModule(.{ .root_source_file = source.program, .target = target, .optimize = optimize, .strip = strip });
+    const expression = b.createModule(.{ .root_source_file = source.expression, .target = target, .optimize = optimize, .strip = strip });
     const type_views = @import("compiler.zig").typeViews(b, target, optimize);
-    const resolution_abi = b.createModule(.{ .root_source_file = source.resolution_abi, .target = target, .optimize = optimize });
+    const resolution_abi = b.createModule(.{ .root_source_file = source.resolution_abi, .target = target, .optimize = optimize, .strip = strip });
 
     const resolution_standard = b.createModule(.{
         .root_source_file = b.path("standard/src/root.zig"),
@@ -349,6 +350,7 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const type_resolution = b.createModule(.{
         .root_source_file = source.type_resolution,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
@@ -358,10 +360,11 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         },
     });
 
-    const construction_abi = b.createModule(.{ .root_source_file = source.construction_abi, .target = target, .optimize = optimize });
+    const construction_abi = b.createModule(.{ .root_source_file = source.construction_abi, .target = target, .optimize = optimize, .strip = strip });
 
     const type_construction = b.createModule(.{
         .root_source_file = source.type_construction,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
@@ -372,18 +375,20 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const type_query = b.createModule(.{
         .root_source_file = source.type_query,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.query_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.query_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
-    const analyzer_abi = b.createModule(.{ .root_source_file = source.analyzer_abi, .target = target, .optimize = optimize });
+    const analyzer_abi = b.createModule(.{ .root_source_file = source.analyzer_abi, .target = target, .optimize = optimize, .strip = strip });
 
     const analyzer = b.createModule(.{
         .root_source_file = source.analyzer,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
@@ -396,10 +401,11 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const source_signature = b.createModule(.{
         .root_source_file = source.source_signature,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.source_signature_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.source_signature_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "zxc_standard", .module = resolution_standard },
             .{ .name = "integers", .module = integers },
         },
@@ -407,10 +413,11 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const expression_analysis = b.createModule(.{
         .root_source_file = source.expression_analysis,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.expression_analysis_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.expression_analysis_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "zxc_standard", .module = resolution_standard },
             .{ .name = "integers", .module = integers },
             .{ .name = "floats", .module = floats },
@@ -419,10 +426,11 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const ir_validation = b.createModule(.{
         .root_source_file = source.ir_validation,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_validation_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_validation_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
             .{ .name = "floats", .module = floats },
         },
@@ -430,10 +438,11 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const compiled_library = b.createModule(.{
         .root_source_file = source.compiled_library,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.compiled_library_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.compiled_library_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "zxc_standard", .module = resolution_standard },
             .{ .name = "integers", .module = integers },
             .{ .name = "floats", .module = floats },
@@ -442,10 +451,11 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const native_restore = b.createModule(.{
         .root_source_file = source.native_restore,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_restore_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_restore_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "zxc_standard", .module = resolution_standard },
             .{ .name = "integers", .module = integers },
             .{ .name = "floats", .module = floats },
@@ -454,29 +464,32 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const ownership = b.createModule(.{
         .root_source_file = source.ownership,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ownership_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ownership_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const native_interface = b.createModule(.{
         .root_source_file = source.native_interface,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
             .{ .name = "integers", .module = integers },
             .{ .name = "zxc_standard", .module = resolution_standard },
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_interface_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_interface_abi, .target = target, .optimize = optimize, .strip = strip }) },
         },
     });
 
-    const native_names_abi = b.createModule(.{ .root_source_file = source.native_names_abi, .target = target, .optimize = optimize });
+    const native_names_abi = b.createModule(.{ .root_source_file = source.native_names_abi, .target = target, .optimize = optimize, .strip = strip });
 
     const native_names = b.createModule(.{
         .root_source_file = source.native_names,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
@@ -487,98 +500,109 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const native_type = b.createModule(.{
         .root_source_file = source.native_type,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
             .{ .name = "integers", .module = integers },
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_type_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_type_abi, .target = target, .optimize = optimize, .strip = strip }) },
         },
     });
 
     const native_modules = b.createModule(.{
         .root_source_file = source.native_modules,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_modules_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_modules_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const native_export = b.createModule(.{
         .root_source_file = source.native_export,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_export_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.native_export_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const ir_scopes = b.createModule(.{
         .root_source_file = source.ir_scopes,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_scopes_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_scopes_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const refinement_mark = b.createModule(.{
         .root_source_file = source.refinement_mark,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
     });
 
     const refinement_restore = b.createModule(.{
         .root_source_file = source.refinement_restore,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
     });
 
     const refinement_add = b.createModule(.{
         .root_source_file = source.refinement_add,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
     });
 
     const refinement_assume = b.createModule(.{
         .root_source_file = source.refinement_assume,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_assume_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_assume_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const refinement_bind = b.createModule(.{
         .root_source_file = source.refinement_bind,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_bind_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_bind_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const refinement_type = b.createModule(.{
         .root_source_file = source.refinement_type,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_type_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_type_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const ir_contracts = b.createModule(.{
         .root_source_file = source.ir_contracts,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_contracts_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_contracts_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
             .{ .name = "floats", .module = floats },
         },
@@ -586,20 +610,22 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const ir_contract_tables = b.createModule(.{
         .root_source_file = source.ir_contract_tables,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_contract_tables_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_contract_tables_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const ir_expressions = b.createModule(.{
         .root_source_file = source.ir_expressions,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_expressions_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_expressions_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
             .{ .name = "floats", .module = floats },
         },
@@ -607,70 +633,77 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
 
     const ir_functions = b.createModule(.{
         .root_source_file = source.ir_functions,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_functions_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_functions_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const ir_task_call = b.createModule(.{
         .root_source_file = source.ir_task_call,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_task_call_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_task_call_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const ir_program_pure = b.createModule(.{
         .root_source_file = source.ir_program_pure,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_program_pure_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_program_pure_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const ir_tasks = b.createModule(.{
         .root_source_file = source.ir_tasks,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_tasks_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_tasks_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const ir_body = b.createModule(.{
         .root_source_file = source.ir_body,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_body_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_body_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const ir_stores = b.createModule(.{
         .root_source_file = source.ir_stores,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_stores_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_stores_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
 
     const ir_store_call = b.createModule(.{
         .root_source_file = source.ir_store_call,
+        .strip = strip,
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_store_call_abi, .target = target, .optimize = optimize }) },
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.ir_store_call_abi, .target = target, .optimize = optimize, .strip = strip }) },
             .{ .name = "integers", .module = integers },
         },
     });
@@ -722,8 +755,8 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .type_lookup = lookup,
         .program = program,
         .expression = expression,
-        .xml = b.createModule(.{ .root_source_file = source.xml, .target = target, .optimize = optimize }),
-        .specifier = b.createModule(.{ .root_source_file = source.specifier, .target = target, .optimize = optimize }),
-        .integer = b.createModule(.{ .root_source_file = source.integer, .target = target, .optimize = optimize }),
+        .xml = b.createModule(.{ .root_source_file = source.xml, .target = target, .optimize = optimize, .strip = strip }),
+        .specifier = b.createModule(.{ .root_source_file = source.specifier, .target = target, .optimize = optimize, .strip = strip }),
+        .integer = b.createModule(.{ .root_source_file = source.integer, .target = target, .optimize = optimize, .strip = strip }),
     };
 }
