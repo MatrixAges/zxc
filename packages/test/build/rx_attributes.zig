@@ -2,14 +2,19 @@ const std = @import("std");
 
 pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Dependency, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step {
     const step = b.step("test-rx-attributes", "Validate RX string and braced expression attributes and resource cleanup");
-    const check = b.addSystemCommand(&.{"python3"});
+    const check = b.addSystemCommand(&.{"node"});
 
-    check.addFileArg(b.path("../../docs/2026-10-05/RX新属性验证/生成用例.py"));
-    check.addFileInput(b.path("../../docs/2026-10-05/RX新属性验证/解析案例.json"));
-    check.addFileInput(b.path("../../docs/2026-10-05/RX新属性验证/属性案例.json"));
+    check.addFileArg(b.path("src/generate_rx_attributes.ts"));
+    check.addFileInput(b.path("src/shared/catalog.ts"));
+    check.addFileInput(b.path("src/shared/json.ts"));
+    check.addFileInput(b.path("src/zig_string.ts"));
+    check.addFileInput(b.path("tests/rx/attributes/parsing.json"));
+    check.addFileInput(b.path("tests/rx/attributes/schema.json"));
     check.addFileInput(b.path("tests/rx/attributes/parsing_test.zig"));
     check.addFileInput(b.path("tests/rx/attributes/schema_test.zig"));
     check.addArg("--check");
+    check.has_side_effects = true;
+
     step.dependOn(&check.step);
 
     for ([_][]const u8{ "parsing", "schema" }) |name| {
