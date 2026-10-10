@@ -71,7 +71,7 @@ pub fn bind(lowering: *Lower, id: ir.ExprId, index: usize, builder: Builder) Low
 pub fn invocation(lowering: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
     const call = lowering.program.expression(id).value.call;
     const lanes = lowering.buffer_functions[@backingInt(call.function)];
-    const argument = try context.argument(lowering, lanes, lowering.buffer_calls.get(id).?);
+    const argument = try context.argument(lowering, lowering.program.functions.at(@backingInt(call.function)).output_type, lanes, lowering.buffer_calls.get(id).?);
 
     return @import("../value_call/root.zig").invocation(lowering, call, argument);
 }

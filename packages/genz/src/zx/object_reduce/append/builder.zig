@@ -10,6 +10,7 @@ buffer: *const node.Expression,
 started: *const node.Expression,
 enabled: ?*const node.Expression = null,
 slot: ?*const node.Expression = null,
+lane: ?usize = null,
 pub fn lower(self: Self, lowering: *Lower, id: ir.ExprId) Lower.Error!*const node.Expression {
     if (self.enabled) |enabled| {
         lowering.uses_buffers = true;

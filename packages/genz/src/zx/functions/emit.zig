@@ -57,5 +57,7 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
 
     try output.append(self.allocator, declaration);
 
+    self.buffer_types = helper.buffer_types;
+    self.iteration_analyses = helper.iteration_analyses;
     self.uses_parallel = self.uses_parallel or helper.uses_parallel;
 }

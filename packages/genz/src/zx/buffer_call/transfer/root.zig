@@ -54,7 +54,7 @@ pub fn prepare(lowering: *Lower, body: *std.ArrayList(node.Statement), call: Cal
         slots[index] = .{ .buffer = try lowering.builder.identifier(name), .started = try lowering.builder.identifier(started) };
     }
 
-    return context.argument(lowering, lanes, slots);
+    return context.argument(lowering, lowering.program.functions.at(@backingInt(call.function)).output_type, lanes, slots);
 }
 
 fn child(program: ir.Program, input: ir.TypeId, path: []const u32) ir.TypeId {

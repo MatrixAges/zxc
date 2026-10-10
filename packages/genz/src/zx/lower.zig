@@ -29,6 +29,7 @@ list_update_buffers: std.AutoHashMapUnmanaged(ir.ExprId, @import("list_update.zi
 collection_buffers: std.AutoHashMapUnmanaged(ir.ExprId, @import("iteration_buffer/capacity.zig")) = .empty,
 buffer_calls: std.AutoHashMapUnmanaged(ir.ExprId, []const ?@import("object_reduce/append/builder.zig")) = .empty,
 iteration_analyses: @import("iteration_buffer/memo.zig") = .{},
+buffer_types: @import("buffer_call/types.zig") = .{},
 buffer_functions: []const []const @import("buffer_call/root.zig").Lane = &.{},
 transfer_functions: []const []const @import("buffer_call/transfer/analysis.zig").Capability = &.{},
 buffered_type: ?*const node.Expression = null,
@@ -100,6 +101,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     }
 
     try output.appendSlice(self.allocator, task_declarations.items);
+    try output.appendSlice(self.allocator, self.buffer_types.declarations.items);
     if (self.uses_parallel) try output.append(self.allocator, try @import("parallel/allocator.zig").declaration(self));
     for (comparisons.items) |type_id| try output.append(self.allocator, try @import("comparison.zig").ordering(self, type_id));
 
