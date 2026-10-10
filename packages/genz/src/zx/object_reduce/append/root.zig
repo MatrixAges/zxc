@@ -86,13 +86,14 @@ pub fn restore(self: *Self) void {
 
 pub fn finish(self: Self, body: *std.ArrayList(node.Statement), accumulator: *const node.Expression) Lower.Error!void {
     const lowering = self.lowering;
+    var owned_group = try Capacity.Group.init(lowering, body, "state_owned");
 
     for (self.fields.items) |field| {
         const selected = lowering.program.typeOf(self.type_id).object.at(field.path[0]);
         const target = try lowering.field(accumulator, selected.name);
         const source = try @import("writeback.zig").project(lowering, self.type_id, accumulator, field.path);
         const capacity = Capacity{ .buffer = field.builder.buffer, .started = field.builder.started };
-        const owned = try capacity.take(lowering, body, source, lowering.types[@backingInt(field.element)]);
+        const owned = try capacity.take(lowering, body, &owned_group, source, lowering.types[@backingInt(field.element)]);
         const value = try @import("writeback.zig").replace(lowering, selected.type_id, target, field.path[1..], owned);
         var writes: std.ArrayList(node.Statement) = .empty;
 
@@ -104,4 +105,6 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), accumulator: *co
         try @import("../../state_value/origin.zig").clear(lowering, &writes, self.type_id, accumulator);
         try body.append(lowering.allocator, .{ .branch = .{ .condition = field.builder.started, .yes = try writes.toOwnedSlice(lowering.allocator), .no = &.{} } });
     }
+
+    try owned_group.seal(lowering, body, .on_error);
 }

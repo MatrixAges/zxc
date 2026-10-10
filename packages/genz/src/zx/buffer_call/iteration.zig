@@ -39,6 +39,8 @@ pub fn init(lowering: *Lower, selected_call: ?ir.ExprId, body: *std.ArrayList(no
     self.call = id;
     self.previous = lowering.buffer_calls.get(id);
 
+    var columns = try Capacity.Group.init(lowering, body, "state_columns");
+
     for (lowering.buffer_functions[@backingInt(call.function)], 0..) |lane, index| {
         if (lane.rejection != null or !std.mem.eql(u32, lane.input, lane.output)) continue;
         if (lane.appends.len == 0 and lane.updates.len == 0 and lane.calls.len == 0) continue;
@@ -53,11 +55,13 @@ pub fn init(lowering: *Lower, selected_call: ?ir.ExprId, body: *std.ArrayList(no
         };
 
         const element = lowering.program.typeOf(selected).list;
-        const capacity = try Capacity.create(lowering, body, lowering.types[@backingInt(element)]);
+        const capacity = try Capacity.member(lowering, &columns, lowering.types[@backingInt(element)]);
 
         try self.fields.append(lowering.allocator, .{ .path = lane.output, .element = element, .capacity = capacity });
         try @import("root.zig").bind(lowering, id, index, .{ .buffer = capacity.buffer, .started = capacity.started });
     }
+
+    try columns.seal(lowering, body, .always);
 
     return self;
 }
@@ -91,11 +95,12 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
     const lowering = self.lowering;
     const batch = @import("../object_reduce/append/writeback/batch.zig");
     var changes: std.ArrayList(batch.Change) = .empty;
+    var owned_group = try Capacity.Group.init(lowering, body, "state_owned");
 
     for (self.fields.items) |field| {
         const writeback = @import("../object_reduce/append/writeback.zig");
         const source = try writeback.project(lowering, type_id, state, field.path);
-        const owned = try field.capacity.take(lowering, body, source, lowering.types[@backingInt(field.element)]);
+        const owned = try field.capacity.take(lowering, body, &owned_group, source, lowering.types[@backingInt(field.element)]);
 
         if (lowering.capture == null) {
             try changes.append(lowering.allocator, .{ .path = field.path, .value = owned, .started = field.capacity.started });
@@ -110,6 +115,7 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
         } });
     }
 
+    try owned_group.seal(lowering, body, .on_error);
     try batch.apply(lowering, body, type_id, state, changes.items);
 }
 

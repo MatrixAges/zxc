@@ -15,6 +15,7 @@ fields: std.ArrayList(Field) = .empty,
 calls: std.ArrayList(SavedCall) = .empty,
 saved_updates: std.ArrayList(SavedUpdate) = .empty,
 readers: []const bool = &.{},
+columns: ?Capacity.Group = null,
 mutable_state: bool,
 iteration: ir.Iteration,
 initial: *const node.Expression,
@@ -30,6 +31,7 @@ pub fn init(lowering: *Lower, iteration: ir.Iteration, initial: *const node.Expr
     var path: std.ArrayList(usize) = .empty;
 
     try self.collect(iteration, body, lowering.program.expression(iteration.initial).type_id, &path);
+    if (self.columns) |*columns| try columns.seal(lowering, body, .always);
 
     return self;
 }
@@ -130,7 +132,10 @@ fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
 
 fn installCapacity(self: *Self, body: *std.ArrayList(node.Statement), child: ir.TypeId, path: []const usize, updates: []const ir.ExprId, calls: []const @import("../buffer_call/analysis/flow.zig").Call) Lower.Error!void {
     const lowering = self.lowering;
-    var capacity = try Capacity.create(lowering, body, try @import("../iteration_value/types.zig").element(lowering, child));
+
+    if (self.columns == null) self.columns = try Capacity.Group.init(lowering, body, "state_columns");
+
+    var capacity = try Capacity.member(lowering, &self.columns.?, try @import("../iteration_value/types.zig").element(lowering, child));
 
     if (calls.len == 0) capacity.reserve = try @import("reservation/root.zig").limit(lowering, self.iteration, self.initial, path, updates);
     try self.fields.append(lowering.allocator, .{ .path = try lowering.allocator.dupe(usize, path), .element = child, .storage = capacity });
@@ -164,6 +169,7 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
     const lowering = self.lowering;
     const batch = @import("../object_reduce/append/writeback/batch.zig");
     var changes: std.ArrayList(batch.Change) = .empty;
+    var owned_group = try Capacity.Group.init(lowering, body, "state_owned");
 
     for (self.fields.items) |field| {
         if (!deep) {
@@ -173,7 +179,7 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
 
             const writeback = @import("../object_reduce/append/writeback.zig");
             const source = try writeback.project(lowering, type_id, state, path);
-            const owned = try field.storage.take(lowering, body, source, lowering.types[@backingInt(field.element)]);
+            const owned = try field.storage.take(lowering, body, &owned_group, source, lowering.types[@backingInt(field.element)]);
 
             if (lowering.capture == null) {
                 try changes.append(lowering.allocator, .{ .path = path, .value = owned, .started = field.storage.started });
@@ -210,7 +216,7 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
             }
         }
 
-        try field.storage.finish(lowering, body, target, lowering.types[@backingInt(field.element)]);
+        try field.storage.finish(lowering, body, &owned_group, target, lowering.types[@backingInt(field.element)]);
 
         if (invalidation.items.len != 0) try body.append(lowering.allocator, .{ .branch = .{
             .condition = field.storage.started,
@@ -219,6 +225,7 @@ pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const no
         } });
     }
 
+    try owned_group.seal(lowering, body, .on_error);
     try batch.apply(lowering, body, type_id, state, changes.items);
 }
 

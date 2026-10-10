@@ -1,4 +1,5 @@
 const std = @import("std");
+const Capacity = @import("../iteration_buffer/capacity.zig");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
@@ -113,6 +114,8 @@ pub fn lower(lowering: *Lower, selected: consumer.Consumer, buffers: *const Buff
 
     std.debug.assert(valid);
 
+    var owned_group = try Capacity.Group.init(lowering, body, "state_owned");
+
     for (buffers.fields.items) |field| {
         const exported = for (self.paths.items) |path_items| {
             if (std.mem.eql(usize, field.path, path_items)) break true;
@@ -135,8 +138,10 @@ pub fn lower(lowering: *Lower, selected: consumer.Consumer, buffers: *const Buff
             else => unreachable,
         };
 
-        try field.storage.finish(lowering, body, target, lowering.types[@backingInt(field.element)]);
+        try field.storage.finish(lowering, body, &owned_group, target, lowering.types[@backingInt(field.element)]);
     }
+
+    try owned_group.seal(lowering, body, .on_error);
 
     defer for (self.projections.items) |id| {
         _ = lowering.cache.remove(id);
