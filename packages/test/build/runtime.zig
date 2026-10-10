@@ -15,6 +15,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
     const number_special_step = b.step("test-number-special-values", "Execute original NaN signed zero and infinity comparisons");
     const number_power_step = b.step("test-number-power-boundaries", "Execute original power of two products and signed overflow boundaries");
     const boolean_null_step = b.step("test-boolean-null", "Execute original boolean negation and typed null binding");
+    const boolean_assignment_step = b.step("test-boolean-assignment-controls", "Execute assignable state field controls for boolean literal targets");
     const standard_step = b.step("test-standard-runtime", "Run standard interfaces through their shared ABI");
     const logical_step = b.step("test-logical-binary", "Run logical AND and OR source and short circuit cases");
     const zlib_step = b.step("test-zlib", "Run independent compressed input and decompression boundary cases");
@@ -89,6 +90,18 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
 
     number_power_step.dependOn(&number_power_check.step);
     step.dependOn(&number_power_check.step);
+
+    const boolean_assignment_check = b.addSystemCommand(&.{"node"});
+
+    boolean_assignment_check.addFileArg(b.path("src/generate_boolean_assignment.ts"));
+    boolean_assignment_check.addArg("--check");
+    boolean_assignment_check.addFileInput(b.path("src/shared/catalog.ts"));
+    boolean_assignment_check.addFileInput(b.path("src/shared/json.ts"));
+
+    boolean_assignment_check.has_side_effects = true;
+
+    boolean_assignment_step.dependOn(&boolean_assignment_check.step);
+    step.dependOn(&boolean_assignment_check.step);
     step.dependOn(@import("immutable_list.zig").add(b, compiler, target, optimize, suites));
     step.dependOn(@import("rx_parallel_floating.zig").add(b, compiler, target, optimize, suites));
     step.dependOn(@import("rx_floating.zig").add(b, compiler, target, optimize, suites));
@@ -244,6 +257,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
         if (std.mem.startsWith(u8, suite.path, "language/types/number/power_boundaries/")) number_power_step.dependOn(&run.step);
         if (std.mem.eql(u8, suite.path, "language/expressions/comparison/f64") or std.mem.eql(u8, suite.path, "language/expressions/comparison/f64_negated") or std.mem.eql(u8, suite.path, "language/types/number/signed_zero/division")) number_special_step.dependOn(&run.step);
         if (std.mem.eql(u8, suite.path, "language/types/boolean/negation") or std.mem.eql(u8, suite.path, "language/types/null/binding")) boolean_null_step.dependOn(&run.step);
+        if (std.mem.startsWith(u8, suite.path, "language/types/boolean/assignment/")) boolean_assignment_step.dependOn(&run.step);
         if (suite.shared_abi) standard_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "built_ins/string/")) strings_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "built_ins/list/range_extract/")) list_range_step.dependOn(&run.step);
