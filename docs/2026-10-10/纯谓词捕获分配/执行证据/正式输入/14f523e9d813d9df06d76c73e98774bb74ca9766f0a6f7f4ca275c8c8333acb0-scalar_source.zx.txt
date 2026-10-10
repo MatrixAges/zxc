@@ -1,9 +1,0 @@
-export type Input = { items: i64[], threshold: i64 }
-
-export type Output = bool
-
-export default function (in: Input): Output {
-    const threshold = in.threshold
-
-    return in.items.every((item, index, source) => item > threshold && source[index] == item)
-}

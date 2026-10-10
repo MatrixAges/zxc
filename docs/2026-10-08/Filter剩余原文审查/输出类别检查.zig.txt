@@ -1,9 +1,0 @@
-const std = @import("std");
-const program = @import("program");
-
-test "actual filter output retains its typed list slice category" {
-    const pointer = @typeInfo(program.Output).pointer;
-
-    try std.testing.expectEqual(.slice, pointer.size);
-    try std.testing.expect(pointer.child == i64);
-}

@@ -1,7 +1,0 @@
-export type Input = { items: i64[] }
-
-export type Output = { mapped: i64[], items: i64[] }
-
-export default function (in: Input): Output {
-    return { mapped: in.items.map((item, index, source) => source[index + 1 == source.length ? 0 : index + 1]), items: in.items }
-}

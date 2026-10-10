@@ -1,7 +1,0 @@
-export type Input = { items: i64[], expected_length: u64 }
-
-export type Output = { selected: i64[], items: i64[] }
-
-export default function (in: Input): Output {
-    return { selected: in.items.filter((item, index, source) => source.length == in.expected_length), items: in.items }
-}

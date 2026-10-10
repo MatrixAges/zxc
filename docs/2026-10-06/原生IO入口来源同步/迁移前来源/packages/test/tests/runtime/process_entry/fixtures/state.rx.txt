@@ -1,6 +1,0 @@
-<Module>
-  <Store from="state" as="reader"/>
-  <Call fn="snapshot" in={$in} name="value"/>
-  <Call fn="count" in={store.reader.counter.value} name="count"/>
-  <Return value={{snapshot: ctx.value, count: ctx.count}}/>
-</Module>

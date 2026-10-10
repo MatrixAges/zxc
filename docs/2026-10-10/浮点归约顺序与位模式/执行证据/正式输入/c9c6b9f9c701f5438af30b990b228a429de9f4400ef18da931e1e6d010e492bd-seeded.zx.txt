@@ -1,7 +1,0 @@
-export type Input = { items: f64[], seed: f64 }
-
-export type Output = f64
-
-export default function (in: Input): Output {
-    return in.items.reduce((previous, current) => previous / current, in.seed)
-}

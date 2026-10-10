@@ -1,7 +1,0 @@
-export type Input = { items: i64[], first: bool }
-
-export type Output = { selected: i64[], items: i64[] }
-
-export default function (in: Input): Output {
-    return { selected: in.items.filter((item, index, source) => index == 0 ? in.first : item > source[index - 1]), items: in.items }
-}

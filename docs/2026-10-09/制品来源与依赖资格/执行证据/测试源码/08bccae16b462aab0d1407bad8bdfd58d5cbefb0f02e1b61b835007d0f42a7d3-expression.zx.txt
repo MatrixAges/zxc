@@ -1,9 +1,0 @@
-loop(5, {
-    while: current => current > 0,
-    next: current => {
-        const row: [u64?, boolean, Array<u64>] = [null, true, [3, 5]]
-        const entry: { z: string, a: u64 } = { z: "kept", a: 7 }
-
-        current -= entry.a - row[2].length
-    }
-})
