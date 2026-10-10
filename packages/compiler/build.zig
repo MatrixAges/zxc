@@ -17,12 +17,14 @@ pub fn build(b: *std.Build) void {
 
     b.modules.put(b.allocator, "lint", lint) catch @panic("out of memory");
 
-    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source, generated_strip), parser.modules(b, target, optimize, parser_source, generated_strip), lint);
+    const natives = parser.shared(b, target, optimize, parser_source, generated_strip);
+    const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source, generated_strip), parser.modules(b, target, optimize, parser_source, natives, generated_strip), lint);
     const frontend = modules.frontend;
     const module = modules.compiler;
 
     b.modules.put(b.allocator, "frontend", frontend) catch @panic("out of memory");
     b.modules.put(b.allocator, "compiler", module) catch @panic("out of memory");
+    b.modules.put(b.allocator, "frontend_checks", parser.checks(b, target, optimize, parser_source, natives, generated_strip)) catch @panic("out of memory");
 
     const rx = b.addModule("rx", .{
         .root_source_file = b.path("src/rx/root.zig"),

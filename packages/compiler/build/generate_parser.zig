@@ -3,6 +3,7 @@ const compiler = @import("compiler");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
 const collection = @import("source_collection.zig");
+const entries = @import("entries.zig");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
@@ -10,12 +11,13 @@ pub fn main(init: std.process.Init) !void {
 
     if (std.mem.eql(u8, args[1], "--standard-abi")) return @import("generate_types.zig").generate(init, args[2]);
 
+    const set = std.meta.stringToEnum(entries.Set, args[1]) orelse return error.UnknownEntrySet;
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
 
-    try collection.collect(init.io, allocator, args[1], "", &sources, &modules);
-    try collection.collect(init.io, allocator, args[args.len - 2], "lint/naming/", &sources, &modules);
-    try collection.collect(init.io, allocator, args[args.len - 1], "core/", &sources, &modules);
+    try collection.collect(init.io, allocator, args[2], "", &sources, &modules);
+    try collection.collect(init.io, allocator, args[3], "lint/naming/", &sources, &modules);
+    try collection.collect(init.io, allocator, args[4], "core/", &sources, &modules);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
@@ -46,83 +48,17 @@ pub fn main(init: std.process.Init) !void {
         .module = "integers",
     } };
 
-    const plain = [_][]const u8{
-        "zx/frontend/parser/program.rx",
-        "zx/frontend/parser/expression_text.rx",
-        "rx/syntax/parse.rx",
-        "rx/path_segments/normalize.rx",
-        "rx/dependency_graph/validate.rx",
-        "rx/schema/attribute/classify.rx",
-        "rx/schema/content/validate.rx",
-        "rx/schema/call/validate.rx",
-        "rx/path_kind/validate.rx",
-        "rx/schema/file/classify.rx",
-        "zx/modules/specifier/classify.rx",
-        "zx/analysis/integer/decode.rx",
-    };
+    const selected = entries.of(set);
+    const jobs = try allocator.alloc(Job, selected.len);
+    var next: usize = 5;
 
-    const typed = [_]struct { []const u8, bool }{
-        .{ "zx/analysis/semantic/lookup.rx", true },
-        .{ "zx/analysis/semantic/nominal.rx", true },
-        .{ "zx/analysis/semantic/origins.rx", true },
-        .{ "zx/analysis/semantic/produce.rx", true },
-        .{ "zx/analysis/semantic/preflight.rx", true },
-        .{ "zx/analysis/semantic/merge.rx", true },
-        .{ "zx/analysis/semantic/validate_types.rx", true },
-        .{ "zx/analysis/semantic/resolve.rx", true },
-        .{ "zx/analysis/semantic/construct_type.rx", true },
-        .{ "zx/analysis/semantic/query_types.rx", true },
-        .{ "zx/ownership/check.rx", true },
-        .{ "zx/ir/canonical/body_check.rx", true },
-        .{ "zx/ir/canonical/stores_check.rx", true },
-        .{ "zx/ir/canonical/store_call_check.rx", true },
-        .{ "zx/ir/canonical/tasks_check.rx", true },
-        .{ "zx/ir/canonical/functions_check.rx", true },
-        .{ "zx/ir/canonical/task_call_check.rx", true },
-        .{ "zx/ir/canonical/program_pure_check.rx", true },
-        .{ "zx/ir/canonical/expressions_check.rx", true },
-        .{ "zx/ir/canonical/contracts_check.rx", true },
-        .{ "zx/ir/canonical/contract_tables_check.rx", true },
-        .{ "zx/ir/canonical/scopes_check.rx", true },
-        .{ "zx/ir/canonical/refinement_assume.rx", true },
-        .{ "zx/ir/canonical/refinement_bind.rx", true },
-        .{ "zx/ir/canonical/refinement_type_of.rx", true },
-        .{ "zx/ir/canonical/native_modules_check.rx", true },
-        .{ "zx/ir/canonical/native_export_check.rx", true },
-        .{ "zx/ir/canonical/native_type_check.rx", true },
-        .{ "zx/modules/native_names.rx", true },
-        .{ "zx/modules/native/load.rx", true },
-        .{ "zx/modules/artifact/roots.rx", true },
-        .{ "zx/modules/artifact/planning/materialize.rx", true },
-        .{ "zx/modules/artifact/remapping/columns.rx", true },
-        .{ "zx/ir/canonical/refinement/facts/mark.rx", false },
-        .{ "zx/ir/canonical/refinement/facts/restore.rx", false },
-        .{ "zx/ir/canonical/refinement/facts/add.rx", false },
-        .{ "zx/analysis/analyzer/analyze.rx", true },
-        .{ "zx/modules/source_signature/analyze.rx", true },
-        .{ "zx/analysis/expression_program/compile.rx", true },
-        .{ "zx/ir/canonical/validation/validate.rx", true },
-        .{ "zx/modules/compiled/execute.rx", true },
-        .{ "zx/modules/semantic_cache/restoring/native/restore.rx", true },
-    };
-
-    var jobs: std.ArrayList(Job) = .empty;
-    var next: usize = 2;
-
-    for (plain) |entry| {
-        try jobs.append(allocator, .{ .entry = entry, .output = args[next] });
-
-        next += 1;
+    for (selected, jobs) |entry, *job| {
+        job.* = .{ .entry = entry.path, .output = args[next], .types = if (entry.abi != null) args[next + 1] else null };
+        next += if (entry.abi != null) 2 else 1;
     }
 
-    for (typed) |item| {
-        try jobs.append(allocator, .{ .entry = item[0], .output = args[next], .types = if (item[1]) args[next + 1] else null });
-
-        next += if (item[1]) 2 else 1;
-    }
-
-    try jobs.append(allocator, .{ .entry = "lint/naming/check.rx", .output = args[args.len - 3] });
-    try @import("parallel_generation.zig").run(init, jobs.items, .{ .modules = inputs, .sources = sources.items, .interfaces = &interfaces }, generate);
+    if (next != args.len) return error.OutputCountMismatch;
+    try @import("parallel_generation.zig").run(init, jobs, .{ .modules = inputs, .sources = sources.items, .interfaces = &interfaces }, generate);
 }
 
 pub const Job = @import("parallel_generation.zig").Job;

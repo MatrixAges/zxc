@@ -12,6 +12,10 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
     while (imports.next()) |entry| checks.addImport(entry.key_ptr.*, entry.value_ptr.*);
 
+    var generated = compiler.module("frontend_checks").import_table.iterator();
+
+    while (generated.next()) |entry| checks.addImport(entry.key_ptr.*, entry.value_ptr.*);
+
     for ([_][]const u8{ "functions", "program", "resources" }) |name| {
         const tests = b.addTest(.{ .name = b.fmt("function-effects-{s}", .{name}), .root_module = b.createModule(.{
             .root_source_file = b.path(b.fmt("tests/ir/effects/{s}_test.zig", .{name})),

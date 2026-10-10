@@ -1,5 +1,5 @@
 const std = @import("std");
-pub const ParserModules = struct { native_restore: *std.Build.Module, compiled_library: *std.Build.Module, ir_validation: *std.Build.Module, expression_analysis: *std.Build.Module, source_signature: *std.Build.Module, analyzer: *std.Build.Module, refinement_mark: *std.Build.Module, refinement_restore: *std.Build.Module, refinement_add: *std.Build.Module, artifact_remap: *std.Build.Module, artifact_prepare: *std.Build.Module, artifact_roots: *std.Build.Module, native_interface: *std.Build.Module, native_names: *std.Build.Module, native_type: *std.Build.Module, native_modules: *std.Build.Module, native_export: *std.Build.Module, ir_scopes: *std.Build.Module, refinement_assume: *std.Build.Module, refinement_bind: *std.Build.Module, refinement_type: *std.Build.Module, ownership: *std.Build.Module, ir_body: *std.Build.Module, ir_tasks: *std.Build.Module, ir_functions: *std.Build.Module, ir_expressions: *std.Build.Module, ir_contracts: *std.Build.Module, ir_contract_tables: *std.Build.Module, ir_task_call: *std.Build.Module, ir_program_pure: *std.Build.Module, ir_stores: *std.Build.Module, ir_store_call: *std.Build.Module, type_construction: *std.Build.Module, type_query: *std.Build.Module, type_resolution: *std.Build.Module, type_views: *std.Build.Module, type_validation: *std.Build.Module, type_merge: *std.Build.Module, program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, type_lookup: *std.Build.Module, nominal_lookup: *std.Build.Module, origin_validation: *std.Build.Module, origin_production: *std.Build.Module, nominal_data: *std.Build.Module, merge_preflight: *std.Build.Module };
+pub const ParserModules = struct { native_restore: *std.Build.Module, compiled_library: *std.Build.Module, ir_validation: *std.Build.Module, expression_analysis: *std.Build.Module, source_signature: *std.Build.Module, analyzer: *std.Build.Module, refinement_mark: *std.Build.Module, refinement_restore: *std.Build.Module, refinement_add: *std.Build.Module, artifact_remap: *std.Build.Module, artifact_prepare: *std.Build.Module, artifact_roots: *std.Build.Module, native_interface: *std.Build.Module, native_modules: *std.Build.Module, refinement_assume: *std.Build.Module, refinement_bind: *std.Build.Module, refinement_type: *std.Build.Module, ownership: *std.Build.Module, ir_task_call: *std.Build.Module, ir_program_pure: *std.Build.Module, type_construction: *std.Build.Module, type_query: *std.Build.Module, type_resolution: *std.Build.Module, type_views: *std.Build.Module, type_validation: *std.Build.Module, type_merge: *std.Build.Module, program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, origin_validation: *std.Build.Module, origin_production: *std.Build.Module, nominal_data: *std.Build.Module, merge_preflight: *std.Build.Module };
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules, lint: *std.Build.Module) Modules {
@@ -39,11 +39,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         frontend.addImport("generated_compiled_library", generated.compiled_library);
         frontend.addImport("generated_native_restore", generated.native_restore);
         frontend.addImport("generated_native_interface", generated.native_interface);
-        frontend.addImport("generated_native_names", generated.native_names);
-        frontend.addImport("generated_native_type", generated.native_type);
         frontend.addImport("generated_native_modules", generated.native_modules);
-        frontend.addImport("generated_native_export", generated.native_export);
-        frontend.addImport("generated_ir_scopes", generated.ir_scopes);
         frontend.addImport("generated_refinement_mark", generated.refinement_mark);
         frontend.addImport("generated_refinement_restore", generated.refinement_restore);
         frontend.addImport("generated_refinement_add", generated.refinement_add);
@@ -51,16 +47,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         frontend.addImport("generated_refinement_bind", generated.refinement_bind);
         frontend.addImport("generated_refinement_type", generated.refinement_type);
         frontend.addImport("generated_ownership", generated.ownership);
-        frontend.addImport("generated_ir_body", generated.ir_body);
-        frontend.addImport("generated_ir_tasks", generated.ir_tasks);
-        frontend.addImport("generated_ir_functions", generated.ir_functions);
-        frontend.addImport("generated_ir_expressions", generated.ir_expressions);
-        frontend.addImport("generated_ir_contracts", generated.ir_contracts);
-        frontend.addImport("generated_ir_contract_tables", generated.ir_contract_tables);
         frontend.addImport("generated_ir_task_call", generated.ir_task_call);
         frontend.addImport("generated_ir_program_pure", generated.ir_program_pure);
-        frontend.addImport("generated_ir_stores", generated.ir_stores);
-        frontend.addImport("generated_ir_store_call", generated.ir_store_call);
         frontend.addImport("generated_type_resolution", generated.type_resolution);
         frontend.addImport("generated_type_construction", generated.type_construction);
         frontend.addImport("generated_type_query", generated.type_query);
@@ -69,8 +57,6 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         frontend.addImport("generated_xml", generated.xml);
         frontend.addImport("generated_specifier", generated.specifier);
         frontend.addImport("generated_integer", generated.integer);
-        frontend.addImport("generated_type_lookup", generated.type_lookup);
-        frontend.addImport("generated_nominal_lookup", generated.nominal_lookup);
         frontend.addImport("generated_origin_validation", generated.origin_validation);
         frontend.addImport("generated_origin_production", generated.origin_production);
         frontend.addImport("generated_merge_preflight", generated.merge_preflight);

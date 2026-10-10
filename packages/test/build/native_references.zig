@@ -26,6 +26,10 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, target: std.Build.Res
 
     while (imports.next()) |entry| checks.addImport(entry.key_ptr.*, entry.value_ptr.*);
 
+    var generated = compiler.module("frontend_checks").import_table.iterator();
+
+    while (generated.next()) |entry| checks.addImport(entry.key_ptr.*, entry.value_ptr.*);
+
     for ([_][]const u8{ "owner", "boundary", "allocation", "task", "name_columns/root" }) |name| {
         const tests = b.addTest(.{ .root_module = b.createModule(.{
             .root_source_file = b.path(b.fmt("tests/native/references/ir/{s}_test.zig", .{name})),
