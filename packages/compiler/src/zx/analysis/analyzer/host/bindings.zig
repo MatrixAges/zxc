@@ -1,6 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const Analyzer = @import("../../analyzer.zig");
+const FunctionImport = @import("../../../modules/function_import.zig");
+const StoreBinding = @import("../../analyze.zig").StoreBinding;
 const model = @import("model.zig");
 
 pub fn aliases(allocator: std.mem.Allocator, values: []const ir.Export) std.mem.Allocator.Error!model.Aliases {
@@ -15,7 +16,7 @@ pub fn aliases(allocator: std.mem.Allocator, values: []const ir.Export) std.mem.
     return .{ .names = names, .ids = ids };
 }
 
-pub fn imports(allocator: std.mem.Allocator, values: []const Analyzer.FunctionImport) std.mem.Allocator.Error!model.FunctionImports {
+pub fn imports(allocator: std.mem.Allocator, values: []const FunctionImport) std.mem.Allocator.Error!model.FunctionImports {
     const namespaces = try allocator.alloc(?[]const u8, values.len);
     const names = try allocator.alloc([]const u8, values.len);
     const ids = try allocator.alloc(u32, values.len);
@@ -33,7 +34,7 @@ pub fn imports(allocator: std.mem.Allocator, values: []const Analyzer.FunctionIm
     return .{ .namespaces = namespaces, .names = names, .ids = ids, .input_types = input_types, .output_types = output_types };
 }
 
-pub fn stores(allocator: std.mem.Allocator, values: @FieldType(Analyzer, "store_bindings")) std.mem.Allocator.Error!model.StoreBindings {
+pub fn stores(allocator: std.mem.Allocator, values: []const StoreBinding) std.mem.Allocator.Error!model.StoreBindings {
     const handles = try allocator.alloc([]const u8, values.len);
     const paths = try allocator.alloc([]const u8, values.len);
     const type_names = try allocator.alloc(?[]const u8, values.len);

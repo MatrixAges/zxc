@@ -1,6 +1,6 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const Analyzer = @import("../../analyzer.zig");
+const Context = @import("context.zig");
 const Origins = @import("../../../modules/nominal_origins.zig");
 const bindings = @import("bindings.zig");
 const model = @import("model.zig");
@@ -13,13 +13,13 @@ origin: model.Origin,
 functions: model.Functions,
 imports: model.FunctionImports,
 stores: model.StoreBindings,
-pub fn init(allocator: std.mem.Allocator, analyzer: *const Analyzer) std.mem.Allocator.Error!Self {
-    const origin: Origins.Origin = if (analyzer.types.shared) |shared| shared.origin else .{ .source = "" };
+pub fn init(allocator: std.mem.Allocator, analyzer: *const Context) std.mem.Allocator.Error!Self {
+    const origin = analyzer.origin;
 
     return .{
-        .types = ir.TypeTable.borrow(model.Types, analyzer.types.items.view()),
-        .aliases = try bindings.aliases(allocator, analyzer.types.aliases),
-        .origins = Origins.Table.borrow(model.Origins, if (analyzer.types.shared) |shared| shared.origins.items.view() else .{}),
+        .types = ir.TypeTable.borrow(model.Types, analyzer.types.view()),
+        .aliases = try bindings.aliases(allocator, analyzer.aliases),
+        .origins = Origins.Table.borrow(model.Origins, analyzer.origins.items.view()),
         .origin = .{
             .kind = switch (origin) {
                 .source => 0,
@@ -38,13 +38,13 @@ pub fn init(allocator: std.mem.Allocator, analyzer: *const Analyzer) std.mem.All
     };
 }
 
-pub fn context(self: *const Self, analyzer: *const Analyzer) model.Context {
+pub fn context(self: *const Self, analyzer: *const Context) model.Context {
     return .{
         .type_base = &self.types,
         .aliases = &self.aliases,
         .nominal_base = &self.origins,
         .nominal_origin = &self.origin,
-        .shared = analyzer.types.shared != null,
+        .shared = true,
         .function_imports = &self.imports,
         .functions = &self.functions,
         .store_bindings = &self.stores,

@@ -1,18 +1,15 @@
 const std = @import("std");
 const zx = @import("zx");
 const ir = zx.ir;
-const Analyzer = @import("../../analyzer.zig");
-const Origins = @import("nominal_data");
+const Context = @import("context.zig");
 const borrow = @import("../../../ir/canonical/borrow.zig");
 const own = @import("../../../modules/artifact/nodes/columns.zig").own;
 const model = @import("model.zig");
 
-pub fn apply(analyzer: *Analyzer, output: *const model.Output, file_name: []const u8) zx.Error!ir.Program {
+pub fn apply(analyzer: *Context, output: *const model.Output, file_name: []const u8) zx.Error!ir.Program {
     const allocator = analyzer.allocator;
-    var unshared: Origins.Storage = .{};
-    const origins = if (analyzer.types.shared) |shared| &shared.origins.items else &unshared;
 
-    try @import("../../semantic/merging/commit.zig").append(analyzer.types.allocator, &analyzer.types.items, origins, output.type_delta.*, output.nominal_delta.*);
+    try @import("../../semantic/merging/commit.zig").append(allocator, analyzer.types, &analyzer.origins.items, output.type_delta.*, output.nominal_delta.*);
 
     const control = try allocator.create(ir.ControlTable);
     control.* = try own(allocator, borrow.columns(ir.ControlTable, output.body.control.*), .{});
@@ -24,7 +21,7 @@ pub fn apply(analyzer: *Analyzer, output: *const model.Output, file_name: []cons
 
     return .{
         .file_name = try allocator.dupe(u8, file_name),
-        .types = analyzer.types.items.view(),
+        .types = analyzer.types.view(),
         .input_type = @fromBackingInt(output.input_type),
         .output_type = @fromBackingInt(output.output_type),
         .output_ownership = switch (output.output_ownership) {

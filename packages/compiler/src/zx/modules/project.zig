@@ -4,7 +4,8 @@ const ir = zx.ir;
 pub const ParseCache = @import("parse_cache.zig");
 pub const SemanticCache = @import("semantic_cache.zig");
 pub const artifact = @import("artifact.zig");
-const Analyzer = @import("../analysis/analyzer.zig");
+const HostContext = @import("../analysis/analyzer/host/context.zig");
+const FunctionImport = @import("function_import.zig");
 const Analysis = @import("../analysis/analyze.zig");
 const NominalOrigins = @import("nominal_origins.zig");
 const ModuleRecord = @import("module_record.zig");
@@ -27,13 +28,13 @@ const Unit = struct {
     program: ?ir.Program = null,
     signature: ?@import("source_signature.zig").Result = null,
     signature_aliases: []const ir.Export = &.{},
-    signature_imports: []const Analyzer.FunctionImport = &.{},
+    signature_imports: []const FunctionImport = &.{},
     function: ?ir.FunctionId = null,
     context_digest: [32]u8 = undefined,
     reused: bool = false,
 };
 
-const NativeUnit = struct { exports: []const ir.Export, members: []const Analyzer.FunctionImport };
+const NativeUnit = struct { exports: []const ir.Export, members: []const FunctionImport };
 const Imported = struct { type_only: bool, function: ?ir.FunctionId, input_type: ir.TypeId, output_type: ir.TypeId, exports: []const ir.Export };
 
 pub const ImportTarget = union(enum) { source: []const u8, compiled: compiled.Target };
@@ -45,7 +46,7 @@ const LoadFrame = struct {
     pending: ?ImportTarget = null,
     aliases: std.ArrayList(ir.Export) = .empty,
     imported_names: std.StringHashMapUnmanaged(void) = .empty,
-    imports: std.ArrayList(Analyzer.FunctionImport) = .empty,
+    imports: std.ArrayList(FunctionImport) = .empty,
     dependencies: std.ArrayList(ModuleRecord.Import) = .empty,
 };
 
@@ -288,19 +289,18 @@ const Project = struct {
         }
 
         const program = restored orelse analyze_block: {
-            var analyzer = Analyzer{
+            var analyzer = HostContext{
                 .allocator = self.allocator,
                 .reporter = self.reporter,
-                .types = .{ .allocator = self.allocator, .reporter = self.reporter, .declarations = &.{}, .aliases = aliases.items, .shared = .{ .origins = &self.nominal_origins, .origin = .{ .source = unit.path } } },
+                .types = &self.types,
+                .aliases = aliases.items,
+                .origins = &self.nominal_origins,
+                .origin = .{ .source = unit.path },
                 .function_imports = imports.items,
                 .functions = self.functions.view(),
                 .store_bindings = if (std.mem.eql(u8, unit.path, self.options.entry)) self.options.context.stores else &.{},
                 .store_type_count = self.options.context.types.count(),
             };
-
-            analyzer.types.items = self.types;
-            self.types = .{};
-            defer self.types = analyzer.types.items;
 
             var analyzed = try input.analyze(&analyzer, unit.path);
 
@@ -403,7 +403,7 @@ const Project = struct {
 
         return id;
     }
-    fn importNative(self: *Project, item: anytype, imports: *std.ArrayList(Analyzer.FunctionImport), aliases: *std.ArrayList(ir.Export)) zx.Error!?[]const u8 {
+    fn importNative(self: *Project, item: anytype, imports: *std.ArrayList(FunctionImport), aliases: *std.ArrayList(ir.Export)) zx.Error!?[]const u8 {
         var found: ?NativeInterface = null;
         const path = self.units[self.current_source].path;
         const registry = package_scope.nativeInterfaces(self.options.package_scopes, path, self.options.native_interfaces);
@@ -442,7 +442,7 @@ const Project = struct {
             self.native_modules.type_names.items[native_index] = bindings.names;
             self.native_modules.type_ids.items[native_index] = bindings.type_ids;
 
-            const members = try self.allocator.alloc(Analyzer.FunctionImport, loaded.members.len);
+            const members = try self.allocator.alloc(FunctionImport, loaded.members.len);
 
             for (loaded.members, members) |member, *binding| {
                 const id: ir.FunctionId = @fromBackingInt(@intCast(self.functions.count()));
@@ -487,7 +487,7 @@ const Project = struct {
 
         return entry.key();
     }
-    fn importExternal(self: *Project, item: anytype, imports: *std.ArrayList(Analyzer.FunctionImport)) zx.Error!void {
+    fn importExternal(self: *Project, item: anytype, imports: *std.ArrayList(FunctionImport)) zx.Error!void {
         const registry = package_scope.externals(self.options.package_scopes, self.units[self.current_source].path, self.options.externals);
         var exports: std.StringHashMapUnmanaged(void) = .empty;
         var count: usize = 0;

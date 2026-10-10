@@ -1,7 +1,7 @@
 const std = @import("std");
 const zx = @import("zx");
 const Parsed = @import("../frontend/parse.zig").Parsed;
-const Analyzer = @import("analyzer.zig");
+const HostContext = @import("analyzer/host/context.zig");
 const Input = @import("../modules/module_input.zig");
 const ModuleResult = @import("../frontend/module_result.zig");
 const Origins = @import("../modules/nominal_origins.zig");
@@ -85,7 +85,7 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
     }
 
     const functions = if (resolved) |bindings| bindings.functions else zx.ir.FunctionTable{};
-    const copied_types = try @import("type_table.zig").storage(allocator, context.types);
+    var copied_types = try @import("type_table.zig").storage(allocator, context.types);
     var origins = Origins{ .allocator = allocator };
 
     origins.seed(copied_types.view(), context.nominal_types) catch |err| {
@@ -94,17 +94,18 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
         return .{ .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared nominal type table" } } };
     };
 
-    var analyzer = Analyzer{
+    var analyzer = HostContext{
         .allocator = allocator,
         .store_bindings = context.stores,
         .store_type_count = context.types.count(),
         .reporter = &reporter,
         .functions = functions,
         .function_imports = if (resolved) |bindings| bindings.imports else &.{},
-        .types = .{ .allocator = allocator, .reporter = &reporter, .declarations = &.{}, .aliases = if (resolved) |bindings| bindings.aliases else &.{}, .shared = .{ .origins = &origins, .origin = .{ .source = file_name } } },
+        .types = &copied_types,
+        .aliases = if (resolved) |bindings| bindings.aliases else &.{},
+        .origins = &origins,
+        .origin = .{ .source = file_name },
     };
-
-    analyzer.types.items = copied_types;
 
     var program = input.analyze(&analyzer, file_name) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;

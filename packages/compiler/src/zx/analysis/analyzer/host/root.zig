@@ -1,12 +1,12 @@
 const std = @import("std");
 const zx = @import("zx");
-const Analyzer = @import("../../analyzer.zig");
+const Context = @import("context.zig");
 const Input = @import("input.zig");
 const model = @import("model.zig");
 const generated = @import("generated_analyzer");
 const borrow = @import("../../../ir/canonical/borrow.zig");
 
-pub fn analyze(analyzer: *Analyzer, source: []const u8, syntax: anytype, file_name: []const u8) zx.Error!zx.ir.Program {
+pub fn analyze(analyzer: *Context, source: []const u8, syntax: anytype, file_name: []const u8) zx.Error!zx.ir.Program {
     var arena = std.heap.ArenaAllocator.init(analyzer.allocator);
 
     defer arena.deinit();
