@@ -13,6 +13,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
     const floating_step = b.step("test-floating", "Run exact floating bit-pattern conformance cases");
     const rounding_steps_step = b.step("test-number-rounding", "Execute original binary64 rounding after each arithmetic step");
     const number_special_step = b.step("test-number-special-values", "Execute original NaN signed zero and infinity comparisons");
+    const number_power_step = b.step("test-number-power-boundaries", "Execute original power of two products and signed overflow boundaries");
     const boolean_null_step = b.step("test-boolean-null", "Execute original boolean negation and typed null binding");
     const standard_step = b.step("test-standard-runtime", "Run standard interfaces through their shared ABI");
     const logical_step = b.step("test-logical-binary", "Run logical AND and OR source and short circuit cases");
@@ -77,6 +78,17 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
 
     number_special_step.dependOn(&number_special_check.step);
     step.dependOn(&number_special_check.step);
+
+    const number_power_check = b.addSystemCommand(&.{"node"});
+
+    number_power_check.addFileArg(b.path("src/generate_number_power_boundaries.ts"));
+    number_power_check.addArg("--check");
+    for ([_][]const u8{ "src/models/number_power_boundaries.ts", "src/models/ieee.ts", "src/models/rational.ts", "src/models/multiply.ts", "src/models/subtract.ts", "src/models/add.ts", "src/shared/catalog.ts", "src/shared/json.ts" }) |path| number_power_check.addFileInput(b.path(path));
+
+    number_power_check.has_side_effects = true;
+
+    number_power_step.dependOn(&number_power_check.step);
+    step.dependOn(&number_power_check.step);
     step.dependOn(@import("immutable_list.zig").add(b, compiler, target, optimize, suites));
     step.dependOn(@import("rx_parallel_floating.zig").add(b, compiler, target, optimize, suites));
     step.dependOn(@import("rx_floating.zig").add(b, compiler, target, optimize, suites));
@@ -229,6 +241,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
         if (std.mem.startsWith(u8, suite.path, "language/expressions/logical_and/") or std.mem.startsWith(u8, suite.path, "language/expressions/logical_or/")) logical_step.dependOn(&run.step);
         if (uses_bits or suite.kind == .floating_optional) floating_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "language/types/number/rounding/")) rounding_steps_step.dependOn(&run.step);
+        if (std.mem.startsWith(u8, suite.path, "language/types/number/power_boundaries/")) number_power_step.dependOn(&run.step);
         if (std.mem.eql(u8, suite.path, "language/expressions/comparison/f64") or std.mem.eql(u8, suite.path, "language/expressions/comparison/f64_negated") or std.mem.eql(u8, suite.path, "language/types/number/signed_zero/division")) number_special_step.dependOn(&run.step);
         if (std.mem.eql(u8, suite.path, "language/types/boolean/negation") or std.mem.eql(u8, suite.path, "language/types/null/binding")) boolean_null_step.dependOn(&run.step);
         if (suite.shared_abi) standard_step.dependOn(&run.step);
