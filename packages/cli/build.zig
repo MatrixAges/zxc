@@ -28,6 +28,8 @@ pub fn build(b: *std.Build) void {
 
     @import("build/yaml.zig").link(b, executable, target, optimize);
 
+    if (b.option(bool, "strip", "Omit debug information from zxc; about a third faster and lighter to compile, without source locations in stack traces")) |strip| executable.root_module.strip = strip;
+
     executable.root_module.addOptions("cache_identity", @import("build/cache_identity.zig").create(b, target, optimize));
 
     const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");
