@@ -1,0 +1,26 @@
+import type { Bindings } from "core/type_table/nominal"
+import type { Declaration } from "./model"
+
+export type Input = { origins: Bindings, declaration: Declaration }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const origins = in.origins
+
+    if (origins.ids.length != origins.kinds.length || origins.ids.length != origins.owners.length || origins.ids.length != origins.members.length) {
+        return false
+    }
+
+    const key = in.declaration.identity ?? in.declaration.specifier
+
+    return loop({ origins: origins, key: key, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.origins.ids.length,
+        next: current => {
+            const index = current.index
+
+            current.valid = current.origins.kinds[index] == 1 && current.origins.members[index] == "" && current.origins.owners[index] == current.key
+            current.index += 1
+        }
+    }).valid
+}

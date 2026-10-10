@@ -1,0 +1,45 @@
+import type { Modules } from "core/native_module_table/model"
+import type { Declaration } from "./model"
+
+export type Input = { path: string, modules: Modules, export_names: string[], export_types: u32[], declaration: Declaration }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const modules = in.modules
+
+    if (modules.identities.length != 1 || modules.import_names.length != 1 || modules.specifiers.length != 1 || modules.type_ids.length != 1 || modules.type_names.length != 1 || modules.type_namespaces.length != 1) {
+        return false
+    }
+
+    const key = modules.identities[0] ?? modules.specifiers[0]
+    const declared_key = in.declaration.identity ?? in.declaration.specifier
+
+    if (in.path != declared_key || key != declared_key || modules.specifiers[0] != in.declaration.specifier || modules.import_names[0] != in.declaration.import_name) {
+        return false
+    }
+
+    const names = modules.type_names[0]
+    const types = modules.type_ids[0]
+    const namespace = modules.type_namespaces[0]
+
+    if (names.length != types.length || names.length != in.export_names.length || types.length != in.export_types.length || namespace.length != in.declaration.namespace.length) {
+        return false
+    }
+
+    const same_namespace = loop({ previous: namespace, current: in.declaration.namespace, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.previous.length,
+        next: current => {
+            current.valid = current.previous[current.index] == current.current[current.index]
+            current.index += 1
+        }
+    }).valid
+
+    return loop({ names: names, types: types, export_names: in.export_names, export_types: in.export_types, index: 0, valid: same_namespace }, {
+        while: current => current.valid && current.index < current.names.length,
+        next: current => {
+            current.valid = current.names[current.index] == current.export_names[current.index] && current.types[current.index] == current.export_types[current.index]
+            current.index += 1
+        }
+    }).valid
+}

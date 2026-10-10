@@ -1,0 +1,65 @@
+import emptyControl from "core/control_table/empty"
+import emptyExpressions from "core/expression_table/empty"
+import { StoreMode } from "core/function_table/complete"
+import { Ownership } from "core/symbol_table/model"
+
+import type { Contracts } from "core/contract_table/model"
+import type { Complete } from "core/function_table/complete"
+import type { Body } from "core/ir/body"
+import type { Table } from "core/type_table/model"
+import type { Program } from "../../../../ir/canonical/validation/model"
+import type { Request } from "./request"
+
+export type Input = { request: Request, types: Table, version: u64, max_offset: u64, scalar_count: u64, maximum_count: u64 }
+
+export type Output = Program
+
+export default function (in: Input): Output {
+    const source = in.request.signatures
+
+    const body: Body = {
+        stores: { paths: [], types: [], handles: [], readable: [], writable: [] },
+        symbols: { names: [], types: [], span_start: [], span_end: [], ownership: [] },
+        expressions: emptyExpressions(),
+        control: emptyControl(),
+        root: null
+    }
+
+    const contracts: Contracts = { kinds: [], predicates: [], symbols: [], expressions: [], span_start: [], span_end: [] }
+
+    const functions: Complete = {
+        files: source.files,
+        input_types: source.input_types,
+        output_types: source.output_types,
+        ownership: source.ownership,
+        store_modes: source.files.map(file => StoreMode.transaction),
+        contracts: source.files.map(file => contracts),
+        native_inputs: source.native_inputs,
+        native_modules: source.native_modules,
+        native_members: source.native_members,
+        native_exports: source.native_exports,
+        native_allocators: source.native_allocators,
+        native_io: source.native_io,
+        native_process: source.native_process,
+        native_tuples: source.native_tuples,
+        native_fallible: source.native_fallible,
+        native_errors: source.native_errors,
+        native_concurrent: source.native_concurrent,
+        symbols: source.files.map(file => body.symbols),
+        expressions: source.files.map(file => body.expressions),
+        control: source.files.map(file => body.control),
+        roots: source.files.map(file => body.root),
+        stores: source.files.map(file => body.stores)
+    }
+
+    const zero: u32 = 0
+
+    return {
+        version: in.version,
+        expected_version: in.version,
+        context: { table: in.types, functions: functions, modules: in.request.modules, max_offset: in.max_offset, scalar_count: in.scalar_count, maximum_count: in.maximum_count },
+        unit: { body: body, contracts: contracts, input_type: zero, output_type: zero, output_ownership: Ownership.Borrowed, transaction: true, type_only: true },
+        export_names: in.request.export_names,
+        export_types: in.request.export_types
+    }
+}

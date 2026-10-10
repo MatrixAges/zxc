@@ -1,0 +1,20 @@
+import type { Modules } from "core/native_module_table/model"
+import type { Table } from "core/signature_table/model"
+import type { Bindings } from "core/type_table/nominal"
+import type { Import } from "../functions/model"
+import type { Declaration } from "./model"
+
+export type Request = {
+    path: string
+    has_function: bool
+    dependency_count: u64
+    type_import_count: u64
+    store_count: u64
+    signatures: Table
+    modules: Modules
+    export_names: string[]
+    export_types: u32[]
+    origins: Bindings
+    imports: Import[]
+    declaration: Declaration
+}

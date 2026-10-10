@@ -1,0 +1,7 @@
+import type { Complete } from "core/function_table/complete"
+import type { Table } from "core/type_table/model"
+import type { Bindings } from "core/type_table/nominal"
+
+export type Value = { types: Table, origins: Bindings, functions: Complete, export_names: string[], export_types: u32[], member_names: string[] }
+
+export type Result = { status: u64, value: Value? }

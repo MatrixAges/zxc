@@ -1,0 +1,18 @@
+import integers from "zig:integers"
+
+import type { Complete } from "core/function_table/complete"
+
+export type Input = { source: Complete, mapping: u32[], module_id: u32 }
+
+export type Output = Complete
+
+export default function (in: Input): Output {
+    const module_id: u32? = in.module_id
+
+    return {
+        ...in.source,
+        input_types: in.source.input_types.map(id => in.mapping[integers.widen(id)]),
+        output_types: in.source.output_types.map(id => in.mapping[integers.widen(id)]),
+        native_modules: in.source.native_modules.map(id => module_id)
+    }
+}
