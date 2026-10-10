@@ -7,6 +7,9 @@ const collection = @import("source_collection.zig");
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
     const args = try init.minimal.args.toSlice(allocator);
+
+    if (std.mem.eql(u8, args[1], "--standard-abi")) return @import("generate_types.zig").generate(init, args[2]);
+
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
 

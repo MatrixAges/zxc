@@ -69,9 +69,6 @@ pub fn build(b: *std.Build) void {
     const run_rx_tests = b.addRunArtifact(rx_tests);
 
     b.step("test-rx", "Run RX syntax and dependency graph tests").dependOn(&run_rx_tests.step);
-
-    const host_compiler = @import("build/compiler.zig").create(b, b.graph.host, optimize, lexer.module(b, b.graph.host, optimize, lexer_source), parser.modules(b, b.graph.host, optimize, parser_source), b.dependency("lint", .{ .target = b.graph.host, .optimize = optimize, .generated_name = parser_source.naming }).module("lint")).compiler;
-
     b.step("bootstrap-lexer", "Generate the ZX lexer with the host seed compiler").dependOn(&b.addInstallFile(lexer_source, "bootstrap/lexer.zig").step);
 
     const bootstrap_parser = b.step("bootstrap-parser", "Generate RX and ZX syntax parsers with the host seed compiler");
@@ -88,18 +85,7 @@ pub fn build(b: *std.Build) void {
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.file_kind, "bootstrap/file_kind.zig").step);
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.specifier, "bootstrap/specifier.zig").step);
     bootstrap_parser.dependOn(&b.addInstallFile(parser_source.integer, "bootstrap/integer.zig").step);
-
-    const type_generator = b.addExecutable(.{ .name = "standard-types", .root_module = b.createModule(.{
-        .root_source_file = b.path("build/generate_types.zig"),
-        .target = b.graph.host,
-        .optimize = optimize,
-        .imports = &.{.{ .name = "compiler", .module = host_compiler }},
-    }) });
-
-    const generate_types = b.addRunArtifact(type_generator);
-    const types_file = generate_types.addOutputFileArg("standard_abi.zig");
-
-    standard.addImport("zxc_abi", b.createModule(.{ .root_source_file = types_file, .target = target, .optimize = optimize }));
+    standard.addImport("zxc_abi", b.createModule(.{ .root_source_file = parser_source.standard_abi, .target = target, .optimize = optimize }));
 
     const library = b.addLibrary(.{ .name = "zxc_compiler", .root_module = module });
 

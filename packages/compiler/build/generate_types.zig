@@ -1,9 +1,9 @@
 const std = @import("std");
 const compiler = @import("compiler");
 
-pub fn main(init: std.process.Init) !void {
+/// Writes the standard library ABI types; the seed compiler produces the same declarations as the bootstrapped one.
+pub fn generate(init: std.process.Init, output_path: []const u8) !void {
     const allocator = init.arena.allocator();
-    const args = try init.minimal.args.toSlice(allocator);
     var source: std.Io.Writer.Allocating = .init(allocator);
 
     defer source.deinit();
@@ -36,7 +36,7 @@ pub fn main(init: std.process.Init) !void {
 
     defer bundle.deinit(allocator);
 
-    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[1], .data = bundle.types });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = output_path, .data = bundle.types });
 }
 
 fn lessThan(_: void, left: usize, right: usize) bool {
