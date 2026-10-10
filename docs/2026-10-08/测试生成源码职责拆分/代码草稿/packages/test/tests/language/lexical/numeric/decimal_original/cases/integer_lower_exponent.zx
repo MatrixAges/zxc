@@ -1,0 +1,23 @@
+import negative from "./integer_lower_exponent/negative"
+import positive from "./integer_lower_exponent/positive"
+import unsigned from "./integer_lower_exponent/unsigned"
+
+export type Input = u64
+
+export type Output = f64
+
+export default function (in: Input): Output {
+    if ((in >= 39 && in <= 48) || (in >= 229 && in <= 238)) {
+        return negative(in)
+    }
+
+    if ((in >= 59 && in <= 68) || (in >= 249 && in <= 258)) {
+        return positive(in)
+    }
+
+    if ((in >= 19 && in <= 28) || (in >= 79 && in <= 88) || (in >= 209 && in <= 218) || (in >= 269 && in <= 278)) {
+        return unsigned(in)
+    }
+
+    return 0
+}

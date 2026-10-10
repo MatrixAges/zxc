@@ -1,0 +1,23 @@
+import negative from "./integer_upper_exponent/negative"
+import positive from "./integer_upper_exponent/positive"
+import unsigned from "./integer_upper_exponent/unsigned"
+
+export type Input = u64
+
+export type Output = f64
+
+export default function (in: Input): Output {
+    if ((in >= 49 && in <= 58) || (in >= 239 && in <= 248)) {
+        return negative(in)
+    }
+
+    if ((in >= 69 && in <= 78) || (in >= 259 && in <= 268)) {
+        return positive(in)
+    }
+
+    if ((in >= 29 && in <= 38) || (in >= 89 && in <= 98) || (in >= 219 && in <= 228) || (in >= 279 && in <= 288)) {
+        return unsigned(in)
+    }
+
+    return 0
+}
