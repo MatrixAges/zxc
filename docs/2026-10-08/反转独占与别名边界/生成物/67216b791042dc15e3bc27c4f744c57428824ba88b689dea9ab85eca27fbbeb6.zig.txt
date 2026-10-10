@@ -1,9 +1,0 @@
-const check = @import("support").check;
-
-test "built_ins/list/reverse/projections/rab_initial" {
-    try check(@import("program"), &.{.items = &.{0, 2, 4, 6}}, .{ .value = &.{6, 4, 2, 0} });
-}
-
-test "built_ins/list/reverse/projections/rab_shrunk" {
-    try check(@import("program"), &.{.items = &.{0, 2, 4}}, .{ .value = &.{4, 2, 0} });
-}

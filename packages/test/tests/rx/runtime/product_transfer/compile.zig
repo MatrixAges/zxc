@@ -65,7 +65,9 @@ pub fn main(init: std.process.Init) !void {
 
     defer bundle.deinit(memory);
 
-    const slots = std.mem.count(u8, bundle.source, ".fromOwnedSlice");
+    const start = std.mem.indexOf(u8, bundle.source, "pub fn execute(") orelse return error.MissingExecute;
+    const end = std.mem.indexOfPos(u8, bundle.source, start, "\n}") orelse return error.MissingExecuteEnd;
+    const slots = std.mem.count(u8, bundle.source[start .. end + 2], ".fromOwnedSlice");
 
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[2], .data = bundle.source });
     try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[3], .data = bundle.types });

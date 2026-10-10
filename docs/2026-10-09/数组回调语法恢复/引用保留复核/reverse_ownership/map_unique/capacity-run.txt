@@ -1,9 +1,0 @@
-1/1 capacity_test.test.owned primitive map reverse avoids a second complete payload buffer...owned reverse count=2048 allocated=43304 capacity=43232 payload=16384
-FAIL (TestUnexpectedResult)
-/Users/xiewendao/.local/share/zig/zig-x86_64-macos-0.17.0/lib/std/testing.zig:584:14: 0x1006779bf in expect (root)
-    if (!ok) return error.TestUnexpectedResult;
-             ^
-/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/tests/collections/reverse_ownership/capacity_test.zig:33:13: 0x100678551 in test.owned primitive map reverse avoids a second complete payload buffer (root)
-            try std.testing.expect(tracked.allocated_bytes < payload * 2);
-            ^
-0 passed; 0 skipped; 1 failed.

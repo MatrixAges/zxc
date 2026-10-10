@@ -2,7 +2,8 @@ const std = @import("std");
 
 pub fn check(source: []const u8, mode: []const u8) !void {
     const start = std.mem.indexOf(u8, source, "pub fn execute(") orelse return error.MissingExecute;
-    const execute = source[start..];
+    const end_of_execute = std.mem.indexOfPos(u8, source, start, "\n}") orelse return error.MissingExecuteEnd;
+    const execute = source[start .. end_of_execute + 2];
     const fallback = std.mem.eql(u8, mode, "fallback");
     const expected_lanes: usize = if (fallback) 0 else 1;
 

@@ -1,8 +1,0 @@
-{"id":"built_ins/list/callbacks/every/rows/empty","input":{"items":[],"threshold":10},"expected":{"value":{"result":true,"calls":0,"visited":[],"threshold":10}}}
-{"id":"built_ins/list/callbacks/every/rows/true","input":{"items":[[11]],"threshold":10},"expected":{"value":{"result":true,"calls":1,"visited":[11],"threshold":10}}}
-{"id":"built_ins/list/callbacks/every/rows/false","input":{"items":[[9]],"threshold":10},"expected":{"value":{"result":false,"calls":1,"visited":[9],"threshold":10}}}
-{"id":"built_ins/list/callbacks/every/rows/first_failure","input":{"items":[[]],"threshold":10},"expected":{"error":"IndexOutOfBounds"}}
-{"id":"built_ins/list/callbacks/every/rows/later_failure","input":{"items":[[11],[]],"threshold":10},"expected":{"error":"IndexOutOfBounds"}}
-{"id":"built_ins/list/callbacks/every/rows/stopped_before_empty","input":{"items":[[9],[]],"threshold":10},"expected":{"value":{"result":false,"calls":1,"visited":[9],"threshold":10}}}
-{"id":"built_ins/list/callbacks/every/rows/stopped_after_true","input":{"items":[[11],[9],[]],"threshold":10},"expected":{"value":{"result":false,"calls":2,"visited":[11,9],"threshold":10}}}
-{"id":"built_ins/list/callbacks/every/rows/all_true","input":{"items":[[11],[12],[13]],"threshold":10},"expected":{"value":{"result":true,"calls":3,"visited":[11,12,13],"threshold":10}}}

@@ -1,9 +1,0 @@
-const check = @import("support").check;
-
-test "language/expressions/object_construction/copy/c" {
-    try check(@import("program"), false, .{ .value = 3 });
-}
-
-test "language/expressions/object_construction/copy/d" {
-    try check(@import("program"), true, .{ .value = 4 });
-}

@@ -1,9 +1,0 @@
-const check = @import("support").check;
-
-test "language/statements/state_updates/upstream/compound/A3.1_T1/1" {
-    try check(@import("program"), &.{.left = 1, .right = -1, .assign_first = false}, .{ .value = &.{.initialized = 1, .scalar = -1, .field = -1, .element = -1} });
-}
-
-test "language/statements/state_updates/upstream/compound/A3.1_T1/2" {
-    try check(@import("program"), &.{.left = 1, .right = -1, .assign_first = true}, .{ .value = &.{.initialized = 1, .scalar = -1, .field = -1, .element = -1} });
-}

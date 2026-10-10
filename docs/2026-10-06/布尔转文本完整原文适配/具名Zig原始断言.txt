@@ -1,9 +1,0 @@
-const check = @import("support").check;
-
-test "language/expressions/template_primitives/bool/false" {
-    try check(@import("program"), false, .{ .value = "false" });
-}
-
-test "language/expressions/template_primitives/bool/true" {
-    try check(@import("program"), true, .{ .value = "true" });
-}

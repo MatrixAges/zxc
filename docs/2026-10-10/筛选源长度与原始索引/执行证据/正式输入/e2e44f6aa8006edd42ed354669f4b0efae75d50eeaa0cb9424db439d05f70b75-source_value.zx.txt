@@ -1,7 +1,0 @@
-export type Input = { items: i64[], threshold: i64 }
-
-export type Output = { selected: i64[], items: i64[] }
-
-export default function (in: Input): Output {
-    return { selected: in.items.filter((item, index, source) => item > in.threshold && source[index] == item), items: in.items }
-}

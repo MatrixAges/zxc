@@ -443,6 +443,15 @@ pub fn build(b: *std.Build) void {
             }),
         });
 
+        if (std.mem.eql(u8, name, "imports/resources")) {
+            artifact_tests.root_module.addAnonymousImport("artifact_mixed_fixture", .{
+                .root_source_file = b.path("tests/incremental/artifact/mixed/fixture.zig"),
+                .target = target,
+                .optimize = optimize,
+                .imports = &.{.{ .name = "compiler", .module = compiler.module("compiler") }},
+            });
+        }
+
         artifact_tests.root_module.addAnonymousImport("allocation_testing", .{ .root_source_file = b.path("tests/support/allocation_testing.zig"), .target = target, .optimize = optimize });
         artifact_step.dependOn(&b.addRunArtifact(artifact_tests).step);
     }

@@ -1,0 +1,29 @@
+import greater from "./whitespace/greater"
+import greaterEqual from "./whitespace/greater_equal"
+import less from "./whitespace/less"
+import lessEqual from "./whitespace/less_equal"
+
+export type Input = { shape: u64
+ value: f64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+  if ((in.shape >= 18 && in.shape <= 35)) {
+    return greater(in)
+  }
+
+  if ((in.shape >= 54 && in.shape <= 71)) {
+    return greaterEqual(in)
+  }
+
+  if ((in.shape >= 0 && in.shape <= 17)) {
+    return less(in)
+  }
+
+  if ((in.shape >= 36 && in.shape <= 53)) {
+    return lessEqual(in)
+  }
+
+  return false
+}

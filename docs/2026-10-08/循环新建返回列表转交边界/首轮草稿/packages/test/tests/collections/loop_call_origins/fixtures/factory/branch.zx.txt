@@ -1,9 +1,0 @@
-import fresh from "./fresh"
-
-export type Input = { values: u64[], enabled: bool }
-
-export type Output = u64[]
-
-export default function (in: Input): Output {
-    return in.enabled ? fresh(in.values) : in.values.map(item => item + 1)
-}

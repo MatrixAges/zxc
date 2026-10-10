@@ -3,7 +3,7 @@ const allocation_testing = @import("allocation_testing");
 const f = @import("fixture.zig");
 const check = @import("check.zig");
 const mutation = @import("mutation.zig");
-const columns = @import("../mixed/fixture.zig");
+const columns = @import("artifact_mixed_fixture");
 
 fn sweep(kind: ?mutation.Mutation) !void {
     var analysis = try f.analyze(std.testing.allocator, f.orderings[0], true);

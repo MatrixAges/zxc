@@ -60,5 +60,5 @@ test "task cannot return a native optional reference from a pure helper without 
         .imports = "\nimport empty from \"./empty\"\n",
         .body = "const work = async empty()\n\n  return in",
         .sources = &.{.{ .path = "empty.zx", .source = "import type { Node } from \"zig:host\"\n\nexport type Input = void\n\nexport type Output = Node?\n\nexport default function (in: Input): Output {\n  return null\n}\n" }},
-    }, .{ .code = .capability, .message = "tasks cannot return host references", .span_text = "" });
+    }, .{ .code = .capability, .message = "tasks cannot return host references", .span_text = "async empty()" });
 }

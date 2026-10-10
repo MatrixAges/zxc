@@ -1,3 +1,0 @@
-{"id":"language/types/array_spread/empty","source":"export type Input = void;\n\nexport type Output = u64[];\n\nexport default function (in: Input): Output {\n  return [...[]];\n}\n","phase":"parse","diagnostic":"syntax","span":[112,115]}
-{"id":"language/types/array_spread/expr","source":"export type Input = void;\n\nexport type Output = u64[];\n\nexport default function (in: Input): Output {\n  const source: u64[] = [2, 3, 4];\n\n  return [...target = source];\n}\n","phase":"parse","diagnostic":"syntax","span":[148,151]}
-{"id":"language/types/array_spread/literal","source":"export type Input = void;\n\nexport type Output = u64[];\n\nexport default function (in: Input): Output {\n  return [...[3, 4, 5]];\n}\n","phase":"parse","diagnostic":"syntax","span":[112,115]}

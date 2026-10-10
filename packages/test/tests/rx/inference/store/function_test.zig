@@ -54,8 +54,29 @@ fn check(allocator: std.mem.Allocator, mode: Mode) !void {
         try std.testing.expect(try compiler.validateIr(allocator, result.value.contract.program) == null);
     } else {
         try std.testing.expect(result.value == .diagnostic);
-        try std.testing.expectEqualStrings(if (mode == .incomplete_object) "type_mismatch" else "capability", result.value.diagnostic.code);
-        try std.testing.expectEqualStrings(if (mode == .helper_write or mode == .helper_read) "helper.zx" else "write.zx", result.value.diagnostic.path);
+
+        const issue = result.value.diagnostic;
+
+        const code: []const u8 = switch (mode) {
+            .helper_write => "module",
+            .incomplete_object => "type_mismatch",
+            else => "capability",
+        };
+
+        const path: []const u8 = switch (mode) {
+            .helper_read => "helper.zx",
+            .missing_parameter => "main.rx",
+            else => "write.zx",
+        };
+
+        try std.testing.expectEqualStrings(code, issue.code);
+        try std.testing.expectEqualStrings(path, issue.path);
+
+        if (mode == .helper_write or mode == .missing_parameter) {
+            try std.testing.expectEqualStrings(if (mode == .helper_write) "source function dependency has not been analyzed in its required context" else "a Call.setter target must declare its second parameter as { store }", issue.message);
+            try std.testing.expectEqual(@as(usize, 1), issue.location.line);
+            try std.testing.expectEqual(@as(usize, if (mode == .helper_write) 1 else 50), issue.location.column);
+        }
     }
 }
 

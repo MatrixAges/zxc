@@ -1,0 +1,28 @@
+import leadingZero2 from "./integer_multi_digit/leading_zero_2"
+import leadingZero3 from "./integer_multi_digit/leading_zero_3"
+import leadingZero4 from "./integer_multi_digit/leading_zero_4"
+import unprefixed from "./integer_multi_digit/unprefixed"
+
+export type Input = u64
+
+export type Output = f64
+
+export default function (in: Input): Output {
+    if ((in >= 289 && in <= 290)) {
+        return leadingZero2(in)
+    }
+
+    if ((in >= 291 && in <= 300) || (in >= 311 && in <= 320) || (in >= 331 && in <= 340) || (in >= 351 && in <= 360)) {
+        return leadingZero3(in)
+    }
+
+    if ((in >= 301 && in <= 310) || (in >= 321 && in <= 330) || (in >= 341 && in <= 350) || (in >= 361 && in <= 370)) {
+        return leadingZero4(in)
+    }
+
+    if ((in >= 10 && in <= 18) || (in >= 373 && in <= 392)) {
+        return unprefixed(in)
+    }
+
+    return 0
+}
