@@ -28,7 +28,7 @@ pub fn build(b: *std.Build) void {
 
     @import("build/yaml.zig").link(b, executable, target, optimize);
 
-    if (b.option(bool, "strip", "Omit debug information from zxc; about a third faster and lighter to compile, without source locations in stack traces")) |strip| executable.root_module.strip = strip;
+    if (b.option(bool, "strip", "Omit debug information from hand-written zxc code as well (generated modules already omit it); faster and lighter to compile, without source locations in stack traces")) |strip| executable.root_module.strip = strip;
 
     executable.root_module.addOptions("cache_identity", @import("build/cache_identity.zig").create(b, target, optimize));
 
