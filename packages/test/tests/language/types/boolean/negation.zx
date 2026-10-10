@@ -1,0 +1,19 @@
+export type Input = bool
+
+export type Output = {
+  strict_false: bool
+  abstract_false: bool
+  strict_true: bool
+  abstract_true: bool
+  negated_input: bool
+}
+
+export default function (in: Input): Output {
+  return {
+    strict_false: !false == true,
+    abstract_false: !false == true,
+    strict_true: !true == false,
+    abstract_true: !true == false,
+    negated_input: !in,
+  }
+}
