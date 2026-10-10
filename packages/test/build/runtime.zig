@@ -112,6 +112,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
     step.dependOn(@import("map_traces.zig").add(b, compiler, target, optimize, suites));
     step.dependOn(@import("predicate_arguments.zig").add(b, compiler, target, optimize, suites));
     step.dependOn(@import("predicate_order.zig").add(b, compiler, target, optimize, suites));
+    step.dependOn(@import("primitive_libraries.zig").add(b, cli, optimize));
     step.dependOn(application_json_gateway_step);
     application_json_output_step.dependOn(application_json_gateway_step);
 
