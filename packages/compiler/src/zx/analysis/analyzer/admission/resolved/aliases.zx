@@ -1,0 +1,33 @@
+import integers from "zig:integers"
+
+import declared from "./declared"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({ input: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.input.aliases.names.length,
+        next: current => {
+            const name = current.input.aliases.names[current.index]
+
+            current.valid = integers.widen(current.input.aliases.ids[current.index]) < current.input.table.kinds.length &&
+                declared({ source_text: current.input.source_text, syntax: current.input.syntax, name: name, callable: false })
+
+            if (current.valid) {
+                current.valid = loop({ names: current.input.aliases.names, limit: current.index, name: name, index: 0, valid: true }, {
+                    while: previous => previous.valid && previous.index < previous.limit,
+                    next: previous => {
+                        previous.valid = previous.names[previous.index] != previous.name
+                        previous.index += 1
+                    }
+                }).valid
+            }
+
+            current.index += 1
+        }
+    }).valid
+}

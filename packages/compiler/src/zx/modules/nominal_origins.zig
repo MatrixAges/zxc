@@ -26,6 +26,10 @@ pub fn same(left: Origin, right: Origin) bool {
 pub fn seed(self: *Self, types: ir.TypeTable, values: Table) (std.mem.Allocator.Error || error{InvalidNominalTypes})!void {
     if (!try @import("../analysis/semantic/origins.zig").valid(types, values)) return error.InvalidNominalTypes;
 
+    try self.copyValidated(types, values);
+}
+
+pub fn copyValidated(self: *Self, types: ir.TypeTable, values: Table) std.mem.Allocator.Error!void {
     for (0..values.count()) |index| {
         const item = values.at(index);
 

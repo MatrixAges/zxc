@@ -1,0 +1,29 @@
+<Module>
+    <Call fn="../../../ir/canonical/validation/structure/functions" in={{ functions: $in.functions, maximum_count: $in.maximum_count }} />
+
+    <Switch on={!$ctx.functions}>
+        <Case value={true}>
+            <Return value={false} />
+        </Case>
+    </Switch>
+
+    <Call fn="resolved/aliases" in={$in} />
+
+    <Switch on={!$ctx.aliases}>
+        <Case value={true}>
+            <Return value={false} />
+        </Case>
+    </Switch>
+
+    <Call fn="resolved/bindings" in={$in} />
+
+    <Switch on={!$ctx.bindings}>
+        <Case value={true}>
+            <Return value={false} />
+        </Case>
+    </Switch>
+
+    <Call fn="resolved/declarations" in={$in} />
+
+    <Return value={$ctx.declarations} />
+</Module>

@@ -16,6 +16,7 @@ pub fn analyze(analyzer: *Context, source: []const u8, syntax: anytype, file_nam
 
     const input = model.Input{
         .bytes = source,
+        .source_text = source,
         .file_name = file_name,
         .syntax = borrow.pointer(@FieldType(model.Input, "syntax"), syntax),
         .context = &context,

@@ -9,6 +9,12 @@ const model = @import("model.zig");
 pub fn apply(analyzer: *Context, output: *const model.Output, file_name: []const u8) zx.Error!ir.Program {
     const allocator = analyzer.allocator;
 
+    if (analyzer.mode != .project) {
+        analyzer.types.* = try @import("../../type_table.zig").storage(allocator, analyzer.base_types);
+
+        try analyzer.origins.copyValidated(analyzer.types.view(), analyzer.base_origins);
+    }
+
     try @import("../../semantic/merging/commit.zig").append(allocator, analyzer.types, &analyzer.origins.items, output.type_delta.*, output.nominal_delta.*);
 
     const control = try allocator.create(ir.ControlTable);

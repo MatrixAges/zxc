@@ -1,0 +1,47 @@
+import integers from "zig:integers"
+
+import declared from "./declared"
+
+import type { Request } from "./model"
+
+export type Input = Request
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    return loop({ input: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.input.bindings.names.length,
+        next: current => {
+            const bindings = current.input.bindings
+            const index = current.index
+            const name = bindings.names[index]
+            const namespace = bindings.namespaces[index]
+            const id = integers.widen(bindings.ids[index])
+            const input_type = bindings.input_types[index]
+            const output_type = bindings.output_types[index]
+
+            current.valid = declared({ source_text: current.input.source_text, syntax: current.input.syntax, name: namespace ?? name, callable: true }) &&
+                id < current.input.functions.files.length
+
+            if (current.valid) {
+                current.valid = loop({ bindings: bindings, limit: index, name: name, namespace: namespace ?? "", index: 0, valid: true }, {
+                    while: previous => previous.valid && previous.index < previous.limit,
+                    next: previous => {
+                        previous.valid = previous.bindings.names[previous.index] != previous.name ||
+                            (previous.bindings.namespaces[previous.index] ?? "") != previous.namespace
+                        previous.index += 1
+                    }
+                }).valid
+            }
+
+            if (current.valid) {
+                current.valid = input_type == current.input.functions.input_types[id] &&
+                    output_type == current.input.functions.output_types[id] &&
+                    integers.widen(input_type) < current.input.table.kinds.length &&
+                    integers.widen(output_type) < current.input.table.kinds.length
+            }
+
+            current.index += 1
+        }
+    }).valid
+}

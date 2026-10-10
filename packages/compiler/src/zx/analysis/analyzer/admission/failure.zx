@@ -1,0 +1,32 @@
+import emptyControl from "core/control_table/empty"
+import emptyExpressions from "core/expression_table/empty"
+import { Ownership } from "core/symbol_table/model"
+
+import type { Diagnostic } from "../../semantic/resolving/model"
+import type { ModuleOutput } from "../output"
+
+export type Input = { diagnostic: Diagnostic, type_only: bool }
+
+export type Output = ModuleOutput
+
+export default function (in: Input): Output {
+    return {
+        type_delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] },
+        nominal_delta: { ids: [], kinds: [], owners: [], members: [] },
+        body: {
+            stores: { paths: [], types: [], handles: [], readable: [], writable: [] },
+            symbols: { names: [], types: [], span_start: [], span_end: [], ownership: [] },
+            expressions: emptyExpressions(),
+            control: emptyControl(),
+            root: null
+        },
+        contracts: { kinds: [], predicates: [], symbols: [], expressions: [], span_start: [], span_end: [] },
+        export_names: [],
+        export_types: [],
+        input_type: 0,
+        output_type: 0,
+        output_ownership: Ownership.Copy,
+        type_only: in.type_only,
+        diagnostic: in.diagnostic
+    }
+}

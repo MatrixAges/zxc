@@ -1,7 +1,10 @@
+import type { Complete } from "core/function_table/complete"
+import type { Modules } from "core/native_module_table/model"
 import type { Table } from "core/type_table/model"
 import type { Bindings, Origin } from "core/type_table/nominal"
 import type { Program } from "../../frontend/parser/syntax/model"
 import type { Cache } from "../semantic/resolving/model"
+import type { Mode } from "./admission/model"
 import type { Functions } from "./functions"
 
 export type FunctionImports = { namespaces: string?[], names: string[], ids: u32[], input_types: u32[], output_types: u32[] }
@@ -9,15 +12,21 @@ export type FunctionImports = { namespaces: string?[], names: string[], ids: u32
 export type StoreBindings = { handles: string[], paths: string[], type_names: string?[], type_ids: u32?[], readable: bool[], writable: bool[] }
 
 export type Context = {
+    mode: Mode
     type_base: Table
     aliases: Cache
     nominal_base: Bindings
+    nominal_names: string[]
     nominal_origin: Origin
     shared: bool
     function_imports: FunctionImports
     functions: Functions
+    complete_functions: Complete
+    native_modules: Modules
+    scalar_count: u64
+    maximum_count: u64
     store_bindings: StoreBindings
     store_type_count: u64
 }
 
-export type ModuleInput = { bytes: u8[], file_name: string, syntax: Program, context: Context }
+export type ModuleInput = { bytes: u8[], source_text: string, file_name: string, syntax: Program, context: Context }

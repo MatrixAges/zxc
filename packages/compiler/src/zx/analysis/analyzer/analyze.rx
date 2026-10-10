@@ -1,4 +1,14 @@
 <Module>
+    <Call module="admission" in={$in} />
+
+    <Switch on={$ctx.admission.message != ""}>
+        <Case value={true}>
+            <Call fn="admission/failure" in={{ diagnostic: $ctx.admission, type_only: $in.syntax.body == null }} />
+
+            <Return value={$ctx.failure} />
+        </Case>
+    </Switch>
+
     <Call module="prepare" in={$in} />
 
     <Call fn="module/initial" in={{ state: $ctx.prepare, type_only: $in.syntax.body == null }} />

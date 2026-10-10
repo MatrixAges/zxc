@@ -1,0 +1,27 @@
+import type { Complete } from "core/function_table/complete"
+
+export type Input = { functions: Complete, maximum_count: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const table = in.functions
+    const count = table.files.length
+
+    if (count > in.maximum_count || table.input_types.length != count || table.output_types.length != count || table.ownership.length != count || table.store_modes.length != count || table.contracts.length != count || table.native_inputs.length != count || table.native_modules.length != count || table.native_members.length != count || table.native_exports.length != count || table.native_allocators.length != count || table.native_io.length != count || table.native_process.length != count || table.native_tuples.length != count || table.native_fallible.length != count || table.native_errors.length != count || table.native_concurrent.length != count || table.symbols.length != count || table.expressions.length != count || table.control.length != count || table.roots.length != count || table.stores.length != count) {
+        return false
+    }
+
+    return loop({ table: table, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.table.files.length,
+        next: current => {
+            const index = current.index
+
+            if (current.table.native_modules[index] == null) {
+                current.valid = current.table.native_inputs[index] == null && current.table.native_members[index].length == 0 && current.table.native_exports[index] == null && !current.table.native_allocators[index] && !current.table.native_io[index] && !current.table.native_process[index] && !current.table.native_tuples[index] && !current.table.native_fallible[index] && current.table.native_errors[index] == null && !current.table.native_concurrent[index]
+            }
+
+            current.index += 1
+        }
+    }).valid
+}

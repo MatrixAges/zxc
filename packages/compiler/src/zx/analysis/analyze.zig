@@ -62,40 +62,47 @@ fn analyzeInput(allocator: std.mem.Allocator, input: anytype, file_name: []const
 }
 
 fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []const u8, context: Context, resolved: ?Resolved.Input) std.mem.Allocator.Error!ResolvedResult {
-    const header = input.header();
-
-    if (resolved == null and header.importCount() > 0) return .{ .value = .{ .diagnostic = .{ .code = .module, .span = header.importAt(0).span, .message = "modules with imports require the project analysis entry point" } } };
-
     var reporter: zx.Reporter = .{};
-
-    if (context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(context.types)) return .{ .value = .{ .diagnostic = .{
-        .code = .contract,
-        .span = .{ .start = 0, .end = 0 },
-        .message = "invalid shared type table",
-    } } };
-
-    if (!@import("../modules/native_context.zig").valid(context.types, context.native_modules)) return .{ .value = .{ .diagnostic = .{
-        .code = .contract,
-        .span = .{ .start = 0, .end = 0 },
-        .message = "invalid shared native module table",
-    } } };
-
-    if (resolved) |bindings| {
-        if (!Resolved.valid(header, bindings, context.types)) return .{ .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "resolved imports do not match the source declarations and function signatures" } } };
-    }
-
-    const functions = if (resolved) |bindings| bindings.functions else zx.ir.FunctionTable{};
-    var copied_types = try @import("type_table.zig").storage(allocator, context.types);
+    var copied_types: zx.ir.TypeStorage = .{};
     var origins = Origins{ .allocator = allocator };
+    const functions = if (resolved) |bindings| bindings.functions else zx.ir.FunctionTable{};
 
-    origins.seed(copied_types.view(), context.nominal_types) catch |err| {
-        if (err == error.OutOfMemory) return error.OutOfMemory;
+    if (!@TypeOf(input).completes_ownership) {
+        const header = input.header();
 
-        return .{ .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared nominal type table" } } };
-    };
+        if (resolved == null and header.importCount() > 0) return .{ .value = .{ .diagnostic = .{ .code = .module, .span = header.importAt(0).span, .message = "modules with imports require the project analysis entry point" } } };
+
+        if (context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(context.types)) return .{ .value = .{ .diagnostic = .{
+            .code = .contract,
+            .span = .{ .start = 0, .end = 0 },
+            .message = "invalid shared type table",
+        } } };
+
+        if (!@import("../modules/native_context.zig").valid(context.types, context.native_modules)) return .{ .value = .{ .diagnostic = .{
+            .code = .contract,
+            .span = .{ .start = 0, .end = 0 },
+            .message = "invalid shared native module table",
+        } } };
+
+        if (resolved) |bindings| {
+            if (!Resolved.valid(header, bindings, context.types)) return .{ .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "resolved imports do not match the source declarations and function signatures" } } };
+        }
+
+        copied_types = try @import("type_table.zig").storage(allocator, context.types);
+
+        origins.seed(copied_types.view(), context.nominal_types) catch |err| {
+            if (err == error.OutOfMemory) return error.OutOfMemory;
+
+            return .{ .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared nominal type table" } } };
+        };
+    }
 
     var analyzer = HostContext{
         .allocator = allocator,
+        .mode = if (resolved != null) .resolved else .standalone,
+        .base_types = context.types,
+        .base_origins = context.nominal_types,
+        .native_modules = context.native_modules,
         .store_bindings = context.stores,
         .store_type_count = context.types.count(),
         .reporter = &reporter,

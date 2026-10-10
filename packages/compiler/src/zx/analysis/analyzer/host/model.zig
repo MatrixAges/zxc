@@ -8,5 +8,7 @@ pub const Aliases = std.meta.Child(@FieldType(Context, "aliases"));
 pub const Origins = std.meta.Child(@FieldType(Context, "nominal_base"));
 pub const Origin = std.meta.Child(@FieldType(Context, "nominal_origin"));
 pub const Functions = std.meta.Child(@FieldType(Context, "functions"));
+pub const CompleteFunctions = std.meta.Child(@FieldType(Context, "complete_functions"));
+pub const NativeModules = std.meta.Child(@FieldType(Context, "native_modules"));
 pub const FunctionImports = std.meta.Child(@FieldType(Context, "function_imports"));
 pub const StoreBindings = std.meta.Child(@FieldType(Context, "store_bindings"));

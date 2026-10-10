@@ -1,0 +1,15 @@
+import type { Complete } from "core/function_table/complete"
+import type { Table } from "core/type_table/model"
+import type { Program } from "../../../../frontend/parser/syntax/model"
+import type { Cache } from "../../../semantic/resolving/model"
+import type { FunctionImports } from "../../context"
+
+export type Request = {
+    source_text: string
+    syntax: Program
+    table: Table
+    aliases: Cache
+    bindings: FunctionImports
+    functions: Complete
+    maximum_count: u64
+}
