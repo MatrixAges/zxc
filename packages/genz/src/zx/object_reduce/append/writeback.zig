@@ -28,6 +28,25 @@ pub fn replace(lowering: *Lower, type_id: ir.TypeId, source: *const node.Express
     return lowering.construct(type_id, try replaceLayout(lowering, type_id, source, path, value));
 }
 
+pub fn assignLayout(lowering: *Lower, type_id: ir.TypeId, state: *const node.Expression, path: []const u32, value: *const node.Expression) Lower.Error![]const node.Statement {
+    if (path.len == 0) return lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = state, .value = value } }});
+
+    const selected = switch (lowering.program.typeOf(type_id)) {
+        .object => |fields| fields.at(path[0]).type_id,
+        .tuple => |items| items.at(path[0]),
+        else => unreachable,
+    };
+
+    const target = try project(lowering, type_id, state, path[0..1]);
+    const updated = try replace(lowering, selected, target, path[1..], value);
+    var body: std.ArrayList(node.Statement) = .empty;
+
+    try body.append(lowering.allocator, .{ .assignment = .{ .target = target, .value = updated } });
+    try @import("../../state_value/origin.zig").clear(lowering, &body, type_id, state);
+
+    return body.toOwnedSlice(lowering.allocator);
+}
+
 pub fn replaceLayout(lowering: *Lower, type_id: ir.TypeId, source: *const node.Expression, path: []const u32, value: *const node.Expression) Lower.Error!*const node.Expression {
     if (path.len == 0) return value;
 

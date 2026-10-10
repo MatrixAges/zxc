@@ -1,0 +1,47 @@
+{
+    "status": "safe_validation_passed",
+    "base_commit": "fc88b9ef4",
+    "sha256": {
+        "packages/genz/src/zx/object_reduce/append/writeback.zig": "842a466762e2e69ab5315d6fd639e6602035562cd548086147ccdf0d80a4bb0f",
+        "packages/genz/src/zx/object_reduce/append/writeback/batch.zig": "16e46af4f316324c4208ee9bc080ba5e9cd2e88cf93cea0344cea3be4732e7c1",
+        "packages/genz/src/zx/buffer_call/iteration.zig": "a1c5be570264cfddcb91d92ceb67baf8f0ce67210edc2896ab57da3c6bd84368",
+        "packages/genz/src/zx/iteration_buffer/root.zig": "867fa0d77eb670121163b1a1e8987a38ba0061fe98e5fd5e8fd107e28ba25599"
+    },
+    "semantic_compile": {
+        "exit_code": 0,
+        "mode": "safe",
+        "emit_bin": false,
+        "command_file": "批量回写语义编译命令.json",
+        "output_file": "批量回写语义编译.txt"
+    },
+    "runtime_status": "passed",
+    "command": "zig build test-loop-initial-ownership test-nested-buffer test-modular-loop -Doptimize=safe -j1 --summary all",
+    "cwd": "packages/test",
+    "generated_directory": "/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/.zig-cache/o/1ec23ee6c74c3f3007226879b96f975c",
+    "ownership_tool": {
+        "path": "/Users/xiewendao/.codex/worktrees/semantic-type-table/zxc/packages/test/.zig-cache/o/b19d724be421a2579030595fde753236/compile-loop-initial-ownership",
+        "sha256": "bd834e927a415d7b6dd676e987f3defa08325f134e72a6c75555defaa23a083b",
+        "status": "compiled_case_builds_running"
+    },
+    "exit_code": 0,
+    "steps": 183,
+    "tests": 301,
+    "test_groups": {
+        "ownership": 128,
+        "nested": 50,
+        "modular": 123
+    },
+    "compile_summary": {
+        "ownership": "8m MaxRSS:6G",
+        "nested": "8m MaxRSS:5G",
+        "modular": "8m MaxRSS:5G",
+        "generation_tests": "8m MaxRSS:4G"
+    },
+    "committed_source_sha256": {
+        "packages/genz/src/zx/object_reduce/append/writeback.zig": "dc7f2e992b61f3391ec361cd23ccdc12cb9d35554c318ef3e55de13806cdfad2",
+        "packages/genz/src/zx/object_reduce/append/writeback/batch.zig": "3d90f5e15fc3c0b7368b30fa3319e892cb17161be71d0b316fb59f63c44a04cf",
+        "packages/genz/src/zx/buffer_call/iteration.zig": "a1c5be570264cfddcb91d92ceb67baf8f0ce67210edc2896ab57da3c6bd84368",
+        "packages/genz/src/zx/iteration_buffer/root.zig": "867fa0d77eb670121163b1a1e8987a38ba0061fe98e5fd5e8fd107e28ba25599"
+    },
+    "commit_formatting": "Hook changed blank lines only in writeback.zig and writeback/batch.zig; validation SHA values above retain the exact tested source."
+}

@@ -89,18 +89,28 @@ fn forwardedCall(program: ir.Program, root: ir.ExprId) ?ir.ExprId {
 
 pub fn finish(self: Self, body: *std.ArrayList(node.Statement), state: *const node.Expression, type_id: ir.TypeId) Lower.Error!void {
     const lowering = self.lowering;
+    const batch = @import("../object_reduce/append/writeback/batch.zig");
+    var changes: std.ArrayList(batch.Change) = .empty;
 
     for (self.fields.items) |field| {
-        const source = try @import("../object_reduce/append/writeback.zig").project(lowering, type_id, state, field.path);
+        const writeback = @import("../object_reduce/append/writeback.zig");
+        const source = try writeback.project(lowering, type_id, state, field.path);
         const owned = try field.capacity.take(lowering, body, source, lowering.types[@backingInt(field.element)]);
-        const updated = try @import("../object_reduce/append/writeback.zig").replaceLayout(lowering, type_id, state, field.path, owned);
+
+        if (lowering.capture == null) {
+            try changes.append(lowering.allocator, .{ .path = field.path, .value = owned, .started = field.capacity.started });
+
+            continue;
+        }
 
         try body.append(lowering.allocator, .{ .branch = .{
             .condition = field.capacity.started,
-            .yes = try lowering.allocator.dupe(node.Statement, &.{.{ .assignment = .{ .target = state, .value = updated } }}),
+            .yes = try writeback.assignLayout(lowering, type_id, state, field.path, owned),
             .no = &.{},
         } });
     }
+
+    try batch.apply(lowering, body, type_id, state, changes.items);
 }
 
 pub fn restore(self: *Self) void {
