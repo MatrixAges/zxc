@@ -1,5 +1,5 @@
 <Module>
-    <Switch on={$in.analysis.state.diagnostic.message == ""}>
+    <Switch on={$in.analysis.program && $in.analysis.state.diagnostic.message == ""}>
         <Case value={true}>
             <Call fn="environment/tuple" in={{ analysis: $in.analysis, types: $in.input.binding_types }} />
 

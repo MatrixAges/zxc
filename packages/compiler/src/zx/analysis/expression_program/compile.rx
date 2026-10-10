@@ -7,7 +7,7 @@
     <Call module="facts" in={{ input: $in, analysis: $ctx.bindings }} />
     <Call module="evaluate" in={{ input: $in, analysis: $ctx.facts }} />
     <Call module="finish" in={$ctx.evaluate} />
-    <Call module="ownership" in={{ analysis: $ctx.finish, linking: $in.linking }} />
+    <Call module="ownership" in={{ analysis: $ctx.finish }} />
 
     <Call fn="publish" in={$ctx.ownership} />
 

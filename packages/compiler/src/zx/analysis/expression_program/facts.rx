@@ -1,7 +1,7 @@
 <Module>
-    <Switch on={$in.analysis.state.diagnostic.message == "" && $in.input.nonnull_bindings.length != 0}>
+    <Switch on={$in.analysis.program && $in.analysis.state.diagnostic.message == "" && $in.input.nonnull_bindings.length != 0}>
         <Case value={true}>
-            <Switch on={$in.input.linking}>
+            <Switch on={$in.analysis.linking}>
                 <Case value={true}>
                     <Call fn="facts/add" in={{ analysis: $in.analysis, names: $in.input.nonnull_bindings, bindings: $in.input.binding_names }} />
 

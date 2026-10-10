@@ -6,6 +6,7 @@ export type Output = Result
 
 export default function (in: Input): Output {
     return {
+        value: in.value,
         type_delta: in.state.types.delta,
         body: { stores: in.state.local.stores, symbols: in.state.local.symbols, expressions: in.state.local.expressions, control: in.state.local.control, root: in.state.diagnostic.message == "" ? in.root : null },
         input_type: in.state.input_type,

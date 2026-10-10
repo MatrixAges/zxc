@@ -26,6 +26,8 @@ pub fn compileInput(allocator: std.mem.Allocator, input: *const @import("../fron
 }
 
 fn compileStage(allocator: std.mem.Allocator, parsed: anytype, options: Options, comptime linking: bool) std.mem.Allocator.Error!Result {
+    if (@import("../frontend/expression_result.zig").indexed_enabled) return @import("expression_program/host/root.zig").compile(allocator, parsed, options, linking);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();

@@ -1,16 +1,20 @@
 import type { Table } from "core/type_table/model"
 import type { Expression } from "../../frontend/parser/syntax/model"
+import type { NativeModule } from "../analyzer/source/model"
+
+export enum Mode { Expression, Program, Linking }
 
 export type CompileInput = {
     bytes: u8[]
     syntax: Expression
-    type_base: Table
+    native: NativeModule?
+        type_base: Table
     binding_names: string[]
     binding_types: u32[]
     unit_bindings: string[]
     nonnull_bindings: string[]
     expected: u32?
-        linking: bool
+        mode: Mode
     scalar_count: u64
     maximum_type_count: u64
 }

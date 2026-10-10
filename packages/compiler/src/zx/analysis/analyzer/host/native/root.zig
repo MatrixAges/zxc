@@ -2,9 +2,6 @@ const std = @import("std");
 const zx = @import("zx");
 const Context = @import("context.zig");
 const model = @import("model.zig");
-const borrow = @import("../../../../ir/canonical/borrow.zig");
-const Reference = @import("../../../semantic/resolving/host/model.zig").Reference;
-
 pub const Result = struct { syntax: *const model.Syntax, native: *const model.Native };
 
 pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allocator, program: zx.ast.Program) std.mem.Allocator.Error!Result {
@@ -45,52 +42,13 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
         .span = try context.span(item.span),
     });
 
-    while (context.pending.pop()) |pending| switch (pending) {
-        .expression => |value| try @import("expressions.zig").fill(&context, value),
-        .block => |value| try @import("blocks.zig").fill(&context, value),
-    };
-
-    const types = try context.types.prepare(program.declarations, null);
-
-    const text = try context.keep(model.Text, .{
-        .expression_names = context.expression_names.items,
-        .expression_values = context.expression_values.items,
-        .field_names = context.field_names.items,
-        .parameter_names = context.parameter_names.items,
-        .template_values = context.template_values.items,
-        .statement_names = context.statement_names.items,
-        .destructure_names = context.destructure_names.items,
-        .type_references = borrow.slice(@FieldType(model.Text, "type_references"), @as([]const *const Reference, context.type_references.items)),
-    });
-
-    const native = try context.keep(model.Native, .{
-        .types = borrow.pointer(@FieldType(model.Native, "types"), types.source),
-        .text = text,
-        .import_names = import_names.items,
-    });
-
-    const expressions = try context.keep(model.Expressions, .{
-        .nodes = context.nodes.items,
-        .items = context.items.items,
-        .fields = context.fields.items,
-        .parameters = context.parameters.items,
-        .parts = context.parts.items,
-        .arms = context.arms.items,
-    });
-
-    const blocks = try context.keep(model.Blocks, .{
-        .statements = context.statements.items,
-        .blocks = context.blocks.items,
-        .items = context.block_items.items,
-        .names = context.names.items,
-        .cases = context.cases.items,
-    });
+    const tables = try @import("finish.zig").apply(&context, program.declarations, import_names.items);
 
     const syntax = try context.keep(model.Syntax, .{
         .types = &model.empty_types,
         .type_order = &model.empty_order,
-        .expressions = expressions,
-        .blocks = blocks,
+        .expressions = tables.expressions,
+        .blocks = tables.blocks,
         .tokens = &.{},
         .comments = &.{},
         .imports = imports,
@@ -104,5 +62,5 @@ pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allo
         .diagnostic = &model.empty_diagnostic,
     });
 
-    return .{ .syntax = syntax, .native = native };
+    return .{ .syntax = syntax, .native = tables.native };
 }

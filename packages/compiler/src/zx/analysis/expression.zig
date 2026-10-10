@@ -21,6 +21,8 @@ pub const Result = struct {
 };
 
 pub fn analyze(allocator: std.mem.Allocator, parsed: Parsed, options: Options) std.mem.Allocator.Error!Result {
+    if (@import("../frontend/expression_result.zig").indexed_enabled) return @import("expression_program/host/root.zig").analyze(allocator, parsed, options);
+
     var arena = std.heap.ArenaAllocator.init(allocator);
 
     errdefer arena.deinit();

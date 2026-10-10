@@ -7,7 +7,19 @@
                 <Case value={true}>
                     <Call fn="bindings/values" in={{ analysis: $ctx.units, names: $in.input.binding_names, types: $in.input.binding_types }} />
 
-                    <Return value={$ctx.values} />
+                    <Switch on={$ctx.values.program}>
+                        <Case value={true}>
+                            <Call fn="bindings/projections" in={{ analysis: $ctx.values, types: $in.input.binding_types }} />
+
+                            <Return value={$ctx.projections} />
+                        </Case>
+
+                        <Default>
+                            <Call fn="types/check" in={{ analysis: $ctx.values, binding_types: [], expected: $in.input.expected }} />
+
+                            <Return value={$ctx.check} />
+                        </Default>
+                    </Switch>
                 </Case>
 
                 <Default>

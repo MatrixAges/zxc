@@ -5,11 +5,21 @@
         <Case value={true}>
             <Call fn="types/request" in={$in.analysis.state.types} />
 
-            <Call module="../semantic/resolving/resolve" in={$ctx.request} />
+            <Task name="resolved" out={{ ...$in.analysis, state: { ...$in.analysis.state, types: { ...$in.analysis.state.types, delta: $ctx.resolve.delta, cache: $ctx.resolve.cache }, diagnostic: $ctx.resolve.diagnostic } }}>
+                <Call module="../semantic/resolving/resolve" in={$ctx.request} />
+            </Task>
 
-            <Call fn="types/check" in={{ analysis: { ...$in.analysis, state: { ...$in.analysis.state, types: { ...$in.analysis.state.types, delta: $ctx.resolve.delta, cache: $ctx.resolve.cache }, diagnostic: $ctx.resolve.diagnostic } }, binding_types: $in.input.binding_types, expected: $in.input.expected }} />
+            <Switch on={$in.analysis.program}>
+                <Case value={true}>
+                    <Call fn="types/check" in={{ analysis: $ctx.task.resolved, binding_types: $in.input.binding_types, expected: $in.input.expected }} />
 
-            <Return value={$ctx.check} />
+                    <Return value={$ctx.check} />
+                </Case>
+
+                <Default>
+                    <Return value={$ctx.task.resolved} />
+                </Default>
+            </Switch>
         </Case>
 
         <Default>

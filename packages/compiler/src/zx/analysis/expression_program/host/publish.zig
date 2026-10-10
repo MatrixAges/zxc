@@ -31,3 +31,16 @@ pub fn apply(allocator: std.mem.Allocator, output: *const Output, options: Optio
         .stores = try own(allocator, borrow.columns(ir.StoreTable, output.body.stores.*), .{}),
     };
 }
+
+pub fn expression(allocator: std.mem.Allocator, output: *const Output, options: Options) std.mem.Allocator.Error!@import("../../expression.zig").Expression {
+    var types = try type_table.storage(allocator, options.types);
+
+    try types.appendDelta(allocator, try type_table.copy(allocator, borrow.columns(ir.TypeTable, output.type_delta.*)));
+
+    return .{
+        .types = types.view(),
+        .symbols = try own(allocator, borrow.columns(ir.SymbolTable, output.body.symbols.*), .{}),
+        .expressions = try own(allocator, borrow.columns(ir.ExpressionTable, output.body.expressions.*), .{}),
+        .value = @fromBackingInt(output.value),
+    };
+}

@@ -6,6 +6,8 @@ import type { Prepared } from "../analyzer/model"
 import type { Diagnostic } from "../semantic/resolving/model"
 
 export type Analysis = {
+    program: bool
+    linking: bool
     state: Prepared
     span: Span
     input_value: u32
@@ -16,6 +18,7 @@ export type Analysis = {
 }
 
 export type Result = {
+    value: u32
     type_delta: Table
     body: Body
     input_type: u32

@@ -1,5 +1,5 @@
 <Module>
-    <Switch on={$in.state.diagnostic.message == ""}>
+    <Switch on={$in.program && $in.state.diagnostic.message == ""}>
         <Case value={true}>
             <Call fn="finish" in={$in} />
 

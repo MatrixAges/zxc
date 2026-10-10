@@ -1,5 +1,5 @@
 <Module>
-    <Switch on={!$in.linking && $in.analysis.state.diagnostic.message == ""}>
+    <Switch on={$in.analysis.program && !$in.analysis.linking && $in.analysis.state.diagnostic.message == ""}>
         <Case value={true}>
             <Call fn="ownership/request" in={$in.analysis} />
 

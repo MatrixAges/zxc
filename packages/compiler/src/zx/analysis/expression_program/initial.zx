@@ -1,6 +1,7 @@
 import { Ownership } from "core/symbol_table/model"
 
 import local from "../analyzer/local/initial"
+import { Mode } from "./input"
 
 import type { Types } from "../analyzer/types/model"
 import type { CompileInput } from "./input"
@@ -14,9 +15,11 @@ export default function (in: Input): Output {
     const span = in.syntax.expressions.nodes[in.syntax.result].span
     const diagnostic = { code: "", message: "", start: 0, end: 0 }
 
+    const native = in.native
+
     const types: Types = {
         context: {
-            source: { indexed: { bytes: in.bytes, types: in.syntax.types, order: in.syntax.type_order, declarations: [], members: [] }, native: null },
+            source: { indexed: { bytes: in.bytes, types: in.syntax.types, order: in.syntax.type_order, declarations: [], members: [] }, native: native != null ? native.types : null },
             base: in.type_base,
             resolved: { names: [], ids: [] },
             aliases: { names: [], ids: [] },
@@ -30,5 +33,5 @@ export default function (in: Input): Output {
 
     const scope = local({ signature: { types: types, span: span, input_type: 0, output_type: 0, diagnostic: diagnostic }, stores: { paths: [], types: [], handles: [], readable: [], writable: [] }, allow_store: false })
 
-    return { state: { types: types, local: scope, input_type: 0, diagnostic: diagnostic }, span: span, input_value: 0, binding_values: [], value: 0, root: null, ownership: Ownership.Borrowed }
+    return { program: in.mode != Mode.Expression, linking: in.mode == Mode.Linking, state: { types: types, local: scope, input_type: 0, diagnostic: diagnostic }, span: span, input_value: 0, binding_values: [], value: 0, root: null, ownership: Ownership.Borrowed }
 }

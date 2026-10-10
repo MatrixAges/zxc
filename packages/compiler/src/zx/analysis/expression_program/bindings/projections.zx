@@ -1,0 +1,22 @@
+import integers from "zig:integers"
+import projection from "core/expression_table/append/projection"
+
+import type { Analysis } from "../model"
+
+export type Input = { analysis: Analysis, types: u32[] }
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    return loop({ analysis: in.analysis, types: in.types, index: 0 }, {
+        while: current => current.analysis.state.diagnostic.message == "" && current.index < current.types.length,
+        next: current => {
+            const span = current.analysis.span
+            const value = projection({ table: current.analysis.state.local.expressions, metadata: { type_id: current.types[current.index], span_start: span.start, span_end: span.end }, target: current.analysis.input_value, index: integers.narrow(current.index), tuple: true })
+
+            current.analysis.state.local.expressions = value.table
+            current.analysis.binding_values = current.analysis.binding_values.push(value.id)[0]
+            current.index += 1
+        }
+    }).analysis
+}
