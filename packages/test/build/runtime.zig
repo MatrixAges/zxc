@@ -74,11 +74,12 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
     step.dependOn(@import("filter_traces.zig").add(b, compiler, target, optimize, suites));
     step.dependOn(@import("map_traces.zig").add(b, compiler, target, optimize, suites));
     step.dependOn(@import("predicate_arguments.zig").add(b, compiler, target, optimize, suites));
+    step.dependOn(@import("predicate_order.zig").add(b, compiler, target, optimize, suites));
     step.dependOn(application_json_gateway_step);
     application_json_output_step.dependOn(application_json_gateway_step);
 
     for (suites) |suite| {
-        if (suite.kind == .immutable_list or suite.kind == .rx_parallel_floating or suite.kind == .rx_floating or suite.kind == .floating_reduce or suite.kind == .predicate_trace or suite.kind == .reduce_trace or suite.kind == .filter_trace or suite.kind == .map_trace or suite.kind == .predicate_arguments) continue;
+        if (suite.kind == .immutable_list or suite.kind == .rx_parallel_floating or suite.kind == .rx_floating or suite.kind == .floating_reduce or suite.kind == .predicate_trace or suite.kind == .reduce_trace or suite.kind == .filter_trace or suite.kind == .map_trace or suite.kind == .predicate_arguments or suite.kind == .predicate_order) continue;
 
         if (suite.kind == .application_json) {
             const run = application_json.add(b, cli, optimize, suite);

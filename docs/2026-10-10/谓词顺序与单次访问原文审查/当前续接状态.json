@@ -1,0 +1,67 @@
+{
+    "observed_at": "2026-10-10T00:02:02.500269+00:00",
+    "published_commit": "90dd761bf107e8456a6a8ead521466e8a61a7485",
+    "original_files": 4,
+    "original_assertions": 7,
+    "logical_cases": 6,
+    "supplemental_cases": 2,
+    "final_runtime_status": "Final r2 Debug and ReleaseSafe passed; 16 runtime records and 24 named executions.",
+    "sessions": {
+        "root_debug": 81471,
+        "combined_diagnostic_sequence": 40058,
+        "loader_safe_then_owned_related_sequence": 75440
+    },
+    "first_worktree": "/Users/xiewendao/.codex/worktrees/predicate-order-conformance/zxc",
+    "final_worktree": "/Users/xiewendao/.codex/worktrees/predicate-order-identity-conformance/zxc",
+    "run_base": "/Users/xiewendao/.codex/conformance/predicate-order-07d050b18",
+    "next_actions": [
+        "Finish exact predicate publication scope guards, normal hooks and push.",
+        "Then implement the two-file artifact fixture wiring fix.",
+        "Keep the combined and loader/owned resource queues running without duplicate starts."
+    ],
+    "first_debug_result": {
+        "terminal_exit_code": 0,
+        "build_steps": "44/44",
+        "actual_runtime_records": 8,
+        "actual_named_executions": 12,
+        "changed_inputs": [],
+        "final_pointer_and_length_checks": false
+    },
+    "final_debug": {
+        "pid": 83790,
+        "started_at": "2026-10-09T23:10:54.986410+00:00",
+        "terminal_received": true,
+        "terminal_exit_code": 0,
+        "finished_at": "2026-10-09T23:28:45.683529+00:00"
+    },
+    "compiled_loader_debug_result": {
+        "terminal_exit_code": 0,
+        "build_steps": "143/143",
+        "named_tests": "266/266",
+        "changed_inputs": [],
+        "finished_at": "2026-10-09T23:16:46.165208+00:00",
+        "safe_started": false
+    },
+    "commit_message_policy": "English Conventional Commits title and body; accurate scope and validation; ASCII, at most 72 columns.",
+    "final_safe": {
+        "pid": 98906,
+        "terminal_received": true,
+        "terminal_exit_code": 0,
+        "finished_at": "2026-10-09T23:50:08.216460+00:00"
+    },
+    "additional_live_part": {
+        "name": "Direct compiled native conflicts",
+        "status": "Published and remote verified",
+        "commit": "90dd761bf107e8456a6a8ead521466e8a61a7485"
+    },
+    "new_root_test_wiring_failure": {
+        "path": "packages/test/tests/incremental/artifact/imports/resources_test.zig",
+        "cause": "Relative mixed fixture import escapes its test root module path.",
+        "planned_scope": [
+            "packages/test/build.zig",
+            "packages/test/tests/incremental/artifact/imports/resources_test.zig"
+        ],
+        "changed": false
+    },
+    "snapshot_phase": "Pre-publication; final predicate gates and catalog audit are complete."
+}
