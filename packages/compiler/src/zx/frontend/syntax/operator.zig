@@ -1,3 +1,4 @@
+const std = @import("std");
 const zx = @import("zx");
 
 pub fn get(value: anytype) zx.syntax.Operator {
@@ -18,4 +19,13 @@ pub fn get(value: anytype) zx.syntax.Operator {
         .Or => .logical_or,
         .None => unreachable,
     };
+}
+
+pub fn fromNative(comptime Target: type, value: zx.syntax.Operator) Target {
+    inline for (std.enums.values(Target)) |candidate| {
+        if (comptime candidate == .None) continue;
+        if (value == comptime get(candidate)) return candidate;
+    }
+
+    unreachable;
 }

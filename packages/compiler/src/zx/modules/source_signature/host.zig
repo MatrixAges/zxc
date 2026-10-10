@@ -43,6 +43,7 @@ pub fn analyze(types: *Types, source: []const u8, syntax: anytype) zx.Error!Sign
     const input = Input{
         .bytes = source,
         .syntax = borrow.pointer(@FieldType(Input, "syntax"), syntax),
+        .native = null,
         .type_base = &type_base,
         .aliases = &aliases,
         .nominal_base = &nominal_base,

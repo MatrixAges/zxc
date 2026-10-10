@@ -1,5 +1,7 @@
 import { StatementKind } from "../../../../../frontend/parser/body/model"
-import text from "../../../../semantic/resolving/source/text"
+import { NameKind } from "../../../source/model"
+import readName from "../../../source/name"
+import reference from "../../../source/reference"
 import bindingName from "../../../statements/scopes/binding_name"
 import finish from "../../../statements/scopes/finish"
 import annotation from "../../../types/annotation"
@@ -34,14 +36,14 @@ export default function (in: Input): Output {
     }
 
     if (statement.kind == StatementKind.Constant) {
-        const name = text({ source: work.source.bytes, span: statement.name })
+        const name = readName({ source: work.source, kind: NameKind.Statement, index: id })
         const diagnostic = bindingName({ scopes: work.scopes, local: work.state.local, name: name })
 
         if (diagnostic.message != "") {
             return { ...work, state: { ...work.state, diagnostic: diagnostic } }
         }
 
-        const resolved: { state: Prepared, id: u32 } = statement.annotation == 0 ? { state: work.state, id: 0 } : annotation({ state: work.state, reference: statement.annotation - 1 })
+        const resolved: { state: Prepared, id: u32 } = statement.annotation == 0 ? { state: work.state, id: 0 } : annotation({ state: work.state, reference: reference({ source: work.source, index: statement.annotation - 1 }) })
 
         return { ...work, state: resolved.state, expected: statement.annotation == 0 ? null : resolved.id, frames: { ...work.frames, statements: work.frames.statements.push(id)[0], actions: work.frames.actions.push(Action.StateConstant)[0] } }
     }

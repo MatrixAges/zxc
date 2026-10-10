@@ -1,6 +1,7 @@
 import { ExprKind } from "../../../frontend/parser/expressions/state/model"
-import text from "../../semantic/resolving/source/text"
 import items from "../expressions/items"
+import { NameKind } from "../source/model"
+import readName from "../source/name"
 
 import type { Diagnostic } from "../../semantic/resolving/model"
 import type { Source } from "../expressions/request"
@@ -40,7 +41,7 @@ export default function (in: Input): Output {
         while: current => current.index < current.fields.length && current.diagnostic.message == "",
         next: current => {
             const field = current.source.tree.fields[current.fields[current.index]]
-            const name = text({ source: current.source.bytes, span: field.name })
+            const name = readName({ source: current.source, kind: NameKind.Field, index: current.fields[current.index] })
 
             if (field.spread) {
                 const span = current.source.tree.nodes[field.value].span

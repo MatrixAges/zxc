@@ -3,8 +3,10 @@ import { Kind } from "core/type_table/model"
 
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
 import parseInteger from "../../../integer/parse"
-import text from "../../../semantic/resolving/source/text"
 import row from "../../../semantic/types/row"
+import literal from "../../source/literal"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
 import { Operation } from "./model"
 
 import type { Context, Frame } from "./model"
@@ -40,12 +42,12 @@ export type Output = u32?
                 return null
             }
 
-            const value = parseInteger(source.bytes.splice(index.span.start, index.span.end - index.span.start, [])[1])
+            const value = parseInteger(literal({ source: source, index: node.second, template: false }))
 
             return value != null && value < integers.widen(target.second) ? table.children[integers.widen(target.first) + value] : null
         }
 
-        const name = text({ source: source.bytes, span: node.name }).text
+        const name = readName({ source: source, kind: NameKind.Expression, index: in.frame.node }).text
 
         if ((target.kind == Kind.List || in.type_id == 10) && name == "length") {
             return 5

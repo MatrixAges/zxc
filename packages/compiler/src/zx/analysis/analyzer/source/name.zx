@@ -1,0 +1,35 @@
+import text from "../../semantic/resolving/source/text"
+import { NameKind } from "./model"
+
+import type { Name } from "../../semantic/resolving/source/model"
+import type { Source } from "../expressions/request"
+
+export type Input = { source: Source, kind: NameKind, index: u64 }
+
+export type Output = Name
+
+export default function (in: Input): Output {
+    const span = match (in.kind) {
+        NameKind.Expression => in.source.tree.nodes[in.index].name,
+        NameKind.Field => in.source.tree.fields[in.index].name,
+        NameKind.Parameter => in.source.tree.parameters[in.index].name,
+        NameKind.Statement => in.source.blocks.statements[in.index].name,
+        _ => in.source.blocks.names[in.index].span,
+    }
+
+    const native = in.source.native
+
+    if (native == null) {
+        return text({ source: in.source.bytes, span: span })
+    }
+
+    const value = match (in.kind) {
+        NameKind.Expression => native.text.expression_names[in.index],
+        NameKind.Field => native.text.field_names[in.index],
+        NameKind.Parameter => native.text.parameter_names[in.index],
+        NameKind.Statement => native.text.statement_names[in.index],
+        _ => native.text.destructure_names[in.index],
+    }
+
+    return { text: value, start: span.start, end: span.end }
+}

@@ -1,14 +1,15 @@
 import initial from "../../semantic/resolving/initial"
 import run from "../../semantic/resolving/run"
 
+import type { Reference } from "../../semantic/resolving/source/model"
 import type { Prepared } from "../model"
 
-export type Input = { state: Prepared, reference: u64 }
+export type Input = { state: Prepared, reference: Reference }
 
 export type Output = { state: Prepared, id: u32 }
 
 export default function (in: Input): Output {
-    const prepared = initial({ context: in.state.types.context, delta: in.state.types.delta, cache: in.state.types.cache, initialize: false, named: false, name: { text: "", start: 0, end: 0 }, reference: { enumeration: false, index: in.reference } })
+    const prepared = initial({ context: in.state.types.context, delta: in.state.types.delta, cache: in.state.types.cache, initialize: false, named: false, name: { text: "", start: 0, end: 0 }, reference: in.reference })
     const result = run(prepared)
 
     return { state: { ...in.state, types: { ...in.state.types, delta: result.delta, cache: result.cache }, diagnostic: result.diagnostic }, id: result.result }

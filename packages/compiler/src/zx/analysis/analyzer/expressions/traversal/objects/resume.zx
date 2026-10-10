@@ -1,4 +1,5 @@
-import text from "../../../../semantic/resolving/source/text"
+import { NameKind } from "../../../source/model"
+import readName from "../../../source/name"
 import replace from "../../objects/replace"
 import spread from "../../objects/spread"
 import next from "./next"
@@ -13,7 +14,7 @@ export default function (in: Input): Output {
     const position = in.frames.objects.length - 1
     const frame = in.frames.objects[position]
     const field = in.source.tree.fields[frame.fields[frame.index]]
-    const result = field.spread ? spread({ state: in.state, entries: frame.entries, value: in.value, span: in.source.tree.nodes[field.value].span }) : { state: in.state, entries: replace({ entries: frame.entries, name: text({ source: in.source.bytes, span: field.name }).text, value: in.value }) }
+    const result = field.spread ? spread({ state: in.state, entries: frame.entries, value: in.value, span: in.source.tree.nodes[field.value].span }) : { state: in.state, entries: replace({ entries: frame.entries, name: readName({ source: in.source, kind: NameKind.Field, index: frame.fields[frame.index] }).text, value: in.value }) }
 
     if (result.state.diagnostic.message != "") {
         return { ...in, state: result.state }

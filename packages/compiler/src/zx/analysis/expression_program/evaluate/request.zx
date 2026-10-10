@@ -12,7 +12,7 @@ export type Output = { request: Request, imports: FunctionImports, functions: Fu
 
 export default function (in: Input): Output {
     return {
-        request: { state: in.analysis.state, source: { bytes: in.input.bytes, tree: in.input.syntax.expressions, blocks: in.input.syntax.blocks }, node: in.input.syntax.result, expected: in.input.expected },
+        request: { state: in.analysis.state, source: { bytes: in.input.bytes, tree: in.input.syntax.expressions, blocks: in.input.syntax.blocks, native: null }, node: in.input.syntax.result, expected: in.input.expected },
         imports: { namespaces: [], names: [], ids: [], input_types: [], output_types: [] },
         functions: empty()
     }

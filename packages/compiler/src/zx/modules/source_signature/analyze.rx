@@ -9,7 +9,7 @@
 
             <Switch on={$ctx.signature.diagnostic.message == ""}>
                 <Case value={true}>
-                    <Call fn="../../analysis/analyzer/exports" in={{ state: { types: $ctx.signature.types, diagnostic: $ctx.signature.diagnostic }, bytes: $in.bytes, declarations: $in.syntax.declarations }} />
+                    <Call fn="../../analysis/analyzer/exports" in={{ state: { types: $ctx.signature.types, diagnostic: $ctx.signature.diagnostic } }} />
 
                     <Return value={{ ...$ctx.initial, type_delta: $ctx.exports.state.types.delta, nominal_delta: $ctx.exports.state.types.nominal_delta, input_type: $ctx.signature.input_type, output_type: $ctx.signature.output_type, export_names: $ctx.exports.names, export_types: $ctx.exports.types, diagnostic: $ctx.exports.state.diagnostic }} />
                 </Case>

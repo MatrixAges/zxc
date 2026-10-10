@@ -1,14 +1,14 @@
 import initial from "../semantic/resolving/initial"
 import run from "../semantic/resolving/run"
-import text from "../semantic/resolving/source/text"
+import count from "../semantic/resolving/source/count"
+import declaration from "../semantic/resolving/source/declaration"
 
-import type { Declaration } from "../../frontend/parser/declarations/model"
 import type { Diagnostic } from "../semantic/resolving/model"
 import type { Types } from "./types/model"
 
 export type State = { types: Types, diagnostic: Diagnostic }
 
-export type Input = { state: State, bytes: u8[], declarations: Declaration[] }
+export type Input = { state: State }
 
 export type Output = { state: State, names: string[], types: u32[] }
 
@@ -16,10 +16,10 @@ export default function (in: Input): Output {
     const names: string[] = []
     const types: u32[] = []
 
-    const result = loop({ state: in.state, bytes: in.bytes, declarations: in.declarations, names: names, types: types, index: 0 }, {
-        while: current => current.index < current.declarations.length && current.state.diagnostic.message == "",
+    const result = loop({ state: in.state, count: count(in.state.types.context.source), names: names, types: types, index: 0 }, {
+        while: current => current.index < current.count && current.state.diagnostic.message == "",
         next: current => {
-            const name = text({ source: current.bytes, span: current.declarations[current.index].name })
+            const name = declaration({ source: current.state.types.context.source, index: current.index }).name
             const prepared = initial({ context: current.state.types.context, delta: current.state.types.delta, cache: current.state.types.cache, initialize: false, named: true, name: name, reference: { enumeration: false, index: 0 } })
             const resolved = run(prepared)
 

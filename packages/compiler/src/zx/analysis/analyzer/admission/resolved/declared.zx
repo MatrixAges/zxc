@@ -1,10 +1,10 @@
-import encoding from "std:encoding"
-
 import { ImportKind } from "../../../../frontend/parser/imports/model"
+import importName from "../../source/import_name"
 
 import type { Program } from "../../../../frontend/parser/syntax/model"
+import type { NativeModule } from "../../source/model"
 
-export type Input = { source_text: string, syntax: Program, name: string, callable: bool }
+export type Input = { source_text: string, native: NativeModule?, syntax: Program, name: string, callable: bool }
 
 export type Output = bool
 
@@ -18,8 +18,7 @@ export default function (in: Input): Output {
                 current.found = loop({ input: current.input, item: item, index: 0, found: false }, {
                     while: names => !names.found && names.index < names.item.count,
                     next: names => {
-                        const span = names.input.syntax.import_names[names.item.first + names.index]
-                        const name = encoding.sliceBytes(names.input.source_text, span.start, span.end)
+                        const name = importName({ source_text: names.input.source_text, spans: names.input.syntax.import_names, native: names.input.native, index: names.item.first + names.index })
 
                         names.found = name == names.input.name
                         names.index += 1

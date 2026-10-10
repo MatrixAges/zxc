@@ -1,0 +1,12 @@
+import type { Reference } from "../../semantic/resolving/source/model"
+import type { Source } from "../expressions/request"
+
+export type Input = { source: Source, index: u64 }
+
+export type Output = Reference
+
+export default function (in: Input): Output {
+    const native = in.source.native
+
+    return native == null ? { enumeration: false, index: in.index } : native.text.type_references[in.index]
+}

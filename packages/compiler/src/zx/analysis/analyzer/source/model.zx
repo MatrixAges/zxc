@@ -1,0 +1,16 @@
+import type { Native, Reference } from "../../semantic/resolving/source/model"
+
+export enum NameKind { Expression, Field, Parameter, Statement, Destructure }
+
+export type NativeText = {
+    expression_names: string[]
+    expression_values: u8[][]
+    field_names: string[]
+    parameter_names: string[]
+    template_values: u8[][]
+    statement_names: string[]
+    destructure_names: string[]
+    type_references: Reference[]
+}
+
+export type NativeModule = { types: Native, text: NativeText, import_names: string[] }

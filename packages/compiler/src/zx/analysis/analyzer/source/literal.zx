@@ -1,0 +1,33 @@
+import { ExprKind } from "../../../frontend/parser/expressions/state/model"
+
+import type { Source } from "../expressions/request"
+
+export type Input = { source: Source, index: u64, template: bool }
+
+export type Output = u8[]
+
+export default function (in: Input): Output {
+    const native = in.source.native
+
+    if (native != null) {
+        if (in.template) {
+            return native.text.template_values[in.index]
+        }
+
+        const value = native.text.expression_values[in.index]
+        const offset: u64 = in.source.tree.nodes[in.index].kind == ExprKind.String ? 1 : 0
+
+        return value.splice(offset, value.length - offset * 2, [])[1]
+    }
+
+    if (in.template) {
+        const span = in.source.tree.parts[in.index].span
+
+        return in.source.bytes.splice(span.start, span.end - span.start, [])[1]
+    }
+
+    const node = in.source.tree.nodes[in.index]
+    const offset: u64 = node.kind == ExprKind.String ? 1 : 0
+
+    return in.source.bytes.splice(node.span.start + offset, node.span.end - node.span.start - offset * 2, [])[1]
+}

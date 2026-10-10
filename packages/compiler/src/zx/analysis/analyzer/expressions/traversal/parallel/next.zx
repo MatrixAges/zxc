@@ -1,5 +1,6 @@
 import { ExprKind } from "../../../../../frontend/parser/expressions/state/model"
-import text from "../../../../semantic/resolving/source/text"
+import { NameKind } from "../../../source/model"
+import readName from "../../../source/name"
 import { Phase, Action } from "../model"
 import finish from "./finish"
 
@@ -24,7 +25,7 @@ export default function (in: Input): Output {
         return { ...in, state: { ...in.state, diagnostic: { code: "type_mismatch", message: "parallel branches must be zero-argument callbacks", start: callback.span.start, end: callback.span.end } } }
     }
 
-    const name = text({ source: in.source.bytes, span: field.name })
+    const name = readName({ source: in.source, kind: NameKind.Field, index: frame.fields[frame.index] })
 
     const duplicate = loop({ names: frame.names, name: name.text, index: 0, found: false }, {
         while: current => current.index < current.names.length && !current.found,

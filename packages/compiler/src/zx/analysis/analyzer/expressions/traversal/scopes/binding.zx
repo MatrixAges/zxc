@@ -1,7 +1,8 @@
 import integers from "zig:integers"
 import { ExpressionKind } from "core/expression_table/kinds"
 
-import text from "../../../../semantic/resolving/source/text"
+import { NameKind } from "../../../source/model"
+import readName from "../../../source/name"
 import bind from "../../../statements/scopes/bind"
 import destructure from "../../../statements/scopes/destructure"
 import evaluate from "../../../statements/scopes/evaluate"
@@ -32,7 +33,7 @@ export default function (in: Input): Output {
     }
 
     const frame = work.scopes.frames[work.scopes.frames.length - 1]
-    const result = bind({ scopes: work.scopes, local: work.state.local, name: text({ source: work.source.bytes, span: statement.name }), value: work.value, scope_start: frame.active_mark })
+    const result = bind({ scopes: work.scopes, local: work.state.local, name: readName({ source: work.source, kind: NameKind.Statement, index: id }), value: work.value, scope_start: frame.active_mark })
 
     return { ...work, scopes: result.scopes, state: { ...work.state, local: result.local, diagnostic: result.diagnostic } }
 }

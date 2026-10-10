@@ -1,8 +1,9 @@
 import integers from "zig:integers"
 
 import { ExprKind } from "../../../frontend/parser/expressions/state/model"
-import text from "../../semantic/resolving/source/text"
 import matches from "../expressions/injected/matches"
+import { NameKind } from "../source/model"
+import readName from "../source/name"
 import slot from "./slot"
 
 import type { Span } from "../../../frontend/lexer/token_model"
@@ -33,7 +34,7 @@ export default function (in: Input): Output {
 
     const root = in.source.tree.nodes[owner.kind == ExprKind.Field ? owner.first : in.node]
 
-    if (node.kind != ExprKind.Field || owner.kind != ExprKind.Field || root.kind != ExprKind.Identifier || text({ source: in.source.bytes, span: root.name }).text != "store") {
+    if (node.kind != ExprKind.Field || owner.kind != ExprKind.Field || root.kind != ExprKind.Identifier || readName({ source: in.source, kind: NameKind.Expression, index: owner.first }).text != "store") {
         return { state: { ...in.state, diagnostic: { code: "capability", message: "a Store setter must replace a complete Object", start: node.span.start, end: node.span.end } }, slot: 0 }
     }
 

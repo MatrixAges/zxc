@@ -35,7 +35,7 @@ pub fn prepare(self: *Self, declarations: []const ast.Declaration, root: ?*const
     }), .reference = root_reference };
 }
 
-fn reference(self: *Self, value: *const ast.Type) std.mem.Allocator.Error!*const model.Reference {
+pub fn reference(self: *Self, value: *const ast.Type) std.mem.Allocator.Error!*const model.Reference {
     if (self.references.get(value)) |found| return found;
 
     const enumeration = value.* == .enumeration;

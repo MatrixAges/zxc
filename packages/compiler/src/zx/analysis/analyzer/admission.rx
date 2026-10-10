@@ -35,7 +35,7 @@
 
     <Switch on={$ctx.mode.resolved}>
         <Case value={true}>
-            <Call module="admission/resolved" in={{ source_text: $in.source_text, syntax: $in.syntax, table: $in.context.type_base, aliases: $in.context.aliases, bindings: $in.context.function_imports, functions: $in.context.complete_functions, maximum_count: $in.context.maximum_count }} />
+            <Call module="admission/resolved" in={{ source_text: $in.source_text, native: $in.native, syntax: $in.syntax, table: $in.context.type_base, aliases: $in.context.aliases, bindings: $in.context.function_imports, functions: $in.context.complete_functions, maximum_count: $in.context.maximum_count }} />
 
             <Switch on={!$ctx.resolved}>
                 <Case value={true}>

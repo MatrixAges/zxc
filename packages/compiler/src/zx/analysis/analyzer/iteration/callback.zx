@@ -2,8 +2,9 @@ import integers from "zig:integers"
 import { Ownership } from "core/symbol_table/model"
 
 import { ExprKind } from "../../../frontend/parser/expressions/state/model"
-import text from "../../semantic/resolving/source/text"
 import bind from "../bindings/append"
+import { NameKind } from "../source/model"
+import readName from "../source/name"
 
 import type { Source } from "../expressions/request"
 import type { Local } from "../local"
@@ -29,7 +30,7 @@ export default function (in: Input): Output {
     }
 
     const local: Local = { ...in.state.local, scope_floor: context.active, lambda_depth: context.depth + 1, captures: { ...in.state.local.captures, current: null } }
-    const name = text({ source: in.source.bytes, span: in.source.tree.parameters[node.head - 1].name })
+    const name = readName({ source: in.source, kind: NameKind.Parameter, index: node.head - 1 })
     const binding = bind({ local: local, name: name, type_id: in.type_id, scope_start: context.active })
 
     if (binding.diagnostic.message != "") {

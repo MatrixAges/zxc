@@ -1,7 +1,9 @@
 import integers from "zig:integers"
 
 import { StatementKind } from "../../../../frontend/parser/body/model"
-import text from "../../../semantic/resolving/source/text"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
+import reference from "../../source/reference"
 import writeSlot from "../../stores/write_slot"
 import annotation from "../../types/annotation"
 import bindingName from "../binding_name"
@@ -41,13 +43,13 @@ export default function (in: Input): Output {
     }
 
     if (statement.kind == StatementKind.Constant) {
-        const diagnostic = bindingName(text({ source: body.expression.source.bytes, span: statement.name }))
+        const diagnostic = bindingName(readName({ source: body.expression.source, kind: NameKind.Statement, index: body.statement }))
 
         if (diagnostic.message != "") {
             return { ...body, expression: { ...body.expression, state: { ...state, diagnostic: diagnostic } } }
         }
 
-        const resolved: { state: Prepared, id: u32 } = statement.annotation == 0 ? { state: state, id: 0 } : annotation({ state: state, reference: statement.annotation - 1 })
+        const resolved: { state: Prepared, id: u32 } = statement.annotation == 0 ? { state: state, id: 0 } : annotation({ state: state, reference: reference({ source: body.expression.source, index: statement.annotation - 1 }) })
 
         return request({ body: { ...body, expression: { ...body.expression, state: resolved.state } }, node: statement.first, expected: statement.annotation == 0 ? null : resolved.id, action: Action.Constant })
     }

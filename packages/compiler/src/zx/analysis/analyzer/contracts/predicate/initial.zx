@@ -11,10 +11,11 @@ export type Output = Prepared
 
 export default function (in: Input): Output {
     const context = in.types.context
+    const native = context.source.native
 
     const types: Types = {
         ...in.types,
-        context: { ...context, source: { ...context.source, indexed: { ...context.source.indexed, declarations: [] }, native: null }, resolved: { names: [], ids: [] }, aliases: in.aliases, visiting: [] },
+        context: { ...context, source: { ...context.source, indexed: { ...context.source.indexed, declarations: [] }, native: native == null ? null : { ...native, declarations: [] } }, resolved: { names: [], ids: [] }, aliases: in.aliases, visiting: [] },
         cache: { names: [], ids: [] }
     }
 

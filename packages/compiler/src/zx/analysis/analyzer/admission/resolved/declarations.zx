@@ -1,9 +1,9 @@
-import encoding from "std:encoding"
 import integers from "zig:integers"
 import kind from "core/type_table/kind"
 import { Kind } from "core/type_table/model"
 
 import { ImportKind } from "../../../../frontend/parser/imports/model"
+import importName from "../../source/import_name"
 
 import type { Request } from "./model"
 
@@ -24,14 +24,12 @@ export default function (in: Input): Output {
                     while: names => names.valid && names.index < names.item.count,
                     next: names => {
                         const position = names.item.first + names.index
-                        const span = names.input.syntax.import_names[position]
-                        const name = encoding.sliceBytes(names.input.source_text, span.start, span.end)
+                        const name = importName({ source_text: names.input.source_text, spans: names.input.syntax.import_names, native: names.input.native, index: position })
 
                         names.valid = loop({ input: names.input, limit: position, name: name, index: 0, valid: true }, {
                             while: previous => previous.valid && previous.index < previous.limit,
                             next: previous => {
-                                const span = previous.input.syntax.import_names[previous.index]
-                                const value = encoding.sliceBytes(previous.input.source_text, span.start, span.end)
+                                const value = importName({ source_text: previous.input.source_text, spans: previous.input.syntax.import_names, native: previous.input.native, index: previous.index })
 
                                 previous.valid = value != previous.name
                                 previous.index += 1

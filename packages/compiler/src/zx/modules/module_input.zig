@@ -6,7 +6,7 @@ const parser = @import("../frontend/parse.zig");
 const module_result = @import("../frontend/module_result.zig");
 
 pub const Native = struct {
-    pub const completes_ownership = false;
+    pub const completes_ownership = module_result.indexed_enabled;
 
     value: parser.Parsed,
     pub fn source(self: Native) []const u8 {
@@ -24,6 +24,8 @@ pub const Native = struct {
         return Signature.resolve(types, self.value.ast, @import("type_views").Native{ .items = self.value.ast.declarations });
     }
     pub fn analyze(self: Native, context: *Context, file_name: []const u8) zx.Error!zx.ir.Program {
+        if (module_result.indexed_enabled) return @import("../analysis/analyzer/host/root.zig").analyzeNative(context, self.value.source, self.value.ast, file_name);
+
         var analyzer = @import("../analysis/analyzer.zig"){
             .allocator = context.allocator,
             .reporter = context.reporter,

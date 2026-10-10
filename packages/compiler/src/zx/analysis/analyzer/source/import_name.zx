@@ -1,0 +1,20 @@
+import encoding from "std:encoding"
+
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { NativeModule } from "./model"
+
+export type Input = { source_text: string, spans: Span[], native: NativeModule?, index: u64 }
+
+export type Output = string
+
+export default function (in: Input): Output {
+    const native = in.native
+
+    if (native != null) {
+        return native.import_names[in.index]
+    }
+
+    const span = in.spans[in.index]
+
+    return encoding.sliceBytes(in.source_text, span.start, span.end)
+}

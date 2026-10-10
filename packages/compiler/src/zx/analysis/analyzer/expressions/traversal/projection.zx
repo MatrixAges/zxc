@@ -1,5 +1,6 @@
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
-import text from "../../../semantic/resolving/source/text"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
 import capture from "../capture"
 import unary from "../operators/unary"
 import field from "../projections/field"
@@ -26,7 +27,7 @@ export default function (in: Input): Output {
 
     if (in.action == Action.Unary || in.action == Action.Field) {
         const node = work.source.tree.nodes[work.frames.singles[work.frames.singles.length - 1]]
-        const result = in.action == Action.Unary ? unary({ state: work.state, operand: work.value, negative: node.flag, span: node.span }) : field({ state: work.state, target: work.value, name: text({ source: work.source.bytes, span: node.name }), span: node.span })
+        const result = in.action == Action.Unary ? unary({ state: work.state, operand: work.value, negative: node.flag, span: node.span }) : field({ state: work.state, target: work.value, name: readName({ source: work.source, kind: NameKind.Expression, index: work.frames.singles[work.frames.singles.length - 1] }), span: node.span })
 
         return { ...work, state: result.state, value: result.value, frames: { ...work.frames, singles: work.frames.singles.pop()[0] } }
     }

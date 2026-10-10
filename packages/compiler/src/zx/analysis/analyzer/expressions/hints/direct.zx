@@ -2,8 +2,9 @@ import integers from "zig:integers"
 
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
 import typeOf from "../../../../ir/canonical/refinement/type_of"
-import text from "../../../semantic/resolving/source/text"
 import lookup from "../../bindings/lookup"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
 import injected from "../injected/lookup"
 import call from "./call"
 
@@ -25,7 +26,7 @@ export default function (in: Input): Output {
 
     const symbol = match {
         binding.symbol != null => binding.symbol,
-        node.kind == ExprKind.Identifier => lookup({ local: state.local, name: text({ source: source.bytes, span: node.name }).text }),
+        node.kind == ExprKind.Identifier => lookup({ local: state.local, name: readName({ source: source, kind: NameKind.Expression, index: in.node }).text }),
         _ => null,
     }
 
@@ -46,8 +47,8 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.Field && source.tree.nodes[node.first].kind == ExprKind.Identifier) {
-        const owner = text({ source: source.bytes, span: source.tree.nodes[node.first].name }).text
-        const name = text({ source: source.bytes, span: node.name }).text
+        const owner = readName({ source: source, kind: NameKind.Expression, index: node.first }).text
+        const name = readName({ source: source, kind: NameKind.Expression, index: in.node }).text
         const missing: u32? = null
 
         const found = loop({ stores: state.local.stores, owner: owner, name: name, index: 0, type_id: missing }, {

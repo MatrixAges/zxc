@@ -3,9 +3,10 @@ import append from "core/control_table/append/destructure"
 import { Kind } from "core/type_table/model"
 
 import refine from "../../../ir/canonical/refinement/bind"
-import text from "../../semantic/resolving/source/text"
 import row from "../../semantic/types/row"
 import bind from "../bindings/append"
+import { NameKind } from "../source/model"
+import readName from "../source/name"
 import bindingName from "./binding_name"
 
 import type { Source } from "../expressions/request"
@@ -42,7 +43,7 @@ export default function (in: Input): Output {
     const result = loop({ state: in.state, source: in.source, types: table.children, first: integers.widen(target.first), order: order, symbols: symbols, start: start, index: 0 }, {
         while: current => current.index < current.order.length && current.state.diagnostic.message == "",
         next: current => {
-            const name = text({ source: current.source.bytes, span: current.source.blocks.names[current.order[current.index]].span })
+            const name = readName({ source: current.source, kind: NameKind.Destructure, index: current.order[current.index] })
             const type_id = current.types[current.first + current.index]
 
             if (name.text == "_") {

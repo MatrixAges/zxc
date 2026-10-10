@@ -1,6 +1,7 @@
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
-import text from "../../../semantic/resolving/source/text"
 import lookup from "../../bindings/lookup"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
 import captured from "./captured"
 import find from "./find"
 import identifier from "./identifier"
@@ -24,7 +25,7 @@ export default function (in: Input): Output {
     }
 
     if (callee.kind == ExprKind.Identifier) {
-        return identifier({ state: in.state, imports: in.imports, name: text({ source: in.source.bytes, span: callee.name }) })
+        return identifier({ state: in.state, imports: in.imports, name: readName({ source: in.source, kind: NameKind.Expression, index: node.first }) })
     }
 
     if (callee.kind != ExprKind.Field) {
@@ -37,7 +38,7 @@ export default function (in: Input): Output {
         return { state: in.state, route: Route.Method, index: 0 }
     }
 
-    const namespace = text({ source: in.source.bytes, span: owner.name })
+    const namespace = readName({ source: in.source, kind: NameKind.Expression, index: callee.first })
 
     if (lookup({ local: in.state.local, name: namespace.text }) != null) {
         return { state: in.state, route: Route.Method, index: 0 }
@@ -49,7 +50,7 @@ export default function (in: Input): Output {
         return { state: capture.state, route: capture.state.diagnostic.message == "" ? Route.Method : Route.Failed, index: 0 }
     }
 
-    const name = text({ source: in.source.bytes, span: callee.name })
+    const name = readName({ source: in.source, kind: NameKind.Expression, index: node.first })
     const imported = find({ imports: in.imports, namespace: namespace.text, name: name.text })
 
     if (imported.found) {

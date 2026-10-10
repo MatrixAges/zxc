@@ -1,7 +1,7 @@
 <Module>
     <Switch on={$in.analysis.state.diagnostic.message == ""}>
         <Case value={true}>
-            <Call fn="../exports" in={{ state: { types: $in.analysis.state.types, diagnostic: $in.analysis.state.diagnostic }, bytes: $in.module.bytes, declarations: $in.module.syntax.declarations }} />
+            <Call fn="../exports" in={{ state: { types: $in.analysis.state.types, diagnostic: $in.analysis.state.diagnostic } }} />
 
             <Return value={{ ...$in.analysis, state: { ...$in.analysis.state, types: $ctx.exports.state.types, diagnostic: $ctx.exports.state.diagnostic }, names: $ctx.exports.names, types: $ctx.exports.types }} />
         </Case>

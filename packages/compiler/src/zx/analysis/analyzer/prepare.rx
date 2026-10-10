@@ -1,5 +1,5 @@
 <Module>
-    <Call module="declarations" in={{ bytes: $in.bytes, syntax: $in.syntax, type_base: $in.context.type_base, aliases: $in.context.aliases, nominal_base: $in.context.nominal_base, nominal_origin: $in.context.nominal_origin, shared: $in.context.shared }} />
+    <Call module="declarations" in={{ bytes: $in.bytes, syntax: $in.syntax, native: $in.native, type_base: $in.context.type_base, aliases: $in.context.aliases, nominal_base: $in.context.nominal_base, nominal_origin: $in.context.nominal_origin, shared: $in.context.shared }} />
 
     <Switch on={$ctx.declarations.diagnostic.message == ""}>
         <Case value={true}>

@@ -1,7 +1,8 @@
 import integers from "zig:integers"
 
-import text from "../../../../semantic/resolving/source/text"
 import row from "../../../../semantic/types/row"
+import { NameKind } from "../../../source/model"
+import readName from "../../../source/name"
 import finish from "../../objects/finish"
 import { Phase, Action } from "../model"
 
@@ -28,7 +29,7 @@ export default function (in: Input): Output {
         return work
     }
 
-    const name = text({ source: in.source.bytes, span: field.name })
+    const name = readName({ source: in.source, kind: NameKind.Field, index: frame.fields[frame.index] })
     const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
     const target = row({ tables: tables, id: hint })
     const table = target.delta ? tables.delta : tables.base

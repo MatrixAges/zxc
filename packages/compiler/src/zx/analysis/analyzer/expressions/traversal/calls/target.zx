@@ -1,8 +1,9 @@
 import integers from "zig:integers"
 import { Kind } from "core/type_table/model"
 
-import text from "../../../../semantic/resolving/source/text"
 import row from "../../../../semantic/types/row"
+import { NameKind } from "../../../source/model"
+import readName from "../../../source/name"
 import plan from "../../calls/list/plan"
 import items from "../../items"
 import next from "../lists/next"
@@ -19,7 +20,7 @@ export default function (in: Input): Output {
     const frame = in.frames.methods[position]
     const node = in.source.tree.nodes[frame.node]
     const callee = in.source.tree.nodes[node.first]
-    const name = text({ source: in.source.bytes, span: callee.name })
+    const name = readName({ source: in.source, kind: NameKind.Expression, index: node.first })
 
     if (name.text == "clone") {
         return { ...in, state: { ...in.state, diagnostic: { code: "unsupported", message: "deep copying is not supported; move an owned value or borrow it read-only", start: node.span.start, end: node.span.end } } }

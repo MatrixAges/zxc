@@ -3,10 +3,12 @@ import type { Table } from "core/type_table/model"
 import type { Program } from "../../../../frontend/parser/syntax/model"
 import type { Cache } from "../../../semantic/resolving/model"
 import type { FunctionImports } from "../../context"
+import type { NativeModule } from "../../source/model"
 
 export type Request = {
     source_text: string
-    syntax: Program
+    native: NativeModule?
+        syntax: Program
     table: Table
     aliases: Cache
     bindings: FunctionImports

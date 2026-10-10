@@ -1,7 +1,8 @@
 import integers from "zig:integers"
 
 import { ExprKind } from "../../../frontend/parser/expressions/state/model"
-import text from "../../semantic/resolving/source/text"
+import { NameKind } from "../source/model"
+import readName from "../source/name"
 
 import type { Source } from "../expressions/request"
 import type { Prepared } from "../model"
@@ -14,7 +15,7 @@ export default function (in: Input): Output {
     const node = in.source.tree.nodes[in.node]
     const field = node.kind == ExprKind.Field
     const owner = in.source.tree.nodes[field ? node.first : in.node]
-    const name = text({ source: in.source.bytes, span: node.name }).text
+    const name = readName({ source: in.source, kind: NameKind.Expression, index: in.node }).text
 
     if (!field || owner.kind != ExprKind.Identifier || name != "value") {
         return { state: { ...in.state, diagnostic: { code: "capability", message: "Store handles only expose the value getter and setter", start: node.span.start, end: node.span.end } }, slot: 0 }
@@ -24,7 +25,7 @@ export default function (in: Input): Output {
         return { state: { ...in.state, diagnostic: { code: "capability", message: "a callback cannot capture an injected Store handle", start: node.span.start, end: node.span.end } }, slot: 0 }
     }
 
-    const handle = text({ source: in.source.bytes, span: owner.name }).text
+    const handle = readName({ source: in.source, kind: NameKind.Expression, index: node.first }).text
 
     const found = loop({ handles: in.state.local.stores.handles, handle: handle, index: 0 }, {
         while: current => current.index < current.handles.length && current.handles[current.index] != current.handle,

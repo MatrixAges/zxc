@@ -1,6 +1,8 @@
 import encoding from "std:encoding"
 
 import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
 
 import type { Source } from "../request"
 
@@ -19,12 +21,12 @@ export default function (in: Input): Output {
             if (node.kind != ExprKind.Field && node.kind != ExprKind.Identifier) {
                 current.done = true
             } else {
-                const span = node.name
-                const size = span.end - span.start
-                const compared = loop({ source: current.source.bytes, path: current.path, start: span.start, end: current.end, size: size, index: 0, equal: size <= current.end }, {
+                const name = readName({ source: current.source, kind: NameKind.Expression, index: current.node }).text
+                const size = name.length
+                const compared = loop({ name: name, path: current.path, end: current.end, size: size, index: 0, equal: size <= current.end }, {
                     while: item => item.equal && item.index < item.size,
                     next: item => {
-                        item.equal = item.source[item.start + item.index] == item.path[item.end - item.size + item.index]
+                        item.equal = item.name[item.index] == item.path[item.end - item.size + item.index]
                         item.index += 1
                     }
                 })

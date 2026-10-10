@@ -2,7 +2,9 @@ import integers from "zig:integers"
 import append from "core/expression_table/append/empty"
 
 import { ExprKind } from "../../../frontend/parser/expressions/state/model"
-import text from "../../semantic/resolving/source/text"
+import literal from "../source/literal"
+import { NameKind } from "../source/model"
+import readName from "../source/name"
 import boolean from "./boolean"
 import identifier from "./identifier"
 import injected from "./injected/lookup"
@@ -35,7 +37,7 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.Identifier) {
-        return { handled: true, result: identifier({ state: in.state, name: text({ source: in.source.bytes, span: node.name }) }) }
+        return { handled: true, result: identifier({ state: in.state, name: readName({ source: in.source, kind: NameKind.Expression, index: in.node }) }) }
     }
 
     if (node.kind == ExprKind.Field) {
@@ -51,17 +53,15 @@ export default function (in: Input): Output {
     }
 
     if (node.kind == ExprKind.String) {
-        return { handled: true, result: string({ state: in.state, source: in.source.bytes.splice(node.span.start + 1, node.span.end - node.span.start - 2, [])[1], template: false, span: node.span }) }
+        return { handled: true, result: string({ state: in.state, source: literal({ source: in.source, index: in.node, template: false }), template: false, span: node.span }) }
     }
 
     if (node.kind == ExprKind.Number) {
-        return { handled: true, result: number({ state: in.state, source: in.source.bytes.splice(node.span.start, node.span.end - node.span.start, [])[1], expected: in.expected, negative: false, span: node.span }) }
+        return { handled: true, result: number({ state: in.state, source: literal({ source: in.source, index: in.node, template: false }), expected: in.expected, negative: false, span: node.span }) }
     }
 
     if (node.kind == ExprKind.Unary && node.flag && in.source.tree.nodes[node.first].kind == ExprKind.Number) {
-        const span = in.source.tree.nodes[node.first].span
-
-        return { handled: true, result: number({ state: in.state, source: in.source.bytes.splice(span.start, span.end - span.start, [])[1], expected: in.expected, negative: true, span: node.span }) }
+        return { handled: true, result: number({ state: in.state, source: literal({ source: in.source, index: node.first, template: false }), expected: in.expected, negative: true, span: node.span }) }
     }
 
     if (node.kind == ExprKind.Lambda || node.kind == ExprKind.StateBlock) {
