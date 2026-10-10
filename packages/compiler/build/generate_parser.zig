@@ -103,6 +103,7 @@ pub fn main(init: std.process.Init) !void {
     try generate(init, inputs, sources.items, "zx/analysis/expression_program/compile.rx", args[75 + entries.len], args[76 + entries.len], &interfaces);
     try generate(init, inputs, sources.items, "zx/ir/canonical/validation/validate.rx", args[77 + entries.len], args[78 + entries.len], &interfaces);
     try generate(init, inputs, sources.items, "zx/modules/compiled/execute.rx", args[79 + entries.len], args[80 + entries.len], &interfaces);
+    try generate(init, inputs, sources.items, "zx/modules/semantic_cache/restoring/native/restore.rx", args[81 + entries.len], args[82 + entries.len], &interfaces);
     try generate(init, inputs, sources.items, "lint/naming/check.rx", args[args.len - 3], null, &interfaces);
 }
 

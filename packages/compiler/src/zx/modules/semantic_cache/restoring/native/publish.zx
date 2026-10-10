@@ -1,0 +1,25 @@
+import integers from "zig:integers"
+
+import type { Complete } from "core/function_table/complete"
+import type { Table } from "core/type_table/model"
+import type { Bindings } from "core/type_table/nominal"
+import type { Request } from "./request"
+import type { Result } from "./result"
+
+export type Input = { request: Request, types: Table, origins: Bindings, functions: Complete, mapping: u32[] }
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    return {
+        status: 0,
+        value: {
+            types: in.types,
+            origins: in.origins,
+            functions: in.functions,
+            export_names: in.request.export_names,
+            export_types: in.request.export_types.map(id => in.mapping[integers.widen(id)]),
+            member_names: in.request.imports.map(binding => binding.name)
+        }
+    }
+}

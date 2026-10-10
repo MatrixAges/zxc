@@ -1,0 +1,17 @@
+<Module>
+    <Call fn="header" in={$in} />
+
+    <Switch on={$ctx.header}>
+        <Case value={true}>
+            <Call fn="descriptor" in={{ path: $in.path, modules: $in.modules, export_names: $in.export_names, export_types: $in.export_types, declaration: $in.declaration }} />
+            <Call fn="origins" in={{ origins: $in.origins, declaration: $in.declaration }} />
+            <Call fn="bindings" in={{ signatures: $in.signatures, imports: $in.imports, declaration: $in.declaration }} />
+
+            <Return value={$ctx.descriptor && $ctx.origins && $ctx.bindings} />
+        </Case>
+
+        <Default>
+            <Return value={false} />
+        </Default>
+    </Switch>
+</Module>

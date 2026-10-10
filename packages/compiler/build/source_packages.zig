@@ -59,6 +59,7 @@ pub const entries: []const compiler.project.Package = &.{
     .{ .specifier = "core/function_table/model", .entry = "core/function_table/model.zx" },
     .{ .specifier = "core/native_module_table/model", .entry = "core/native_module_table/model.zx" },
     .{ .specifier = "core/signature_table/model", .entry = "core/signature_table/model.zx" },
+    .{ .specifier = "core/signature_table/shape", .entry = "core/signature_table/shape.zx" },
     .{ .specifier = "core/store_table/model", .entry = "core/store_table/model.zx" },
     .{ .specifier = "core/symbol_table/append", .entry = "core/symbol_table/append.zx" },
     .{ .specifier = "core/symbol_table/model", .entry = "core/symbol_table/model.zx" },

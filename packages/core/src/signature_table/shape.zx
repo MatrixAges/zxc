@@ -1,0 +1,35 @@
+import type { Table } from "./model"
+
+export type Input = Table
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const count = in.files.length
+    const types_aligned = in.input_types.length == count && in.output_types.length == count && in.ownership.length == count
+    const names_aligned = in.native_inputs.length == count && in.native_modules.length == count && in.native_members.length == count && in.native_exports.length == count
+    const arguments_aligned = in.native_allocators.length == count && in.native_io.length == count && in.native_process.length == count && in.native_tuples.length == count
+    const effects_aligned = in.native_fallible.length == count && in.native_errors.length == count && in.native_concurrent.length == count
+
+    if (count > 4294967295 || !types_aligned || !names_aligned || !arguments_aligned || !effects_aligned) {
+        return false
+    }
+
+    return loop({ table: in, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.table.files.length,
+        next: current => {
+            const index = current.index
+            const table = current.table
+
+            if (table.native_modules[index] == null) {
+                const no_names = table.native_inputs[index] == null && table.native_members[index].length == 0 && table.native_exports[index] == null
+                const no_arguments = !table.native_allocators[index] && !table.native_io[index] && !table.native_process[index] && !table.native_tuples[index]
+                const no_effects = !table.native_fallible[index] && table.native_errors[index] == null && !table.native_concurrent[index]
+
+                current.valid = no_names && no_arguments && no_effects
+            }
+
+            current.index += 1
+        }
+    }).valid
+}

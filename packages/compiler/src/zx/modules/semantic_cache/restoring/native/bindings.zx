@@ -1,0 +1,45 @@
+import integers from "zig:integers"
+
+import type { Table } from "core/signature_table/model"
+import type { Import } from "../functions/model"
+import type { Declaration } from "./model"
+
+export type Input = { signatures: Table, imports: Import[], declaration: Declaration }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    if (in.signatures.files.length != in.imports.length) {
+        return false
+    }
+
+    return loop({ signatures: in.signatures, imports: in.imports, declaration: in.declaration, index: 0, valid: true }, {
+        while: current => current.valid && current.index < current.imports.length,
+        next: current => {
+            const index = current.index
+            const binding = current.imports[index]
+            const signatures = current.signatures
+            const member = signatures.native_members[index]
+            const namespace = current.declaration.namespace
+
+            if (signatures.files[index] != current.declaration.path || integers.widen(binding.id) != index || binding.namespace != null || binding.input_type != signatures.input_types[index] || binding.output_type != signatures.output_types[index]) {
+                current.valid = false
+            } else if (signatures.native_modules[index] != 0 || member.length != namespace.length + 1) {
+                current.valid = false
+            } else {
+                const name = signatures.native_exports[index] ?? member[namespace.length]
+                const same_namespace = loop({ member: member, namespace: namespace, index: 0, valid: true }, {
+                    while: position => position.valid && position.index < position.namespace.length,
+                    next: position => {
+                        position.valid = position.member[position.index] == position.namespace[position.index]
+                        position.index += 1
+                    }
+                }).valid
+
+                current.valid = same_namespace && member[namespace.length] == name && binding.name == name
+            }
+
+            current.index += 1
+        }
+    }).valid
+}

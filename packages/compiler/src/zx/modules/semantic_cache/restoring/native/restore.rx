@@ -1,0 +1,31 @@
+<Module>
+    <Call module="eligible" in={$in.validation.request} />
+
+    <Switch on={$ctx.eligible}>
+        <Case value={true}>
+            <Call fn="program" in={$in.validation} />
+
+            <Call module="../../../../ir/canonical/validation/validate" in={$ctx.program} />
+
+            <Switch on={$ctx.validate}>
+                <Case value={true}>
+                    <Call module="merge" in={{ input: $in, program: $ctx.program }} />
+
+                    <Return value={$ctx.merge} />
+                </Case>
+
+                <Default>
+                    <Call fn="failed" in={2} />
+
+                    <Return value={$ctx.failed} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Call fn="failed" in={1} />
+
+            <Return value={$ctx.failed} />
+        </Default>
+    </Switch>
+</Module>
