@@ -1,0 +1,454 @@
+[
+    {
+        "name": "module-in-string",
+        "source": "<Module in=\"Input\"/>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "module-in-expression",
+        "source": "<Module in={Input}/>",
+        "path": "flow.rx",
+        "attribute": "in",
+        "offset": 12
+    },
+    {
+        "name": "module-out-string",
+        "source": "<Module out=\"Output\"/>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "module-out-expression",
+        "source": "<Module out={Output}/>",
+        "path": "flow.rx",
+        "attribute": "out",
+        "offset": 13
+    },
+    {
+        "name": "import-string",
+        "source": "<Module><Import from=\"worker\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "import-expression",
+        "source": "<Module><Import from={worker}/></Module>",
+        "path": "flow.rx",
+        "attribute": "from",
+        "offset": 22
+    },
+    {
+        "name": "call-fn-string",
+        "source": "<Module><Call fn=\"echo\" in=\"text\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "call-fn-expression",
+        "source": "<Module><Call fn={echo} in=\"text\"/></Module>",
+        "path": "flow.rx",
+        "attribute": "fn",
+        "offset": 18
+    },
+    {
+        "name": "call-service-string-rejected",
+        "source": "<Module><Call service=\"worker\" in=\"text\"/></Module>",
+        "path": "flow.rx",
+        "attribute": "service",
+        "code": "unknown_attribute",
+        "offset": 14
+    },
+    {
+        "name": "call-service-expression-rejected",
+        "source": "<Module><Call service={worker} in=\"text\"/></Module>",
+        "path": "flow.rx",
+        "attribute": "service",
+        "offset": 14,
+        "code": "unknown_attribute"
+    },
+    {
+        "name": "call-module-string",
+        "source": "<Module><Call module=\"dep/worker\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "call-module-expression",
+        "source": "<Module><Call module={dep/worker}/></Module>",
+        "path": "flow.rx",
+        "attribute": "module",
+        "offset": 22
+    },
+    {
+        "name": "call-out-string-rejected",
+        "source": "<Module><Call fn=\"echo\" in=\"text\" out=\"ctx.value\"/></Module>",
+        "path": "flow.rx",
+        "attribute": "out",
+        "code": "unknown_attribute",
+        "offset": 34
+    },
+    {
+        "name": "call-out-expression-rejected",
+        "source": "<Module><Call fn=\"echo\" in=\"text\" out={ctx.value}/></Module>",
+        "path": "flow.rx",
+        "attribute": "out",
+        "offset": 34,
+        "code": "unknown_attribute"
+    },
+    {
+        "name": "task-name-string",
+        "source": "<Module><Task name=\"work\"><Return value=\"text\"/></Task></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "task-name-expression",
+        "source": "<Module><Task name={work}><Return value=\"text\"/></Task></Module>",
+        "path": "flow.rx",
+        "attribute": "name",
+        "offset": 20
+    },
+    {
+        "name": "task-out-string-rejected",
+        "source": "<Module><Parallel><Task name=\"work\" out=\"ctx.value\"><Call fn=\"echo\" in=\"text\"/></Task></Parallel></Module>",
+        "path": "flow.rx",
+        "attribute": "out",
+        "offset": 41
+    },
+    {
+        "name": "task-out-expression-schema",
+        "source": "<Module><Parallel><Task name=\"work\" out={$ctx.echo}><Call fn=\"echo\" in=\"text\"/></Task></Parallel></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "emit-event-string",
+        "source": "<Module><Emit event=\"ready\" value=\"text\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "emit-event-expression",
+        "source": "<Module><Emit event={ready} value=\"text\"/></Module>",
+        "path": "flow.rx",
+        "attribute": "event",
+        "offset": 21
+    },
+    {
+        "name": "store-from-string",
+        "source": "<Module><Store from=\"state\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "store-from-expression",
+        "source": "<Module><Store from={state}/></Module>",
+        "path": "flow.rx",
+        "attribute": "from",
+        "offset": 21
+    },
+    {
+        "name": "store-as-string",
+        "source": "<Module><Store from=\"state\" as=\"jobs\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "store-as-expression",
+        "source": "<Module><Store from=\"state\" as={jobs}/></Module>",
+        "path": "flow.rx",
+        "attribute": "as",
+        "offset": 32
+    },
+    {
+        "name": "gateway-name-string",
+        "source": "<Gateway name=\"web\"/>",
+        "path": "flow.gateway.rx"
+    },
+    {
+        "name": "gateway-name-expression",
+        "source": "<Gateway name={web}/>",
+        "path": "flow.gateway.rx",
+        "attribute": "name",
+        "offset": 15
+    },
+    {
+        "name": "gateway-protocol-string",
+        "source": "<Gateway name=\"web\" protocol=\"http\"/>",
+        "path": "flow.gateway.rx"
+    },
+    {
+        "name": "gateway-protocol-expression",
+        "source": "<Gateway name=\"web\" protocol={http}/>",
+        "path": "flow.gateway.rx",
+        "attribute": "protocol",
+        "offset": 30
+    },
+    {
+        "name": "gateway-listen-string",
+        "source": "<Gateway name=\"web\" listen=\"127.0.0.1:8080\"/>",
+        "path": "flow.gateway.rx"
+    },
+    {
+        "name": "gateway-listen-expression",
+        "source": "<Gateway name=\"web\" listen={127.0.0.1:8080}/>",
+        "path": "flow.gateway.rx",
+        "attribute": "listen",
+        "offset": 28
+    },
+    {
+        "name": "group-prefix-string",
+        "source": "<Gateway name=\"web\"><Group prefix=\"/api\"><Route path=\"/\" service=\"worker\"/></Group></Gateway>",
+        "path": "flow.gateway.rx"
+    },
+    {
+        "name": "group-prefix-expression",
+        "source": "<Gateway name=\"web\"><Group prefix={/api}><Route path=\"/\" service=\"worker\"/></Group></Gateway>",
+        "path": "flow.gateway.rx",
+        "attribute": "prefix",
+        "offset": 35
+    },
+    {
+        "name": "route-path-string",
+        "source": "<Gateway name=\"web\"><Route path=\"/a\" service=\"worker\"/></Gateway>",
+        "path": "flow.gateway.rx"
+    },
+    {
+        "name": "route-path-expression",
+        "source": "<Gateway name=\"web\"><Route path={/a} service=\"worker\"/></Gateway>",
+        "path": "flow.gateway.rx",
+        "attribute": "path",
+        "offset": 33
+    },
+    {
+        "name": "route-service-string",
+        "source": "<Gateway name=\"web\"><Route path=\"/\" service=\"worker\"/></Gateway>",
+        "path": "flow.gateway.rx"
+    },
+    {
+        "name": "route-service-expression",
+        "source": "<Gateway name=\"web\"><Route path=\"/\" service={worker}/></Gateway>",
+        "path": "flow.gateway.rx",
+        "attribute": "service",
+        "offset": 45
+    },
+    {
+        "name": "route-method-string",
+        "source": "<Gateway name=\"web\"><Route path=\"/\" service=\"worker\" method=\"POST\"/></Gateway>",
+        "path": "flow.gateway.rx"
+    },
+    {
+        "name": "route-method-expression",
+        "source": "<Gateway name=\"web\"><Route path=\"/\" service=\"worker\" method={POST}/></Gateway>",
+        "path": "flow.gateway.rx",
+        "attribute": "method",
+        "offset": 61
+    },
+    {
+        "name": "store-name-string",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx"
+    },
+    {
+        "name": "store-name-expression",
+        "source": "<Store name={jobs} version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx",
+        "attribute": "name",
+        "offset": 13
+    },
+    {
+        "name": "object-name-string",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx"
+    },
+    {
+        "name": "object-name-expression",
+        "source": "<Store name=\"jobs\" version={1}><Object name={state}><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx",
+        "attribute": "name",
+        "offset": 45
+    },
+    {
+        "name": "field-name-string",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx"
+    },
+    {
+        "name": "field-name-expression",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name={value} type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx",
+        "attribute": "name",
+        "offset": 65
+    },
+    {
+        "name": "field-type-string",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx"
+    },
+    {
+        "name": "field-type-expression",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type={string} value=\"\"/></Object></Store>",
+        "path": "flow.store.rx",
+        "attribute": "type",
+        "offset": 78
+    },
+    {
+        "name": "setter-string",
+        "source": "<Module><Call fn=\"echo\" in=\"text\" setter=\"[store.jobs.state]\"/></Module>",
+        "path": "flow.rx",
+        "attribute": "setter",
+        "offset": 42
+    },
+    {
+        "name": "setter-expression",
+        "source": "<Module><Call fn=\"echo\" in=\"text\" setter={[store.jobs.state]}/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "version-string",
+        "source": "<Store name=\"jobs\" version=\"1\"><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx",
+        "attribute": "version",
+        "offset": 28
+    },
+    {
+        "name": "version-expression",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx"
+    },
+    {
+        "name": "header-limit-string",
+        "source": "<Gateway name=\"web\" max_header_bytes=\"8192\"/>",
+        "path": "flow.gateway.rx",
+        "attribute": "max_header_bytes",
+        "offset": 38
+    },
+    {
+        "name": "header-limit-expression",
+        "source": "<Gateway name=\"web\" max_header_bytes={8192}/>",
+        "path": "flow.gateway.rx"
+    },
+    {
+        "name": "body-limit-string",
+        "source": "<Gateway name=\"web\" max_body_bytes=\"1024\"/>",
+        "path": "flow.gateway.rx",
+        "attribute": "max_body_bytes",
+        "offset": 36
+    },
+    {
+        "name": "body-limit-expression",
+        "source": "<Gateway name=\"web\" max_body_bytes={1024}/>",
+        "path": "flow.gateway.rx"
+    },
+    {
+        "name": "call-in-54",
+        "source": "<Module><Call fn=\"echo\" in=\"literal\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "call-in-55",
+        "source": "<Module><Call fn=\"echo\" in=\"\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "call-in-56",
+        "source": "<Module><Call fn=\"echo\" in={$in}/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "call-in-57",
+        "source": "<Module><Call fn=\"echo\" in={{value: 1}}/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "return-58",
+        "source": "<Module><Return value=\"literal\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "return-59",
+        "source": "<Module><Return value=\"\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "return-60",
+        "source": "<Module><Return value={$in}/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "return-61",
+        "source": "<Module><Return value={{value: 1}}/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "switch-62",
+        "source": "<Module><Switch on=\"literal\"><Case value=\"a\"><Return value=\"ok\"/></Case></Switch></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "switch-63",
+        "source": "<Module><Switch on=\"\"><Case value=\"a\"><Return value=\"ok\"/></Case></Switch></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "switch-64",
+        "source": "<Module><Switch on={$in}><Case value=\"a\"><Return value=\"ok\"/></Case></Switch></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "switch-65",
+        "source": "<Module><Switch on={{value: 1}}><Case value=\"a\"><Return value=\"ok\"/></Case></Switch></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "case-66",
+        "source": "<Module><Switch on=\"a\"><Case value=\"literal\"><Return value=\"ok\"/></Case></Switch></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "case-67",
+        "source": "<Module><Switch on=\"a\"><Case value=\"\"><Return value=\"ok\"/></Case></Switch></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "case-68",
+        "source": "<Module><Switch on=\"a\"><Case value={$in}><Return value=\"ok\"/></Case></Switch></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "case-69",
+        "source": "<Module><Switch on=\"a\"><Case value={{value: 1}}><Return value=\"ok\"/></Case></Switch></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "emit-value-70",
+        "source": "<Module><Emit event=\"ready\" value=\"literal\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "emit-value-71",
+        "source": "<Module><Emit event=\"ready\" value=\"\"/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "emit-value-72",
+        "source": "<Module><Emit event=\"ready\" value={$in}/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "emit-value-73",
+        "source": "<Module><Emit event=\"ready\" value={{value: 1}}/></Module>",
+        "path": "flow.rx"
+    },
+    {
+        "name": "field-value-74",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"literal\"/></Object></Store>",
+        "path": "flow.store.rx"
+    },
+    {
+        "name": "field-value-75",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value=\"\"/></Object></Store>",
+        "path": "flow.store.rx"
+    },
+    {
+        "name": "field-value-76",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value={$in}/></Object></Store>",
+        "path": "flow.store.rx"
+    },
+    {
+        "name": "field-value-77",
+        "source": "<Store name=\"jobs\" version={1}><Object name=\"state\"><Field name=\"value\" type=\"string\" value={{value: 1}}/></Object></Store>",
+        "path": "flow.store.rx"
+    }
+]

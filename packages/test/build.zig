@@ -1139,7 +1139,7 @@ pub fn build(b: *std.Build) void {
 
             check.addFileInput(b.path("upstream/wpt/lock.json"));
             check.addFileInput(b.path("upstream/wpt/url/resources/urltestdata.json"));
-            check.addFileInput(b.path("../../docs/2026-10-05/文件URL验证/参考用例.json"));
+            check.addFileInput(b.path("tests/standard/url/api/fixtures/file_reference.json"));
         }
 
         if (std.mem.eql(u8, script, "src/generate_querystring.ts")) {

@@ -1,0 +1,9 @@
+import power from "./power"
+
+export type Input = { left: f64, right: f64, third: f64 }
+
+export type Output = f64
+
+export default function (in: Input): Output {
+    return in.left * (power(in.right) - 1.0) * power(in.third)
+}
