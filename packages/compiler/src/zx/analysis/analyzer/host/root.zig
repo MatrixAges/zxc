@@ -19,7 +19,7 @@ pub fn analyzeNative(analyzer: *Context, source: []const u8, program: zx.ast.Pro
 
     defer arena.deinit();
 
-    const input = try @import("native/root.zig").convert(arena.allocator(), program);
+    const input = try @import("native/root.zig").convert(.full, arena.allocator(), program);
 
     return run(analyzer, &arena, source, input.syntax, input.native, file_name);
 }

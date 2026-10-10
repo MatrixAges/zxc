@@ -79,7 +79,7 @@ flowchart LR
 - 三个既有入口 analyzer、source_signature、expression_analysis 的生成检查通过：549 个函数文件。这不是 native 行为验证。
 - 静态复核发现 native String 的 AST payload 包含引号；已改为按 payload 自身裁切，再解码。模板文本保持原契约。
 - native 类型与声明来自独立类型视图，投影中的 indexed 类型/声明表为空；tokens/comments 不参与分析。import path 仍由 Native.header 的原 AST 提供，投影中的 path span 不供 resolver 使用，不能把此投影当作完整 parser 输出。
-- 名称和字面量借用 AST 字节，结构与描述符在本次分析临时 arena 中构造；publish 仍执行既有拥有权复制。signature 的旧宿主流程和其他过渡边界继续保留。
+- 名称和字面量借用 AST 字节，结构与描述符在本次分析临时 arena 中构造；publish 仍执行既有拥有权复制。签名后续接线见下文；宿主类型提交和其他过渡边界继续保留。
 
 - 宿主借用校验发现 ArrayList 的可写外层 slice 与只读输入列不匹配；在调用点显式转为只读 slice，保留递归布局校验，没有放宽 canonical borrow 约束。
 - 构建证据：`原生AST分析构建.log`。固定 stage0 为 `/tmp/zxc-project-binding-value/bin/zxc-bootstrap`，优化配置 ReleaseSafe，bootstrap 宿主保持既有 ReleaseSmall。此构建不代替三阶段自编译。
@@ -108,4 +108,43 @@ flowchart LR
 
 `zig fmt --check` 与本块 `git diff --check` 通过；只读结构复核覆盖全部 AST 表达式、语句 variant、有序链和引用哨兵，未以增加特例处理用例。现有专项并不等价于对任意调用方手工修改 AST 的穷尽验证，这一限制保留。
 
-完成的是 generated 配置下公开 Native.analyze 接入既有 RX/ZX 分析编排。Native.signature 的旧流程、宿主结构投影、结果拥有权复制及状态承载仍未迁完；seed 继续保留旧实现。本块不宣称主分析器完整自举。
+完成的是 generated 配置下公开 Native.analyze 接入既有 RX/ZX 分析编排。宿主结构投影、结果拥有权复制及状态承载仍未迁完；Native.signature 接续结果见下文，seed 继续保留旧实现。本块不宣称主分析器完整自举。
+
+## 签名路径接续计划
+
+### Intent
+
+将 generated 配置下 Native.signature 的声明、端口和导出决策接入既有 source_signature RX；保留 seed。签名适配不遍历正文和契约，不引入第二套签名算法。
+
+### Data
+
+当前 Native.signature 仍顺序调用 Types.initialize、Signature.resolve；indexed 签名已有显式 RX 的声明 → 诊断分支 → 端口 → 导出流程，输入现已支持同一个可选 NativeModule。签名只读取声明、是否有正文、正文 Span 与 Store 标志。
+
+### Edges
+
+宿主投影仍为过渡边界。签名只构造头部视图，不能作为正文分析输入使用；选择在编译期确定，不增加运行时分发或复制 AST 文本。导入已由项目阶段处理，签名视图不虚构可用于 resolver 的 import path。保持诊断顺序、类型和名义表提交契约，不改外部 signature 接口。
+
+### Answer
+
+```mermaid
+flowchart TD
+    AST[Native AST] --> Header[声明与头部投影]
+    Indexed[indexed syntax] --> Borrow[借用已有语法表]
+    Header --> Declarations[RX 声明解析]
+    Borrow --> Declarations
+    Declarations --> Decision{诊断为空}
+    Decision -->|是| Ports[RX 端口解析]
+    Ports --> Exports[ZX 导出集合]
+    Decision -->|否| Error[返回诊断]
+    Exports --> Commit[宿主提交类型与导出]
+```
+
+数据流为 AST 声明 → 既有 native 类型视图 → RX 声明状态 → 端口与导出 → 现有类型表。正文只提供存在性和 Span，不进入表达式队列。验收包括构建、既有相关专项和调用闭包核对；没有现有直接覆盖时如实记录，不能将 indexed 项目测试称为 native 签名专项。
+
+### 签名接续结果与自我批判
+
+- generated Native.signature 已进入同一个 source_signature RX；seed 的旧分支保留。头部投影在编译期选择，正文只有原 Span 的空块描述符，不遍历表达式，不复制 AST 文本。
+- 固定 stage0 构建通过 12/12 步骤；`test-rx-inference test-parse-cache` 通过 33/33 步骤、152/152 个既有测试，证据为 `原生签名构建.log` 与 `原生签名专项.log`。
+- 现有 analyzeSignatures 内部新建 ParseCache，在 generated 配置下正常生成 indexed 输入。没有找到既有测试直接执行 generated Native.signature；上述专项验证共享 RX 签名流程、原生缓存生命周期和 indexed 回归，不能称为该分支的直接动态覆盖。新接线另经编译与逐项静态核对，保留覆盖缺口。
+- 本次仅改变宿主适配；RX/ZX 签名算法及生成语料未改动，不重复以同一生成对照证明新能力。整体构建成本另用固定副本测量。
+- 宿主签名类型表提交和输出拥有权复制仍是过渡边界。模块外部签名 `modules/signature.zig` 还有单独旧编排，不能因本次完成而从完整自举待办中删除。

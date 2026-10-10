@@ -3,16 +3,19 @@ const zx = @import("zx");
 const Context = @import("context.zig");
 const model = @import("model.zig");
 const borrow = @import("../../../../ir/canonical/borrow.zig");
+const Reference = @import("../../../semantic/resolving/host/model.zig").Reference;
+
 pub const Result = struct { syntax: *const model.Syntax, native: *const model.Native };
 
-pub fn convert(allocator: std.mem.Allocator, program: zx.ast.Program) std.mem.Allocator.Error!Result {
+pub fn convert(comptime contents: enum { header, full }, allocator: std.mem.Allocator, program: zx.ast.Program) std.mem.Allocator.Error!Result {
     var context = Context{ .allocator = allocator, .types = .{ .allocator = allocator } };
-    const body = if (program.body) |value| try context.block(value) else null;
-    const imports = try allocator.alloc(*const model.Import, program.imports.len);
+    const body = if (program.body) |value| try context.block(if (contents == .full) value else .{ .span = value.span, .statements = &.{} }) else null;
+    const source_imports = if (contents == .full) program.imports else &.{};
+    const imports = try allocator.alloc(*const model.Import, source_imports.len);
     var import_spans: std.ArrayList(*const model.Span) = .empty;
     var import_names: std.ArrayList([]const u8) = .empty;
 
-    for (program.imports, imports) |item, *value| {
+    for (source_imports, imports) |item, *value| {
         const first = import_names.items.len;
 
         for (item.names) |name| {
@@ -33,9 +36,10 @@ pub fn convert(allocator: std.mem.Allocator, program: zx.ast.Program) std.mem.Al
         });
     }
 
-    const contracts = try allocator.alloc(*const model.Contract, program.contracts.len);
+    const source_contracts = if (contents == .full) program.contracts else &.{};
+    const contracts = try allocator.alloc(*const model.Contract, source_contracts.len);
 
-    for (program.contracts, contracts) |item, *value| value.* = try context.keep(model.Contract, .{
+    for (source_contracts, contracts) |item, *value| value.* = try context.keep(model.Contract, .{
         .ensures = item.kind == .ensures,
         .predicate = try context.expression(item.predicate),
         .span = try context.span(item.span),
@@ -56,7 +60,7 @@ pub fn convert(allocator: std.mem.Allocator, program: zx.ast.Program) std.mem.Al
         .template_values = context.template_values.items,
         .statement_names = context.statement_names.items,
         .destructure_names = context.destructure_names.items,
-        .type_references = borrow.slice(@FieldType(model.Text, "type_references"), @as([]const *const @import("../../../semantic/resolving/host/model.zig").Reference, context.type_references.items)),
+        .type_references = borrow.slice(@FieldType(model.Text, "type_references"), @as([]const *const Reference, context.type_references.items)),
     });
 
     const native = try context.keep(model.Native, .{

@@ -17,6 +17,8 @@ pub const Native = struct {
     }
 
     pub fn signature(self: Native, types: *Types) zx.Error!Signature.Result {
+        if (module_result.indexed_enabled) return @import("source_signature/host.zig").analyzeNative(types, self.value.source, self.value.ast);
+
         types.declarations = self.value.ast.declarations;
 
         try types.initialize();
