@@ -17,7 +17,7 @@ pub fn declarations(lowering: *Lower, output: *std.ArrayList(node.Declaration)) 
     try output.append(lowering.allocator, value);
     if (!@import("value_call/analysis.zig").eligibleEntry(lowering.program, lowering.pure_functions)) return;
 
-    const lanes = try buffers.analysis.entry(lowering.allocator, lowering.program, lowering.buffer_functions, lowering.pure_functions);
+    const lanes = try buffers.analysis.entry(lowering.allocator, lowering.workspace, lowering.program, lowering.buffer_functions, lowering.pure_functions);
 
     if (!buffers.available(lanes)) return;
 

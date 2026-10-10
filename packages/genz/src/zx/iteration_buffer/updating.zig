@@ -20,10 +20,9 @@ pub fn evaluate(state: *State, iteration: ir.Iteration, path: []const u32) std.m
     var result = initial;
 
     for (0..2) |_| {
-        state.symbols[@backingInt(iteration.condition_parameter)] = result;
+        try state.bind(iteration.condition_parameter, result);
 
         const version = state.current;
-
         _ = try state.expression(iteration.condition);
 
         if (!state.valid or state.current != version) {
@@ -32,7 +31,7 @@ pub fn evaluate(state: *State, iteration: ir.Iteration, path: []const u32) std.m
             return .none;
         }
 
-        state.symbols[@backingInt(iteration.parameter)] = result;
+        try state.bind(iteration.parameter, result);
 
         result = try state.expression(iteration.body);
 
@@ -43,10 +42,9 @@ pub fn evaluate(state: *State, iteration: ir.Iteration, path: []const u32) std.m
         }
     }
 
-    state.symbols[@backingInt(iteration.condition_parameter)] = result;
+    try state.bind(iteration.condition_parameter, result);
 
     const version = state.current;
-
     _ = try state.expression(iteration.condition);
 
     if (!state.valid or state.current != version) {
@@ -55,8 +53,8 @@ pub fn evaluate(state: *State, iteration: ir.Iteration, path: []const u32) std.m
         return .none;
     }
 
-    state.symbols[@backingInt(iteration.condition_parameter)] = before.symbols[@backingInt(iteration.condition_parameter)];
-    state.symbols[@backingInt(iteration.parameter)] = before.symbols[@backingInt(iteration.parameter)];
+    try state.bind(iteration.condition_parameter, state.symbols.lookup(before.symbols, @backingInt(iteration.condition_parameter)));
+    try state.bind(iteration.parameter, state.symbols.lookup(before.symbols, @backingInt(iteration.parameter)));
 
     return state.join(before, initial, result);
 }

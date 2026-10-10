@@ -53,7 +53,7 @@ pub fn check(allocator: std.mem.Allocator, program: ir.Program, initial: ir.Expr
             },
             .scope => |scope| current = scope.result,
             .iteration => |iteration| {
-                if (try @import("../analysis.zig").analyzeWithCalls(arena.allocator(), program, iteration, remaining, .{
+                if (try @import("../analysis.zig").analyzeWithCalls(arena.allocator(), arena.allocator(), program, iteration, remaining, .{
                     .selected = &.{},
                     .summaries = &.{},
                     .readers = &.{},

@@ -7,6 +7,7 @@ const Self = @This();
 pub const Error = std.mem.Allocator.Error;
 
 allocator: std.mem.Allocator,
+workspace: std.mem.Allocator,
 program: ir.Program,
 builder: Builder,
 types: []*const node.Expression,
@@ -27,6 +28,7 @@ append_overrides: std.AutoHashMapUnmanaged(ir.ExprId, @import("object_reduce/app
 list_update_buffers: std.AutoHashMapUnmanaged(ir.ExprId, @import("list_update.zig").Storage) = .empty,
 collection_buffers: std.AutoHashMapUnmanaged(ir.ExprId, @import("iteration_buffer/capacity.zig")) = .empty,
 buffer_calls: std.AutoHashMapUnmanaged(ir.ExprId, []const ?@import("object_reduce/append/builder.zig")) = .empty,
+iteration_analyses: @import("iteration_buffer/memo.zig") = .{},
 buffer_functions: []const []const @import("buffer_call/root.zig").Lane = &.{},
 transfer_functions: []const []const @import("buffer_call/transfer/analysis.zig").Capability = &.{},
 buffered_type: ?*const node.Expression = null,

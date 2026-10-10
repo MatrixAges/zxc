@@ -16,8 +16,6 @@ appends: std.ArrayList(ir.ExprId) = .empty,
 pops: std.ArrayList(ir.ExprId) = .empty,
 updates: std.ArrayList(ir.ExprId) = .empty,
 loops: std.ArrayList(flow.Iteration) = .empty,
-selected_loops: []const flow.Iteration = &.{},
-queries: @import("queries.zig") = .{},
 dependencies: @import("dependencies.zig") = .{},
 callees: []?*Self,
 input_paths: ?[]const []const u32 = null,
@@ -57,10 +55,6 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program, function: ir.Func
     }
 
     return self;
-}
-
-pub fn queryAllocator(self: *Self) std.mem.Allocator {
-    return self.queries.storage(self.allocator);
 }
 
 pub fn inputPaths(self: *Self) Error![]const []const u32 {

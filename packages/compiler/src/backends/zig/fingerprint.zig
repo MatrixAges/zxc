@@ -30,7 +30,7 @@ pub fn createPrepared(allocator: std.mem.Allocator, program: ir.Program, names: 
 
     const facts = try @import("genz").zx.value_call.analysis.analyze(arena.allocator(), program);
     const value_functions = facts.values;
-    const buffer_functions = try @import("genz").zx.buffer_call.analysis.functions(arena.allocator(), program, value_functions, facts.pure);
+    const buffer_functions = try @import("genz").zx.buffer_call.analysis.functions(arena.allocator(), allocator, program, value_functions, facts.pure);
     const fresh_outputs = try @import("genz").zx.buffer_call.fresh.outputs(arena.allocator(), program, facts.pure);
     const transfer_functions = try @import("genz").zx.buffer_call.transfer_analysis.functions(arena.allocator(), program, buffer_functions, facts.pure);
     const state_plan = facts.state;

@@ -19,7 +19,7 @@ pub fn emit(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Alloca
     defer arena.deinit();
 
     const temporary = arena.allocator();
-    var lower = try initialize(temporary, program);
+    var lower = try initialize(temporary, allocator, program);
 
     return render(allocator, try lower.declarations());
 }
@@ -29,7 +29,7 @@ pub fn bundle(allocator: std.mem.Allocator, program: zx.ir.Program) std.mem.Allo
 
     defer arena.deinit();
 
-    var lower = try initialize(arena.allocator(), program);
+    var lower = try initialize(arena.allocator(), allocator, program);
     const types = try render(allocator, try @import("type_bundle.zig").declarations(&lower));
 
     errdefer allocator.free(types);
@@ -48,17 +48,19 @@ pub const Bundle = struct {
     }
 };
 
-pub fn initialize(temporary: std.mem.Allocator, source: zx.ir.Program) std.mem.Allocator.Error!Lower {
-    return initializePrepared(temporary, try prepare(temporary, source));
+/// Workspace backs short-lived analysis storage that is released before the lowering arena.
+pub fn initialize(temporary: std.mem.Allocator, workspace: std.mem.Allocator, source: zx.ir.Program) std.mem.Allocator.Error!Lower {
+    return initializePrepared(temporary, workspace, try prepare(temporary, source));
 }
 
-pub fn initializePrepared(temporary: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
-    return initializeAnalyzed(temporary, program, try @import("function_analysis.zig").analyze(temporary, program));
+pub fn initializePrepared(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
+    return initializeAnalyzed(temporary, workspace, program, try @import("function_analysis.zig").analyze(temporary, workspace, program));
 }
 
-pub fn initializeAnalyzed(temporary: std.mem.Allocator, program: zx.ir.Program, facts: @import("function_analysis.zig")) std.mem.Allocator.Error!Lower {
+pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program, facts: @import("function_analysis.zig")) std.mem.Allocator.Error!Lower {
     return .{
         .allocator = temporary,
+        .workspace = workspace,
         .program = program,
         .builder = .{ .allocator = temporary },
         .types = try temporary.alloc(*const node.Expression, program.types.count()),

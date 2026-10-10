@@ -63,7 +63,7 @@ pub fn consumable(lowering: *Lower, source: ir.ExprId) std.mem.Allocator.Error!b
                     }
                 }
 
-                const analyzed = try @import("../iteration_buffer/analysis.zig").analyzeWithCalls(allocator, program, iteration, path.items, .{
+                const analyzed = try @import("../iteration_buffer/analysis.zig").analyzeWithCalls(allocator, lowering.workspace, program, iteration, path.items, .{
                     .selected = &.{},
                     .summaries = lowering.buffer_functions,
                     .readers = readers.?,

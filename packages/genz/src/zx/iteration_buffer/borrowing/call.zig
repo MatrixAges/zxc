@@ -62,18 +62,15 @@ pub fn evaluate(state: *State, id: ir.ExprId, argument: facts.Value) std.mem.All
     var child = State{
         .allocator = state.allocator,
         .program = program,
-        .symbols = try state.allocator.alloc(facts.Value, program.symbols.count()),
-        .cached = try state.allocator.alloc(?facts.Value, program.expressions.count()),
+        .symbols = try State.Symbols.init(state.allocator, program.symbols.count()),
+        .cached = try State.Cached.init(state.allocator, program.expressions.count()),
         .current = state.current,
         .serial = state.serial,
         .borrowing = true,
         .calls = if (state.calls) |calls| .{ .selected = &.{}, .summaries = calls.summaries[0..index], .readers = calls.readers[0..@min(index, calls.readers.len)] } else null,
     };
 
-    @memset(child.symbols, .none);
-    @memset(child.cached, null);
-
-    child.symbols[0] = argument;
+    try child.symbols.set(child.allocator, 0, argument);
 
     var results: std.ArrayList(statements.Result) = .empty;
     const returns = try statements.evaluate(&child, program.body.block(), &results);

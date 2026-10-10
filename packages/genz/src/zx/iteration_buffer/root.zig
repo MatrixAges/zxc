@@ -25,14 +25,7 @@ pub fn init(lowering: *Lower, iteration: ir.Iteration, initial: *const node.Expr
 
     if (!enabled) return self;
 
-    const readers = try lowering.allocator.alloc(bool, lowering.program.functions.count());
-
-    for (0..lowering.program.functions.count()) |index| {
-        const function = lowering.program.functions.at(index);
-        readers[index] = index < lowering.pure_functions.len and lowering.pure_functions[index] and @import("../buffer_call/analysis/flow.zig").detached(lowering.program, function.output_type);
-    }
-
-    self.readers = readers;
+    self.readers = try lowering.iteration_analyses.functionReaders(lowering);
 
     var path: std.ArrayList(usize) = .empty;
 
@@ -71,7 +64,7 @@ fn collect(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.State
 
 fn install(self: *Self, iteration: ir.Iteration, body: *std.ArrayList(node.Statement), child: ir.TypeId, path: []const usize) Lower.Error!void {
     const lowering = self.lowering;
-    const result = try @import("analysis.zig").analyzeWithCalls(lowering.allocator, lowering.program, iteration, path, .{ .selected = &.{}, .summaries = lowering.buffer_functions, .readers = self.readers, .discover = true }) orelse return;
+    const result = try @import("memo.zig").discover(lowering, iteration, path) orelse return;
     const updates = result.updates;
 
     for (result.calls) |call| if (lowering.buffer_calls.get(call.expression)) |slots| if (slots[call.lane] != null) return;

@@ -9,12 +9,7 @@ const Error = std.mem.Allocator.Error;
 
 state: State,
 output: []const usize,
-pub fn check(trace: *Trace, lane: Lane) Error!bool {
-    var arena = std.heap.ArenaAllocator.init(trace.allocator);
-
-    defer arena.deinit();
-
-    const allocator = arena.allocator();
+pub fn check(trace: *Trace, lane: Lane, allocator: std.mem.Allocator) Error!bool {
     var program = trace.program;
     program.input_type = trace.function.input_type;
     program.output_type = trace.function.output_type;
@@ -32,18 +27,16 @@ pub fn check(trace: *Trace, lane: Lane) Error!bool {
         .state = .{
             .allocator = allocator,
             .program = program,
-            .symbols = try allocator.alloc(facts.Value, program.symbols.count()),
-            .cached = try allocator.alloc(?facts.Value, program.expressions.count()),
+            .symbols = try State.Symbols.init(allocator, program.symbols.count()),
+            .cached = try State.Cached.init(allocator, program.expressions.count()),
             .calls = .{ .selected = lane.calls, .summaries = trace.summaries, .readers = trace.readers },
             .loops = lane.iterations,
         },
         .output = output,
     };
 
-    @memset(self.state.symbols, .none);
-    @memset(self.state.cached, null);
+    try self.state.symbols.set(allocator, 0, try self.state.seed(program.input_type, input));
 
-    self.state.symbols[0] = try self.state.seed(program.input_type, input);
     var results: std.ArrayList(statements.Result) = .empty;
 
     if (!try statements.evaluate(&self.state, program.body.block(), &results) or !self.state.valid) return false;

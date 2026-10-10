@@ -13,7 +13,7 @@ pub fn evaluate(state: *State, statements: ir.Block, results: *std.ArrayList(Res
 
         switch (statement) {
             .evaluate => |id| _ = try state.expression(id),
-            .constant => |binding| state.symbols[@backingInt(binding.symbol)] = try state.expression(binding.value),
+            .constant => |binding| try state.bind(binding.symbol, try state.expression(binding.value)),
             .destructure => |binding| {
                 const value = try state.expression(binding.value);
 
@@ -21,7 +21,7 @@ pub fn evaluate(state: *State, statements: ir.Block, results: *std.ArrayList(Res
                     const symbol = binding.symbols.at(index);
 
                     if (symbol) |id| {
-                        state.symbols[@backingInt(id)] = facts.field(value, @intCast(index));
+                        try state.bind(id, facts.field(value, @intCast(index)));
                     }
                 }
             },

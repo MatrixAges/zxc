@@ -24,7 +24,7 @@ pub fn create(backing: std.mem.Allocator, program: ir.Program) std.mem.Allocator
 
     defer scratch.deinit();
 
-    const facts = try analyze(scratch.allocator(), program);
+    const facts = try analyze(scratch.allocator(), backing, program);
     var arena = std.heap.ArenaAllocator.init(backing);
 
     errdefer arena.deinit();
@@ -54,9 +54,9 @@ pub fn create(backing: std.mem.Allocator, program: ir.Program) std.mem.Allocator
     return .{ .arena = arena, .value = value };
 }
 
-pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
+pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
     const value = try @import("value_call/analysis.zig").analyze(allocator, program);
-    const buffers = try buffer.analysis.functions(allocator, program, value.values, value.pure);
+    const buffers = try buffer.analysis.functions(allocator, workspace, program, value.values, value.pure);
 
     return .{
         .value = value,

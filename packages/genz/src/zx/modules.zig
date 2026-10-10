@@ -53,7 +53,7 @@ fn entryPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, progr
 
     defer arena.deinit();
 
-    var lower = try initialize(arena.allocator(), program, names, facts);
+    var lower = try initialize(arena.allocator(), backing, program, names, facts);
 
     return render(allocator, try lower.declarations());
 }
@@ -63,7 +63,7 @@ fn typesPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, progr
 
     defer arena.deinit();
 
-    var lower = try initialize(arena.allocator(), program, names, facts);
+    var lower = try initialize(arena.allocator(), backing, program, names, facts);
 
     lower.shared_types = false;
 
@@ -78,7 +78,7 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     defer arena.deinit();
 
     const temporary = arena.allocator();
-    var lower = try initialize(temporary, program, names, facts);
+    var lower = try initialize(temporary, backing, program, names, facts);
     const selected = lower.program.functions.at(@backingInt(id));
 
     lower.program.symbols = selected.symbols;
@@ -150,10 +150,10 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     return render(allocator, try output.toOwnedSlice(temporary));
 }
 
-fn initialize(allocator: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis) Error!Lower {
+fn initialize(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis) Error!Lower {
     if (names.types.len != program.types.count() or names.functions.len != program.functions.count()) return error.InvalidNames;
 
-    var lower = try @import("render.zig").initializeAnalyzed(allocator, program, facts);
+    var lower = try @import("render.zig").initializeAnalyzed(allocator, backing, program, facts);
 
     lower.type_names = names.types;
     lower.function_modules = names.functions;

@@ -12,10 +12,13 @@ pub fn evaluate(state: *State, iteration: ir.Iteration) std.mem.Allocator.Error!
 
     while (state.valid) {
         state.restore(before);
-        state.symbols[@backingInt(iteration.condition_parameter)] = head;
+
+        try state.bind(iteration.condition_parameter, head);
+
         state.observe(try state.expression(iteration.condition));
         state.restore(before);
-        state.symbols[@backingInt(iteration.parameter)] = head;
+
+        try state.bind(iteration.parameter, head);
 
         const result = try state.expression(iteration.body);
 

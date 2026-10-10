@@ -11,8 +11,8 @@ const Error = std.mem.Allocator.Error;
 
 allocator: std.mem.Allocator,
 program: ir.Program,
-symbols: []Value,
-cached: []?Value,
+symbols: Symbols,
+cached: Cached,
 current: usize = 0,
 serial: usize = 0,
 valid: bool = true,
@@ -21,16 +21,20 @@ calls: ?Calls = null,
 inferred: std.ArrayList(flow.Call) = .empty,
 loops: []const flow.Iteration = &.{},
 borrowing: bool = false,
-const Snapshot = struct { symbols: []Value, cached: []?Value, current: usize };
+pub const Symbols = @import("slots.zig").Slots(Value, .none);
+
+pub const Cached = @import("slots.zig").Slots(?Value, null);
+pub const Snapshot = struct { symbols: Symbols.Saved, cached: Cached.Saved, current: usize };
 
 pub fn analyze(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, path: []const usize) Error!?[]const ir.ExprId {
-    const result = try analyzeWithCalls(allocator, program, iteration, path, null) orelse return null;
+    const result = try analyzeWithCalls(allocator, allocator, program, iteration, path, null) orelse return null;
 
     return result.updates;
 }
 
-pub fn analyzeWithCalls(allocator: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, path: []const usize, calls: ?Calls) Error!?Result {
-    var arena = std.heap.ArenaAllocator.init(allocator);
+/// Workspace backs the temporary analysis state; only the returned updates and calls use the output allocator.
+pub fn analyzeWithCalls(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, iteration: ir.Iteration, path: []const usize, calls: ?Calls) Error!?Result {
+    var arena = std.heap.ArenaAllocator.init(workspace);
 
     defer arena.deinit();
 
@@ -39,31 +43,26 @@ pub fn analyzeWithCalls(allocator: std.mem.Allocator, program: ir.Program, itera
     var self = Self{
         .allocator = temporary,
         .program = program,
-        .symbols = try temporary.alloc(Value, program.symbols.count()),
-        .cached = try temporary.alloc(?Value, program.expressions.count()),
+        .symbols = try Symbols.init(temporary, program.symbols.count()),
+        .cached = try Cached.init(temporary, program.expressions.count()),
         .calls = calls,
     };
 
     const initial = try self.seed(program.expression(iteration.initial).type_id, path);
 
-    @memset(self.symbols, .none);
-    @memset(self.cached, null);
-    self.symbols[@backingInt(iteration.condition_parameter)] = initial;
+    try self.bind(iteration.condition_parameter, initial);
 
     _ = try self.expression(iteration.condition);
 
     if (!self.valid or self.current != 0) return null;
-
-    self.symbols[@backingInt(iteration.parameter)] = initial;
+    try self.bind(iteration.parameter, initial);
 
     const result = try self.expression(iteration.body);
 
     if (!self.valid or (self.updates.items.len == 0 and self.inferred.items.len == 0) or !self.retains(result, path)) return null;
-
-    self.symbols[@backingInt(iteration.condition_parameter)] = result;
+    try self.bind(iteration.condition_parameter, result);
 
     const current = self.current;
-
     _ = try self.expression(iteration.condition);
 
     if (!self.valid or self.current != current) return null;
@@ -92,7 +91,7 @@ pub fn retains(self: *const Self, value: Value, path: []const usize) bool {
 
 pub fn expression(self: *Self, id: ir.ExprId) Error!Value {
     if (!self.valid) return .none;
-    if (self.cached[@backingInt(id)]) |value| return value;
+    if (self.cached.items[@backingInt(id)]) |value| return value;
 
     return switch (self.program.expression(id).value) {
         .capture, .task, .await_task, .cancel_task, .parallel => blk: {
@@ -100,7 +99,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!Value {
 
             break :blk .none;
         },
-        .reference => |symbol| self.symbols[@backingInt(symbol)],
+        .reference => |symbol| self.symbols.items[@backingInt(symbol)],
         .field, .tuple_field => |field| facts.field(try self.expression(field.target), field.index),
         .length => |child| blk: {
             _ = try self.expression(child);
@@ -126,31 +125,33 @@ pub fn expression(self: *Self, id: ir.ExprId) Error!Value {
             break :blk try self.advance(id, target);
         },
         .scope => |scope| blk: {
-            const previous = try self.allocator.dupe(Value, self.symbols);
+            const previous = try self.allocator.alloc(Value, scope.bindings.len);
 
-            defer for (0..scope.bindings.len) |record_index| {
-                const binding = scope.bindings.at(record_index);
-
-                if (binding.symbol) |symbol| {
-                    self.symbols[@backingInt(symbol)] = previous[@backingInt(symbol)];
-                }
-            };
+            for (previous, 0..) |*value, record_index| {
+                value.* = if (scope.bindings.at(record_index).symbol) |symbol| self.symbols.items[@backingInt(symbol)] else .none;
+            }
 
             for (0..scope.bindings.len) |record_index| {
                 const binding = scope.bindings.at(record_index);
                 const value = try self.expression(binding.value);
 
-                if (binding.symbol) |symbol| self.symbols[@backingInt(symbol)] = value;
+                if (binding.symbol) |symbol| try self.bind(symbol, value);
             }
 
-            break :blk try self.expression(scope.result);
+            const result = try self.expression(scope.result);
+
+            for (previous, 0..) |value, record_index| {
+                if (scope.bindings.at(record_index).symbol) |symbol| try self.bind(symbol, value);
+            }
+
+            break :blk result;
         },
         .object => |object| blk: {
-            const previous = try self.allocator.dupe(?Value, self.cached);
+            const previous = try self.cached.save(self.allocator);
 
-            defer @memcpy(self.cached, previous);
+            defer self.cached.restore(previous);
 
-            for (object.evaluation) |item| self.cached[@backingInt(item)] = try self.expression(item);
+            for (object.evaluation) |item| try self.cached.set(self.allocator, @backingInt(item), try self.expression(item));
 
             const fields = try self.allocator.alloc(Value, object.fields.len);
 
@@ -390,10 +391,14 @@ fn independentIteration(self: *Self, iteration: ir.Iteration) Error!Value {
     const serial = self.serial;
 
     defer self.restore(before);
-    self.symbols[@backingInt(iteration.condition_parameter)] = .none;
+
+    try self.bind(iteration.condition_parameter, .none);
+
     self.observe(try self.expression(iteration.condition));
     self.restore(before);
-    self.symbols[@backingInt(iteration.parameter)] = .none;
+
+    try self.bind(iteration.parameter, .none);
+
     self.rejectAlias(try self.expression(iteration.body));
 
     self.valid = self.valid and self.serial == serial;
@@ -431,25 +436,37 @@ fn fresh(self: *Self) usize {
     return self.serial;
 }
 
+pub fn bind(self: *Self, symbol: ir.SymbolId, value: Value) Error!void {
+    try self.symbols.set(self.allocator, @backingInt(symbol), value);
+}
+
 pub fn snapshot(self: *Self) Error!Snapshot {
-    return .{ .symbols = try self.allocator.dupe(Value, self.symbols), .cached = try self.allocator.dupe(?Value, self.cached), .current = self.current };
+    return .{ .symbols = try self.symbols.save(self.allocator), .cached = try self.cached.save(self.allocator), .current = self.current };
 }
 
 pub fn restore(self: *Self, saved: Snapshot) void {
-    @memcpy(self.symbols, saved.symbols);
-    @memcpy(self.cached, saved.cached);
+    self.symbols.restore(saved.symbols);
+    self.cached.restore(saved.cached);
 
     self.current = saved.current;
 }
 
+/// Slots never written are empty on both sides, and merging two empty slots keeps them empty.
 pub fn join(self: *Self, previous: Snapshot, left: Value, right: Value) Error!Value {
     const next_version = self.current;
     const joined = if (previous.current == next_version) next_version else self.fresh();
 
-    for (previous.symbols, self.symbols) |a, *b| b.* = try facts.merge(self.allocator, a, b.*, previous.current, next_version, joined);
+    for (self.symbols.written.items, 0..) |index, position| {
+        const slot = &self.symbols.items[index];
 
-    for (previous.cached, self.cached) |a, *b| {
-        if (a != null and b.* != null) b.* = try facts.merge(self.allocator, a.?, b.*.?, previous.current, next_version, joined) else b.* = null;
+        slot.* = try facts.merge(self.allocator, Symbols.savedAt(previous.symbols, position), slot.*, previous.current, next_version, joined);
+    }
+
+    for (self.cached.written.items, 0..) |index, position| {
+        const slot = &self.cached.items[index];
+        const saved = Cached.savedAt(previous.cached, position);
+
+        slot.* = if (saved != null and slot.* != null) try facts.merge(self.allocator, saved.?, slot.*.?, previous.current, next_version, joined) else null;
     }
 
     self.current = joined;

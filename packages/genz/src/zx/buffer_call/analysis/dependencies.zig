@@ -1,13 +1,8 @@
 const std = @import("std");
 const Trace = @import("trace.zig");
+const Reach = @import("reach.zig");
 const Self = @This();
 const Error = std.mem.Allocator.Error;
-
-const Entry = struct {
-    output: []const u32,
-    scanned: usize = 0,
-    inputs: std.ArrayList([]const u32) = .empty,
-};
 
 const Context = struct {
     pub fn hash(_: @This(), path: []const u32) u64 {
@@ -19,48 +14,39 @@ const Context = struct {
     }
 };
 
-entries: std.HashMapUnmanaged([]const u32, *Entry, Context, std.hash_map.default_max_load_percentage) = .empty,
-pub fn iterate(self: *Self, trace: *Trace, output: []const u32) Error!Iterator {
-    if (self.entries.get(output)) |entry| return .{ .trace = trace, .entry = entry };
+reach: ?*Reach = null,
+entries: std.HashMapUnmanaged([]const u32, []const []const u32, Context, std.hash_map.default_max_load_percentage) = .empty,
+/// Callee inputs that may flow into one output path, in input order.
+pub fn inputs(self: *Self, trace: *Trace, output: []const u32) Error![]const []const u32 {
+    if (self.entries.get(output)) |found| return found;
 
-    const entry = try trace.allocator.create(Entry);
+    const paths = try trace.inputPaths();
 
-    entry.* = .{ .output = try trace.allocator.dupe(u32, output) };
+    const reach = self.reach orelse blk: {
+        const created = try trace.allocator.create(Reach);
+        created.* = try Reach.init(trace.allocator, trace, paths, &.{});
+        self.reach = created;
 
-    try self.entries.put(trace.allocator, entry.output, entry);
+        break :blk created;
+    };
 
-    return .{ .trace = trace, .entry = entry };
-}
+    const dependent = try trace.allocator.alloc(usize, reach.words);
 
-pub const Iterator = struct {
-    trace: *Trace,
-    entry: *Entry,
-    position: usize = 0,
-    pub fn next(self: *Iterator) Error!?[]const u32 {
-        const inputs = try self.trace.inputPaths();
+    @memset(dependent, 0);
 
-        while (true) {
-            if (self.position < self.entry.inputs.items.len) {
-                const input = self.entry.inputs.items[self.position];
+    for (trace.results.items) |result| {
+        const index = try reach.visit(result, output);
 
-                self.position += 1;
-
-                return input;
-            }
-
-            if (self.entry.scanned == inputs.len) return null;
-
-            const input = inputs[self.entry.scanned];
-
-            const dependent = for (self.trace.results.items) |result| {
-                if (try @import("may.zig").contains(self.trace, result, self.entry.output, input)) break true;
-            } else false;
-
-            if (dependent) try self.entry.inputs.append(self.trace.allocator, input);
-
-            self.entry.scanned += 1;
-
-            if (self.entry.scanned == inputs.len) self.trace.queries.clear();
-        }
+        for (dependent, reach.row(index)) |*word, value| word.* |= value;
     }
-};
+
+    var found: std.ArrayList([]const u32) = .empty;
+
+    for (paths, 0..) |input, position| {
+        if (dependent[position / @bitSizeOf(usize)] & (@as(usize, 1) << @intCast(position % @bitSizeOf(usize))) != 0) try found.append(trace.allocator, input);
+    }
+
+    try self.entries.put(trace.allocator, try trace.allocator.dupe(u32, output), found.items);
+
+    return found.items;
+}

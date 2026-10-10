@@ -2,19 +2,17 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const flow = @import("flow.zig");
 const Trace = @import("trace.zig");
-const Reads = @import("reads.zig");
+const Batch = @import("batch.zig");
 const Error = std.mem.Allocator.Error;
 pub const Rejection = enum { stale_version, contracts, parallel, nested_transform, duplicate, container_escape, element_read, unsupported_read, unsupported_operation, detached_append, detached_pop, cached_append, unsupported_call, detached_call };
 
-pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
-    trace.selected_loops = lane.iterations;
-
-    trace.queries.clear();
+pub fn check(batch: *Batch, slot: usize, lane: flow.Lane) Error!?Rejection {
+    const trace = batch.trace;
 
     if (trace.function.contracts.count() != 0) return .contracts;
     if (parallel(trace.function.body.block())) return .parallel;
 
-    var reads = try Reads.init(trace, lane.input);
+    var reads = batch.reads(slot);
 
     for (0..trace.function.expressions.count()) |position| {
         const expression = trace.function.expressions.at(position);
@@ -27,7 +25,7 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
                     if (iteration.expression == id) break true;
                 } else false;
 
-                if (!selected and !try @import("independent.zig").prove(trace, id, lane.input)) return .nested_transform;
+                if (!selected and !try reads.independent(id)) return .nested_transform;
             },
             .capture, .task, .await_task, .cancel_task, .parallel => return .unsupported_operation,
             .list_update => |value| {
@@ -88,10 +86,8 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
                 if (!buffered) continue;
                 if (references != .one) return .duplicate;
 
-                const selected = for (trace.summaries[index], 0..) |callee, lane_index| {
-                    const origin = try trace.trace(call.argument, callee.input) orelse continue;
-
-                    if (std.mem.eql(u32, origin, lane.input) and callee.rejection == null) break lane_index;
+                const selected = for (try batch.calls(id, call)) |candidate| {
+                    if (std.mem.eql(u32, candidate.origin, lane.input)) break candidate.lane;
                 } else return .unsupported_call;
 
                 const forwarded = for (lane.calls) |saved| {
@@ -104,7 +100,7 @@ pub fn check(trace: *Trace, lane: flow.Lane) Error!?Rejection {
         }
     }
 
-    return if (try @import("versions.zig").check(trace, lane)) null else .stale_version;
+    return if (try @import("versions.zig").check(trace, lane, batch.versionsAllocator())) null else .stale_version;
 }
 
 fn parallel(statements: ir.Block) bool {
