@@ -86,6 +86,12 @@ pub fn checkSource(context: Compile.Context, source: []const u8) !Compile.Status
 
             return .failed;
         }
+
+        if (lint.length.check(source, context.options.max_lines orelse lint.length.default_maximum)) |exceeded| {
+            try context.stderr.print("{s}: length: {d} lines exceed the lint limit of {d}; split by responsibility or pass --max-lines\n", .{ path, exceeded.lines, exceeded.maximum });
+
+            return .failed;
+        }
     }
 
     return .success;

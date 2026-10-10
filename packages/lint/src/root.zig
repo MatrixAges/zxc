@@ -5,6 +5,7 @@ pub const spacing = @import("spacing.zig");
 pub const indentation = @import("indentation/root.zig");
 pub const header = zx.syntax.header;
 pub const source = @import("source.zig");
+pub const length = @import("length.zig");
 pub const rx = @import("rx/root.zig");
 pub const configuration = @import("configuration/root.zig");
 pub const NameKind = @import("naming").NameKind;

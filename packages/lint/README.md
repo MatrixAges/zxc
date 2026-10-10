@@ -29,6 +29,7 @@ ZX/RX 表达式风格、名称检查与四空格格式化包，依赖 core 的 Z
 
 ## Answer：接口与执行
 
+- `length.check(source, maximum)` 统计 ZX 源码物理行数（含空行与注释），超过 `maximum` 时返回实际行数；`maximum` 为 0 时关闭。默认值 `length.default_maximum` 为 120。该规则只由 `zxc lint` 调用（`--max-lines <n>` 调整），`source.check` 与编译入口不包含行数检查。
 - `checkNames(program)` 返回首条名称／表达式风格诊断或 null。
 - `checkExpression(expression)` 与 `checkRxExpression(expression)` 共用语法树检查，分别给出 match 与 Switch／Call.fn 建议。
 - `checkName(name, kind)` 检查单个名称。

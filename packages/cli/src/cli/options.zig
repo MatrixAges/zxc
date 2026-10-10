@@ -9,6 +9,7 @@ pub const Options = struct {
     semantic_lint: bool = false,
     workspace_lint: bool = false,
     config_kind: ?@import("configuration/kind.zig").Kind = null,
+    max_lines: ?usize = null,
     check: bool = false,
     write: bool = false,
     native: bool = false,
@@ -76,6 +77,11 @@ pub fn parse(args: []const []const u8) error{InvalidArguments}!Options {
             if (!linting or options.semantic_lint) return error.InvalidArguments;
 
             options.semantic_lint = true;
+        } else if (std.mem.eql(u8, argument, "--max-lines")) {
+            if (!linting or index + 1 == args.len) return error.InvalidArguments;
+
+            index += 1;
+            options.max_lines = std.fmt.parseInt(usize, args[index], 10) catch return error.InvalidArguments;
         } else if (std.mem.eql(u8, argument, "--kind")) {
             if ((!formatting and !linting) or options.config_kind != null or index + 1 == args.len) return error.InvalidArguments;
 
