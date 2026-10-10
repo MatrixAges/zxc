@@ -54,6 +54,7 @@ shared_types: bool = false,
 pending_name: []const u8 = "zx_pending",
 type_names: ?[]const []const u8 = null,
 function_modules: ?[]const []const u8 = null,
+function_requests: *@import("functions/requests.zig") = undefined,
 comparisons: *std.ArrayList(ir.TypeId) = undefined,
 task_declarations: *std.ArrayList(node.Declaration) = undefined,
 pub fn declarations(self: *Self) Error![]const node.Declaration {
@@ -62,6 +63,10 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     var task_declarations: std.ArrayList(node.Declaration) = .empty;
     self.comparisons = &comparisons;
     self.task_declarations = &task_declarations;
+
+    var function_requests = try @import("functions/requests.zig").init(self.allocator, self.program.functions.count());
+
+    self.function_requests = &function_requests;
 
     try output.append(self.allocator, .{ .constant = .{ .name = "std", .value = try self.builtin(.import, &.{try self.builder.string("std")}) } });
     if (self.function_modules == null) self.native_names = try @import("imports.zig").lower(self, &output);
@@ -82,48 +87,16 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
         if (!exported) try output.append(self.allocator, .{ .constant = .{ .name = contract_name, .value = self.types[@backingInt(type_id)], .exported = true } });
     }
 
-    if (self.function_modules == null) for (0..self.program.functions.count()) |index| {
-        const module_function = self.program.functions.at(index);
-
-        if (module_function.external != null) {
-            try output.append(self.allocator, try @import("external.zig").lower(self, module_function, index));
-
-            continue;
-        }
-
-        var helper = self.*;
-        helper.program.symbols = module_function.symbols;
-        helper.program.expressions = module_function.expressions;
-        helper.program.body = module_function.body;
-        helper.program.input_type = module_function.input_type;
-        helper.program.output_type = module_function.output_type;
-        helper.program.stores = module_function.stores;
-        helper.program.store_mode = module_function.store_mode;
-        helper.pending_name = try std.fmt.allocPrint(self.allocator, "zx_pending_{d}", .{index});
-        helper.program.contracts = module_function.contracts;
-        helper.names = try self.allocator.alloc([]const u8, module_function.symbols.count());
-        helper.used = try self.allocator.alloc(bool, module_function.symbols.count());
-        helper.cache = .empty;
-        helper.append_overrides = .empty;
-        helper.buffer_calls = .empty;
-        helper.stack_symbols = .empty;
-        helper.cache_reads = try self.allocator.alloc(usize, module_function.expressions.count());
-
-        try @import("store.zig").declaration(&helper, &output);
-        try output.append(self.allocator, try helper.function(try std.fmt.allocPrint(self.allocator, "function_{d}", .{index}), false));
-        if (self.value_functions[index]) try output.append(self.allocator, try helper.functionValue(try std.fmt.allocPrint(self.allocator, "function_{d}_value", .{index})));
-
-        if (@import("buffer_call/root.zig").available(self.buffer_functions[index])) {
-            try output.append(self.allocator, try @import("buffer_call/root.zig").declaration(&helper, try std.fmt.allocPrint(self.allocator, "function_{d}_buffered", .{index}), self.buffer_functions[index], .value));
-            try output.append(self.allocator, try @import("buffer_call/root.zig").declaration(&helper, try std.fmt.allocPrint(self.allocator, "function_{d}_buffered_pointer", .{index}), self.buffer_functions[index], .pointer));
-        }
-
-        self.uses_parallel = self.uses_parallel or helper.uses_parallel;
-    };
-
     try @import("store.zig").declaration(self, &output);
     try output.append(self.allocator, try self.function("execute", true));
     try @import("entry_values.zig").declarations(self, &output);
+
+    var function_index: usize = 0;
+
+    while (function_index < function_requests.items.items.len) : (function_index += 1) {
+        try @import("functions/emit.zig").append(self, &output, function_requests.items.items[function_index]);
+    }
+
     try output.appendSlice(self.allocator, task_declarations.items);
     if (self.uses_parallel) try output.append(self.allocator, try @import("parallel/allocator.zig").declaration(self));
     for (comparisons.items) |type_id| try output.append(self.allocator, try @import("comparison.zig").ordering(self, type_id));
@@ -377,9 +350,14 @@ fn projection(self: *Self, id: ir.ExprId) Error!*const node.Expression {
 }
 
 pub fn functionReference(self: *Self, id: ir.FunctionId) Error!*const node.Expression {
-    if (self.function_modules) |modules| return self.field(try self.builtin(.import, &.{try self.builder.string(modules[@backingInt(id)])}), "call");
+    return self.requestFunction(id, .regular);
+}
 
-    return self.builder.identifier(try std.fmt.allocPrint(self.allocator, "function_{d}", .{@backingInt(id)}));
+pub fn requestFunction(self: *Self, id: ir.FunctionId, variant: @import("functions/requests.zig").Variant) Error!*const node.Expression {
+    if (self.function_modules) |modules| return self.field(try self.builtin(.import, &.{try self.builder.string(modules[@backingInt(id)])}), variant.member());
+    try self.function_requests.add(self.allocator, id, variant);
+
+    return self.builder.identifier(try variant.name(self.allocator, id));
 }
 
 pub fn binary(self: *Self, value: @FieldType(@FieldType(ir.ExpressionRow, "value"), "binary")) Error!*const node.Expression {

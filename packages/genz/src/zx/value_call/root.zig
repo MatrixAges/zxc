@@ -90,15 +90,8 @@ fn lowerInvocation(self: *Lower, body: *std.ArrayList(node.Statement), value: @F
     }
 
     const selected_buffers = if (buffers) |ready| ready else if (selected) |slots| try transfer.prepare(self, body, value, &argument, slots) else null;
-
-    const callee = if (self.function_modules) |modules|
-        try self.field(try self.builtin(.import, &.{try self.builder.string(modules[@backingInt(value.function)])}), if (selected_buffers != null) "callBuffered" else "callValue")
-
-    else
-        try self.builder.identifier(try std.fmt.allocPrint(self.allocator, "function_{d}_{s}", .{ @backingInt(value.function), if (selected_buffers != null) "buffered" else "value" }));
-
+    const callee = try self.requestFunction(value.function, if (selected_buffers != null) .buffered else .value);
     const arguments = try self.allocator.alloc(*const node.Expression, if (selected_buffers != null) 3 else 2);
-
     arguments[0] = try self.builder.identifier("allocator");
     arguments[1] = argument;
 

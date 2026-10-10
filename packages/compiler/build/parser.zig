@@ -99,25 +99,26 @@ pub const Sources = struct {
 
 pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) Sources {
     const target = b.graph.host;
-    const core_dependency = b.dependency("core", .{ .target = target, .optimize = optimize });
+    const generator_optimize: std.builtin.OptimizeMode = if (optimize == .debug) .safe else optimize;
+    const core_dependency = b.dependency("core", .{ .target = target, .optimize = generator_optimize });
     const core = core_dependency.module("core");
-    const lint_dependency = b.dependency("lint", .{ .target = target, .optimize = optimize, .seed = true });
+    const lint_dependency = b.dependency("lint", .{ .target = target, .optimize = generator_optimize, .seed = true });
     const lint = lint_dependency.module("lint");
 
     const lexer = b.createModule(.{
         .root_source_file = b.path("bootstrap/lexer/lex.zig"),
         .target = target,
-        .optimize = optimize,
+        .optimize = generator_optimize,
         .imports = &.{.{ .name = "zx", .module = core }},
     });
 
-    const seed = @import("compiler.zig").create(b, target, optimize, lexer, null, lint);
-    const flow = @import("seed_rx.zig").create(b, target, optimize, seed.frontend, lint);
+    const seed = @import("compiler.zig").create(b, target, generator_optimize, lexer, null, lint);
+    const flow = @import("seed_rx.zig").create(b, target, generator_optimize, seed.frontend, lint);
 
     const executable = b.addExecutable(.{ .name = "generate-parser", .root_module = b.createModule(.{
         .root_source_file = b.path("build/generate_parser.zig"),
         .target = target,
-        .optimize = optimize,
+        .optimize = generator_optimize,
         .imports = &.{ .{ .name = "compiler", .module = seed.compiler }, .{ .name = "rx", .module = flow.syntax }, .{ .name = "rx_analysis", .module = flow.analysis } },
     }) });
 

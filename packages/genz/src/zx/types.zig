@@ -4,6 +4,7 @@ const Lower = @import("lower.zig");
 
 pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: bool) Lower.Error!void {
     var declared: std.StringHashMapUnmanaged(void) = .empty;
+    var has_lists = false;
 
     if (self.shared_types) try output.append(self.allocator, .{ .constant = .{
         .name = "zx_abi",
@@ -12,6 +13,8 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
 
     for (0..self.program.types.count()) |index| {
         const value = self.program.types.at(index);
+
+        if (value == .list) has_lists = true;
 
         self.types[index] = switch (value) {
             .scalar => |scalar| switch (scalar) {
@@ -72,4 +75,5 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
     }
 
     try @import("state_value/types.zig").lower(self, output, exported);
+    if (has_lists and !self.shared_types) try output.append(self.allocator, try @import("buffer_call/slot.zig").declaration(self, exported));
 }

@@ -19,14 +19,9 @@ pub fn typeOf(lowering: *Lower, lanes: []const Lane) Lower.Error!*const node.Exp
         };
 
         const element = lowering.types[@backingInt(lowering.program.typeOf(selected).list)];
-        const buffer_type = try lowering.call(try lowering.field(try lowering.builder.identifier("std"), "ArrayList"), &.{element}, false);
+        const slot_type = try @import("slot.zig").typeOf(lowering, element);
 
-        const slot_fields = try lowering.allocator.dupe(node.Field, &.{
-            .{ .name = "buffer", .value = try lowering.builder.expression(.{ .pointer = buffer_type }) },
-            .{ .name = "started", .value = try lowering.builder.expression(.{ .pointer = try lowering.builder.expression(.{ .primitive = .bool }) }) },
-        });
-
-        try fields.append(lowering.allocator, .{ .name = try name(lowering, index), .value = try lowering.builder.expression(.{ .optional_type = try lowering.builder.expression(.{ .struct_type = slot_fields }) }) });
+        try fields.append(lowering.allocator, .{ .name = try name(lowering, index), .value = try lowering.builder.expression(.{ .optional_type = slot_type }) });
     }
 
     return lowering.builder.expression(.{ .struct_type = try fields.toOwnedSlice(lowering.allocator) });
@@ -40,6 +35,7 @@ pub fn builder(lowering: *Lower, index: usize) Lower.Error!Builder {
         .buffer = try lowering.builder.expression(.{ .dereference = try lowering.field(payload, "buffer") }),
         .started = try lowering.builder.expression(.{ .dereference = try lowering.field(payload, "started") }),
         .enabled = try lowering.builder.expression(.{ .binary = .{ .operator = .not_equal, .left = slot, .right = try lowering.builder.expression(.null_value) } }),
+        .slot = slot,
     };
 }
 
@@ -50,6 +46,12 @@ pub fn argument(lowering: *Lower, lanes: []const Lane, slots: []const ?Builder) 
         if (lane.rejection != null) continue;
 
         const value = if (slot) |source| blk: {
+            if (source.slot) |forwarded| {
+                lowering.uses_buffers = true;
+
+                break :blk forwarded;
+            }
+
             const members = try lowering.allocator.dupe(node.Field, &.{
                 .{ .name = "buffer", .value = try lowering.builder.expression(.{ .address_of = source.buffer }) },
                 .{ .name = "started", .value = try lowering.builder.expression(.{ .address_of = source.started }) },

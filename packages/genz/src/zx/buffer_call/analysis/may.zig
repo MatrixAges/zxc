@@ -124,14 +124,10 @@ fn evaluate(trace: *Trace, id: ir.ExprId, path: []const u32, origin: []const u32
             if (callee.external != null or callee.stores.count() != 0 or index >= trace.summaries.len) break :blk try contains(trace, call.argument, &.{}, origin);
 
             const nested = try trace.callee(index);
-            const inputs = try nested.inputPaths();
+            var inputs = try nested.dependencies.iterate(nested, path);
 
-            for (inputs) |input| {
-                const dependent = for (nested.results.items) |result| {
-                    if (try contains(nested, result, path, input)) break true;
-                } else false;
-
-                if (dependent and try contains(trace, call.argument, input, origin)) break :blk true;
+            while (try inputs.next()) |input| {
+                if (try contains(trace, call.argument, input, origin)) break :blk true;
             }
 
             break :blk false;

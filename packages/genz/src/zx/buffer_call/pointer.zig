@@ -25,10 +25,7 @@ pub fn transfer(lowering: *Lower, call: Call, selected: []const bool) Lower.Erro
 }
 
 fn invoke(lowering: *Lower, function: ir.FunctionId, argument: *const node.Expression, buffers: *const node.Expression) Lower.Error!*const node.Expression {
-    const callee = if (lowering.function_modules) |modules|
-        try lowering.field(try lowering.builtin(.import, &.{try lowering.builder.string(modules[@backingInt(function)])}), "callBufferedPointer")
-    else
-        try lowering.builder.identifier(try std.fmt.allocPrint(lowering.allocator, "function_{d}_buffered_pointer", .{@backingInt(function)}));
+    const callee = try lowering.requestFunction(function, .buffered_pointer);
 
     return lowering.call(callee, &.{ try lowering.builder.identifier("allocator"), argument, buffers }, true);
 }
