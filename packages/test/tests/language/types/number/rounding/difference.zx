@@ -1,0 +1,12 @@
+export type Input = f64
+
+export type Output = f64
+
+export default function (in: Input): Output {
+  const x = in
+  const y = 1.0 - 1.0 / 65536.0
+  const z = x + y
+  const d = z - x
+
+  return d
+}

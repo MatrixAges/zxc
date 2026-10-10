@@ -11,6 +11,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
     const updates_step = b.step("test-state-updates", "Execute upstream numeric state updates and floating writeback boundaries");
     const owned_step = b.step("test-owned-collections", "Run collection cases with locally constructed owners");
     const floating_step = b.step("test-floating", "Run exact floating bit-pattern conformance cases");
+    const rounding_steps_step = b.step("test-number-rounding", "Execute original binary64 rounding after each arithmetic step");
     const standard_step = b.step("test-standard-runtime", "Run standard interfaces through their shared ABI");
     const logical_step = b.step("test-logical-binary", "Run logical AND and OR source and short circuit cases");
     const zlib_step = b.step("test-zlib", "Run independent compressed input and decompression boundary cases");
@@ -216,6 +217,7 @@ pub fn add(b: *std.Build, compiler: *std.Build.Dependency, cli: *std.Build.Depen
         if (std.mem.startsWith(u8, suite.path, "standard/zlib/")) zlib_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "language/expressions/logical_and/") or std.mem.startsWith(u8, suite.path, "language/expressions/logical_or/")) logical_step.dependOn(&run.step);
         if (uses_bits or suite.kind == .floating_optional) floating_step.dependOn(&run.step);
+        if (std.mem.startsWith(u8, suite.path, "language/types/number/rounding/")) rounding_steps_step.dependOn(&run.step);
         if (suite.shared_abi) standard_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "built_ins/string/")) strings_step.dependOn(&run.step);
         if (std.mem.startsWith(u8, suite.path, "built_ins/list/range_extract/")) list_range_step.dependOn(&run.step);
