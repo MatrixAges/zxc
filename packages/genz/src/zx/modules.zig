@@ -3,6 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const render = @import("../render.zig").render;
+pub const Analysis = @import("function_analysis.zig");
 pub const Names = struct { types: []const []const u8, functions: []const []const u8 };
 pub const Unit = union(enum) { entry, function: ir.FunctionId, types };
 pub const abi_view = @import("abi_view.zig");
@@ -29,44 +30,55 @@ fn generate(allocator: std.mem.Allocator, program: ir.Program, names: Names, uni
 }
 
 pub fn prepared(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit) Error![]u8 {
+    if (unit == .function and @backingInt(unit.function) >= program.functions.count()) return error.InvalidFunction;
+    if (names.types.len != program.types.count() or names.functions.len != program.functions.count()) return error.InvalidNames;
+
+    var analysis = try Analysis.create(allocator, program);
+
+    defer analysis.deinit();
+
+    return analyzed(allocator, allocator, program, names, unit, analysis.value);
+}
+
+pub fn analyzed(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit, facts: Analysis) Error![]u8 {
     return switch (unit) {
-        .entry => entryPrepared(allocator, program, names),
-        .types => typesPrepared(allocator, program, names),
-        .function => |id| functionPrepared(allocator, program, id, names),
+        .entry => entryPrepared(allocator, backing, program, names, facts),
+        .types => typesPrepared(allocator, backing, program, names, facts),
+        .function => |id| functionPrepared(allocator, backing, program, id, names, facts),
     };
 }
 
-fn entryPrepared(allocator: std.mem.Allocator, program: ir.Program, names: Names) Error![]u8 {
-    var arena = std.heap.ArenaAllocator.init(allocator);
+fn entryPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis) Error![]u8 {
+    var arena = std.heap.ArenaAllocator.init(backing);
 
     defer arena.deinit();
 
-    var lower = try initialize(arena.allocator(), program, names);
+    var lower = try initialize(arena.allocator(), program, names, facts);
 
     return render(allocator, try lower.declarations());
 }
 
-fn typesPrepared(allocator: std.mem.Allocator, program: ir.Program, names: Names) Error![]u8 {
-    var arena = std.heap.ArenaAllocator.init(allocator);
+fn typesPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis) Error![]u8 {
+    var arena = std.heap.ArenaAllocator.init(backing);
 
     defer arena.deinit();
 
-    var lower = try initialize(arena.allocator(), program, names);
+    var lower = try initialize(arena.allocator(), program, names, facts);
 
     lower.shared_types = false;
 
     return render(allocator, try @import("type_bundle.zig").declarations(&lower));
 }
 
-fn functionPrepared(allocator: std.mem.Allocator, program: ir.Program, id: ir.FunctionId, names: Names) Error![]u8 {
+fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, id: ir.FunctionId, names: Names, facts: Analysis) Error![]u8 {
     if (@backingInt(id) >= program.functions.count()) return error.InvalidFunction;
 
-    var arena = std.heap.ArenaAllocator.init(allocator);
+    var arena = std.heap.ArenaAllocator.init(backing);
 
     defer arena.deinit();
 
     const temporary = arena.allocator();
-    var lower = try initialize(temporary, program, names);
+    var lower = try initialize(temporary, program, names, facts);
     const selected = lower.program.functions.at(@backingInt(id));
 
     lower.program.symbols = selected.symbols;
@@ -138,10 +150,10 @@ fn functionPrepared(allocator: std.mem.Allocator, program: ir.Program, id: ir.Fu
     return render(allocator, try output.toOwnedSlice(temporary));
 }
 
-fn initialize(allocator: std.mem.Allocator, program: ir.Program, names: Names) Error!Lower {
+fn initialize(allocator: std.mem.Allocator, program: ir.Program, names: Names, facts: Analysis) Error!Lower {
     if (names.types.len != program.types.count() or names.functions.len != program.functions.count()) return error.InvalidNames;
 
-    var lower = try @import("render.zig").initializePrepared(allocator, program);
+    var lower = try @import("render.zig").initializeAnalyzed(allocator, program, facts);
 
     lower.type_names = names.types;
     lower.function_modules = names.functions;

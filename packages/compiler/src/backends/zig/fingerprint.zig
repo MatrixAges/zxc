@@ -36,6 +36,32 @@ pub fn createPrepared(allocator: std.mem.Allocator, program: ir.Program, names: 
     const state_plan = facts.state;
     var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions, .fresh_outputs = fresh_outputs, .transfer_functions = transfer_functions, .state_plan = state_plan };
 
+    return self.finish(allocator, unit);
+}
+
+pub fn createAnalyzed(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit, facts: @import("genz").zx.modules.Analysis, fresh_outputs: []const @import("genz").zx.buffer_call.fresh.Paths) std.mem.Allocator.Error![32]u8 {
+    var self = Self{
+        .program = program,
+        .names = names,
+        .value_functions = facts.value.values,
+        .pure_functions = facts.value.pure,
+        .local_functions = facts.value.local,
+        .buffer_functions = facts.buffers,
+        .fresh_outputs = fresh_outputs,
+        .transfer_functions = facts.transfers,
+        .state_plan = facts.value.state,
+    };
+
+    return self.finish(allocator, unit);
+}
+
+fn finish(self: *Self, allocator: std.mem.Allocator, unit: Unit) std.mem.Allocator.Error![32]u8 {
+    const program = self.program;
+    const names = self.names;
+    const value_functions = self.value_functions;
+    const buffer_functions = self.buffer_functions;
+    const state_plan = self.state_plan;
+
     self.bytes("zxc.zig.input.v42");
     self.bytes(@tagName(unit));
     self.write(program.version);

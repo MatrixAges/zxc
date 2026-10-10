@@ -7,6 +7,10 @@ const Cache = @import("cache.zig");
 pub const Result = struct { files: []const modules.File, entries: []const modules.StoreInitializer };
 
 pub fn create(allocator: std.mem.Allocator, library: *const model.Result, names: Names, cache: ?*Cache) modules.Error!Result {
+    return createBacked(allocator, allocator, library, names, cache);
+}
+
+pub fn createBacked(allocator: std.mem.Allocator, backing: std.mem.Allocator, library: *const model.Result, names: Names, cache: ?*Cache) modules.Error!Result {
     const files = try allocator.alloc(modules.File, library.store_initializers.len);
     const entries = try allocator.alloc(modules.StoreInitializer, library.store_initializers.len);
 
@@ -29,7 +33,17 @@ pub fn create(allocator: std.mem.Allocator, library: *const model.Result, names:
         program.contracts = function.contracts;
         program.stores = .{};
         program.exports = &.{};
-        file.* = .{ .name = module_name, .source = try modules.emit(allocator, program, names, .entry, cache), .imports = &.{} };
+
+        var scratch = std.heap.ArenaAllocator.init(backing);
+
+        defer scratch.deinit();
+
+        const prepared = try @import("genz").zx.prepare(scratch.allocator(), program);
+        var batch = try modules.Batch.create(backing, prepared, names, cache);
+
+        defer batch.deinit();
+
+        file.* = .{ .name = module_name, .source = try batch.emit(allocator, .entry), .imports = &.{} };
 
         entry.* = .{
             .identity = try allocator.dupe(u8, initial.identity),

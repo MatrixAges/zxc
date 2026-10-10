@@ -53,27 +53,27 @@ pub fn initialize(temporary: std.mem.Allocator, source: zx.ir.Program) std.mem.A
 }
 
 pub fn initializePrepared(temporary: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
-    const function_facts = try @import("value_call/analysis.zig").analyze(temporary, program);
-    const value_functions = function_facts.values;
-    const buffer_functions = try buffer_call.analysis.functions(temporary, program, value_functions, function_facts.pure);
+    return initializeAnalyzed(temporary, program, try @import("function_analysis.zig").analyze(temporary, program));
+}
 
+pub fn initializeAnalyzed(temporary: std.mem.Allocator, program: zx.ir.Program, facts: @import("function_analysis.zig")) std.mem.Allocator.Error!Lower {
     return .{
         .allocator = temporary,
         .program = program,
         .builder = .{ .allocator = temporary },
         .types = try temporary.alloc(*const node.Expression, program.types.count()),
         .layouts = try temporary.alloc(*const node.Expression, program.types.count()),
-        .state_plan = function_facts.state,
+        .state_plan = facts.value.state,
         .names = try temporary.alloc([]const u8, program.symbols.count()),
         .cache_reads = try temporary.alloc(usize, program.expressions.count()),
         .used = try temporary.alloc(bool, program.symbols.count()),
-        .io_functions = try io.functions(temporary, program),
-        .process_functions = try capabilities.functions(temporary, program, .process),
-        .value_functions = value_functions,
-        .pure_functions = function_facts.pure,
-        .allocated_functions = try @import("iteration_buffer/ownership/allocation.zig").functions(temporary, program, function_facts.pure),
-        .local_functions = function_facts.local,
-        .buffer_functions = buffer_functions,
-        .transfer_functions = try buffer_call.transfer_analysis.functions(temporary, program, buffer_functions, function_facts.pure),
+        .io_functions = facts.io,
+        .process_functions = facts.process,
+        .value_functions = facts.value.values,
+        .pure_functions = facts.value.pure,
+        .allocated_functions = facts.allocated,
+        .local_functions = facts.value.local,
+        .buffer_functions = facts.buffers,
+        .transfer_functions = facts.transfers,
     };
 }

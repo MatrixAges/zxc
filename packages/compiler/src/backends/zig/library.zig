@@ -50,21 +50,29 @@ pub fn createCached(allocator: std.mem.Allocator, library: *const model.Result, 
 
         std.crypto.hash.sha2.Sha256.hash(exported.name, &digest, .{});
 
+        var public_batch = try modules.Batch.create(allocator, view, identities, cache);
+
+        defer public_batch.deinit();
+
         public_module.* = .{
             .name = try owned.dupe(u8, exported.name),
             .file = .{
                 .name = try std.fmt.allocPrint(owned, "public_{s}", .{std.fmt.bytesToHex(digest, .lower)}),
-                .source = try modules.emitPrepared(owned, view, identities, .entry, cache),
+                .source = try public_batch.emit(owned, .entry),
                 .imports = try references.imports(owned, view.expressions, view.contracts, identities.functions),
             },
         };
     }
 
-    const type_source = try modules.emitPrepared(owned, program, identities, .types, cache);
-    const functions = try modules.functionFilesPrepared(owned, program, identities, needed, cache);
-    const initializers = try @import("library_initializers.zig").create(owned, library, identities, cache);
+    var batch = try modules.Batch.create(allocator, program, identities, cache);
+
+    defer batch.deinit();
+
+    const type_source = try batch.emit(owned, .types);
+    const functions = try modules.functionFilesAnalyzed(owned, &batch, needed);
+    const initializers = try @import("library_initializers.zig").createBacked(owned, allocator, library, identities, cache);
     const files = try std.mem.concat(owned, modules.File, &.{ functions, initializers.files });
-    const type_names = try modules.typeNames(owned, program, identities);
+    const type_names = try modules.typeNamesAnalyzed(owned, program, identities, batch.analysis.value.value.state);
     const native_modules = try modules.nativeModules(owned, program);
 
     return .{

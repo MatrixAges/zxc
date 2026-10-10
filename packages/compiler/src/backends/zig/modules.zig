@@ -4,6 +4,7 @@ const generating = @import("genz").zx.modules;
 const names = @import("names.zig");
 const references = @import("references.zig");
 const fingerprint = @import("fingerprint.zig");
+pub const Batch = @import("batch.zig");
 const Cache = @import("cache.zig");
 pub const Error = names.Error || generating.Error || error{ InvalidAnalysis, ConflictingFunction };
 pub const File = struct { name: []const u8, source: []const u8, imports: []const []const u8 };
@@ -43,10 +44,14 @@ pub fn createCached(allocator: std.mem.Allocator, analysis: *const Analysis, cac
     const program = try @import("genz").zx.prepare(owned, analysis.value.ir);
     const identities = try names.create(owned, program, analysis.nominal_types);
     const needed = try references.reachable(owned, program);
-    const modules = try functionFilesPrepared(owned, program, identities, needed, cache);
-    const entry = File{ .name = "application", .source = try emitPrepared(owned, program, identities, .entry, cache), .imports = try references.imports(owned, program.expressions, program.contracts, identities.functions) };
-    const type_source = try emitPrepared(owned, program, identities, .types, cache);
-    const type_names = try typeNames(owned, program, identities);
+    var batch = try Batch.create(allocator, program, identities, cache);
+
+    defer batch.deinit();
+
+    const modules = try functionFilesAnalyzed(owned, &batch, needed);
+    const entry = File{ .name = "application", .source = try batch.emit(owned, .entry), .imports = try references.imports(owned, program.expressions, program.contracts, identities.functions) };
+    const type_source = try batch.emit(owned, .types);
+    const type_names = try typeNamesAnalyzed(owned, program, identities, batch.analysis.value.value.state);
     const native_modules = try nativeModules(owned, program);
 
     const signature = Signature{
@@ -67,24 +72,11 @@ pub fn emit(allocator: std.mem.Allocator, program: @import("zx").ir.Program, ide
 }
 
 pub fn emitPrepared(allocator: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, unit: fingerprint.Unit, cache: ?*Cache) Error![]const u8 {
-    const store = cache orelse return generating.prepared(allocator, program, identities, unit);
+    var batch = try Batch.create(allocator, program, identities, cache);
 
-    const name = switch (unit) {
-        .function => |id| identities.functions[@backingInt(id)],
-        .entry, .types => try std.fmt.allocPrint(allocator, "{s}:{s}", .{ @tagName(unit), program.file_name }),
-    };
+    defer batch.deinit();
 
-    const key = try fingerprint.createPrepared(allocator, program, identities, unit);
-
-    if (try store.get(name, key)) |source| return allocator.dupe(u8, source);
-
-    const source = try generating.prepared(allocator, program, identities, unit);
-
-    store.generated += 1;
-
-    try store.put(name, key, source);
-
-    return source;
+    return batch.emit(allocator, unit);
 }
 
 pub fn functionFiles(owned: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, needed: []const bool, cache: ?*Cache) Error![]const File {
@@ -94,6 +86,16 @@ pub fn functionFiles(owned: std.mem.Allocator, program: @import("zx").ir.Program
 }
 
 pub fn functionFilesPrepared(owned: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, needed: []const bool, cache: ?*Cache) Error![]const File {
+    var batch = try Batch.create(owned, program, identities, cache);
+
+    defer batch.deinit();
+
+    return functionFilesAnalyzed(owned, &batch, needed);
+}
+
+pub fn functionFilesAnalyzed(owned: std.mem.Allocator, batch: *const Batch, needed: []const bool) Error![]const File {
+    const program = batch.program;
+    const identities = batch.names;
     var files: std.ArrayList(File) = .empty;
     var seen: std.StringHashMapUnmanaged(usize) = .empty;
 
@@ -102,7 +104,7 @@ pub fn functionFilesPrepared(owned: std.mem.Allocator, program: @import("zx").ir
 
         if (!needed[index]) continue;
 
-        const source = try emitPrepared(owned, program, identities, .{ .function = @fromBackingInt(@intCast(index)) }, cache);
+        const source = try batch.emit(owned, .{ .function = @fromBackingInt(@intCast(index)) });
 
         const file = File{
             .name = identities.functions[index],
@@ -127,12 +129,17 @@ pub fn functionFilesPrepared(owned: std.mem.Allocator, program: @import("zx").ir
 }
 
 pub fn typeNames(owned: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names) std.mem.Allocator.Error![]const []const u8 {
-    var type_names: std.ArrayList([]const u8) = .empty;
-    var type_set: std.StringHashMapUnmanaged(void) = .empty;
     const state_plan = try @import("genz").zx.state_value.Analysis.create(owned, program);
 
     defer owned.free(state_plan.selected);
     defer owned.free(state_plan.keys);
+
+    return typeNamesAnalyzed(owned, program, identities, state_plan);
+}
+
+pub fn typeNamesAnalyzed(owned: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, state_plan: @import("genz").zx.state_value.Analysis) std.mem.Allocator.Error![]const []const u8 {
+    var type_names: std.ArrayList([]const u8) = .empty;
+    var type_set: std.StringHashMapUnmanaged(void) = .empty;
 
     for (0..program.types.count(), identities.types, 0..) |view_index, name, index| {
         const value = program.types.at(view_index);
