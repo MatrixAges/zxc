@@ -106,6 +106,8 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     var replay = try follow(temporary, memo, shared, exported, units);
 
+    if (try shortcut(allocator, temporary, program, slots, &summaries, units, memo, &replay)) |result| return result;
+
     for (units, 0..) |entry, caller| {
         const unit = entry orelse continue;
 
@@ -147,7 +149,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
             break :planned try memo.putPlanned(flags, try analysis.renewals(temporary));
         };
 
-        try replay.met(.planned, index, planned);
+        try replay.met(.planned, index, planned, memo);
 
         const plan = Plan{ .flags = try allocator.dupe(Flags, planned.flags), .renewals = try copyRenewals(allocator, planned.renewals) };
 
@@ -287,7 +289,7 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
             break :analyzed try memo.putSettled(passed.items, output);
         };
 
-        try replay.met(.settled, index, settled);
+        try replay.met(.settled, index, settled, memo);
         @memcpy(output, settled.output);
 
         for (changed.items) |callee| if (units[callee] != null) try work.push(workspace, callee);
@@ -346,7 +348,7 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
             break :analyzed try memo.putDemanded(marked.items, state, analysis.grew);
         };
 
-        try replay.met(.demanded, index, demanded);
+        try replay.met(.demanded, index, demanded, memo);
 
         if (demanded.grew) added = true;
 
@@ -358,6 +360,106 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
     }
 
     return added;
+}
+
+/// The plans of an analysis that takes the path of the trace it follows, known without walking it: every changed body,
+/// analyzed again in each state the trace met it in, settles and demands as recorded, so every other body meets what
+/// it met before. Only the plans of the changed bodies are new. Null, with the summaries and growth copies as they
+/// were, when a changed body differs.
+fn shortcut(allocator: std.mem.Allocator, temporary: std.mem.Allocator, program: ir.Program, slots: Slots, summaries: *Summaries, units: []const ?*Unit, memo: *Memo, replay: *const Trace.Replay) std.mem.Allocator.Error!?Result {
+    if (replay.trace == null) return null;
+
+    const trace = &memo.trace.?;
+    const planned = try temporary.alloc(?Memo.Planned, units.len);
+
+    @memset(planned, null);
+
+    for (units, replay.changed, planned, 0..) |entry, changed, *plan, index| {
+        const unit = entry orelse continue;
+
+        if (trace.of(.planned, index).values.len != 1) return null;
+        if (!changed) continue;
+
+        inline for (.{ Memo.Kind.settled, Memo.Kind.demanded }) |kind| {
+            const visits = trace.of(kind, index);
+
+            for (visits.values, visits.states) |recorded, state| {
+                const value = try revisit(kind, temporary, program, slots, summaries, unit, index, memo, state) orelse return undo(summaries, units, replay.changed);
+
+                if (!try Trace.agree(kind, temporary, recorded, value)) return undo(summaries, units, replay.changed);
+            }
+        }
+
+        plan.* = try revisit(.planned, temporary, program, slots, summaries, unit, index, memo, trace.of(.planned, index).states[0]) orelse return undo(summaries, units, replay.changed);
+    }
+
+    const count = program.functions.count();
+    const plans = try allocator.alloc(Plan, count);
+    var entry_plan = Plan{ .flags = &.{} };
+
+    for (units, planned, 0..) |entry, renewed, index| {
+        const plan: Plan = if (entry == null) .{ .flags = &.{} } else plan: {
+            const value = &trace.of(.planned, index).values[0];
+
+            if (renewed) |replacement| value.* = replacement;
+
+            break :plan .{ .flags = try allocator.dupe(Flags, value.flags), .renewals = try copyRenewals(allocator, value.renewals) };
+        };
+
+        if (index < count) plans[index] = plan else entry_plan = plan;
+    }
+
+    @memcpy(trace.identities, replay.identities);
+
+    return .{ .functions = plans, .entry = entry_plan };
+}
+
+/// The result body `index` reaches in a recorded state: the memo's when it has one, or a new analysis in that state.
+fn revisit(comptime kind: Memo.Kind, temporary: std.mem.Allocator, program: ir.Program, slots: Slots, summaries: *Summaries, unit: *Unit, index: usize, memo: *Memo, state: []const u8) std.mem.Allocator.Error!?Memo.Result(kind) {
+    if (try memo.find(kind, unit.identity, state)) |value| return value;
+    if (!try Memo.restore(kind, state, summaries, index, unit.callees, &unit.normalized, &unit.renewed)) return null;
+
+    var changed: std.ArrayList(usize) = .empty;
+    var analysis = try unit.analyze(temporary, program.functions, slots, summaries);
+
+    switch (kind) {
+        .settled => {
+            var passed: std.ArrayList(Function.Contribution) = .empty;
+            const output = try temporary.alloc(Level, if (index < summaries.output.len) summaries.output[index].len else 0);
+
+            try analysis.arguments(&changed, &passed);
+
+            if (index < summaries.output.len) try analysis.output(output);
+
+            return try memo.putSettled(passed.items, output);
+        },
+        .demanded => {
+            var marked: std.ArrayList(Function.Mark) = .empty;
+
+            try analysis.demand(&changed, &marked);
+
+            return try memo.putDemanded(marked.items, unit.state(index), analysis.grew);
+        },
+        .planned => {
+            const flags = try temporary.alloc(Flags, unit.unit.expressions.count());
+
+            try analysis.flags(flags);
+
+            return try memo.putPlanned(flags, try analysis.renewals(temporary));
+        },
+    }
+}
+
+/// Clears what revisiting changed bodies left behind, as the fixpoint expects to start from.
+fn undo(summaries: *Summaries, units: []const ?*Unit, changed: []const bool) ?Result {
+    summaries.clearWants();
+
+    for (units, changed) |entry, differs| if (differs) if (entry) |unit| {
+        unit.normalized.clearRetainingCapacity();
+        unit.renewed.clearRetainingCapacity();
+    };
+
+    return null;
 }
 
 /// The replay of the memo's last analysis, which this one follows when it ran for the same program shape and exports.

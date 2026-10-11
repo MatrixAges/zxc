@@ -42,6 +42,8 @@ key: Digest = undefined,
 order: std.ArrayList(Record) = .empty,
 /// The bytes the next key digests, gathered so they are hashed in one call.
 encoded: std.ArrayList(u8) = .empty,
+/// Where the state ends in `encoded`, before the kind of record.
+state_end: usize = 0,
 /// Whether bodies carry content identities, as records that outlive this program need.
 persistent: bool,
 /// Whether this run added records; `stale` reports whether it also left loaded ones unused.
@@ -58,6 +60,33 @@ pub fn deinit(self: *Self) void {
     self.arena.deinit();
 
     self.* = undefined;
+}
+
+pub const Kind = enum { settled, demanded, planned };
+
+pub fn Result(comptime kind: Kind) type {
+    return switch (kind) {
+        .settled => Settled,
+        .demanded => Demanded,
+        .planned => Planned,
+    };
+}
+
+/// The record of `kind` for the body `identity` in the state `state`, which `lastState` returned for an earlier
+/// lookup of the same kind; the next put records under the same key.
+pub fn find(self: *Self, comptime kind: Kind, identity: [32]u8, state: []const u8) std.mem.Allocator.Error!?Result(kind) {
+    self.encoded.clearRetainingCapacity();
+
+    try self.encoded.appendSlice(self.arena.allocator(), &identity);
+    try self.encoded.appendSlice(self.arena.allocator(), state);
+    try self.digest(@tagName(kind));
+
+    return use(Result(kind), &@field(self, @tagName(kind)), self.key);
+}
+
+/// The state the last lookup encoded, without the body identity; valid until the next lookup.
+pub fn lastState(self: *const Self) []const u8 {
+    return self.encoded.items[@sizeOf(Digest)..self.state_end];
 }
 
 pub fn getSettled(self: *Self, summaries: *const Summaries, state: State) std.mem.Allocator.Error!?Settled {
@@ -168,6 +197,8 @@ fn encode(self: *Self, summaries: *const Summaries, state: State) std.mem.Alloca
 
 /// Sets `key` to the digest of the encoded state followed by `kind`.
 fn digest(self: *Self, kind: []const u8) std.mem.Allocator.Error!void {
+    self.state_end = self.encoded.items.len;
+
     try self.encoded.appendSlice(self.arena.allocator(), kind);
 
     Hash.hash(self.encoded.items, &self.key, .{});
@@ -227,6 +258,55 @@ fn int(self: *Self, comptime T: type, value: T) std.mem.Allocator.Error!void {
 
     std.mem.writeInt(T, &bytes, value, .little);
     try self.encoded.appendSlice(self.arena.allocator(), &bytes);
+}
+
+/// Writes a state `lastState` returned for a lookup of `kind` back into the summaries and growth copies of body `index`,
+/// so the body can be analyzed in it again; false when the bytes do not describe a state of this body.
+pub fn restore(comptime kind: Kind, state: []const u8, summaries: *Summaries, index: usize, callees: []const u32, normalized: *std.AutoHashMap(ir.ExprId, Level), renewed: *std.AutoHashMap(u64, Level)) std.mem.Allocator.Error!bool {
+    var reader: std.Io.Reader = .fixed(state);
+
+    return restoreFrom(kind, &reader, summaries, index, callees, normalized, renewed) catch |err| switch (err) {
+        error.OutOfMemory => error.OutOfMemory,
+        else => false,
+    };
+}
+
+fn restoreFrom(comptime kind: Kind, reader: *std.Io.Reader, summaries: *Summaries, index: usize, callees: []const u32, normalized: *std.AutoHashMap(ir.ExprId, Level), renewed: *std.AutoHashMap(u64, Level)) !bool {
+    if (try reader.takeInt(u32, .little) != index) return false;
+
+    try readLevels(reader, if (index < summaries.input.len) summaries.input[index] else &.{});
+
+    for (callees) |callee| try readLevels(reader, summaries.output[callee]);
+
+    try readEntries(ir.ExprId, reader, normalized);
+    try readEntries(u64, reader, renewed);
+
+    if (kind == .demanded) {
+        for (callees) |callee| try readLevels(reader, summaries.inputs[callee]);
+
+        try readLevels(reader, if (index < summaries.outputs.len) summaries.outputs[index] else &.{});
+    }
+
+    return reader.seek == reader.end;
+}
+
+fn readLevels(reader: *std.Io.Reader, values: []Level) !void {
+    if (try reader.takeInt(u32, .little) != values.len) return error.InvalidState;
+
+    const bytes = try reader.take((values.len + 3) / 4);
+
+    for (values, 0..) |*value, position| value.* = @bitCast(@as(u2, @truncate(bytes[position / 4] >> @intCast(position % 4 * 2))));
+}
+
+fn readEntries(comptime Key: type, reader: *std.Io.Reader, map: *std.AutoHashMap(Key, Level)) !void {
+    map.clearRetainingCapacity();
+
+    for (0..try reader.takeInt(u32, .little)) |_| {
+        const key = try reader.takeInt(if (Key == u64) u64 else u32, .little);
+        const level = try reader.takeByte();
+
+        try map.put(if (Key == u64) key else @fromBackingInt(key), @bitCast(std.math.cast(u2, level) orelse return error.InvalidState));
+    }
 }
 
 const magic = "zxc.uniqueness.memo.v4";
