@@ -1,11 +1,12 @@
 const std = @import("std");
 const signature = @import("signature.zig");
+const Scanning = @import("scanning.zig");
 
 pub const File = struct { path: []const u8, source: []const u8 };
 
 const Variants = std.ArrayList([]const u8);
-const Demands = std.StringArrayHashMapUnmanaged(Variants);
-const import_prefix = "@import(\"zxc_module_";
+const Demands = std.AutoArrayHashMapUnmanaged(u32, Variants);
+const Copies = std.AutoArrayHashMapUnmanaged(u32, void);
 
 pub const bridge_source = @embedFile("bridge.zig");
 
@@ -15,26 +16,44 @@ pub const bridge_source = @embedFile("bridge.zig");
 /// partition exports exactly the entries called from outside it. Inline functions expand in their caller's
 /// unit, as in a single-unit build, so a caller's scope receives a copy of every file it calls inline.
 pub fn plan(allocator: std.mem.Allocator, functions: []const File, top: []const File, count: u32) ![]File {
-    var scopes = Scopes{ .allocator = allocator, .stubs = try allocator.alloc(Demands, count + 1), .copies = try allocator.alloc(Copies, count + 1) };
+    var indices: std.StringHashMapUnmanaged(u32) = .empty;
+
+    try indices.ensureTotalCapacity(allocator, @intCast(functions.len));
+
+    for (functions, 0..) |function, index| indices.putAssumeCapacity(function.path, @intCast(index));
+
+    const partitions = try allocator.alloc(u32, functions.len);
+
+    for (functions, partitions) |function, *owner| owner.* = partition(function.path, count);
+
+    var scanning = try Scanning.run(allocator, functions, &indices);
+
+    defer scanning.deinit();
+
+    var scopes = Scopes{
+        .allocator = allocator,
+        .partitions = partitions,
+        .references = scanning.references,
+        .inline_names = scanning.inline_names,
+        .stubs = try allocator.alloc(Demands, count + 1),
+        .copies = try allocator.alloc(Copies, count + 1),
+    };
 
     @memset(scopes.stubs, .empty);
     @memset(scopes.copies, .empty);
 
-    for (functions) |function| try scopes.owners.put(allocator, function.path, .{ .partition = partition(function.path, count), .source = function.source });
+    for (partitions, scanning.references) |owner, references| try scopes.demand(owner, references);
+    for (top) |file| try scopes.demand(count, try Scanning.scan(allocator, file.source, &indices));
 
-    for (functions) |function| try scopes.demand(scopes.owners.get(function.path).?.partition, try scopes.references(function.path, function.source));
-    for (top) |file| try scopes.demand(count, try scan(allocator, file.source));
-
-    const owners = scopes.owners;
     var exports = scopes.exports;
     var files: std.ArrayList(File) = .empty;
 
     try files.append(allocator, .{ .path = "bridge.zig", .source = bridge_source });
 
-    for (functions) |function| try files.append(allocator, .{ .path = try directory(allocator, owners.get(function.path).?.partition, count, function.path), .source = function.source });
+    for (functions, partitions) |function, owner| try files.append(allocator, .{ .path = try directory(allocator, owner, count, function.path), .source = function.source });
 
     for (scopes.copies, 0..) |copies, index| {
-        for (copies.keys()) |callee| try files.append(allocator, .{ .path = try directory(allocator, @intCast(index), count, callee), .source = owners.get(callee).?.source });
+        for (copies.keys()) |callee| try files.append(allocator, .{ .path = try directory(allocator, @intCast(index), count, functions[callee].path), .source = functions[callee].source });
     }
 
     var signatures: std.StringHashMapUnmanaged([]const u8) = .empty;
@@ -43,9 +62,11 @@ pub fn plan(allocator: std.mem.Allocator, functions: []const File, top: []const 
         for (scope.keys(), scope.values()) |callee, variants| {
             if (scopes.copies[index].contains(callee)) continue;
 
+            const function = functions[callee];
+
             try files.append(allocator, .{
-                .path = try directory(allocator, @intCast(index), count, callee),
-                .source = try stub(allocator, &signatures, callee, owners.get(callee).?.source, variants.items),
+                .path = try directory(allocator, @intCast(index), count, function.path),
+                .source = try stub(allocator, &signatures, function.path, function.source, variants.items),
             });
         }
     }
@@ -58,12 +79,13 @@ pub fn plan(allocator: std.mem.Allocator, functions: []const File, top: []const 
         try root.writer.writeAll("const bridge = @import(\"zxc_bridge\");\n\ncomptime {\n");
     }
 
-    exports.sort(SortByName{ .keys = exports.keys() });
+    exports.sort(SortByName{ .keys = exports.keys(), .functions = functions });
 
     for (exports.keys(), exports.values()) |callee, variants| {
-        const writer = &roots[owners.get(callee).?.partition].writer;
+        const writer = &roots[partitions[callee]].writer;
+        const name = functions[callee].path;
 
-        for (variants.items) |variant| try writer.print("    bridge.exportAs(@import(\"{s}\").{s}, \"{s}\");\n", .{ callee, variant, try symbol(allocator, callee, variant) });
+        for (variants.items) |variant| try writer.print("    bridge.exportAs(@import(\"{s}\").{s}, \"{s}\");\n", .{ name, variant, try symbol(allocator, name, variant) });
     }
 
     for (roots, 0..) |*root, index| {
@@ -88,47 +110,25 @@ fn symbol(allocator: std.mem.Allocator, callee: []const u8, variant: []const u8)
     return std.fmt.allocPrint(allocator, "{s}_{s}", .{ callee[0 .. callee.len - ".zig".len], variant });
 }
 
-const Copies = std.StringArrayHashMapUnmanaged(void);
-
+/// Functions are referred to by their index in the planned function list.
 const Scopes = struct {
     allocator: std.mem.Allocator,
-    owners: std.StringHashMapUnmanaged(struct { partition: u32, source: []const u8 }) = .empty,
+    partitions: []const u32,
+    references: []const []const Scanning.Reference,
+    inline_names: []const []const []const u8,
     stubs: []Demands,
     copies: []Copies,
     exports: Demands = .empty,
-    inline_variants: std.StringHashMapUnmanaged([]const []const u8) = .empty,
-    scanned: std.StringHashMapUnmanaged([]const Reference) = .empty,
-
-    /// The calls of a function file, scanned once however many scopes receive an inline copy of it.
-    fn references(self: *Scopes, name: []const u8, source: []const u8) ![]const Reference {
-        const entry = try self.scanned.getOrPut(self.allocator, name);
-
-        if (!entry.found_existing) entry.value_ptr.* = try scan(self.allocator, source);
-
-        return entry.value_ptr.*;
-    }
-
-    fn inlined(self: *Scopes, callee: []const u8, source: []const u8, variant: []const u8) !bool {
-        const entry = try self.inline_variants.getOrPut(self.allocator, callee);
-
-        if (!entry.found_existing) entry.value_ptr.* = try signature.inlineNames(self.allocator, source);
-
-        for (entry.value_ptr.*) |name| if (std.mem.eql(u8, name, variant)) return true;
-
-        return false;
-    }
 
     /// Records every call from `scope` into a function owned by another scope.
-    fn demand(self: *Scopes, scope: u32, calls: []const Reference) !void {
+    fn demand(self: *Scopes, scope: u32, calls: []const Scanning.Reference) !void {
         for (calls) |call| {
-            const owner = self.owners.get(call.callee) orelse return error.MissingFunctionFile;
+            if (self.partitions[call.callee] == scope) continue;
 
-            if (owner.partition == scope) continue;
-
-            if (try self.inlined(call.callee, owner.source, call.variant)) {
+            if (inlined(self.inline_names[call.callee], call.variant)) {
                 if ((try self.copies[scope].getOrPut(self.allocator, call.callee)).found_existing) continue;
 
-                try self.demand(scope, try self.references(call.callee, owner.source));
+                try self.demand(scope, self.references[call.callee]);
 
                 continue;
             }
@@ -139,36 +139,13 @@ const Scopes = struct {
     }
 };
 
-/// One reference `@import("callee").variant` in generated source.
-const Reference = struct { callee: []const u8, variant: []const u8 };
+fn inlined(names: []const []const u8, variant: []const u8) bool {
+    for (names) |name| if (std.mem.eql(u8, name, variant)) return true;
 
-fn scan(allocator: std.mem.Allocator, source: []const u8) ![]const Reference {
-    var result: std.ArrayList(Reference) = .empty;
-    var cursor: usize = 0;
-
-    while (@import("search.zig").find(source, cursor, import_prefix)) |at| {
-        const name_start = at + "@import(\"".len;
-        const quote = std.mem.indexOfScalarPos(u8, source, name_start, '"') orelse return error.UnterminatedImport;
-        var member = quote + 1;
-
-        while (member < source.len and source[member] == ')') member += 1;
-
-        if (member >= source.len or source[member] != '.') return error.UnsupportedFunctionReference;
-
-        const variant_start = member + 1;
-        var variant_end = variant_start;
-
-        while (variant_end < source.len and (std.ascii.isAlphanumeric(source[variant_end]) or source[variant_end] == '_')) variant_end += 1;
-
-        cursor = variant_end;
-
-        try result.append(allocator, .{ .callee = source[name_start..quote], .variant = source[variant_start..variant_end] });
-    }
-
-    return result.items;
+    return false;
 }
 
-fn add(allocator: std.mem.Allocator, demands: *Demands, callee: []const u8, variant: []const u8) !void {
+fn add(allocator: std.mem.Allocator, demands: *Demands, callee: u32, variant: []const u8) !void {
     const entry = try demands.getOrPut(allocator, callee);
 
     if (!entry.found_existing) entry.value_ptr.* = .empty;
@@ -201,8 +178,9 @@ fn stub(allocator: std.mem.Allocator, signatures: *std.StringHashMapUnmanaged([]
 }
 
 const SortByName = struct {
-    keys: []const []const u8,
+    keys: []const u32,
+    functions: []const File,
     pub fn lessThan(self: SortByName, left: usize, right: usize) bool {
-        return std.mem.lessThan(u8, self.keys[left], self.keys[right]);
+        return std.mem.lessThan(u8, self.functions[self.keys[left]].path, self.functions[self.keys[right]].path);
     }
 };

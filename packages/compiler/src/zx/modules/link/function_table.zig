@@ -24,12 +24,18 @@ pub fn hasPrefix(table: ir.FunctionTable, prefix: ir.FunctionTable) bool {
     if (!table.validStructure() or !prefix.validStructure() or table.count() < prefix.count()) return false;
 
     inline for (@typeInfo(ir.FunctionTable).@"struct".field_names) |name| {
-        const values = @field(table, name);
-        const expected = @field(prefix, name);
+        if (!sameColumn(@field(table, name), @field(prefix, name))) return false;
+    }
 
-        for (values[0..expected.len], expected) |actual, previous| {
-            if (!std.meta.eql(actual, previous)) return false;
-        }
+    return true;
+}
+
+/// A table that extends another in place shares its columns, which settles the prefix without comparing rows.
+fn sameColumn(values: anytype, expected: @TypeOf(values)) bool {
+    if (values.ptr == expected.ptr) return true;
+
+    for (values[0..expected.len], expected) |actual, previous| {
+        if (!std.meta.eql(actual, previous)) return false;
     }
 
     return true;
