@@ -39,26 +39,27 @@ fn mark(needed: []bool, expressions: ir.ExpressionTable, contracts: ir.ContractT
     for (contracts.expressions) |expressions_table| mark(needed, expressions_table.*, .{});
 }
 
+/// The names of the functions a body calls, each once, in name order.
 pub fn imports(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, contracts: ir.ContractTable, function_names: []const []const u8) std.mem.Allocator.Error![]const []const u8 {
-    const used = try allocator.alloc(bool, function_names.len);
-
-    @memset(used, false);
-    mark(used, expressions, contracts);
-
     var seen: std.StringHashMapUnmanaged(void) = .empty;
     var output: std.ArrayList([]const u8) = .empty;
 
-    for (used, function_names) |required, name| {
-        if (!required) continue;
-
-        const entry = try seen.getOrPut(allocator, name);
-
-        if (!entry.found_existing) try output.append(allocator, name);
-    }
+    try called(allocator, &seen, &output, expressions, contracts, function_names);
 
     std.mem.sort([]const u8, output.items, {}, lessThan);
 
     return output.toOwnedSlice(allocator);
+}
+
+fn called(allocator: std.mem.Allocator, seen: *std.StringHashMapUnmanaged(void), output: *std.ArrayList([]const u8), expressions: ir.ExpressionTable, contracts: ir.ContractTable, function_names: []const []const u8) std.mem.Allocator.Error!void {
+    for (0..expressions.count()) |expression_index| {
+        const function = expressions.callee(expression_index) orelse continue;
+        const name = function_names[@backingInt(function)];
+
+        if (!(try seen.getOrPut(allocator, name)).found_existing) try output.append(allocator, name);
+    }
+
+    for (contracts.expressions) |expressions_table| try called(allocator, seen, output, expressions_table.*, .{}, function_names);
 }
 
 fn lessThan(_: void, left: []const u8, right: []const u8) bool {
