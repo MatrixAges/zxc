@@ -34,7 +34,7 @@ pub fn build(b: *std.Build) void {
     const identity = b.createModule(.{ .root_source_file = b.path("src/host/identity.zig"), .target = target, .optimize = optimize });
 
     // The identity changes with every compiler source; with a separate host object only the entry unit embeds it.
-    identity.addOptions("cache_identity_embedded", if (partitions == 0) cache_identity else b.addOptions());
+    identity.addOptions("cache_identity_embedded", if (partitions == 0) cache_identity.options else b.addOptions());
     host.addImport("cache_identity", identity);
 
     const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");

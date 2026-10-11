@@ -3,7 +3,7 @@ const std = @import("std");
 pub const Inputs = struct {
     host: *std.Build.Module,
     yaml: *std.Build.Step.Compile,
-    cache_identity: *std.Build.Step.Options,
+    cache_identity: @import("cache_identity.zig").Identity,
     /// The module carrying the generated partition objects, or null when generated code is one unit.
     partitions: ?*std.Build.Module,
     /// The same partitions from Zig's own backend, when the compiler package offers them for this build.
@@ -67,7 +67,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     const start = b.createModule(.{ .root_source_file = b.path("src/host/start.zig"), .target = target, .optimize = optimize, .link_libc = true });
 
-    start.addOptions("cache_identity", inputs.cache_identity);
+    // The platform link defines the identity in an object of its own, so the entry unit stays cached across edits.
+    start.addOptions("cache_identity", if (system_link.available(b, target)) b.addOptions() else inputs.cache_identity.options);
 
     const entry = b.addLibrary(.{ .name = "zxc_start", .linkage = .static, .root_module = start });
     var linked: std.ArrayList(*std.Build.Step.Compile) = .empty;
@@ -85,7 +86,7 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
 
     linked.append(b.allocator, inputs.yaml) catch @panic("OOM");
 
-    if (system_link.available(b, target)) return .{ .file = system_link.link(b, target, entry, linked.items, self_hosted) };
+    if (system_link.available(b, target)) return .{ .file = system_link.link(b, target, entry, linked.items, inputs.cache_identity.digest, self_hosted) };
 
     start.addObject(host);
     start.linkLibrary(inputs.yaml);

@@ -1,10 +1,13 @@
 const std = @import("std");
 
-pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, compiler: *std.Build.Dependency) *std.Build.Step.Options {
+/// The digest, and the options module that embeds it in a Zig unit.
+pub const Identity = struct { digest: [32]u8, options: *std.Build.Step.Options };
+
+pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, compiler: *std.Build.Dependency) Identity {
     return generate(b, target, optimize, compiler) catch @panic("cannot fingerprint compiler sources");
 }
 
-fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, compiler: *std.Build.Dependency) !*std.Build.Step.Options {
+fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, compiler: *std.Build.Dependency) !Identity {
     var hash = std.crypto.hash.sha2.Sha256.init(.{});
 
     field(&hash, "zxc.semantic.cache.v1");
@@ -45,7 +48,7 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.built
 
     options.addOption([32]u8, "digest", digest);
 
-    return options;
+    return .{ .digest = digest, .options = options };
 }
 
 fn directory(b: *std.Build, hash: *std.crypto.hash.sha2.Sha256, name: []const u8, path: []const u8) !void {
