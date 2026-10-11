@@ -99,16 +99,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     units[count] = if (program.type_only) null else try prepare(temporary, .{ .symbols = program.symbols, .expressions = program.expressions, .input_type = program.input_type, .output_type = program.output_type, .input = &.{}, .function = null, .normalized = undefined, .renewed = undefined }, program.body.block());
 
-    if (memo.persistent) {
-        const shared = Identity.program(program, basis);
-
-        for (units, 0..) |entry, index| {
-            const unit = entry orelse continue;
-            const block = if (index < count) program.functions.at(index).body.block() else program.body.block();
-
-            unit.identity = Identity.body(shared, unit.unit.symbols, unit.unit.expressions, block, unit.unit.input_type, unit.unit.output_type);
-        }
-    }
+    if (memo.persistent) try identify(temporary, Identity.program(program, basis), units);
 
     for (units, 0..) |entry, caller| {
         const unit = entry orelse continue;
@@ -343,6 +334,40 @@ fn prepare(allocator: std.mem.Allocator, unit: Function.Unit, body: ir.Block) st
     result.unit.renewed = &result.renewed;
 
     return result;
+}
+
+/// Gives every body its content identity; bodies hash independently, so all cores share the work.
+fn identify(allocator: std.mem.Allocator, shared: [32]u8, units: []const ?*Unit) std.mem.Allocator.Error!void {
+    const Hashing = struct {
+        shared: [32]u8,
+        units: []const ?*Unit,
+        next: std.atomic.Value(usize) = .init(0),
+
+        fn run(work: *@This()) void {
+            while (true) {
+                const index = work.next.fetchAdd(1, .monotonic);
+
+                if (index >= work.units.len) return;
+
+                const unit = work.units[index] orelse continue;
+
+                unit.identity = Identity.body(work.shared, unit.unit.symbols, unit.unit.expressions, unit.body, unit.unit.input_type, unit.unit.output_type);
+            }
+        }
+    };
+
+    var work = Hashing{ .shared = shared, .units = units };
+    const threads = try allocator.alloc(std.Thread, @min(std.Thread.getCpuCount() catch 1, units.len) -| 1);
+    var started: usize = 0;
+
+    for (threads) |*thread| {
+        thread.* = std.Thread.spawn(.{}, Hashing.run, .{&work}) catch break;
+        started += 1;
+    }
+
+    work.run();
+
+    for (threads[0..started]) |thread| thread.join();
 }
 
 fn copyRenewals(allocator: std.mem.Allocator, renewals: []const Renewal) std.mem.Allocator.Error![]const Renewal {

@@ -187,7 +187,17 @@ fn entryKey(comptime Key: type, key: Key) u64 {
 fn levels(hash: *Hash, values: []const Level) void {
     int(hash, values.len);
 
-    for (values) |value| hash.update(&.{@as(u8, @as(u2, @bitCast(value)))});
+    var buffer: [256]u8 = undefined;
+    var rest = values;
+
+    while (rest.len != 0) {
+        const chunk = rest[0..@min(rest.len, buffer.len)];
+
+        for (chunk, buffer[0..chunk.len]) |value, *byte| byte.* = @as(u2, @bitCast(value));
+
+        hash.update(buffer[0..chunk.len]);
+        rest = rest[chunk.len..];
+    }
 }
 
 fn int(hash: *Hash, value: u64) void {
