@@ -22,7 +22,7 @@ pub fn build(b: *std.Build) void {
     b.getInstallStep().dependOn(&dsl_example.step);
     dsl_step.dependOn(&run_dsl_example.step);
 
-    const partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects (default 32 in Debug, 0 = one unit)") orelse @as(u32, if (optimize == .debug) 32 else 0);
+    const partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects (default 64 in Debug, 0 = one unit)") orelse @as(u32, if (optimize == .debug) 64 else 0);
     const rx_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
 
     const rx_tests = b.addTest(.{
