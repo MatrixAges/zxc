@@ -17,13 +17,13 @@ pub fn emitLibrary(allocator: std.mem.Allocator, result: *const @import("../libr
 }
 
 pub fn emitLibraryCached(allocator: std.mem.Allocator, result: *const @import("../library/root.zig").Result, cache: ?*GenerationCache) (library.Error || error{ InvalidIr, UnverifiedContracts })!LibraryBundle {
-    try validate(allocator, result.program);
+    try trusted(allocator, result.program);
 
     return library.createCached(allocator, result, cache);
 }
 
 pub fn emitLibraryFilesCached(allocator: std.mem.Allocator, result: *const @import("../library/root.zig").Result, cache: ?*GenerationCache) (library.Error || error{ InvalidIr, UnverifiedContracts })!LibraryBundle {
-    try validate(allocator, result.program);
+    try trusted(allocator, result.program);
 
     return library.createFilesCached(allocator, result, cache);
 }
@@ -34,7 +34,7 @@ pub fn emitModules(allocator: std.mem.Allocator, analysis: *const @import("front
 
 pub fn emitModulesCached(allocator: std.mem.Allocator, analysis: *const @import("frontend").AnalysisResult, cache: ?*GenerationCache) (modules.Error || error{ InvalidIr, UnverifiedContracts })!ModuleBundle {
     if (analysis.value != .ir) return error.InvalidAnalysis;
-    try validate(allocator, analysis.value.ir);
+    try trusted(allocator, analysis.value.ir);
 
     return modules.createCached(allocator, analysis, cache);
 }
@@ -57,6 +57,18 @@ pub fn emitBundle(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem
 
 fn validate(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts })!void {
     if (try @import("frontend").validateIr(allocator, program) != null) return error.InvalidIr;
+
+    return verified(program);
+}
+
+/// Libraries and analysis results were validated where they entered the process, so only debug builds re-check their IR.
+fn trusted(allocator: std.mem.Allocator, program: zx.ir.Program) (std.mem.Allocator.Error || error{ InvalidIr, UnverifiedContracts })!void {
+    if (@import("frontend").checks_internal_ir) return validate(allocator, program);
+
+    return verified(program);
+}
+
+fn verified(program: zx.ir.Program) error{UnverifiedContracts}!void {
     if (program.contracts.count() != 0) return error.UnverifiedContracts;
 
     for (0..program.functions.count()) |function_row| {

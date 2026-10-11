@@ -63,7 +63,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
         call.argument.types = types;
         call.argument.native_modules = native_modules;
 
-        if (try frontend.validateIrExtending(allocator, call.callee, options.verified_functions)) |issue| return invalid(allocator, options, issue);
+        if (frontend.checks_internal_ir) if (try frontend.validateIrExtending(allocator, call.callee, options.verified_functions)) |issue| return invalid(allocator, options, issue);
     }
 
     if (result) |*program| {
@@ -87,7 +87,7 @@ pub fn compile(allocator: std.mem.Allocator, options: Options) std.mem.Allocator
         return invalid(allocator, options, reporter.diagnostic.?);
     };
 
-    if (try frontend.validateIrExtending(allocator, program, options.verified_functions)) |issue| return invalid(allocator, options, issue);
+    if (frontend.checks_internal_ir) if (try frontend.validateIrExtending(allocator, program, options.verified_functions)) |issue| return invalid(allocator, options, issue);
 
     return .{ .contract = .{ .program = program, .store_initializers = lowered.store_initializers, .types = types, .nominal_types = options.nominal_types, .input_type = options.input_type, .output_type = options.output_type, .calls = calls.items, .result = result, .native_modules = native_modules } };
 }

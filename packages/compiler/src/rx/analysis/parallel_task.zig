@@ -99,7 +99,7 @@ pub fn compile(parent: *Flow, branch: @import("project/flow.zig").Task) Flow.Err
         return failure(parent, node, reporter.diagnostic.?);
     };
 
-    if (try frontend.validateIrExtending(allocator, program, parent.verified_functions)) |issue| return failure(parent, node, issue);
+    if (frontend.checks_internal_ir) if (try frontend.validateIrExtending(allocator, program, parent.verified_functions)) |issue| return failure(parent, node, issue);
 
     const argument = try @import("program/capture.zig").argument(allocator, parent.owner, parent.types, environment_type, environment, input_type, selected, .{ .start = node.location.offset, .end = node.location.offset });
     var out: ?[]const u8 = null;
