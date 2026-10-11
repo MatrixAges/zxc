@@ -60,7 +60,7 @@ pub fn lookup(self: *const Self, scratch: std.mem.Allocator, unit: generating.Un
         .entry, .types => try std.fmt.allocPrint(scratch, "{s}:{s}", .{ @tagName(unit), self.program.file_name }),
     };
 
-    const key = try fingerprint.createAnalyzed(scratch, self.program, self.names, unit, self.analysis.value);
+    const key = fingerprint.createAnalyzed(self.program, self.names, unit, self.analysis.value);
     const source = if (self.cache) |store| try store.get(name, key) else null;
 
     return .{ .name = name, .key = key, .source = source };

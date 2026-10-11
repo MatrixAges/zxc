@@ -12,8 +12,9 @@ value_functions: []const bool,
 pure_functions: []const bool,
 local_functions: []const bool,
 uniqueness: @import("genz").zx.function_analysis.Uniqueness.Result,
+task_functions: []const bool,
 state_plan: @import("genz").zx.state_value.Analysis,
-pub fn createAnalyzed(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit, facts: @import("genz").zx.modules.Analysis) std.mem.Allocator.Error![32]u8 {
+pub fn createAnalyzed(program: ir.Program, names: Names, unit: Unit, facts: @import("genz").zx.modules.Analysis) [32]u8 {
     var self = Self{
         .program = program,
         .names = names,
@@ -21,13 +22,14 @@ pub fn createAnalyzed(allocator: std.mem.Allocator, program: ir.Program, names: 
         .pure_functions = facts.value.pure,
         .local_functions = facts.value.local,
         .uniqueness = facts.uniqueness,
+        .task_functions = facts.tasks,
         .state_plan = facts.value.state,
     };
 
-    return self.finish(allocator, unit);
+    return self.finish(unit);
 }
 
-fn finish(self: *Self, allocator: std.mem.Allocator, unit: Unit) std.mem.Allocator.Error![32]u8 {
+fn finish(self: *Self, unit: Unit) [32]u8 {
     const program = self.program;
     const names = self.names;
     const value_functions = self.value_functions;
@@ -37,7 +39,7 @@ fn finish(self: *Self, allocator: std.mem.Allocator, unit: Unit) std.mem.Allocat
     self.bytes(@tagName(unit));
     self.write(program.version);
 
-    if (unit == .entry) self.write(try @import("genz").zx.tasks.required(allocator, program));
+    if (unit == .entry) self.write(@import("genz").zx.tasks.required(program, self.task_functions));
 
     switch (unit) {
         .function => |id| {

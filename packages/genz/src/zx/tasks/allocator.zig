@@ -3,27 +3,31 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 
-pub fn required(allocator: std.mem.Allocator, program: ir.Program) Lower.Error!bool {
-    const functions = try allocator.alloc(bool, program.functions.count());
-
-    defer allocator.free(functions);
+/// Which functions start tasks, themselves or through the functions they call.
+pub fn functions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]const bool {
+    const result = try allocator.alloc(bool, program.functions.count());
 
     for (0..program.functions.count()) |index| {
         const function = program.functions.at(index);
 
-        functions[index] = uses(function.expressions, functions[0..index]);
+        result[index] = uses(function.expressions, result[0..index]);
     }
 
-    return uses(program.expressions, functions);
+    return result;
 }
 
-fn uses(expressions: ir.ExpressionTable, functions: []const bool) bool {
+/// Whether the entry body needs the task allocator, given `functions` of the same program.
+pub fn required(program: ir.Program, task_functions: []const bool) bool {
+    return uses(program.expressions, task_functions);
+}
+
+fn uses(expressions: ir.ExpressionTable, task_functions: []const bool) bool {
     for (0..expressions.count()) |expression_index| {
         const expression = expressions.at(expression_index);
 
         switch (expression.value) {
             .task, .await_task, .cancel_task, .parallel => return true,
-            .call => |call| if (functions[@backingInt(call.function)]) return true,
+            .call => |call| if (task_functions[@backingInt(call.function)]) return true,
             else => {},
         }
     }

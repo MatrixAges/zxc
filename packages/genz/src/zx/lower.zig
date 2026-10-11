@@ -34,6 +34,7 @@ uses_io: bool = false,
 uses_process: bool = false,
 io_functions: []const bool = &.{},
 process_functions: []const bool = &.{},
+task_functions: []const bool,
 value_functions: []const bool = &.{},
 pure_functions: []const bool = &.{},
 local_functions: []const bool = &.{},
@@ -140,7 +141,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     try body.append(self.allocator, .{ .expression = try self.builtin(.setRuntimeSafety, &.{try self.builder.expression(.{ .boolean = true })}) });
 
     if (exported and self.uses_allocator) {
-        if (try @import("tasks/allocator.zig").required(self.allocator, self.program)) {
+        if (@import("tasks/allocator.zig").required(self.program, self.task_functions)) {
             self.uses_io = true;
 
             try @import("tasks/allocator.zig").initialize(self, &body);

@@ -6,6 +6,8 @@ const Self = @This();
 value: @import("value_call/analysis.zig").Summary,
 io: []const bool,
 process: []const bool,
+/// Functions that start tasks, themselves or through their callees.
+tasks: []const bool,
 uniqueness: Uniqueness.Result,
 basis: *const Uniqueness.Basis,
 /// Replaces the entry plan with one for `program`, an entry body over the same types and functions the facts were
@@ -66,6 +68,7 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
         },
         .io = try owned.dupe(bool, facts.io),
         .process = try owned.dupe(bool, facts.process),
+        .tasks = try owned.dupe(bool, facts.tasks),
         .uniqueness = try copyPlans(owned, facts.uniqueness),
         .basis = basis,
     };
@@ -81,6 +84,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
             .value = facts.value,
             .io = facts.io,
             .process = facts.process,
+            .tasks = try @import("tasks/allocator.zig").functions(allocator, program),
             .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported, basis, memo),
             .basis = basis,
         };
@@ -90,6 +94,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
         .value = try @import("value_call/analysis.zig").analyze(allocator, program),
         .io = try @import("io.zig").functions(allocator, program),
         .process = try @import("capabilities.zig").functions(allocator, program, .process),
+        .tasks = try @import("tasks/allocator.zig").functions(allocator, program),
         .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported, basis, memo),
         .basis = basis,
     };
