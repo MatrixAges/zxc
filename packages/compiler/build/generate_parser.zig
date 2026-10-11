@@ -5,6 +5,7 @@ const analysis = @import("rx_analysis");
 const collection = @import("source_collection.zig");
 const manifest = @import("generation_manifest.zig");
 const Resident = @import("resident/state.zig");
+const Files = @import("resident/files.zig");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
@@ -90,7 +91,7 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     for (project.packages, packages) |package, *target| target.* = .{ .specifier = package.specifier, .entry = package.entry };
 
     const frame = frameDigest(resident.digest, manifest_source, modules.items, interfaces);
-    const inputs_digest = fingerprint(frame, partitions, sources.items);
+    const inputs_digest = fingerprint(frame, partitions, sources.items, &resident.files);
 
     // An output directory reused across runs already holds the result when nothing it depends on changed.
     if (try current(io, allocator, output, inputs_digest)) return "";
@@ -138,7 +139,8 @@ fn frameDigest(generator: [32]u8, manifest_source: []const u8, modules: []const 
     return digest;
 }
 
-fn fingerprint(frame: [32]u8, partitions: u32, sources: []const compiler.project.Source) [32]u8 {
+/// The frame and every ZX source; sources enter by their digests, which `files` keeps for unchanged texts.
+fn fingerprint(frame: [32]u8, partitions: u32, sources: []const compiler.project.Source, files: *Files) [32]u8 {
     var hash = std.crypto.hash.Blake3.init(.{});
 
     hash.update(&frame);
@@ -146,7 +148,7 @@ fn fingerprint(frame: [32]u8, partitions: u32, sources: []const compiler.project
 
     for (sources) |source| {
         field(&hash, source.path);
-        field(&hash, source.source);
+        hash.update(&files.digest(source.path, source.source));
     }
 
     var digest: [32]u8 = undefined;

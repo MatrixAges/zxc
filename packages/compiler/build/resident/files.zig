@@ -13,7 +13,7 @@ gpa: std.mem.Allocator,
 entries: std.StringHashMapUnmanaged(Entry) = .empty,
 replaced: std.ArrayList([]u8) = .empty,
 
-const Entry = struct { inode: std.Io.File.INode, size: u64, mtime: i96, ctime: i96, read: i96, text: []u8 };
+const Entry = struct { inode: std.Io.File.INode, size: u64, mtime: i96, ctime: i96, read: i96, text: []u8, digest: ?[32]u8 = null };
 
 pub fn deinit(self: *Self) void {
     self.release();
@@ -62,6 +62,24 @@ pub fn read(self: *Self, io: std.Io, directory: std.Io.Dir, path: []const u8, ke
     found.value_ptr.* = .{ .inode = stat.inode, .size = stat.size, .mtime = stat.mtime.nanoseconds, .ctime = stat.ctime.nanoseconds, .read = started, .text = text };
 
     return text;
+}
+
+/// The Blake3 digest of `text`, remembered with the text `read` returned for `key` so an unchanged file is hashed once.
+pub fn digest(self: *Self, key: []const u8, text: []const u8) [32]u8 {
+    const entry = self.entries.getPtr(key) orelse return hash(text);
+
+    if (entry.text.ptr != text.ptr or entry.text.len != text.len) return hash(text);
+    if (entry.digest == null) entry.digest = hash(text);
+
+    return entry.digest.?;
+}
+
+fn hash(text: []const u8) [32]u8 {
+    var result: [32]u8 = undefined;
+
+    std.crypto.hash.Blake3.hash(text, &result, .{});
+
+    return result;
 }
 
 /// Frees the texts replaced since the last call.
