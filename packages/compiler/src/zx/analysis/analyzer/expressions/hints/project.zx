@@ -7,6 +7,7 @@ import row from "../../../semantic/types/row"
 import literal from "../../source/literal"
 import { NameKind } from "../../source/model"
 import readName from "../../source/name"
+import fieldFact from "./field_fact"
 import { Operation } from "./model"
 
 import type { Context, Frame } from "./model"
@@ -65,5 +66,12 @@ export type Output = u32?
             next: current => { current.index += 1 }
         })
 
-        return found.index < count ? table.field_types[first + found.index] : null
+        if (found.index == count) {
+            return null
+        }
+
+        const type_id = table.field_types[first + found.index]
+        const field = row({ tables: tables, id: type_id })
+
+        return in.frame.operation == Operation.Field && field.kind == Kind.Optional && fieldFact({ context: in.context, node: in.frame.node }) ? field.first : type_id
     }

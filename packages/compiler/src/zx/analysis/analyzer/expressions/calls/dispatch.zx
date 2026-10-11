@@ -40,7 +40,7 @@ export default function (in: Input): Output {
 
     const namespace = readName({ source: in.source, kind: NameKind.Expression, index: callee.first })
 
-    if (lookup({ local: in.state.local, name: namespace.text }) != null) {
+    if (lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: namespace.text }) != null) {
         return { state: in.state, route: Route.Method, index: 0 }
     }
 

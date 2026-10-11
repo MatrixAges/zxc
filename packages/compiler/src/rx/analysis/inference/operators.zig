@@ -11,13 +11,19 @@ pub fn infer(self: *Expression, expression: anytype, expected: ?Graph.Id) zx.Err
     if (operator == .logical_and or operator == .logical_or) {
         const boolean = try self.graph.scalar(.bool, span);
         _ = try self.infer(binary.left, boolean);
+        const facts = self.nonnull.items.len;
+
+        defer self.nonnull.shrinkRetainingCapacity(facts);
+
+        try @import("../condition.zig").assumeValue(binary.left, operator == .logical_and, self);
+
         _ = try self.infer(binary.right, boolean);
 
         return boolean;
     }
 
     if (operator == .coalesce) {
-        const left = try self.infer(binary.left, null);
+        const left = try self.declared(binary.left);
         const child = try self.graph.payload(left, .optional, span);
 
         if (expected) |hint| try self.graph.expect(child, hint, span);

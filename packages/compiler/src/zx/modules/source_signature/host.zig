@@ -22,7 +22,7 @@ pub fn analyzeNative(types: *Types, source: []const u8, program: zx.ast.Program)
 
     const input = try @import("../../analysis/analyzer/host/native/root.zig").convert(.header, arena.allocator(), program);
 
-    return run(types, &arena, source, borrow.pointer(@FieldType(Input, "syntax"), input.syntax), borrow.pointer(@typeInfo(@FieldType(Input, "native")).optional.child, input.native));
+    return run(types, &arena, source, borrow.pointer(@FieldType(Input, "syntax"), input.syntax), borrow.pointer(@typeInfo(@FieldType(Input, "native")).optional.child, input.native.types));
 }
 
 fn run(types: *Types, arena: *std.heap.ArenaAllocator, source: []const u8, syntax: @FieldType(Input, "syntax"), native: @FieldType(Input, "native")) zx.Error!Signature.Result {

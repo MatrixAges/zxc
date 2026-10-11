@@ -22,16 +22,17 @@ export default function (in: Input): Output {
         return { state: in.state, symbol: found }
     }
 
-    const value = reference({ state: in.state, symbol: in.source, span: in.span })
-    const type_id = value.state.local.expressions.types[integers.widen(value.value)]
+    const value = reference({ expressions: in.state.local.expressions, tables: { base: in.state.types.context.base, delta: in.state.types.delta }, facts: in.state.local.refinement.facts, type_id: in.state.local.symbols.types[integers.widen(in.source)], symbol: in.source, span: in.span })
+    const state = { ...in.state, local: { ...in.state.local, expressions: value.expressions } }
+    const type_id = state.local.expressions.types[integers.widen(value.value)]
     const target = row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: type_id })
 
     if (target.kind == Kind.Task) {
-        return { state: { ...value.state, diagnostic: { code: "ownership", message: "collection callbacks cannot repeatedly consume a captured task handle", start: in.span.start, end: in.span.end } }, symbol: in.source }
+        return { state: { ...state, diagnostic: { code: "ownership", message: "collection callbacks cannot repeatedly consume a captured task handle", start: in.span.start, end: in.span.end } }, symbol: in.source }
     }
 
-    const bound = symbol({ table: value.state.local.symbols, name: value.state.local.symbols.names[integers.widen(in.source)], type_id: type_id, span_start: in.span.start, span_end: in.span.end, ownership: Ownership.Borrowed })
-    const captures = link({ captures: value.state.local.captures, frame: in.frame, source: in.source, target: bound.id, value: value.value })
+    const bound = symbol({ table: state.local.symbols, name: state.local.symbols.names[integers.widen(in.source)], type_id: type_id, span_start: in.span.start, span_end: in.span.end, ownership: Ownership.Borrowed })
+    const captures = link({ captures: state.local.captures, frame: in.frame, source: in.source, target: bound.id, value: value.value })
 
-    return { state: { ...value.state, local: { ...value.state.local, symbols: bound.table, captures: captures } }, symbol: bound.id }
+    return { state: { ...state, local: { ...state.local, symbols: bound.table, captures: captures } }, symbol: bound.id }
 }

@@ -26,7 +26,7 @@ export type Output = u32?
 
         const root_name = readName({ source: source, kind: NameKind.Expression, index: field ? callee.first : in.callee }).text
 
-        if (lookup({ local: in.context.state.local, name: root_name }) != null) {
+        if (lookup({ active: in.context.state.local.active, names: in.context.state.local.symbols.names, scope_floor: in.context.state.local.scope_floor, name: root_name }) != null) {
             return null
         }
 

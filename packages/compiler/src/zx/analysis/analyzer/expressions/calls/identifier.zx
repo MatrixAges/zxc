@@ -13,7 +13,7 @@ export type Input = { state: Prepared, imports: FunctionImports, name: Name }
 export type Output = Dispatch
 
 export default function (in: Input): Output {
-    if (lookup({ local: in.state.local, name: in.name.text }) != null) {
+    if (lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: in.name.text }) != null) {
         return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "a local value is not a callable function", start: in.name.start, end: in.name.end } }, route: Route.Failed, index: 0 }
     }
 

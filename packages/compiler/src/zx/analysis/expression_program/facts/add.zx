@@ -1,34 +1,23 @@
-import add from "../../../ir/canonical/refinement/facts/add"
+import path from "./path"
 
 import type { Analysis } from "../model"
+import type { State } from "./model"
 
 export type Input = { analysis: Analysis, names: string[], bindings: string[] }
 
 export type Output = Analysis
 
 export default function (in: Input): Output {
-    return loop({ analysis: in.analysis, names: in.names, bindings: in.bindings, index: 0 }, {
-        while: current => current.analysis.state.diagnostic.message == "" && current.index < current.names.length,
+    const state = in.analysis.state
+    const initial: State = { expressions: state.local.expressions, facts: state.local.refinement.facts, diagnostic: state.diagnostic }
+
+    const resolved = loop({ state: initial, tables: { base: state.types.context.base, delta: state.types.delta }, symbol_types: state.local.symbols.types, symbols: state.local.expression_bindings, names: in.names, bindings: in.bindings, span: in.analysis.span, index: 0 }, {
+        while: current => current.state.diagnostic.message == "" && current.index < current.names.length,
         next: current => {
-            const missing: u32? = null
-            const symbol = loop({ name: current.names[current.index], bindings: current.bindings, symbols: current.analysis.state.local.expression_bindings, index: 0, symbol: missing }, {
-                while: candidate => candidate.symbol == null && candidate.index < candidate.bindings.length,
-                next: candidate => {
-                    if (candidate.name == candidate.bindings[candidate.index]) {
-                        candidate.symbol = candidate.symbols[candidate.index]
-                    }
-
-                    candidate.index += 1
-                }
-            }).symbol
-
-            if (symbol == null) {
-                current.analysis.state.diagnostic = { code: "contract", message: "branch fact requires a visible binding", start: current.analysis.span.start, end: current.analysis.span.end }
-            } else {
-                current.analysis.state.local.refinement.facts = add({ facts: current.analysis.state.local.refinement.facts, symbol: symbol })
-            }
-
+            current.state = path({ state: current.state, tables: current.tables, symbol_types: current.symbol_types, symbols: current.symbols, name: current.names[current.index], bindings: current.bindings, span: current.span })
             current.index += 1
         }
-    }).analysis
+    }).state
+
+    return { ...in.analysis, state: { ...state, local: { ...state.local, expressions: resolved.expressions, refinement: { ...state.local.refinement, facts: resolved.facts } }, diagnostic: resolved.diagnostic } }
 }

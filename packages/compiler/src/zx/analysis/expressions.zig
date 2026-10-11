@@ -64,11 +64,15 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
             for (0..target_type.object.len, 0..) |view_index, index| {
                 const item = target_type.object.at(view_index);
 
-                if (std.mem.eql(u8, item.name, field.name.text)) return self.append(.{
-                    .span = span,
-                    .type_id = item.type_id,
-                    .value = .{ .field = .{ .target = target, .index = @intCast(index) } },
-                });
+                if (std.mem.eql(u8, item.name, field.name.text)) {
+                    const selected = try self.append(.{
+                        .span = span,
+                        .type_id = item.type_id,
+                        .value = .{ .field = .{ .target = target, .index = @intCast(index) } },
+                    });
+
+                    return @import("refinement.zig").project(self, selected);
+                }
             }
 
             return self.reporter.fail(.name, field.name.span, "unknown object field");
@@ -89,7 +93,10 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
         },
         .binary => |binary| {
             if (binary.operator == .coalesce) {
-                const left = try self.expression(binary.left, null);
+                var left = try self.expression(binary.left, null);
+
+                if (self.node(left).value == .optional_value) left = self.node(left).value.optional_value;
+
                 const left_type = self.types.get(self.node(left).type_id);
 
                 if (left_type != .optional) return self.reporter.fail(.type_mismatch, span, "?? requires an optional left operand");
@@ -189,8 +196,12 @@ pub fn analyze(self: *Analyzer, expression: anytype, expected: ?ir.TypeId) zx.Er
 }
 
 pub fn knownType(self: *const Analyzer, value: anytype) ?ir.TypeId {
+    return probeType(self, value, false);
+}
+
+fn probeType(self: *const Analyzer, value: anytype, declared: bool) ?ir.TypeId {
     if (@import("expression_binding.zig").unit(self, value)) return Types.scalarId(.void);
-    if (@import("expression_binding.zig").lookup(self, value)) |binding| return @import("refinement.zig").typeOf(self, binding);
+    if (@import("expression_binding.zig").lookup(self, value)) |binding| return if (declared) self.symbols.at(@backingInt(binding)).type_id else @import("refinement.zig").typeOf(self, binding);
 
     return switch (syntax.value(value)) {
         .await_task => |child| blk: {
@@ -201,7 +212,7 @@ pub fn knownType(self: *const Analyzer, value: anytype) ?ir.TypeId {
 
             break :blk if (target == .task) target.task.result else null;
         },
-        .identifier => |name| if (self.lookup(name.text)) |id| @import("refinement.zig").typeOf(self, id) else null,
+        .identifier => |name| if (self.lookup(name.text)) |id| (if (declared) self.symbols.at(@backingInt(id)).type_id else @import("refinement.zig").typeOf(self, id)) else null,
         .field => |field| blk: {
             const target_value = syntax.value(field.target);
 
@@ -222,7 +233,11 @@ pub fn knownType(self: *const Analyzer, value: anytype) ?ir.TypeId {
                 for (0..value_type.object.len) |item_index| {
                     const item = value_type.object.at(item_index);
 
-                    if (std.mem.eql(u8, item.name, field.name.text)) break :blk item.type_id;
+                    if (std.mem.eql(u8, item.name, field.name.text)) {
+                        const field_type = self.types.get(item.type_id);
+
+                        break :blk if (!declared and field_type == .optional and @import("refinement/field_fact.zig").contains(self, value)) field_type.optional else item.type_id;
+                    }
                 }
             }
 
@@ -267,7 +282,7 @@ pub fn knownType(self: *const Analyzer, value: anytype) ?ir.TypeId {
         .unary => |unary| if (unary.operator == .not) Types.scalarId(.bool) else knownType(self, unary.operand),
         .binary => |binary| switch (binary.operator) {
             .coalesce => blk: {
-                const type_id = knownType(self, binary.left) orelse break :blk null;
+                const type_id = probeType(self, binary.left, true) orelse break :blk null;
                 const target = self.types.get(type_id);
 
                 break :blk if (target == .optional) target.optional else null;

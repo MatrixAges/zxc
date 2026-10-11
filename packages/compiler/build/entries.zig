@@ -31,6 +31,8 @@ pub const main = [_]Entry{
     .{ .path = "zx/ir/canonical/refinement_assume.rx", .name = "refinement_assume", .abi = "refinement_assume_abi" },
     .{ .path = "zx/ir/canonical/refinement_bind.rx", .name = "refinement_bind", .abi = "refinement_bind_abi" },
     .{ .path = "zx/ir/canonical/refinement_type_of.rx", .name = "refinement_type", .abi = "refinement_type_abi" },
+    .{ .path = "zx/ir/canonical/refinement/facts/contains_value.rx", .name = "refinement_contains", .abi = "refinement_contains_abi" },
+    .{ .path = "zx/ir/canonical/refinement/facts/add_value.rx", .name = "refinement_add_value", .abi = "refinement_add_value_abi" },
     .{ .path = "zx/ir/canonical/native_modules_check.rx", .name = "native_modules", .abi = "native_modules_abi" },
     .{ .path = "zx/modules/native/load.rx", .name = "native_interface", .abi = "native_interface_abi" },
     .{ .path = "zx/modules/artifact/roots.rx", .name = "artifact_roots", .abi = "artifact_roots_abi" },

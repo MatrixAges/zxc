@@ -25,11 +25,18 @@ export default function (in: Input): Output {
         return { ...work, state: result.state, value: result.value, frames: { ...work.frames, singles: work.frames.singles.pop()[0] } }
     }
 
-    if (in.action == Action.Unary || in.action == Action.Field) {
+    if (in.action == Action.Unary) {
         const node = work.source.tree.nodes[work.frames.singles[work.frames.singles.length - 1]]
-        const result = in.action == Action.Unary ? unary({ state: work.state, operand: work.value, negative: node.flag, span: node.span }) : field({ state: work.state, target: work.value, name: readName({ source: work.source, kind: NameKind.Expression, index: work.frames.singles[work.frames.singles.length - 1] }), span: node.span })
+        const result = unary({ state: work.state, operand: work.value, negative: node.flag, span: node.span })
 
         return { ...work, state: result.state, value: result.value, frames: { ...work.frames, singles: work.frames.singles.pop()[0] } }
+    }
+
+    if (in.action == Action.Field) {
+        const node_id = work.frames.singles[work.frames.singles.length - 1]
+        const result = field({ expressions: work.state.local.expressions, tables: { base: work.state.types.context.base, delta: work.state.types.delta }, facts: work.state.local.refinement.facts, diagnostic: work.state.diagnostic, target: work.value, name: readName({ source: work.source, kind: NameKind.Expression, index: node_id }), span: work.source.tree.nodes[node_id].span })
+
+        return { ...work, state: { ...work.state, local: { ...work.state.local, expressions: result.expressions }, diagnostic: result.diagnostic }, value: result.value, frames: { ...work.frames, singles: work.frames.singles.pop()[0] } }
     }
 
     const position = work.frames.indices.length - 1

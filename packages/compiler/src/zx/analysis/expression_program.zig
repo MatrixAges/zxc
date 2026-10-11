@@ -89,13 +89,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
         if (!linking) return reporter.fail(.contract, span, "external branch facts require expression linking");
 
         for (options.nonnull_bindings) |name| {
-            for (options.bindings, analyzer.expression_bindings.items) |binding, symbol| {
-                if (std.mem.eql(u8, name, binding.name)) {
-                    try analyzer.refinement.add(allocator, symbol);
-
-                    break;
-                }
-            } else return reporter.fail(.contract, span, "branch fact requires a visible binding");
+            try @import("expression_program/facts.zig").add(&analyzer, options, name, span);
         }
     }
 

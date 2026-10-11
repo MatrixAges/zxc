@@ -7,22 +7,29 @@ const Buffers = @import("refinement/buffers.zig");
 const Self = @This();
 const State = abi.Output(assumption);
 
-state: State = .{ .facts = .{ .nonnull = &.{}, .capture_errors = &.{}, .capture_results = &.{} }, .conditions = &.{}, .truths = &.{} },
+state: State = .{ .facts = .{ .nonnull = &.{}, .projected = &.{}, .capture_errors = &.{}, .capture_results = &.{} }, .conditions = &.{}, .truths = &.{} },
 
 buffers: Buffers = .{},
 pub const Mark = abi.Output(marking);
 
 pub fn mark(self: *const Self) Mark {
-    return abi.read(marking, abi.facts(abi.Input(marking), self.state.facts));
+    const Input = abi.Input(marking);
+    const Facts = if (@typeInfo(Input) == .pointer) std.meta.Child(Input) else Input;
+    const facts = abi.facts(Facts, self.state.facts);
+
+    return abi.read(marking, if (@typeInfo(Input) == .pointer) &facts else facts);
 }
 
 pub fn restore(self: *Self, saved: Mark) void {
     const generated = @import("generated_refinement_restore");
     const Input = abi.Input(generated);
+    const Saved = @FieldType(Input, "mark");
+    const Value = if (@typeInfo(Saved) == .pointer) std.meta.Child(Saved) else Saved;
+    const value: Value = .{ .nonnull = saved.nonnull, .captures = saved.captures };
 
     const output = abi.read(generated, .{
         .facts = abi.facts(@FieldType(Input, "facts"), self.state.facts),
-        .mark = .{ .nonnull = saved.nonnull, .captures = saved.captures },
+        .mark = if (@typeInfo(Saved) == .pointer) &value else value,
     });
 
     self.state.facts = abi.facts(@FieldType(State, "facts"), output);
@@ -67,6 +74,28 @@ pub fn assume(self: *Self, allocator: std.mem.Allocator, expressions: ir.Express
     };
 }
 
+pub fn addValue(self: *Self, allocator: std.mem.Allocator, expressions: ir.ExpressionTable, value: ir.ExprId) std.mem.Allocator.Error!void {
+    const generated = @import("generated_refinement_add_value");
+    const Input = abi.Input(generated);
+
+    try self.updateFacts(allocator, generated, .{
+        .facts = abi.facts(@FieldType(Input, "facts"), self.state.facts),
+        .expressions = abi.expressions(generated, &expressions),
+        .value = @backingInt(value),
+    });
+}
+
+pub fn containsValue(self: *const Self, expressions: ir.ExpressionTable, value: ir.ExprId) bool {
+    const generated = @import("generated_refinement_contains");
+    const Input = abi.Input(generated);
+
+    return abi.read(generated, .{
+        .facts = abi.facts(@FieldType(Input, "facts"), self.state.facts),
+        .expressions = abi.expressions(generated, &expressions),
+        .value = @backingInt(value),
+    });
+}
+
 pub fn typeOf(self: *const Self, types: ir.TypeTable, id: ir.TypeId, symbol: ir.SymbolId) ir.TypeId {
     const generated = @import("generated_refinement_type");
     const Input = std.meta.Child(generated.Input);
@@ -88,4 +117,12 @@ fn updateFacts(self: *Self, allocator: std.mem.Allocator, comptime generated: ty
     };
 
     self.state.facts = abi.facts(@FieldType(State, "facts"), output);
+}
+
+pub fn projectionCount(self: *const Self) usize {
+    return self.state.facts.nonnull.len;
+}
+
+pub fn projectionAt(self: *const Self, index: usize) ?ir.ExprId {
+    return if (self.state.facts.projected[index]) @fromBackingInt(self.state.facts.nonnull[index]) else null;
 }

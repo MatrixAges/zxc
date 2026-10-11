@@ -55,7 +55,7 @@ pub fn assume(allocator: std.mem.Allocator, owner: []const u8, attribute: rx.ast
     if (parsed.diagnostic() != null) return;
 
     switch (parsed) {
-        .native => |result| try visit(result.value.parsed.expression, present, context),
+        .native => |result| try assumeValue(result.value.parsed.expression, present, context),
         .indexed => |result| if (frontend.ExpressionInput.indexed_enabled) {
             var scratch = std.heap.ArenaAllocator.init(allocator);
 
@@ -63,22 +63,22 @@ pub fn assume(allocator: std.mem.Allocator, owner: []const u8, attribute: rx.ast
 
             const view = try result.view(scratch.allocator());
 
-            try visit(view.expression(result.output.result), present, context);
+            try assumeValue(view.expression(result.output.result), present, context);
         } else unreachable,
     }
 }
 
-fn visit(expression: anytype, present: bool, context: anytype) @import("zx").Error!void {
+pub fn assumeValue(expression: anytype, present: bool, context: anytype) @import("zx").Error!void {
     const value = syntax.value(expression);
 
-    if (value == .unary and value.unary.operator == .not) return visit(value.unary.operand, !present, context);
+    if (value == .unary and value.unary.operator == .not) return assumeValue(value.unary.operand, !present, context);
     if (value != .binary) return;
 
     const binary = value.binary;
 
     if ((binary.operator == .logical_and and present) or (binary.operator == .logical_or and !present)) {
-        try visit(binary.left, present, context);
-        try visit(binary.right, present, context);
+        try assumeValue(binary.left, present, context);
+        try assumeValue(binary.right, present, context);
 
         return;
     }
@@ -102,4 +102,50 @@ pub fn matches(expression: anytype, name: []const u8) bool {
     const separator = std.mem.lastIndexOfScalar(u8, name, '.') orelse return false;
 
     return std.mem.eql(u8, value.field.name.text, name[separator + 1 ..]) and matches(value.field.target, name[0..separator]);
+}
+
+pub fn rooted(expression: anytype, name: []const u8) bool {
+    if (matches(expression, name)) return true;
+
+    const value = syntax.value(expression);
+
+    return value == .field and rooted(value.field.target, name);
+}
+
+pub fn path(allocator: std.mem.Allocator, expression: anytype) std.mem.Allocator.Error!?[]const u8 {
+    const length = pathLength(expression) orelse return null;
+    const result = try allocator.alloc(u8, length);
+
+    writePath(expression, result);
+
+    return result;
+}
+
+fn pathLength(expression: anytype) ?usize {
+    const value = syntax.value(expression);
+
+    return switch (value) {
+        .identifier => |name| name.text.len,
+        .field => |field| (pathLength(field.target) orelse return null) + 1 + field.name.text.len,
+        else => null,
+    };
+}
+
+fn writePath(expression: anytype, output: []u8) void {
+    const value = syntax.value(expression);
+
+    if (value == .identifier) {
+        @memcpy(output, value.identifier.text);
+
+        return;
+    }
+
+    const name = value.field.name.text;
+    const separator = output.len - name.len - 1;
+
+    writePath(value.field.target, output[0..separator]);
+
+    output[separator] = '.';
+
+    @memcpy(output[separator + 1 ..], name);
 }

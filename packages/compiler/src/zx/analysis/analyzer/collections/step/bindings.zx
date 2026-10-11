@@ -10,7 +10,6 @@ import reference from "../building/reference"
 import symbol from "../building/symbol"
 
 import type { Span } from "../../../../frontend/lexer/token_model"
-import type { Result } from "../../expressions/model"
 import type { Prepared } from "../../model"
 import type { Callback, Bindings } from "../model"
 
@@ -20,17 +19,17 @@ export type Output = { state: Prepared, current: u32, source: u32, index: u32, p
 
 export default function (in: Input): Output {
     const current = reference({ state: in.state, symbol: in.parameter, span: in.span })
-    const source = field({ state: current.state, target: current.value, name: { text: "source", start: in.span.start, end: in.span.end }, span: in.span })
-    const index = field({ state: source.state, target: current.value, name: { text: "index", start: in.span.start, end: in.span.end }, span: in.span })
-    const previous = field({ state: index.state, target: current.value, name: { text: "result", start: in.span.start, end: in.span.end }, span: in.span })
-    const element_type = row({ tables: { base: previous.state.types.context.base, delta: previous.state.types.delta }, id: previous.state.local.expressions.types[integers.widen(source.value)] }).first
-    const element = appendIndex({ table: previous.state.local.expressions, metadata: { type_id: element_type, span_start: in.span.start, span_end: in.span.end }, target: source.value, index: index.value })
-    const item_symbol = symbol({ state: { ...previous.state, local: { ...previous.state.local, expressions: element.table } }, name: "$collection_item", type_id: element_type, ownership: Ownership.Copy, span: in.span })
+    const source = field({ expressions: current.state.local.expressions, tables: { base: current.state.types.context.base, delta: current.state.types.delta }, facts: current.state.local.refinement.facts, diagnostic: current.state.diagnostic, target: current.value, name: { text: "source", start: in.span.start, end: in.span.end }, span: in.span })
+    const index = field({ expressions: source.expressions, tables: { base: current.state.types.context.base, delta: current.state.types.delta }, facts: current.state.local.refinement.facts, diagnostic: source.diagnostic, target: current.value, name: { text: "index", start: in.span.start, end: in.span.end }, span: in.span })
+    const previous = field({ expressions: index.expressions, tables: { base: current.state.types.context.base, delta: current.state.types.delta }, facts: current.state.local.refinement.facts, diagnostic: index.diagnostic, target: current.value, name: { text: "result", start: in.span.start, end: in.span.end }, span: in.span })
+    const element_type = row({ tables: { base: current.state.types.context.base, delta: current.state.types.delta }, id: previous.expressions.types[integers.widen(source.value)] }).first
+    const element = appendIndex({ table: previous.expressions, metadata: { type_id: element_type, span_start: in.span.start, span_end: in.span.end }, target: source.value, index: index.value })
+    const item_symbol = symbol({ state: { ...current.state, local: { ...current.state.local, expressions: element.table }, diagnostic: previous.diagnostic }, name: "$collection_item", type_id: element_type, ownership: Ownership.Copy, span: in.span })
     const item = reference({ state: item_symbol.state, symbol: item_symbol.symbol, span: in.span })
     const initial: Bindings = { symbols: [item_symbol.symbol], values: [element.id], borrows: [true] }
-    const context: Result = in.callback.captures.targets.length == 0 ? { state: item.state, value: 0 } : field({ state: item.state, target: current.value, name: { text: "captures", start: in.span.start, end: in.span.end }, span: in.span })
+    const context = in.callback.captures.targets.length == 0 ? { expressions: item.state.local.expressions, diagnostic: item.state.diagnostic, value: 0 } : field({ expressions: item.state.local.expressions, tables: { base: item.state.types.context.base, delta: item.state.types.delta }, facts: item.state.local.refinement.facts, diagnostic: item.state.diagnostic, target: current.value, name: { text: "captures", start: in.span.start, end: in.span.end }, span: in.span })
 
-    const captured = loop({ state: context.state, context: context.value, targets: in.callback.captures.targets, bindings: initial, index: 0, span: in.span }, {
+    const captured = loop({ state: { ...item.state, local: { ...item.state.local, expressions: context.expressions }, diagnostic: context.diagnostic }, context: context.value, targets: in.callback.captures.targets, bindings: initial, index: 0, span: in.span }, {
         while: active => active.index < active.targets.length,
         next: active => {
             const target = active.targets[active.index]

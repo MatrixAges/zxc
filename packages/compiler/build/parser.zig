@@ -42,6 +42,10 @@ pub const Sources = struct {
     refinement_bind_abi: std.Build.LazyPath,
     refinement_type: std.Build.LazyPath,
     refinement_type_abi: std.Build.LazyPath,
+    refinement_contains: std.Build.LazyPath,
+    refinement_contains_abi: std.Build.LazyPath,
+    refinement_add_value: std.Build.LazyPath,
+    refinement_add_value_abi: std.Build.LazyPath,
     ownership: std.Build.LazyPath,
     ownership_abi: std.Build.LazyPath,
     ir_contracts: std.Build.LazyPath,
@@ -456,6 +460,28 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         },
     });
 
+    const refinement_contains = b.createModule(.{
+        .root_source_file = source.refinement_contains,
+        .strip = strip,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_contains_abi, .target = target, .optimize = optimize, .strip = strip }) },
+            .{ .name = "zxc_standard", .module = natives.standard },
+        },
+    });
+
+    const refinement_add_value = b.createModule(.{
+        .root_source_file = source.refinement_add_value,
+        .strip = strip,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zxc_abi", .module = b.createModule(.{ .root_source_file = source.refinement_add_value_abi, .target = target, .optimize = optimize, .strip = strip }) },
+            .{ .name = "zxc_standard", .module = natives.standard },
+        },
+    });
+
     const ir_task_call = b.createModule(.{
         .root_source_file = source.ir_task_call,
         .strip = strip,
@@ -493,6 +519,8 @@ pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
         .refinement_assume = refinement_assume,
         .refinement_bind = refinement_bind,
         .refinement_type = refinement_type,
+        .refinement_contains = refinement_contains,
+        .refinement_add_value = refinement_add_value,
         .ownership = ownership,
         .ir_task_call = ir_task_call,
         .ir_program_pure = ir_program_pure,

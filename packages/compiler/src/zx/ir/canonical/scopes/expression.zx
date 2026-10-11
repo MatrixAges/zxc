@@ -1,7 +1,7 @@
 import integers from "std:integer"
 import { ExpressionKind } from "core/expression_table/kinds"
 
-import contains from "../refinement/facts/contains"
+import contains from "../refinement/facts/contains_value"
 import children from "./children"
 import choice from "./choice"
 import selection from "./match"
@@ -39,7 +39,7 @@ export default function (in: Input): Output {
     if (kind == ExpressionKind.OptionalValue) {
         const child = integers.widen(expressions.optional_values[payload])
 
-        if (expressions.kinds[child] != ExpressionKind.Reference || !contains({ facts: in.state.refinement.facts, symbol: expressions.references[integers.widen(expressions.payloads[child])] })) {
+        if (!contains({ facts: in.state.refinement.facts, expressions: expressions, value: integers.narrow(child) })) {
             return { state: in.state, valid: false }
         }
     } else if (kind == ExpressionKind.Call) {

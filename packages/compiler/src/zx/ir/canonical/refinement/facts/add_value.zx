@@ -1,0 +1,27 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import add from "./add"
+import contains from "./contains_value"
+import samePath from "./same_path"
+
+import type { Expressions } from "core/expression_table/model"
+import type { Facts } from "./model"
+
+export type Input = { facts: Facts, expressions: Expressions, value: u32 }
+
+export type Output = Facts
+
+export default function (in: Input): Output {
+    const index = integers.widen(in.value)
+
+    if (in.expressions.kinds[index] == ExpressionKind.Reference) {
+        return add({ facts: in.facts, symbol: in.expressions.references[integers.widen(in.expressions.payloads[index])] })
+    }
+
+    if (!samePath({ expressions: in.expressions, left: in.value, right: in.value }) || contains(in)) {
+        return in.facts
+    }
+
+    return { ...in.facts, nonnull: in.facts.nonnull.push(in.value)[0], projected: in.facts.projected.push(true)[0] }
+}

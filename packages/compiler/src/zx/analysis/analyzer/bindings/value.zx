@@ -11,7 +11,7 @@ export type Input = { state: Prepared, name: Name }
 export type Output = { state: Prepared, symbol: u32 }
 
 export default function (in: Input): Output {
-    const local = lookup({ local: in.state.local, name: in.name.text })
+    const local = lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: in.name.text })
 
     if (local != null) {
         return { state: in.state, symbol: local }

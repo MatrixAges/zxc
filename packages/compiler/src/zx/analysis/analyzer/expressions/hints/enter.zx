@@ -5,12 +5,12 @@ import { Operation } from "./model"
 
 import type { Work, Frame } from "./model"
 
-export type Input = { work: Work, node: u64 }
+export type Input = { work: Work, node: u64, declared: bool }
 
 export type Output = Work
 
 export default function (in: Input): Output {
-    const known = direct({ context: in.work.context, node: in.node })
+    const known = direct({ context: in.work.context, node: in.node, declared: in.declared })
 
     if (known.handled) {
         return { ...in.work, result: known.type_id }
@@ -22,7 +22,11 @@ export default function (in: Input): Output {
     const child: Frame = { operation: Operation.Probe, node: node.first }
 
     if (node.kind == ExprKind.Field || node.kind == ExprKind.Index) {
-        const operation = node.kind == ExprKind.Field ? Operation.Field : Operation.Index
+        const operation = match {
+            node.kind == ExprKind.Index => Operation.Index,
+            in.declared => Operation.DeclaredField,
+            _ => Operation.Field,
+        }
 
         return { ...work, frames: work.frames.push({ operation: operation, node: in.node })[0].push(child)[0] }
     }
@@ -41,7 +45,7 @@ export default function (in: Input): Output {
 
     if (node.kind == ExprKind.Binary) {
         if (node.operator == Operator.Coalesce) {
-            return { ...work, frames: work.frames.push({ operation: Operation.Optional, node: in.node })[0].push(child)[0] }
+            return { ...work, frames: work.frames.push({ operation: Operation.Optional, node: in.node })[0].push({ operation: Operation.Declared, node: node.first })[0] }
         }
 
         const boolean = node.operator == Operator.Equal || node.operator == Operator.NotEqual || node.operator == Operator.Less || node.operator == Operator.LessEqual || node.operator == Operator.Greater || node.operator == Operator.GreaterEqual || node.operator == Operator.And || node.operator == Operator.Or

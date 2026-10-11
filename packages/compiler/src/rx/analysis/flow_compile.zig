@@ -170,9 +170,17 @@ fn call(self: *Self, loaded: Module.Loaded) Error!usize {
 }
 
 pub fn assumeNonNull(self: *Self, expression_value: anytype) zx.Error!void {
-    for (self.bindings.items) |binding| {
-        if (@import("condition.zig").matches(expression_value, binding.name)) try self.nonnull.append(self.allocator, binding.name);
-    }
+    const condition = @import("condition.zig");
+
+    const visible = for (self.bindings.items) |binding| {
+        if (condition.rooted(expression_value, binding.name)) break true;
+    } else false;
+
+    if (!visible) return;
+
+    const name = try condition.path(self.allocator, expression_value) orelse return;
+
+    try self.nonnull.append(self.allocator, name);
 }
 
 pub fn isNonNull(self: *const Self, name: []const u8) bool {

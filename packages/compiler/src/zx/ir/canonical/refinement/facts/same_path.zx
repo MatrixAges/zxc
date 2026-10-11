@@ -1,0 +1,54 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+
+import type { Expressions } from "core/expression_table/model"
+
+export type Input = { expressions: Expressions, left: u32, right: u32 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.expressions
+    const left = integers.widen(in.left)
+    const right = integers.widen(in.right)
+
+    if (left >= expressions.kinds.length || right >= expressions.kinds.length) {
+        return false
+    }
+
+    if (expressions.kinds[left] != ExpressionKind.Field || expressions.kinds[right] != ExpressionKind.Field) {
+        return false
+    }
+
+    return loop({ expressions: expressions, left: left, right: right, left_remaining: expressions.kinds.length, right_remaining: expressions.kinds.length, active: true, equal: false }, {
+        while: current => current.active && current.left_remaining != 0 && current.right_remaining != 0,
+        next: current => {
+            if (current.left >= current.expressions.kinds.length || current.right >= current.expressions.kinds.length) {
+                current.active = false
+            } else {
+                const left_kind = current.expressions.kinds[current.left]
+                const right_kind = current.expressions.kinds[current.right]
+                const left_payload = integers.widen(current.expressions.payloads[current.left])
+                const right_payload = integers.widen(current.expressions.payloads[current.right])
+
+                if (left_kind == ExpressionKind.OptionalValue) {
+                    current.left = integers.widen(current.expressions.optional_values[left_payload])
+                    current.left_remaining -= 1
+                } else if (right_kind == ExpressionKind.OptionalValue) {
+                    current.right = integers.widen(current.expressions.optional_values[right_payload])
+                    current.right_remaining -= 1
+                } else if (left_kind == ExpressionKind.Reference && right_kind == ExpressionKind.Reference) {
+                    current.equal = current.expressions.references[left_payload] == current.expressions.references[right_payload]
+                    current.active = false
+                } else if (left_kind == ExpressionKind.Field && right_kind == ExpressionKind.Field && current.expressions.projection_indices[left_payload] == current.expressions.projection_indices[right_payload]) {
+                    current.left = integers.widen(current.expressions.projection_targets[left_payload])
+                    current.right = integers.widen(current.expressions.projection_targets[right_payload])
+                    current.left_remaining -= 1
+                    current.right_remaining -= 1
+                } else {
+                    current.active = false
+                }
+            }
+        }
+    }).equal
+}

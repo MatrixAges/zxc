@@ -1,7 +1,7 @@
 import integers from "std:integer"
 import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
 
-import add from "./facts/add"
+import add from "./facts/add_value"
 import resolveCapture from "./facts/resolve_capture"
 
 import type { Expressions } from "core/expression_table/model"
@@ -23,8 +23,8 @@ export default function (in: Input): Output {
     const right = integers.widen(expressions.binary_right[in.payload])
 
     const reference = match {
-        expressions.kinds[left] == ExpressionKind.Reference && expressions.kinds[right] == ExpressionKind.None => left,
-        expressions.kinds[right] == ExpressionKind.Reference && expressions.kinds[left] == ExpressionKind.None => right,
+        expressions.kinds[right] == ExpressionKind.None => left,
+        expressions.kinds[left] == ExpressionKind.None => right,
         _ => expressions.kinds.length
     }
 
@@ -32,10 +32,13 @@ export default function (in: Input): Output {
         return in.facts
     }
 
-    const symbol = expressions.references[integers.widen(expressions.payloads[reference])]
     const present = operator == BinaryOperator.NotEqual ? in.truth : !in.truth
 
-    return present
-    ? add({ facts: in.facts, symbol: symbol })
-    : resolveCapture({ facts: in.facts, symbol: symbol })
+    if (present) {
+        return add({ facts: in.facts, expressions: expressions, value: integers.narrow(reference) })
+    }
+
+    return expressions.kinds[reference] == ExpressionKind.Reference
+    ? resolveCapture({ facts: in.facts, symbol: expressions.references[integers.widen(expressions.payloads[reference])] })
+    : in.facts
 }

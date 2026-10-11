@@ -4,25 +4,48 @@ const Self = @This();
 const Pair = struct { err: ir.SymbolId, result: ir.SymbolId };
 
 nonnull: std.ArrayList(ir.SymbolId) = .empty,
+projections: std.ArrayList(ir.ExprId) = .empty,
 captures: std.ArrayList(Pair) = .empty,
-pub const Mark = struct { nonnull: usize, captures: usize };
+pub const Mark = struct { nonnull: usize, projections: usize, captures: usize };
 
 pub fn mark(self: Self) Mark {
-    return .{ .nonnull = self.nonnull.items.len, .captures = self.captures.items.len };
+    return .{ .nonnull = self.nonnull.items.len, .projections = self.projections.items.len, .captures = self.captures.items.len };
 }
 
 pub fn restore(self: *Self, saved: Mark) void {
     self.nonnull.shrinkRetainingCapacity(saved.nonnull);
+    self.projections.shrinkRetainingCapacity(saved.projections);
     self.captures.shrinkRetainingCapacity(saved.captures);
 }
 
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     self.nonnull.deinit(allocator);
+    self.projections.deinit(allocator);
     self.captures.deinit(allocator);
 }
 
 pub fn contains(self: Self, symbol: ir.SymbolId) bool {
     return std.mem.indexOfScalar(ir.SymbolId, self.nonnull.items, symbol) != null;
+}
+
+pub fn containsValue(self: Self, values: ir.ExpressionTable, id: ir.ExprId) bool {
+    const value = values.get(id).value;
+
+    if (value == .reference) return self.contains(value.reference);
+
+    for (self.projections.items) |projection| {
+        if (@import("refinement/path.zig").same(values, id, projection)) return true;
+    }
+
+    return false;
+}
+
+pub fn addValue(self: *Self, allocator: std.mem.Allocator, values: ir.ExpressionTable, id: ir.ExprId) std.mem.Allocator.Error!void {
+    const value = values.get(id).value;
+
+    if (value == .reference) return self.add(allocator, value.reference);
+    if (!@import("refinement/path.zig").same(values, id, id) or self.containsValue(values, id)) return;
+    try self.projections.append(allocator, id);
 }
 
 pub fn bind(self: *Self, allocator: std.mem.Allocator, value: ir.ExpressionRow, symbols: []const ?ir.SymbolId) std.mem.Allocator.Error!void {
@@ -78,14 +101,15 @@ pub fn assume(self: *Self, allocator: std.mem.Allocator, values: ir.ExpressionTa
 
     const left = values.at(@backingInt(binary.left)).value;
     const right = values.at(@backingInt(binary.right)).value;
-    const symbol = if (left == .reference and right == .none) left.reference else if (right == .reference and left == .none) right.reference else return;
+    const id = if (right == .none) binary.left else if (left == .none) binary.right else return;
+    const selected = values.get(id).value;
     const present = if (binary.operator == .not_equal) truth else !truth;
 
     if (present) {
-        try self.add(allocator, symbol);
-    } else {
+        try self.addValue(allocator, values, id);
+    } else if (selected == .reference) {
         for (self.captures.items) |pair| {
-            if (pair.err == symbol) try self.add(allocator, pair.result);
+            if (pair.err == selected.reference) try self.add(allocator, pair.result);
         }
     }
 }

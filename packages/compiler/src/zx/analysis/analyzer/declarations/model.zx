@@ -2,12 +2,12 @@ import type { Table } from "core/type_table/model"
 import type { Bindings, Origin } from "core/type_table/nominal"
 import type { Program } from "../../../frontend/parser/syntax/model"
 import type { Cache } from "../../semantic/resolving/model"
-import type { NativeModule } from "../source/model"
+import type { Native } from "../../semantic/resolving/source/model"
 
 export type DeclarationInput = {
     bytes: u8[]
     syntax: Program
-    native: NativeModule?
+    native: Native?
         type_base: Table
     aliases: Cache
     nominal_base: Bindings

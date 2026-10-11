@@ -4,30 +4,33 @@ import project from "core/expression_table/append/projection"
 import append from "core/expression_table/append/value"
 import { Kind } from "core/type_table/model"
 
+import contains from "../../../../ir/canonical/refinement/facts/contains_value"
 import row from "../../../semantic/types/row"
 
+import type { Expressions } from "core/expression_table/model"
+import type { Tables } from "core/type_table/model"
 import type { Span } from "../../../../frontend/lexer/token_model"
+import type { Facts } from "../../../../ir/canonical/refinement/facts/model"
+import type { Diagnostic } from "../../../semantic/resolving/model"
 import type { Name } from "../../../semantic/resolving/source/model"
-import type { Prepared } from "../../model"
-import type { Result } from "../model"
 
-export type Input = { state: Prepared, target: u32, name: Name, span: Span }
+export type Input = { expressions: Expressions, tables: Tables, facts: Facts, diagnostic: Diagnostic, target: u32, name: Name, span: Span }
 
-export type Output = Result
+export type Output = { expressions: Expressions, diagnostic: Diagnostic, value: u32 }
 
 export default function (in: Input): Output {
-    const type_id = in.state.local.expressions.types[integers.widen(in.target)]
-    const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
+    const type_id = in.expressions.types[integers.widen(in.target)]
+    const tables = in.tables
     const target = row({ tables: tables, id: type_id })
 
     if ((target.kind == Kind.List || type_id == 10) && in.name.text == "length") {
-        const result = append({ table: in.state.local.expressions, metadata: { type_id: 5, span_start: in.span.start, span_end: in.span.end }, kind: ValueKind.Length, value: in.target })
+        const result = append({ table: in.expressions, metadata: { type_id: 5, span_start: in.span.start, span_end: in.span.end }, kind: ValueKind.Length, value: in.target })
 
-        return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+        return { expressions: result.table, diagnostic: in.diagnostic, value: result.id }
     }
 
     if (target.kind != Kind.Object) {
-        return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "field access requires an object", start: in.name.start, end: in.name.end } }, value: 0 }
+        return { expressions: in.expressions, diagnostic: { code: "type_mismatch", message: "field access requires an object", start: in.name.start, end: in.name.end }, value: 0 }
     }
 
     const table = target.delta ? tables.delta : tables.base
@@ -38,10 +41,16 @@ export default function (in: Input): Output {
     })
 
     if (found.index == found.count) {
-        return { state: { ...in.state, diagnostic: { code: "name", message: "unknown object field", start: in.name.start, end: in.name.end } }, value: 0 }
+        return { expressions: in.expressions, diagnostic: { code: "name", message: "unknown object field", start: in.name.start, end: in.name.end }, value: 0 }
     }
 
-    const result = project({ table: in.state.local.expressions, metadata: { type_id: table.field_types[found.first + found.index], span_start: in.span.start, span_end: in.span.end }, target: in.target, index: integers.narrow(found.index), tuple: false })
+    const result = project({ table: in.expressions, metadata: { type_id: table.field_types[found.first + found.index], span_start: in.span.start, span_end: in.span.end }, target: in.target, index: integers.narrow(found.index), tuple: false })
 
-    return { state: { ...in.state, local: { ...in.state.local, expressions: result.table } }, value: result.id }
+    const field = row({ tables: tables, id: table.field_types[found.first + found.index] })
+
+    const refined = field.kind == Kind.Optional && contains({ facts: in.facts, expressions: result.table, value: result.id })
+    ? append({ table: result.table, metadata: { type_id: field.first, span_start: in.span.start, span_end: in.span.end }, kind: ValueKind.OptionalValue, value: result.id })
+    : result
+
+    return { expressions: refined.table, diagnostic: in.diagnostic, value: refined.id }
 }

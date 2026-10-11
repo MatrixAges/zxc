@@ -1,22 +1,20 @@
 import integers from "std:integer"
 
-import type { Local } from "../local"
-
-export type Input = { local: Local, name: string }
+export type Input = { active: u32[], names: string[], scope_floor: u64, name: string }
 
 export type Output = u32?
 
     export default function (in: Input): Output {
         const missing: u32? = null
 
-        const result = loop({ local: in.local, name: in.name, index: in.local.active.length, found: missing }, {
-            while: current => current.found == null && current.index > current.local.scope_floor,
+        const result = loop({ active: in.active, names: in.names, scope_floor: in.scope_floor, name: in.name, index: in.active.length, found: missing }, {
+            while: current => current.found == null && current.index > current.scope_floor,
             next: current => {
                 current.index -= 1
 
-                const id = current.local.active[current.index]
+                const id = current.active[current.index]
 
-                if (current.local.symbols.names[integers.widen(id)] == current.name) {
+                if (current.names[integers.widen(id)] == current.name) {
                     current.found = id
                 }
             }

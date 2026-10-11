@@ -11,7 +11,7 @@ pub fn Output(comptime generated: type) type {
 }
 
 pub fn facts(comptime Target: type, source: anytype) Target {
-    return .{ .nonnull = source.nonnull, .capture_errors = source.capture_errors, .capture_results = source.capture_results };
+    return .{ .nonnull = source.nonnull, .projected = source.projected, .capture_errors = source.capture_errors, .capture_results = source.capture_results };
 }
 
 pub fn expressions(comptime generated: type, source: *const ir.ExpressionTable) @FieldType(Input(generated), "expressions") {

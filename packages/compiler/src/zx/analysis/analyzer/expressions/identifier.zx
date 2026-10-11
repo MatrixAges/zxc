@@ -1,3 +1,5 @@
+import integers from "std:integer"
+
 import value from "../bindings/value"
 import reference from "./reference"
 
@@ -16,5 +18,7 @@ export default function (in: Input): Output {
         return { state: resolved.state, value: 0 }
     }
 
-    return reference({ state: resolved.state, symbol: resolved.symbol, span: { start: in.name.start, end: in.name.end } })
+    const result = reference({ expressions: resolved.state.local.expressions, tables: { base: resolved.state.types.context.base, delta: resolved.state.types.delta }, facts: resolved.state.local.refinement.facts, type_id: resolved.state.local.symbols.types[integers.widen(resolved.symbol)], symbol: resolved.symbol, span: { start: in.name.start, end: in.name.end } })
+
+    return { state: { ...resolved.state, local: { ...resolved.state.local, expressions: result.expressions } }, value: result.value }
 }

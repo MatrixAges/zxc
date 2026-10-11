@@ -26,7 +26,7 @@ export default function (in: Input): Output {
     }
 
     const name = readName({ source: in.source, kind: NameKind.Expression, index: root })
-    const local = lookup({ local: in.local, name: name.text })
+    const local = lookup({ active: in.local.active, names: in.local.symbols.names, scope_floor: in.local.scope_floor, name: name.text })
     const missing: u32? = null
 
     const result = loop({ source: in.source, node: in.node, local: local, bindings: in.local.expression_bindings, names: in.local.symbols.names, units: in.local.expression_units, index: 0, symbol: missing, unit: false }, {

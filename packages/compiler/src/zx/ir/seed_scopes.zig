@@ -269,9 +269,7 @@ fn expression(self: *Self, id: ir.ExprId, depth: usize) std.mem.Allocator.Error!
             break :blk true;
         },
         .optional_value => |child| blk: {
-            const value = self.program.expression(child).value;
-
-            break :blk value == .reference and self.refinement.contains(value.reference) and try self.expression(child, depth + 1);
+            break :blk self.refinement.containsValue(self.program.expressions, child) and try self.expression(child, depth + 1);
         },
         .unary => |unary| self.expression(unary.operand, depth + 1),
         .binary => |binary| blk: {

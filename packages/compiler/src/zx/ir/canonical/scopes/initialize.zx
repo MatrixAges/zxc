@@ -13,7 +13,7 @@ export default function (in: Input): Output {
         return {
             state: {
                 activity: { active: [], declared: [], owners: [], changed_symbols: [], changed_values: [] },
-                refinement: { facts: { nonnull: [], capture_errors: [], capture_results: [] }, conditions: [], truths: [] },
+                refinement: { facts: { nonnull: [], projected: [], capture_errors: [], capture_results: [] }, conditions: [], truths: [] },
                 frames: { phases: [], a: [], b: [], c: [] }
             },
             valid: false
@@ -31,7 +31,7 @@ export default function (in: Input): Output {
                 changed_symbols: [],
                 changed_values: []
             },
-            refinement: { facts: { nonnull: [], capture_errors: [], capture_results: [] }, conditions: [], truths: [] },
+            refinement: { facts: { nonnull: [], projected: [], capture_errors: [], capture_results: [] }, conditions: [], truths: [] },
             frames: {
                 phases: root == null ? [] : [Phase.Block],
                 a: root == null ? [] : [integers.widen(root)],

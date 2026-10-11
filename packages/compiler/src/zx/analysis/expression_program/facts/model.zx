@@ -1,0 +1,5 @@
+import type { Expressions } from "core/expression_table/model"
+import type { Facts } from "../../../ir/canonical/refinement/facts/model"
+import type { Diagnostic } from "../../semantic/resolving/model"
+
+export type State = { expressions: Expressions, facts: Facts, diagnostic: Diagnostic }

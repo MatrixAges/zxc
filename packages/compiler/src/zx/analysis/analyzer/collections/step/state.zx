@@ -24,7 +24,7 @@ export default function (in: Input): Output {
         return object({ state: state, fields: { names: names, values: values }, span: in.span })
     }
 
-    const captures = field({ state: state, target: in.current, name: { text: "captures", start: in.span.start, end: in.span.end }, span: in.span })
+    const captures = field({ expressions: state.local.expressions, tables: { base: state.types.context.base, delta: state.types.delta }, facts: state.local.refinement.facts, diagnostic: state.diagnostic, target: in.current, name: { text: "captures", start: in.span.start, end: in.span.end }, span: in.span })
 
-    return object({ state: captures.state, fields: { names: names.push("captures")[0], values: values.push(captures.value)[0] }, span: in.span })
+    return object({ state: { ...state, local: { ...state.local, expressions: captures.expressions }, diagnostic: captures.diagnostic }, fields: { names: names.push("captures")[0], values: values.push(captures.value)[0] }, span: in.span })
 }

@@ -1,0 +1,75 @@
+import encoding from "std:encoding"
+import integers from "std:integer"
+
+import add from "../../../ir/canonical/refinement/facts/add"
+import addValue from "../../../ir/canonical/refinement/facts/add_value"
+import field from "../../analyzer/expressions/projections/field"
+import reference from "../../analyzer/expressions/reference"
+
+import type { Tables } from "core/type_table/model"
+import type { Span } from "../../../frontend/lexer/token_model"
+import type { State } from "./model"
+
+export type Input = { state: State, tables: Tables, symbol_types: u32[], symbols: u32[], name: string, bindings: string[], span: Span }
+
+export type Output = State
+
+export default function (in: Input): Output {
+    const bytes = encoding.encodeUtf8(in.name)
+    const missing: u32? = null
+
+    const binding = loop({ name: in.name, bytes: bytes, bindings: in.bindings, symbols: in.symbols, index: 0, symbol: missing, length: 0 }, {
+        while: current => current.index < current.bindings.length,
+        next: current => {
+            const name = current.bindings[current.index]
+            const length = name.length
+
+            if (length >= current.length && length <= current.bytes.length && encoding.sliceBytes(current.name, 0, length) == name && (length == current.bytes.length || current.bytes[length] == 46)) {
+                current.symbol = current.symbols[current.index]
+                current.length = length
+            }
+
+            current.index += 1
+        }
+    })
+
+    const symbol = binding.symbol
+
+    if (symbol == null) {
+        return { ...in.state, diagnostic: { code: "contract", message: "branch fact requires a visible binding", start: in.span.start, end: in.span.end } }
+    }
+
+    if (binding.length == bytes.length) {
+        const facts = add({ facts: in.state.facts, symbol: symbol })
+
+        return { ...in.state, facts: facts }
+    }
+
+    const root = reference({ expressions: in.state.expressions, tables: in.tables, facts: in.state.facts, type_id: in.symbol_types[integers.widen(symbol)], symbol: symbol, span: in.span })
+
+    const resolved = loop({ expressions: root.expressions, tables: in.tables, facts: in.state.facts, diagnostic: in.state.diagnostic, value: root.value, name: in.name, bytes: bytes, start: binding.length + 1, end: binding.length + 1, span: in.span }, {
+        while: current => current.diagnostic.message == "" && current.end <= current.bytes.length,
+        next: current => {
+            if (current.end == current.bytes.length || current.bytes[current.end] == 46) {
+                const selected = field({ expressions: current.expressions, tables: current.tables, facts: current.facts, diagnostic: current.diagnostic, target: current.value, name: { text: encoding.sliceBytes(current.name, current.start, current.end), start: current.span.start, end: current.span.end }, span: current.span })
+
+                current.expressions = selected.expressions
+                current.diagnostic = selected.diagnostic
+                current.value = selected.value
+                current.start = current.end + 1
+            }
+
+            current.end += 1
+        }
+    })
+
+    const state: State = { expressions: resolved.expressions, facts: in.state.facts, diagnostic: resolved.diagnostic }
+
+    if (state.diagnostic.message != "") {
+        return { ...state, diagnostic: { code: "contract", message: "branch fact requires a valid field path", start: in.span.start, end: in.span.end } }
+    }
+
+    const facts = addValue({ facts: state.facts, expressions: state.expressions, value: resolved.value })
+
+    return { ...state, facts: facts }
+}

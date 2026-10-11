@@ -1,5 +1,5 @@
 import integers from "std:integer"
-import { BinaryOperator } from "core/expression_table/kinds"
+import { BinaryOperator, ExpressionKind } from "core/expression_table/kinds"
 import { Kind } from "core/type_table/model"
 
 import assume from "../../../../ir/canonical/refinement/assume"
@@ -11,22 +11,25 @@ import type { Prepared } from "../../model"
 
 export type Input = { state: Prepared, operator: BinaryOperator, left: u32, span: Span }
 
-export type Output = { state: Prepared, expected: u32 }
+export type Output = { state: Prepared, expected: u32, left: u32 }
 
 export default function (in: Input): Output {
-    const type_id = in.state.local.expressions.types[integers.widen(in.left)]
+    const expressions = in.state.local.expressions
+    const index = integers.widen(in.left)
+    const left = in.operator == BinaryOperator.Coalesce && expressions.kinds[index] == ExpressionKind.OptionalValue ? expressions.optional_values[integers.widen(expressions.payloads[index])] : in.left
+    const type_id = expressions.types[integers.widen(left)]
 
     if (in.operator == BinaryOperator.Coalesce) {
         const target = row({ tables: { base: in.state.types.context.base, delta: in.state.types.delta }, id: type_id })
 
         if (target.kind != Kind.Optional) {
-            return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "?? requires an optional left operand", start: in.span.start, end: in.span.end } }, expected: type_id }
+            return { state: { ...in.state, diagnostic: { code: "type_mismatch", message: "?? requires an optional left operand", start: in.span.start, end: in.span.end } }, expected: type_id, left: left }
         }
 
-        return { state: in.state, expected: target.first }
+        return { state: in.state, expected: target.first, left: left }
     }
 
     const refinement = classify(in.operator).logical ? assume({ state: in.state.local.refinement, expressions: in.state.local.expressions, condition: integers.widen(in.left), truth: in.operator == BinaryOperator.LogicalAnd }) : in.state.local.refinement
 
-    return { state: { ...in.state, local: { ...in.state.local, refinement: refinement } }, expected: type_id }
+    return { state: { ...in.state, local: { ...in.state.local, refinement: refinement } }, expected: type_id, left: left }
 }

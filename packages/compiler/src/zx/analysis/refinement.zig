@@ -15,3 +15,12 @@ pub fn typeOf(self: *const Analyzer, symbol: ir.SymbolId) ir.TypeId {
 
     return self.refinement.typeOf(self.types.items.view(), id, symbol);
 }
+
+pub fn project(self: *Analyzer, id: ir.ExprId) zx.Error!ir.ExprId {
+    const expression = self.node(id);
+    const target = self.types.get(expression.type_id);
+
+    if (target != .optional or !self.refinement.containsValue(self.nodes.view(), id)) return id;
+
+    return self.append(.{ .span = expression.span, .type_id = target.optional, .value = .{ .optional_value = id } });
+}

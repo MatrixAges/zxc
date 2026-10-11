@@ -13,6 +13,7 @@ export default function (in: Input): Output {
 
     return {
         nonnull: in.facts.nonnull.push(in.symbol)[0],
+        projected: in.facts.projected.push(false)[0],
         capture_errors: in.facts.capture_errors,
         capture_results: in.facts.capture_results
     }

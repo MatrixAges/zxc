@@ -75,7 +75,19 @@ pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Gra
             const result = expected orelse try self.graph.add(.unknown, span);
 
             _ = try self.infer(branch.condition, try self.graph.scalar(.bool, span));
+
+            const facts = self.nonnull.items.len;
+
+            defer self.nonnull.shrinkRetainingCapacity(facts);
+
+            try @import("../condition.zig").assumeValue(branch.condition, true, self);
+
             _ = try self.infer(branch.yes, result);
+
+            self.nonnull.shrinkRetainingCapacity(facts);
+
+            try @import("../condition.zig").assumeValue(branch.condition, false, self);
+
             _ = try self.infer(branch.no, result);
 
             break :block result;
@@ -102,6 +114,28 @@ pub fn infer(self: *Self, expression: anytype, expected: ?Graph.Id) zx.Error!Gra
     if (expected) |target| try self.graph.expect(narrowed, target, span);
 
     return expected orelse narrowed;
+}
+
+pub fn declared(self: *Self, expression: anytype) zx.Error!Graph.Id {
+    const span = self.sourceSpan(expression.span);
+
+    if (try self.lookup(expression)) |binding| {
+        try self.graph.requireValue(binding, span);
+
+        return binding;
+    }
+
+    const node = syntax.value(expression);
+
+    if (node == .identifier and std.mem.eql(u8, node.identifier.text, "$in")) {
+        self.input_used = true;
+
+        return self.input;
+    }
+
+    if (node == .field) return self.graph.field(try self.infer(node.field.target, null), node.field.name.text, span);
+
+    return self.infer(expression, null);
 }
 
 pub fn payload(self: *Self, expected: ?Graph.Id) zx.Error!?Graph.Id {
@@ -161,17 +195,17 @@ fn lookup(self: *Self, expression: anytype) zx.Error!?Graph.Id {
 }
 
 pub fn assumeNonNull(self: *Self, expression: anytype) zx.Error!void {
-    const matches = @import("../condition.zig").matches;
+    const condition = @import("../condition.zig");
 
-    if (matches(expression, "$in")) {
-        try self.nonnull.append(self.graph.allocator, "$in");
+    const visible = condition.rooted(expression, "$in") or (for (self.bindings.items) |binding| {
+        if (condition.rooted(expression, binding.name)) break true;
+    } else false);
 
-        return;
-    }
+    if (!visible) return;
 
-    for (self.bindings.items) |binding| {
-        if (matches(expression, binding.name)) try self.nonnull.append(self.graph.allocator, binding.name);
-    }
+    const name = try condition.path(self.graph.allocator, expression) orelse return;
+
+    try self.nonnull.append(self.graph.allocator, name);
 }
 
 fn refined(self: *Self, expression: anytype, value: Graph.Id) zx.Error!Graph.Id {

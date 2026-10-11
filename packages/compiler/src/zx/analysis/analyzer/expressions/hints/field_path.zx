@@ -1,0 +1,73 @@
+import integers from "std:integer"
+import { ExpressionKind } from "core/expression_table/kinds"
+import { Kind } from "core/type_table/model"
+
+import { ExprKind } from "../../../../frontend/parser/expressions/state/model"
+import row from "../../../semantic/types/row"
+import lookup from "../../bindings/lookup"
+import { NameKind } from "../../source/model"
+import readName from "../../source/name"
+import injected from "../injected/lookup"
+
+import type { Context } from "./model"
+
+export type Input = { context: Context, node: u64, value: u64 }
+
+export type Output = bool
+
+export default function (in: Input): Output {
+    const expressions = in.context.state.local.expressions
+
+    const tables = { base: in.context.state.types.context.base, delta: in.context.state.types.delta }
+
+    const path = loop({ source: in.context.source, tables: tables, expressions: expressions, node: in.node, value: in.value, remaining: expressions.kinds.length, active: true, root: false }, {
+        while: current => current.active && current.remaining != 0,
+        next: current => {
+            const source = current.source
+            const node = source.tree.nodes[current.node]
+            const kind = current.expressions.kinds[current.value]
+            const payload = integers.widen(current.expressions.payloads[current.value])
+
+            if (kind == ExpressionKind.OptionalValue) {
+                current.value = integers.widen(current.expressions.optional_values[payload])
+            } else if (kind == ExpressionKind.Reference) {
+                current.root = true
+                current.active = false
+            } else if (kind == ExpressionKind.Field && node.kind == ExprKind.Field) {
+                const target = integers.widen(current.expressions.projection_targets[payload])
+                const tables = current.tables
+                const type_row = row({ tables: tables, id: current.expressions.types[target] })
+                const table = type_row.delta ? tables.delta : tables.base
+                const index = current.expressions.projection_indices[payload]
+                const name = readName({ source: source, kind: NameKind.Expression, index: current.node }).text
+
+                if (type_row.kind != Kind.Object || index >= type_row.second || table.field_names[integers.widen(type_row.first) + integers.widen(index)] != name) {
+                    current.active = false
+                } else {
+                    current.node = node.first
+                    current.value = target
+                }
+            } else {
+                current.active = false
+            }
+
+            current.remaining -= 1
+        }
+    })
+
+    if (!path.root) {
+        return false
+    }
+
+    const local = in.context.state.local
+    const source = in.context.source
+    const binding = injected({ local: local, source: source, node: path.node })
+
+    const symbol = match {
+        binding.symbol != null => binding.symbol,
+        source.tree.nodes[path.node].kind == ExprKind.Identifier => lookup({ active: local.active, names: local.symbols.names, scope_floor: local.scope_floor, name: readName({ source: source, kind: NameKind.Expression, index: path.node }).text }),
+        _ => null,
+    }
+
+    return symbol != null && symbol == expressions.references[integers.widen(expressions.payloads[path.value])]
+}

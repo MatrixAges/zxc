@@ -28,7 +28,7 @@ export default function (in: Input): Output {
             node: node.second,
             expected: result.expected,
             phase: Phase.Evaluate,
-            frames: { ...work.frames, actions: work.frames.actions.push(Action.BinaryRight)[0], binaries: work.frames.binaries.splice(position, 1, [{ ...frame, left: work.value, mark: before }])[0] }
+            frames: { ...work.frames, actions: work.frames.actions.push(Action.BinaryRight)[0], binaries: work.frames.binaries.splice(position, 1, [{ ...frame, left: result.left, mark: before }])[0] }
         }
     }
 

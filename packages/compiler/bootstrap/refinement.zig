@@ -35,3 +35,19 @@ pub fn typeOf(self: *const Self, types: ir.TypeTable, id: ir.TypeId, symbol: ir.
 
     return if (target == .optional and self.state.contains(symbol)) target.optional else id;
 }
+
+pub fn containsValue(self: *const Self, expressions: ir.ExpressionTable, value: ir.ExprId) bool {
+    return self.state.containsValue(expressions, value);
+}
+
+pub fn addValue(self: *Self, allocator: std.mem.Allocator, expressions: ir.ExpressionTable, value: ir.ExprId) std.mem.Allocator.Error!void {
+    try self.state.addValue(allocator, expressions, value);
+}
+
+pub fn projectionCount(self: *const Self) usize {
+    return self.state.projections.items.len;
+}
+
+pub fn projectionAt(self: *const Self, index: usize) ?ir.ExprId {
+    return self.state.projections.items[index];
+}

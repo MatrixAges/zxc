@@ -20,8 +20,8 @@ export type Output = u32?
 
                 current.frames = current.frames.pop()[0]
 
-                if (frame.operation == Operation.Probe || (frame.operation == Operation.Fallback && current.result == null)) {
-                    const result = enter({ work: current, node: frame.node })
+                if (frame.operation == Operation.Probe || frame.operation == Operation.Declared || (frame.operation == Operation.Fallback && current.result == null)) {
+                    const result = enter({ work: current, node: frame.node, declared: frame.operation == Operation.Declared })
 
                     current.frames = result.frames
                     current.result = result.result

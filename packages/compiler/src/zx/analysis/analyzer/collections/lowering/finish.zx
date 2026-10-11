@@ -21,8 +21,8 @@ export default function (in: Input): Output {
     const iterated = iteration({ table: in.state.local.expressions, metadata: { type_id: type_id, span_start: in.span.start, span_end: in.span.end }, initial: in.initial, condition_parameter: in.condition_parameter, parameter: in.parameter, condition: in.condition, body: in.body, postcondition: false })
     const result_symbol = symbol({ state: { ...in.state, local: { ...in.state.local, expressions: iterated.table } }, name: "$collection_result", type_id: type_id, ownership: Ownership.Copy, span: in.span })
     const current = reference({ state: result_symbol.state, symbol: result_symbol.symbol, span: in.span })
-    const value = field({ state: current.state, target: current.value, name: { text: "result", start: in.span.start, end: in.span.end }, span: in.span })
-    const result = scope({ table: value.state.local.expressions, metadata: { type_id: in.result_type, span_start: in.span.start, span_end: in.span.end }, result: value.value, symbols: in.bindings.symbols.push(result_symbol.symbol)[0], values: in.bindings.values.push(iterated.id)[0], borrows: in.bindings.borrows.push(false)[0] })
+    const value = field({ expressions: current.state.local.expressions, tables: { base: current.state.types.context.base, delta: current.state.types.delta }, facts: current.state.local.refinement.facts, diagnostic: current.state.diagnostic, target: current.value, name: { text: "result", start: in.span.start, end: in.span.end }, span: in.span })
+    const result = scope({ table: value.expressions, metadata: { type_id: in.result_type, span_start: in.span.start, span_end: in.span.end }, result: value.value, symbols: in.bindings.symbols.push(result_symbol.symbol)[0], values: in.bindings.values.push(iterated.id)[0], borrows: in.bindings.borrows.push(false)[0] })
 
-    return { state: { ...value.state, local: { ...value.state.local, expressions: result.table } }, value: result.id }
+    return { state: { ...current.state, local: { ...current.state.local, expressions: result.table }, diagnostic: value.diagnostic }, value: result.id }
 }

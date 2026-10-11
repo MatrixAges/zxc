@@ -37,7 +37,7 @@ export default function (in: Input): Output {
 
     const tables = { base: in.state.types.context.base, delta: in.state.types.delta }
 
-    if (root.text == "error" && lookup({ local: in.state.local, name: root.text }) == null) {
+    if (root.text == "error" && lookup({ active: in.state.local.active, names: in.state.local.symbols.names, scope_floor: in.state.local.scope_floor, name: root.text }) == null) {
         const expected = payload({ types: in.state.types, expected: in.expected })
 
         if (expected == null || row({ tables: tables, id: expected }).kind != Kind.ErrorSet) {
