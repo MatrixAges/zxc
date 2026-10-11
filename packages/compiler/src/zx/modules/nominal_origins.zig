@@ -29,6 +29,15 @@ pub fn seed(self: *Self, types: ir.TypeTable, values: Table) (std.mem.Allocator.
     try self.copyValidated(types, values);
 }
 
+/// Seeds from a trusted shared table that outlives this one, borrowing its origin strings.
+pub fn borrow(self: *Self, types: ir.TypeTable, values: Table) std.mem.Allocator.Error!void {
+    for (0..values.count()) |index| {
+        const item = values.at(index);
+
+        try self.items.append(self.allocator, .{ .type_id = item.type_id, .origin = item.origin, .name = types.at(@backingInt(item.type_id)).nominalName().? });
+    }
+}
+
 pub fn copyValidated(self: *Self, types: ir.TypeTable, values: Table) std.mem.Allocator.Error!void {
     for (0..values.count()) |index| {
         const item = values.at(index);

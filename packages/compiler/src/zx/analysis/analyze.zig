@@ -94,7 +94,7 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
 
         copied_types = if (resolved != null) try @import("type_table.zig").columns(allocator, context.types) else try @import("type_table.zig").storage(allocator, context.types);
 
-        origins.seed(copied_types.view(), context.nominal_types) catch |err| {
+        if (trusted) try origins.borrow(copied_types.view(), context.nominal_types) else origins.seed(copied_types.view(), context.nominal_types) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;
 
             return .{ .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared nominal type table" } } };
