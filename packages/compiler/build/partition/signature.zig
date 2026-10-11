@@ -1,5 +1,6 @@
 const std = @import("std");
 const window_limit = 256 * 1024;
+const first_window = 4 * 1024;
 
 /// The type of public function `name` in a generated file, as a `fn (...) R` expression: the parameter list
 /// and return type, up to the brace that opens the body. Braces of error sets and container types inside the
@@ -9,7 +10,20 @@ pub fn find(allocator: std.mem.Allocator, source: []const u8, name: []const u8) 
         if (try parameters(allocator, source, keywords, name)) |offset| break offset;
     } else return null;
 
-    const window = try allocator.dupeSentinel(u8, source[start..@min(source.len, start + window_limit)], 0);
+    var size: usize = first_window;
+
+    // Signatures are short, so a small copy usually holds one; a window cut too early only ends in `eof`, since a
+    // token cut by its end never reads as a brace.
+    while (true) : (size *= 8) {
+        const end = @min(source.len, start + @min(size, window_limit));
+
+        if (try typeIn(allocator, source[start..end])) |text| return text;
+        if (end == source.len or size >= window_limit) return error.UnterminatedSignature;
+    }
+}
+
+fn typeIn(allocator: std.mem.Allocator, text: []const u8) !?[]const u8 {
+    const window = try allocator.dupeSentinel(u8, text, 0);
 
     defer allocator.free(window);
 
@@ -22,13 +36,13 @@ pub fn find(allocator: std.mem.Allocator, source: []const u8, name: []const u8) 
         const token = tokenizer.next();
 
         switch (token.tag) {
-            .eof => return error.UnterminatedSignature,
+            .eof => return null,
             .l_paren => parens += 1,
             .r_paren => parens -= 1,
             .l_brace => if (parens == 0 and braces == 0 and !opensType(previous)) {
-                const text = std.mem.trimEnd(u8, window[0..token.loc.start], " \t\r\n");
+                const signature = std.mem.trimEnd(u8, window[0..token.loc.start], " \t\r\n");
 
-                return try std.mem.concat(allocator, u8, &.{ "fn ", text });
+                return try std.mem.concat(allocator, u8, &.{ "fn ", signature });
             } else {
                 braces += 1;
             },

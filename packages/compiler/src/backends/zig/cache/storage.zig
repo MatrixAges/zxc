@@ -12,23 +12,31 @@ pub fn read(self: Self, allocator: std.mem.Allocator, key: [32]u8) !?[]u8 {
 
     defer allocator.free(path);
 
-    const content = std.Io.Dir.cwd().readFileAlloc(self.io, path, allocator, .limited(header_size + maximum_source + 1)) catch |err| switch (err) {
+    const file = std.Io.Dir.cwd().openFile(self.io, path, .{}) catch |err| switch (err) {
         error.FileNotFound => return null,
-        error.StreamTooLong => return error.InvalidCache,
         else => return err,
     };
 
-    defer allocator.free(content);
+    defer file.close(self.io);
 
-    if (content.len < header_size or content.len > header_size + maximum_source) return error.InvalidCache;
+    const length = try file.length(self.io);
 
-    const source = content[header_size..];
+    if (length < header_size or length > header_size + maximum_source) return error.InvalidCache;
+
+    // The header goes to the stack and the source straight to its own allocation, so a hit copies nothing.
+    var recorded: [header_size]u8 = undefined;
+    const source = try allocator.alloc(u8, @intCast(length - header_size));
+
+    errdefer allocator.free(source);
+
+    if (try file.readPositionalAll(self.io, &recorded, 0) != header_size) return error.InvalidCache;
+    if (try file.readPositionalAll(self.io, source, header_size) != source.len) return error.InvalidCache;
+
     var buffer: [header_size]u8 = undefined;
-    const expected = self.header(&buffer, key, source);
 
-    if (!std.mem.eql(u8, content[0..header_size], expected)) return error.InvalidCache;
+    if (!std.mem.eql(u8, &recorded, self.header(&buffer, key, source))) return error.InvalidCache;
 
-    return try allocator.dupe(u8, source);
+    return source;
 }
 
 pub fn write(self: Self, allocator: std.mem.Allocator, key: [32]u8, source: []const u8) !bool {
