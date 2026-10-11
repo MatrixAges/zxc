@@ -1,6 +1,6 @@
 const std = @import("std");
 const window_limit = 256 * 1024;
-const first_window = 4 * 1024;
+const first_window = 512;
 
 /// The type of public function `name` in a generated file, as a `fn (...) R` expression: the parameter list
 /// and return type, up to the brace that opens the body. Braces of error sets and container types inside the
