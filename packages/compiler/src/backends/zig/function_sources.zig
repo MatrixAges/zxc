@@ -3,10 +3,10 @@ const generating = @import("genz").zx.modules;
 const Batch = @import("batch.zig");
 const Cache = @import("cache.zig");
 
-/// Identifies every selected function and fetches its cached source.
+/// Identifies every unit and fetches its cached source.
 const Search = struct {
     batch: *const Batch,
-    selected: []const u32,
+    units: []const generating.Unit,
     lookups: []Batch.Lookup,
     fetched: []Cache.Fetched,
     next: std.atomic.Value(usize) = .init(0),
@@ -15,7 +15,7 @@ const Search = struct {
         while (self.failure.load(.monotonic) == 0) {
             const position = self.next.fetchAdd(1, .monotonic);
 
-            if (position >= self.selected.len) return;
+            if (position >= self.units.len) return;
 
             self.step(arena.allocator(), position) catch |err| {
                 _ = self.failure.cmpxchgStrong(0, @intFromError(err), .monotonic, .monotonic);
@@ -26,17 +26,17 @@ const Search = struct {
     }
 
     fn step(self: *Search, allocator: std.mem.Allocator, position: usize) generating.Error!void {
-        const found = try self.batch.identify(allocator, .{ .function = @fromBackingInt(self.selected[position]) });
+        const found = try self.batch.identify(allocator, self.units[position]);
 
         self.lookups[position] = found;
         self.fetched[position] = if (self.batch.cache) |cache| try cache.fetch(allocator, found.name, found.key) else .absent;
     }
 };
 
-/// Generates every function no cached source covers.
+/// Generates every unit no cached source covers.
 const Work = struct {
     batch: *const Batch,
-    pending: []const u32,
+    pending: []const generating.Unit,
     results: [][]const u8,
     next: std.atomic.Value(usize) = .init(0),
     failure: std.atomic.Value(u16) = .init(0),
@@ -46,7 +46,7 @@ const Work = struct {
 
             if (position >= self.pending.len) return;
 
-            self.results[position] = self.batch.generate(arena.allocator(), std.heap.smp_allocator, .{ .function = @fromBackingInt(self.pending[position]) }) catch |err| {
+            self.results[position] = self.batch.generate(arena.allocator(), std.heap.smp_allocator, self.pending[position]) catch |err| {
                 _ = self.failure.cmpxchgStrong(0, @intFromError(err), .monotonic, .monotonic);
 
                 return;
@@ -72,24 +72,24 @@ const Copying = struct {
     }
 };
 
-/// Sources of the selected functions in program order: cached units are copied into one buffer, the rest are
-/// generated; the search, the copies and the generation run on all cores.
-pub fn create(owned: std.mem.Allocator, batch: *const Batch, selected: []const u32) generating.Error![]const []const u8 {
+/// Sources of function `units` in order: cached units are copied into one buffer, the rest are generated; the search,
+/// the copies and the generation run on all cores.
+pub fn create(owned: std.mem.Allocator, batch: *const Batch, units: []const generating.Unit) generating.Error![][]const u8 {
     var scratch = std.heap.ArenaAllocator.init(batch.backing);
 
     defer scratch.deinit();
 
     const temporary = scratch.allocator();
-    const sources = try owned.alloc([]const u8, selected.len);
+    const sources = try owned.alloc([]const u8, units.len);
     const arenas = try temporary.alloc(std.heap.ArenaAllocator, @max(std.Thread.getCpuCount() catch 1, 1));
 
     for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
 
     defer for (arenas) |*arena| arena.deinit();
 
-    var search = Search{ .batch = batch, .selected = selected, .lookups = try temporary.alloc(Batch.Lookup, selected.len), .fetched = try temporary.alloc(Cache.Fetched, selected.len) };
+    var search = Search{ .batch = batch, .units = units, .lookups = try temporary.alloc(Batch.Lookup, units.len), .fetched = try temporary.alloc(Cache.Fetched, units.len) };
 
-    try spread(Search, &search, temporary, arenas[0..@min(arenas.len, selected.len)]);
+    try spread(Search, &search, temporary, arenas[0..@min(arenas.len, units.len)]);
 
     // Reused sources are copied straight from what the search fetched, before recording can replace cache entries.
     var reused: std.ArrayList([]const u8) = .empty;
@@ -114,11 +114,11 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, selected: []const u
 
     try spread(Copying, &copying, temporary, arenas[0..@min(arenas.len, reused.items.len)]);
 
-    var pending: std.ArrayList(u32) = .empty;
+    var pending: std.ArrayList(generating.Unit) = .empty;
     var positions: std.ArrayList(usize) = .empty;
     var next: usize = 0;
 
-    for (selected, search.lookups, search.fetched, sources, 0..) |index, found, fetched, *source, position| {
+    for (units, search.lookups, search.fetched, sources, 0..) |unit, found, fetched, *source, position| {
         if (batch.cache) |cache| _ = try cache.record(found.name, found.key, fetched);
 
         if (reusable(fetched) != null) {
@@ -128,7 +128,7 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, selected: []const u
             continue;
         }
 
-        try pending.append(temporary, index);
+        try pending.append(temporary, unit);
         try positions.append(temporary, position);
     }
 
@@ -154,7 +154,7 @@ fn reusable(fetched: Cache.Fetched) ?[]const u8 {
 }
 
 /// Runs `task` on this thread and one helper per further arena, and reports the first failure.
-fn spread(comptime Task: type, task: *Task, temporary: std.mem.Allocator, arenas: []std.heap.ArenaAllocator) generating.Error!void {
+pub fn spread(comptime Task: type, task: *Task, temporary: std.mem.Allocator, arenas: []std.heap.ArenaAllocator) generating.Error!void {
     if (arenas.len == 0) return;
 
     const threads = try temporary.alloc(std.Thread, arenas.len - 1);

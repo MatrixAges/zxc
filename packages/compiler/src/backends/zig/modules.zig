@@ -48,8 +48,8 @@ pub fn createCached(allocator: std.mem.Allocator, analysis: *const Analysis, cac
 
     defer batch.deinit();
 
-    const modules = try functionFilesAnalyzed(owned, &batch, needed);
     const entry = File{ .name = "application", .source = try batch.emit(owned, .entry), .imports = try references.imports(owned, program.expressions, program.contracts, identities.functions) };
+    const modules = try functionFilesAnalyzed(owned, &batch, needed, &.{entry.source});
     const type_source = try batch.emit(owned, .types);
     const type_names = try typeNamesAnalyzed(owned, program, identities, batch.analysis.value.value.state);
     const native_modules = try nativeModules(owned, program);
@@ -79,36 +79,29 @@ pub fn emitPrepared(allocator: std.mem.Allocator, program: @import("zx").ir.Prog
     return batch.emit(allocator, unit);
 }
 
-pub fn functionFiles(owned: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, needed: []const bool, cache: ?*Cache) Error![]const File {
-    const prepared_program = try @import("genz").zx.prepare(owned, program);
-
-    return functionFilesPrepared(owned, prepared_program, identities, needed, cache);
-}
-
-pub fn functionFilesPrepared(owned: std.mem.Allocator, program: @import("zx").ir.Program, identities: generating.Names, needed: []const bool, cache: ?*Cache) Error![]const File {
-    var batch = try Batch.create(owned, program, identities, cache);
-
-    defer batch.deinit();
-
-    return functionFilesAnalyzed(owned, &batch, needed);
-}
-
-pub fn functionFilesAnalyzed(owned: std.mem.Allocator, batch: *const Batch, needed: []const bool) Error![]const File {
+/// The files of the `needed` functions; `roots` are the other generated sources that call into them.
+pub fn functionFilesAnalyzed(owned: std.mem.Allocator, batch: *const Batch, needed: []const bool, roots: []const []const u8) Error![]const File {
     const program = batch.program;
     const identities = batch.names;
     var files: std.ArrayList(File) = .empty;
     var seen: std.StringHashMapUnmanaged(usize) = .empty;
-    var selected: std.ArrayList(u32) = .empty;
+    var units: std.ArrayList(generating.Unit) = .empty;
 
-    defer selected.deinit(owned);
+    defer units.deinit(owned);
 
     for (needed, 0..) |wanted, index| {
-        if (wanted) try selected.append(owned, @intCast(index));
+        if (wanted) try units.append(owned, .{ .function = @fromBackingInt(@intCast(index)) });
     }
 
-    const sources = try @import("function_sources.zig").create(owned, batch, selected.items);
+    const sources = try @import("function_sources.zig").create(owned, batch, units.items);
 
-    for (selected.items, sources) |index, source| {
+    try @import("regular_calls.zig").complete(owned, batch, roots, units.items, sources);
+
+    for (units.items, sources) |unit, source| {
+        const index = @backingInt(switch (unit) {
+            .function, .regular => |id| id,
+            else => unreachable,
+        });
         const function = program.functions.at(index);
 
         const file = File{

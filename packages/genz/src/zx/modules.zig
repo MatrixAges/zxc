@@ -5,7 +5,9 @@ const Lower = @import("lower.zig");
 const render = @import("../render.zig").render;
 pub const Analysis = @import("function_analysis.zig");
 pub const Names = struct { types: []const []const u8, functions: []const []const u8 };
-pub const Unit = union(enum) { entry, function: ir.FunctionId, types };
+/// `function` is one function's file; a value function's file holds only its value variant. `regular` is the same file
+/// with the pointer-ABI `call` as well, for value functions some caller reaches through it.
+pub const Unit = union(enum) { entry, function: ir.FunctionId, types, regular: ir.FunctionId };
 pub const abi_view = @import("abi_view.zig");
 pub const Error = std.mem.Allocator.Error || error{ InvalidNames, InvalidFunction };
 
@@ -44,7 +46,8 @@ pub fn analyzed(allocator: std.mem.Allocator, backing: std.mem.Allocator, progra
     return switch (unit) {
         .entry => entryPrepared(allocator, backing, program, names, facts),
         .types => typesPrepared(allocator, backing, program, names, facts),
-        .function => |id| functionPrepared(allocator, backing, program, id, names, facts),
+        .function => |id| functionPrepared(allocator, backing, program, id, names, facts, false),
+        .regular => |id| functionPrepared(allocator, backing, program, id, names, facts, true),
     };
 }
 
@@ -70,7 +73,7 @@ fn typesPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, progr
     return render(allocator, lower.builder.nodes, try @import("type_bundle.zig").declarations(&lower));
 }
 
-fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, id: ir.FunctionId, names: Names, facts: Analysis) Error![]u8 {
+fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, program: ir.Program, id: ir.FunctionId, names: Names, facts: Analysis, regular: bool) Error![]u8 {
     if (@backingInt(id) >= program.functions.count()) return error.InvalidFunction;
 
     var arena = std.heap.ArenaAllocator.init(backing);
@@ -104,26 +107,30 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     try @import("types.zig").lower(&lower, &output, false);
     try @import("store.zig").declaration(&lower, &output);
 
-    var declaration = if (selected.external) |external| native: {
-        const module = program.native_modules.at(@backingInt(external.module));
-        const native_names = try temporary.alloc([]const u8, program.native_modules.count());
+    const value = selected.external == null and lower.value_functions[@backingInt(id)];
 
-        @memset(native_names, "");
-        native_names[@backingInt(external.module)] = "zx_native";
+    if (!value or regular) {
+        var declaration = if (selected.external) |external| native: {
+            const module = program.native_modules.at(@backingInt(external.module));
+            const native_names = try temporary.alloc([]const u8, program.native_modules.count());
 
-        lower.native_names = native_names;
+            @memset(native_names, "");
+            native_names[@backingInt(external.module)] = "zx_native";
 
-        try output.append(temporary, .{ .constant = .{ .name = "zx_native", .value = try lower.builtin(.import, &.{try lower.builder.string(module.import_name)}) } });
+            lower.native_names = native_names;
 
-        break :native try @import("external.zig").lower(&lower, selected, @backingInt(id));
-    } else try lower.function("call", false);
+            try output.append(temporary, .{ .constant = .{ .name = "zx_native", .value = try lower.builtin(.import, &.{try lower.builder.string(module.import_name)}) } });
 
-    declaration.function.name = "call";
-    declaration.function.exported = true;
+            break :native try @import("external.zig").lower(&lower, selected, @backingInt(id));
+        } else try lower.function("call", false);
 
-    try output.append(temporary, declaration);
+        declaration.function.name = "call";
+        declaration.function.exported = true;
 
-    if (lower.value_functions[@backingInt(id)]) {
+        try output.append(temporary, declaration);
+    }
+
+    if (value) {
         var value_declaration = try lower.functionValue("callValue");
 
         value_declaration.function.exported = true;

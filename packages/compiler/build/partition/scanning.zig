@@ -40,7 +40,7 @@ pub fn scan(allocator: std.mem.Allocator, source: []const u8, indices: *const st
     var result: std.ArrayList(Reference) = .empty;
     var cursor: usize = 0;
 
-    while (@import("search.zig").find(source, cursor, import_prefix)) |at| {
+    while (@import("compiler").zig.search.find(source, cursor, import_prefix)) |at| {
         const name_start = at + "@import(\"".len;
         const quote = std.mem.indexOfScalarPos(u8, source, name_start, '"') orelse return error.UnterminatedImport;
         var member = quote + 1;

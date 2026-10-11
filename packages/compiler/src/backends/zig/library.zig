@@ -118,8 +118,13 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
     references.close(needed, program.functions);
 
     const type_source = try batch.emit(owned, .types);
-    const functions = try modules.functionFilesAnalyzed(owned, &batch, needed);
     const initializers = try @import("library_initializers.zig").createBacked(owned, allocator, library, identities, cache);
+    const roots = try owned.alloc([]const u8, public_modules.len + initializers.files.len);
+
+    for (roots[0..public_modules.len], public_modules) |*root, public_module| root.* = public_module.file.source;
+    for (roots[public_modules.len..], initializers.files) |*root, file| root.* = file.source;
+
+    const functions = try modules.functionFilesAnalyzed(owned, &batch, needed, roots);
     const files = try std.mem.concat(owned, modules.File, &.{ functions, initializers.files });
     const type_names = try modules.typeNamesAnalyzed(owned, program, identities, batch.analysis.value.value.state);
     const native_modules = try modules.nativeModules(owned, program);

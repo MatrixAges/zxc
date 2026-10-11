@@ -71,6 +71,8 @@ pub fn lookup(self: *const Self, scratch: std.mem.Allocator, unit: generating.Un
 pub fn identify(self: *const Self, scratch: std.mem.Allocator, unit: generating.Unit) generating.Error!Lookup {
     const name = switch (unit) {
         .function => |id| self.names.functions[@backingInt(id)],
+        // Kept beside the value-only file, so a run that needs both finds each one cached.
+        .regular => |id| try std.fmt.allocPrint(scratch, "{s}:call", .{self.names.functions[@backingInt(id)]}),
         .entry, .types => try std.fmt.allocPrint(scratch, "{s}:{s}", .{ @tagName(unit), self.program.file_name }),
     };
 

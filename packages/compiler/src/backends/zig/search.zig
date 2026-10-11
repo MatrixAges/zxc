@@ -4,7 +4,7 @@ const lanes = 32;
 const Lanes = @Vector(lanes, u8);
 
 /// Offset of `needle` in `haystack` at or after `start`. Generated Zig is dense in the bytes that end the needles
-/// searched here (`_`, a space), where Boyer-Moore-Horspool advances one byte at a time; this compares the first and
+/// searched in it (`_`, a space, `(`), where Boyer-Moore-Horspool advances one byte at a time; this compares the first and
 /// last needle byte at 32 positions per step and checks the whole needle only where both match.
 pub fn find(haystack: []const u8, start: usize, needle: []const u8) ?usize {
     if (needle.len < 2) return std.mem.indexOfPos(u8, haystack, start, needle);

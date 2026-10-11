@@ -68,7 +68,7 @@ pub fn inlineNames(allocator: std.mem.Allocator, source: []const u8) ![]const []
     var names: std.ArrayList([]const u8) = .empty;
     var cursor: usize = 0;
 
-    while (@import("search.zig").find(source, cursor, marker)) |at| {
+    while (@import("compiler").zig.search.find(source, cursor, marker)) |at| {
         cursor = at + marker.len;
 
         if (at != 0 and source[at - 1] != '\n') continue;
@@ -89,7 +89,7 @@ fn parameters(allocator: std.mem.Allocator, source: []const u8, keywords: []cons
 
     if (std.mem.startsWith(u8, source, marker[1..])) return marker.len - 2;
 
-    const at = @import("search.zig").find(source, 0, marker) orelse return null;
+    const at = @import("compiler").zig.search.find(source, 0, marker) orelse return null;
 
     return at + marker.len - 1;
 }

@@ -11,6 +11,8 @@ pub const abi_view = @import("genz").zx.modules.abi_view;
 pub const store_initializers = @import("zig/store_initializers.zig");
 pub const gateway = @import("zig/gateway/root.zig");
 pub const state = @import("zig/state.zig");
+/// The vectorized substring search generated-code scans share.
+pub const search = @import("zig/search.zig");
 
 pub fn emitLibrary(allocator: std.mem.Allocator, result: *const @import("../library/root.zig").Result) (library.Error || error{ InvalidIr, UnverifiedContracts })!LibraryBundle {
     return emitLibraryCached(allocator, result, null);

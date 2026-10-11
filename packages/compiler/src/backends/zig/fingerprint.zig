@@ -38,14 +38,14 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
     const value_functions = self.value_functions;
     const state_plan = self.state_plan;
 
-    self.bytes("zxc.zig.input.v44");
+    self.bytes("zxc.zig.input.v45");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
     if (unit == .entry) self.write(@import("genz").zx.tasks.required(program, self.task_functions));
 
     switch (unit) {
-        .function => |id| {
+        .function, .regular => |id| {
             self.write(value_functions[@backingInt(id)]);
             self.plan(self.uniqueness.functions[@backingInt(id)]);
             self.write(program.functions.at(@backingInt(id)));
