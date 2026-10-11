@@ -35,7 +35,7 @@ fn finish(self: *Self, unit: Unit) [32]u8 {
     const value_functions = self.value_functions;
     const state_plan = self.state_plan;
 
-    self.bytes("zxc.zig.input.v43");
+    self.bytes("zxc.zig.input.v44");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -163,16 +163,14 @@ fn write(self: *Self, value: anytype) void {
     }
 
     switch (@typeInfo(T)) {
-        .@"struct" => |info| inline for (info.field_names) |field| {
-            self.bytes(field);
-            self.write(@field(value, field));
-        },
-        .@"union" => |info| {
-            self.bytes(@tagName(value));
-
-            inline for (info.field_names) |field| if (std.mem.eql(u8, @tagName(value), field)) {
-                self.write(@field(value, field));
-            };
+        // The generator digest in each cache record already fixes these layouts, so fields go in by position and
+        // union variants by tag.
+        .@"struct" => |info| inline for (info.field_names) |field| self.write(@field(value, field)),
+        .@"union" => switch (value) {
+            inline else => |payload, tag| {
+                self.write(@intFromEnum(tag));
+                self.write(payload);
+            },
         },
         .@"enum" => self.write(@backingInt(value)),
         .optional => {

@@ -1,8 +1,7 @@
 const std = @import("std");
 const Self = @This();
-const Hash = std.crypto.hash.sha2.Sha256;
-const marker = "zxc.zig.source.v1\n";
-const header_size = marker.len + 3 * 65;
+const marker = "zxc.zig.source.v2\n";
+const header_size = marker.len + 2 * 65 + 17;
 const maximum_source = 64 * 1024 * 1024;
 
 io: std.Io,
@@ -52,12 +51,10 @@ pub fn write(self: Self, allocator: std.mem.Allocator, key: [32]u8, source: []co
     return true;
 }
 
+/// Records are replaced atomically, so one is whole or absent; the length guards against a record cut short by other
+/// means without hashing every source each build.
 fn header(self: Self, buffer: *[header_size]u8, key: [32]u8, source: []const u8) []const u8 {
-    var digest: [32]u8 = undefined;
-
-    Hash.hash(source, &digest, .{});
-
-    return std.fmt.bufPrint(buffer, marker ++ "{s}\n{s}\n{s}\n", .{ std.fmt.bytesToHex(self.compiler_digest, .lower), std.fmt.bytesToHex(key, .lower), std.fmt.bytesToHex(digest, .lower) }) catch unreachable;
+    return std.fmt.bufPrint(buffer, marker ++ "{s}\n{s}\n{x:0>16}\n", .{ std.fmt.bytesToHex(self.compiler_digest, .lower), std.fmt.bytesToHex(key, .lower), source.len }) catch unreachable;
 }
 
 fn filePath(self: Self, allocator: std.mem.Allocator, key: [32]u8) std.mem.Allocator.Error![]u8 {
