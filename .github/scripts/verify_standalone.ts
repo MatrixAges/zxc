@@ -2,8 +2,8 @@ import { copyFileSync, cpSync, mkdtempSync, readFileSync, rmSync } from 'node:fs
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-export default function verifyStandalone(args: { root: string; compiler_path: string; target: string }) {
-	const { root, compiler_path, target } = args
+export default function verifyStandalone(args: { root: string; compiler_path: string; target: string; zig_path?: string }) {
+	const { root, compiler_path, target, zig_path } = args
 	const directory = mkdtempSync(join(tmpdir(), 'zxc-standalone-'))
 	const suffix = target.includes('windows') ? '.exe' : ''
 	const executable = resolve(directory, `zxc${suffix}`)
@@ -12,7 +12,8 @@ export default function verifyStandalone(args: { root: string; compiler_path: st
 		PATH: '',
 		ZIG_LIB_DIR: resolve(directory, 'unavailable-external-zig'),
 		ZXC_CACHE_DIR: resolve(directory, 'cache'),
-		ZIG_GLOBAL_CACHE_DIR: resolve(directory, 'zig-cache')
+		ZIG_GLOBAL_CACHE_DIR: resolve(directory, 'zig-cache'),
+		...(zig_path ? { ZXC_ZIG: zig_path } : {})
 	}
 
 	function run(command: Array<string>) {
@@ -80,7 +81,9 @@ export default function verifyStandalone(args: { root: string; compiler_path: st
 			throw new Error('Standalone Zig/C module result differs')
 		}
 
-		console.log('Standalone compiler: empty PATH, embedded Zig, standard library and C module verified')
+		console.log(
+			`Standalone compiler: empty PATH, ${zig_path ? 'Zig from ZXC_ZIG' : 'embedded Zig'}, standard library and C module verified`
+		)
 	} finally {
 		rmSync(directory, { recursive: true, force: true })
 	}

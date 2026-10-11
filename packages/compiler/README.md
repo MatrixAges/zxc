@@ -92,9 +92,9 @@ zig-out/bin/zxc fmt packages/cli/examples/quote.zx --check
 zig-out/bin/zxc build packages/cli/examples/quote.zx --out .zxc/quote --asm .zxc/quote.s
 ```
 
-分发的 zxc 内嵌官方 Zig 0.17.0 和 ZX 标准实现，用户只需复制可执行文件，无需安装 Zig 或保持旁置 share 目录。首次 `zxc build` 将资源释放到按内容摘要区分的用户缓存，后续复用；不会运行时下载工具链。macOS 默认 `$HOME/Library/Caches/zxc`，Linux 默认 `$XDG_CACHE_HOME/zxc` 或 `$HOME/.cache/zxc`，Windows 默认 `%LOCALAPPDATA%/zxc/cache`；可用绝对路径环境变量 `ZXC_CACHE_DIR` 覆盖缓存根。纯解析、格式化和读取内嵌包索引不展开工具链。
+发布包分两种：`zxc-<target>` 内嵌官方 Zig 0.17.0 和 ZX 标准实现，用户只需复制可执行文件，无需安装 Zig 或保持旁置 share 目录；`zxc-<target>-no-zig` 不嵌入 Zig，体积小一半以上，通过环境变量 `ZXC_ZIG` 指定 Zig 0.17.0 可执行文件（库目录取其旁边的 `lib`，或系统包布局下的 `../lib/zig`）。任一版本设置 `ZXC_ZIG` 时都使用指定的 Zig，只释放 ZX 标准实现。首次 `zxc build` 将资源释放到按内容摘要区分的用户缓存，后续复用；不会运行时下载工具链。macOS 默认 `$HOME/Library/Caches/zxc`，Linux 默认 `$XDG_CACHE_HOME/zxc` 或 `$HOME/.cache/zxc`，Windows 默认 `%LOCALAPPDATA%/zxc/cache`；可用绝对路径环境变量 `ZXC_CACHE_DIR` 覆盖缓存根。纯解析、格式化和读取内嵌包索引不展开工具链。
 
-构建 zxc 本身仍需要 Zig。构建工具根据 zxc 的运行宿主获取锁定的官方 Zig 0.17.0 归档，核对 SHA256 后原样内嵌；不重新构建 Zig、不裁剪或重压缩发行内容。可用 `zig build dist -Dzig-archive=/absolute/path/to/official.tar.xz`（Windows 为 `.zip`）指定本地归档，离线完成构建。每个 zxc 仅内嵌对应宿主的一份发行包；Windows ARM64 使用 x64 Zig 的系统仿真方案，默认仍生成 ARM64 程序。运行期内置 XZ/ZIP 解压，不依赖外部解压命令。官方 Zig 二进制内部的 LLVM/Clang 保留。项目显式声明的系统原生库、外部求解器和 FPGA 工具仍按各自契约提供。
+构建 zxc 本身仍需要 Zig。构建工具根据 zxc 的运行宿主获取锁定的官方 Zig 0.17.0 归档，核对 SHA256 后原样内嵌；不重新构建 Zig、不裁剪或重压缩发行内容。只有发布打包传入 `-Dembed-zig=true` 时才内嵌；开发构建默认不嵌入，运行时从本机构建缓存读取同一归档（仍核对 SHA256），避免每次链接复制约 60 MB。可用 `zig build dist -Dzig-archive=/absolute/path/to/official.tar.xz`（Windows 为 `.zip`）指定本地归档，离线完成构建。每个 zxc 仅内嵌对应宿主的一份发行包；Windows ARM64 使用 x64 Zig 的系统仿真方案，默认仍生成 ARM64 程序。运行期内置 XZ/ZIP 解压，不依赖外部解压命令。官方 Zig 二进制内部的 LLVM/Clang 保留。项目显式声明的系统原生库、外部求解器和 FPGA 工具仍按各自契约提供。
 
 compiler 包内 `zig build test` 覆盖 RX/ZX 前端、第三方 IR 与编译 API；CLI 包内 `zig build test` 覆盖实际生成 Zig 执行及 Store 宿主契约。`zig build test-frontend` 只运行前端测试。
 

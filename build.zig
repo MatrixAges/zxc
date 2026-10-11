@@ -45,8 +45,9 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_rx_tests.step);
 
     const zig_archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host");
+    const embed_zig = b.option(bool, "embed-zig", "Embed the official Zig archive in zxc, as release packages do") orelse false;
     const compiler_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
-    const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions, .@"zig-archive" = path }) else b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
+    const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions, .@"zig-archive" = path, .@"embed-zig" = embed_zig }) else b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions, .@"embed-zig" = embed_zig });
 
     test_step.dependOn(&compiler_dependency.builder.top_level_steps.get("test").?.step);
     test_step.dependOn(&cli_dependency.builder.top_level_steps.get("test").?.step);

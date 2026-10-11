@@ -183,6 +183,7 @@ pub fn run(context: Context) !Status {
                 const toolchain = @import("toolchain.zig").resolve(context.io, allocator, context.environment) catch |err| {
                     if (err == error.OutOfMemory or err == error.Canceled) return err;
                     try stderr.print("zxc toolchain cache: {s}\n", .{@errorName(err)});
+                    if (err == error.ZxcZigRequired) try stderr.writeAll("this zxc does not embed Zig; set ZXC_ZIG to a Zig " ++ @import("bundle").zig_version ++ " executable\n");
                     try stderr.flush();
 
                     return .failed;

@@ -40,11 +40,11 @@ pub fn build(b: *std.Build) void {
     const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");
 
     const bundle = @import("build/toolchain.zig").create(b, target, pkgs_index, compiler.builder.root.join(b.allocator, "standard/src") catch @panic("OOM"));
-    // Debug builds read the official Zig archive from the build cache instead of embedding it, so linking zxc does
-    // not copy it into the binary each time.
+    // Only release packages embed the official Zig archive. Other builds read it from this build cache, or take
+    // the Zig executable named by ZXC_ZIG, so linking zxc does not copy the archive into the binary.
     const zig_archive = b.addOptions();
 
-    zig_archive.addOption(bool, "embedded", b.option(bool, "embed-zig", "Embed the official Zig archive in zxc (default: all but Debug builds)") orelse (optimize != .debug));
+    zig_archive.addOption(bool, "embedded", b.option(bool, "embed-zig", "Embed the official Zig archive in zxc, as release packages do") orelse false);
     zig_archive.addOptionPath("path", bundle.zig_archive);
     // The path may be relative to the directory the build ran in.
     zig_archive.addOption([]const u8, "base", std.process.currentPathAlloc(b.graph.io, b.allocator) catch @panic("unable to read the working directory"));

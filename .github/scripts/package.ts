@@ -10,7 +10,6 @@ if (!target || !targets.some(item => item.target === target)) {
 }
 
 const root = resolve(import.meta.dir, '../..')
-const prefix = resolve(root, '.zxc/distribution', `zxc-${target}`)
 const artifact_dir = resolve(root, '.zxc/artifacts')
 const executable_suffix = target.includes('windows') ? '.exe' : ''
 const zig_path = Bun.which('zig')
@@ -23,23 +22,28 @@ function run(command: Array<string>) {
 	if (result.exitCode !== 0) throw new Error(`Command failed (${result.exitCode}): ${command[0]}`)
 }
 
-rmSync(prefix, { recursive: true, force: true })
 mkdirSync(artifact_dir, { recursive: true })
 
-run([zig_path, 'build', 'dist', `-Dtarget=${target}`, '-Doptimize=safe', '--prefix', prefix])
+// The standalone package embeds the official Zig; the `-no-zig` package uses the Zig named by ZXC_ZIG.
+for (const embedded of [true, false]) {
+	const prefix = resolve(root, '.zxc/distribution', `zxc-${target}${embedded ? '' : '-no-zig'}`)
 
-for (const file of ['LICENSE', 'share/zxc/licenses/libyaml.txt', 'share/zxc/licenses/zig.txt']) {
-	if (!statSync(resolve(prefix, file)).isFile()) throw new Error(`Missing distribution file: ${file}`)
+	rmSync(prefix, { recursive: true, force: true })
+	run([zig_path, 'build', 'dist', `-Dtarget=${target}`, '-Doptimize=safe', `-Dembed-zig=${embedded}`, '--prefix', prefix])
+
+	for (const file of ['LICENSE', 'share/zxc/licenses/libyaml.txt', 'share/zxc/licenses/zig.txt']) {
+		if (!statSync(resolve(prefix, file)).isFile()) throw new Error(`Missing distribution file: ${file}`)
+	}
+
+	const compiler_path = resolve(prefix, 'bin', `zxc${executable_suffix}`)
+
+	verifyStandalone({ root, compiler_path, target, zig_path: embedded ? undefined : zig_path })
+
+	const archive_path = resolve(artifact_dir, `${basename(prefix)}.tar.gz`)
+
+	run(['tar', '-czf', archive_path, '-C', dirname(prefix), basename(prefix)])
+
+	const checksum = new Bun.CryptoHasher('sha256').update(await Bun.file(archive_path).arrayBuffer()).digest('hex')
+
+	await Bun.write(`${archive_path}.sha256`, `${checksum}  ${basename(archive_path)}\n`)
 }
-
-const compiler_path = resolve(prefix, 'bin', `zxc${executable_suffix}`)
-
-verifyStandalone({ root, compiler_path, target })
-
-const archive_path = resolve(artifact_dir, `${basename(prefix)}.tar.gz`)
-
-run(['tar', '-czf', archive_path, '-C', dirname(prefix), basename(prefix)])
-
-const checksum = new Bun.CryptoHasher('sha256').update(await Bun.file(archive_path).arrayBuffer()).digest('hex')
-
-await Bun.write(`${archive_path}.sha256`, `${checksum}  ${basename(archive_path)}\n`)

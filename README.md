@@ -62,7 +62,7 @@ To change the shipping rule, an AI only needs `shipping.zx` — `checkout.rx` al
 - **Structure you can read** — RX files are the call graph and data flow. No digging through function bodies.
 - **Boundaries the compiler enforces** — typed `Input` / `Output` per unit, ownership checks, and a dependency graph that must be acyclic.
 - **Small, local changes** — change a rule in one `.zx` file; the RX wiring stays untouched.
-- **Native output** — ZX compiles to Zig, and `zxc build` ships with an embedded Zig toolchain.
+- **Native output** — ZX compiles to Zig; release packages embed the Zig toolchain, and `-no-zig` packages use the Zig named by `ZXC_ZIG`.
 
 ## How It Works
 

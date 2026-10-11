@@ -2,13 +2,13 @@ const std = @import("std");
 const bundle = @import("bundle");
 const reference = @import("zig_archive");
 
-pub fn run(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !void {
+/// Unpacks the bundled Zig toolchain and the zxc standard sources into `directory`.
+pub fn run(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) anyerror!void {
     const zig_archive = try zigArchive(io, allocator);
 
     defer if (!reference.embedded) allocator.free(zig_archive);
 
     try verify(zig_archive, bundle.zig_digest);
-    try verify(bundle.archive, bundle.resources_digest);
 
     if (bundle.zig_format == .zip) {
         {
@@ -45,6 +45,12 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !voi
     }
 
     try directory.rename(bundle.zig_directory, directory, "zig", io);
+    try resources(io, allocator, directory);
+}
+
+/// Unpacks the zxc standard sources and licenses into `directory`.
+pub fn resources(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) anyerror!void {
+    try verify(bundle.archive, bundle.resources_digest);
 
     var input: std.Io.Reader = .fixed(bundle.archive);
     const buffer = try allocator.alloc(u8, std.compress.flate.max_window_len);
@@ -58,7 +64,8 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !voi
     _ = try decompressed.reader.discardRemaining();
 }
 
-/// The official Zig archive: embedded, or read from the build cache by builds that do not embed it.
+/// The official Zig archive: embedded by release builds, otherwise read from the build cache of the machine that
+/// built zxc. Elsewhere a build without it needs `ZXC_ZIG`.
 fn zigArchive(io: std.Io, allocator: std.mem.Allocator) ![]const u8 {
     if (reference.embedded) return bundle.zig_archive;
 
@@ -66,7 +73,10 @@ fn zigArchive(io: std.Io, allocator: std.mem.Allocator) ![]const u8 {
 
     defer allocator.free(path);
 
-    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .unlimited);
+    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .unlimited) catch |err| switch (err) {
+        error.FileNotFound => error.ZxcZigRequired,
+        else => err,
+    };
 }
 
 fn verify(bytes: []const u8, expected: []const u8) !void {
