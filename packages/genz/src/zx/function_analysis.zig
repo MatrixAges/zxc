@@ -57,9 +57,7 @@ pub fn createRemembered(backing: std.mem.Allocator, program: ir.Program, exporte
 
     const owned = arena.allocator();
     const basis = try owned.create(Uniqueness.Basis);
-
     basis.* = try .create(owned, program);
-
     var scratch = std.heap.ArenaAllocator.init(backing);
 
     defer scratch.deinit();
@@ -123,7 +121,7 @@ fn remaining(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program
             .value = generated.value,
             .io = generated.io,
             .process = generated.process,
-            .tasks = try @import("tasks/allocator.zig").functions(allocator, program),
+            .tasks = generated.tasks,
             .uniqueness = undefined,
             .basis = undefined,
         };
@@ -147,7 +145,6 @@ const Concurrent = struct {
     basis: *const Uniqueness.Basis,
     memo: ?*Uniqueness.Memo,
     result: std.mem.Allocator.Error!Uniqueness.Result = error.OutOfMemory,
-
     fn run(self: *Concurrent) void {
         self.result = Uniqueness.analyze(self.arena.allocator(), self.workspace, self.program, self.exported, self.basis, self.memo);
     }

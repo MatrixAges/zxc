@@ -11,6 +11,7 @@ pub const Facts = struct {
     value: @import("../value_call/analysis.zig").Summary,
     io: []bool,
     process: []bool,
+    tasks: []bool,
 };
 
 /// Borrows the program columns for the generated facts and copies the results into the caller allocator.
@@ -56,5 +57,6 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
         },
         .io = try allocator.dupe(bool, output.io),
         .process = try allocator.dupe(bool, output.process),
+        .tasks = try allocator.dupe(bool, output.tasks),
     };
 }
