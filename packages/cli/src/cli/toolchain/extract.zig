@@ -1,8 +1,13 @@
 const std = @import("std");
 const bundle = @import("bundle");
+const reference = @import("zig_archive");
 
 pub fn run(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !void {
-    try verify(bundle.zig_archive, bundle.zig_digest);
+    const zig_archive = try zigArchive(io, allocator);
+
+    defer if (!reference.embedded) allocator.free(zig_archive);
+
+    try verify(zig_archive, bundle.zig_digest);
     try verify(bundle.archive, bundle.resources_digest);
 
     if (bundle.zig_format == .zip) {
@@ -11,7 +16,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !voi
 
             defer file.close(io);
 
-            try file.writeStreamingAll(io, bundle.zig_archive);
+            try file.writeStreamingAll(io, zig_archive);
         }
 
         {
@@ -27,7 +32,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !voi
 
         try directory.deleteFile(io, "zig.zip");
     } else {
-        var input: std.Io.Reader = .fixed(bundle.zig_archive);
+        var input: std.Io.Reader = .fixed(zig_archive);
         var decompressed = try std.compress.xz.Decompress.init(&input, allocator, &.{});
 
         defer decompressed.deinit();
@@ -51,6 +56,17 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !voi
     try std.tar.extract(io, directory, &decompressed.reader, .{});
 
     _ = try decompressed.reader.discardRemaining();
+}
+
+/// The official Zig archive: embedded, or read from the build cache by builds that do not embed it.
+fn zigArchive(io: std.Io, allocator: std.mem.Allocator) ![]const u8 {
+    if (reference.embedded) return bundle.zig_archive;
+
+    const path = try std.fs.path.resolve(allocator, &.{ reference.base, reference.path });
+
+    defer allocator.free(path);
+
+    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .unlimited);
 }
 
 fn verify(bytes: []const u8, expected: []const u8) !void {
