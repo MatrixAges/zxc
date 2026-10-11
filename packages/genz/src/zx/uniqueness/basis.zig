@@ -12,8 +12,21 @@ mutates: []const []const ir.TypeId,
 pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
     const slots = try Slots.init(allocator, program.types);
     const holds = try allocator.alloc([]const ir.TypeId, program.functions.count());
+    // Functions share output types, so each type's lists are found once.
+    const found = try allocator.alloc(?[]const ir.TypeId, program.types.count());
 
-    for (holds, 0..) |*target, index| target.* = try lists(allocator, slots, program.functions.at(index).output_type);
+    defer allocator.free(found);
+
+    @memset(found, null);
+
+    for (holds, 0..) |*target, index| {
+        const output = program.functions.at(index).output_type;
+        const known = &found[@backingInt(output)];
+
+        if (known.* == null) known.* = try lists(allocator, slots, output);
+
+        target.* = known.*.?;
+    }
 
     return .{ .slots = slots, .holds = holds, .mutates = try mutated(allocator, program) };
 }
@@ -42,18 +55,21 @@ fn mutated(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.
         own[index] = .empty;
         callees[index] = .empty;
 
-        for (0..function.expressions.count()) |expression| {
-            const target = switch (function.expressions.get(@fromBackingInt(@intCast(expression))).value) {
+        for (function.expressions.kinds, 0..) |kind, expression| {
+            if (function.expressions.callee(expression)) |callee| {
+                try callees[index].append(allocator, callee);
+
+                continue;
+            }
+
+            if (kind != .ListOperation and kind != .ListUpdate) continue;
+
+            const target = switch (function.expressions.at(expression).value) {
                 .list_operation => |operation| switch (operation.kind) {
                     .sort, .reverse, .pop => operation.target,
                     else => continue,
                 },
                 .list_update => |update| update.target,
-                .call => |invocation| {
-                    try callees[index].append(allocator, invocation.function);
-
-                    continue;
-                },
                 else => continue,
             };
             const list = function.expressions.get(target).type_id;
