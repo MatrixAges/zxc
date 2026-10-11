@@ -55,8 +55,25 @@ const Work = struct {
     }
 };
 
-/// Sources of the selected functions in program order: cached units are reused, the rest are generated; both the
-/// search and the generation run on all cores.
+/// Copies cached sources into the result, which owns its sources.
+const Copying = struct {
+    from: []const []const u8,
+    to: []const []u8,
+    next: std.atomic.Value(usize) = .init(0),
+    failure: std.atomic.Value(u16) = .init(0),
+    fn run(self: *Copying, _: *std.heap.ArenaAllocator) void {
+        while (true) {
+            const position = self.next.fetchAdd(1, .monotonic);
+
+            if (position >= self.from.len) return;
+
+            @memcpy(self.to[position], self.from[position]);
+        }
+    }
+};
+
+/// Sources of the selected functions in program order: cached units are copied into one buffer, the rest are
+/// generated; the search, the copies and the generation run on all cores.
 pub fn create(owned: std.mem.Allocator, batch: *const Batch, selected: []const u32) generating.Error![]const []const u8 {
     var scratch = std.heap.ArenaAllocator.init(batch.backing);
 
@@ -74,14 +91,39 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, selected: []const u
 
     try spread(Search, &search, temporary, arenas[0..@min(arenas.len, selected.len)]);
 
+    // Reused sources are copied straight from what the search fetched, before recording can replace cache entries.
+    var reused: std.ArrayList([]const u8) = .empty;
+    var size: usize = 0;
+
+    for (search.fetched) |fetched| if (reusable(fetched)) |value| {
+        try reused.append(temporary, value);
+
+        size += value.len;
+    };
+
+    const buffer = try owned.alloc(u8, size);
+    const copies = try temporary.alloc([]u8, reused.items.len);
+    var offset: usize = 0;
+
+    for (reused.items, copies) |value, *copy| {
+        copy.* = buffer[offset..][0..value.len];
+        offset += value.len;
+    }
+
+    var copying = Copying{ .from = reused.items, .to = copies };
+
+    try spread(Copying, &copying, temporary, arenas[0..@min(arenas.len, reused.items.len)]);
+
     var pending: std.ArrayList(u32) = .empty;
     var positions: std.ArrayList(usize) = .empty;
+    var next: usize = 0;
 
     for (selected, search.lookups, search.fetched, sources, 0..) |index, found, fetched, *source, position| {
-        const cached = if (batch.cache) |cache| try cache.record(found.name, found.key, fetched) else null;
+        if (batch.cache) |cache| _ = try cache.record(found.name, found.key, fetched);
 
-        if (cached) |value| {
-            source.* = try owned.dupe(u8, value);
+        if (reusable(fetched) != null) {
+            source.* = copies[next];
+            next += 1;
 
             continue;
         }
@@ -101,6 +143,14 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, selected: []const u
     }
 
     return sources;
+}
+
+fn reusable(fetched: Cache.Fetched) ?[]const u8 {
+    return switch (fetched) {
+        .held => |value| value,
+        .stored => |value| value,
+        else => null,
+    };
 }
 
 /// Runs `task` on this thread and one helper per further arena, and reports the first failure.
