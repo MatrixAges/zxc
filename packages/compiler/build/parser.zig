@@ -3,7 +3,7 @@ const entries = @import("entries.zig");
 
 pub const Sources = struct { standard_abi: std.Build.LazyPath, main: std.Build.LazyPath, checks: std.Build.LazyPath };
 
-pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []const u8) Sources {
+pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []const u8, partitions: u32) Sources {
     const target = b.graph.host;
     const generator_optimize: std.builtin.OptimizeMode = if (optimize == .debug) .safe else optimize;
     const core_dependency = b.dependency("core", .{ .target = target, .optimize = generator_optimize });
@@ -89,6 +89,14 @@ pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []con
         const directory = run.addOutputDirectoryArg(@tagName(set));
 
         run.addDirectoryArg2(std.Build.LazyPath.cache_root.path(b, "bootstrap-functions"), .{ .make_absolute = true });
+
+        // Partitioned output lives in one directory reused by every run, so unchanged partitions keep their
+        // paths and contents and Zig reuses their objects; the generator itself skips work when inputs match.
+        if (set == .main and partitions != 0) {
+            run.addArgs(&.{ "--partitions", b.fmt("{d}", .{partitions}) });
+            run.has_side_effects = true;
+        }
+
         @field(sources, @tagName(set)) = directory;
     }
 
@@ -136,9 +144,10 @@ fn lessThan(_: void, left: []const u8, right: []const u8) bool {
 
 /// Generated bootstrap modules omit debug information when strip is set; hand-written host modules keep theirs.
 /// Native and standard modules every generated module shares; create them once per build so no file lands in two modules.
-pub const Shared = struct { generated: *std.Build.Module, checks: *std.Build.Module };
+/// `objects` links the partition objects into an artifact that imports it; null when generated code is one unit.
+pub const Shared = struct { generated: *std.Build.Module, checks: *std.Build.Module, objects: ?*std.Build.Module };
 
-pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, strip: ?bool) Shared {
+pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, strip: ?bool, partitions: u32) Shared {
     const abi = b.createModule(.{ .root_source_file = source.main.path(b, "types.zig"), .target = target, .optimize = optimize, .strip = strip });
 
     const standard = b.createModule(.{
@@ -148,6 +157,8 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         .imports = &.{.{ .name = "zxc_abi", .module = abi }},
     });
 
+    const string = b.createModule(.{ .root_source_file = b.path("standard/src/string.zig"), .target = target, .optimize = optimize, .strip = strip });
+
     const generated = b.createModule(.{
         .root_source_file = source.main.path(b, "root.zig"),
         .target = target,
@@ -156,9 +167,37 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         .imports = &.{
             .{ .name = "zxc_abi", .module = abi },
             .{ .name = "zxc_standard", .module = standard },
-            .{ .name = "zxc_string", .module = b.createModule(.{ .root_source_file = b.path("standard/src/string.zig"), .target = target, .optimize = optimize, .strip = strip }) },
+            .{ .name = "zxc_string", .module = string },
         },
     });
+
+    var objects: ?*std.Build.Module = null;
+
+    if (partitions != 0) {
+        const bridge = b.createModule(.{ .root_source_file = source.main.path(b, "bridge.zig"), .target = target, .optimize = optimize, .strip = strip });
+
+        generated.addImport("zxc_bridge", bridge);
+
+        objects = b.createModule(.{ .root_source_file = b.path("build/partition/objects.zig"), .target = target, .optimize = optimize });
+
+        // Each partition is its own compilation unit; final artifacts link them by importing `objects`.
+        // Partition objects keep their debug information: stripped ones crashed zxc at runtime once linked
+        // (Zig 0.17, macOS), while the same objects with debug information run identically to one unit.
+        for (0..partitions) |index| {
+            objects.?.addObject(b.addObject(.{ .name = b.fmt("zxc_partition_{d}", .{index}), .root_module = b.createModule(.{
+                .root_source_file = source.main.path(b, b.fmt("part_{d}/root.zig", .{index})),
+                .target = target,
+                .optimize = optimize,
+                .strip = false,
+                .imports = &.{
+                    .{ .name = "zxc_abi", .module = abi },
+                    .{ .name = "zxc_standard", .module = standard },
+                    .{ .name = "zxc_string", .module = string },
+                    .{ .name = "zxc_bridge", .module = bridge },
+                },
+            }) }));
+        }
+    }
 
     const check_modules = b.createModule(.{
         .root_source_file = source.checks.path(b, "root.zig"),
@@ -171,7 +210,7 @@ pub fn shared(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         },
     });
 
-    return .{ .generated = generated, .checks = check_modules };
+    return .{ .generated = generated, .checks = check_modules, .objects = objects };
 }
 
 pub fn modules(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, source: Sources, natives: Shared, strip: ?bool) @import("compiler.zig").ParserModules {

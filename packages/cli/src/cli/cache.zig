@@ -15,7 +15,7 @@ written: usize = 0,
 native_loaded: usize = 0,
 native_written: usize = 0,
 pub fn init(io: std.Io, allocator: std.mem.Allocator, root: []const u8) !Self {
-    const directory = try std.fs.path.join(allocator, &.{ root, ".zxc", "cache", "semantic", &std.fmt.bytesToHex(identity, .lower) });
+    const directory = try std.fs.path.join(allocator, &.{ root, ".zxc", "cache", "semantic", &std.fmt.bytesToHex(identity(), .lower) });
 
     return .{ .io = io, .allocator = allocator, .directory = directory };
 }
@@ -81,7 +81,7 @@ fn loadEntry(self: *Self, allocator: std.mem.Allocator, entries: *SemanticCache.
 
     defer self.allocator.free(bytes);
 
-    var decoded = SemanticCache.codec.decode(allocator, bytes, identity) catch |err| {
+    var decoded = SemanticCache.codec.decode(allocator, bytes, identity()) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         self.discarded += 1;
@@ -125,7 +125,7 @@ fn saveEntries(self: *Self, entries: *SemanticCache.entry_store.Map, kind: Kind)
 
         defer self.allocator.free(location);
 
-        const bytes = try SemanticCache.codec.encode(self.allocator, entry.result.value, entry.context_digest, identity);
+        const bytes = try SemanticCache.codec.encode(self.allocator, entry.result.value, entry.context_digest, identity());
 
         defer self.allocator.free(bytes);
 

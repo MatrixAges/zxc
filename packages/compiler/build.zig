@@ -8,7 +8,8 @@ pub fn build(b: *std.Build) void {
     const lexer = @import("build/lexer.zig");
     const lexer_source = lexer.generate(b, optimize, stage0);
     const parser = @import("build/parser.zig");
-    const parser_source = parser.generate(b, optimize, stage0);
+    const generated_partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects; artifacts link them by importing `generated_objects` (0 = one unit)") orelse 0;
+    const parser_source = parser.generate(b, optimize, stage0, generated_partitions);
     const generated_debug = b.option(bool, "generated-debug", "Keep debug information in generated bootstrap modules (slower and heavier zxc compiles)") orelse false;
     const generated_strip: ?bool = if (generated_debug) null else true;
 
@@ -18,7 +19,7 @@ pub fn build(b: *std.Build) void {
 
     b.modules.put(b.allocator, "lint", lint) catch @panic("out of memory");
 
-    const natives = parser.shared(b, target, optimize, parser_source, generated_strip);
+    const natives = parser.shared(b, target, optimize, parser_source, generated_strip, generated_partitions);
 
     lint.import_table.get("naming").?.import_table.get("generated").?.addImport("generated", natives.generated);
 
@@ -29,6 +30,8 @@ pub fn build(b: *std.Build) void {
     b.modules.put(b.allocator, "frontend", frontend) catch @panic("out of memory");
     b.modules.put(b.allocator, "compiler", module) catch @panic("out of memory");
     b.modules.put(b.allocator, "frontend_checks", parser.checks(b, target, optimize, parser_source, natives, generated_strip)) catch @panic("out of memory");
+
+    if (natives.objects) |objects| b.modules.put(b.allocator, "generated_objects", objects) catch @panic("out of memory");
 
     const rx = b.addModule("rx", .{
         .root_source_file = b.path("src/rx/root.zig"),
@@ -80,6 +83,7 @@ pub fn build(b: *std.Build) void {
     }) });
 
     @import("build/compiler_rt.zig").configure(b, bootstrap_tool);
+    linkGenerated(bootstrap_tool, natives);
 
     b.step("bootstrap-stage", "Build the next bootstrap generator using the selected stage0").dependOn(&b.addInstallArtifact(bootstrap_tool, .{}).step);
 
@@ -89,6 +93,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .imports = &.{.{ .name = "rx", .module = rx }},
     }) });
+
+    linkGenerated(rx_tests, natives);
 
     const run_rx_tests = b.addRunArtifact(rx_tests);
 
@@ -126,6 +132,8 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    linkGenerated(frontend_tests, natives);
+
     const run_frontend_tests = b.addRunArtifact(frontend_tests);
     const frontend_test_step = b.step("test-frontend", "Run ZX grammar and semantic analysis tests");
 
@@ -139,10 +147,16 @@ pub fn build(b: *std.Build) void {
         .imports = &.{.{ .name = "compiler", .module = module }},
     }) });
 
+    linkGenerated(integration_tests, natives);
+
     const run_integration_tests = b.addRunArtifact(integration_tests);
     const test_step = b.step("test", "Run compiler language and API tests");
 
     test_step.dependOn(&run_rx_tests.step);
     test_step.dependOn(&run_frontend_tests.step);
     test_step.dependOn(&run_integration_tests.step);
+}
+
+fn linkGenerated(artifact: *std.Build.Step.Compile, natives: @import("build/parser.zig").Shared) void {
+    if (natives.objects) |objects| artifact.root_module.addImport("zxc_generated_objects", objects);
 }

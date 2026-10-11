@@ -3,7 +3,7 @@ const Cache = @import("compiler").zig.GenerationCache;
 const Options = @import("options.zig").Options;
 
 pub fn init(io: std.Io, allocator: std.mem.Allocator, root: []const u8) std.mem.Allocator.Error!Cache {
-    const identity = @import("cache_identity").digest;
+    const identity = @import("cache_identity").digest();
     const directory = try std.fs.path.join(allocator, &.{ root, ".zxc", "cache", "zig", &std.fmt.bytesToHex(identity, .lower) });
 
     defer allocator.free(directory);

@@ -1,24 +1,31 @@
 const std = @import("std");
 const compiler = @import("compiler");
+const layout = @import("partition/layout.zig");
 
-pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundle: compiler.zig.LibraryBundle) !void {
+/// Writes the generated tree. With `partitions` set, function files are spread over that many separately
+/// compiled partitions. Only changed files are rewritten and files no longer generated are removed, so an
+/// output directory reused across runs keeps unchanged files byte- and timestamp-stable for Zig's cache.
+pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundle: compiler.zig.LibraryBundle, partitions: u32) !void {
+    var files: std.ArrayList(layout.File) = .empty;
+    var functions: std.ArrayList(layout.File) = .empty;
+    var top: std.ArrayList(layout.File) = .empty;
     var root: std.Io.Writer.Allocating = .init(allocator);
 
-    defer root.deinit();
+    try files.append(allocator, .{ .path = "types.zig", .source = bundle.types });
 
-    try std.Io.Dir.cwd().createDirPath(io, output);
-    try writeFile(io, allocator, output, "types.zig", bundle.types);
-    for (bundle.modules) |module| try writeFile(io, allocator, output, module.name, module.source);
+    for (bundle.modules) |module| {
+        const file = layout.File{ .path = module.name, .source = module.source };
+
+        if (std.mem.startsWith(u8, module.name, "zxc_module_")) try functions.append(allocator, file) else try top.append(allocator, file);
+    }
 
     for (bundle.public_modules) |module| {
         const name = try std.fmt.allocPrint(allocator, "{s}.zig", .{module.file.name});
 
-        try writeFile(io, allocator, output, name, module.file.source);
+        try top.append(allocator, .{ .path = name, .source = module.file.source });
         try root.writer.print("pub const {f} = @import(\"{f}\");\n", .{ std.zig.fmtId(module.name), std.zig.fmtString(name) });
 
         var adapter: std.Io.Writer.Allocating = .init(allocator);
-
-        defer adapter.deinit();
 
         try adapter.writer.print("const entry = @import(\"generated\").{f};\n\n", .{std.zig.fmtId(module.name)});
 
@@ -34,16 +41,54 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
             try adapter.writer.writeAll("pub const executeBuffered = entry.executeBuffered;\npub const buffer_lanes = entry.buffer_lanes;\n");
         }
 
-        try writeFile(io, allocator, output, try std.fmt.allocPrint(allocator, "{s}.zig", .{module.name}), adapter.written());
+        try files.append(allocator, .{ .path = try std.fmt.allocPrint(allocator, "{s}.zig", .{module.name}), .source = adapter.written() });
     }
 
-    try writeFile(io, allocator, output, "root.zig", root.written());
+    try files.appendSlice(allocator, top.items);
+    try files.append(allocator, .{ .path = "root.zig", .source = root.written() });
+
+    if (partitions == 0) try files.appendSlice(allocator, functions.items) else try files.appendSlice(allocator, try layout.plan(allocator, functions.items, top.items, partitions));
+
+    try mirror(io, allocator, output, files.items);
 }
 
-fn writeFile(io: std.Io, allocator: std.mem.Allocator, directory: []const u8, name: []const u8, source: []const u8) !void {
-    const path = try std.fs.path.join(allocator, &.{ directory, name });
+pub const fingerprint_name = ".zxc-inputs";
 
-    defer allocator.free(path);
+fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: []const layout.File) !void {
+    const cwd = std.Io.Dir.cwd();
+    var wanted: std.StringHashMapUnmanaged(void) = .empty;
 
-    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = path, .data = source });
+    try cwd.createDirPath(io, output);
+
+    var directory = try cwd.openDir(io, output, .{ .iterate = true });
+
+    defer directory.close(io);
+
+    for (files) |file| {
+        try wanted.put(allocator, file.path, {});
+
+        if (std.fs.path.dirname(file.path)) |parent| try directory.createDirPath(io, parent);
+
+        const current = directory.readFileAlloc(io, file.path, allocator, .limited(file.source.len + 1)) catch |err| switch (err) {
+            error.FileNotFound, error.StreamTooLong => null,
+            else => return err,
+        };
+
+        if (current != null and std.mem.eql(u8, current.?, file.source)) continue;
+
+        try directory.writeFile(io, .{ .sub_path = file.path, .data = file.source });
+    }
+
+    var stale: std.ArrayList([]const u8) = .empty;
+    var walker = try directory.walk(allocator);
+
+    defer walker.deinit();
+
+    while (try walker.next(io)) |entry| {
+        if (entry.kind != .file or std.mem.eql(u8, entry.path, fingerprint_name) or wanted.contains(entry.path)) continue;
+
+        try stale.append(allocator, try allocator.dupe(u8, entry.path));
+    }
+
+    for (stale.items) |path| try directory.deleteFile(io, path);
 }

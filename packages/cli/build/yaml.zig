@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn link(b: *std.Build, executable: *std.Build.Step.Compile, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+pub fn link(b: *std.Build, consumer: *std.Build.Module, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
     const source = b.dependency("libyaml", .{});
 
     b.addNamedLazyPath("yaml_license", source.path("License"));
@@ -22,8 +22,8 @@ pub fn link(b: *std.Build, executable: *std.Build.Step.Compile, target: std.Buil
 
     if (target.result.os.tag == .windows) translated.defineCMacro("_FORTIFY_SOURCE", "0");
 
-    executable.root_module.addImport("yaml", translated.createModule());
-    executable.root_module.linkLibrary(library);
+    consumer.addImport("yaml", translated.createModule());
+    consumer.linkLibrary(library);
 
     const license = b.addInstallFile(source.path("License"), "share/zxc/licenses/libyaml.txt");
 

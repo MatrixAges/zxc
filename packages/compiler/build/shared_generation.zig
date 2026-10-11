@@ -10,7 +10,7 @@ const Inputs = struct {
     packages: []const compiler.project.Package,
 };
 
-pub fn run(init: std.process.Init, entries: []const Entry, inputs: Inputs, output: []const u8, cache_path: []const u8) !void {
+pub fn run(init: std.process.Init, entries: []const Entry, inputs: Inputs, output: []const u8, cache_path: []const u8, digest: [32]u8, partitions: u32) !void {
     const started = std.Io.Timestamp.now(init.io, .awake);
     const allocator = init.arena.allocator();
     const roots = try allocator.alloc([]const u8, entries.len);
@@ -66,12 +66,6 @@ pub fn run(init: std.process.Init, entries: []const Entry, inputs: Inputs, outpu
         .store_initializers = contract.store_initializers,
     };
 
-    const executable = try std.process.executablePathAlloc(init.io, allocator);
-    const binary = try std.Io.Dir.cwd().readFileAlloc(init.io, executable, allocator, .unlimited);
-    var digest: [32]u8 = undefined;
-
-    std.crypto.hash.sha2.Sha256.hash(binary, &digest, .{});
-
     var cache = try compiler.zig.GenerationCache.initPersistent(init.gpa, init.io, cache_path, digest);
 
     defer cache.deinit();
@@ -82,7 +76,7 @@ pub fn run(init: std.process.Init, entries: []const Entry, inputs: Inputs, outpu
 
     const emitted = std.Io.Timestamp.now(init.io, .awake);
 
-    try @import("shared_output.zig").write(init.io, allocator, output, bundle);
+    try @import("shared_output.zig").write(init.io, allocator, output, bundle, partitions);
 
     const written = std.Io.Timestamp.now(init.io, .awake);
 

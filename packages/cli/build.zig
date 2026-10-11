@@ -4,38 +4,61 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const stage0 = b.option([]const u8, "stage0", "Pinned bootstrap generator executable") orelse "";
-    const compiler = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
+    const partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects (0 = one unit)") orelse 0;
+    const compiler = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
     const module = compiler.module("compiler");
     const standard = compiler.module("standard");
+    const generated_objects = compiler.builder.modules.get("generated_objects");
 
-    const executable = b.addExecutable(.{
-        .name = "zxc",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("src/main.zig"),
-            .target = target,
-            .optimize = optimize,
-            .imports = &.{
-                .{ .name = "rx", .module = compiler.module("rx") },
-                .{ .name = "rx_analysis", .module = compiler.module("rx_analysis") },
-                .{ .name = "lint", .module = compiler.module("lint") },
-                .{ .name = "pkgs", .module = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).module("pkgs") },
-                .{ .name = "compiler", .module = module },
-                .{ .name = "napi_resources", .module = b.dependency("napi", .{ .target = target, .optimize = optimize }).module("resources") },
-                .{ .name = "napi_declarations", .module = b.dependency("napi", .{ .target = target, .optimize = optimize }).module("declarations") },
-                .{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") },
-            },
-        }),
+    const host = b.createModule(.{
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "rx", .module = compiler.module("rx") },
+            .{ .name = "rx_analysis", .module = compiler.module("rx_analysis") },
+            .{ .name = "lint", .module = compiler.module("lint") },
+            .{ .name = "pkgs", .module = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).module("pkgs") },
+            .{ .name = "compiler", .module = module },
+            .{ .name = "napi_resources", .module = b.dependency("napi", .{ .target = target, .optimize = optimize }).module("resources") },
+            .{ .name = "napi_declarations", .module = b.dependency("napi", .{ .target = target, .optimize = optimize }).module("declarations") },
+            .{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") },
+        },
     });
 
-    @import("build/yaml.zig").link(b, executable, target, optimize);
+    @import("build/yaml.zig").link(b, host, target, optimize);
 
-    if (b.option(bool, "strip", "Omit debug information from hand-written zxc code as well (generated modules already omit it); faster and lighter to compile, without source locations in stack traces")) |strip| executable.root_module.strip = strip;
+    if (b.option(bool, "strip", "Omit debug information from hand-written zxc code as well (generated modules already omit it); faster and lighter to compile, without source locations in stack traces")) |strip| host.strip = strip;
 
-    executable.root_module.addOptions("cache_identity", @import("build/cache_identity.zig").create(b, target, optimize, compiler));
+    const cache_identity = @import("build/cache_identity.zig").create(b, target, optimize, compiler);
+    const identity = b.createModule(.{ .root_source_file = b.path("src/host/identity.zig"), .target = target, .optimize = optimize });
+
+    // The identity changes with every compiler source; with a separate host object only the entry unit embeds it.
+    identity.addOptions("cache_identity_embedded", if (partitions == 0) cache_identity else b.addOptions());
+    host.addImport("cache_identity", identity);
 
     const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");
 
-    executable.root_module.addImport("bundle", @import("build/toolchain.zig").create(b, target, pkgs_index, compiler.builder.root.join(b.allocator, "standard/src") catch @panic("OOM")));
+    host.addImport("bundle", @import("build/toolchain.zig").create(b, target, pkgs_index, compiler.builder.root.join(b.allocator, "standard/src") catch @panic("OOM")));
+
+    const executable = b.addExecutable(.{ .name = "zxc", .root_module = if (partitions == 0) host else entry: {
+        // With partitioned generated code the CLI is its own object as well, so a changed partition only relinks.
+        const object = b.addObject(.{ .name = "zxc_host", .root_module = b.createModule(.{
+            .root_source_file = b.path("src/host/export.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{.{ .name = "main", .module = host }},
+        }) });
+
+        const start = b.createModule(.{ .root_source_file = b.path("src/host/start.zig"), .target = target, .optimize = optimize, .link_libc = true });
+
+        start.addObject(object);
+        start.addImport("zxc_generated_objects", generated_objects.?);
+        start.addOptions("cache_identity", cache_identity);
+
+        break :entry start;
+    } });
+
     b.addNamedLazyPath("pkgs_index", pkgs_index);
     b.installArtifact(executable);
 
@@ -64,6 +87,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .imports = &.{.{ .name = "compiler", .module = module }},
     }) });
+
+    if (generated_objects) |objects| external_generator.root_module.addImport("zxc_generated_objects", objects);
 
     const generate_external = b.addRunArtifact(external_generator);
     const external_file = generate_external.addOutputFileArg("external.zig");
@@ -107,6 +132,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .imports = &.{.{ .name = "compiler", .module = module }},
     }) });
+
+    if (generated_objects) |objects| store_generator.root_module.addImport("zxc_generated_objects", objects);
 
     const generate_store = b.addRunArtifact(store_generator);
     const store_file = generate_store.addOutputFileArg("store.zig");

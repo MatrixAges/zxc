@@ -24,18 +24,19 @@ pub fn main(init: std.process.Init) !void {
     }
 
     if (std.mem.eql(u8, args[1], "--manifest")) {
-        if (args.len != 5) return error.OutputCountMismatch;
+        if (args.len != 5 and !(args.len == 7 and std.mem.eql(u8, args[5], "--partitions"))) return error.OutputCountMismatch;
 
         const source = try std.Io.Dir.cwd().readFileAlloc(init.io, args[2], allocator, .unlimited);
         const project = try std.json.parseFromSliceLeaky(manifest.Project, allocator, source, .{});
+        const partitions = if (args.len == 7) try std.fmt.parseInt(u32, args[6], 10) else 0;
 
-        return generate(init, project, args[3], args[4]);
+        return generate(init, project, source, args[3], args[4], partitions);
     }
 
     return error.UnknownCommand;
 }
 
-fn generate(init: std.process.Init, project: manifest.Project, output: []const u8, cache: []const u8) !void {
+fn generate(init: std.process.Init, project: manifest.Project, manifest_source: []const u8, output: []const u8, cache: []const u8, partitions: u32) !void {
     if (project.entries.len == 0) return error.EmptyEntrySet;
 
     const allocator = init.arena.allocator();
@@ -75,10 +76,68 @@ fn generate(init: std.process.Init, project: manifest.Project, output: []const u
 
     for (project.packages, packages) |package, *target| target.* = .{ .specifier = package.specifier, .entry = package.entry };
 
+    const generator = try @import("generator_digest.zig").create(init.io, allocator);
+    const inputs_digest = fingerprint(generator, manifest_source, partitions, sources.items, modules.items, interfaces);
+
+    // An output directory reused across runs already holds the result when nothing it depends on changed.
+    if (try current(init.io, allocator, output, inputs_digest)) return;
+
+    const recorded = try std.fs.path.join(allocator, &.{ output, shared_output.fingerprint_name });
+
+    std.Io.Dir.cwd().deleteFile(init.io, recorded) catch |err| switch (err) {
+        error.FileNotFound => {},
+        else => return err,
+    };
+
     try @import("shared_generation.zig").run(init, project.entries, .{
         .modules = inputs,
         .sources = sources.items,
         .interfaces = interfaces,
         .packages = packages,
-    }, output, cache);
+    }, output, cache, generator, partitions);
+
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = recorded, .data = &std.fmt.bytesToHex(inputs_digest, .lower) });
+}
+
+const shared_output = @import("shared_output.zig");
+
+fn fingerprint(generator: [32]u8, manifest_source: []const u8, partitions: u32, sources: []const compiler.project.Source, modules: []const rx.TextSource, interfaces: []const compiler.project.NativeInterface) [32]u8 {
+    var hash = std.crypto.hash.Blake3.init(.{});
+
+    hash.update(&generator);
+    field(&hash, manifest_source);
+    hash.update(std.mem.asBytes(&partitions));
+
+    for (sources) |source| {
+        field(&hash, source.path);
+        field(&hash, source.source);
+    }
+
+    for (modules) |module| {
+        field(&hash, module.path);
+        field(&hash, module.source);
+    }
+
+    for (interfaces) |interface| field(&hash, interface.source);
+
+    var digest: [32]u8 = undefined;
+
+    hash.final(&digest);
+
+    return digest;
+}
+
+fn field(hash: *std.crypto.hash.Blake3, bytes: []const u8) void {
+    hash.update(std.mem.asBytes(&bytes.len));
+    hash.update(bytes);
+}
+
+fn current(io: std.Io, allocator: std.mem.Allocator, output: []const u8, digest: [32]u8) !bool {
+    const path = try std.fs.path.join(allocator, &.{ output, shared_output.fingerprint_name });
+    const recorded = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(65)) catch |err| switch (err) {
+        error.FileNotFound => return false,
+        else => return err,
+    };
+
+    return std.mem.eql(u8, recorded, &std.fmt.bytesToHex(digest, .lower));
 }

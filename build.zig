@@ -22,7 +22,8 @@ pub fn build(b: *std.Build) void {
     b.getInstallStep().dependOn(&dsl_example.step);
     dsl_step.dependOn(&run_dsl_example.step);
 
-    const rx_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
+    const partitions = b.option(u32, "generated-partitions", "Compile generated bootstrap functions as this many separately cached objects (default 32 in Debug, 0 = one unit)") orelse @as(u32, if (optimize == .debug) 32 else 0);
+    const rx_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
 
     const rx_tests = b.addTest(.{
         .root_module = b.createModule(.{
@@ -33,6 +34,8 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    if (rx_dependency.builder.modules.get("generated_objects")) |objects| rx_tests.root_module.addImport("zxc_generated_objects", objects);
+
     b.getInstallStep().dependOn(&rx_tests.step);
 
     const run_rx_tests = b.addRunArtifact(rx_tests);
@@ -41,8 +44,8 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_rx_tests.step);
 
     const zig_archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host");
-    const compiler_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
-    const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"zig-archive" = path }) else b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
+    const compiler_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
+    const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions, .@"zig-archive" = path }) else b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"generated-partitions" = partitions });
 
     test_step.dependOn(&compiler_dependency.builder.top_level_steps.get("test").?.step);
     test_step.dependOn(&cli_dependency.builder.top_level_steps.get("test").?.step);
