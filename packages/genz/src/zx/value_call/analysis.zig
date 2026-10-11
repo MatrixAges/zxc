@@ -49,12 +49,28 @@ pub fn analyze(allocator: std.mem.Allocator, program: ir.Program) std.mem.Alloca
 
     for (0..program.functions.count()) |index| {
         const function = program.functions.at(index);
-        pure[index] = if (function.external != null) @import("../native_value.zig").valueBoundary(program, function) else function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, pure[0..index]);
+        pure[index] = isPure(program, function, pure[0..index]);
         local[index] = if (function.external != null) @import("../native_value.zig").isolated(program, function) else function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, local[0..index]);
         eligible[index] = local[index] and (program.typeOf(function.output_type) == .object or state.represented(program, function.output_type));
     }
 
     return .{ .pure = pure, .local = local, .values = eligible, .state = state };
+}
+
+/// Which functions are pure, without the value-state facts `analyze` also derives.
+pub fn pureFunctions(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error![]bool {
+    const pure = try allocator.alloc(bool, program.functions.count());
+
+    for (pure, 0..) |*target, index| target.* = isPure(program, program.functions.at(index), pure[0..index]);
+
+    return pure;
+}
+
+/// Whether `function` is pure, given whether each function before it is.
+fn isPure(program: ir.Program, function: ir.Function, before: []const bool) bool {
+    if (function.external != null) return @import("../native_value.zig").valueBoundary(program, function);
+
+    return function.stores.count() == 0 and !parallel(function.body.block()) and calls(function.expressions, function.contracts, before);
 }
 
 pub fn sharesAggregate(program: ir.Program, input: ir.TypeId, output: ir.TypeId) bool {

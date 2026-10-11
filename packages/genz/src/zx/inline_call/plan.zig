@@ -7,7 +7,7 @@ pub const limit = 4096;
 program: ir.Program,
 costs: []usize,
 pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
-    const facts = try @import("../value_call/analysis.zig").analyze(allocator, program);
+    const pure = try @import("../value_call/analysis.zig").pureFunctions(allocator, program);
     const costs = try allocator.alloc(usize, program.functions.count());
     var self = Self{ .program = program, .costs = costs };
 
@@ -16,7 +16,7 @@ pub fn init(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocator
     for (0..program.functions.count()) |index| {
         const function = program.functions.at(index);
 
-        if (!facts.pure[index] or function.external != null or function.stores.count() != 0 or function.contracts.count() != 0) continue;
+        if (!pure[index] or function.external != null or function.stores.count() != 0 or function.contracts.count() != 0) continue;
         if (primitive(program, function.input_type) and primitive(program, function.output_type)) continue;
 
         const input = program.typeOf(function.input_type);
