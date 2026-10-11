@@ -67,18 +67,22 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
     var origins = Origins{ .allocator = allocator };
     const functions = if (resolved) |bindings| bindings.functions else zx.ir.FunctionTable{};
 
+    // A resolved context is the project's shared tables, built only from linked modules that passed validation
+    // and kept alive past this analysis; internal builds still re-check them.
+    const trusted = resolved != null and !@import("../ir/validate.zig").internal;
+
     if (!@TypeOf(input).completes_ownership) {
         const header = input.header();
 
         if (resolved == null and header.importCount() > 0) return .{ .value = .{ .diagnostic = .{ .code = .module, .span = header.importAt(0).span, .message = "modules with imports require the project analysis entry point" } } };
 
-        if (context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(context.types)) return .{ .value = .{ .diagnostic = .{
+        if (!trusted and context.types.count() != 0 and !@import("../ir/type_rules.zig").validate(context.types)) return .{ .value = .{ .diagnostic = .{
             .code = .contract,
             .span = .{ .start = 0, .end = 0 },
             .message = "invalid shared type table",
         } } };
 
-        if (!@import("../modules/native_context.zig").valid(context.types, context.native_modules)) return .{ .value = .{ .diagnostic = .{
+        if (!trusted and !@import("../modules/native_context.zig").valid(context.types, context.native_modules)) return .{ .value = .{ .diagnostic = .{
             .code = .contract,
             .span = .{ .start = 0, .end = 0 },
             .message = "invalid shared native module table",
@@ -88,7 +92,7 @@ fn analyzeInputIn(allocator: std.mem.Allocator, input: anytype, file_name: []con
             if (!Resolved.valid(header, bindings, context.types)) return .{ .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "resolved imports do not match the source declarations and function signatures" } } };
         }
 
-        copied_types = try @import("type_table.zig").storage(allocator, context.types);
+        copied_types = if (resolved != null) try @import("type_table.zig").columns(allocator, context.types) else try @import("type_table.zig").storage(allocator, context.types);
 
         origins.seed(copied_types.view(), context.nominal_types) catch |err| {
             if (err == error.OutOfMemory) return error.OutOfMemory;

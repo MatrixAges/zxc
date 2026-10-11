@@ -46,7 +46,9 @@ pub fn compact(self: *Self, temporary: std.mem.Allocator, first: usize, origin_c
 }
 
 pub fn appendFrom(self: *Self, temporary: std.mem.Allocator, values: ir.TypeTable, nominal_types: Origins.Table, first: usize) Error![]const ir.TypeId {
-    if (!@import("../../ir/type_rules.zig").validate(values)) return error.InvalidModule;
+    // Values extending this table (`first` > 0) come from the project's own analysis or from this table itself;
+    // outside internal builds only independent tables, such as loaded libraries, are validated here.
+    if ((first == 0 or @import("../../ir/validate.zig").internal) and !@import("../../ir/type_rules.zig").validate(values)) return error.InvalidModule;
 
     var prepared = try @import("../../analysis/semantic/preflight.zig").prepare(self.allocator, temporary, values, nominal_types, self.items.view(), first);
 
