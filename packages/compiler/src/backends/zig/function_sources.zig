@@ -1,7 +1,39 @@
 const std = @import("std");
 const generating = @import("genz").zx.modules;
 const Batch = @import("batch.zig");
+const Cache = @import("cache.zig");
 
+/// Identifies every selected function and fetches its cached source.
+const Search = struct {
+    batch: *const Batch,
+    selected: []const u32,
+    lookups: []Batch.Lookup,
+    fetched: []Cache.Fetched,
+    next: std.atomic.Value(usize) = .init(0),
+    failure: std.atomic.Value(u16) = .init(0),
+    fn run(self: *Search, arena: *std.heap.ArenaAllocator) void {
+        while (self.failure.load(.monotonic) == 0) {
+            const position = self.next.fetchAdd(1, .monotonic);
+
+            if (position >= self.selected.len) return;
+
+            self.step(arena.allocator(), position) catch |err| {
+                _ = self.failure.cmpxchgStrong(0, @intFromError(err), .monotonic, .monotonic);
+
+                return;
+            };
+        }
+    }
+
+    fn step(self: *Search, allocator: std.mem.Allocator, position: usize) generating.Error!void {
+        const found = try self.batch.identify(allocator, .{ .function = @fromBackingInt(self.selected[position]) });
+
+        self.lookups[position] = found;
+        self.fetched[position] = if (self.batch.cache) |cache| try cache.fetch(allocator, found.name, found.key) else .absent;
+    }
+};
+
+/// Generates every function no cached source covers.
 const Work = struct {
     batch: *const Batch,
     pending: []const u32,
@@ -23,7 +55,8 @@ const Work = struct {
     }
 };
 
-/// Sources of the selected functions in program order: cached units are reused, the rest are generated on all cores.
+/// Sources of the selected functions in program order: cached units are reused, the rest are generated; both the
+/// search and the generation run on all cores.
 pub fn create(owned: std.mem.Allocator, batch: *const Batch, selected: []const u32) generating.Error![]const []const u8 {
     var scratch = std.heap.ArenaAllocator.init(batch.backing);
 
@@ -31,15 +64,24 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, selected: []const u
 
     const temporary = scratch.allocator();
     const sources = try owned.alloc([]const u8, selected.len);
-    const lookups = try temporary.alloc(Batch.Lookup, selected.len);
+    const arenas = try temporary.alloc(std.heap.ArenaAllocator, @max(std.Thread.getCpuCount() catch 1, 1));
+
+    for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
+
+    defer for (arenas) |*arena| arena.deinit();
+
+    var search = Search{ .batch = batch, .selected = selected, .lookups = try temporary.alloc(Batch.Lookup, selected.len), .fetched = try temporary.alloc(Cache.Fetched, selected.len) };
+
+    try spread(Search, &search, temporary, arenas[0..@min(arenas.len, selected.len)]);
+
     var pending: std.ArrayList(u32) = .empty;
     var positions: std.ArrayList(usize) = .empty;
 
-    for (selected, lookups, sources, 0..) |index, *found, *source, position| {
-        found.* = if (batch.cache != null) try batch.lookup(temporary, .{ .function = @fromBackingInt(index) }) else .{ .name = "", .key = undefined, .source = null };
+    for (selected, search.lookups, search.fetched, sources, 0..) |index, found, fetched, *source, position| {
+        const cached = if (batch.cache) |cache| try cache.record(found.name, found.key, fetched) else null;
 
-        if (found.source) |cached| {
-            source.* = try owned.dupe(u8, cached);
+        if (cached) |value| {
+            source.* = try owned.dupe(u8, value);
 
             continue;
         }
@@ -48,33 +90,33 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, selected: []const u
         try positions.append(temporary, position);
     }
 
-    const results = try temporary.alloc([]const u8, pending.items.len);
-    var work = Work{ .batch = batch, .pending = pending.items, .results = results };
-    const helpers = @min(std.Thread.getCpuCount() catch 1, pending.items.len) -| 1;
-    const arenas = try temporary.alloc(std.heap.ArenaAllocator, helpers + 1);
+    var work = Work{ .batch = batch, .pending = pending.items, .results = try temporary.alloc([]const u8, pending.items.len) };
 
-    for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
+    try spread(Work, &work, temporary, arenas[0..@min(arenas.len, pending.items.len)]);
 
-    defer for (arenas) |*arena| arena.deinit();
-
-    const threads = try temporary.alloc(std.Thread, helpers);
-    var started: usize = 0;
-
-    for (threads, arenas[1..]) |*thread, *arena| {
-        thread.* = std.Thread.spawn(.{}, Work.run, .{ &work, arena }) catch break;
-        started += 1;
-    }
-
-    work.run(&arenas[0]);
-
-    for (threads[0..started]) |thread| thread.join();
-    if (work.failure.load(.monotonic) != 0) return @errorCast(@errorFromInt(work.failure.load(.monotonic)));
-
-    for (positions.items, results) |position, generated| {
+    for (positions.items, work.results) |position, generated| {
         sources[position] = try owned.dupe(u8, generated);
 
-        try batch.remember(lookups[position], sources[position]);
+        try batch.remember(search.lookups[position], sources[position]);
     }
 
     return sources;
+}
+
+/// Runs `task` on this thread and one helper per further arena, and reports the first failure.
+fn spread(comptime Task: type, task: *Task, temporary: std.mem.Allocator, arenas: []std.heap.ArenaAllocator) generating.Error!void {
+    if (arenas.len == 0) return;
+
+    const threads = try temporary.alloc(std.Thread, arenas.len - 1);
+    var started: usize = 0;
+
+    for (threads, arenas[1..]) |*thread, *arena| {
+        thread.* = std.Thread.spawn(.{}, Task.run, .{ task, arena }) catch break;
+        started += 1;
+    }
+
+    task.run(&arenas[0]);
+
+    for (threads[0..started]) |thread| thread.join();
+    if (task.failure.load(.monotonic) != 0) return @errorCast(@errorFromInt(task.failure.load(.monotonic)));
 }

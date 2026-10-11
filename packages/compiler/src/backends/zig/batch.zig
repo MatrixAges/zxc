@@ -55,15 +55,21 @@ pub fn emit(self: *const Self, owned: std.mem.Allocator, unit: generating.Unit) 
 
 /// Cache identity and cached source of one unit; names and keys live in `scratch`.
 pub fn lookup(self: *const Self, scratch: std.mem.Allocator, unit: generating.Unit) generating.Error!Lookup {
+    var found = try self.identify(scratch, unit);
+
+    found.source = if (self.cache) |store| try store.get(found.name, found.key) else null;
+
+    return found;
+}
+
+/// The cache name and key of a unit; pure, so threads may identify units of one batch together.
+pub fn identify(self: *const Self, scratch: std.mem.Allocator, unit: generating.Unit) generating.Error!Lookup {
     const name = switch (unit) {
         .function => |id| self.names.functions[@backingInt(id)],
         .entry, .types => try std.fmt.allocPrint(scratch, "{s}:{s}", .{ @tagName(unit), self.program.file_name }),
     };
 
-    const key = fingerprint.createAnalyzed(self.program, self.names, unit, self.analysis.value);
-    const source = if (self.cache) |store| try store.get(name, key) else null;
-
-    return .{ .name = name, .key = key, .source = source };
+    return .{ .name = name, .key = fingerprint.createAnalyzed(self.program, self.names, unit, self.analysis.value), .source = null };
 }
 
 /// Pure generation of one unit; threads may share a batch when each passes its own `owned` and a thread-safe `backing`.

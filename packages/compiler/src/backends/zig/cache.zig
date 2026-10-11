@@ -37,31 +37,66 @@ pub fn deinit(self: *Self) void {
 }
 
 pub fn get(self: *Self, name: []const u8, key: [32]u8) std.mem.Allocator.Error!?[]const u8 {
-    if (self.entries.get(name)) |entry| {
-        if (std.mem.eql(u8, &entry.key, &key)) {
-            self.reused += 1;
+    const fetched = try self.fetch(self.allocator, name, key);
 
-            return entry.source;
-        }
+    defer if (fetched == .stored) self.allocator.free(fetched.stored);
+
+    return self.record(name, key, fetched);
+}
+
+/// What `fetch` found for one unit, before `record` accounts for it.
+pub const Fetched = union(enum) { held: []const u8, stored: []u8, absent, invalid, failed: anyerror };
+
+/// Finds a unit's source without changing the cache, so several threads may fetch while none records; a stored
+/// source is read into `allocator`.
+pub fn fetch(self: *const Self, allocator: std.mem.Allocator, name: []const u8, key: [32]u8) std.mem.Allocator.Error!Fetched {
+    if (self.entries.get(name)) |entry| {
+        if (std.mem.eql(u8, &entry.key, &key)) return .{ .held = entry.source };
     }
 
-    const storage = self.storage orelse return null;
+    const storage = self.storage orelse return .absent;
 
-    const source = storage.read(self.allocator, key) catch |err| {
-        if (err == error.OutOfMemory) return error.OutOfMemory;
-        if (err == error.InvalidCache) self.discarded += 1 else self.recordError(err);
+    const source = storage.read(allocator, key) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        error.InvalidCache => return .invalid,
+        else => return .{ .failed = err },
+    } orelse return .absent;
 
-        return null;
-    } orelse return null;
+    return .{ .stored = source };
+}
 
-    errdefer self.allocator.free(source);
+/// Accounts for a fetch and keeps a stored source; returns the source the unit reuses, if any.
+pub fn record(self: *Self, name: []const u8, key: [32]u8, fetched: Fetched) std.mem.Allocator.Error!?[]const u8 {
+    switch (fetched) {
+        .held => |source| {
+            self.reused += 1;
 
-    try self.store(name, key, source);
+            return source;
+        },
+        .stored => |source| {
+            const owned = try self.allocator.dupe(u8, source);
 
-    self.loaded += 1;
-    self.reused += 1;
+            errdefer self.allocator.free(owned);
 
-    return source;
+            try self.store(name, key, owned);
+
+            self.loaded += 1;
+            self.reused += 1;
+
+            return owned;
+        },
+        .absent => return null,
+        .invalid => {
+            self.discarded += 1;
+
+            return null;
+        },
+        .failed => |err| {
+            self.recordError(err);
+
+            return null;
+        },
+    }
 }
 
 pub fn put(self: *Self, name: []const u8, key: [32]u8, source: []const u8) std.mem.Allocator.Error!void {
