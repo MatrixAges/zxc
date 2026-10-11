@@ -1,6 +1,6 @@
-const compiler = @import("compiler");
+const Package = @import("generation_manifest.zig").Package;
 
-pub const entries: []const compiler.project.Package = &.{
+pub const entries: []const Package = &.{
     .{ .specifier = "compiler/compiled_native", .entry = "zx/modules/compiled/loading/native/step.rx" },
     .{ .specifier = "compiler/compiled_function", .entry = "zx/modules/compiled/loading/functions/remap.rx" },
     .{ .specifier = "compiler/compiled_contract", .entry = "zx/modules/compiled/loading/remap/contract.rx" },

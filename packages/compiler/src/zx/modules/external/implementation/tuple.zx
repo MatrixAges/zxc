@@ -1,0 +1,24 @@
+import { Kind } from "core/type_table/model"
+import row from "core/type_table/row"
+
+import type { Tables } from "core/type_table/model"
+import type { Diagnostic } from "../../../analysis/semantic/resolving/model"
+import type { Span } from "../../../frontend/lexer/token_model"
+
+export type Input = { tables: Tables, input_type: u32, expand_tuple: bool, span: Span }
+
+export type Output = Diagnostic
+
+export default function (in: Input): Output {
+    if (!in.expand_tuple) {
+        return { code: "", message: "", start: 0, end: 0 }
+    }
+
+    const input_type = row({ tables: in.tables, id: in.input_type })
+
+    if (input_type.kind != Kind.Tuple) {
+        return { code: "module", message: "positional external signatures require tuple Input", start: in.span.start, end: in.span.end }
+    }
+
+    return { code: "", message: "", start: 0, end: 0 }
+}

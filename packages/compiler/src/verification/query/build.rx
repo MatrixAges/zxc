@@ -1,0 +1,15 @@
+<Module>
+    <Call fn="declarations" in={$in.declarations} />
+
+    <Call module="failures" in={$in.violations} />
+
+    <Task name="feasibility" out={$ctx.statement}>
+        <Call fn="statement" in={{ declarations: $ctx.declarations, definitions: $in.definitions, predicate: $in.precondition }} />
+    </Task>
+
+    <Task name="correctness" out={$ctx.statement}>
+        <Call fn="statement" in={{ declarations: $ctx.declarations, definitions: $in.definitions, predicate: $ctx.failures }} />
+    </Task>
+
+    <Return value={{ feasibility: $ctx.task.feasibility, correctness: $ctx.task.correctness }} />
+</Module>

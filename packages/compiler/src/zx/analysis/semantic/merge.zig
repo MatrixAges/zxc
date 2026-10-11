@@ -23,6 +23,7 @@ pub fn append(request: Request) Error!void {
     const Data = @FieldType(Input, "request");
     const State = @FieldType(Input, "state");
     const Table = @FieldType(Data, "source");
+    const Delta = @FieldType(State, "delta");
     const Bindings = @FieldType(Data, "origins");
     const mapping: []u32 = @ptrCast(request.mapping);
     var storage: Storage = .{ .mapping = .{ .list = .fromOwnedSlice(mapping), .started = true } };
@@ -30,18 +31,22 @@ pub fn append(request: Request) Error!void {
     defer storage.deinit(request.temporary);
     @memset(mapping, 0);
 
+    const source = table(Table, request.source);
+    const base = table(Table, request.items.view());
+    const delta = table(Delta, .{});
+
     const input: Input = .{
         .request = .{
-            .source = table(Table, request.source),
+            .source = if (@typeInfo(Table) == .pointer) &source else source,
             .origins = Origins.Table.borrow(Bindings, request.origins),
             .origin_indices = request.origin_indices,
-            .base = table(Table, request.items.view()),
+            .base = if (@typeInfo(Table) == .pointer) &base else base,
             .base_origins = Origins.Table.borrow(Bindings, request.nominal.view()),
             .first = request.first,
         },
         .state = .{
             .mapping = mapping,
-            .delta = table(@FieldType(State, "delta"), .{}),
+            .delta = if (@typeInfo(Delta) == .pointer) &delta else delta,
             .origins = Origins.Table.borrow(@FieldType(State, "origins"), .{}),
             .references = &.{},
             .status = 0,
@@ -66,7 +71,8 @@ pub fn append(request: Request) Error!void {
     };
 }
 
-fn table(comptime Target: type, source: ir.TypeTable) Target {
+fn table(comptime View: type, source: ir.TypeTable) if (@typeInfo(View) == .pointer) std.meta.Child(View) else View {
+    const Target = if (@typeInfo(View) == .pointer) std.meta.Child(View) else View;
     var result: Target = undefined;
 
     inline for (@typeInfo(ir.TypeTable).@"struct".field_names) |name| {

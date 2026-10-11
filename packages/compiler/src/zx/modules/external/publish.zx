@@ -1,0 +1,17 @@
+import type { Analysis, Result } from "./model"
+
+export type Input = Analysis
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    return {
+        type_delta: in.types.delta,
+        nominal_delta: in.types.nominal_delta,
+        publish: in.publish,
+        input_type: in.input_type,
+        output_type: in.output_type,
+        members: in.members,
+        diagnostic: in.diagnostic
+    }
+}

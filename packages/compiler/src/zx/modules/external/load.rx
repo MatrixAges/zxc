@@ -1,0 +1,20 @@
+<Module>
+    <Call module="../../frontend/parser/program" in={$in.bytes} />
+
+    <Switch on={$ctx.program.diagnostic.message == "" && $ctx.program.body == null && $ctx.program.imports.length == 0}>
+        <Case value={true}>
+            <Call module="signature" in={{ input: $in, syntax: $ctx.program }} />
+            <Call module="implementation" in={{ input: $in, analysis: $ctx.signature }} />
+
+            <Call fn="publish" in={$ctx.implementation} />
+
+            <Return value={$ctx.publish} />
+        </Case>
+
+        <Default>
+            <Call fn="failure" in={$in.span} />
+
+            <Return value={$ctx.failure} />
+        </Default>
+    </Switch>
+</Module>

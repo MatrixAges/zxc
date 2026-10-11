@@ -1,0 +1,33 @@
+<Module>
+    <Switch on={$in.analysis.diagnostic.message == ""}>
+        <Case value={true}>
+            <Call fn="implementation/tuple" in={{ tables: { base: $in.analysis.types.context.base, delta: $in.analysis.types.delta }, input_type: $in.analysis.input_type, expand_tuple: $in.input.expand_tuple, span: $in.input.span }} />
+
+            <Switch on={$ctx.tuple.message == ""}>
+                <Case value={true}>
+                    <Call fn="implementation/errors" in={{ errors: $in.input.errors, fallible: $in.input.fallible, span: $in.input.span }} />
+
+                    <Switch on={$ctx.errors.message == ""}>
+                        <Case value={true}>
+                            <Call fn="implementation/members" in={{ member: $in.input.member, span: $in.input.span }} />
+
+                            <Return value={{ ...$in.analysis, members: $ctx.members.members, diagnostic: $ctx.members.diagnostic }} />
+                        </Case>
+
+                        <Default>
+                            <Return value={{ ...$in.analysis, diagnostic: $ctx.errors }} />
+                        </Default>
+                    </Switch>
+                </Case>
+
+                <Default>
+                    <Return value={{ ...$in.analysis, diagnostic: $ctx.tuple }} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={$in.analysis} />
+        </Default>
+    </Switch>
+</Module>

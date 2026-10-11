@@ -1,0 +1,41 @@
+<Module>
+    <Task name="declarations" out={$ctx.initialized}>
+        <Call fn="../../analysis/analyzer/declarations/request" in={{ bytes: $in.input.bytes, syntax: $in.syntax, native: null, type_base: $in.input.type_base, aliases: { names: [], ids: [] }, nominal_base: $in.input.nominal_base, nominal_origin: $in.input.nominal_origin, shared: true }} />
+
+        <Call module="../../analysis/semantic/resolve" in={$ctx.request} />
+
+        <Call fn="signature/initialized" in={{ context: $ctx.request.request.context, result: $ctx.resolve }} />
+    </Task>
+
+    <Switch on={$ctx.task.declarations.diagnostic.message == ""}>
+        <Case value={true}>
+            <Task name="input" out={$ctx.port}>
+                <Call fn="../../analysis/analyzer/signature/request" in={{ types: $ctx.task.declarations.types, span: $in.input.span, name: "Input" }} />
+
+                <Call module="../../analysis/semantic/resolve" in={$ctx.request} />
+
+                <Call fn="signature/port" in={{ analysis: $ctx.task.declarations, result: $ctx.resolve, input_port: true }} />
+            </Task>
+
+            <Switch on={$ctx.task.input.diagnostic.message == ""}>
+                <Case value={true}>
+                    <Call fn="../../analysis/analyzer/signature/request" in={{ types: $ctx.task.input.types, span: $in.input.span, name: "Output" }} />
+
+                    <Call module="../../analysis/semantic/resolve" in={$ctx.request} />
+
+                    <Call fn="signature/port" in={{ analysis: $ctx.task.input, result: $ctx.resolve, input_port: false }} />
+
+                    <Return value={$ctx.port} />
+                </Case>
+
+                <Default>
+                    <Return value={$ctx.task.input} />
+                </Default>
+            </Switch>
+        </Case>
+
+        <Default>
+            <Return value={$ctx.task.declarations} />
+        </Default>
+    </Switch>
+</Module>

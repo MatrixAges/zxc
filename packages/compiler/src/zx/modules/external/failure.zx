@@ -1,0 +1,18 @@
+import type { Span } from "../../frontend/lexer/token_model"
+import type { Result } from "./model"
+
+export type Input = Span
+
+export type Output = Result
+
+export default function (in: Input): Output {
+    return {
+        type_delta: { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] },
+        nominal_delta: { ids: [], kinds: [], owners: [], members: [] },
+        publish: false,
+        input_type: 0,
+        output_type: 0,
+        members: [],
+        diagnostic: { code: "module", message: "a reviewed external signature must be a self-contained pure type module", start: in.start, end: in.end }
+    }
+}

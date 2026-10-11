@@ -3,21 +3,46 @@ const compiler = @import("compiler");
 const rx = @import("rx");
 const analysis = @import("rx_analysis");
 const collection = @import("source_collection.zig");
-const entries = @import("entries.zig");
+const manifest = @import("generation_manifest.zig");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
     const args = try init.minimal.args.toSlice(allocator);
 
-    if (std.mem.eql(u8, args[1], "--standard-abi")) return @import("generate_types.zig").generate(init, args[2]);
+    if (args.len < 2) return error.MissingCommand;
 
-    const set = std.meta.stringToEnum(entries.Set, args[1]) orelse return error.UnknownEntrySet;
+    if (std.mem.eql(u8, args[1], "--lexer")) {
+        if (args.len != 4) return error.OutputCountMismatch;
+
+        return @import("generate_lexer.zig").generate(init, args[2], args[3]);
+    }
+
+    if (std.mem.eql(u8, args[1], "--standard-abi")) {
+        if (args.len != 3) return error.OutputCountMismatch;
+
+        return @import("generate_types.zig").generate(init, args[2]);
+    }
+
+    if (std.mem.eql(u8, args[1], "--manifest")) {
+        if (args.len != 5) return error.OutputCountMismatch;
+
+        const source = try std.Io.Dir.cwd().readFileAlloc(init.io, args[2], allocator, .unlimited);
+        const project = try std.json.parseFromSliceLeaky(manifest.Project, allocator, source, .{});
+
+        return generate(init, project, args[3], args[4]);
+    }
+
+    return error.UnknownCommand;
+}
+
+fn generate(init: std.process.Init, project: manifest.Project, output: []const u8, cache: []const u8) !void {
+    if (project.entries.len == 0) return error.EmptyEntrySet;
+
+    const allocator = init.arena.allocator();
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
 
-    try collection.collect(init.io, allocator, args[2], "", &sources, &modules);
-    try collection.collect(init.io, allocator, args[3], "lint/naming/", &sources, &modules);
-    try collection.collect(init.io, allocator, args[4], "core/", &sources, &modules);
+    for (project.roots) |root| try collection.collect(init.io, allocator, root.path, root.prefix, &sources, &modules);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
@@ -36,59 +61,24 @@ pub fn main(init: std.process.Init) !void {
 
     for (inputs, modules.items, parsed.parsed) |*item, source, module| item.* = .{ .path = source.path, .node = module.value.node };
 
-    const selected = entries.of(set);
-    const jobs = try allocator.alloc(Job, selected.len);
-    var next: usize = 5;
+    const interfaces = try allocator.alloc(compiler.project.NativeInterface, project.interfaces.len);
 
-    for (selected, jobs) |entry, *job| {
-        job.* = .{ .entry = entry.path, .output = args[next], .types = if (entry.abi != null) args[next + 1] else null };
-        next += if (entry.abi != null) 2 else 1;
+    for (project.interfaces, interfaces) |interface, *target| {
+        const source = for (sources.items) |candidate| {
+            if (std.mem.eql(u8, candidate.path, interface.path)) break candidate.source;
+        } else try std.Io.Dir.cwd().readFileAlloc(init.io, interface.path, allocator, .unlimited);
+
+        target.* = .{ .specifier = interface.specifier, .path = interface.path, .source = source, .module = interface.module };
     }
 
-    if (next != args.len) return error.OutputCountMismatch;
-    try @import("parallel_generation.zig").run(init, jobs, .{ .modules = inputs, .sources = sources.items, .interfaces = &.{} }, generate);
-}
+    const packages = try allocator.alloc(compiler.project.Package, project.packages.len);
 
-pub const Job = @import("parallel_generation.zig").Job;
-pub const Inputs = @import("parallel_generation.zig").Inputs;
+    for (project.packages, packages) |package, *target| target.* = .{ .specifier = package.specifier, .entry = package.entry };
 
-fn generate(init: std.process.Init, inputs: Inputs, job: Job) !void {
-    const modules = inputs.modules;
-    const sources = inputs.sources;
-    const interfaces = inputs.interfaces;
-    const entry = job.entry;
-    const output_path = job.output;
-    const types_path = job.types;
-    const temporary = init.gpa;
-    const project = compiler.project.Options{ .entry = "", .native_interfaces = interfaces, .packages = @import("source_packages.zig").entries };
-    const selected = try @import("source_inputs.zig").reachable(temporary, modules, sources, entry, project);
-
-    defer temporary.free(selected);
-
-    var analyzed = try analysis.project.infer(temporary, .{
-        .entry = entry,
-        .modules = selected,
-        .sources = sources,
-        .project = project,
-    });
-
-    defer analyzed.deinit();
-
-    if (analyzed.value == .diagnostic) {
-        const issue = analyzed.value.diagnostic;
-
-        std.debug.print("{s}:{d}:{d}: {s}: {s}\n", .{ issue.path, issue.location.line, issue.location.column, issue.code, issue.message });
-
-        return error.InvalidParserSource;
-    }
-
-    const bundle = if (types_path != null)
-        try compiler.zig.emitBundle(temporary, analyzed.value.contract.program)
-    else
-        compiler.zig.Bundle{ .source = try compiler.zig.emit(temporary, analyzed.value.contract.program), .types = &.{} };
-
-    defer bundle.deinit(temporary);
-
-    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = output_path, .data = bundle.source });
-    if (types_path) |path| try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = path, .data = bundle.types });
+    try @import("shared_generation.zig").run(init, project.entries, .{
+        .modules = inputs,
+        .sources = sources.items,
+        .interfaces = interfaces,
+        .packages = packages,
+    }, output, cache);
 }

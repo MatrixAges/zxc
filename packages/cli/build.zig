@@ -3,7 +3,8 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    const compiler = b.dependency("compiler", .{ .target = target, .optimize = optimize });
+    const stage0 = b.option([]const u8, "stage0", "Pinned bootstrap generator executable") orelse "";
+    const compiler = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
     const module = compiler.module("compiler");
     const standard = compiler.module("standard");
 
@@ -16,7 +17,7 @@ pub fn build(b: *std.Build) void {
             .imports = &.{
                 .{ .name = "rx", .module = compiler.module("rx") },
                 .{ .name = "rx_analysis", .module = compiler.module("rx_analysis") },
-                .{ .name = "lint", .module = b.dependency("compiler", .{ .target = target, .optimize = optimize }).module("lint") },
+                .{ .name = "lint", .module = compiler.module("lint") },
                 .{ .name = "pkgs", .module = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).module("pkgs") },
                 .{ .name = "compiler", .module = module },
                 .{ .name = "napi_resources", .module = b.dependency("napi", .{ .target = target, .optimize = optimize }).module("resources") },
@@ -30,7 +31,7 @@ pub fn build(b: *std.Build) void {
 
     if (b.option(bool, "strip", "Omit debug information from hand-written zxc code as well (generated modules already omit it); faster and lighter to compile, without source locations in stack traces")) |strip| executable.root_module.strip = strip;
 
-    executable.root_module.addOptions("cache_identity", @import("build/cache_identity.zig").create(b, target, optimize));
+    executable.root_module.addOptions("cache_identity", @import("build/cache_identity.zig").create(b, target, optimize, compiler));
 
     const pkgs_index = b.dependency("pkgs", .{ .target = target, .optimize = optimize }).namedLazyPath("index");
 

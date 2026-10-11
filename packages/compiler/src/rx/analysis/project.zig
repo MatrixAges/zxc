@@ -11,11 +11,14 @@ pub const source_graph = @import("project/source_graph.zig");
 
 pub const Options = struct {
     entry: []const u8,
+    exports: []const Export = &.{},
     modules: []const rx.ModuleSource,
     stores: []const rx.ModuleSource = &.{},
     sources: []const frontend.project.Source,
     project: frontend.project.Options = .{ .entry = "" },
 };
+
+pub const Export = struct { name: []const u8, path: []const u8 };
 
 pub fn infer(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Error!Module.Result {
     var arena = std.heap.ArenaAllocator.init(allocator);
@@ -118,7 +121,7 @@ fn inferIn(allocator: std.mem.Allocator, options: Options) std.mem.Allocator.Err
 
     graph.finish() catch |err| return report(allocator, source_map, reporter, err);
 
-    var result = @import("project/mixed.zig").compile(&graph, prepared.loaded, states, dependencies.value.graph, signatures.value.data, options.sources, modules) catch |err| return report(allocator, source_map, reporter, err);
+    var result = @import("project/mixed.zig").compile(&graph, prepared.loaded, states, dependencies.value.graph, signatures.value.data, options.sources, modules, options.exports) catch |err| return report(allocator, source_map, reporter, err);
 
     if (result == .diagnostic) return result;
 

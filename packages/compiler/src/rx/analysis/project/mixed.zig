@@ -7,7 +7,7 @@ const Prepared = @import("prepare.zig");
 const SourceGraph = @import("source_graph.zig").Graph;
 const State = @import("mixed/state.zig");
 
-pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const @import("constraints.zig").State, dependencies: SourceGraph, signatures: frontend.project.signature_project.Data, sources: []const frontend.project.Source, modules: []const rx.ModuleSource) zx.Error!Module.Value {
+pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const @import("constraints.zig").State, dependencies: SourceGraph, signatures: frontend.project.signature_project.Data, sources: []const frontend.project.Source, modules: []const rx.ModuleSource, exports: []const @import("../project.zig").Export) zx.Error!Module.Value {
     const resolved = try @import("signatures.zig").resolve(graph, states);
 
     var state = State.init(graph.allocator, dependencies, signatures, graph.types.items.view(), loaded.project) catch |err| {
@@ -59,7 +59,9 @@ pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const @import("
     const id = state.finished[dependencies.entry].?.function.?;
     state.owner = dependencies.entry;
 
-    contract.program = @import("mixed/function.zig").view(&state, id, state.functions.view().prefix(@backingInt(id))) catch |err| {
+    const functions = if (exports.len == 0) state.functions.view().prefix(@backingInt(id)) else state.functions.view();
+
+    contract.program = @import("mixed/function.zig").view(&state, id, functions) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .diagnostic = state.issue.? };
@@ -70,6 +72,12 @@ pub fn compile(graph: *Graph, loaded: Prepared.Loaded, states: []const @import("
     contract.nominal_types = state.types.origins.items.view();
     contract.input_type = contract.program.input_type;
     contract.output_type = contract.program.output_type;
+
+    contract.exports = @import("mixed/exports.zig").collect(&state, exports) catch |err| {
+        if (err == error.OutOfMemory) return error.OutOfMemory;
+
+        return .{ .diagnostic = state.issue.? };
+    };
 
     return .{ .contract = contract };
 }

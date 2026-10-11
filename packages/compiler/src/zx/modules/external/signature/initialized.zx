@@ -1,0 +1,22 @@
+import type { Context } from "../../../analysis/semantic/resolving/model"
+import type { Analysis, Resolution } from "../model"
+
+export type Input = { context: Context, result: Resolution }
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    return {
+        types: {
+            context: in.context,
+            delta: in.result.publish ? in.result.delta : { kinds: [], first: [], second: [], labels: [], children: [], field_types: [], field_names: [], names: [] },
+            cache: in.result.publish ? in.result.cache : { names: [], ids: [] },
+            nominal_delta: in.result.publish ? in.result.origins : { ids: [], kinds: [], owners: [], members: [] }
+        },
+        publish: in.result.publish,
+        input_type: 0,
+        output_type: 0,
+        members: [],
+        diagnostic: in.result.diagnostic
+    }
+}

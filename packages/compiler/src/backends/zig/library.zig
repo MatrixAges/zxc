@@ -6,7 +6,7 @@ const names = @import("names.zig");
 const references = @import("references.zig");
 const Cache = @import("cache.zig");
 pub const Error = modules.Error || validation.Error || error{InvalidModule};
-pub const PublicModule = struct { name: []const u8, file: modules.File };
+pub const PublicModule = struct { name: []const u8, file: modules.File, value_entry: bool = false, buffered_entry: bool = false };
 
 pub const Bundle = struct {
     arena: std.heap.ArenaAllocator,
@@ -24,6 +24,14 @@ pub const Bundle = struct {
 };
 
 pub fn createCached(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
+    return create(allocator, library, cache, false);
+}
+
+pub fn createFilesCached(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*Cache) Error!Bundle {
+    return create(allocator, library, cache, true);
+}
+
+fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*Cache, file_imports: bool) Error!Bundle {
     try validation.validate(allocator, library);
 
     var arena = std.heap.ArenaAllocator.init(allocator);
@@ -32,14 +40,34 @@ pub fn createCached(allocator: std.mem.Allocator, library: *const model.Result, 
 
     const owned = arena.allocator();
     const program = try @import("genz").zx.prepare(owned, library.program);
-    const identities = try names.create(owned, program, library.nominal_types);
+    var identities = try names.create(owned, program, library.nominal_types);
+
+    if (file_imports) {
+        const functions = try owned.alloc([]const u8, identities.functions.len);
+
+        for (identities.functions, functions) |name, *path| path.* = try std.fmt.allocPrint(owned, "{s}.zig", .{name});
+
+        identities.functions = functions;
+    }
+
     const needed = try owned.alloc(bool, program.functions.count());
     const public_modules = try owned.alloc(PublicModule, library.exports.len);
+    var batch = try modules.Batch.create(allocator, program, identities, cache);
+
+    defer batch.deinit();
+
+    var prepared_library = library.*;
+
+    prepared_library.program = program;
 
     @memset(needed, false);
 
     for (library.exports, public_modules, 0..) |exported, *public_module, index| {
-        const view = try @import("genz").zx.prepare(owned, try library.module(index));
+        const view = if (file_imports)
+            try @import("library_entry.zig").create(owned, &prepared_library, index)
+        else
+            try prepared_library.module(index);
+
         const reachable = try references.reachable(owned, view);
 
         for (needed, reachable) |*required, used| required.* = required.* or used;
@@ -50,12 +78,13 @@ pub fn createCached(allocator: std.mem.Allocator, library: *const model.Result, 
 
         std.crypto.hash.sha2.Sha256.hash(exported.name, &digest, .{});
 
-        var public_batch = try modules.Batch.create(allocator, view, identities, cache);
-
-        defer public_batch.deinit();
+        var public_batch = batch;
+        public_batch.program = view;
 
         public_module.* = .{
             .name = try owned.dupe(u8, exported.name),
+            .value_entry = public_batch.analysis.value.hasValueEntry(view),
+            .buffered_entry = try public_batch.analysis.value.hasBufferedEntry(owned, allocator, view),
             .file = .{
                 .name = try std.fmt.allocPrint(owned, "public_{s}", .{std.fmt.bytesToHex(digest, .lower)}),
                 .source = try public_batch.emit(owned, .entry),
@@ -63,10 +92,6 @@ pub fn createCached(allocator: std.mem.Allocator, library: *const model.Result, 
             },
         };
     }
-
-    var batch = try modules.Batch.create(allocator, program, identities, cache);
-
-    defer batch.deinit();
 
     const type_source = try batch.emit(owned, .types);
     const functions = try modules.functionFilesAnalyzed(owned, &batch, needed);

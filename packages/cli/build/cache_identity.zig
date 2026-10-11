@@ -1,10 +1,10 @@
 const std = @import("std");
 
-pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step.Options {
-    return generate(b, target, optimize) catch @panic("cannot fingerprint compiler sources");
+pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, compiler: *std.Build.Dependency) *std.Build.Step.Options {
+    return generate(b, target, optimize, compiler) catch @panic("cannot fingerprint compiler sources");
 }
 
-fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) !*std.Build.Step.Options {
+fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, compiler: *std.Build.Dependency) !*std.Build.Step.Options {
     var hash = std.crypto.hash.sha2.Sha256.init(.{});
 
     field(&hash, "zxc.semantic.cache.v1");
@@ -16,12 +16,12 @@ fn generate(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.built
     try directory(b, &hash, "cli-build", try b.root.joinString(b.allocator, "build"));
     try file(b, &hash, "cli/build.zig", try b.root.joinString(b.allocator, "build.zig"));
     try file(b, &hash, "cli/build.zig.zon", try b.root.joinString(b.allocator, "build.zig.zon"));
-    try file(b, &hash, "standard/modules.json", try b.dependency("compiler", .{ .target = target, .optimize = optimize }).builder.root.joinString(b.allocator, "standard/modules.json"));
-    try directory(b, &hash, "standard/interfaces", try b.dependency("compiler", .{ .target = target, .optimize = optimize }).builder.root.joinString(b.allocator, "standard/interfaces"));
+    try file(b, &hash, "standard/modules.json", try compiler.builder.root.joinString(b.allocator, "standard/modules.json"));
+    try directory(b, &hash, "standard/interfaces", try compiler.builder.root.joinString(b.allocator, "standard/interfaces"));
 
     for ([_][]const u8{ "compiler", "core", "dsl", "lint", "genz", "pkgs", "napi" }) |name| {
-        const dependency = if (std.mem.eql(u8, name, "lint"))
-            b.dependency("lint", .{ .target = target, .optimize = optimize, .generated_name = b.dependency("compiler", .{ .target = target, .optimize = optimize }).namedLazyPath("naming") })
+        const dependency = if (std.mem.eql(u8, name, "compiler")) compiler else if (std.mem.eql(u8, name, "lint"))
+            b.dependency("lint", .{ .target = target, .optimize = optimize, .generated_name = compiler.namedLazyPath("naming") })
 
         else
             b.dependency(name, .{ .target = target, .optimize = optimize });

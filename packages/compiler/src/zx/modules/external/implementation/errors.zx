@@ -1,0 +1,51 @@
+import checkName from "lint/naming"
+import { NameKind } from "lint/naming/model"
+
+import slot from "../../native/validation/slot"
+import slots from "../../native/validation/slots"
+
+import type { Diagnostic } from "../../../analysis/semantic/resolving/model"
+import type { Span } from "../../../frontend/lexer/token_model"
+
+export type Input = { errors: string[]?, fallible: bool, span: Span }
+
+export type Output = Diagnostic
+
+export default function (in: Input): Output {
+    const names = in.errors
+
+    if (names == null) {
+        return { code: "", message: "", start: 0, end: 0 }
+    }
+
+    const span = in.span
+
+    if (!in.fallible) {
+        return { code: "module", message: "native error sets require a fallible implementation", start: span.start, end: span.end }
+    }
+
+    const result = loop({ names: names, index: 0, slots: slots(names.length), code: "", message: "" }, {
+        while: current => current.message == "" && current.index < current.names.length,
+        next: current => {
+            const name = current.names[current.index]
+
+            if (!checkName({ name: name, kind: NameKind.TypeDecl })) {
+                current.code = "naming"
+                current.message = "error names must use PascalCase"
+            } else {
+                const selected = slot({ slots: current.slots, name: name })
+
+                if (selected.found) {
+                    current.code = "name"
+                    current.message = "duplicate native error name"
+                } else {
+                    current.slots[selected.index] = name
+                }
+            }
+
+            current.index += 1
+        }
+    })
+
+    return { code: result.code, message: result.message, start: span.start, end: span.end }
+}

@@ -5,12 +5,19 @@ const analysis = @import("rx_analysis");
 const collection = @import("source_collection.zig");
 
 pub fn main(init: std.process.Init) !void {
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
+
+    if (args.len != 3) return error.OutputCountMismatch;
+
+    return generate(init, args[1], args[2]);
+}
+
+pub fn generate(init: std.process.Init, source_root: []const u8, output_path: []const u8) !void {
     const allocator = init.arena.allocator();
-    const args = try init.minimal.args.toSlice(allocator);
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
 
-    try collection.collect(init.io, allocator, args[1], "", &sources, &modules);
+    try collection.collect(init.io, allocator, source_root, "", &sources, &modules);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
@@ -52,5 +59,5 @@ pub fn main(init: std.process.Init) !void {
 
     const output = try compiler.zig.emit(allocator, analyzed.value.contract.program);
 
-    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = args[2], .data = output });
+    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = output_path, .data = output });
 }

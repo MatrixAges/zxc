@@ -1,0 +1,15 @@
+import type { Analysis, Resolution } from "../model"
+
+export type Input = { analysis: Analysis, result: Resolution, input_port: bool }
+
+export type Output = Analysis
+
+export default function (in: Input): Output {
+    return {
+        ...in.analysis,
+        types: { ...in.analysis.types, delta: in.result.delta, cache: in.result.cache },
+        input_type: in.input_port ? in.result.id : in.analysis.input_type,
+        output_type: in.input_port ? in.analysis.output_type : in.result.id,
+        diagnostic: in.result.diagnostic
+    }
+}

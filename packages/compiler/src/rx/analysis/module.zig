@@ -16,6 +16,7 @@ pub const Options = struct {
 pub const Call = struct { function_id: ?zx.ir.FunctionId = null, store_initializers: @FieldType(frontend.AnalysisResult, "store_initializers") = &.{}, getters: []const @import("store.zig").Binding = &.{}, callee: zx.ir.Program, argument: zx.ir.Program, input_omitted: bool = false, out: ?[]const u8 };
 
 pub const Contract = struct {
+    exports: []const frontend.project.compiled.Export = &.{},
     store_initializers: @FieldType(frontend.AnalysisResult, "store_initializers") = &.{},
     store_definitions: []const @import("store.zig").Definition = &.{},
     program: zx.ir.Program,

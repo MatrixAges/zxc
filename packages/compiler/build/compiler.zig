@@ -1,5 +1,6 @@
 const std = @import("std");
-pub const ParserModules = struct { project_binding: *std.Build.Module, native_restore: *std.Build.Module, compiled_library: *std.Build.Module, ir_validation: *std.Build.Module, expression_analysis: *std.Build.Module, source_signature: *std.Build.Module, analyzer: *std.Build.Module, refinement_mark: *std.Build.Module, refinement_restore: *std.Build.Module, refinement_add: *std.Build.Module, refinement_contains: *std.Build.Module, refinement_add_value: *std.Build.Module, artifact_remap: *std.Build.Module, artifact_prepare: *std.Build.Module, artifact_roots: *std.Build.Module, native_interface: *std.Build.Module, native_modules: *std.Build.Module, refinement_assume: *std.Build.Module, refinement_bind: *std.Build.Module, refinement_type: *std.Build.Module, ownership: *std.Build.Module, ir_task_call: *std.Build.Module, ir_program_pure: *std.Build.Module, type_construction: *std.Build.Module, type_query: *std.Build.Module, type_resolution: *std.Build.Module, type_views: *std.Build.Module, type_validation: *std.Build.Module, type_merge: *std.Build.Module, program: *std.Build.Module, expression: *std.Build.Module, xml: *std.Build.Module, specifier: *std.Build.Module, integer: *std.Build.Module, origin_validation: *std.Build.Module, origin_production: *std.Build.Module, nominal_data: *std.Build.Module, merge_preflight: *std.Build.Module };
+const entries = @import("entries.zig");
+pub const ParserModules = entries.ParserModules();
 pub const Modules = struct { frontend: *std.Build.Module, compiler: *std.Build.Module };
 
 pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, lexer: *std.Build.Module, parser: ?ParserModules, lint: *std.Build.Module) Modules {
@@ -20,7 +21,9 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         },
     });
 
-    frontend.addOptions("parser_options", options);
+    const parser_options = options.createModule();
+
+    frontend.addImport("parser_options", parser_options);
     frontend.addImport("type_views", if (parser) |generated| generated.type_views else typeViews(b, target, optimize));
     frontend.addImport("nominal_data", if (parser) |generated| generated.nominal_data else nominalData(b, target, optimize));
 
@@ -32,42 +35,9 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
     }));
 
     if (parser) |generated| {
-        frontend.addImport("generated_analyzer", generated.analyzer);
-        frontend.addImport("generated_source_signature", generated.source_signature);
-        frontend.addImport("generated_expression_analysis", generated.expression_analysis);
-        frontend.addImport("generated_ir_validation", generated.ir_validation);
-        frontend.addImport("generated_compiled_library", generated.compiled_library);
-        frontend.addImport("generated_native_restore", generated.native_restore);
-        frontend.addImport("generated_native_interface", generated.native_interface);
-        frontend.addImport("generated_project_binding", generated.project_binding);
-        frontend.addImport("generated_native_modules", generated.native_modules);
-        frontend.addImport("generated_refinement_mark", generated.refinement_mark);
-        frontend.addImport("generated_refinement_restore", generated.refinement_restore);
-        frontend.addImport("generated_refinement_add", generated.refinement_add);
-        frontend.addImport("generated_refinement_contains", generated.refinement_contains);
-        frontend.addImport("generated_refinement_add_value", generated.refinement_add_value);
-        frontend.addImport("generated_refinement_assume", generated.refinement_assume);
-        frontend.addImport("generated_refinement_bind", generated.refinement_bind);
-        frontend.addImport("generated_refinement_type", generated.refinement_type);
-        frontend.addImport("generated_ownership", generated.ownership);
-        frontend.addImport("generated_ir_task_call", generated.ir_task_call);
-        frontend.addImport("generated_ir_program_pure", generated.ir_program_pure);
-        frontend.addImport("generated_type_resolution", generated.type_resolution);
-        frontend.addImport("generated_type_construction", generated.type_construction);
-        frontend.addImport("generated_type_query", generated.type_query);
-        frontend.addImport("generated_parser", generated.program);
-        frontend.addImport("generated_expression", generated.expression);
-        frontend.addImport("generated_xml", generated.xml);
-        frontend.addImport("generated_specifier", generated.specifier);
-        frontend.addImport("generated_integer", generated.integer);
-        frontend.addImport("generated_origin_validation", generated.origin_validation);
-        frontend.addImport("generated_origin_production", generated.origin_production);
-        frontend.addImport("generated_merge_preflight", generated.merge_preflight);
-        frontend.addImport("generated_artifact_roots", generated.artifact_roots);
-        frontend.addImport("generated_artifact_prepare", generated.artifact_prepare);
-        frontend.addImport("generated_artifact_remap", generated.artifact_remap);
-        frontend.addImport("generated_type_merge", generated.type_merge);
-        frontend.addImport("generated_type_validation", generated.type_validation);
+        inline for (entries.main) |entry| {
+            if (entry.owner == .frontend) frontend.addImport(entry.importName(), @field(generated, entry.name));
+        }
     } else {
         frontend.addImport("refinement_seed", b.createModule(.{
             .root_source_file = b.path("bootstrap/refinement.zig"),
@@ -84,6 +54,8 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
         }));
     }
 
+    const genz = b.dependency("genz", .{ .target = target, .optimize = optimize, .generated_printer = parser != null }).module("genz");
+
     const module = b.createModule(.{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
@@ -92,10 +64,19 @@ pub fn create(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bui
             .{ .name = "frontend", .module = frontend },
             .{ .name = "dsl", .module = b.dependency("dsl", .{ .target = target, .optimize = optimize }).module("dsl") },
             .{ .name = "zx", .module = b.dependency("core", .{ .target = target, .optimize = optimize }).module("core") },
-            .{ .name = "genz", .module = b.dependency("genz", .{ .target = target, .optimize = optimize }).module("genz") },
+            .{ .name = "genz", .module = genz },
             .{ .name = "lint", .module = lint },
         },
     });
+
+    if (parser) |generated| {
+        inline for (entries.main) |entry| {
+            if (entry.owner == .compiler) module.addImport(entry.importName(), @field(generated, entry.name));
+            if (entry.owner == .genz) genz.addImport(entry.importName(), @field(generated, entry.name));
+        }
+    }
+
+    module.addImport("parser_options", parser_options);
 
     return .{ .frontend = frontend, .compiler = module };
 }

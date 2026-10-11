@@ -1,6 +1,16 @@
 const std = @import("std");
 
-pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode) std.Build.LazyPath {
+pub fn generate(b: *std.Build, optimize: std.builtin.OptimizeMode, stage0: []const u8) std.Build.LazyPath {
+    if (stage0.len != 0) {
+        const run = b.addSystemCommand(&.{ stage0, "--lexer" });
+
+        run.addFileInput(.{ .cwd_relative = stage0 });
+        run.addDirectoryArg2(b.path("src/zx/frontend/lexer"), .{});
+        trackSources(b, run) catch @panic("unable to track ZX lexer sources");
+
+        return run.addOutputFileArg("lexer.zig");
+    }
+
     const target = b.graph.host;
 
     const seed = b.createModule(.{

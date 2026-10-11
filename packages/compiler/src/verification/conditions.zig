@@ -67,13 +67,18 @@ pub fn generate(self: *Self) zx.Error!Query {
         try self.postconditions(remaining, .{ .fields = &.{} });
     }
 
-    const declarations = try std.fmt.allocPrint(self.allocator, "{s}\n{s}", .{ try std.mem.join(self.allocator, "\n", self.declarations.items), try self.graph.?.declarations() });
-    const failures = if (self.violations.items.len == 0) "false" else try std.fmt.allocPrint(self.allocator, "(or {s})", .{try std.mem.join(self.allocator, " ", self.violations.items)});
-    const header = "(set-logic QF_BV)\n(set-option :produce-models true)\n(set-option :timeout 10000)\n";
+    const query_module = if (@import("parser_options").generated_parser) @import("generated_verification_query") else @import("query/seed.zig");
+
+    const query = try query_module.executeValue(self.allocator, .{
+        .declarations = self.declarations.items,
+        .definitions = try self.graph.?.declarations(),
+        .violations = self.violations.items,
+        .precondition = precondition,
+    });
 
     return .{
-        .feasibility = try std.fmt.allocPrint(self.allocator, "{s}{s}\n(assert {s})\n(check-sat)\n", .{ header, declarations, precondition }),
-        .correctness = try std.fmt.allocPrint(self.allocator, "{s}{s}\n(assert {s})\n(check-sat)\n", .{ header, declarations, failures }),
+        .feasibility = query.feasibility,
+        .correctness = query.correctness,
         .inputs = self.inputs.items,
     };
 }

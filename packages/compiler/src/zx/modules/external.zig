@@ -3,9 +3,12 @@ const zx = @import("zx");
 const ir = zx.ir;
 const External = @import("interface.zig").External;
 const Types = @import("../analysis/types.zig");
-const Result = struct { types: ir.TypeTable, function: ir.Function };
+
+pub const Result = struct { types: ir.TypeTable, function: ir.Function };
 
 pub fn load(allocator: std.mem.Allocator, entry: External, module: ir.NativeModuleId, span: zx.Span, existing: *ir.TypeStorage, shared: Types.Shared, reporter: *zx.Reporter) zx.Error!Result {
+    if (@import("parser_options").generated_parser) return @import("external/host.zig").load(allocator, entry, module, span, existing, shared, reporter);
+
     const signature = try @import("signature.zig").resolve(allocator, entry, span, existing, shared, reporter);
     const input_type = signature.input_type;
     const output_type = signature.output_type;

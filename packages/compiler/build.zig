@@ -3,21 +3,25 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const stage0 = b.option([]const u8, "stage0", "Pinned bootstrap generator executable; empty uses the initial seed") orelse "";
     const standard = b.addModule("standard", .{ .root_source_file = b.path("standard/src/root.zig"), .target = target, .optimize = optimize });
     const lexer = @import("build/lexer.zig");
-    const lexer_source = lexer.generate(b, optimize);
+    const lexer_source = lexer.generate(b, optimize, stage0);
     const parser = @import("build/parser.zig");
-    const parser_source = parser.generate(b, optimize);
+    const parser_source = parser.generate(b, optimize, stage0);
     const generated_debug = b.option(bool, "generated-debug", "Keep debug information in generated bootstrap modules (slower and heavier zxc compiles)") orelse false;
     const generated_strip: ?bool = if (generated_debug) null else true;
 
-    b.addNamedLazyPath("naming", parser_source.naming);
+    b.addNamedLazyPath("naming", parser_source.main.path(b, "naming.zig"));
 
-    const lint = b.dependency("lint", .{ .target = target, .optimize = optimize, .generated_name = parser_source.naming }).module("lint");
+    const lint = b.dependency("lint", .{ .target = target, .optimize = optimize, .generated_name = parser_source.main.path(b, "naming.zig") }).module("lint");
 
     b.modules.put(b.allocator, "lint", lint) catch @panic("out of memory");
 
     const natives = parser.shared(b, target, optimize, parser_source, generated_strip);
+
+    lint.import_table.get("naming").?.import_table.get("generated").?.addImport("generated", natives.generated);
+
     const modules = @import("build/compiler.zig").create(b, target, optimize, lexer.module(b, target, optimize, lexer_source, generated_strip), parser.modules(b, target, optimize, parser_source, natives, generated_strip), lint);
     const frontend = modules.frontend;
     const module = modules.compiler;
@@ -42,15 +46,20 @@ pub fn build(b: *std.Build) void {
     rx_options.addOption(bool, "generated_graph", true);
     rx_options.addOption(bool, "generated_rules", true);
     rx.addOptions("rx_options", rx_options);
-    rx.addImport("generated_paths", b.createModule(.{ .root_source_file = parser_source.paths, .target = target, .optimize = optimize, .strip = generated_strip }));
-    rx.addImport("generated_graph", b.createModule(.{ .root_source_file = parser_source.graph, .target = target, .optimize = optimize, .strip = generated_strip }));
-    rx.addImport("generated_attribute_role", b.createModule(.{ .root_source_file = parser_source.attribute_role, .target = target, .optimize = optimize, .strip = generated_strip }));
-    rx.addImport("generated_attribute_content", b.createModule(.{ .root_source_file = parser_source.attribute_content, .target = target, .optimize = optimize, .strip = generated_strip }));
-    rx.addImport("generated_call_rule", b.createModule(.{ .root_source_file = parser_source.call_rule, .target = target, .optimize = optimize, .strip = generated_strip }));
-    rx.addImport("generated_path_kind", b.createModule(.{ .root_source_file = parser_source.path_kind, .target = target, .optimize = optimize, .strip = generated_strip }));
-    rx.addImport("generated_file_kind", b.createModule(.{ .root_source_file = parser_source.file_kind, .target = target, .optimize = optimize, .strip = generated_strip }));
 
-    _ = b.addModule("rx_analysis", .{
+    inline for (@import("build/entries.zig").main) |entry| {
+        if (entry.owner == .rx) {
+            rx.addImport(entry.importName(), b.createModule(.{
+                .root_source_file = parser_source.main.path(b, entry.name ++ ".zig"),
+                .imports = &.{.{ .name = "generated", .module = natives.generated }},
+                .target = target,
+                .optimize = optimize,
+                .strip = generated_strip,
+            }));
+        }
+    }
+
+    const rx_analysis = b.addModule("rx_analysis", .{
         .root_source_file = b.path("src/rx/analysis/root.zig"),
         .target = target,
         .optimize = optimize,
@@ -62,6 +71,17 @@ pub fn build(b: *std.Build) void {
             .{ .name = "lint", .module = lint },
         },
     });
+
+    const bootstrap_tool = b.addExecutable(.{ .name = "zxc-bootstrap", .root_module = b.createModule(.{
+        .root_source_file = b.path("build/generate_parser.zig"),
+        .target = target,
+        .optimize = if (optimize == .debug or optimize == .safe) .small else optimize,
+        .imports = &.{ .{ .name = "compiler", .module = module }, .{ .name = "rx", .module = rx }, .{ .name = "rx_analysis", .module = rx_analysis } },
+    }) });
+
+    @import("build/compiler_rt.zig").configure(b, bootstrap_tool);
+
+    b.step("bootstrap-stage", "Build the next bootstrap generator using the selected stage0").dependOn(&b.addInstallArtifact(bootstrap_tool, .{}).step);
 
     const rx_tests = b.addTest(.{ .root_module = b.createModule(.{
         .root_source_file = b.path("tests/rx/root.zig"),
@@ -77,18 +97,18 @@ pub fn build(b: *std.Build) void {
 
     const bootstrap_parser = b.step("bootstrap-parser", "Generate RX and ZX syntax parsers with the host seed compiler");
 
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.program, "bootstrap/parser.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.expression, "bootstrap/expression.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.xml, "bootstrap/xml.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.paths, "bootstrap/paths.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.graph, "bootstrap/graph.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.attribute_role, "bootstrap/attribute_role.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.attribute_content, "bootstrap/attribute_content.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.call_rule, "bootstrap/call_rule.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.path_kind, "bootstrap/path_kind.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.file_kind, "bootstrap/file_kind.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.specifier, "bootstrap/specifier.zig").step);
-    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.integer, "bootstrap/integer.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "program.zig"), "bootstrap/parser.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "expression.zig"), "bootstrap/expression.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "xml.zig"), "bootstrap/xml.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "paths.zig"), "bootstrap/paths.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "graph.zig"), "bootstrap/graph.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "attribute_role.zig"), "bootstrap/attribute_role.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "attribute_content.zig"), "bootstrap/attribute_content.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "call_rule.zig"), "bootstrap/call_rule.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "path_kind.zig"), "bootstrap/path_kind.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "file_kind.zig"), "bootstrap/file_kind.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "specifier.zig"), "bootstrap/specifier.zig").step);
+    bootstrap_parser.dependOn(&b.addInstallFile(parser_source.main.path(b, "integer.zig"), "bootstrap/integer.zig").step);
     standard.addImport("zxc_abi", b.createModule(.{ .root_source_file = parser_source.standard_abi, .target = target, .optimize = optimize }));
 
     const library = b.addLibrary(.{ .name = "zxc_compiler", .root_module = module });

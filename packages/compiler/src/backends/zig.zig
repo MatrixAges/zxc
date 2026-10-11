@@ -22,6 +22,12 @@ pub fn emitLibraryCached(allocator: std.mem.Allocator, result: *const @import(".
     return library.createCached(allocator, result, cache);
 }
 
+pub fn emitLibraryFilesCached(allocator: std.mem.Allocator, result: *const @import("../library/root.zig").Result, cache: ?*GenerationCache) (library.Error || error{ InvalidIr, UnverifiedContracts })!LibraryBundle {
+    try validate(allocator, result.program);
+
+    return library.createFilesCached(allocator, result, cache);
+}
+
 pub fn emitModules(allocator: std.mem.Allocator, analysis: *const @import("frontend").AnalysisResult) (modules.Error || error{ InvalidIr, UnverifiedContracts })!ModuleBundle {
     return emitModulesCached(allocator, analysis, null);
 }

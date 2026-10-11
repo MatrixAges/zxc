@@ -1,0 +1,13 @@
+<Module>
+    <Switch on={$in.length == 0}>
+        <Case value={true}>
+            <Return value={"false"} />
+        </Case>
+
+        <Default>
+            <Call fn="disjunction" in={$in} />
+
+            <Return value={$ctx.disjunction} />
+        </Default>
+    </Switch>
+</Module>

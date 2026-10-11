@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
+    const stage0 = b.option([]const u8, "stage0", "Pinned bootstrap generator executable") orelse "";
 
     const optimize = b.option(
         std.builtin.OptimizeMode,
@@ -21,7 +22,7 @@ pub fn build(b: *std.Build) void {
     b.getInstallStep().dependOn(&dsl_example.step);
     dsl_step.dependOn(&run_dsl_example.step);
 
-    const rx_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize });
+    const rx_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
 
     const rx_tests = b.addTest(.{
         .root_module = b.createModule(.{
@@ -40,8 +41,8 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_rx_tests.step);
 
     const zig_archive = b.option([]const u8, "zig-archive", "Official Zig archive for the zxc host");
-    const compiler_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize });
-    const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .@"zig-archive" = path }) else b.dependency("cli", .{ .target = target, .optimize = optimize });
+    const compiler_dependency = b.dependency("compiler", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
+    const cli_dependency = if (zig_archive) |path| b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0, .@"zig-archive" = path }) else b.dependency("cli", .{ .target = target, .optimize = optimize, .stage0 = stage0 });
 
     test_step.dependOn(&compiler_dependency.builder.top_level_steps.get("test").?.step);
     test_step.dependOn(&cli_dependency.builder.top_level_steps.get("test").?.step);

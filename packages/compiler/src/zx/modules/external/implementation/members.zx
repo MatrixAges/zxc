@@ -1,0 +1,37 @@
+import validate from "../../../frontend/lexer/utf8/validate"
+
+import type { Diagnostic } from "../../../analysis/semantic/resolving/model"
+import type { Span } from "../../../frontend/lexer/token_model"
+
+export type Input = { member: u8[], span: Span }
+
+export type Output = { members: Span[], diagnostic: Diagnostic }
+
+export default function (in: Input): Output {
+    const bytes = in.member
+    const members: Span[] = []
+
+    const result = loop({ bytes: bytes, members: members, first: 0, index: 0, valid: bytes.length > 0 && validate(bytes) }, {
+        while: current => current.valid && current.index <= current.bytes.length,
+        next: current => {
+            if (current.index == current.bytes.length || current.bytes[current.index] == 46) {
+                current.valid = current.index != current.first
+
+                if (current.valid) {
+                    current.members = current.members.push({ start: current.first, end: current.index })[0]
+                    current.first = current.index + 1
+                }
+            } else if (current.bytes[current.index] == 0) {
+                current.valid = false
+            }
+
+            current.index += 1
+        }
+    })
+
+    if (!result.valid) {
+        return { members: [], diagnostic: { code: "module", message: "native member paths require nonempty UTF-8 names", start: in.span.start, end: in.span.end } }
+    }
+
+    return { members: result.members, diagnostic: { code: "", message: "", start: 0, end: 0 } }
+}
