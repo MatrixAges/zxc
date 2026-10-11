@@ -75,11 +75,9 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
         if (found.found_existing) return error.DuplicateInitializer;
 
         found.value_ptr.* = program.output_type;
-
         var digest: [32]u8 = undefined;
 
-        std.crypto.hash.sha2.Sha256.hash(identity, &digest, .{});
-
+        @import("zx").Sha256.hash(identity, &digest, .{});
         const module_name = try std.fmt.allocPrint(allocator, "zxc_store_initial_{s}", .{std.fmt.bytesToHex(digest, .lower)});
         program.file_name = module_name;
         const source = try modules.emit(allocator, program, .{ .types = shared.types, .functions = &.{} }, .entry, options.cache);

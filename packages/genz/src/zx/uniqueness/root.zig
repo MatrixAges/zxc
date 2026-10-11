@@ -535,7 +535,7 @@ fn follow(allocator: std.mem.Allocator, memo: *const Memo, shared: [32]u8, expor
         called.* = if (entry) |unit| unit.callees else &.{};
     }
 
-    var hash = std.crypto.hash.sha2.Sha256.init(.{});
+    var hash = @import("zx").Sha256.init(.{});
 
     hash.update(&shared);
     hash.update(std.mem.sliceAsBytes(exported));

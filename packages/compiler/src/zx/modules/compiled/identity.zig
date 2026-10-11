@@ -26,7 +26,7 @@ pub fn nativeName(allocator: std.mem.Allocator, instance: []const u8, name: []co
 
     var digest: [32]u8 = undefined;
 
-    std.crypto.hash.sha2.Sha256.hash(key, &digest, .{});
+    @import("zx").Sha256.hash(key, &digest, .{});
 
     return std.fmt.allocPrint(allocator, "library_native_{s}", .{std.fmt.bytesToHex(digest, .lower)});
 }

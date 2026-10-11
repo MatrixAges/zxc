@@ -13,7 +13,7 @@ pub fn encode(allocator: std.mem.Allocator, module: Artifact.Module, context_dig
 
     var digest: [32]u8 = undefined;
 
-    std.crypto.hash.sha2.Sha256.hash(payload, &digest, .{});
+    @import("zx").Sha256.hash(payload, &digest, .{});
 
     return std.fmt.allocPrint(allocator, marker ++ "{s}\n{s}\n{s}", .{ std.fmt.bytesToHex(compiler_digest, .lower), std.fmt.bytesToHex(digest, .lower), payload });
 }
@@ -30,7 +30,7 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8, compiler_digest: 
     const payload = bytes[header_len..];
     var digest: [32]u8 = undefined;
 
-    std.crypto.hash.sha2.Sha256.hash(payload, &digest, .{});
+    @import("zx").Sha256.hash(payload, &digest, .{});
 
     const expected_content = std.fmt.bytesToHex(digest, .lower);
 

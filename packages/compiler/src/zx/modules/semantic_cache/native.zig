@@ -53,7 +53,7 @@ pub fn load(self: *Self, allocator: std.mem.Allocator, entry: Native, current: C
 }
 
 fn digest(entry: Native) [32]u8 {
-    var hash = std.crypto.hash.sha2.Sha256.init(.{});
+    var hash = @import("zx").Sha256.init(.{});
 
     for ([_][]const u8{ "zxc.native.interface.v2", entry.key(), entry.specifier, entry.path, entry.source, entry.module }) |part| field(&hash, part);
     for (entry.namespace) |part| field(&hash, part);
@@ -65,7 +65,7 @@ fn digest(entry: Native) [32]u8 {
     return result;
 }
 
-fn field(hash: *std.crypto.hash.sha2.Sha256, bytes: []const u8) void {
+fn field(hash: *@import("zx").Sha256, bytes: []const u8) void {
     var length: [8]u8 = undefined;
 
     std.mem.writeInt(u64, &length, @intCast(bytes.len), .little);

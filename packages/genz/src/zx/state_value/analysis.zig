@@ -66,7 +66,7 @@ pub fn create(allocator: std.mem.Allocator, program: ir.Program) std.mem.Allocat
 
         selected[index] = !boxed[index] and (value == .object or value == .tuple);
 
-        var hash = std.crypto.hash.sha2.Sha256.init(.{});
+        var hash = @import("zx").Sha256.init(.{});
 
         hash.update("state.value.origin.v1");
         hash.update(&.{@intFromBool(selected[index])});
@@ -122,7 +122,7 @@ pub fn represented(self: Self, program: ir.Program, id: ir.TypeId) bool {
 }
 
 pub fn name(self: Self, allocator: std.mem.Allocator, id: ir.TypeId, base: []const u8) std.mem.Allocator.Error![]const u8 {
-    var hash = std.crypto.hash.sha2.Sha256.init(.{});
+    var hash = @import("zx").Sha256.init(.{});
 
     hash.update(base);
     hash.update(&.{0});

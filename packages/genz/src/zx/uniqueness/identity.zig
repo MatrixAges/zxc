@@ -1,7 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const Basis = @import("basis.zig");
-const Hash = std.crypto.hash.Blake3;
+const Hash = @import("zx").Sha256;
 const Self = @This();
 
 /// Content digests of what body analyses read besides the facts they exchange: the program shape every body shares

@@ -9,7 +9,7 @@ const key = digest: {
 
     var value: [32]u8 = undefined;
 
-    std.crypto.hash.sha2.Sha256.hash("zxc.uniqueness.memo", &value, .{});
+    @import("zx").Sha256.hash("zxc.uniqueness.memo", &value, .{});
 
     break :digest value;
 };

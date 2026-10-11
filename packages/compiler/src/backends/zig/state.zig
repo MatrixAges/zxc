@@ -54,7 +54,7 @@ pub fn append(bundle: *modules.Bundle, options: Options) Error!void {
 fn emit(allocator: std.mem.Allocator, objects: []const generating.Object, requirements: generating.Requirements, cache: ?*Cache) std.mem.Allocator.Error![]const u8 {
     const store = cache orelse return generating.renderWithCapabilities(allocator, objects, requirements);
     const metadata = try std.json.Stringify.valueAlloc(allocator, .{ .objects = objects, .requirements = requirements }, .{});
-    var hash = std.crypto.hash.sha2.Sha256.init(.{});
+    var hash = @import("zx").Sha256.init(.{});
 
     hash.update("zxc.zig.state.memory.v5");
     hash.update(metadata);

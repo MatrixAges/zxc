@@ -1,7 +1,7 @@
 const std = @import("std");
 const ir = @import("zx").ir;
 const Names = @import("genz").zx.modules.Names;
-const Hash = std.crypto.hash.sha2.Sha256;
+const Hash = @import("zx").Sha256;
 const Self = @This();
 pub const Unit = @import("genz").zx.modules.Unit;
 

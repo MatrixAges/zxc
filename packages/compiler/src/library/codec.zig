@@ -30,7 +30,7 @@ pub fn encode(allocator: std.mem.Allocator, library: *const model.Result) Error!
 
     var digest: [32]u8 = undefined;
 
-    std.crypto.hash.sha2.Sha256.hash(payload, &digest, .{});
+    @import("zx").Sha256.hash(payload, &digest, .{});
 
     return std.fmt.allocPrint(allocator, marker ++ "{s}\n{s}", .{ std.fmt.bytesToHex(digest, .lower), payload });
 }
@@ -44,7 +44,7 @@ pub fn decode(allocator: std.mem.Allocator, bytes: []const u8) Error!model.Resul
     const payload = bytes[header_len..];
     var digest: [32]u8 = undefined;
 
-    std.crypto.hash.sha2.Sha256.hash(payload, &digest, .{});
+    @import("zx").Sha256.hash(payload, &digest, .{});
 
     const expected = std.fmt.bytesToHex(digest, .lower);
 

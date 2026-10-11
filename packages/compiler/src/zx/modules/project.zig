@@ -244,7 +244,7 @@ const Project = struct {
         const dependencies = frame.dependencies;
         var source_digest: [32]u8 = undefined;
 
-        std.crypto.hash.sha2.Sha256.hash(input.source(), &source_digest, .{});
+        @import("zx").Sha256.hash(input.source(), &source_digest, .{});
 
         const first_type = self.types.count();
         var restored: ?ir.Program = null;

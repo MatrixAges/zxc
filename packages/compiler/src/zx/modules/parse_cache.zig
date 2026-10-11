@@ -210,7 +210,7 @@ fn getEntry(self: *Self, comptime native: bool, source: []const u8, path: []cons
 fn unchanged(entry: ?*const Entry, source: []const u8, digest: *[32]u8) bool {
     if (entry) |kept| if (kept.result.text()) |text| if (@import("zx").bytes.equal(text, source)) return true;
 
-    std.crypto.hash.sha2.Sha256.hash(source, digest, .{});
+    @import("zx").Sha256.hash(source, digest, .{});
 
     return if (entry) |kept| std.mem.eql(u8, &kept.digest, digest) else false;
 }

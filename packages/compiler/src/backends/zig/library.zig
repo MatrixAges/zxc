@@ -57,7 +57,6 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
     defer if (loaded) |*value| value.deinit();
 
     const memo = if (loaded) |*value| value else if (keeps_memo) try memos.kept(cache.?) else null;
-
     var analysis = try @import("genz").zx.modules.Analysis.createRemembered(allocator, program, exported_functions[0..exported_count], memo);
 
     // Names take the capabilities the analysis already found instead of tracing the call graph again.
@@ -97,7 +96,7 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
 
         var digest: [32]u8 = undefined;
 
-        std.crypto.hash.sha2.Sha256.hash(exported.name, &digest, .{});
+        @import("zx").Sha256.hash(exported.name, &digest, .{});
 
         var public_batch = batch;
         public_batch.program = view;

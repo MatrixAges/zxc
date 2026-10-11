@@ -42,7 +42,7 @@ pub fn contextDigest(allocator: std.mem.Allocator, context: Context) std.mem.All
 
     var digest: [32]u8 = undefined;
 
-    std.crypto.hash.sha2.Sha256.hash(encoded, &digest, .{});
+    @import("zx").Sha256.hash(encoded, &digest, .{});
 
     return digest;
 }

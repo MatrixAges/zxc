@@ -18,8 +18,7 @@ pub fn createBacked(allocator: std.mem.Allocator, backing: std.mem.Allocator, li
         const function = library.program.functions.at(@backingInt(initial.function));
         var digest: [32]u8 = undefined;
 
-        std.crypto.hash.sha2.Sha256.hash(initial.identity, &digest, .{});
-
+        @import("zx").Sha256.hash(initial.identity, &digest, .{});
         const module_name = try std.fmt.allocPrint(allocator, "zxc_store_initial_{s}", .{std.fmt.bytesToHex(digest, .lower)});
         var program = library.program;
         program.file_name = module_name;

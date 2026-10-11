@@ -3,7 +3,7 @@ const ir = @import("zx").ir;
 const Function = @import("function.zig");
 const Level = @import("level.zig").Level;
 const Summaries = @import("summaries.zig");
-const Hash = std.crypto.hash.sha2.Sha256;
+const Hash = @import("zx").Sha256;
 const Self = @This();
 /// Results of body analyses by the exact state they read: the body's identity, its own input summary, the output
 /// summaries of its callees, and its growth copies. An analysis is a pure function of that state, so a body met again

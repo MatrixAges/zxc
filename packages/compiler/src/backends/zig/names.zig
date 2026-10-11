@@ -2,11 +2,9 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const NominalType = @import("frontend").NominalType;
 const Names = @import("genz").zx.modules.Names;
-const Hash = std.crypto.hash.sha2.Sha256;
+const Hash = @import("zx").Sha256;
 pub const Error = std.mem.Allocator.Error || error{ MissingNominalOrigin, InvalidNominalOrigin };
-
 const Origins = @FieldType(@import("frontend").AnalysisResult, "nominal_types");
-
 /// Which functions take `std.Io` and the process arguments, when the caller already has them.
 pub const Capabilities = struct { io: []const bool, process: []const bool };
 
