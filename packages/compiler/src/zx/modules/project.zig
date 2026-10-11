@@ -58,6 +58,8 @@ const Project = struct {
     semantic_cache: ?*SemanticCache = null,
     phase: enum { body, signature } = .body,
     units: []Unit,
+    /// Each unit path to the first unit with it.
+    unit_indices: std.StringHashMapUnmanaged(usize) = .empty,
     options: Options,
     reporter: *zx.Reporter,
     types: ir.TypeStorage = .{},
@@ -368,11 +370,22 @@ const Project = struct {
         return self.reporter.fail(.module, span, "compiled library does not export this public module");
     }
     fn find(self: *Project, path: []const u8) ?usize {
-        for (self.units, 0..) |unit, index| if (std.mem.eql(u8, unit.path, path)) {
-            return index;
-        };
+        return self.unit_indices.get(path);
+    }
 
-        return null;
+    /// Indexes the unit paths for `find`; reports whether they are unique.
+    fn indexUnits(self: *Project) std.mem.Allocator.Error!bool {
+        var unique = true;
+
+        try self.unit_indices.ensureTotalCapacity(self.allocator, @intCast(self.units.len));
+
+        for (self.units, 0..) |unit, index| {
+            const entry = self.unit_indices.getOrPutAssumeCapacity(unit.path);
+
+            if (entry.found_existing) unique = false else entry.value_ptr.* = index;
+        }
+
+        return unique;
     }
     fn nativeModule(self: *Project, source: []const u8, identity: ?[]const u8, name: []const u8, span: zx.Span) zx.Error!ir.NativeModuleId {
         if (name.len == 0 or std.mem.indexOfScalar(u8, name, 0) != null or !std.unicode.utf8ValidateSlice(name)) return self.reporter.fail(.module, span, "native import names must be nonempty UTF-8 strings");
@@ -546,11 +559,7 @@ pub fn analyzeSignaturesWithCache(allocator: std.mem.Allocator, sources: []const
         return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared nominal type table" } } };
     };
 
-    for (units, 0..) |unit, index| {
-        for (units[0..index]) |previous| {
-            if (std.mem.eql(u8, unit.path, previous.path)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "source paths must be unique after normalization" } } };
-        }
-    }
+    if (!try project.indexUnits()) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "source paths must be unique after normalization" } } };
 
     const modules = try owned.alloc(signature_project.Module, entries.len);
 
@@ -631,11 +640,7 @@ fn analyzeWithCaches(allocator: std.mem.Allocator, sources: []const Source, opti
         return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .contract, .span = .{ .start = 0, .end = 0 }, .message = "invalid shared nominal type table" } } };
     };
 
-    for (units, 0..) |unit, index| {
-        for (units[0..index]) |previous| {
-            if (std.mem.eql(u8, unit.path, previous.path)) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "source paths must be unique after normalization" } } };
-        }
-    }
+    if (!try project.indexUnits()) return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "source paths must be unique after normalization" } } };
 
     const root = project.find(normalized.entry) orelse return .{ .arena = arena, .value = .{ .diagnostic = .{ .code = .module, .span = .{ .start = 0, .end = 0 }, .message = "entry module is missing" } } };
 

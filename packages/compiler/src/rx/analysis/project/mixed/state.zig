@@ -21,6 +21,8 @@ native_modules: ir.NativeModuleStorage = .{},
 initializers: std.ArrayList(frontend.project.compiled.StoreInitializer) = .empty,
 libraries: std.AutoHashMapUnmanaged(usize, []const frontend.project.compiled.Export) = .empty,
 finished: []?Source.Loaded,
+/// The signature of each graph module, by index into `signatures.modules`.
+signature_indices: []const ?usize,
 owner: usize = 0,
 issue: ?target.Diagnostic = null,
 pub fn init(allocator: std.mem.Allocator, backing: std.mem.Allocator, graph: SourceGraph, signatures: frontend.project.signature_project.Data, types: ir.TypeTable, options: frontend.project.Options) Error!Self {
@@ -33,6 +35,7 @@ pub fn init(allocator: std.mem.Allocator, backing: std.mem.Allocator, graph: Sou
         .types = .{ .allocator = allocator, .items = try frontend.type_table.storage(allocator, types), .origins = .{ .allocator = allocator } },
         .native_modules = try frontend.native_context.storage(allocator, options.context.native_modules),
         .finished = try allocator.alloc(?Source.Loaded, graph.modules.len),
+        .signature_indices = try signatureIndices(allocator, graph, signatures),
     };
 
     @memset(self.finished, null);
@@ -65,11 +68,26 @@ pub fn linked(self: *Self, loaded: Source.Loaded) Source.Loaded {
 }
 
 pub fn signature(self: *const Self, index: usize) ?frontend.project.signature_project.Module {
-    for (self.signatures.modules) |module| {
-        if (std.mem.eql(u8, module.path, self.graph.modules[index].path)) return module;
+    return self.signatures.modules[self.signature_indices[index] orelse return null];
+}
+
+/// For each graph module, the first signature module with its path.
+fn signatureIndices(allocator: std.mem.Allocator, graph: SourceGraph, signatures: frontend.project.signature_project.Data) std.mem.Allocator.Error![]const ?usize {
+    var paths: std.StringHashMapUnmanaged(usize) = .empty;
+
+    defer paths.deinit(allocator);
+
+    for (signatures.modules, 0..) |module, index| {
+        const entry = try paths.getOrPut(allocator, module.path);
+
+        if (!entry.found_existing) entry.value_ptr.* = index;
     }
 
-    return null;
+    const result = try allocator.alloc(?usize, graph.modules.len);
+
+    for (graph.modules, result) |module, *index| index.* = paths.get(module.path);
+
+    return result;
 }
 
 pub fn fail(self: *Self, location: rx.ast.Location, message: []const u8) Error {
