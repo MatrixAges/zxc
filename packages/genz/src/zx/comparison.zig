@@ -49,7 +49,7 @@ pub fn ordering(self: *Lower, type_id: ir.TypeId) Lower.Error!node.Declaration {
 
     return .{ .function = .{
         .name = try name(self, type_id),
-        .parameters = try self.allocator.dupe(node.Field, &.{ .{ .name = "context", .value = try self.builder.expression(.{ .primitive = .void }) }, .{ .name = "left", .value = self.types[@backingInt(type_id)] }, .{ .name = "right", .value = self.types[@backingInt(type_id)] } }),
+        .parameters = try self.allocator.dupe(node.Field, &.{ .{ .name = "context", .value = try self.builder.expression(.{ .primitive = .void }) }, .{ .name = "left", .value = try self.typeExpr(type_id) }, .{ .name = "right", .value = try self.typeExpr(type_id) } }),
         .return_type = try self.builder.expression(.{ .primitive = .bool }),
         .body = try self.builder.statements(body.items),
     } };

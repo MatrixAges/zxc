@@ -60,8 +60,8 @@ fn workerType(self: *Lower, id: ir.FunctionId) Lower.Error!node.ExpressionId {
 
     const fields = try self.allocator.dupe(node.Field, &.{
         .{ .name = "allocator", .value = try standardField(self, &.{ "mem", "Allocator" }) },
-        .{ .name = "input", .value = self.types[@backingInt(function.input_type)] },
-        .{ .name = "result", .value = try self.builder.expression(.{ .error_union = .{ .payload = self.types[@backingInt(function.output_type)] } }) },
+        .{ .name = "input", .value = try self.typeExpr(function.input_type) },
+        .{ .name = "result", .value = try self.builder.expression(.{ .error_union = .{ .payload = try self.typeExpr(function.output_type) } }) },
     });
 
     const parameters = try self.allocator.dupe(node.Field, &.{.{ .name = "self", .value = try self.builder.expression(.{ .pointer = try self.builtin(.This, &.{}) }) }});

@@ -10,7 +10,7 @@ pub fn declaration(self: *Lower, output: *std.ArrayList(node.Declaration)) Lower
 
     for (self.program.stores.types, 0..) |type_id, index| fields[index] = .{
         .name = try slotName(self, index),
-        .value = try self.builder.expression(.{ .optional_type = self.types[type_id] }),
+        .value = try self.builder.expression(.{ .optional_type = try self.typeExpr(@fromBackingInt(type_id)) }),
     };
 
     try output.append(self.allocator, .{ .constant = .{ .name = self.pending_name, .value = try self.builder.expression(.{ .struct_type = fields }), .exported = true } });

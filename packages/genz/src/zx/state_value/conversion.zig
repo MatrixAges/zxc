@@ -3,15 +3,15 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 const aggregate = @import("../aggregate.zig");
+const types = @import("../types.zig");
 pub const Mode = enum { value, value_layout, pointer, layout, borrow };
 
 pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, mode: Mode) Lower.Error!node.ExpressionId {
     if (!self.state_plan.represented(self.program, id)) return value;
     if (mode == .borrow) return @import("borrow.zig").lower(self, body, body, id, value);
 
-    const index = @backingInt(id);
     const input = mode == .value or mode == .value_layout;
-    const layout = if (input) self.state_layouts[index] else self.abi_layouts[index];
+    const layout = try types.get(self, if (input) self.state_layouts else self.abi_layouts, id);
     const child_mode: Mode = if (input) .value else .pointer;
     var fallback: std.ArrayList(node.Statement) = .empty;
 
@@ -21,7 +21,7 @@ pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
             const payload = try self.builder.expression(.{ .optional_unwrap = value });
             const converted = try convert(self, &present_body, child, payload, child_mode);
 
-            return self.cast(if (input) self.state_types[index] else self.abi_types[index], try self.builder.expression(.{ .conditional = .{
+            return self.cast(try types.get(self, if (input) self.state_types else self.abi_types, id), try self.builder.expression(.{ .conditional = .{
                 .condition = try @import("../intrinsics.zig").binary(self, .not_equal, value, try self.builder.expression(.null_value)),
                 .yes = try aggregate.finish(self, &present_body, converted),
                 .no = try self.builder.expression(.null_value),
@@ -69,7 +69,7 @@ pub fn convert(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.TypeId
 
         try fallback.append(self.allocator, .{ .assignment = .{ .target = try self.builder.expression(.{ .dereference = pointer }), .value = result } });
 
-        break :blk try self.cast(self.abi_types[index], pointer);
+        break :blk try self.cast(try types.get(self, self.abi_types, id), pointer);
     };
 
     const origin = try self.field(value, try @import("origin.zig").name(self, id));

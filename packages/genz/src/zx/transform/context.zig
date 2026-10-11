@@ -13,7 +13,7 @@ pub fn bind(self: *Lower, body: *std.ArrayList(node.Statement), transform: ir.Tr
     if (self.used[symbol]) {
         try body.append(self.allocator, .{ .constant = .{
             .name = self.names[symbol],
-            .type_expr = self.types[@backingInt(self.program.symbols.at(symbol).type_id)],
+            .type_expr = try self.typeExpr(self.program.symbols.at(symbol).type_id),
             .value = value,
         } });
     } else {

@@ -11,7 +11,7 @@ pub fn lower(self: *Context, body: *std.ArrayList(node.Statement), id: ir.TypeId
 
 fn borrow(self: *Context, body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId, guard: ?node.ExpressionId) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
-    const layout = lowering.layouts[@backingInt(id)];
+    const layout = try lowering.layoutExpr(id);
 
     const result = switch (lowering.program.typeOf(id)) {
         .optional => |child| {
@@ -21,7 +21,7 @@ fn borrow(self: *Context, body: *std.ArrayList(node.Statement), id: ir.TypeId, v
             const condition = if (guard) |parent| try @import("../intrinsics.zig").binary(lowering, .logical_and, parent, present) else present;
             const payload = try borrow(self, body, child, try lowering.builder.expression(.{ .optional_unwrap = value }), condition);
 
-            return lowering.cast(lowering.types[@backingInt(id)], try lowering.builder.expression(.{ .conditional = .{
+            return lowering.cast(try lowering.typeExpr(id), try lowering.builder.expression(.{ .conditional = .{
                 .condition = condition,
                 .yes = payload,
                 .no = try lowering.builder.expression(.null_value),

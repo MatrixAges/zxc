@@ -16,7 +16,7 @@ pub fn expression(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
         .capture => |child| @import("../capture.zig").lowerValue(self, self.program.expression(id).type_id, child),
         .object => aggregate.objectValue(self, id),
         .tuple => |items| aggregate.tupleValue(self, self.program.expression(id), items),
-        .list_operation => @import("../collections.zig").lowerValue(self, id, self.layouts[@backingInt(self.program.expression(id).type_id)]),
+        .list_operation => @import("../collections.zig").lowerValue(self, id, try self.layoutExpr(self.program.expression(id).type_id)),
         .scope => |scope| @import("../scope.zig").lowerValue(self, scope),
         .iteration => |iteration| @import("../iteration.zig").lowerValue(self, id, iteration),
         .match_expr => |selection| @import("../match.zig").lowerValue(self, selection),

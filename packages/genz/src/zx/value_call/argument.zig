@@ -16,7 +16,7 @@ pub fn borrow(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId)
 
             for (items, values) |item, *value| value.* = try aggregate.bind(self, body, try borrow(self, body, item));
 
-            const value = try aggregate.bind(self, body, try self.cast(self.abi_layouts[@backingInt(expression.type_id)], try self.builder.expression(.{ .tuple = values })));
+            const value = try aggregate.bind(self, body, try self.cast(try @import("../types.zig").get(self, self.abi_layouts, expression.type_id), try self.builder.expression(.{ .tuple = values })));
 
             return self.builder.expression(.{ .address_of = value });
         },
@@ -96,7 +96,7 @@ fn object(self: *Lower, body: *std.ArrayList(node.Statement), id: ir.ExprId) Low
         if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = evaluated[index] });
     }
 
-    const result = try aggregate.bind(self, body, try self.builder.expression(.{ .object = .{ .type_expr = self.abi_layouts[@backingInt(expression.type_id)], .fields = fields } }));
+    const result = try aggregate.bind(self, body, try self.builder.expression(.{ .object = .{ .type_expr = try @import("../types.zig").get(self, self.abi_layouts, expression.type_id), .fields = fields } }));
 
     return self.builder.expression(.{ .address_of = result });
 }

@@ -6,13 +6,13 @@ const Lower = @import("../lower.zig");
 
 pub fn convert(self: *Context, id: ir.TypeId, value: node.ExpressionId, output: bool) Lower.Error!node.ExpressionId {
     const lowering = self.lowering;
-    const layout = if (output) lowering.layouts[@backingInt(id)] else try @import("types.zig").get(self, id);
+    const layout = if (output) try lowering.layoutExpr(id) else try @import("types.zig").get(self, id);
 
     const result = switch (lowering.program.typeOf(id)) {
         .optional => |child| {
             const present = try @import("../intrinsics.zig").binary(lowering, .not_equal, value, try lowering.builder.expression(.null_value));
             const payload = try lowering.builder.expression(.{ .optional_unwrap = value });
-            const optional_type = if (output) lowering.types[@backingInt(id)] else layout;
+            const optional_type = if (output) try lowering.typeExpr(id) else layout;
 
             return lowering.cast(optional_type, try lowering.builder.expression(.{ .conditional = .{
                 .condition = present,

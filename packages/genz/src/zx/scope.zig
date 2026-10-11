@@ -101,7 +101,7 @@ fn lowerMode(self: *Lower, scope: ir.ScopeRow, layout: bool) Lower.Error!node.Ex
             if (self.used[index]) {
                 try output.append(self.allocator, .{ .constant = .{
                     .name = self.names[index],
-                    .type_expr = if (by_value) self.layouts[@backingInt(self.program.symbols.at(index).type_id)] else self.types[@backingInt(self.program.symbols.at(index).type_id)],
+                    .type_expr = if (by_value) try self.layoutExpr(self.program.symbols.at(index).type_id) else try self.typeExpr(self.program.symbols.at(index).type_id),
                     .value = value,
                 } });
             } else try output.append(self.allocator, .{ .discard = value });

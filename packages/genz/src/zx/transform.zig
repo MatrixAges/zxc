@@ -16,7 +16,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
 
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(value.target));
-    const result_type = self.types[@backingInt(self.program.expression(id).type_id)];
+    const result_type = try self.typeExpr(self.program.expression(id).type_id);
     const callback = try self.expr(value.body);
     const element = value.parameters[if (value.kind == .reduce) @as(usize, 1) else 0];
     const capture = self.names[@backingInt(element)];
@@ -35,7 +35,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
         result = try self.builder.identifier(accumulator);
     } else if (value.kind == .map) {
         const list_type = self.program.typeOf(self.program.expression(id).type_id);
-        const allocation = try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ self.types[@backingInt(list_type.list)], try self.field(source, "len") }, true);
+        const allocation = try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ try self.typeExpr(list_type.list), try self.field(source, "len") }, true);
         result = try aggregate.bind(self, &body, allocation);
         index_capture = try self.fresh("index");
 
@@ -46,7 +46,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
     } else {
         const name = try self.fresh("items");
         const list_type = self.program.typeOf(self.program.expression(id).type_id);
-        const buffer_type = try self.call(try self.field(try self.builder.identifier("std"), "ArrayList"), &.{self.types[@backingInt(list_type.list)]}, false);
+        const buffer_type = try self.call(try self.field(try self.builder.identifier("std"), "ArrayList"), &.{try self.typeExpr(list_type.list)}, false);
 
         try body.append(self.allocator, .{ .variable = .{ .name = name, .type_expr = buffer_type, .value = try self.builder.expression(.{ .enum_literal = "empty" }) } });
 

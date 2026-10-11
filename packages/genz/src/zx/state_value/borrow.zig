@@ -6,7 +6,7 @@ const Lower = @import("../lower.zig");
 pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.ArrayList(node.Statement), id: ir.TypeId, value: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (!self.state_plan.represented(self.program, id)) return value;
 
-    const layout = self.abi_layouts[@backingInt(id)];
+    const layout = try @import("../types.zig").get(self, self.abi_layouts, id);
 
     const result = switch (self.program.typeOf(id)) {
         .optional => |child| {
@@ -14,7 +14,7 @@ pub fn lower(self: *Lower, storage: *std.ArrayList(node.Statement), body: *std.A
             const payload = try self.builder.expression(.{ .optional_unwrap = value });
             const converted = try lower(self, storage, &present, child, payload);
 
-            return self.cast(self.abi_types[@backingInt(id)], try self.builder.expression(.{ .conditional = .{
+            return self.cast(try @import("../types.zig").get(self, self.abi_types, id), try self.builder.expression(.{ .conditional = .{
                 .condition = try @import("../intrinsics.zig").binary(self, .not_equal, value, try self.builder.expression(.null_value)),
                 .yes = try @import("../aggregate.zig").finish(self, &present, converted),
                 .no = try self.builder.expression(.null_value),

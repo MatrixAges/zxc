@@ -103,7 +103,7 @@ pub fn read(self: *Lower, consumer: Consumer, id: ir.ExprId, state: node.Express
             break :value self.field(target, name);
         },
         .index => |item| @import("intrinsics.zig").index(self, try read(self, consumer, item.target, state), try self.expr(item.index)),
-        .length => |child| self.cast(self.types[@backingInt(expression.type_id)], try self.field(try read(self, consumer, child, state), "len")),
+        .length => |child| self.cast(try self.typeExpr(expression.type_id), try self.field(try read(self, consumer, child, state), "len")),
         else => unreachable,
     };
 }

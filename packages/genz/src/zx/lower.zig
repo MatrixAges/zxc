@@ -65,7 +65,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     try output.append(self.allocator, .{ .constant = .{ .name = "std", .value = try self.builtin(.import, &.{try self.builder.string("std")}) } });
     if (self.function_modules == null) self.native_names = try @import("imports.zig").lower(self, &output);
     try @import("types.zig").lower(self, &output, false);
-    for (self.program.exports) |item| try output.append(self.allocator, .{ .constant = .{ .name = item.name, .value = self.types[@backingInt(item.type_id)], .exported = true } });
+    for (self.program.exports) |item| try output.append(self.allocator, .{ .constant = .{ .name = item.name, .value = try self.typeExpr(item.type_id), .exported = true } });
     try output.append(self.allocator, .{ .constant = .{ .name = "requires_io", .value = try self.builder.expression(.{ .boolean = @import("io.zig").uses(self.program.expressions, self.program.contracts, self.io_functions) }), .exported = true } });
     try output.append(self.allocator, .{ .constant = .{ .name = "requires_process", .value = try self.builder.expression(.{ .boolean = @import("capabilities.zig").uses(self.program.expressions, self.program.contracts, self.process_functions) }), .exported = true } });
     if (self.program.type_only) return output.toOwnedSlice(self.allocator);
@@ -78,7 +78,7 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
             if (std.mem.eql(u8, item.name, contract_name)) exported = true;
         }
 
-        if (!exported) try output.append(self.allocator, .{ .constant = .{ .name = contract_name, .value = self.types[@backingInt(type_id)], .exported = true } });
+        if (!exported) try output.append(self.allocator, .{ .constant = .{ .name = contract_name, .value = try self.typeExpr(type_id), .exported = true } });
     }
 
     try @import("store.zig").declaration(self, &output);
@@ -171,13 +171,13 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(injected)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
 
     parameters[0] = if (exported) .{ .name = "arena", .value = try self.builder.expression(.{ .pointer = try @import("intrinsics.zig").standardField(self, &.{ "heap", "ArenaAllocator" }) }) } else .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
-    parameters[1] = .{ .name = "in", .value = self.types[@backingInt(self.program.input_type)] };
+    parameters[1] = .{ .name = "in", .value = try self.typeExpr(self.program.input_type) };
 
     if (injected) parameters[2] = .{ .name = "context", .value = try self.builder.expression(.{ .primitive = .@"anytype" }) };
     if (needs_io) parameters[2 + @as(usize, @intFromBool(injected))] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
 
-    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.value_output) self.layouts[@backingInt(self.program.output_type)] else self.types[@backingInt(self.program.output_type)], .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported } };
+    return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.value_output) try self.layoutExpr(self.program.output_type) else try self.typeExpr(self.program.output_type), .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported } };
 }
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
@@ -194,7 +194,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
     }
 
     const value = self.program.expression(id);
-    const value_type = self.types[@backingInt(value.type_id)];
+    const value_type = try self.typeExpr(value.type_id);
 
     return switch (value.value) {
         .task => @import("tasks/root.zig").start(self, id, false),
@@ -277,7 +277,7 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
             arguments[1] = if (callee_function.external != null and callee_function.external.?.expand_tuple and self.program.expression(invocation.argument).value == .tuple and !self.cache.contains(invocation.argument)) temporary: {
                 const argument_value = self.program.expression(invocation.argument);
                 const layout = try @import("aggregate.zig").tupleValue(self, argument_value, argument_value.value.tuple);
-                const argument = try @import("aggregate.zig").bind(self, &body, try self.cast(self.layouts[@backingInt(argument_value.type_id)], layout));
+                const argument = try @import("aggregate.zig").bind(self, &body, try self.cast(try self.layoutExpr(argument_value.type_id), layout));
 
                 break :temporary try self.builder.expression(.{ .address_of = argument });
             } else if (scalar and self.pure_functions[@backingInt(invocation.function)] and !self.cache.contains(invocation.argument)) temporary: {
@@ -357,12 +357,22 @@ pub fn binary(self: *Self, value: @FieldType(@FieldType(ir.ExpressionRow, "value
         const wide = try self.builder.expression(.{ .primitive = if (target.scalar == .i32) .i33 else .i65 });
         const remainder = try self.builtin(.rem, &.{ try self.cast(wide, left), try self.cast(wide, right) });
 
-        return self.cast(self.types[@backingInt(type_id)], try self.builtin(.intCast, &.{remainder}));
+        return self.cast(try self.typeExpr(type_id), try self.builtin(.intCast, &.{remainder}));
     }
 
     if (value.operator == .remainder or (value.operator == .divide and !floating)) return self.builtin(if (value.operator == .divide) .divTrunc else .rem, &.{ left, right });
 
     return self.builder.expression(.{ .binary = .{ .operator = std.meta.stringToEnum(node.BinaryOperator, @tagName(value.operator)).?, .left = left, .right = right } });
+}
+
+/// The type expression of `id` in the current representation.
+pub fn typeExpr(self: *Self, id: ir.TypeId) Error!node.ExpressionId {
+    return @import("types.zig").get(self, self.types, id);
+}
+
+/// The layout expression of `id` in the current representation.
+pub fn layoutExpr(self: *Self, id: ir.TypeId) Error!node.ExpressionId {
+    return @import("types.zig").get(self, self.layouts, id);
 }
 
 pub fn field(self: *Self, target: node.ExpressionId, name: []const u8) Error!node.ExpressionId {
@@ -401,15 +411,15 @@ pub fn cast(self: *Self, type_expr: node.ExpressionId, value: node.ExpressionId)
 }
 
 pub fn construct(self: *Self, type_id: ir.TypeId, value: node.ExpressionId) Error!node.ExpressionId {
-    if (@import("state_value/root.zig").selected(self, type_id)) return self.cast(self.types[@backingInt(type_id)], try @import("state_value/origin.zig").tuple(self, type_id, value));
+    if (@import("state_value/root.zig").selected(self, type_id)) return self.cast(try self.typeExpr(type_id), try @import("state_value/origin.zig").tuple(self, type_id, value));
 
     var body: std.ArrayList(node.Statement) = .empty;
-    const layout = self.layouts[@backingInt(type_id)];
+    const layout = try self.layoutExpr(type_id);
     const pointer = try @import("aggregate.zig").bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "create"), &.{layout}, true));
 
     try body.append(self.allocator, .{ .assignment = .{ .target = try self.builder.expression(.{ .dereference = pointer }), .value = try self.cast(layout, value) } });
 
-    return @import("aggregate.zig").finish(self, &body, try self.cast(self.types[@backingInt(type_id)], pointer));
+    return @import("aggregate.zig").finish(self, &body, try self.cast(try self.typeExpr(type_id), pointer));
 }
 
 pub fn fresh(self: *Self, prefix: []const u8) Error![]const u8 {

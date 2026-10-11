@@ -3,6 +3,7 @@ const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
 
+/// The value layouts of a file that declares its own types; files importing the shared bundle build them on use.
 pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: bool) Lower.Error!void {
     self.abi_types = self.types;
     self.abi_layouts = self.layouts;
@@ -27,7 +28,7 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
         const base = if (self.type_names) |names| names[index] else try std.fmt.allocPrint(self.allocator, "zx_type_{d}", .{index});
         const name = try self.state_plan.name(self.allocator, id, base);
 
-        const selected = if (self.shared_types) try self.field(try self.builder.identifier("zx_abi"), name) else blk: {
+        const selected = blk: {
             const definition = switch (value) {
                 .object => |fields| object: {
                     const items = try self.allocator.alloc(node.Field, fields.len + 1);

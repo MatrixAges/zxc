@@ -52,7 +52,7 @@ fn objectMode(self: *Lower, id: ir.ExprId, value: @FieldType(@FieldType(ir.Expre
         if (counts[index] == self.cache_reads[@backingInt(item)]) try body.append(self.allocator, .{ .discard = try self.builder.identifier(names[index]) });
     }
 
-    const result = try self.builder.expression(.{ .object = .{ .type_expr = self.layouts[@backingInt(type_id)], .fields = fields } });
+    const result = try self.builder.expression(.{ .object = .{ .type_expr = try self.layoutExpr(type_id), .fields = fields } });
 
     return finish(self, &body, if (layout) result else try self.construct(type_id, result));
 }
@@ -80,7 +80,7 @@ fn sequenceMode(self: *Lower, value: ir.ExpressionRow, items: []const ir.ExprId,
             break :blk if (layout) try @import("state_value/origin.zig").tuple(self, value.type_id, tuple) else try self.construct(value.type_id, tuple);
         },
         .list => blk: {
-            const element_type = self.types[@backingInt(self.program.typeOf(value.type_id).list)];
+            const element_type = try self.typeExpr(self.program.typeOf(value.type_id).list);
             const array = try self.builder.expression(.{ .array = .{ .element_type = element_type, .values = expressions } });
 
             break :blk try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element_type, try self.builder.expression(.{ .address_of = array }) }, true);

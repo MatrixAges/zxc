@@ -10,7 +10,7 @@ pub fn get(self: *Context, id: ir.TypeId) Lower.Error!node.ExpressionId {
 
     const definition = switch (lowering.program.typeOf(id)) {
         .optional => |child| return lowering.builder.expression(.{ .optional_type = try get(self, child) }),
-        .list => |child| return if (self.inline_lists and @import("../iteration_layout.zig").represented(lowering.program, child)) lowering.builder.expression(.{ .const_slice = try get(self, child) }) else lowering.types[@backingInt(id)],
+        .list => |child| return if (self.inline_lists and @import("../iteration_layout.zig").represented(lowering.program, child)) lowering.builder.expression(.{ .const_slice = try get(self, child) }) else try lowering.typeExpr(id),
         .object => |fields| blk: {
             const items = try lowering.allocator.alloc(node.Field, fields.len);
 
@@ -32,7 +32,7 @@ pub fn get(self: *Context, id: ir.TypeId) Lower.Error!node.ExpressionId {
 
             break :blk try lowering.builder.expression(.{ .tuple_type = items });
         },
-        else => return lowering.types[@backingInt(id)],
+        else => return try lowering.typeExpr(id),
     };
 
     const name = try lowering.fresh("state_type");
@@ -47,5 +47,5 @@ pub fn get(self: *Context, id: ir.TypeId) Lower.Error!node.ExpressionId {
 pub fn element(lowering: *Lower, id: ir.TypeId) Lower.Error!node.ExpressionId {
     if (lowering.iteration_value) |context| if (context.inline_lists and @import("../iteration_layout.zig").represented(lowering.program, id)) return get(context, id);
 
-    return lowering.types[@backingInt(id)];
+    return try lowering.typeExpr(id);
 }

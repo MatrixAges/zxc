@@ -41,13 +41,13 @@ pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
 
                 try members.append(self.allocator, .{ .constant = .{
                     .name = binding.name,
-                    .value = self.types[@backingInt(binding.type_id)],
+                    .value = try self.typeExpr(binding.type_id),
                     .exported = true,
                 } });
 
                 try storage.append(self.allocator, .{ .constant = .{
                     .name = binding.name,
-                    .value = self.layouts[@backingInt(binding.type_id)],
+                    .value = try self.layoutExpr(binding.type_id),
                     .exported = true,
                 } });
             }
@@ -65,10 +65,10 @@ pub fn declarations(self: *Lower) Lower.Error![]const node.Declaration {
             if (name.found_existing) continue;
 
             const signature = try self.allocator.alloc(node.Declaration, 4);
-            signature[0] = .{ .constant = .{ .name = "Input", .value = self.types[@backingInt(function.input_type)], .exported = true } };
-            signature[1] = .{ .constant = .{ .name = "Output", .value = self.types[@backingInt(function.output_type)], .exported = true } };
-            signature[2] = .{ .constant = .{ .name = "InputValue", .value = self.layouts[@backingInt(function.input_type)], .exported = true } };
-            signature[3] = .{ .constant = .{ .name = "OutputValue", .value = self.layouts[@backingInt(function.output_type)], .exported = true } };
+            signature[0] = .{ .constant = .{ .name = "Input", .value = try self.typeExpr(function.input_type), .exported = true } };
+            signature[1] = .{ .constant = .{ .name = "Output", .value = try self.typeExpr(function.output_type), .exported = true } };
+            signature[2] = .{ .constant = .{ .name = "InputValue", .value = try self.layoutExpr(function.input_type), .exported = true } };
+            signature[3] = .{ .constant = .{ .name = "OutputValue", .value = try self.layoutExpr(function.output_type), .exported = true } };
 
             try members.append(self.allocator, .{ .constant = .{
                 .name = external.exportName(),

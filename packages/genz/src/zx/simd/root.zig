@@ -25,7 +25,7 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!?node
 pub fn emit(self: *Lower, target: ir.ExprId, callback: ir.ExprId, input: ir.TypeId, context: expression.Context) Lower.Error!node.ExpressionId {
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(target));
-    const element_type = self.types[@backingInt(input)];
+    const element_type = try self.typeExpr(input);
     const length = try self.field(source, "len");
     const result = try aggregate.bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "alloc"), &.{ element_type, length }, true));
     const suggested = try intrinsic.standard(self, &.{ "simd", "suggestVectorLength" }, &.{element_type}, false);
