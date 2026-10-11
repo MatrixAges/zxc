@@ -54,7 +54,8 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
 
 pub const fingerprint_name = ".zxc-inputs";
 
-const manifest_name = @import("partition/file_manifest.zig").name;
+const file_manifest = @import("partition/file_manifest.zig");
+const manifest_name = file_manifest.name;
 
 /// Records the content hash of every written file in a manifest, so a later run compares hashes instead of
 /// reading files back, and removes exactly the files the previous run wrote and this one does not. Without a
@@ -70,8 +71,11 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
 
     const previous = try recorded(io, allocator, directory);
     var manifest: std.Io.Writer.Allocating = .init(allocator);
-    var wanted: std.StringHashMapUnmanaged(void) = .empty;
     var parents: std.StringHashMapUnmanaged(void) = .empty;
+    // Runs list the same files in the same order, so the previous hash is usually found at the same position;
+    // paths are looked up only when the lists differ.
+    var aligned = if (previous) |known| known.paths.len == files.len else false;
+    var by_path: ?std.StringHashMapUnmanaged(u64) = null;
 
     try remove(io, directory, manifest_name);
 
@@ -83,11 +87,22 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
 
     try parallel.each(arenas, files.len, &hashing);
 
-    for (files, hashing.hashes) |file, hash| {
-        try wanted.put(allocator, file.path, {});
+    try manifest.writer.ensureUnusedCapacity(files.len * 64);
+
+    for (files, hashing.hashes, 0..) |file, hash, index| {
         try manifest.writer.print("{x:0>16} {s}\n", .{ hash, file.path });
 
-        if (previous) |known| if (known.get(file.path) == hash) continue;
+        if (previous) |known| {
+            const before = if (index < known.paths.len and std.mem.eql(u8, known.paths[index], file.path)) known.hashes[index] else found: {
+                aligned = false;
+
+                if (by_path == null) by_path = try byPath(allocator, known);
+
+                break :found by_path.?.get(file.path);
+            };
+
+            if (before == hash) continue;
+        }
 
         if (std.fs.path.dirname(file.path)) |parent| {
             if (!(try parents.getOrPut(allocator, parent)).found_existing) try directory.createDirPath(io, parent);
@@ -99,10 +114,13 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
     var stale: std.ArrayList([]const u8) = .empty;
 
     if (previous) |known| {
-        var paths = known.keyIterator();
+        if (!aligned) {
+            const wanted = try generated(allocator, files);
 
-        while (paths.next()) |path| if (!wanted.contains(path.*)) try stale.append(allocator, path.*);
+            for (known.paths) |path| if (!wanted.contains(path)) try stale.append(allocator, path);
+        }
     } else {
+        const wanted = try generated(allocator, files);
         var walker = try directory.walk(allocator);
 
         defer walker.deinit();
@@ -129,13 +147,33 @@ const Hashing = struct {
     }
 };
 
-fn recorded(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !?std.StringHashMapUnmanaged(u64) {
+fn recorded(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !?file_manifest.Listed {
     const text = directory.readFileAlloc(io, manifest_name, allocator, .unlimited) catch |err| switch (err) {
         error.FileNotFound => return null,
         else => return err,
     };
 
-    return try @import("partition/file_manifest.zig").parse(allocator, text);
+    return try file_manifest.list(allocator, text);
+}
+
+fn byPath(allocator: std.mem.Allocator, listed: file_manifest.Listed) !std.StringHashMapUnmanaged(u64) {
+    var result: std.StringHashMapUnmanaged(u64) = .empty;
+
+    try result.ensureTotalCapacity(allocator, @intCast(listed.paths.len));
+
+    for (listed.paths, listed.hashes) |path, hash| result.putAssumeCapacity(path, hash);
+
+    return result;
+}
+
+fn generated(allocator: std.mem.Allocator, files: []const layout.File) !std.StringHashMapUnmanaged(void) {
+    var result: std.StringHashMapUnmanaged(void) = .empty;
+
+    try result.ensureTotalCapacity(allocator, @intCast(files.len));
+
+    for (files) |file| result.putAssumeCapacity(file.path, {});
+
+    return result;
 }
 
 fn remove(io: std.Io, directory: std.Io.Dir, path: []const u8) !void {
