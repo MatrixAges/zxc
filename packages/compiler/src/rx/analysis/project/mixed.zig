@@ -8,7 +8,7 @@ const Prepared = @import("prepare.zig");
 const SourceGraph = @import("source_graph.zig").Graph;
 const State = @import("mixed/state.zig");
 
-pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loaded, states: []const @import("constraints.zig").State, dependencies: SourceGraph, signatures: frontend.project.signature_project.Data, sources: []const frontend.project.Source, modules: []const rx.ModuleSource, exports: []const @import("../project.zig").Export, cache: *frontend.project.ParseCache) zx.Error!Module.Value {
+pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loaded, states: []const @import("constraints.zig").State, dependencies: SourceGraph, signatures: frontend.project.signature_project.Data, sources: []const frontend.project.Source, modules: []const rx.ModuleSource, exports: []const @import("../project.zig").Export, cache: *frontend.project.ParseCache, record: ?*@import("history.zig").History) zx.Error!Module.Value {
     const resolved = try @import("signatures.zig").resolve(graph, states);
 
     var state = State.init(graph.allocator, backing, dependencies, signatures, graph.types.items.view(), loaded.project) catch |err| {
@@ -20,23 +20,32 @@ pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loade
     defer state.scratch.deinit();
 
     var entry: ?Module.Contract = null;
+    var reuse = try @import("mixed/reuse.zig").begin(&state, cache, record);
 
     for (dependencies.order) |index| {
         const module = dependencies.modules[index];
 
         state.owner = index;
 
+        if (try reuse.reuse(&state, index)) continue;
+
         switch (module.source) {
             .zx => {
                 const signature = state.signature(index) orelse return .{ .diagnostic = .{ .path = module.path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "source module signature is missing" } };
 
-                if (signature.signature.has_store) continue;
+                if (signature.signature.has_store) {
+                    reuse.analyzed(&state, index);
+
+                    continue;
+                }
 
                 state.finished[index] = @import("mixed/zx.zig").compile(&state, cache, sources, index, null) catch |err| {
                     if (err == error.OutOfMemory) return error.OutOfMemory;
 
                     return .{ .diagnostic = state.issue.? };
                 };
+
+                reuse.analyzed(&state, index);
             },
             .rx => |source| {
                 const result = @import("mixed/rx.zig").compile(&state, cache, sources, modules, index, loaded.modules[source], resolved[source]) catch |err| {
@@ -48,6 +57,8 @@ pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loade
                 state.finished[index] = result.loaded;
 
                 if (index == dependencies.entry) entry = result.contract;
+
+                reuse.analyzed(&state, index);
             },
         }
     }
@@ -75,6 +86,8 @@ pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loade
 
         return .{ .diagnostic = state.issue.? };
     };
+
+    try reuse.finish(&state);
 
     return .{ .contract = contract };
 }

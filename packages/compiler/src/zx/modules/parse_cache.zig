@@ -10,7 +10,13 @@ allocator: std.mem.Allocator,
 entries: std.StringHashMapUnmanaged(*Entry) = .empty,
 parsed: usize = 0,
 reused: usize = 0,
+/// Keeps replaced results until `release` instead of freeing them, for analyses that still point into them.
+keeps_replaced: bool = false,
+replaced: std.ArrayList(ModuleResult) = .empty,
 pub fn deinit(self: *Self) void {
+    self.release();
+    self.replaced.deinit(self.allocator);
+
     var entries = self.entries.iterator();
 
     while (entries.next()) |item| {
@@ -22,6 +28,20 @@ pub fn deinit(self: *Self) void {
     self.entries.deinit(self.allocator);
 
     self.* = undefined;
+}
+
+/// Frees the results replaced since the last call.
+pub fn release(self: *Self) void {
+    for (self.replaced.items) |*result| result.deinit();
+
+    self.replaced.clearRetainingCapacity();
+}
+
+/// The digest of the source last parsed for `path`.
+pub fn sourceDigest(self: *const Self, path: []const u8) ?[32]u8 {
+    const entry = self.entries.get(path) orelse return null;
+
+    return entry.digest;
 }
 
 pub fn get(self: *Self, source: []const u8, path: []const u8) std.mem.Allocator.Error!*const parser.Result {
@@ -117,7 +137,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
 
 fn adopt(self: *Self, path: []const u8, digest: [32]u8, result: ModuleResult) std.mem.Allocator.Error!void {
     if (self.entries.get(path)) |entry| {
-        entry.result.deinit();
+        try self.replace(entry.result);
         entry.* = .{ .digest = digest, .result = result };
         self.parsed += 1;
 
@@ -139,6 +159,16 @@ fn adopt(self: *Self, path: []const u8, digest: [32]u8, result: ModuleResult) st
     self.parsed += 1;
 }
 
+fn replace(self: *Self, result: ModuleResult) std.mem.Allocator.Error!void {
+    if (!self.keeps_replaced) {
+        var owned = result;
+
+        return owned.deinit();
+    }
+
+    try self.replaced.append(self.allocator, result);
+}
+
 fn getEntry(self: *Self, comptime native: bool, source: []const u8, path: []const u8) std.mem.Allocator.Error!*Entry {
     var digest: [32]u8 = undefined;
 
@@ -149,7 +179,7 @@ fn getEntry(self: *Self, comptime native: bool, source: []const u8, path: []cons
             if (native and entry.result == .indexed) {
                 const result = try parser.parse(self.allocator, source, path);
 
-                entry.result.deinit();
+                try self.replace(entry.result);
 
                 entry.result = .{ .native = result };
                 self.parsed += 1;
@@ -160,7 +190,7 @@ fn getEntry(self: *Self, comptime native: bool, source: []const u8, path: []cons
 
         const result = if (native) ModuleResult{ .native = try parser.parse(self.allocator, source, path) } else try parser.parseModule(self.allocator, source, path);
 
-        entry.result.deinit();
+        try self.replace(entry.result);
 
         entry.* = .{ .digest = digest, .result = result };
         self.parsed += 1;

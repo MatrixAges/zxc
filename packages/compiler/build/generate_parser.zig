@@ -4,6 +4,7 @@ const rx = @import("rx");
 const analysis = @import("rx_analysis");
 const collection = @import("source_collection.zig");
 const manifest = @import("generation_manifest.zig");
+const Resident = @import("resident/state.zig");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.arena.allocator();
@@ -26,31 +27,43 @@ pub fn main(init: std.process.Init) !void {
     if (std.mem.eql(u8, args[1], "--manifest")) {
         if (args.len != 5 and !(args.len == 7 and std.mem.eql(u8, args[5], "--partitions"))) return error.OutputCountMismatch;
 
-        const source = try std.Io.Dir.cwd().readFileAlloc(init.io, args[2], allocator, .unlimited);
-        const project = try std.json.parseFromSliceLeaky(manifest.Project, allocator, source, .{});
         const partitions = if (args.len == 7) try std.fmt.parseInt(u32, args[6], 10) else 0;
 
-        return generate(init, project, source, args[3], args[4], partitions);
+        return @import("resident/service.zig").run(init, .{ .manifest = args[2], .output = args[3], .cache = args[4], .partitions = partitions });
+    }
+
+    if (std.mem.eql(u8, args[1], "--serve")) {
+        if (args.len != 3) return error.OutputCountMismatch;
+
+        return @import("resident/service.zig").serve(init, args[2]);
     }
 
     return error.UnknownCommand;
 }
 
-fn generate(init: std.process.Init, project: manifest.Project, manifest_source: []const u8, output: []const u8, cache: []const u8, partitions: u32) !void {
+/// One generation: the manifest naming the entries and source roots, the output tree, the cache directory and the
+/// partition count.
+pub const Request = struct { manifest: []const u8, output: []const u8, cache: []const u8, partitions: u32 };
+
+/// Runs `request` and returns its summary line, or nothing when the output is already current. `allocator` is an arena
+/// owning everything read for the request; the analysis `resident` keeps may point into it.
+pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, request: Request) ![]const u8 {
+    const manifest_source = try std.Io.Dir.cwd().readFileAlloc(io, request.manifest, allocator, .unlimited);
+    const project = try std.json.parseFromSliceLeaky(manifest.Project, allocator, manifest_source, .{});
+    const output = request.output;
+    const partitions = request.partitions;
+
     if (project.entries.len == 0) return error.EmptyEntrySet;
 
-    const allocator = init.arena.allocator();
     var sources: std.ArrayList(compiler.project.Source) = .empty;
     var modules: std.ArrayList(rx.TextSource) = .empty;
 
-    for (project.roots) |root| try collection.collect(init.io, allocator, root.path, root.prefix, &sources, &modules);
+    for (project.roots) |root| try collection.collect(io, allocator, root.path, root.prefix, &sources, &modules);
 
     std.mem.sort(compiler.project.Source, sources.items, {}, collection.lessSource);
     std.mem.sort(rx.TextSource, modules.items, {}, collection.lessModule);
 
-    var parsed = try rx.parseModules(allocator, modules.items);
-
-    defer parsed.deinit();
+    const parsed = try rx.parseModules(allocator, modules.items);
 
     if (parsed.value == .diagnostic) {
         std.debug.print("{s}: {s}\n", .{ modules.items[parsed.value.diagnostic.source_index].path, parsed.value.diagnostic.issue.message });
@@ -67,7 +80,7 @@ fn generate(init: std.process.Init, project: manifest.Project, manifest_source: 
     for (project.interfaces, interfaces) |interface, *target| {
         const source = for (sources.items) |candidate| {
             if (std.mem.eql(u8, candidate.path, interface.path)) break candidate.source;
-        } else try std.Io.Dir.cwd().readFileAlloc(init.io, interface.path, allocator, .unlimited);
+        } else try std.Io.Dir.cwd().readFileAlloc(io, interface.path, allocator, .unlimited);
 
         target.* = .{ .specifier = interface.specifier, .path = interface.path, .source = source, .module = interface.module };
     }
@@ -76,42 +89,40 @@ fn generate(init: std.process.Init, project: manifest.Project, manifest_source: 
 
     for (project.packages, packages) |package, *target| target.* = .{ .specifier = package.specifier, .entry = package.entry };
 
-    const generator = try @import("generator_digest.zig").create(init.io, allocator);
-    const inputs_digest = fingerprint(generator, manifest_source, partitions, sources.items, modules.items, interfaces);
+    const frame = frameDigest(resident.digest, manifest_source, modules.items, interfaces);
+    const inputs_digest = fingerprint(frame, partitions, sources.items);
 
     // An output directory reused across runs already holds the result when nothing it depends on changed.
-    if (try current(init.io, allocator, output, inputs_digest)) return;
+    if (try current(io, allocator, output, inputs_digest)) return "";
 
     const recorded = try std.fs.path.join(allocator, &.{ output, shared_output.fingerprint_name });
 
-    std.Io.Dir.cwd().deleteFile(init.io, recorded) catch |err| switch (err) {
+    std.Io.Dir.cwd().deleteFile(io, recorded) catch |err| switch (err) {
         error.FileNotFound => {},
         else => return err,
     };
 
-    try @import("shared_generation.zig").run(init, project.entries, .{
+    const summary = try @import("shared_generation.zig").run(io, allocator, resident, project.entries, .{
         .modules = inputs,
         .sources = sources.items,
         .interfaces = interfaces,
         .packages = packages,
-    }, output, cache, generator, partitions);
+        .frame = frame,
+    }, output, request.cache, partitions);
 
-    try std.Io.Dir.cwd().writeFile(init.io, .{ .sub_path = recorded, .data = &std.fmt.bytesToHex(inputs_digest, .lower) });
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = recorded, .data = &std.fmt.bytesToHex(inputs_digest, .lower) });
+
+    return summary;
 }
 
 const shared_output = @import("shared_output.zig");
 
-fn fingerprint(generator: [32]u8, manifest_source: []const u8, partitions: u32, sources: []const compiler.project.Source, modules: []const rx.TextSource, interfaces: []const compiler.project.NativeInterface) [32]u8 {
+/// Everything a generation reads besides the ZX sources.
+fn frameDigest(generator: [32]u8, manifest_source: []const u8, modules: []const rx.TextSource, interfaces: []const compiler.project.NativeInterface) [32]u8 {
     var hash = std.crypto.hash.Blake3.init(.{});
 
     hash.update(&generator);
     field(&hash, manifest_source);
-    hash.update(std.mem.asBytes(&partitions));
-
-    for (sources) |source| {
-        field(&hash, source.path);
-        field(&hash, source.source);
-    }
 
     for (modules) |module| {
         field(&hash, module.path);
@@ -119,6 +130,24 @@ fn fingerprint(generator: [32]u8, manifest_source: []const u8, partitions: u32, 
     }
 
     for (interfaces) |interface| field(&hash, interface.source);
+
+    var digest: [32]u8 = undefined;
+
+    hash.final(&digest);
+
+    return digest;
+}
+
+fn fingerprint(frame: [32]u8, partitions: u32, sources: []const compiler.project.Source) [32]u8 {
+    var hash = std.crypto.hash.Blake3.init(.{});
+
+    hash.update(&frame);
+    hash.update(std.mem.asBytes(&partitions));
+
+    for (sources) |source| {
+        field(&hash, source.path);
+        field(&hash, source.source);
+    }
 
     var digest: [32]u8 = undefined;
 

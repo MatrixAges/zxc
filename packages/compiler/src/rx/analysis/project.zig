@@ -8,6 +8,7 @@ const SourceMap = @import("source_map.zig");
 const prepare = @import("project/prepare.zig");
 const target = @import("call/target.zig");
 pub const source_graph = @import("project/source_graph.zig");
+pub const History = @import("project/history.zig").History;
 
 pub const Options = struct {
     entry: []const u8,
@@ -18,6 +19,8 @@ pub const Options = struct {
     project: frontend.project.Options = .{ .entry = "" },
     /// Shared with earlier source graph passes so each module is parsed once; it must outlive the result.
     parse_cache: ?*frontend.project.ParseCache = null,
+    /// Reuses modules of the analysis it names; the parse cache must then keep the results that analysis used.
+    history: ?*History = null,
 };
 
 pub const Export = struct { name: []const u8, path: []const u8 };
@@ -129,7 +132,7 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
 
     graph.finish() catch |err| return report(allocator, source_map, reporter, err);
 
-    var result = @import("project/mixed.zig").compile(&graph, backing, prepared.loaded, states, dependencies.value.graph, signatures.value.data, options.sources, modules, options.exports, cache) catch |err| return report(allocator, source_map, reporter, err);
+    var result = @import("project/mixed.zig").compile(&graph, backing, prepared.loaded, states, dependencies.value.graph, signatures.value.data, options.sources, modules, options.exports, cache, options.history) catch |err| return report(allocator, source_map, reporter, err);
 
     if (result == .diagnostic) return result;
 
