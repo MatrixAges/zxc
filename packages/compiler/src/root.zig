@@ -4,6 +4,7 @@ const lint = @import("lint");
 const frontend = @import("frontend");
 pub const ir = zx.ir;
 pub const bytes = zx.bytes;
+pub const parallel = zx.parallel;
 pub const parse = frontend.parse;
 pub const ParseResult = frontend.ParseResult;
 pub const parseExpression = frontend.parseExpression;

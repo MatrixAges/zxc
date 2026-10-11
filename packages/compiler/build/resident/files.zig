@@ -11,6 +11,8 @@ const settled = std.time.ns_per_s;
 gpa: std.mem.Allocator,
 entries: @import("compiler").bytes.Map(Entry) = .empty,
 replaced: std.ArrayList([]u8) = .empty,
+/// What vouches for a file's text: it is the same file, of the same size, unchanged since.
+pub const Metadata = struct { inode: std.Io.File.INode, size: u64, mtime: i96, ctime: i96 };
 const Entry = struct { inode: std.Io.File.INode, size: u64, mtime: i96, ctime: i96, read: i96, text: []u8, digest: ?[32]u8 = null };
 
 pub fn deinit(self: *Self) void {
@@ -29,9 +31,7 @@ pub fn deinit(self: *Self) void {
 
 /// The contents of `path` in `directory`, keyed by `key`, which names the file across requests.
 pub fn read(self: *Self, io: std.Io, directory: std.Io.Dir, path: []const u8, key: []const u8) ![]const u8 {
-    if (self.entries.getPtr(key)) |entry| {
-        if (vouches(entry.*, try directory.statFile(io, path, .{}))) return entry.text;
-    }
+    if (try self.unchanged(io, directory, path, key, null)) |text| return text;
 
     const started = std.Io.Timestamp.now(io, .real).nanoseconds;
     const file = try directory.openFile(io, path, .{});
@@ -62,6 +62,19 @@ pub fn read(self: *Self, io: std.Io, directory: std.Io.Dir, path: []const u8, ke
     return text;
 }
 
+/// The text kept for `key` while the metadata of `path` in `directory` vouches for it: `known` when the listing of
+/// `directory` gave it, otherwise read here. It only looks, so several threads may ask at once while none reads.
+pub fn unchanged(self: *const Self, io: std.Io, directory: std.Io.Dir, path: []const u8, key: []const u8, known: ?Metadata) !?[]const u8 {
+    const entry = self.entries.get(key) orelse return null;
+    const found = known orelse metadata(try directory.statFile(io, path, .{}));
+
+    return if (vouches(entry, found)) entry.text else null;
+}
+
+fn metadata(stat: std.Io.File.Stat) Metadata {
+    return .{ .inode = stat.inode, .size = stat.size, .mtime = stat.mtime.nanoseconds, .ctime = stat.ctime.nanoseconds };
+}
+
 /// The Blake3 digest of `text`, remembered with the text `read` returned for `key` so an unchanged file is hashed once.
 pub fn digest(self: *Self, key: []const u8, text: []const u8) [32]u8 {
     const entry = self.entries.getPtr(key) orelse return hash(text);
@@ -87,6 +100,6 @@ pub fn release(self: *Self) void {
     self.replaced.clearRetainingCapacity();
 }
 
-fn vouches(entry: Entry, stat: std.Io.File.Stat) bool {
-    return entry.inode == stat.inode and entry.size == stat.size and entry.mtime == stat.mtime.nanoseconds and entry.ctime == stat.ctime.nanoseconds and stat.ctime.nanoseconds + settled < entry.read;
+fn vouches(entry: Entry, found: Metadata) bool {
+    return entry.inode == found.inode and entry.size == found.size and entry.mtime == found.mtime and entry.ctime == found.ctime and found.ctime + settled < entry.read;
 }
