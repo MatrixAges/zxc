@@ -37,13 +37,15 @@ pub fn plan(allocator: std.mem.Allocator, functions: []const File, top: []const 
         for (copies.keys()) |callee| try files.append(allocator, .{ .path = try directory(allocator, @intCast(index), count, callee), .source = owners.get(callee).?.source });
     }
 
+    var signatures: std.StringHashMapUnmanaged([]const u8) = .empty;
+
     for (scopes.stubs, 0..) |scope, index| {
         for (scope.keys(), scope.values()) |callee, variants| {
             if (scopes.copies[index].contains(callee)) continue;
 
             try files.append(allocator, .{
                 .path = try directory(allocator, @intCast(index), count, callee),
-                .source = try stub(allocator, callee, owners.get(callee).?.source, variants.items),
+                .source = try stub(allocator, &signatures, callee, owners.get(callee).?.source, variants.items),
             });
         }
     }
@@ -157,19 +159,23 @@ fn add(allocator: std.mem.Allocator, demands: *Demands, callee: []const u8, vari
     try entry.value_ptr.append(allocator, variant);
 }
 
-fn stub(allocator: std.mem.Allocator, callee: []const u8, source: []const u8, variants: []const []const u8) ![]const u8 {
+/// `signatures` memoizes function types by exported symbol, since every scope calling a function stubs it.
+fn stub(allocator: std.mem.Allocator, signatures: *std.StringHashMapUnmanaged([]const u8), callee: []const u8, source: []const u8, variants: []const []const u8) ![]const u8 {
     var output: std.Io.Writer.Allocating = .init(allocator);
 
     try output.writer.writeAll("const std = @import(\"std\");\n\nconst zx_abi = @import(\"zxc_abi\");\n\nconst bridge = @import(\"zxc_bridge\");\n");
 
     for (variants) |variant| {
-        const function_type = try signature.find(allocator, source, variant) orelse {
+        const name = try symbol(allocator, callee, variant);
+        const entry = try signatures.getOrPut(allocator, name);
+
+        if (!entry.found_existing) entry.value_ptr.* = try signature.find(allocator, source, variant) orelse {
             std.debug.print("{s}: no public function {s}\n", .{ callee, variant });
 
             return error.MissingFunctionSignature;
         };
 
-        try output.writer.print("\npub const {s} = bridge.import({s}, \"{s}\");\n", .{ variant, function_type, try symbol(allocator, callee, variant) });
+        try output.writer.print("\npub const {s} = bridge.import({s}, \"{s}\");\n", .{ variant, entry.value_ptr.*, name });
     }
 
     return output.written();

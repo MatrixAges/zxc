@@ -54,9 +54,13 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
 
 pub const fingerprint_name = ".zxc-inputs";
 
+const manifest_name = ".zxc-files";
+
+/// Records the content hash of every written file in a manifest, so a later run compares hashes instead of
+/// reading files back, and removes exactly the files the previous run wrote and this one does not. Without a
+/// manifest the directory is walked once and every file not generated now is removed.
 fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: []const layout.File) !void {
     const cwd = std.Io.Dir.cwd();
-    var wanted: std.StringHashMapUnmanaged(void) = .empty;
 
     try cwd.createDirPath(io, output);
 
@@ -64,31 +68,72 @@ fn mirror(io: std.Io, allocator: std.mem.Allocator, output: []const u8, files: [
 
     defer directory.close(io);
 
+    const previous = try recorded(io, allocator, directory);
+    var manifest: std.Io.Writer.Allocating = .init(allocator);
+    var wanted: std.StringHashMapUnmanaged(void) = .empty;
+    var parents: std.StringHashMapUnmanaged(void) = .empty;
+
+    try remove(io, directory, manifest_name);
+
     for (files) |file| {
+        const hash = std.hash.Wyhash.hash(0, file.source);
+
         try wanted.put(allocator, file.path, {});
+        try manifest.writer.print("{x:0>16} {s}\n", .{ hash, file.path });
 
-        if (std.fs.path.dirname(file.path)) |parent| try directory.createDirPath(io, parent);
+        if (previous) |known| if (known.get(file.path) == hash) continue;
 
-        const current = directory.readFileAlloc(io, file.path, allocator, .limited(file.source.len + 1)) catch |err| switch (err) {
-            error.FileNotFound, error.StreamTooLong => null,
-            else => return err,
-        };
-
-        if (current != null and std.mem.eql(u8, current.?, file.source)) continue;
+        if (std.fs.path.dirname(file.path)) |parent| {
+            if (!(try parents.getOrPut(allocator, parent)).found_existing) try directory.createDirPath(io, parent);
+        }
 
         try directory.writeFile(io, .{ .sub_path = file.path, .data = file.source });
     }
 
     var stale: std.ArrayList([]const u8) = .empty;
-    var walker = try directory.walk(allocator);
 
-    defer walker.deinit();
+    if (previous) |known| {
+        var paths = known.keyIterator();
 
-    while (try walker.next(io)) |entry| {
-        if (entry.kind != .file or std.mem.eql(u8, entry.path, fingerprint_name) or wanted.contains(entry.path)) continue;
+        while (paths.next()) |path| if (!wanted.contains(path.*)) try stale.append(allocator, path.*);
+    } else {
+        var walker = try directory.walk(allocator);
 
-        try stale.append(allocator, try allocator.dupe(u8, entry.path));
+        defer walker.deinit();
+
+        while (try walker.next(io)) |entry| {
+            if (entry.kind != .file or std.mem.eql(u8, entry.path, fingerprint_name) or wanted.contains(entry.path)) continue;
+
+            try stale.append(allocator, try allocator.dupe(u8, entry.path));
+        }
     }
 
-    for (stale.items) |path| try directory.deleteFile(io, path);
+    for (stale.items) |path| try remove(io, directory, path);
+
+    try directory.writeFile(io, .{ .sub_path = manifest_name, .data = manifest.written() });
+}
+
+fn recorded(io: std.Io, allocator: std.mem.Allocator, directory: std.Io.Dir) !?std.StringHashMapUnmanaged(u64) {
+    const text = directory.readFileAlloc(io, manifest_name, allocator, .unlimited) catch |err| switch (err) {
+        error.FileNotFound => return null,
+        else => return err,
+    };
+
+    var known: std.StringHashMapUnmanaged(u64) = .empty;
+    var lines = std.mem.splitScalar(u8, text, '\n');
+
+    while (lines.next()) |line| {
+        if (line.len < 18) continue;
+
+        try known.put(allocator, line[17..], try std.fmt.parseInt(u64, line[0..16], 16));
+    }
+
+    return known;
+}
+
+fn remove(io: std.Io, directory: std.Io.Dir, path: []const u8) !void {
+    directory.deleteFile(io, path) catch |err| switch (err) {
+        error.FileNotFound => {},
+        else => return err,
+    };
 }
