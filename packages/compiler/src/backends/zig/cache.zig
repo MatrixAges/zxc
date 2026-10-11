@@ -188,18 +188,47 @@ fn writeAll(self: *Self, items: []const Unwritten) void {
     self.finishWriting();
 }
 
+/// Writes every record on a few of the shared workers; records are separate files, which the file system creates
+/// side by side, though beyond a few threads they wait on its locks.
 fn writeAllInto(storage: Storage, writing: *Writing) void {
-    for (writing.items) |item| {
-        const written = storage.write(std.heap.smp_allocator, item.key, item.source) catch |err| {
-            writing.io_errors += 1;
-            writing.last_io_error = err;
+    const Records = struct {
+        storage: Storage,
+        items: []const Unwritten,
+        next: std.atomic.Value(usize) = .init(0),
+        written: std.atomic.Value(usize) = .init(0),
+        io_errors: std.atomic.Value(usize) = .init(0),
+        last_io_error: std.atomic.Value(u16) = .init(0),
+        fn run(records: *@This(), _: usize) void {
+            while (true) {
+                const index = records.next.fetchAdd(1, .monotonic);
 
-            continue;
-        };
+                if (index >= records.items.len) return;
 
-        if (written) writing.written += 1;
-    }
+                const item = records.items[index];
+
+                const written = records.storage.write(std.heap.smp_allocator, item.key, item.source) catch |err| {
+                    _ = records.io_errors.fetchAdd(1, .monotonic);
+
+                    records.last_io_error.store(@intFromError(err), .monotonic);
+
+                    continue;
+                };
+
+                if (written) _ = records.written.fetchAdd(1, .monotonic);
+            }
+        }
+    };
+
+    var records = Records{ .storage = storage, .items = writing.items };
+
+    @import("zx").parallel.spread(Records, &records, Records.run, @min(writers, writing.items.len));
+    writing.written += records.written.load(.monotonic);
+    writing.io_errors += records.io_errors.load(.monotonic);
+
+    if (records.last_io_error.load(.monotonic) != 0) writing.last_io_error = @errorFromInt(records.last_io_error.load(.monotonic));
 }
+
+const writers = 8;
 
 /// Writes the memo this cache keeps to storage, so later generations in other processes reuse it.
 pub fn flushMemo(self: *Self) std.mem.Allocator.Error!void {
