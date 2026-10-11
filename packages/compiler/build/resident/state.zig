@@ -24,6 +24,8 @@ epochs: std.ArrayList(std.heap.ArenaAllocator) = .empty,
 request: ?std.heap.ArenaAllocator = null,
 /// Whether the current request's inputs join `epochs` when it ends.
 keeps_request: bool = false,
+/// Memory the current request no longer needs, freed once it ends so that freeing it does not hold up the answer.
+discarded: ?std.heap.ArenaAllocator = null,
 const Generation = struct { path: []u8, cache: compiler.zig.GenerationCache };
 
 pub fn init(io: std.Io, gpa: std.mem.Allocator) !Self {
@@ -85,8 +87,21 @@ pub fn requestAllocator(self: *Self) std.mem.Allocator {
     return self.request.?.allocator();
 }
 
+/// Frees `arena` once the current request ends; it must hold nothing the request still reads.
+pub fn discard(self: *Self, arena: std.heap.ArenaAllocator) void {
+    var owned = arena;
+
+    if (self.discarded != null) return owned.deinit();
+
+    self.discarded = owned;
+}
+
 /// Ends the current request; its arena allocator must no longer be used.
 pub fn endRequest(self: *Self) void {
+    if (self.discarded) |*arena| arena.deinit();
+
+    self.discarded = null;
+
     if (self.request) |*request| {
         if (self.keeps_request) self.epochs.appendAssumeCapacity(request.*) else request.deinit();
     }

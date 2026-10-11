@@ -81,9 +81,9 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entrie
     const cache = try resident.generationCache(io, cache_path);
     const generated = cache.generated;
     const reused = cache.reused;
-    var bundle = try compiler.zig.emitLibraryFilesCached(resident.gpa, &library, cache);
+    const bundle = try compiler.zig.emitLibraryFilesCached(resident.gpa, &library, cache);
 
-    defer bundle.deinit();
+    defer resident.discard(bundle.arena);
     // The generated sources reach the cache directory while the output is written and Zig compiles it.
     cache.startWriting();
 

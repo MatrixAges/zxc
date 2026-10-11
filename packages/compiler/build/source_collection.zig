@@ -21,7 +21,7 @@ pub fn collect(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: [
 
     defer directory.close(io);
 
-    const arenas = try allocator.alloc(std.heap.ArenaAllocator, compiler.parallel.width());
+    const arenas = try allocator.alloc(std.heap.ArenaAllocator, @min(compiler.parallel.width(), listers));
 
     for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
 
@@ -34,7 +34,7 @@ pub fn collect(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: [
     while (level.items.len != 0) {
         var work = List{ .io = io, .root = directory, .prefix = prefix, .files = files, .directories = level.items, .listings = try allocator.alloc(anyerror!Listing, level.items.len), .arenas = arenas };
 
-        compiler.parallel.spread(List, &work, List.run, level.items.len);
+        compiler.parallel.spread(List, &work, List.run, @min(arenas.len, level.items.len));
 
         var next: std.ArrayList([]const u8) = .empty;
 
@@ -56,6 +56,8 @@ pub fn collect(io: std.Io, allocator: std.mem.Allocator, files: ?*Files, root: [
     }
 }
 
+/// Threads listing at once; the file system serves more of them no faster, as they wait on its locks.
+const listers = 8;
 const File = struct { name: []const u8, zx: bool, text: ?[]const u8 };
 const Listing = struct { files: []const File, directories: []const []const u8 };
 
