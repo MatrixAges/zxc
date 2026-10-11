@@ -396,10 +396,11 @@ fn copyRenewals(allocator: std.mem.Allocator, renewals: []const Renewal) std.mem
 fn callees(allocator: std.mem.Allocator, expressions: ir.ExpressionTable) std.mem.Allocator.Error![]const u32 {
     var result: std.ArrayList(u32) = .empty;
 
-    for (0..expressions.count()) |index| switch (expressions.at(index).value) {
-        .call => |invocation| if (std.mem.indexOfScalar(u32, result.items, @backingInt(invocation.function)) == null) try result.append(allocator, @backingInt(invocation.function)),
-        else => {},
-    };
+    for (0..expressions.count()) |index| {
+        const function = @backingInt(expressions.callee(index) orelse continue);
+
+        if (std.mem.indexOfScalar(u32, result.items, function) == null) try result.append(allocator, function);
+    }
 
     return result.items;
 }

@@ -109,13 +109,8 @@ fn contains(program: ir.Program, child: ir.TypeId, root: ir.TypeId) bool {
 
 fn calls(expressions: ir.ExpressionTable, contracts: ir.ContractTable, pure: []const bool) bool {
     for (0..expressions.count()) |expression_index| {
-        const expression = expressions.at(expression_index);
-
-        switch (expression.value) {
-            .task, .await_task, .cancel_task, .parallel => return false,
-            .call => |value| if (!pure[@backingInt(value.function)]) return false,
-            else => {},
-        }
+        if (expressions.concurrent(expression_index)) return false;
+        if (expressions.callee(expression_index)) |function| if (!pure[@backingInt(function)]) return false;
     }
 
     for (contracts.expressions) |expressions_table| if (!calls(expressions_table.*, .{}, pure)) return false;

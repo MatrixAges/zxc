@@ -23,13 +23,8 @@ pub fn required(program: ir.Program, task_functions: []const bool) bool {
 
 fn uses(expressions: ir.ExpressionTable, task_functions: []const bool) bool {
     for (0..expressions.count()) |expression_index| {
-        const expression = expressions.at(expression_index);
-
-        switch (expression.value) {
-            .task, .await_task, .cancel_task, .parallel => return true,
-            .call => |call| if (task_functions[@backingInt(call.function)]) return true,
-            else => {},
-        }
+        if (expressions.concurrent(expression_index)) return true;
+        if (expressions.callee(expression_index)) |function| if (task_functions[@backingInt(function)]) return true;
     }
 
     return false;

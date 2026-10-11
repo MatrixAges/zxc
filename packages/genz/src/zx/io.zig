@@ -3,14 +3,7 @@ const ir = @import("zx").ir;
 const capabilities = @import("capabilities.zig");
 
 pub fn uses(expressions: ir.ExpressionTable, contracts: ir.ContractTable, required: []const bool) bool {
-    for (0..expressions.count()) |expression_index| {
-        const expression = expressions.at(expression_index);
-
-        switch (expression.value) {
-            .task, .await_task, .cancel_task, .parallel => return true,
-            else => {},
-        }
-    }
+    for (0..expressions.count()) |expression_index| if (expressions.concurrent(expression_index)) return true;
 
     return capabilities.uses(expressions, contracts, required);
 }

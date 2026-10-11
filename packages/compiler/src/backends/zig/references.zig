@@ -33,11 +33,7 @@ pub fn close(needed: []bool, functions: ir.FunctionTable) void {
 
 fn mark(needed: []bool, expressions: ir.ExpressionTable, contracts: ir.ContractTable) void {
     for (0..expressions.count()) |expression_index| {
-        const expression = expressions.at(expression_index);
-
-        if (expression.value == .call) {
-            needed[@backingInt(expression.value.call.function)] = true;
-        }
+        if (expressions.callee(expression_index)) |function| needed[@backingInt(function)] = true;
     }
 
     for (contracts.expressions) |expressions_table| mark(needed, expressions_table.*, .{});

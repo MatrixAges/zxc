@@ -24,11 +24,8 @@ pub fn create(allocator: std.mem.Allocator, expressions: ir.ExpressionTable, bod
     var cost: usize = 0;
 
     for (0..expressions.count(), marked) |expression_index, selected| {
-        const expression = expressions.at(expression_index);
-
-        if (selected and expression.value == .call) {
-            cost +|= plan.costs[@backingInt(expression.value.call.function)];
-        }
+        if (!selected) continue;
+        if (expressions.callee(expression_index)) |function| cost +|= plan.costs[@backingInt(function)];
     }
 
     return if (cost != 0 and cost <= Plan.limit) marked else null;

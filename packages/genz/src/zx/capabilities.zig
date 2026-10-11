@@ -19,12 +19,7 @@ pub fn functions(allocator: std.mem.Allocator, program: ir.Program, kind: Kind) 
 
 pub fn uses(expressions: ir.ExpressionTable, contracts: ir.ContractTable, required: []const bool) bool {
     for (0..expressions.count()) |expression_index| {
-        const expression = expressions.at(expression_index);
-
-        switch (expression.value) {
-            .call => |invocation| if (required[@backingInt(invocation.function)]) return true,
-            else => {},
-        }
+        if (expressions.callee(expression_index)) |function| if (required[@backingInt(function)]) return true;
     }
 
     for (contracts.expressions) |expressions_table| if (uses(expressions_table.*, .{}, required)) return true;

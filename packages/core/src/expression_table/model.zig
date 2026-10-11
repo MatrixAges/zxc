@@ -89,6 +89,19 @@ pub const Table = struct {
         return self.at(@backingInt(id));
     }
 
+    /// The function the expression at `index` calls, read without decoding the rest of its row.
+    pub fn callee(self: Table, index: usize) ?@import("../ir.zig").FunctionId {
+        return if (self.kinds[index] == .Call) @fromBackingInt(self.call_functions[self.payloads[index]]) else null;
+    }
+
+    /// Whether the expression at `index` starts, awaits or cancels tasks.
+    pub fn concurrent(self: Table, index: usize) bool {
+        return switch (self.kinds[index]) {
+            .Task, .AwaitTask, .CancelTask, .Parallel => true,
+            else => false,
+        };
+    }
+
     pub const validStructure = @import("validate.zig").structure;
 
     pub fn fromValues(allocator: @import("std").mem.Allocator, values: []const @import("../ir.zig").Expression) @import("std").mem.Allocator.Error!Table {
