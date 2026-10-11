@@ -7,7 +7,9 @@ pub const compileInput = @import("expression_program.zig").compileInput;
 pub const compile = @import("expression_program.zig").compile;
 pub const compileForLinking = @import("expression_program.zig").compileForLinking;
 pub const Binding = struct { name: []const u8, type_id: ir.TypeId };
-pub const Options = struct { types: ir.TypeTable = .{}, native_modules: ir.NativeModuleTable = .{}, bindings: []const Binding = &.{}, unit_bindings: []const []const u8 = &.{}, nonnull_bindings: []const []const u8 = &.{}, expected: ?ir.TypeId = null };
+/// `borrow_types` states that `types` comes from validated programs and outlives the result: the result then
+/// borrows its strings, and the table is re-validated only in internal builds.
+pub const Options = struct { types: ir.TypeTable = .{}, borrow_types: bool = false, native_modules: ir.NativeModuleTable = .{}, bindings: []const Binding = &.{}, unit_bindings: []const []const u8 = &.{}, nonnull_bindings: []const []const u8 = &.{}, expected: ?ir.TypeId = null };
 pub const Expression = struct { types: ir.TypeTable, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, value: ir.ExprId };
 
 pub const Result = struct {

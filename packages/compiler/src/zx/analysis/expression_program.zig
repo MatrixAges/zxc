@@ -46,7 +46,9 @@ fn compileStage(allocator: std.mem.Allocator, parsed: anytype, options: Options,
 fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, reporter: *zx.Reporter, comptime linking: bool) zx.Error!ir.Program {
     const span = parsed.expression.span;
 
-    if (options.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.types)) return reporter.fail(.contract, span, "invalid shared type table");
+    const trusted = options.borrow_types and !@import("../ir/validate.zig").internal;
+
+    if (!trusted and options.types.count() != 0 and !@import("../ir/type_rules.zig").validate(options.types)) return reporter.fail(.contract, span, "invalid shared type table");
 
     var analyzer = Analyzer{
         .allocator = allocator,
@@ -54,7 +56,7 @@ fn build(allocator: std.mem.Allocator, parsed: anytype, options: Options, report
         .types = .{ .allocator = allocator, .reporter = reporter, .declarations = &.{} },
     };
 
-    try analyzer.types.items.appendDelta(allocator, try @import("type_table.zig").copy(allocator, options.types));
+    try analyzer.types.items.appendDelta(allocator, if (options.borrow_types) options.types else try @import("type_table.zig").copy(allocator, options.types));
     try analyzer.types.initialize();
 
     const children = try allocator.alloc(ir.TypeId, options.bindings.len);

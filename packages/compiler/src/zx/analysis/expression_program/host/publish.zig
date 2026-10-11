@@ -7,7 +7,7 @@ const own = @import("../../../modules/artifact/nodes/columns.zig").own;
 const type_table = @import("../../type_table.zig");
 
 pub fn apply(allocator: std.mem.Allocator, output: *const Output, options: Options, file_name: []const u8) std.mem.Allocator.Error!ir.Program {
-    var types = try type_table.storage(allocator, options.types);
+    var types = if (options.borrow_types) try type_table.columns(allocator, options.types) else try type_table.storage(allocator, options.types);
 
     try types.appendDelta(allocator, try type_table.copy(allocator, borrow.columns(ir.TypeTable, output.type_delta.*)));
 
@@ -33,7 +33,7 @@ pub fn apply(allocator: std.mem.Allocator, output: *const Output, options: Optio
 }
 
 pub fn expression(allocator: std.mem.Allocator, output: *const Output, options: Options) std.mem.Allocator.Error!@import("../../expression.zig").Expression {
-    var types = try type_table.storage(allocator, options.types);
+    var types = if (options.borrow_types) try type_table.columns(allocator, options.types) else try type_table.storage(allocator, options.types);
 
     try types.appendDelta(allocator, try type_table.copy(allocator, borrow.columns(ir.TypeTable, output.type_delta.*)));
 

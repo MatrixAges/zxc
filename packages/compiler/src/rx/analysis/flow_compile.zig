@@ -129,7 +129,7 @@ pub fn steps(self: *Self, sequence: []const Prepared.Step) Error![]const Flow.St
 }
 
 fn value(self: *Self, attribute: rx.ast.Attribute, expected: ?zx.ir.TypeId) Error!zx.ir.Program {
-    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .native_modules = self.native_modules, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
+    const compiled = try expression.compileForLinking(self.allocator, self.owner, attribute, .{ .types = self.types, .borrow_types = true, .native_modules = self.native_modules, .bindings = self.bindings.items, .nonnull_bindings = self.nonnull.items, .unit_bindings = if (self.unit_input) &.{"$in"} else &.{}, .expected = expected });
 
     if (compiled.value == .diagnostic) {
         self.issue = compiled.value.diagnostic;
