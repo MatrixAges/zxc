@@ -1,5 +1,5 @@
 //! Reuses the modules of an earlier analysis (see `../history.zig`). While every module so far appended the same
-//! rows as before, the tables stay aligned with the earlier ones, and a ZX module whose source is unchanged and whose
+//! rows as before, the tables stay aligned with the earlier ones, and a module whose source is unchanged and whose
 //! dependencies were all reused copies its earlier rows. Analysis reads callee bodies, not only their signatures, so
 //! a module depending on one analyzed again is analyzed again too. Once a module appends different types, or a
 //! different number of rows, every later module is analyzed.
@@ -116,15 +116,19 @@ pub fn finish(self: *const Self, state: *const State) std.mem.Allocator.Error!vo
     };
 }
 
+/// A module is unchanged when its source is: aligned tables imply an unchanged frame, which covers every RX source.
+/// The entry is always lowered again, since its contract is built while lowering it.
 fn unchanged(self: *const Self, state: *const State, index: usize) bool {
     const module = state.graph.modules[index];
 
-    if (module.source != .zx) return false;
+    if (index == state.graph.entry) return false;
 
-    const earlier = self.previous.?.digests[index] orelse return false;
-    const current = self.digests[index] orelse return false;
+    if (module.source == .zx) {
+        const earlier = self.previous.?.digests[index] orelse return false;
+        const current = self.digests[index] orelse return false;
 
-    if (!std.mem.eql(u8, &earlier, &current)) return false;
+        if (!std.mem.eql(u8, &earlier, &current)) return false;
+    }
 
     for (module.dependencies) |edge| switch (edge.target) {
         .source => |dependency| if (self.redone[dependency]) return false,

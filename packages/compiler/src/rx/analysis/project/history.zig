@@ -31,7 +31,7 @@ pub const Retained = struct {
     frame: [32]u8,
     initial: Checkpoint,
     paths: []const []const u8,
-    /// Each ZX module's source digest; RX modules have none and are always analyzed again.
+    /// Each ZX module's source digest; RX sources are covered by `frame`.
     digests: []const ?[32]u8,
     before: []const Checkpoint,
     after: []const Checkpoint,
