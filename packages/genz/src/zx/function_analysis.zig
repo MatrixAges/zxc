@@ -1,22 +1,19 @@
 const std = @import("std");
 const ir = @import("zx").ir;
-const buffer = @import("buffer_call/root.zig");
+pub const Uniqueness = @import("uniqueness/root.zig");
 const Self = @This();
 
 value: @import("value_call/analysis.zig").Summary,
-buffers: []const []const buffer.Lane,
-allocated: []const bool,
-transfers: []const []const buffer.transfer_analysis.Capability,
 io: []const bool,
 process: []const bool,
-pub fn hasValueEntry(self: Self, program: ir.Program) bool {
-    return @import("value_call/analysis.zig").eligibleEntry(program, self.value.local);
+uniqueness: Uniqueness.Result,
+/// Replaces the entry plan with one for `program`, an entry body the facts were not computed for.
+pub fn reentry(self: *Self, allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!void {
+    self.uniqueness.entry = try Uniqueness.analyzeEntry(allocator, workspace, program);
 }
 
-pub fn hasBufferedEntry(self: Self, allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!bool {
-    if (!self.hasValueEntry(program) or !@import("value_call/analysis.zig").eligibleEntry(program, self.value.pure)) return false;
-
-    return buffer.available(try buffer.analysis.entry(allocator, workspace, program, self.buffers, self.value.pure));
+pub fn hasValueEntry(self: Self, program: ir.Program) bool {
+    return @import("value_call/analysis.zig").eligibleEntry(program, self.value.local);
 }
 
 pub const Owned = struct {
@@ -30,19 +27,22 @@ pub const Owned = struct {
 };
 
 pub fn create(backing: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Owned {
+    return createExported(backing, program, &.{});
+}
+
+/// Facts for a program whose `exported` functions the host also calls directly.
+pub fn createExported(backing: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId) std.mem.Allocator.Error!Owned {
     var scratch = std.heap.ArenaAllocator.init(backing);
 
     defer scratch.deinit();
 
-    const facts = try analyze(scratch.allocator(), backing, program);
+    const facts = try analyze(scratch.allocator(), backing, program, exported);
+
     var arena = std.heap.ArenaAllocator.init(backing);
 
     errdefer arena.deinit();
 
     const owned = arena.allocator();
-    const transfers = try owned.alloc([]const buffer.transfer_analysis.Capability, facts.transfers.len);
-
-    for (facts.transfers, transfers) |source, *target| target.* = try owned.dupe(buffer.transfer_analysis.Capability, source);
 
     const value: Self = .{
         .value = .{
@@ -54,39 +54,46 @@ pub fn create(backing: std.mem.Allocator, program: ir.Program) std.mem.Allocator
                 .keys = try owned.dupe([32]u8, facts.value.state.keys),
             },
         },
-        .buffers = try @import("function_analysis/lanes.zig").copy(owned, facts.buffers),
-        .allocated = try owned.dupe(bool, facts.allocated),
-        .transfers = transfers,
         .io = try owned.dupe(bool, facts.io),
         .process = try owned.dupe(bool, facts.process),
+        .uniqueness = try copyPlans(owned, facts.uniqueness),
     };
 
     return .{ .arena = arena, .value = value };
 }
 
-pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Self {
+pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId) std.mem.Allocator.Error!Self {
     if (@import("genz_options").generated_analysis) {
         const facts = try @import("function_analysis/generated.zig").analyze(allocator, workspace, program);
 
         return .{
             .value = facts.value,
-            .buffers = facts.buffers,
-            .allocated = facts.allocated,
-            .transfers = facts.transfers,
             .io = facts.io,
             .process = facts.process,
+            .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported),
         };
     }
 
-    const value = try @import("value_call/analysis.zig").analyze(allocator, program);
-    const buffers = try buffer.analysis.functions(allocator, workspace, program, value.values, value.pure);
-
     return .{
-        .value = value,
-        .buffers = buffers,
-        .allocated = try @import("iteration_buffer/ownership/allocation.zig").functions(allocator, program, value.pure),
-        .transfers = try buffer.transfer_analysis.functions(allocator, program, buffers, value.pure),
+        .value = try @import("value_call/analysis.zig").analyze(allocator, program),
         .io = try @import("io.zig").functions(allocator, program),
         .process = try @import("capabilities.zig").functions(allocator, program, .process),
+        .uniqueness = try Uniqueness.analyze(allocator, workspace, program, exported),
     };
+}
+
+fn copyPlans(allocator: std.mem.Allocator, source: Uniqueness.Result) std.mem.Allocator.Error!Uniqueness.Result {
+    const functions = try allocator.alloc(Uniqueness.Plan, source.functions.len);
+
+    for (source.functions, functions) |plan, *target| target.* = try copyPlan(allocator, plan);
+
+    return .{ .functions = functions, .entry = try copyPlan(allocator, source.entry) };
+}
+
+fn copyPlan(allocator: std.mem.Allocator, source: Uniqueness.Plan) std.mem.Allocator.Error!Uniqueness.Plan {
+    const renewals = try allocator.alloc(Uniqueness.Renewal, source.renewals.len);
+
+    for (source.renewals, renewals) |renewal, *target| target.* = .{ .owner = renewal.owner, .path = try allocator.dupe(u32, renewal.path) };
+
+    return .{ .flags = try allocator.dupe(Uniqueness.Flags, source.flags), .renewals = renewals };
 }

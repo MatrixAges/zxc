@@ -4,14 +4,15 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const intrinsic = @import("intrinsics.zig");
-const Capacity = @import("iteration_buffer/capacity.zig");
+const growth = @import("growth.zig");
+const Operation = @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation");
 
-pub fn lower(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), storage: ?Capacity) Lower.Error!node.ExpressionId {
-    return lowerMode(self, type_id, operation, null, storage, false);
+pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
+    return lowerMode(self, id, null, false);
 }
 
-pub fn lowerValue(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), layout: node.ExpressionId, storage: ?Capacity) Lower.Error!node.ExpressionId {
-    return lowerMode(self, type_id, operation, layout, storage, false);
+pub fn lowerValue(self: *Lower, id: ir.ExprId, layout: node.ExpressionId) Lower.Error!node.ExpressionId {
+    return lowerMode(self, id, layout, false);
 }
 
 pub fn projection(self: *Lower, target: ir.ExprId, index: usize) Lower.Error!?node.ExpressionId {
@@ -22,10 +23,14 @@ pub fn projection(self: *Lower, target: ir.ExprId, index: usize) Lower.Error!?no
 
     if (value.value != .list_operation or value.value.list_operation.kind != .splice) return null;
 
-    return try lowerMode(self, value.type_id, value.value.list_operation, null, null, true);
+    return try lowerMode(self, target, null, true);
 }
 
-fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(ir.ExpressionRow, "value"), "list_operation"), layout: ?node.ExpressionId, storage: ?Capacity, removed_only: bool) Lower.Error!node.ExpressionId {
+fn lowerMode(self: *Lower, id: ir.ExprId, layout: ?node.ExpressionId, removed_only: bool) Lower.Error!node.ExpressionId {
+    const row = self.program.expression(id);
+    const type_id = row.type_id;
+    const operation: Operation = row.value.list_operation;
+    const flags = self.plan.get(id);
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(operation.target));
     const arguments = try self.allocator.alloc(node.ExpressionId, operation.arguments.len);
@@ -43,13 +48,19 @@ fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(
             const last = try intrinsic.binary(self, .subtract, length, try self.builder.integer(1));
             const nonempty = try pair(self, try slice(self, source, null, last), try self.builder.expression(.{ .index = .{ .target = source, .index = last } }));
 
+            if (flags.retract) {
+                var retract: std.ArrayList(node.Statement) = .empty;
+
+                try growth.retract(self, &retract, child_type, source, last);
+                try body.append(self.allocator, try self.builder.branch(try intrinsic.binary(self, .not_equal, length, try self.builder.integer(0)), retract.items, &.{}));
+            }
+
             result = try self.builder.expression(.{ .conditional = .{ .condition = try intrinsic.binary(self, .equal, length, try self.builder.integer(0)), .yes = try pair(self, source, try self.builder.expression(.null_value)), .no = nonempty } });
         },
         .reverse, .sort => {
-            const reuse = operation.kind == .reverse and try @import("collections/ownership.zig").consumable(self, operation.target);
-            const mutable = if (reuse) try self.builtin(.constCast, &.{source}) else try allocate(self, &body, child_type, length);
+            const mutable = if (flags.in_place) try self.builtin(.constCast, &.{source}) else try allocate(self, &body, child_type, length);
 
-            if (!reuse) try copy(self, &body, mutable, source);
+            if (!flags.in_place) try copy(self, &body, mutable, source);
 
             const call = if (operation.kind == .reverse) try intrinsic.standard(self, &.{ "mem", "reverse" }, &.{ child_type, mutable }, false) else blk: {
                 var found = false;
@@ -69,23 +80,10 @@ fn lowerMode(self: *Lower, type_id: ir.TypeId, operation: @FieldType(@FieldType(
 
             result = try pair(self, mutable, unit);
         },
-        .push, .concat => append: {
+        .push, .concat => {
             const added = if (operation.kind == .push) try self.builder.integer(1) else try self.field(arguments[0], "len");
-            const count = try addLength(self, length, added);
-
-            if (storage) |capacity| {
-                try body.append(self.allocator, .{ .discard = count });
-                try capacity.prepare(self, &body, source);
-                try body.append(self.allocator, .{ .expression = try capacity.method(self, if (operation.kind == .push) "append" else "appendSlice", arguments, true) });
-
-                result = try pair(self, try capacity.items(self), unit);
-
-                break :append;
-            }
-
-            const buffer = try allocate(self, &body, child_type, count);
-
-            try copy(self, &body, try slice(self, buffer, null, length), source);
+            const count = try aggregate.bind(self, &body, try addLength(self, length, added));
+            const buffer = try growth.reserve(self, &body, child_type, source, count, flags.frontier);
 
             if (operation.kind == .push) {
                 try body.append(self.allocator, .{ .assignment = .{ .target = try self.builder.expression(.{ .index = .{ .target = buffer, .index = length } }), .value = arguments[0] } });

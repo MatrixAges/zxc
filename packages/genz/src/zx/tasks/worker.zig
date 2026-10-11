@@ -18,9 +18,6 @@ pub fn lower(self: *Lower, id: ir.ExprId, process: bool) Lower.Error!node.Expres
     worker.used = try self.allocator.alloc(bool, self.used.len);
     worker.cache_reads = try self.allocator.alloc(usize, self.cache_reads.len);
     worker.cache = .empty;
-    worker.append_overrides = .empty;
-    worker.list_update_buffers = .empty;
-    worker.buffer_calls = .empty;
     worker.stack_symbols = .empty;
     worker.iteration_value = null;
     worker.capture = null;

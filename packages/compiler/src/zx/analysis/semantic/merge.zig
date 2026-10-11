@@ -2,8 +2,6 @@ const std = @import("std");
 const ir = @import("zx").ir;
 const Origins = @import("nominal_data");
 const generated = @import("generated_type_merge");
-const Storage = @import("merging/storage.zig");
-const buffers = @import("buffers.zig");
 pub const Error = std.mem.Allocator.Error || error{ InvalidModule, MissingNominalOrigin, ConflictingNominalType };
 
 pub const Request = struct {
@@ -19,16 +17,14 @@ pub const Request = struct {
 };
 
 pub fn append(request: Request) Error!void {
-    const Input = @typeInfo(@TypeOf(generated.executeBuffered)).@"fn".param_types[1].?;
+    const Input = @typeInfo(@TypeOf(generated.executeValue)).@"fn".param_types[1].?;
     const Data = @FieldType(Input, "request");
     const State = @FieldType(Input, "state");
     const Table = @FieldType(Data, "source");
     const Delta = @FieldType(State, "delta");
     const Bindings = @FieldType(Data, "origins");
     const mapping: []u32 = @ptrCast(request.mapping);
-    var storage: Storage = .{ .mapping = .{ .list = .fromOwnedSlice(mapping), .started = true } };
 
-    defer storage.deinit(request.temporary);
     @memset(mapping, 0);
 
     const source = table(Table, request.source);
@@ -53,12 +49,12 @@ pub fn append(request: Request) Error!void {
         },
     };
 
-    const result = generated.executeBuffered(request.temporary, input, buffers.arguments(generated, &storage, "state")) catch |err| switch (err) {
+    const result = generated.executeValue(request.temporary, input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => unreachable,
     };
 
-    std.debug.assert(result.mapping.ptr == mapping.ptr and result.mapping.len == mapping.len);
+    @memcpy(mapping, result.mapping);
 
     try @import("merging/commit.zig").append(request.allocator, request.items, request.nominal, result.delta, result.origins);
 

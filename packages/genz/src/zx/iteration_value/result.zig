@@ -1,9 +1,7 @@
 const std = @import("std");
-const Capacity = @import("../iteration_buffer/capacity.zig");
 const ir = @import("zx").ir;
 const node = @import("../../node.zig");
 const Lower = @import("../lower.zig");
-const Buffers = @import("../iteration_buffer/root.zig");
 const consumer = @import("../iteration_consumer.zig");
 const Self = @This();
 
@@ -12,7 +10,6 @@ program: ir.Program,
 cache: ?*const std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = null,
 selected: consumer.Consumer,
 projections: std.ArrayList(ir.ExprId) = .empty,
-paths: std.ArrayList([]const usize) = .empty,
 seen: std.AutoHashMapUnmanaged(ir.ExprId, void) = .empty,
 pub fn eligible(lowering: *Lower, selected: consumer.Consumer) Lower.Error!bool {
     if (lowering.capture != null or primitive(lowering.program, lowering.program.expression(selected.result).type_id)) return false;
@@ -83,7 +80,6 @@ fn visit(self: *Self, id: ir.ExprId) Lower.Error!bool {
             var path: std.ArrayList(usize) = .empty;
 
             if (!try self.collectPath(id, &path)) return false;
-            try self.paths.append(self.allocator, try path.toOwnedSlice(self.allocator));
             try self.projections.append(self.allocator, id);
         },
         .integer, .negative_integer, .float, .string, .boolean, .none, .unit, .enum_value, .error_value => {},
@@ -106,42 +102,13 @@ fn collectPath(self: *Self, id: ir.ExprId, output: *std.ArrayList(usize)) Lower.
     };
 }
 
-pub fn lower(lowering: *Lower, selected: consumer.Consumer, buffers: *const Buffers, body: *std.ArrayList(node.Statement), state: node.ExpressionId, type_id: ir.TypeId) Lower.Error!node.ExpressionId {
+pub fn lower(lowering: *Lower, selected: consumer.Consumer, state: node.ExpressionId) Lower.Error!node.ExpressionId {
     if (primitive(lowering.program, lowering.program.expression(selected.result).type_id)) return consumer.read(lowering, selected, selected.result, state);
 
     var self = Self{ .allocator = lowering.allocator, .program = lowering.program, .cache = &lowering.cache, .selected = selected };
     const valid = try self.visit(selected.result);
 
     std.debug.assert(valid);
-
-    var owned_group = try Capacity.Group.init(lowering, body, "state_owned");
-
-    for (buffers.fields.items) |field| {
-        const exported = for (self.paths.items) |path_items| {
-            if (std.mem.eql(usize, field.path, path_items)) break true;
-        } else false;
-
-        if (!exported) continue;
-
-        var target = state;
-        var current = type_id;
-
-        for (field.path) |index| switch (lowering.program.typeOf(current)) {
-            .object => |fields| {
-                target = try lowering.field(target, fields.at(index).name);
-                current = fields.at(index).type_id;
-            },
-            .tuple => |items| {
-                target = try lowering.field(target, try std.fmt.allocPrint(lowering.allocator, "{d}", .{index}));
-                current = items.at(index);
-            },
-            else => unreachable,
-        };
-
-        try field.storage.finish(lowering, body, &owned_group, target, lowering.types[@backingInt(field.element)]);
-    }
-
-    try owned_group.seal(lowering, body, .on_error);
 
     defer for (self.projections.items) |id| {
         _ = lowering.cache.remove(id);

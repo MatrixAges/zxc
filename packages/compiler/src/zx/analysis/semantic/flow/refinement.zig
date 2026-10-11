@@ -3,13 +3,12 @@ const ir = @import("zx").ir;
 const assumption = @import("generated_refinement_assume");
 const marking = @import("generated_refinement_mark");
 const abi = @import("refinement/abi.zig");
-const Buffers = @import("refinement/buffers.zig");
 const Self = @This();
 const State = abi.Output(assumption);
 
 state: State = .{ .facts = .{ .nonnull = &.{}, .projected = &.{}, .capture_errors = &.{}, .capture_results = &.{} }, .conditions = &.{}, .truths = &.{} },
-
-buffers: Buffers = .{},
+/// Holds the generated facts between calls; appends extend them in place while they stay at their frontier.
+arena: ?std.heap.ArenaAllocator = null,
 pub const Mark = abi.Output(marking);
 
 pub fn mark(self: *const Self) Mark {
@@ -35,10 +34,16 @@ pub fn restore(self: *Self, saved: Mark) void {
     self.state.facts = abi.facts(@FieldType(State, "facts"), output);
 }
 
-pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
-    self.buffers.deinit(allocator);
+pub fn deinit(self: *Self, _: std.mem.Allocator) void {
+    if (self.arena) |*arena| arena.deinit();
 
     self.* = .{};
+}
+
+fn scratch(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator {
+    if (self.arena == null) self.arena = .init(allocator);
+
+    return self.arena.?.allocator();
 }
 
 pub fn add(self: *Self, allocator: std.mem.Allocator, symbol: ir.SymbolId) std.mem.Allocator.Error!void {
@@ -63,12 +68,12 @@ pub fn bind(self: *Self, allocator: std.mem.Allocator, expressions: ir.Expressio
 }
 
 pub fn assume(self: *Self, allocator: std.mem.Allocator, expressions: ir.ExpressionTable, condition: ir.ExprId, truth: bool) std.mem.Allocator.Error!void {
-    self.state = assumption.executeBuffered(allocator, .{
+    self.state = assumption.executeValue(self.scratch(allocator), .{
         .state = self.state,
         .expressions = abi.expressions(assumption, &expressions),
         .condition = @backingInt(condition),
         .truth = truth,
-    }, Buffers.arguments(assumption, &self.buffers, "state")) catch |err| switch (err) {
+    }) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => unreachable,
     };
@@ -111,7 +116,7 @@ pub fn typeOf(self: *const Self, types: ir.TypeTable, id: ir.TypeId, symbol: ir.
 }
 
 fn updateFacts(self: *Self, allocator: std.mem.Allocator, comptime generated: type, input: abi.Input(generated)) std.mem.Allocator.Error!void {
-    const output = generated.executeBuffered(allocator, input, Buffers.arguments(generated, &self.buffers.facts, "facts")) catch |err| switch (err) {
+    const output = generated.executeValue(self.scratch(allocator), input) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         else => unreachable,
     };

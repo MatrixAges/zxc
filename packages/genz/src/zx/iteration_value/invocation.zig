@@ -24,11 +24,8 @@ pub fn lower(self: *Context, id: ir.ExprId, argument: ir.ExprId) Lower.Error!nod
 
     const call = lowering.program.expression(id).value.call;
 
-    const invocation = if (lowering.buffer_calls.contains(id))
-        try @import("../buffer_call/root.zig").invocation(lowering, id)
-
-    else if (lowering.value_functions[@backingInt(call.function)])
-        try @import("../value_call/root.zig").invocation(lowering, call, null)
+    const invocation = if (lowering.value_functions[@backingInt(call.function)])
+        try @import("../value_call/root.zig").invocation(lowering, call)
     else
         try lowering.regular(id);
 

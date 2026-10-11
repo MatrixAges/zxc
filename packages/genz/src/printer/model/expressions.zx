@@ -6,7 +6,7 @@ export enum ExpressionsUnaryOperator { Negate, Not }
 
 export enum ExpressionsBinaryOperator { Add, SaturatingAdd, ShiftLeft, Subtract, Multiply, Divide, Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual, LogicalAnd, LogicalOr, Coalesce }
 
-export enum ExpressionsBuiltinName { DivTrunc, Rem, As, SetRuntimeSafety, Import, EmbedFile, IntCast, FloatCast, FloatFromInt, IntFromFloat, Trunc, TagName, EnumFromInt, IntFromEnum, TypeOf, FieldType, TypeInfo, SizeOf, Max, IntFromPtr, Int, Export, CompileError, IntFromBool, ErrorName, This, ConstCast, PtrCast, AlignCast, Memcpy, Vector, Splat }
+export enum ExpressionsBuiltinName { DivTrunc, Rem, As, SetRuntimeSafety, Import, EmbedFile, IntCast, FloatCast, FloatFromInt, IntFromFloat, Trunc, TagName, EnumFromInt, IntFromEnum, TypeOf, FieldType, TypeInfo, SizeOf, Max, IntFromPtr, Int, Export, CompileError, IntFromBool, ErrorName, This, ConstCast, PtrCast, AlignCast, Memcpy, Vector, Splat, Field, HasField }
 
 export type Expressions = {
     tags: ExpressionsKind[]

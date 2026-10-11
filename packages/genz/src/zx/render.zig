@@ -7,7 +7,6 @@ pub const modules = @import("modules.zig");
 pub const state = @import("state.zig");
 pub const io = @import("io.zig");
 pub const value_call = @import("value_call/root.zig");
-pub const buffer_call = @import("buffer_call/root.zig");
 pub const state_value = @import("state_value/root.zig");
 pub const capabilities = @import("capabilities.zig");
 pub const tasks = @import("tasks/root.zig");
@@ -55,7 +54,7 @@ pub fn initialize(temporary: std.mem.Allocator, workspace: std.mem.Allocator, so
 }
 
 pub fn initializePrepared(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program) std.mem.Allocator.Error!Lower {
-    return initializeAnalyzed(temporary, workspace, program, try @import("function_analysis.zig").analyze(temporary, workspace, program));
+    return initializeAnalyzed(temporary, workspace, program, try @import("function_analysis.zig").analyze(temporary, workspace, program, &.{}));
 }
 
 pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Allocator, program: zx.ir.Program, facts: @import("function_analysis.zig")) std.mem.Allocator.Error!Lower {
@@ -74,9 +73,8 @@ pub fn initializeAnalyzed(temporary: std.mem.Allocator, workspace: std.mem.Alloc
         .process_functions = facts.process,
         .value_functions = facts.value.values,
         .pure_functions = facts.value.pure,
-        .allocated_functions = facts.allocated,
         .local_functions = facts.value.local,
-        .buffer_functions = facts.buffers,
-        .transfer_functions = facts.transfers,
+        .plans = facts.uniqueness.functions,
+        .plan = facts.uniqueness.entry,
     };
 }

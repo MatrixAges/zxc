@@ -47,7 +47,7 @@ pub const Expression = union(enum) {
     field: struct { target: ExpressionId, name: []const u8 },
     unary: struct { operator: enum { negate, not }, operand: ExpressionId },
     binary: struct { operator: BinaryOperator, left: ExpressionId, right: ExpressionId },
-    builtin: struct { name: enum { divTrunc, rem, as, setRuntimeSafety, import, embedFile, intCast, floatCast, floatFromInt, intFromFloat, trunc, tagName, enumFromInt, intFromEnum, TypeOf, FieldType, typeInfo, sizeOf, max, intFromPtr, Int, @"export", compileError, intFromBool, errorName, This, constCast, ptrCast, alignCast, memcpy, Vector, splat }, arguments: []const ExpressionId },
+    builtin: struct { name: enum { divTrunc, rem, as, setRuntimeSafety, import, embedFile, intCast, floatCast, floatFromInt, intFromFloat, trunc, tagName, enumFromInt, intFromEnum, TypeOf, FieldType, typeInfo, sizeOf, max, intFromPtr, Int, @"export", compileError, intFromBool, errorName, This, constCast, ptrCast, alignCast, memcpy, Vector, splat, field, hasField }, arguments: []const ExpressionId },
     call: struct { callee: ExpressionId, arguments: []const ExpressionId },
     conditional: struct { condition: ExpressionId, yes: ExpressionId, no: ExpressionId, capture: ?[]const u8 = null, error_capture: ?[]const u8 = null },
     object: struct { type_expr: ?ExpressionId = null, fields: []const Field },

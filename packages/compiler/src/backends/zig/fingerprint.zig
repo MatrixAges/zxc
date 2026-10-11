@@ -11,44 +11,16 @@ names: Names,
 value_functions: []const bool,
 pure_functions: []const bool,
 local_functions: []const bool,
-buffer_functions: []const []const @import("genz").zx.buffer_call.Lane,
-fresh_outputs: []const @import("genz").zx.buffer_call.fresh.Paths,
-transfer_functions: []const []const @import("genz").zx.buffer_call.transfer_analysis.Capability,
+uniqueness: @import("genz").zx.function_analysis.Uniqueness.Result,
 state_plan: @import("genz").zx.state_value.Analysis,
-pub fn create(allocator: std.mem.Allocator, source: ir.Program, names: Names, unit: Unit) std.mem.Allocator.Error![32]u8 {
-    var arena = std.heap.ArenaAllocator.init(allocator);
-
-    defer arena.deinit();
-
-    return createPrepared(allocator, try @import("genz").zx.prepare(arena.allocator(), source), names, unit);
-}
-
-pub fn createPrepared(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit) std.mem.Allocator.Error![32]u8 {
-    var arena = std.heap.ArenaAllocator.init(allocator);
-
-    defer arena.deinit();
-
-    const facts = try @import("genz").zx.value_call.analysis.analyze(arena.allocator(), program);
-    const value_functions = facts.values;
-    const buffer_functions = try @import("genz").zx.buffer_call.analysis.functions(arena.allocator(), allocator, program, value_functions, facts.pure);
-    const fresh_outputs = try @import("genz").zx.buffer_call.fresh.outputs(arena.allocator(), program, facts.pure);
-    const transfer_functions = try @import("genz").zx.buffer_call.transfer_analysis.functions(arena.allocator(), program, buffer_functions, facts.pure);
-    const state_plan = facts.state;
-    var self = Self{ .program = program, .names = names, .value_functions = value_functions, .pure_functions = facts.pure, .local_functions = facts.local, .buffer_functions = buffer_functions, .fresh_outputs = fresh_outputs, .transfer_functions = transfer_functions, .state_plan = state_plan };
-
-    return self.finish(allocator, unit);
-}
-
-pub fn createAnalyzed(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit, facts: @import("genz").zx.modules.Analysis, fresh_outputs: []const @import("genz").zx.buffer_call.fresh.Paths) std.mem.Allocator.Error![32]u8 {
+pub fn createAnalyzed(allocator: std.mem.Allocator, program: ir.Program, names: Names, unit: Unit, facts: @import("genz").zx.modules.Analysis) std.mem.Allocator.Error![32]u8 {
     var self = Self{
         .program = program,
         .names = names,
         .value_functions = facts.value.values,
         .pure_functions = facts.value.pure,
         .local_functions = facts.value.local,
-        .buffer_functions = facts.buffers,
-        .fresh_outputs = fresh_outputs,
-        .transfer_functions = facts.transfers,
+        .uniqueness = facts.uniqueness,
         .state_plan = facts.value.state,
     };
 
@@ -59,10 +31,9 @@ fn finish(self: *Self, allocator: std.mem.Allocator, unit: Unit) std.mem.Allocat
     const program = self.program;
     const names = self.names;
     const value_functions = self.value_functions;
-    const buffer_functions = self.buffer_functions;
     const state_plan = self.state_plan;
 
-    self.bytes("zxc.zig.input.v42");
+    self.bytes("zxc.zig.input.v43");
     self.bytes(@tagName(unit));
     self.write(program.version);
 
@@ -71,22 +42,25 @@ fn finish(self: *Self, allocator: std.mem.Allocator, unit: Unit) std.mem.Allocat
     switch (unit) {
         .function => |id| {
             self.write(value_functions[@backingInt(id)]);
-            self.write(buffer_functions[@backingInt(id)]);
+            self.plan(self.uniqueness.functions[@backingInt(id)]);
             self.write(program.functions.at(@backingInt(id)));
         },
-        .entry => self.write(.{
-            .file_name = program.file_name,
-            .input_type = program.input_type,
-            .output_type = program.output_type,
-            .symbols = program.symbols,
-            .expressions = program.expressions,
-            .body = program.body,
-            .exports = program.exports,
-            .contracts = program.contracts,
-            .stores = program.stores,
-            .store_mode = program.store_mode,
-            .type_only = program.type_only,
-        }),
+        .entry => {
+            self.plan(self.uniqueness.entry);
+            self.write(.{
+                .file_name = program.file_name,
+                .input_type = program.input_type,
+                .output_type = program.output_type,
+                .symbols = program.symbols,
+                .expressions = program.expressions,
+                .body = program.body,
+                .exports = program.exports,
+                .contracts = program.contracts,
+                .stores = program.stores,
+                .store_mode = program.store_mode,
+                .type_only = program.type_only,
+            });
+        },
         .types => {
             self.write(state_plan.keys.len);
 
@@ -125,6 +99,16 @@ fn finish(self: *Self, allocator: std.mem.Allocator, unit: Unit) std.mem.Allocat
     return result;
 }
 
+fn plan(self: *Self, value: @import("genz").zx.function_analysis.Uniqueness.Plan) void {
+    self.hash.update(std.mem.sliceAsBytes(value.flags));
+    self.write(value.renewals.len);
+
+    for (value.renewals) |renewal| {
+        self.write(@backingInt(renewal.owner));
+        self.write(renewal.path);
+    }
+}
+
 fn write(self: *Self, value: anytype) void {
     const T = @TypeOf(value);
 
@@ -160,9 +144,6 @@ fn write(self: *Self, value: anytype) void {
         self.write(self.value_functions[@backingInt(value)]);
         self.write(self.pure_functions[@backingInt(value)]);
         self.write(self.local_functions[@backingInt(value)]);
-        self.write(self.buffer_functions[@backingInt(value)]);
-        self.write(self.fresh_outputs[@backingInt(value)]);
-        self.write(self.transfer_functions[@backingInt(value)]);
 
         const function = self.program.functions.at(@backingInt(value));
 

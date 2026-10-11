@@ -4,9 +4,6 @@
     <Call fn="../value/summary" in={{ program: $in.program, selected: $ctx.select.selected }} />
     <Call fn="../capability/io" in={$in.program} />
     <Call fn="../capability/process" in={$in.program} />
-    <Call module="../lanes/summaries" in={{ types: $in.program.types, units: $in.units, values: $ctx.summary.values, pure: $ctx.summary.pure }} />
-    <Call fn="../allocation/allocated" in={{ types: $in.program.types, units: $in.units, pure: $ctx.summary.pure }} />
-    <Call fn="../transfer/capabilities" in={{ types: $in.program.types, units: $in.units, lanes: $ctx.summaries.lanes, pure: $ctx.summary.pure }} />
 
-    <Return value={{ pure: $ctx.summary.pure, local: $ctx.summary.local, values: $ctx.summary.values, selected: $ctx.select.selected, keys: $ctx.select.keys, io: $ctx.io, process: $ctx.process, lanes: $ctx.summaries.lanes, rejections: $ctx.summaries.codes, allocated: $ctx.allocated, transfers: $ctx.capabilities }} />
+    <Return value={{ pure: $ctx.summary.pure, local: $ctx.summary.local, values: $ctx.summary.values, selected: $ctx.select.selected, keys: $ctx.select.keys, io: $ctx.io, process: $ctx.process }} />
 </Module>

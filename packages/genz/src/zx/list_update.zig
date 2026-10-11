@@ -4,9 +4,10 @@ const node = @import("../node.zig");
 const Lower = @import("lower.zig");
 const aggregate = @import("aggregate.zig");
 const intrinsics = @import("intrinsics.zig");
-pub const Storage = struct { buffer: node.ExpressionId, started: node.ExpressionId, capacity: ?@import("iteration_buffer/capacity.zig") = null, enabled: ?node.ExpressionId = null, fallback_capacity: ?@import("iteration_buffer/capacity.zig") = null, transfer: bool = false };
 
-pub fn lower(self: *Lower, update: ir.ListUpdate, storage: ?Storage) Lower.Error!node.ExpressionId {
+/// Writes one element: in place when the plan proves the target unique, into a copy otherwise.
+pub fn lower(self: *Lower, id: ir.ExprId) Lower.Error!node.ExpressionId {
+    const update = self.program.expression(id).value.list_update;
     var body: std.ArrayList(node.Statement) = .empty;
     const source = try aggregate.bind(self, &body, try self.expr(update.target));
     const index = try aggregate.bind(self, &body, try self.expr(update.index));
@@ -14,49 +15,8 @@ pub fn lower(self: *Lower, update: ir.ListUpdate, storage: ?Storage) Lower.Error
     try intrinsics.failIf(self, &body, try intrinsics.binary(self, .greater_equal, index, try self.field(source, "len")), "IndexOutOfBounds");
 
     const value = try aggregate.bind(self, &body, try self.expr(update.value));
-    const element = self.program.typeOf(self.program.expression(update.target).type_id).list;
-
-    if (storage) |shared| if (shared.enabled) |enabled| {
-        self.uses_buffers = true;
-
-        var active = shared;
-        active.enabled = null;
-
-        const fallback: ?Storage = if (shared.fallback_capacity) |capacity| .{ .buffer = try capacity.items(self), .started = capacity.started, .capacity = capacity } else null;
-
-        return aggregate.finish(self, &body, try self.cast(self.types[@backingInt(self.program.expression(update.target).type_id)], try self.builder.expression(.{ .conditional = .{
-            .condition = enabled,
-            .yes = try write(self, source, index, value, element, active),
-            .no = try write(self, source, index, value, element, fallback),
-        } })));
-    };
-
-    return aggregate.finish(self, &body, try write(self, source, index, value, element, storage));
-}
-
-fn write(self: *Lower, source: node.ExpressionId, index: node.ExpressionId, value: node.ExpressionId, element: ir.TypeId, storage: ?Storage) Lower.Error!node.ExpressionId {
-    var body: std.ArrayList(node.Statement) = .empty;
-    const initial = if (storage != null and storage.?.transfer) try self.builtin(.constCast, &.{source}) else try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ try @import("iteration_value/types.zig").element(self, element), source }, true);
-
-    const buffer = if (storage) |shared| blk: {
-        if (shared.capacity) |capacity| {
-            try capacity.prepare(self, &body, source);
-
-            break :blk try capacity.items(self);
-        }
-
-        try body.append(self.allocator, .{ .branch = .{
-            .condition = try self.builder.expression(.{ .unary = .{ .operator = .not, .operand = shared.started } }),
-            .yes = try self.builder.statements(&.{
-                .{ .assignment = .{ .target = shared.buffer, .value = initial } },
-                .{ .assignment = .{ .target = shared.started, .value = try self.builder.expression(.{ .boolean = true }) } },
-            }),
-            .no = .{},
-        } });
-
-        break :blk shared.buffer;
-    } else try aggregate.bind(self, &body, initial);
-
+    const element = try @import("iteration_value/types.zig").element(self, self.program.typeOf(self.program.expression(update.target).type_id).list);
+    const buffer = if (self.plan.get(id).in_place) try aggregate.bind(self, &body, try self.builtin(.constCast, &.{source})) else try aggregate.bind(self, &body, try self.call(try self.field(try self.builder.identifier("allocator"), "dupe"), &.{ element, source }, true));
     const slot = try self.builder.expression(.{ .index = .{ .target = buffer, .index = try self.builtin(.intCast, &.{index}) } });
 
     try body.append(self.allocator, .{ .assignment = .{ .target = slot, .value = value } });

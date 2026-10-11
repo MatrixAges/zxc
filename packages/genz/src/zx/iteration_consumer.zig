@@ -29,7 +29,6 @@ pub fn lower(self: *Lower, symbol: ir.SymbolId, value: ir.ExprId, result: ir.Exp
         if (self.capture != null or self.cache.contains(result)) return null;
 
         if (try @import("iteration_value/result.zig").eligible(self, selected)) {
-            if (try @import("iteration_value/local.zig").lower(self, self.program.expression(value).value.iteration, selected)) |local| return local;
             if (try @import("iteration.zig").consume(self, value, selected)) |local| return local;
         }
 

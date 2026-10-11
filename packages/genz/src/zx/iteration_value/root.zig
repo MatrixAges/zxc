@@ -40,8 +40,6 @@ pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?node.ExpressionId {
         return try self.unpack(id);
     }
 
-    if (lowering.append_overrides.contains(id) and (!self.inline_lists or analysis.leaf(lowering.program, value.type_id))) return try self.unpack(id);
-
     switch (value.value) {
         .reference => |symbol| {
             if (self.symbols.contains(symbol)) {
@@ -59,7 +57,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?node.ExpressionId {
         },
         .scope => |scope| return try @import("scope.zig").lower(self, scope),
         .index => |item| if (self.inline_lists) return try @import("../intrinsics.zig").index(lowering, try lowering.expr(item.target), try lowering.expr(item.index)),
-        .list_update => |update| if (self.inline_lists) return try @import("../list_update.zig").lower(lowering, update, lowering.list_update_buffers.get(id)),
+        .list_update => if (self.inline_lists) return try @import("../list_update.zig").lower(lowering, id),
         .list => |items| if (self.inline_lists) return try @import("list.zig").lower(self, value.type_id, items),
         .call => |call| {
             if (analysis.represented(lowering.program, lowering.program.expression(call.argument).type_id)) return try @import("invocation.zig").lower(self, id, call.argument);
@@ -74,7 +72,7 @@ pub fn expression(self: *Self, id: ir.ExprId) Lower.Error!?node.ExpressionId {
         .some => |child| try lowering.cast(try @import("types.zig").get(self, value.type_id), try lowering.expr(child)),
         .binary => try lowering.regular(id),
         .object, .tuple => try @import("aggregate.zig").lower(self, id),
-        .list_operation => |operation| try @import("../collections.zig").lowerValue(lowering, value.type_id, operation, try @import("types.zig").get(self, value.type_id), lowering.collection_buffers.get(id)),
+        .list_operation => try @import("../collections.zig").lowerValue(lowering, id, try @import("types.zig").get(self, value.type_id)),
         .conditional => |conditional| try lowering.builder.expression(.{ .conditional = .{
             .condition = try lowering.expr(conditional.condition),
             .yes = try lowering.expr(conditional.yes),

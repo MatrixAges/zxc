@@ -89,6 +89,7 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     lower.program.stores = selected.stores;
     lower.program.store_mode = selected.store_mode;
     lower.program.contracts = selected.contracts;
+    lower.plan = lower.plans[@backingInt(id)];
     lower.names = try temporary.alloc([]const u8, selected.symbols.count());
     lower.used = try temporary.alloc(bool, selected.symbols.count());
     lower.cache_reads = try temporary.alloc(usize, selected.expressions.count());
@@ -123,27 +124,11 @@ fn functionPrepared(allocator: std.mem.Allocator, backing: std.mem.Allocator, pr
     try output.append(temporary, declaration);
 
     if (lower.value_functions[@backingInt(id)]) {
-        var value_declaration = if (@import("buffer_call/root.zig").available(lower.buffer_functions[@backingInt(id)]))
-            try @import("buffer_call/value.zig").declaration(&lower, "callValue", try lower.builder.identifier("callBuffered"), lower.buffer_functions[@backingInt(id)])
-        else
-            try lower.functionValue("callValue");
+        var value_declaration = try lower.functionValue("callValue");
 
         value_declaration.function.exported = true;
 
         try output.append(temporary, value_declaration);
-    }
-
-    if (@import("buffer_call/root.zig").available(lower.buffer_functions[@backingInt(id)])) {
-        var buffered_declaration = try @import("buffer_call/root.zig").declaration(&lower, "callBuffered", lower.buffer_functions[@backingInt(id)], .value);
-
-        buffered_declaration.function.exported = true;
-
-        try output.append(temporary, buffered_declaration);
-
-        var pointer_declaration = try @import("buffer_call/root.zig").declaration(&lower, "callBufferedPointer", lower.buffer_functions[@backingInt(id)], .pointer);
-        pointer_declaration.function.exported = true;
-
-        try output.append(temporary, pointer_declaration);
     }
 
     if (lower.uses_parallel) try output.append(temporary, try @import("parallel/allocator.zig").declaration(&lower));

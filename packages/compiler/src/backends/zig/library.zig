@@ -6,7 +6,7 @@ const names = @import("names.zig");
 const references = @import("references.zig");
 const Cache = @import("cache.zig");
 pub const Error = modules.Error || validation.Error || error{InvalidModule};
-pub const PublicModule = struct { name: []const u8, file: modules.File, value_entry: bool = false, buffered_entry: bool = false };
+pub const PublicModule = struct { name: []const u8, file: modules.File, value_entry: bool = false };
 
 pub const Bundle = struct {
     arena: std.heap.ArenaAllocator,
@@ -52,7 +52,15 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
 
     const needed = try owned.alloc(bool, program.functions.count());
     const public_modules = try owned.alloc(PublicModule, library.exports.len);
-    var batch = try modules.Batch.create(allocator, program, identities, cache);
+    const exported_functions = try owned.alloc(@import("zx").ir.FunctionId, library.exports.len);
+    var exported_count: usize = 0;
+
+    for (library.exports) |exported| if (exported.function) |id| {
+        exported_functions[exported_count] = id;
+        exported_count += 1;
+    };
+
+    var batch = try modules.Batch.createExported(allocator, program, identities, cache, exported_functions[0..exported_count]);
 
     defer batch.deinit();
 
@@ -81,10 +89,11 @@ fn create(allocator: std.mem.Allocator, library: *const model.Result, cache: ?*C
         var public_batch = batch;
         public_batch.program = view;
 
+        try public_batch.analysis.value.reentry(owned, allocator, view);
+
         public_module.* = .{
             .name = try owned.dupe(u8, exported.name),
             .value_entry = public_batch.analysis.value.hasValueEntry(view),
-            .buffered_entry = try public_batch.analysis.value.hasBufferedEntry(owned, allocator, view),
             .file = .{
                 .name = try std.fmt.allocPrint(owned, "public_{s}", .{std.fmt.bytesToHex(digest, .lower)}),
                 .source = try public_batch.emit(owned, .entry),

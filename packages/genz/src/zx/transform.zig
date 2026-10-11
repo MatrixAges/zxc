@@ -12,8 +12,6 @@ pub fn lower(self: *Lower, id: ir.ExprId, value: ir.Transform) Lower.Error!node.
     };
 
     if (value.kind == .every or value.kind == .some) return @import("predicates.zig").lower(self, value);
-    if (try @import("append_reduce/root.zig").lower(self, value)) |result| return result;
-    if (try @import("object_reduce/root.zig").lower(self, value)) |result| return result;
     if (try @import("simd/root.zig").lower(self, id, value)) |result| return result;
 
     var body: std.ArrayList(node.Statement) = .empty;

@@ -25,20 +25,15 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
     helper.program.stores = function.stores;
     helper.program.store_mode = function.store_mode;
     helper.program.contracts = function.contracts;
+    helper.plan = self.plans[index];
     helper.pending_name = try std.fmt.allocPrint(self.allocator, "zx_pending_{d}", .{index});
     helper.names = try self.allocator.alloc([]const u8, function.symbols.count());
     helper.used = try self.allocator.alloc(bool, function.symbols.count());
     helper.cache_reads = try self.allocator.alloc(usize, function.expressions.count());
     helper.cache = .empty;
-    helper.append_overrides = .empty;
-    helper.list_update_buffers = .empty;
-    helper.collection_buffers = .empty;
-    helper.buffer_calls = .empty;
     helper.stack_symbols = .empty;
     helper.state_symbols = .empty;
     helper.state_active = false;
-    helper.buffered_type = null;
-    helper.buffer_pointer = false;
     helper.value_output = false;
     helper.iteration_value = null;
     helper.capture = null;
@@ -50,17 +45,10 @@ pub fn append(self: *Lower, output: *std.ArrayList(node.Declaration), request: R
 
     const declaration = switch (request.variant) {
         .regular => try helper.function(name, false),
-        .value => if (@import("../buffer_call/root.zig").available(self.buffer_functions[index]))
-            try @import("../buffer_call/value.zig").declaration(&helper, name, try self.requestFunction(request.id, .buffered), self.buffer_functions[index])
-        else
-            try helper.functionValue(name),
-        .buffered => try @import("../buffer_call/root.zig").declaration(&helper, name, self.buffer_functions[index], .value),
-        .buffered_pointer => try @import("../buffer_call/root.zig").declaration(&helper, name, self.buffer_functions[index], .pointer),
+        .value => try helper.functionValue(name),
     };
 
     try output.append(self.allocator, declaration);
 
-    self.buffer_types = helper.buffer_types;
-    self.iteration_analyses = helper.iteration_analyses;
     self.uses_parallel = self.uses_parallel or helper.uses_parallel;
 }

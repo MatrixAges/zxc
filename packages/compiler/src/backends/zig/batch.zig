@@ -10,16 +10,14 @@ backing: std.mem.Allocator,
 program: ir.Program,
 names: generating.Names,
 analysis: generating.Analysis.Owned,
-fresh: []const genz.zx.buffer_call.fresh.Paths,
 cache: ?*Cache,
 pub fn create(backing: std.mem.Allocator, program: ir.Program, names: generating.Names, cache: ?*Cache) std.mem.Allocator.Error!Self {
-    var analysis = try generating.Analysis.create(backing, program);
+    return createExported(backing, program, names, cache, &.{});
+}
 
-    errdefer analysis.deinit();
-
-    const fresh = if (cache != null) try freshOutputs(backing, analysis.arena.allocator(), program, analysis.value) else &.{};
-
-    return .{ .backing = backing, .program = program, .names = names, .analysis = analysis, .fresh = fresh, .cache = cache };
+/// A batch whose `exported` functions the host also calls directly.
+pub fn createExported(backing: std.mem.Allocator, program: ir.Program, names: generating.Names, cache: ?*Cache, exported: []const ir.FunctionId) std.mem.Allocator.Error!Self {
+    return .{ .backing = backing, .program = program, .names = names, .analysis = try generating.Analysis.createExported(backing, program, exported), .cache = cache };
 }
 
 pub fn deinit(self: *Self) void {
@@ -57,7 +55,7 @@ pub fn lookup(self: *const Self, scratch: std.mem.Allocator, unit: generating.Un
         .entry, .types => try std.fmt.allocPrint(scratch, "{s}:{s}", .{ @tagName(unit), self.program.file_name }),
     };
 
-    const key = try fingerprint.createAnalyzed(scratch, self.program, self.names, unit, self.analysis.value, self.fresh);
+    const key = try fingerprint.createAnalyzed(scratch, self.program, self.names, unit, self.analysis.value);
     const source = if (self.cache) |store| try store.get(name, key) else null;
 
     return .{ .name = name, .key = key, .source = source };
@@ -73,25 +71,4 @@ pub fn remember(self: *const Self, found: Lookup, source: []const u8) std.mem.Al
     store.generated += 1;
 
     try store.put(found.name, found.key, source);
-}
-
-fn freshOutputs(backing: std.mem.Allocator, owned: std.mem.Allocator, program: ir.Program, analysis: generating.Analysis) std.mem.Allocator.Error![]const genz.zx.buffer_call.fresh.Paths {
-    const fresh = genz.zx.buffer_call.fresh;
-    const result = try owned.alloc(fresh.Paths, program.functions.count());
-    const facts = fresh.Facts{ .program = program, .pure = analysis.value.pure, .allocated = analysis.allocated };
-
-    for (result, 0..) |*selected, index| {
-        var scratch = std.heap.ArenaAllocator.init(backing);
-
-        defer scratch.deinit();
-
-        const paths = try fresh.paths(facts, scratch.allocator(), @fromBackingInt(@intCast(index)));
-        const saved = try owned.alloc([]const u32, paths.len);
-
-        for (paths, saved) |path, *target| target.* = try owned.dupe(u32, path);
-
-        selected.* = saved;
-    }
-
-    return result;
 }

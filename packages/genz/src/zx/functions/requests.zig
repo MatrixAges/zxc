@@ -5,14 +5,10 @@ const Self = @This();
 pub const Variant = enum {
     regular,
     value,
-    buffered,
-    buffered_pointer,
     pub fn member(self: Variant) []const u8 {
         return switch (self) {
             .regular => "call",
             .value => "callValue",
-            .buffered => "callBuffered",
-            .buffered_pointer => "callBufferedPointer",
         };
     }
     pub fn name(self: Variant, allocator: std.mem.Allocator, id: ir.FunctionId) std.mem.Allocator.Error![]const u8 {

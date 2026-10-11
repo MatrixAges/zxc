@@ -75,5 +75,5 @@ pub fn lower(self: *Lower, output: *std.ArrayList(node.Declaration), exported: b
     }
 
     try @import("state_value/types.zig").lower(self, output, exported);
-    if (has_lists and !self.shared_types) try output.append(self.allocator, try @import("buffer_call/slot.zig").declaration(self, exported));
+    if (has_lists and !self.shared_types) try output.appendSlice(self.allocator, &try @import("growth.zig").declarations(self, exported));
 }

@@ -24,17 +24,8 @@ native_names: []const []const u8 = &.{},
 used: []bool,
 cache_reads: []usize,
 cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId) = .empty,
-append_overrides: std.AutoHashMapUnmanaged(ir.ExprId, @import("object_reduce/append/builder.zig")) = .empty,
-list_update_buffers: std.AutoHashMapUnmanaged(ir.ExprId, @import("list_update.zig").Storage) = .empty,
-collection_buffers: std.AutoHashMapUnmanaged(ir.ExprId, @import("iteration_buffer/capacity.zig")) = .empty,
-buffer_calls: std.AutoHashMapUnmanaged(ir.ExprId, []const ?@import("object_reduce/append/builder.zig")) = .empty,
-iteration_analyses: @import("iteration_buffer/memo.zig") = .{},
-buffer_types: @import("buffer_call/types.zig") = .{},
-buffer_functions: []const []const @import("buffer_call/root.zig").Lane = &.{},
-transfer_functions: []const []const @import("buffer_call/transfer/analysis.zig").Capability = &.{},
-buffered_type: ?node.ExpressionId = null,
-buffer_pointer: bool = false,
-uses_buffers: bool = false,
+plans: []const @import("uniqueness/root.zig").Plan = &.{},
+plan: @import("uniqueness/root.zig").Plan = .{ .flags = &.{} },
 serial: usize = 0,
 capture: ?@import("capture.zig").Boundary = null,
 uses_allocator: bool = false,
@@ -45,7 +36,6 @@ io_functions: []const bool = &.{},
 process_functions: []const bool = &.{},
 value_functions: []const bool = &.{},
 pure_functions: []const bool = &.{},
-allocated_functions: []const bool = &.{},
 local_functions: []const bool = &.{},
 value_output: bool = false,
 stack_symbols: std.AutoHashMapUnmanaged(ir.SymbolId, void) = .empty,
@@ -101,7 +91,6 @@ pub fn declarations(self: *Self) Error![]const node.Declaration {
     }
 
     try output.appendSlice(self.allocator, task_declarations.items);
-    try output.appendSlice(self.allocator, self.buffer_types.declarations.items);
     if (self.uses_parallel) try output.append(self.allocator, try @import("parallel/allocator.zig").declaration(self));
     for (comparisons.items) |type_id| try output.append(self.allocator, try @import("comparison.zig").ordering(self, type_id));
 
@@ -129,7 +118,6 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     self.uses_context = false;
     self.uses_io = false;
     self.uses_process = false;
-    self.uses_buffers = false;
 
     const errors = try @import("zx").error_effects.program(self.allocator, self.program);
 
@@ -163,7 +151,6 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (needs_io and !self.uses_io) try body.append(self.allocator, .{ .discard = try self.builder.identifier("io") });
     if (needs_process and !self.uses_process) try body.append(self.allocator, .{ .discard = try self.builder.identifier("process") });
     if (!self.used[0]) try body.append(self.allocator, .{ .discard = try self.builder.identifier("in") });
-    if (self.buffered_type != null and !self.uses_buffers) try body.append(self.allocator, .{ .discard = try self.builder.identifier("buffers") });
 
     if (self.transaction()) {
         const fields = try self.allocator.alloc(node.Field, self.program.stores.count());
@@ -180,7 +167,7 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (self.transaction() and !ir.terminates(self.program.body.block())) try body.append(self.allocator, .{ .expression = try self.commit() });
 
     const injected = self.program.stores.count() > 0;
-    const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(injected)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)) + @as(usize, @intFromBool(self.buffered_type != null)));
+    const parameters = try self.allocator.alloc(node.Field, 2 + @as(usize, @intFromBool(injected)) + @as(usize, @intFromBool(needs_io)) + @as(usize, @intFromBool(needs_process)));
 
     parameters[0] = if (exported) .{ .name = "arena", .value = try self.builder.expression(.{ .pointer = try @import("intrinsics.zig").standardField(self, &.{ "heap", "ArenaAllocator" }) }) } else .{ .name = "allocator", .value = try @import("intrinsics.zig").standardField(self, &.{ "mem", "Allocator" }) };
     parameters[1] = .{ .name = "in", .value = self.types[@backingInt(self.program.input_type)] };
@@ -188,15 +175,14 @@ pub fn function(self: *Self, name: []const u8, exported: bool) Error!node.Declar
     if (injected) parameters[2] = .{ .name = "context", .value = try self.builder.expression(.{ .primitive = .@"anytype" }) };
     if (needs_io) parameters[2 + @as(usize, @intFromBool(injected))] = .{ .name = "io", .value = try @import("intrinsics.zig").standardField(self, &.{"Io"}) };
     if (needs_process) parameters[parameters.len - 1] = .{ .name = "process", .value = try @import("intrinsics.zig").standardField(self, &.{ "process", "Init", "Minimal" }) };
-    if (self.buffered_type) |buffered_type| parameters[parameters.len - 1] = .{ .name = "buffers", .value = buffered_type };
 
     return .{ .function = .{ .name = name, .parameters = parameters, .return_type = try self.builder.expression(.{ .error_union = .{ .payload = if (self.value_output) self.layouts[@backingInt(self.program.output_type)] else self.types[@backingInt(self.program.output_type)], .errors = errors } }), .body = try self.builder.statements(body.items), .exported = exported } };
 }
 
 pub fn expr(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
-    if (self.iteration_value) |context| if (try context.expression(id)) |value| return value;
+    const value = if (self.iteration_value) |context| try context.expression(id) orelse try self.regular(id) else try self.regular(id);
 
-    return self.regular(id);
+    return if (self.plan.get(id).normalize) @import("growth.zig").normalize(self, id, value) else value;
 }
 
 pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
@@ -204,17 +190,6 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
         self.cache_reads[@backingInt(id)] += 1;
 
         return cached;
-    }
-
-    if (self.append_overrides.get(id)) |override| return override.lower(self, id);
-
-    if (self.buffer_calls.contains(id)) {
-        if (self.buffer_pointer) return @import("buffer_call/pointer.zig").invocation(self, id);
-
-        const type_id = self.program.expression(id).type_id;
-        const result = try @import("buffer_call/root.zig").invocation(self, id);
-
-        return if (self.program.typeOf(type_id) == .list) result else self.construct(type_id, result);
     }
 
     const value = self.program.expression(id);
@@ -274,24 +249,18 @@ pub fn regular(self: *Self, id: ir.ExprId) Error!node.ExpressionId {
         .conditional => |conditional| self.builder.expression(.{ .conditional = .{ .condition = try self.expr(conditional.condition), .yes = try self.expr(conditional.yes), .no = try self.expr(conditional.no) } }),
         .object => |object| @import("aggregate.zig").object(self, id, object),
         .list, .tuple, .template => |items| @import("aggregate.zig").sequence(self, value, items),
-        .list_operation => |operation| @import("collections.zig").lower(self, value.type_id, operation, self.collection_buffers.get(id)),
+        .list_operation => @import("collections.zig").lower(self, id),
         .transform => |transform| @import("transform.zig").lower(self, id, transform),
         .scope => |scope| @import("scope.zig").lower(self, scope),
         .iteration => |iteration| @import("iteration.zig").lower(self, id, iteration),
-        .list_update => |update| @import("list_update.zig").lower(self, update, self.list_update_buffers.get(id)),
+        .list_update => @import("list_update.zig").lower(self, id),
         .call => |invocation| blk: {
             var body: std.ArrayList(node.Statement) = .empty;
             const callee_function = self.program.functions.at(@backingInt(invocation.function));
 
-            if (self.state_active and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").invocation(self, invocation, null);
+            if (self.state_active and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").invocation(self, invocation);
             if (!self.state_active and self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and self.state_plan.represented(self.program, callee_function.output_type)) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
             if (self.allows_allocation and self.value_functions[@backingInt(invocation.function)] and @import("value_call/fresh.zig").check(callee_function.expressions, callee_function.body.block())) break :blk @import("value_call/root.zig").pointerInvocation(self, invocation);
-
-            if (!self.state_active and self.allows_allocation and self.value_functions[@backingInt(invocation.function)]) {
-                if (try @import("buffer_call/transfer/root.zig").select(self, invocation)) |selected| {
-                    break :blk @import("buffer_call/pointer.zig").transfer(self, invocation, selected);
-                }
-            }
 
             const scalar = switch (self.program.typeOf(callee_function.output_type)) {
                 .scalar, .enumeration, .error_set => true,

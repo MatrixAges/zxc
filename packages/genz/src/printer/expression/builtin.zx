@@ -38,6 +38,8 @@ export default function (in: Input): Output {
         ExpressionsBuiltinName.AlignCast => Token.AlignCast,
         ExpressionsBuiltinName.Memcpy => Token.Memcpy,
         ExpressionsBuiltinName.Vector => Token.Vector,
-        _ => Token.Splat,
+        ExpressionsBuiltinName.Splat => Token.Splat,
+        ExpressionsBuiltinName.Field => Token.FieldBuiltin,
+        _ => Token.HasField,
     }
 }

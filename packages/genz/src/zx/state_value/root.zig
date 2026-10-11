@@ -11,9 +11,8 @@ types: []node.ExpressionId,
 layouts: []node.ExpressionId,
 cache: std.AutoHashMapUnmanaged(ir.ExprId, node.ExpressionId),
 active: bool,
-buffer_pointer: bool,
 pub fn enter(lowering: *Lower) Lower.Error!Self {
-    const self = Self{ .lowering = lowering, .types = lowering.types, .layouts = lowering.layouts, .cache = lowering.cache, .active = lowering.state_active, .buffer_pointer = lowering.buffer_pointer };
+    const self = Self{ .lowering = lowering, .types = lowering.types, .layouts = lowering.layouts, .cache = lowering.cache, .active = lowering.state_active };
 
     if (self.active) return self;
 
@@ -31,7 +30,6 @@ pub fn enter(lowering: *Lower) Lower.Error!Self {
     lowering.types = lowering.state_types;
     lowering.layouts = lowering.state_layouts;
     lowering.state_active = true;
-    lowering.buffer_pointer = false;
 
     return self;
 }
@@ -43,7 +41,6 @@ pub fn restore(self: Self) void {
     self.lowering.layouts = self.layouts;
     self.lowering.cache = self.cache;
     self.lowering.state_active = self.active;
-    self.lowering.buffer_pointer = self.buffer_pointer;
 }
 
 pub fn selected(lowering: *const Lower, id: ir.TypeId) bool {

@@ -24,40 +24,14 @@ pub fn render(allocator: std.mem.Allocator, nodes: *Storage, declarations: []con
         .count = selected.len,
     };
 
-    const workspace = nodes.allocator;
-    var scratch = std.heap.ArenaAllocator.init(workspace);
+    var arena = std.heap.ArenaAllocator.init(nodes.allocator);
 
-    defer scratch.deinit();
+    defer arena.deinit();
 
-    var output: std.ArrayList(u8) = .empty;
-    var started = false;
-
-    defer output.deinit(workspace);
-
-    const Buffers = @typeInfo(@TypeOf(generated.executeBuffered)).@"fn".param_types[2].?;
-    var buffers: Buffers = undefined;
-
-    inline for (@typeInfo(Buffers).@"struct".field_names) |name| @field(buffers, name) = null;
-
-    const lane = comptime outputLane();
-
-    @field(buffers, lane) = .{ .buffer = &output, .started = &started, .allocator = workspace };
-
-    _ = generated.executeBuffered(scratch.allocator(), &.{ .source = &source, .output = &.{} }, buffers) catch |err| switch (err) {
+    const output = generated.execute(&arena, &.{ .source = &source, .output = &.{} }) catch |err| switch (err) {
         error.OutOfMemory, error.Overflow => return error.OutOfMemory,
         else => unreachable,
     };
 
-    return allocator.dupe(u8, output.items);
-}
-
-fn outputLane() []const u8 {
-    for (generated.buffer_lanes) |lane| {
-        if (lane.output.len != 0) continue;
-        if (lane.input.len != 1 or !std.mem.eql(u8, lane.input[0], "output")) @compileError("Printer output must use its caller-owned output buffer");
-
-        return lane.slot;
-    }
-
-    @compileError("Printer output does not have a reusable buffer lane");
+    return allocator.dupe(u8, output);
 }
