@@ -24,10 +24,8 @@ const Search = struct {
             };
         }
     }
-
     fn step(self: *Search, allocator: std.mem.Allocator, position: usize) generating.Error!void {
         const found = try self.batch.identify(allocator, self.units[position]);
-
         self.lookups[position] = found;
         self.fetched[position] = if (self.batch.cache) |cache| try cache.fetch(allocator, found.name, found.key) else .absent;
     }
@@ -81,7 +79,7 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, units: []const gene
 
     const temporary = scratch.allocator();
     const sources = try owned.alloc([]const u8, units.len);
-    const arenas = try temporary.alloc(std.heap.ArenaAllocator, @max(std.Thread.getCpuCount() catch 1, 1));
+    const arenas = try temporary.alloc(std.heap.ArenaAllocator, @import("zx").parallel.width());
 
     for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
 
@@ -89,7 +87,7 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, units: []const gene
 
     var search = Search{ .batch = batch, .units = units, .lookups = try temporary.alloc(Batch.Lookup, units.len), .fetched = try temporary.alloc(Cache.Fetched, units.len) };
 
-    try spread(Search, &search, temporary, arenas[0..@min(arenas.len, units.len)]);
+    try spread(Search, &search, arenas[0..@min(arenas.len, units.len)]);
 
     // Reused sources are copied straight from what the search fetched, before recording can replace cache entries.
     var reused: std.ArrayList([]const u8) = .empty;
@@ -112,7 +110,7 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, units: []const gene
 
     var copying = Copying{ .from = reused.items, .to = copies };
 
-    try spread(Copying, &copying, temporary, arenas[0..@min(arenas.len, reused.items.len)]);
+    try spread(Copying, &copying, arenas[0..@min(arenas.len, reused.items.len)]);
 
     var pending: std.ArrayList(generating.Unit) = .empty;
     var positions: std.ArrayList(usize) = .empty;
@@ -134,7 +132,7 @@ pub fn create(owned: std.mem.Allocator, batch: *const Batch, units: []const gene
 
     var work = Work{ .batch = batch, .pending = pending.items, .results = try temporary.alloc([]const u8, pending.items.len) };
 
-    try spread(Work, &work, temporary, arenas[0..@min(arenas.len, pending.items.len)]);
+    try spread(Work, &work, arenas[0..@min(arenas.len, pending.items.len)]);
 
     for (positions.items, work.results) |position, generated| {
         sources[position] = try owned.dupe(u8, generated);
@@ -153,20 +151,21 @@ fn reusable(fetched: Cache.Fetched) ?[]const u8 {
     };
 }
 
-/// Runs `task` on this thread and one helper per further arena, and reports the first failure.
-pub fn spread(comptime Task: type, task: *Task, temporary: std.mem.Allocator, arenas: []std.heap.ArenaAllocator) generating.Error!void {
+/// Runs `task` on this thread and the shared workers, one arena per participant, and reports the first failure.
+pub fn spread(comptime Task: type, task: *Task, arenas: []std.heap.ArenaAllocator) generating.Error!void {
     if (arenas.len == 0) return;
 
-    const threads = try temporary.alloc(std.Thread, arenas.len - 1);
-    var started: usize = 0;
+    const Shared = struct {
+        task: *Task,
+        arenas: []std.heap.ArenaAllocator,
+        fn run(self: *@This(), participant: usize) void {
+            self.task.run(&self.arenas[participant]);
+        }
+    };
 
-    for (threads, arenas[1..]) |*thread, *arena| {
-        thread.* = std.Thread.spawn(.{}, Task.run, .{ task, arena }) catch break;
-        started += 1;
-    }
+    var shared = Shared{ .task = task, .arenas = arenas };
 
-    task.run(&arenas[0]);
+    @import("zx").parallel.spread(Shared, &shared, Shared.run, arenas.len);
 
-    for (threads[0..started]) |thread| thread.join();
     if (task.failure.load(.monotonic) != 0) return @errorCast(@errorFromInt(task.failure.load(.monotonic)));
 }

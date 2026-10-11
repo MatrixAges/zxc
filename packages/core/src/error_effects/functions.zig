@@ -5,16 +5,15 @@
 const std = @import("std");
 const ir = @import("../ir.zig");
 const Effects = @import("../error_effects.zig");
-
+const parallel = @import("../parallel.zig");
 const Own = struct { names: []const []const u8, unknown: bool, callees: []const ir.FunctionId };
-
 const unvisited = std.math.maxInt(u32);
 
 /// Each function's error set, null where unknown, as `Effects.program` reports for its body.
 pub fn all(allocator: std.mem.Allocator, types: ir.TypeTable, functions: ir.FunctionTable) std.mem.Allocator.Error![]const ?[]const []const u8 {
     const count = functions.count();
     const own = try allocator.alloc(Own, count);
-    const arenas = try allocator.alloc(std.heap.ArenaAllocator, @max(@min(std.Thread.getCpuCount() catch 1, count), 1));
+    const arenas = try allocator.alloc(std.heap.ArenaAllocator, @max(@min(parallel.width(), count), 1));
 
     for (arenas) |*arena| arena.* = .init(std.heap.smp_allocator);
 
@@ -24,7 +23,11 @@ pub fn all(allocator: std.mem.Allocator, types: ir.TypeTable, functions: ir.Func
         allocator.free(arenas);
     }
 
-    try visitAll(arenas, &.{ .types = types, .functions = functions, .own = own });
+    var visits = Visits{ .types = types, .functions = functions, .own = own, .arenas = arenas };
+
+    parallel.spread(Visits, &visits, Visits.run, arenas.len);
+
+    if (visits.failed.load(.monotonic)) return error.OutOfMemory;
 
     const result = try allocator.alloc(?[]const []const u8, count);
     const order = try allocator.alloc(u32, count);
@@ -47,7 +50,6 @@ pub fn all(allocator: std.mem.Allocator, types: ir.TypeTable, functions: ir.Func
 
     for (0..count) |root| {
         if (order[root] != unvisited) continue;
-
         try enter(allocator, &frames, &stack, order, low, on_stack, &next, @intCast(root));
 
         while (frames.items.len != 0) {
@@ -99,7 +101,10 @@ const Visits = struct {
     own: []Own,
     next: std.atomic.Value(usize) = .init(0),
     failed: std.atomic.Value(bool) = .init(false),
-    fn run(self: *Visits, arena: *std.heap.ArenaAllocator) void {
+    arenas: []std.heap.ArenaAllocator,
+    fn run(self: *Visits, participant: usize) void {
+        const arena = &self.arenas[participant];
+
         while (!self.failed.load(.monotonic)) {
             const index = self.next.fetchAdd(1, .monotonic);
 
@@ -113,23 +118,6 @@ const Visits = struct {
         }
     }
 };
-
-/// Each function's own effects, one thread per arena; the effects live in the arenas.
-fn visitAll(arenas: []std.heap.ArenaAllocator, template: *const Visits) std.mem.Allocator.Error!void {
-    var visits = template.*;
-    var threads: [64]std.Thread = undefined;
-    var started: usize = 0;
-
-    for (arenas[1..@min(arenas.len, threads.len)]) |*arena| {
-        threads[started] = std.Thread.spawn(.{}, Visits.run, .{ &visits, arena }) catch break;
-        started += 1;
-    }
-
-    visits.run(&arenas[0]);
-
-    for (threads[0..started]) |thread| thread.join();
-    if (visits.failed.load(.monotonic)) return error.OutOfMemory;
-}
 
 fn enter(allocator: std.mem.Allocator, frames: anytype, stack: *std.ArrayList(u32), order: []u32, low: []u32, on_stack: []bool, next: *u32, node: u32) std.mem.Allocator.Error!void {
     order[node] = next.*;
@@ -167,7 +155,6 @@ fn join(allocator: std.mem.Allocator, own: []const Own, result: []const ?[]const
 
     for (members) |member| {
         if (own[member].unknown) self.unknown = true;
-
         for (own[member].names) |name| try self.add(name);
 
         for (own[member].callees) |callee| {

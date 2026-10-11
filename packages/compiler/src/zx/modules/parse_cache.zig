@@ -68,8 +68,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
         results: []?ModuleResult,
         next: std.atomic.Value(usize) = .init(0),
         failed: std.atomic.Value(bool) = .init(false),
-
-        fn run(work: *@This()) void {
+        fn run(work: *@This(), _: usize) void {
             while (!work.failed.load(.monotonic)) {
                 const index = work.next.fetchAdd(1, .monotonic);
 
@@ -78,6 +77,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
                 const request = work.requests[index];
 
                 std.crypto.hash.sha2.Sha256.hash(request.source, &work.digests[index], .{});
+
                 work.results[index] = null;
 
                 if (work.cache.entries.get(request.path)) |entry| if (std.mem.eql(u8, &entry.digest, &work.digests[index])) continue;
@@ -102,20 +102,8 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
     @memset(results, null);
 
     var work = Prefetch{ .cache = self, .requests = requests, .digests = digests, .results = results };
-    const threads = try self.allocator.alloc(std.Thread, @min(std.Thread.getCpuCount() catch 1, requests.len) -| 1);
 
-    defer self.allocator.free(threads);
-
-    var started: usize = 0;
-
-    for (threads) |*thread| {
-        thread.* = std.Thread.spawn(.{}, Prefetch.run, .{&work}) catch break;
-        started += 1;
-    }
-
-    work.run();
-
-    for (threads[0..started]) |thread| thread.join();
+    @import("zx").parallel.spread(Prefetch, &work, Prefetch.run, requests.len);
 
     var kept: usize = 0;
 
@@ -129,6 +117,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
         };
 
         try self.adopt(request.path, digest, value);
+
         kept += 1;
     }
 
@@ -138,6 +127,7 @@ pub fn prefetch(self: *Self, requests: []const Request) std.mem.Allocator.Error!
 fn adopt(self: *Self, path: []const u8, digest: [32]u8, result: ModuleResult) std.mem.Allocator.Error!void {
     if (self.entries.get(path)) |entry| {
         try self.replace(entry.result);
+
         entry.* = .{ .digest = digest, .result = result };
         self.parsed += 1;
 

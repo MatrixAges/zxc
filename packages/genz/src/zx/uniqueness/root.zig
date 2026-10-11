@@ -111,7 +111,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
     const shared = if (memo.persistent) Identity.program(program, basis) else @as([32]u8, @splat(0));
 
-    if (memo.persistent) try identify(temporary, shared, units);
+    if (memo.persistent) identify(shared, units);
 
     var replay = try follow(temporary, memo, shared, exported, units);
 
@@ -555,12 +555,12 @@ fn prepare(allocator: std.mem.Allocator, unit: Function.Unit, body: ir.Block) st
 }
 
 /// Gives every body its content identity; bodies hash independently, so all cores share the work.
-fn identify(allocator: std.mem.Allocator, shared: [32]u8, units: []const ?*Unit) std.mem.Allocator.Error!void {
+fn identify(shared: [32]u8, units: []const ?*Unit) void {
     const Hashing = struct {
         shared: [32]u8,
         units: []const ?*Unit,
         next: std.atomic.Value(usize) = .init(0),
-        fn run(work: *@This()) void {
+        fn run(work: *@This(), _: usize) void {
             while (true) {
                 const index = work.next.fetchAdd(1, .monotonic);
 
@@ -573,17 +573,8 @@ fn identify(allocator: std.mem.Allocator, shared: [32]u8, units: []const ?*Unit)
     };
 
     var work = Hashing{ .shared = shared, .units = units };
-    const threads = try allocator.alloc(std.Thread, @min(std.Thread.getCpuCount() catch 1, units.len) -| 1);
-    var started: usize = 0;
 
-    for (threads) |*thread| {
-        thread.* = std.Thread.spawn(.{}, Hashing.run, .{&work}) catch break;
-        started += 1;
-    }
-
-    work.run();
-
-    for (threads[0..started]) |thread| thread.join();
+    @import("zx").parallel.spread(Hashing, &work, Hashing.run, units.len);
 }
 
 fn copyRenewals(allocator: std.mem.Allocator, renewals: []const Renewal) std.mem.Allocator.Error![]const Renewal {

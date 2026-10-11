@@ -6,7 +6,6 @@ const generating = @import("genz").zx.modules;
 const Batch = @import("batch.zig");
 const function_sources = @import("function_sources.zig");
 const search = @import("search.zig");
-
 const needle = "\")).call(";
 
 /// Gives `call` to every value function in `units` that `roots` or the files reach through it, regenerating those
@@ -34,14 +33,13 @@ pub fn complete(owned: std.mem.Allocator, batch: *const Batch, roots: []const []
     while (true) {
         var scan = Scan{ .sources = scanned, .modules = &modules, .wanted = wanted };
 
-        try function_sources.spread(Scan, &scan, temporary, try arenas(temporary, scanned.len));
+        try function_sources.spread(Scan, &scan, try arenas(temporary, scanned.len));
 
         var added: std.ArrayList(generating.Unit) = .empty;
         var positions: std.ArrayList(usize) = .empty;
 
         for (units, 0..) |*unit, position| if (unit.* == .function and wanted[@backingInt(unit.function)]) {
             const id = unit.function;
-
             unit.* = .{ .regular = id };
 
             try added.append(temporary, unit.*);
@@ -87,7 +85,7 @@ const Scan = struct {
 };
 
 fn arenas(temporary: std.mem.Allocator, count: usize) std.mem.Allocator.Error![]std.heap.ArenaAllocator {
-    const result = try temporary.alloc(std.heap.ArenaAllocator, @min(@max(std.Thread.getCpuCount() catch 1, 1), count));
+    const result = try temporary.alloc(std.heap.ArenaAllocator, @min(@import("zx").parallel.width(), count));
 
     for (result) |*arena| arena.* = .init(temporary);
 

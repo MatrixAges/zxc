@@ -4,6 +4,7 @@ pub const ast = @import("ast.zig");
 pub const ir = @import("ir.zig");
 pub const columns = @import("columns.zig");
 pub const error_effects = @import("error_effects.zig");
+pub const parallel = @import("parallel.zig");
 pub const Refinement = @import("refinement.zig");
 pub const Diagnostic = @import("diagnostic.zig").Diagnostic;
 pub const Reporter = @import("diagnostic.zig").Reporter;
