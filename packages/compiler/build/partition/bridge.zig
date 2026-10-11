@@ -85,6 +85,29 @@ pub fn import(comptime F: type, comptime symbol: []const u8) F {
     };
 }
 
+/// The panic handler of a partition's root. Each partition is its own compilation unit, and Zig's default handler
+/// would compile its stack trace support (DWARF and Mach-O symbol loading, threaded I/O) into every one; this one
+/// hands the message to the executable's handler, which `exportPanic` defines once.
+pub const Panic = std.debug.FullPanic(forwardPanic);
+
+fn forwardPanic(message: []const u8, first_trace_address: ?usize) noreturn {
+    @branchHint(.cold);
+
+    zxc_partition_panic(message.ptr, message.len, first_trace_address orelse @returnAddress());
+}
+
+extern fn zxc_partition_panic(message: [*]const u8, length: usize, first_trace_address: usize) callconv(.c) noreturn;
+
+/// Defines the handler partitions forward their panics to; the shared top level of the generated tree calls it,
+/// so the executable linking the partitions has it exactly once.
+pub fn exportPanic() void {
+    @export(&handlePanic, .{ .name = "zxc_partition_panic" });
+}
+
+fn handlePanic(message: [*]const u8, length: usize, first_trace_address: usize) callconv(.c) noreturn {
+    std.lang.panic.call(message[0..length], first_trace_address);
+}
+
 fn Return(comptime F: type) type {
     return @typeInfo(F).@"fn".return_type.?;
 }

@@ -118,7 +118,7 @@ const Roots = struct {
     pub fn step(self: *const Roots, allocator: std.mem.Allocator, index: usize) !void {
         var root: std.Io.Writer.Allocating = .init(allocator);
 
-        try root.writer.writeAll("const bridge = @import(\"zxc_bridge\");\n\ncomptime {\n");
+        try root.writer.writeAll("const bridge = @import(\"zxc_bridge\");\n\npub const panic = bridge.Panic;\n\ncomptime {\n");
 
         for (self.exports.keys(), self.exports.values()) |callee, variants| {
             if (self.partitions[callee] != index) continue;

@@ -42,6 +42,9 @@ pub fn write(io: std.Io, allocator: std.mem.Allocator, output: []const u8, bundl
     }
 
     try files.appendSlice(allocator, top.items);
+    // Partitions forward their panics to a handler the shared top level defines.
+    if (partitions != 0) try root.writer.writeAll("\ncomptime {\n    @import(\"zxc_bridge\").exportPanic();\n}\n");
+
     try files.append(allocator, .{ .path = "root.zig", .source = root.written() });
 
     if (partitions == 0) try files.appendSlice(allocator, functions.items) else try files.appendSlice(allocator, try layout.plan(allocator, functions.items, top.items, partitions));
