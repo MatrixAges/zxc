@@ -96,7 +96,7 @@ pub fn analyzed(self: *Self, state: *const State, index: usize) void {
 }
 
 /// Leaves this analysis for the next one.
-pub fn finish(self: *const Self, state: *const State) std.mem.Allocator.Error!void {
+pub fn finish(self: *const Self, state: *const State, derived: history.Frame, selected: []const @import("rx").ModuleSource, sources: []const @import("frontend").project.Source) std.mem.Allocator.Error!void {
     const owner = self.record orelse return;
     const paths = try state.allocator.alloc([]const u8, state.graph.modules.len);
 
@@ -104,6 +104,9 @@ pub fn finish(self: *const Self, state: *const State) std.mem.Allocator.Error!vo
 
     owner.next = .{
         .frame = owner.frame,
+        .modules = selected,
+        .sources = sources,
+        .derived = derived,
         .initial = self.initial,
         .paths = paths,
         .digests = self.digests,

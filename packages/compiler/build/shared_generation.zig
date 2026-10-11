@@ -27,9 +27,12 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entrie
 
     const project = compiler.project.Options{ .entry = "", .native_interfaces = inputs.interfaces, .packages = inputs.packages };
     const parse_cache = &resident.parse_cache;
-    const selected = try @import("source_inputs.zig").reachable(allocator, inputs.modules, inputs.sources, roots, project, parse_cache);
-
     const history = resident.startAnalysis(inputs.frame);
+
+    // When only function bodies changed, the earlier analysis already found the reachable modules.
+    history.bodies_only = try history.bodiesOnly(inputs.sources, parse_cache);
+
+    const selected = if (history.bodies_only) history.previous.?.modules else try @import("source_inputs.zig").reachable(allocator, inputs.modules, inputs.sources, roots, project, parse_cache);
 
     var analyzed = try analysis.project.infer(resident.gpa, .{
         .entry = roots[0],
@@ -90,14 +93,16 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entrie
     const written = std.Io.Timestamp.now(io, .awake);
     const modules_reused = history.reused;
     const modules_analyzed = history.analyzed;
+    const frame_reused = history.bodies_only;
 
     kept = true;
     try resident.keepAnalysis(analyzed.arena);
 
-    return std.fmt.allocPrint(allocator, "bootstrap: {d} entries, {d} modules analyzed, {d} reused, {d} function files, {d} generated, {d} reused; infer {d}ms, emit {d}ms, write {d}ms\n", .{
+    return std.fmt.allocPrint(allocator, "bootstrap: {d} entries, {d} modules analyzed, {d} reused{s}, {d} function files, {d} generated, {d} reused; infer {d}ms, emit {d}ms, write {d}ms\n", .{
         entries.len,
         modules_analyzed,
         modules_reused,
+        if (frame_reused) " (bodies only)" else "",
         bundle.modules.len,
         cache.generated - generated,
         cache.reused - reused,

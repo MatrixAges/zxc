@@ -3,15 +3,17 @@ const frontend = @import("frontend");
 const rx = @import("rx");
 const zx = @import("zx");
 const Module = @import("../module.zig");
-const Graph = @import("../inference/types.zig");
-const Prepared = @import("prepare.zig");
-const SourceGraph = @import("source_graph.zig").Graph;
+const Frame = @import("history.zig").Frame;
 const State = @import("mixed/state.zig");
 
-pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loaded, states: []const @import("constraints.zig").State, dependencies: SourceGraph, signatures: frontend.project.signature_project.Data, sources: []const frontend.project.Source, modules: []const rx.ModuleSource, exports: []const @import("../project.zig").Export, cache: *frontend.project.ParseCache, record: ?*@import("history.zig").History) zx.Error!Module.Value {
-    const resolved = try @import("signatures.zig").resolve(graph, states);
+/// Analyzes and links every module in dependency order over the shared tables `derived` starts them from.
+pub fn compile(allocator: std.mem.Allocator, backing: std.mem.Allocator, derived: Frame, selected: []const rx.ModuleSource, sources: []const frontend.project.Source, exports: []const @import("../project.zig").Export, cache: *frontend.project.ParseCache, record: ?*@import("history.zig").History) std.mem.Allocator.Error!Module.Value {
+    const dependencies = derived.dependencies;
+    const loaded = derived.loaded;
+    const resolved = derived.resolved;
+    const modules = derived.modules;
 
-    var state = State.init(graph.allocator, backing, dependencies, signatures, graph.types.items.view(), loaded.project) catch |err| {
+    var state = State.init(allocator, backing, dependencies, derived.signatures, derived.types, loaded.project) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
         return .{ .diagnostic = .{ .path = dependencies.modules[dependencies.entry].path, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "contract", .message = "source signatures cannot initialize the shared compilation context" } };
@@ -87,7 +89,7 @@ pub fn compile(graph: *Graph, backing: std.mem.Allocator, loaded: Prepared.Loade
         return .{ .diagnostic = state.issue.? };
     };
 
-    try reuse.finish(&state);
+    try reuse.finish(&state, derived, selected, sources);
 
     return .{ .contract = contract };
 }

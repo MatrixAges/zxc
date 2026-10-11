@@ -41,6 +41,40 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
     defer local.deinit();
 
     const cache = options.parse_cache orelse &local;
+    const earlier = if (options.history) |record| if (record.bodies_only) if (record.previous) |*value| value.derived else null else null else null;
+
+    const derived = earlier orelse switch (try derive(allocator, options, cache)) {
+        .frame => |frame| frame,
+        .diagnostic => |issue| return .{ .diagnostic = issue },
+    };
+
+    var result = try @import("project/mixed.zig").compile(allocator, backing, derived, options.modules, options.sources, options.exports, cache, options.history);
+
+    if (result == .diagnostic) return result;
+
+    for (derived.definitions) |*definition| {
+        definition.types = result.contract.types;
+
+        const objects = try allocator.dupe(@import("store.zig").Object, definition.objects);
+
+        for (objects) |*object| {
+            object.initial.types = result.contract.types;
+            object.initial.native_modules = result.contract.native_modules;
+        }
+
+        definition.objects = objects;
+    }
+
+    result.contract.store_definitions = derived.definitions;
+
+    return result;
+}
+
+const Derived = union(enum) { frame: @import("project/history.zig").Frame, diagnostic: target.Diagnostic };
+
+/// Everything the module analysis needs besides the ZX function bodies: the source graph, the Store registry, the
+/// signatures and the RX constraints. It lives as long as `allocator`, since a later analysis may reuse it.
+fn derive(allocator: std.mem.Allocator, options: Options, cache: *frontend.project.ParseCache) std.mem.Allocator.Error!Derived {
     const registered = try allocator.dupe(rx.ModuleSource, options.modules);
 
     for (registered) |*source| {
@@ -48,32 +82,30 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
         source.packages = rx.module_reference.dependencies(options.project, owner);
     }
 
-    var checked = try rx.validateModules(allocator, registered);
-
-    defer checked.deinit();
+    const checked = try rx.validateModules(allocator, registered);
 
     if (checked.value == .diagnostic) {
         const issue = checked.value.diagnostic;
 
-        return failure(allocator, .{ .path = options.modules[issue.source_index].path, .location = issue.issue.location, .code = @tagName(issue.issue.code), .message = issue.issue.message });
+        return failed(allocator, .{ .path = options.modules[issue.source_index].path, .location = issue.issue.location, .code = @tagName(issue.issue.code), .message = issue.issue.message });
     }
 
     const entry = rx.normalizeModulePath(allocator, options.entry) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
-        return failure(allocator, .{ .path = options.entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry must be an ordinary module inside the project root" });
+        return failed(allocator, .{ .path = options.entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry must be an ordinary module inside the project root" });
     };
 
     const modules = try allocator.alloc(rx.ModuleSource, options.modules.len);
 
     for (registered, checked.value.data, modules) |source, module, *item| item.* = .{ .path = module.path, .node = source.node, .packages = source.packages };
 
-    const entry_index = prepare.find(modules, entry) orelse return failure(allocator, .{ .path = entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry is not registered in the module collection" });
+    const entry_index = prepare.find(modules, entry) orelse return failed(allocator, .{ .path = entry, .location = .{ .offset = 0, .line = 1, .column = 1 }, .code = "module", .message = "RX entry is not registered in the module collection" });
     const roots = try allocator.alloc([]const u8, modules.len);
 
     for (modules, roots) |module, *path| path.* = module.path;
 
-    var dependencies = try source_graph.build(allocator, .{
+    const dependencies = try source_graph.build(allocator, .{
         .entry = entry,
         .additional_roots = roots,
         .sources = options.sources,
@@ -82,9 +114,7 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
         .parse_cache = cache,
     });
 
-    defer dependencies.deinit();
-
-    if (dependencies.value == .diagnostic) return failure(allocator, dependencies.value.diagnostic);
+    if (dependencies.value == .diagnostic) return failed(allocator, dependencies.value.diagnostic);
 
     const registry = try @import("store/registry.zig").load(allocator, options.stores, options.project.context);
 
@@ -108,7 +138,7 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
         const source = if (issue.source_index) |index| options.sources[index] else null;
         const location: zx.source.Location = if (source) |value| zx.source.locate(value.source, issue.span.start) else .{ .line = 1, .column = 1 };
 
-        return failure(allocator, .{
+        return failed(allocator, .{
             .path = if (source) |value| value.path else entry,
             .location = .{ .offset = issue.span.start, .line = location.line, .column = location.column },
             .code = @tagName(issue.code),
@@ -123,35 +153,38 @@ fn inferIn(allocator: std.mem.Allocator, backing: std.mem.Allocator, options: Op
     const source_map = SourceMap.init(allocator, modules) catch |err| {
         if (err == error.OutOfMemory) return error.OutOfMemory;
 
-        return failure(allocator, .{ .path = entry, .location = modules[entry_index].node.location, .code = "unsupported", .message = "RX source positions exceed the supported address range" });
+        return failed(allocator, .{ .path = entry, .location = modules[entry_index].node.location, .code = "unsupported", .message = "RX source positions exceed the supported address range" });
     };
 
     var reporter: zx.Reporter = .{};
-    var graph = Graph.init(allocator, &reporter, prepared.loaded.project.context.types) catch |err| return report(allocator, source_map, reporter, err);
-    const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map) catch |err| return report(allocator, source_map, reporter, err);
+    var graph = Graph.init(allocator, &reporter, prepared.loaded.project.context.types) catch |err| return reported(allocator, source_map, reporter, err);
+    const states = @import("project/constraints.zig").collect(&graph, prepared.loaded.modules, source_map) catch |err| return reported(allocator, source_map, reporter, err);
 
-    graph.finish() catch |err| return report(allocator, source_map, reporter, err);
+    graph.finish() catch |err| return reported(allocator, source_map, reporter, err);
 
-    var result = @import("project/mixed.zig").compile(&graph, backing, prepared.loaded, states, dependencies.value.graph, signatures.value.data, options.sources, modules, options.exports, cache, options.history) catch |err| return report(allocator, source_map, reporter, err);
+    const resolved = @import("project/signatures.zig").resolve(&graph, states) catch |err| return reported(allocator, source_map, reporter, err);
 
-    if (result == .diagnostic) return result;
+    return .{ .frame = .{
+        .modules = modules,
+        .dependencies = dependencies.value.graph,
+        .definitions = registry.data.definitions,
+        .loaded = prepared.loaded,
+        .signatures = signatures.value.data,
+        .resolved = resolved,
+        .types = graph.types.items.view(),
+    } };
+}
 
-    for (registry.data.definitions) |*definition| {
-        definition.types = result.contract.types;
+fn failed(allocator: std.mem.Allocator, issue: target.Diagnostic) std.mem.Allocator.Error!Derived {
+    const value = try failure(allocator, issue);
 
-        const objects = try allocator.dupe(@import("store.zig").Object, definition.objects);
+    return .{ .diagnostic = value.diagnostic };
+}
 
-        for (objects) |*object| {
-            object.initial.types = result.contract.types;
-            object.initial.native_modules = result.contract.native_modules;
-        }
+fn reported(allocator: std.mem.Allocator, source_map: SourceMap, reporter: zx.Reporter, err: zx.Error) std.mem.Allocator.Error!Derived {
+    const value = try report(allocator, source_map, reporter, err);
 
-        definition.objects = objects;
-    }
-
-    result.contract.store_definitions = registry.data.definitions;
-
-    return result;
+    return .{ .diagnostic = value.diagnostic };
 }
 
 fn report(allocator: std.mem.Allocator, source_map: SourceMap, reporter: zx.Reporter, err: zx.Error) std.mem.Allocator.Error!Module.Value {

@@ -39,6 +39,14 @@ pub const Result = union(enum) {
         };
     }
 
+    /// Where the default function's body block opens, when the module parsed and has one.
+    pub fn bodyStart(self: *const Self) ?usize {
+        return switch (self.*) {
+            .native => |result| if (result.value == .diagnostic) null else if (result.value.parsed.ast.body) |body| body.span.start else null,
+            .indexed => null,
+        };
+    }
+
     pub fn metadata(self: *const Self) struct { has_store: bool, function_start: usize } {
         return switch (self.*) {
             .native => |result| .{ .has_store = result.value.parsed.ast.has_store, .function_start = result.value.parsed.ast.function_start },
