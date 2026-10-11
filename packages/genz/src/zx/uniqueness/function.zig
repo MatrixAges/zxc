@@ -19,7 +19,36 @@ pub const Unit = struct {
     function: ?usize,
     normalized: *std.AutoHashMap(ir.ExprId, Level),
     renewed: *std.AutoHashMap(u64, Level),
+    /// The reached calls and list updates in expression order, the only nodes the passes over a body act on.
+    operations: []const ir.ExprId = &.{},
+    /// Every expression row read once up front: the passes revisit each node once per list slot.
+    rows: []const ir.ExpressionRow = &.{},
 };
+
+pub fn readRows(allocator: std.mem.Allocator, expressions: ir.ExpressionTable) std.mem.Allocator.Error![]const ir.ExpressionRow {
+    const result = try allocator.alloc(ir.ExpressionRow, expressions.count());
+
+    for (result, 0..) |*target, index| target.* = expressions.at(index);
+
+    return result;
+}
+
+pub fn collectOperations(allocator: std.mem.Allocator, order: *const Order, expressions: ir.ExpressionTable) std.mem.Allocator.Error![]const ir.ExprId {
+    var result: std.ArrayList(ir.ExprId) = .empty;
+
+    for (0..expressions.count()) |index| {
+        if (order.time[index] == Order.none) continue;
+
+        const id: ir.ExprId = @fromBackingInt(@intCast(index));
+
+        switch (expressions.get(id).value) {
+            .call, .list_operation, .list_update => try result.append(allocator, id),
+            else => {},
+        }
+    }
+
+    return result.items;
+}
 
 allocator: std.mem.Allocator,
 functions: ir.FunctionTable,
@@ -32,21 +61,25 @@ input: []const Level,
 function: ?usize,
 normalized: *std.AutoHashMap(ir.ExprId, Level),
 renewed: *std.AutoHashMap(u64, Level),
+operations: []const ir.ExprId,
+rows: []const ir.ExpressionRow,
 carried: std.AutoHashMapUnmanaged(ir.ExprId, []Level) = .empty,
-levels: std.AutoHashMapUnmanaged(u64, Level) = .empty,
+/// The level of each expression slot once computed, indexed through the sites' slot layout.
+levels: []Known,
 traced: std.AutoHashMapUnmanaged(u64, void) = .empty,
 changed: ?*std.ArrayList(usize) = null,
 grew: bool = false,
 pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: Unit, order: *const Order, sites: *Sites, slots: Slots, summaries: *Summaries) std.mem.Allocator.Error!Self {
-    var self = Self{ .allocator = allocator, .functions = functions, .expressions = unit.expressions, .order = order, .sites = sites, .slots = slots, .summaries = summaries, .input = unit.input, .function = unit.function, .normalized = unit.normalized, .renewed = unit.renewed };
+    const levels = try allocator.alloc(Known, sites.slot_first[sites.slot_first.len - 1] - sites.slot_first[unit.symbols.count()]);
+    var self = Self{ .allocator = allocator, .functions = functions, .expressions = unit.expressions, .order = order, .sites = sites, .slots = slots, .summaries = summaries, .input = unit.input, .function = unit.function, .normalized = unit.normalized, .renewed = unit.renewed, .operations = unit.operations, .rows = unit.rows, .levels = levels };
 
     for (order.repeated.items) |id| {
         const state = self.carriedState(id) orelse continue;
-        const values = try allocator.alloc(Level, slots.count(self.expressions.get(id).type_id));
+        const values = try allocator.alloc(Level, slots.count(self.row(id).type_id));
 
         for (values, 0..) |*value, slot| value.* = .{
             .headered = true,
-            .unique = try sites.linear(Sites.symbolRoot(state.parameter), @intCast(slot)) and (state.condition == null or sites.observed(Sites.symbolRoot(state.condition.?), @intCast(slot))),
+            .unique = sites.linear(Sites.symbolRoot(state.parameter), @intCast(slot)) and (state.condition == null or sites.observed(Sites.symbolRoot(state.condition.?), @intCast(slot))),
         };
 
         try self.carried.put(allocator, id, values);
@@ -56,7 +89,7 @@ pub fn analyze(allocator: std.mem.Allocator, functions: ir.FunctionTable, unit: 
 
     while (changed) {
         changed = false;
-        self.levels.clearRetainingCapacity();
+        @memset(self.levels, .unknown);
 
         var entries = self.carried.iterator();
 
@@ -88,10 +121,8 @@ pub fn output(self: *Self, values: []Level) std.mem.Allocator.Error!void {
 
 /// Meets what each call in this body passes into every callee input summary; lists the callees that weakened.
 pub fn arguments(self: *Self, changed: *std.ArrayList(usize)) std.mem.Allocator.Error!void {
-    for (0..self.expressions.count()) |index| {
-        if (self.order.time[index] == Order.none) continue;
-
-        const invocation = switch (self.expressions.get(@fromBackingInt(@intCast(index))).value) {
+    for (self.operations) |id| {
+        const invocation = switch (self.row(id).value) {
             .call => |invocation| invocation,
             else => continue,
         };
@@ -138,7 +169,7 @@ pub fn renewals(self: *Self, allocator: std.mem.Allocator) std.mem.Allocator.Err
         if (self.order.time[@backingInt(owner)] == Order.none) continue;
         if (!lacks(try self.level(self.carriedState(owner).?.initial, slot), entry.value_ptr.*)) continue;
 
-        try result.append(allocator, .{ .owner = owner, .path = try self.slots.path(allocator, self.expressions.get(owner).type_id, slot) });
+        try result.append(allocator, .{ .owner = owner, .path = try self.slots.path(allocator, self.row(owner).type_id, slot) });
     }
 
     std.mem.sort(Renewal, result.items, {}, struct {
@@ -159,18 +190,23 @@ pub const Flags = packed struct(u8) { frontier: bool = false, retract: bool = fa
 pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
     @memset(values, .{});
 
-    for (values, 0..) |*value, index| {
-        if (self.order.time[index] == Order.none) continue;
+    var wanted = self.normalized.iterator();
 
-        const id: ir.ExprId = @fromBackingInt(@intCast(index));
+    while (wanted.next()) |entry| {
+        const id = entry.key_ptr.*;
+        const want = entry.value_ptr.*;
 
-        value.normalize = if (self.normalized.get(id)) |want| blk: {
-            const raw_level = try self.raw(id, 0);
+        if (self.order.time[@backingInt(id)] == Order.none) continue;
 
-            break :blk (want.headered and !raw_level.headered) or (want.unique and !raw_level.unique);
-        } else false;
+        const raw_level = try self.raw(id, 0);
 
-        switch (self.expressions.get(id).value) {
+        values[@backingInt(id)].normalize = (want.headered and !raw_level.headered) or (want.unique and !raw_level.unique);
+    }
+
+    for (self.operations) |id| {
+        const value = &values[@backingInt(id)];
+
+        switch (self.row(id).value) {
             .list_operation => |operation| {
                 const target = try self.level(operation.target, 0);
 
@@ -190,21 +226,33 @@ pub fn flags(self: *Self, values: []Flags) std.mem.Allocator.Error!void {
 const State = struct { parameter: ir.SymbolId, condition: ?ir.SymbolId, initial: ir.ExprId, body: ir.ExprId };
 
 fn carriedState(self: Self, id: ir.ExprId) ?State {
-    return switch (self.expressions.get(id).value) {
+    return switch (self.row(id).value) {
         .iteration => |iteration| .{ .parameter = iteration.parameter, .condition = iteration.condition_parameter, .initial = iteration.initial, .body = iteration.body },
         .transform => |transform| if (transform.kind == .reduce) .{ .parameter = transform.parameters[0], .condition = null, .initial = transform.initial.?, .body = transform.body } else null,
         else => null,
     };
 }
 
-pub fn level(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
-    const key = (@as(u64, @backingInt(id)) << 32) | slot;
+fn row(self: Self, id: ir.ExprId) *const ir.ExpressionRow {
+    return &self.rows[@backingInt(id)];
+}
 
-    if (self.levels.get(key)) |known| return known;
+const Known = enum(u8) { unknown = 0xff, _ };
+
+pub fn level(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
+    const root = self.sites.nodeRoot(id);
+    const base = self.sites.slot_first[self.sites.symbols.count()];
+    const index = self.sites.slot_first[root] + slot;
+
+    if (index >= self.sites.slot_first[root + 1]) return self.compute(id, slot);
+
+    const entry = &self.levels[index - base];
+
+    if (entry.* != .unknown) return @bitCast(@as(u2, @intCast(@intFromEnum(entry.*))));
 
     const result = try self.compute(id, slot);
 
-    try self.levels.put(self.allocator, key, result);
+    entry.* = @enumFromInt(@as(u2, @bitCast(result)));
 
     return result;
 }
@@ -218,15 +266,15 @@ fn compute(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level 
 
     if ((!want.headered or result.headered) and (!want.unique or result.unique)) return result;
 
-    return .{ .headered = true, .unique = try self.sites.linear(self.sites.nodeRoot(id), 0) };
+    return .{ .headered = true, .unique = self.sites.linear(self.sites.nodeRoot(id), 0) };
 }
 
 fn raw(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
-    const value = self.expressions.get(id);
+    const value = self.row(id);
 
     switch (value.value) {
         .field, .tuple_field => |projection| {
-            const member = self.slots.member(self.expressions.get(projection.target).type_id, projection.index);
+            const member = self.slots.member(self.row(projection.target).type_id, projection.index);
 
             return self.level(projection.target, member.offset + slot);
         },
@@ -238,14 +286,14 @@ fn raw(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
 
             var result = try self.definition(symbol, slot);
 
-            result.unique = result.unique and try self.sites.linear(Sites.symbolRoot(symbol), slot);
+            result.unique = result.unique and self.sites.linear(Sites.symbolRoot(symbol), slot);
 
             return result;
         },
         else => {
             var result = try self.node(id, slot);
 
-            result.unique = result.unique and try self.sites.linear(self.sites.nodeRoot(id), slot);
+            result.unique = result.unique and self.sites.linear(self.sites.nodeRoot(id), slot);
 
             return result;
         },
@@ -256,14 +304,14 @@ fn definition(self: *Self, symbol: ir.SymbolId, slot: u32) std.mem.Allocator.Err
     return switch (self.order.defs[@backingInt(symbol)]) {
         .input => if (slot < self.input.len) self.input[slot] else .none,
         .value => |id| self.level(id, slot),
-        .part => |part| self.level(part.value, self.slots.member(self.expressions.get(part.value).type_id, part.index).offset + slot),
+        .part => |part| self.level(part.value, self.slots.member(self.row(part.value).type_id, part.index).offset + slot),
         .carried, .condition => |id| self.carried.get(id).?[slot],
         .element, .unknown => .none,
     };
 }
 
 fn node(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!Level {
-    const value = self.expressions.get(id);
+    const value = self.row(id);
 
     return switch (value.value) {
         .object => |object| for (0..object.fields.len) |item| {
@@ -328,10 +376,8 @@ pub fn demand(self: *Self, changed: *std.ArrayList(usize)) std.mem.Allocator.Err
 
     self.traced.clearRetainingCapacity();
 
-    for (0..self.expressions.count()) |index| {
-        if (self.order.time[index] == Order.none) continue;
-
-        switch (self.expressions.get(@fromBackingInt(@intCast(index))).value) {
+    for (self.operations) |id| {
+        switch (self.row(id).value) {
             .list_operation => |operation| switch (operation.kind) {
                 .push, .concat => try self.trace(operation.target, 0, null, false, .{ .headered = true, .unique = false }),
                 .sort, .reverse => try self.trace(operation.target, 0, null, false, .fresh),
@@ -369,11 +415,11 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
 
     if ((try self.traced.getOrPut(self.allocator, key)).found_existing) return;
 
-    const value = self.expressions.get(id);
+    const value = self.row(id);
     const leaf = if (slot == 0 and self.slots.types.get(value.type_id) == .list) id else outer;
 
     switch (value.value) {
-        .field, .tuple_field => |projection| try self.trace(projection.target, self.slots.member(self.expressions.get(projection.target).type_id, projection.index).offset + slot, leaf, repeat, want),
+        .field, .tuple_field => |projection| try self.trace(projection.target, self.slots.member(self.row(projection.target).type_id, projection.index).offset + slot, leaf, repeat, want),
         .optional_value => |child| try self.trace(child, slot, leaf, repeat, want),
         .reference => |symbol| switch (self.order.defs[@backingInt(symbol)]) {
             .input => {
@@ -382,7 +428,7 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
                 try self.normalize(leaf, want);
             },
             .value => |bound| try self.trace(bound, slot, leaf, repeat, want),
-            .part => |part| try self.trace(part.value, self.slots.member(self.expressions.get(part.value).type_id, part.index).offset + slot, leaf, repeat, want),
+            .part => |part| try self.trace(part.value, self.slots.member(self.row(part.value).type_id, part.index).offset + slot, leaf, repeat, want),
             .carried, .condition => |owner| try self.carry(owner, slot, want),
             .element, .unknown => if (repeat) try self.normalize(leaf, want),
         },
@@ -424,7 +470,7 @@ fn trace(self: *Self, id: ir.ExprId, slot: u32, outer: ?ir.ExprId, repeat: bool,
 
 /// Whether a value used here could stay unique: a projection defers to its target, a reference to its symbol.
 fn linearAt(self: *Self, id: ir.ExprId, slot: u32) std.mem.Allocator.Error!bool {
-    return switch (self.expressions.get(id).value) {
+    return switch (self.row(id).value) {
         .field, .tuple_field, .optional_value => true,
         .reference => |symbol| self.sites.linear(Sites.symbolRoot(symbol), slot),
         else => self.sites.linear(self.sites.nodeRoot(id), slot),
@@ -437,9 +483,9 @@ fn carry(self: *Self, owner: ir.ExprId, slot: u32, wanted: Level) std.mem.Alloca
     const carried = self.carriedState(owner).?;
     var want = wanted;
 
-    if (want.unique) want.unique = try self.sites.linear(Sites.symbolRoot(carried.parameter), slot) and (carried.condition == null or self.sites.observed(Sites.symbolRoot(carried.condition.?), slot));
+    if (want.unique) want.unique = self.sites.linear(Sites.symbolRoot(carried.parameter), slot) and (carried.condition == null or self.sites.observed(Sites.symbolRoot(carried.condition.?), slot));
     if (want == Level.none) return;
-    if (self.expressions.get(owner).value == .iteration) try self.renew(owner, slot, want);
+    if (self.row(owner).value == .iteration) try self.renew(owner, slot, want);
 
     try self.trace(carried.initial, slot, null, true, want);
     try self.trace(carried.body, slot, null, false, want);
@@ -468,7 +514,7 @@ fn normalize(self: *Self, leaf: ?ir.ExprId, wanted: Level) std.mem.Allocator.Err
     const id = leaf orelse return;
     var want = wanted;
 
-    if (want.unique) want.unique = try self.sites.linear(self.sites.nodeRoot(id), 0);
+    if (want.unique) want.unique = self.sites.linear(self.sites.nodeRoot(id), 0);
     if (want == Level.none) return;
 
     const entry = try self.normalized.getOrPut(id);

@@ -4,6 +4,7 @@ const Function = @import("function.zig");
 const Level = @import("level.zig").Level;
 const Order = @import("order.zig");
 const Sites = @import("sites.zig");
+pub const Basis = @import("basis.zig");
 pub const Slots = @import("slots.zig");
 pub const Summaries = @import("summaries.zig");
 pub const Flags = Function.Flags;
@@ -32,14 +33,14 @@ const Unit = struct { unit: Function.Unit, order: Order, sites: Sites, normalize
 const budget = 64;
 
 /// `exported` functions are also called from outside the program, so nothing is known about their input.
-pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId) std.mem.Allocator.Error!Result {
+pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, exported: []const ir.FunctionId, basis: *const Basis) std.mem.Allocator.Error!Result {
     var scratch = std.heap.ArenaAllocator.init(workspace);
 
     defer scratch.deinit();
 
     const temporary = scratch.allocator();
-    const slots = try Slots.init(temporary, program.types);
-    var summaries = try Summaries.create(temporary, program, slots);
+    const slots = basis.slots;
+    var summaries = try Summaries.create(temporary, program, basis);
     const count = program.functions.count();
     const units = try temporary.alloc(?*Unit, count + 1);
     const callers = try temporary.alloc(std.ArrayList(usize), count);
@@ -93,8 +94,6 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
             continue;
         };
 
-        unit.sites.memo.clearRetainingCapacity();
-
         var analysis = try Function.analyze(temporary, program.functions, unit.unit, &unit.order, &unit.sites, slots, &summaries);
         const flags = try allocator.alloc(Flags, unit.unit.expressions.count());
 
@@ -110,7 +109,7 @@ pub fn analyze(allocator: std.mem.Allocator, workspace: std.mem.Allocator, progr
 
 /// The plan of an entry body analyzed on its own, as a host entry into functions planned for another program: no
 /// callee summary is known, so only the body's own appends and growth copies count.
-pub fn analyzeEntry(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program) std.mem.Allocator.Error!Plan {
+pub fn analyzeEntry(allocator: std.mem.Allocator, workspace: std.mem.Allocator, program: ir.Program, basis: *const Basis) std.mem.Allocator.Error!Plan {
     if (program.type_only) return .{ .flags = &.{} };
 
     var scratch = std.heap.ArenaAllocator.init(workspace);
@@ -118,8 +117,8 @@ pub fn analyzeEntry(allocator: std.mem.Allocator, workspace: std.mem.Allocator, 
     defer scratch.deinit();
 
     const temporary = scratch.allocator();
-    const slots = try Slots.init(temporary, program.types);
-    var summaries = try Summaries.create(temporary, program, slots);
+    const slots = basis.slots;
+    var summaries = try Summaries.create(temporary, program, basis);
 
     summaries.clear();
 
@@ -128,16 +127,12 @@ pub fn analyzeEntry(allocator: std.mem.Allocator, workspace: std.mem.Allocator, 
     while (true) {
         var changed: std.ArrayList(usize) = .empty;
 
-        unit.sites.memo.clearRetainingCapacity();
-
         var analysis = try Function.analyze(temporary, program.functions, unit.unit, &unit.order, &unit.sites, slots, &summaries);
 
         try analysis.demand(&changed);
 
         if (!analysis.grew) break;
     }
-
-    unit.sites.memo.clearRetainingCapacity();
 
     var analysis = try Function.analyze(temporary, program.functions, unit.unit, &unit.order, &unit.sites, slots, &summaries);
     const flags = try allocator.alloc(Flags, program.expressions.count());
@@ -201,8 +196,6 @@ fn settle(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
         const unit = units[index].?;
         var changed: std.ArrayList(usize) = .empty;
 
-        unit.sites.memo.clearRetainingCapacity();
-
         var analysis = try Function.analyze(round.allocator(), program.functions, unit.unit, &unit.order, &unit.sites, slots, summaries);
 
         try analysis.arguments(&changed);
@@ -245,8 +238,6 @@ fn demand(workspace: std.mem.Allocator, work: *Work, program: ir.Program, slots:
         const unit = units[index].?;
         var changed: std.ArrayList(usize) = .empty;
 
-        unit.sites.memo.clearRetainingCapacity();
-
         var analysis = try Function.analyze(round.allocator(), program.functions, unit.unit, &unit.order, &unit.sites, slots, summaries);
 
         try analysis.demand(&changed);
@@ -273,6 +264,8 @@ fn prepare(allocator: std.mem.Allocator, slots: Slots, unit: Function.Unit, body
     result.unit.renewed = &result.renewed;
     result.order = try Order.create(allocator, unit.symbols, unit.expressions, body);
     result.sites = try Sites.create(allocator, &result.order, slots, unit.symbols, unit.expressions, summaries);
+    result.unit.operations = try Function.collectOperations(allocator, &result.order, unit.expressions);
+    result.unit.rows = try Function.readRows(allocator, unit.expressions);
 
     return result;
 }

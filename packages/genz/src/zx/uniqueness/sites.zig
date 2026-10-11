@@ -21,8 +21,11 @@ symbols: ir.SymbolTable,
 summaries: *const Summaries,
 first: []u32,
 sites: []Site,
-memo: std.AutoHashMapUnmanaged(u64, bool) = .empty,
-allocator: std.mem.Allocator,
+/// Where the list slots of each root start in a dense per-slot table; the facts of a body index their slots by it.
+slot_first: []const u32,
+/// Whether each root slot is used linearly, once decided. Uses depend only on the body and the fixed callee mutation
+/// and output types, so the answers hold across every analysis of the body.
+memo: []Memo,
 pub fn create(allocator: std.mem.Allocator, order: *const Order, slots: Slots, symbols: ir.SymbolTable, expressions: ir.ExpressionTable, summaries: *const Summaries) std.mem.Allocator.Error!Self {
     const symbol_count = symbols.count();
     const roots = symbol_count + expressions.count();
@@ -60,8 +63,25 @@ pub fn create(allocator: std.mem.Allocator, order: *const Order, slots: Slots, s
 
     first[roots] = @intCast(sites.items.len);
 
-    return .{ .order = order, .slots = slots, .expressions = expressions, .symbols = symbols, .summaries = summaries, .first = first, .sites = sites.items, .allocator = allocator };
+    var self = Self{ .order = order, .slots = slots, .expressions = expressions, .symbols = symbols, .summaries = summaries, .first = first, .sites = sites.items, .slot_first = &.{}, .memo = &.{} };
+    const slot_first = try allocator.alloc(u32, roots + 1);
+    var total: u32 = 0;
+
+    for (slot_first[0..roots], 0..) |*start, root| {
+        start.* = total;
+        total += slots.count(self.rootType(@intCast(root)));
+    }
+
+    slot_first[roots] = total;
+    self.slot_first = slot_first;
+    self.memo = try allocator.alloc(Memo, total);
+
+    @memset(self.memo, .unknown);
+
+    return self;
 }
+
+const Memo = enum(u8) { unknown, linear, shared };
 
 pub fn symbolRoot(symbol: ir.SymbolId) u32 {
     return @backingInt(symbol);
@@ -93,14 +113,20 @@ pub fn observed(self: *Self, root: u32, slot: u32) bool {
     return true;
 }
 
-pub fn linear(self: *Self, root: u32, slot: u32) std.mem.Allocator.Error!bool {
-    const key = (@as(u64, root) << 32) | slot;
+pub fn linear(self: *Self, root: u32, slot: u32) bool {
+    const index = self.slot_first[root] + slot;
 
-    if (self.memo.get(key)) |known| return known;
+    if (index >= self.slot_first[root + 1]) return self.decide(root, slot);
+
+    switch (self.memo[index]) {
+        .linear => return true,
+        .shared => return false,
+        .unknown => {},
+    }
 
     const result = self.decide(root, slot);
 
-    try self.memo.put(self.allocator, key, result);
+    self.memo[index] = if (result) .linear else .shared;
 
     return result;
 }

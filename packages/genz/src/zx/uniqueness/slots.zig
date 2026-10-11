@@ -8,33 +8,45 @@ pub const Range = struct { lo: u32, hi: u32 };
 types: ir.TypeTable,
 counts: []const u32,
 offsets: []const []const u32,
+members: []const []const ir.TypeId,
+unwrapped: []const ir.TypeId,
 pub fn init(allocator: std.mem.Allocator, types: ir.TypeTable) std.mem.Allocator.Error!Self {
     const counts = try allocator.alloc(u32, types.count());
     const offsets = try allocator.alloc([]const u32, types.count());
+    const members = try allocator.alloc([]const ir.TypeId, types.count());
+    const unwrapped = try allocator.alloc(ir.TypeId, types.count());
     const known = try allocator.alloc(bool, types.count());
 
     @memset(known, false);
 
     for (0..types.count()) |index| _ = measure(types, counts, known, @fromBackingInt(@intCast(index)));
 
-    for (offsets, 0..) |*target, index| {
+    for (offsets, members, unwrapped, 0..) |*target, *member_types, *bare, index| {
         const len = switch (types.get(@fromBackingInt(@intCast(index)))) {
             .object => |fields| fields.len,
             .tuple => |items| items.len,
             else => 0,
         };
         const values = try allocator.alloc(u32, len);
+        const member_values = try allocator.alloc(ir.TypeId, len);
         var total: u32 = 0;
 
-        for (values, 0..) |*value, step| {
+        for (values, member_values, 0..) |*value, *member_type, step| {
+            member_type.* = memberType(types, @fromBackingInt(@intCast(index)), @intCast(step));
             value.* = total;
-            total += counts[@backingInt(memberType(types, @fromBackingInt(@intCast(index)), @intCast(step)))];
+            total += counts[@backingInt(member_type.*)];
         }
 
+        var current: ir.TypeId = @fromBackingInt(@intCast(index));
+
+        while (types.get(current) == .optional) current = types.get(current).optional;
+
         target.* = values;
+        member_types.* = member_values;
+        bare.* = current;
     }
 
-    return .{ .types = types, .counts = counts, .offsets = offsets };
+    return .{ .types = types, .counts = counts, .offsets = offsets, .members = members, .unwrapped = unwrapped };
 }
 
 fn measure(types: ir.TypeTable, counts: []u32, known: []bool, type_id: ir.TypeId) u32 {
@@ -84,7 +96,7 @@ pub fn count(self: Self, type_id: ir.TypeId) u32 {
 pub fn member(self: Self, type_id: ir.TypeId, step: u32) struct { offset: u32, type_id: ir.TypeId } {
     const owner = self.unwrap(type_id);
 
-    return .{ .offset = self.offsets[@backingInt(owner)][step], .type_id = memberType(self.types, owner, step) };
+    return .{ .offset = self.offsets[@backingInt(owner)][step], .type_id = self.members[@backingInt(owner)][step] };
 }
 
 /// The member of an object or tuple whose slot range holds `slot`: the last one starting at or before it.
@@ -103,11 +115,7 @@ fn locate(self: Self, owner: ir.TypeId, slot: u32) u32 {
 }
 
 pub fn unwrap(self: Self, type_id: ir.TypeId) ir.TypeId {
-    var current = type_id;
-
-    while (self.types.get(current) == .optional) current = self.types.get(current).optional;
-
-    return current;
+    return self.unwrapped[@backingInt(type_id)];
 }
 
 /// The list type stored at slot `slot` of a value of `type_id`.
