@@ -28,32 +28,51 @@ pub fn deinit(self: *Self) void {
     self.* = undefined;
 }
 
+pub const Lookup = struct { name: []const u8, key: [32]u8, source: ?[]const u8 };
+
 pub fn emit(self: *const Self, owned: std.mem.Allocator, unit: generating.Unit) generating.Error![]const u8 {
-    const store = self.cache orelse return generating.analyzed(owned, self.backing, self.program, self.names, unit, self.analysis.value);
+    if (self.cache == null) return self.generate(owned, self.backing, unit);
+
     var scratch = std.heap.ArenaAllocator.init(self.backing);
 
     defer scratch.deinit();
 
-    const temporary = scratch.allocator();
+    const found = try self.lookup(scratch.allocator(), unit);
 
-    const name = switch (unit) {
-        .function => |id| self.names.functions[@backingInt(id)],
-        .entry, .types => try std.fmt.allocPrint(temporary, "{s}:{s}", .{ @tagName(unit), self.program.file_name }),
-    };
+    if (found.source) |source| return owned.dupe(u8, source);
 
-    const key = try fingerprint.createAnalyzed(temporary, self.program, self.names, unit, self.analysis.value, self.fresh);
-
-    if (try store.get(name, key)) |source| return owned.dupe(u8, source);
-
-    const source = try generating.analyzed(owned, self.backing, self.program, self.names, unit, self.analysis.value);
+    const source = try self.generate(owned, self.backing, unit);
 
     errdefer owned.free(source);
 
-    store.generated += 1;
-
-    try store.put(name, key, source);
+    try self.remember(found, source);
 
     return source;
+}
+
+/// Cache identity and cached source of one unit; names and keys live in `scratch`.
+pub fn lookup(self: *const Self, scratch: std.mem.Allocator, unit: generating.Unit) generating.Error!Lookup {
+    const name = switch (unit) {
+        .function => |id| self.names.functions[@backingInt(id)],
+        .entry, .types => try std.fmt.allocPrint(scratch, "{s}:{s}", .{ @tagName(unit), self.program.file_name }),
+    };
+
+    const key = try fingerprint.createAnalyzed(scratch, self.program, self.names, unit, self.analysis.value, self.fresh);
+    const source = if (self.cache) |store| try store.get(name, key) else null;
+
+    return .{ .name = name, .key = key, .source = source };
+}
+
+/// Pure generation of one unit; threads may share a batch when each passes its own `owned` and a thread-safe `backing`.
+pub fn generate(self: *const Self, owned: std.mem.Allocator, backing: std.mem.Allocator, unit: generating.Unit) generating.Error![]const u8 {
+    return generating.analyzed(owned, backing, self.program, self.names, unit, self.analysis.value);
+}
+
+pub fn remember(self: *const Self, found: Lookup, source: []const u8) std.mem.Allocator.Error!void {
+    const store = self.cache orelse return;
+    store.generated += 1;
+
+    try store.put(found.name, found.key, source);
 }
 
 fn freshOutputs(backing: std.mem.Allocator, owned: std.mem.Allocator, program: ir.Program, analysis: generating.Analysis) std.mem.Allocator.Error![]const genz.zx.buffer_call.fresh.Paths {

@@ -98,13 +98,18 @@ pub fn functionFilesAnalyzed(owned: std.mem.Allocator, batch: *const Batch, need
     const identities = batch.names;
     var files: std.ArrayList(File) = .empty;
     var seen: std.StringHashMapUnmanaged(usize) = .empty;
+    var selected: std.ArrayList(u32) = .empty;
 
-    for (0..program.functions.count()) |index| {
+    defer selected.deinit(owned);
+
+    for (needed, 0..) |wanted, index| {
+        if (wanted) try selected.append(owned, @intCast(index));
+    }
+
+    const sources = try @import("function_sources.zig").create(owned, batch, selected.items);
+
+    for (selected.items, sources) |index, source| {
         const function = program.functions.at(index);
-
-        if (!needed[index]) continue;
-
-        const source = try batch.emit(owned, .{ .function = @fromBackingInt(@intCast(index)) });
 
         const file = File{
             .name = identities.functions[index],
