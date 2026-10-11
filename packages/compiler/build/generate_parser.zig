@@ -34,17 +34,19 @@ pub fn main(init: std.process.Init) !void {
     }
 
     if (std.mem.eql(u8, args[1], "--serve")) {
-        if (args.len != 3) return error.OutputCountMismatch;
+        if (args.len != 3 and args.len != 6) return error.OutputCountMismatch;
 
-        return @import("resident/service.zig").serve(init, args[2]);
+        const warm: ?Request = if (args.len == 6) .{ .manifest = args[3], .output = args[4], .cache = args[2], .partitions = try std.fmt.parseInt(u32, args[5], 10), .write = false } else null;
+
+        return @import("resident/service.zig").serve(init, args[2], warm);
     }
 
     return error.UnknownCommand;
 }
 
 /// One generation: the manifest naming the entries and source roots, the output tree, the cache directory and the
-/// partition count.
-pub const Request = struct { manifest: []const u8, output: []const u8, cache: []const u8, partitions: u32 };
+/// partition count. Without `write` it only analyzes, leaving the output as it is.
+pub const Request = struct { manifest: []const u8, output: []const u8, cache: []const u8, partitions: u32, write: bool = true };
 
 /// Runs `request` and returns its summary line, or nothing when the output is already current. `allocator` is an arena
 /// owning everything read for the request; the analysis `resident` keeps may point into it.
@@ -94,11 +96,11 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
     const inputs_digest = fingerprint(frame, partitions, sources.items, &resident.files);
 
     // An output directory reused across runs already holds the result when nothing it depends on changed.
-    if (try current(io, allocator, output, inputs_digest)) return "";
+    if (request.write and try current(io, allocator, output, inputs_digest)) return "";
 
     const recorded = try std.fs.path.join(allocator, &.{ output, shared_output.fingerprint_name });
 
-    std.Io.Dir.cwd().deleteFile(io, recorded) catch |err| switch (err) {
+    if (request.write) std.Io.Dir.cwd().deleteFile(io, recorded) catch |err| switch (err) {
         error.FileNotFound => {},
         else => return err,
     };
@@ -109,9 +111,9 @@ pub fn generate(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, r
         .interfaces = interfaces,
         .packages = packages,
         .frame = frame,
-    }, output, request.cache, partitions);
+    }, if (request.write) output else null, request.cache, partitions);
 
-    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = recorded, .data = &std.fmt.bytesToHex(inputs_digest, .lower) });
+    if (request.write) try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = recorded, .data = &std.fmt.bytesToHex(inputs_digest, .lower) });
 
     return summary;
 }
@@ -165,6 +167,7 @@ fn field(hash: *std.crypto.hash.Blake3, bytes: []const u8) void {
 
 fn current(io: std.Io, allocator: std.mem.Allocator, output: []const u8, digest: [32]u8) !bool {
     const path = try std.fs.path.join(allocator, &.{ output, shared_output.fingerprint_name });
+
     const recorded = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(65)) catch |err| switch (err) {
         error.FileNotFound => return false,
         else => return err,

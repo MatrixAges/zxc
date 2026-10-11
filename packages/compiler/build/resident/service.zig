@@ -1,18 +1,17 @@
 //! A generator that stays resident between builds. The first build runs the generator as usual and leaves a copy of
 //! it serving requests on a Unix socket in the cache directory; later builds hand their request to that copy, which
-//! keeps the parsed modules and cached sources in memory instead of reading and parsing them again. A copy built from
+//! keeps the parsed modules and cached sources in memory instead of reading and parsing them again. The copy analyzes
+//! the first build's request again as it starts, so the next build, which usually changes little, already reuses it. A copy built from
 //! another executable, or idle for `idle_limit`, exits. A request the resident copy cannot finish is run again here,
 //! so its diagnostics reach the build. `ZXC_RESIDENT_GENERATOR=0` turns this off.
 const std = @import("std");
 const Resident = @import("state.zig");
 const generator = @import("../generate_parser.zig");
 const Request = generator.Request;
-
 const socket_name = "generator.sock";
 const idle_limit = std.Io.Duration.fromSeconds(15 * 60);
 /// Seconds a build waits for the resident generator before generating itself; a cold generation takes a few.
 const reply_limit = 120;
-
 const Status = enum(u8) { done, failed, stale, declined };
 
 /// Runs `request`, through the resident generator when one serves this executable.
@@ -26,13 +25,14 @@ pub fn run(init: std.process.Init, request: Request) !void {
     const summary = try generator.generate(init.io, allocator, &resident, request);
 
     resident.persist();
-    try print(init.io, summary);
 
-    if (enabled) start(init, allocator, request.cache) catch {};
+    try print(init.io, summary);
+    if (enabled) start(init, allocator, request) catch {};
 }
 
-/// Serves requests on the socket in `cache` until idle for `idle_limit` or asked by another executable.
-pub fn serve(init: std.process.Init, cache: []const u8) !void {
+/// Serves requests on the socket in `cache` until idle for `idle_limit` or asked by another executable, after
+/// analyzing `warm`. Requests arriving meanwhile wait on the socket.
+pub fn serve(init: std.process.Init, cache: []const u8, warm: ?Request) !void {
     const io = init.io;
     const path = try socketPath(init.arena.allocator(), cache);
     const address = std.Io.net.UnixAddress.init(path) catch return;
@@ -48,6 +48,12 @@ pub fn serve(init: std.process.Init, cache: []const u8) !void {
     var watch = Watch{ .io = io, .path = path, .resident = &resident, .last = std.Io.Timestamp.now(io, .awake) };
 
     _ = try std.Thread.spawn(.{}, Watch.run, .{&watch});
+
+    if (warm) |request| {
+        _ = generator.generate(io, resident.requestAllocator(), &resident, request) catch {};
+
+        resident.endRequest();
+    }
 
     while (true) {
         const stream = server.accept(io) catch continue;
@@ -131,8 +137,8 @@ fn forward(io: std.Io, allocator: std.mem.Allocator, request: Request) !?[]const
     return if (status == .done) summary else null;
 }
 
-/// Starts a resident copy of this executable for later builds, detached from the build that started it.
-fn start(init: std.process.Init, allocator: std.mem.Allocator, cache: []const u8) !void {
+/// Starts a resident copy of this executable for later builds, detached from the build that ran `request`.
+fn start(init: std.process.Init, allocator: std.mem.Allocator, request: Request) !void {
     const executable = try std.process.executablePathAlloc(init.io, allocator);
     var environ = try init.environ_map.clone(allocator);
 
@@ -143,7 +149,7 @@ fn start(init: std.process.Init, allocator: std.mem.Allocator, cache: []const u8
     }
 
     _ = try std.process.spawn(init.io, .{
-        .argv = &.{ executable, "--serve", cache },
+        .argv = &.{ executable, "--serve", request.cache, request.manifest, request.output, try std.fmt.allocPrint(allocator, "{d}", .{request.partitions}) },
         .environ_map = &environ,
         .stdin = .ignore,
         .stdout = .ignore,
@@ -158,7 +164,6 @@ const Watch = struct {
     path: []const u8,
     resident: *Resident,
     last: std.Io.Timestamp,
-
     fn run(self: *Watch) void {
         while (true) {
             self.io.sleep(.fromSeconds(30), .awake) catch {};
@@ -177,14 +182,12 @@ const Identity = struct {
     path: []const u8,
     size: u64,
     mtime: i128,
-
     fn own(io: std.Io, allocator: std.mem.Allocator) !Identity {
         const path = try std.process.executablePathAlloc(io, allocator);
         const stat = try std.Io.Dir.cwd().statFile(io, path, .{});
 
         return .{ .path = path, .size = stat.size, .mtime = stat.mtime.nanoseconds };
     }
-
     fn eql(self: Identity, other: Identity) bool {
         return self.size == other.size and self.mtime == other.mtime and std.mem.eql(u8, self.path, other.path);
     }

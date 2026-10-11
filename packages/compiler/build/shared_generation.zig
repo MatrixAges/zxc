@@ -13,9 +13,9 @@ const Inputs = struct {
     frame: [32]u8,
 };
 
-/// Generates the tree for `entries` into `output` and returns its summary line. Parsed modules, cached sources and the
-/// previous analysis come from `resident`, which keeps them for later requests.
-pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entries: []const Entry, inputs: Inputs, output: []const u8, cache_path: []const u8, partitions: u32) ![]const u8 {
+/// Generates the tree for `entries` into `output`, unless it is null, and returns its summary line. Parsed modules,
+/// cached sources and the previous analysis come from `resident`, which keeps them for later requests.
+pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entries: []const Entry, inputs: Inputs, output: ?[]const u8, cache_path: []const u8, partitions: u32) ![]const u8 {
     const started = std.Io.Timestamp.now(io, .awake);
     const roots = try allocator.alloc([]const u8, entries.len);
     const exports = try allocator.alloc(analysis.project.Export, entries.len);
@@ -89,7 +89,7 @@ pub fn run(io: std.Io, allocator: std.mem.Allocator, resident: *Resident, entrie
 
     const emitted = std.Io.Timestamp.now(io, .awake);
 
-    try @import("shared_output.zig").write(io, allocator, output, bundle, partitions);
+    if (output) |path| try @import("shared_output.zig").write(io, allocator, path, bundle, partitions);
 
     const written = std.Io.Timestamp.now(io, .awake);
     const modules_reused = history.reused;
